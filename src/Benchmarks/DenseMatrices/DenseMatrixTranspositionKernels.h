@@ -166,38 +166,4 @@ DenseTranspositionKernel( OutputMatrix resultMatrix,
    }
 #endif
 }
-
-// checks ensuring that only valid indices are processed for both loading from the input matrix to the shared memory tile
-// (handling the edge cases without the need for an explicit isAligned parameter)
-template< int tileDim, int tileRowBlockSize, typename OutputMatrix, typename InputMatrix, typename Real, typename Index >
-__global__
-void
-OptimizedDenseTranspositionKernel( OutputMatrix resultMatrix,
-                                   const InputMatrix inputMatrix,
-                                   const Real matrixMultiplicator,
-                                   const Index gridIdx_x,
-                                   const Index gridIdx_y )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   __shared__ Real tile[ tileDim ][ tileDim + 1 ];
-
-   Index row = blockIdx.y * tileDim + threadIdx.y;
-   Index col = blockIdx.x * tileDim + threadIdx.x;
-
-   if( row < inputMatrix.getColumns() && col < inputMatrix.getRows() ) {
-      tile[ threadIdx.y ][ threadIdx.x ] = inputMatrix( col, row ) * matrixMultiplicator;
-   }
-
-   __syncthreads();
-
-   // Calculate transposed indices for writing back to global memory
-   row = blockIdx.x * tileDim + threadIdx.y;
-   col = blockIdx.y * tileDim + threadIdx.x;
-
-   // Write back using transposed indices respecting column-major order
-   if( row < resultMatrix.getColumns() && col < resultMatrix.getRows() ) {
-      resultMatrix( col, row ) = tile[ threadIdx.x ][ threadIdx.y ];
-   }
-#endif
-}
 };  //namespace TNL::Benchmarks::DenseMatrices

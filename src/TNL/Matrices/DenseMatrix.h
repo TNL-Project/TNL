@@ -12,6 +12,12 @@
 
 namespace TNL::Matrices {
 
+enum class TransposeState
+{
+   None,
+   Transpose
+};
+
 /**
  * \brief Implementation of dense matrix, i.e. matrix storing explicitly all of its elements including zeros.
  *
@@ -213,12 +219,16 @@ public:
    reset();
 
    // TODO: refactor this to a free function
-   template< typename Matrix1, typename Matrix2, int tileDim = 32 >
+   template< typename Matrix1, typename Matrix2, int tileDim = 16 >
    void
-   getMatrixProduct( const Matrix1& matrix1, const Matrix2& matrix2, Real matrixMultiplicator = 1.0 );
+   getMatrixProduct( const Matrix1& matrix1,
+                     const Matrix2& matrix2,
+                     Real matrixMultiplicator = 1.0,
+                     TransposeState transposeA = TransposeState::None,
+                     TransposeState transposeB = TransposeState::None );
 
    // TODO: refactor this to a free function
-   template< typename Matrix, int tileDim = 32 >
+   template< typename Matrix, int tileDim = 16 >
    void
    getTransposition( const Matrix& matrix, Real matrixMultiplicator = 1.0 );
 

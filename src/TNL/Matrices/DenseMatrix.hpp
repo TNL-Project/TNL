@@ -150,78 +150,81 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::reset()
    Base::bind( 0, 0, values.getView(), segments.getView() );
 }
 
-template< int tileDim, int tileRowBlockSize, typename ResultMatrix, typename Matrix1, typename Matrix2 >
+template< int tileDim, typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
 DenseMatrixProductKernel( ResultMatrix resultMatrix,
                           const Matrix1 matrixA,
                           const Matrix2 matrixB,
                           const typename ResultMatrix::RealType matrixMultiplicator,
-                          const typename ResultMatrix::IndexType gridIdx_x,
-                          const typename ResultMatrix::IndexType gridIdx_y )
+                          TransposeState TransposeA,
+                          TransposeState TransposeB )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   // Here we compute product C = A * B. To profit from the fast
-   // shared memory we do it by tiles.
-
    using IndexType = typename ResultMatrix::IndexType;
    using RealType = typename ResultMatrix::RealType;
-   __shared__ RealType tileA[ tileDim * tileDim ];
-   __shared__ RealType tileB[ tileDim * tileDim ];
-   __shared__ RealType tileC[ tileDim * tileDim ];
 
-   const IndexType& matrixARows = matrixA.getRows();
-   const IndexType& matrixAColumns = matrixA.getColumns();
-   const IndexType& matrixBRows = matrixB.getRows();
-   const IndexType& matrixBColumns = matrixB.getColumns();
+   __shared__ RealType tileA[ tileDim ][ tileDim + 1 ];
+   __shared__ RealType tileB[ tileDim ][ tileDim + 1 ];
 
-   // Reset the tile C
-   for( IndexType row = 0; row < tileDim; row += tileRowBlockSize )
-      tileC[ ( row + threadIdx.y ) * tileDim + threadIdx.x ] = 0.0;
+   IndexType bx = blockIdx.x, by = blockIdx.y;
+   IndexType tx = threadIdx.x, ty = threadIdx.y;
 
-   // Compute the result tile coordinates
-   const IndexType resultTileRow = ( gridIdx_y * gridDim.y + blockIdx.y ) * tileDim;
-   const IndexType resultTileColumn = ( gridIdx_x * gridDim.x + blockIdx.x ) * tileDim;
+   IndexType row, col;
+   constexpr auto organization = resultMatrix.getOrganization();
 
-   // Sum over the matrix tiles
-   for( IndexType i = 0; i < matrixAColumns; i += tileDim ) {
-      for( IndexType row = 0; row < tileDim; row += tileRowBlockSize ) {
-         const IndexType matrixARow = resultTileRow + threadIdx.y + row;
-         const IndexType matrixAColumn = i + threadIdx.x;
-         if( matrixARow < matrixARows && matrixAColumn < matrixAColumns )
-            tileA[ ( threadIdx.y + row ) * tileDim + threadIdx.x ] = matrixA( matrixARow, matrixAColumn );
+   // Adjust row and col based on the matrix organization
+   if constexpr( organization == Algorithms::Segments::ElementsOrganization::ColumnMajorOrder ) {
+      row = by * tileDim + ty;  // For column-major
+      col = bx * tileDim + tx;
+   }
+   else {  // For row-major order
+      row = bx * tileDim + ty;
+      col = by * tileDim + tx;
+   }
 
-         const IndexType matrixBRow = i + threadIdx.y + row;
-         const IndexType matrixBColumn = resultTileColumn + threadIdx.x;
-         if( matrixBRow < matrixBRows && matrixBColumn < matrixBColumns )
-            tileB[ ( threadIdx.y + row ) * tileDim + threadIdx.x ] = matrixB( matrixBRow, matrixBColumn );
+   RealType CValue = 0;
+
+   IndexType widthA = ( TransposeA == TransposeState::None ) ? matrixA.getColumns() : matrixA.getRows();
+   IndexType heightA = ( TransposeA == TransposeState::None ) ? matrixA.getRows() : matrixA.getColumns();
+   IndexType widthB = ( TransposeB == TransposeState::None ) ? matrixB.getColumns() : matrixB.getRows();
+   IndexType heightB = ( TransposeB == TransposeState::None ) ? matrixB.getRows() : matrixB.getColumns();
+
+   for( IndexType m = 0; m < ( tileDim + widthA - 1 ) / tileDim; ++m ) {
+      // Load tileA from matrix A
+      if( m * tileDim + tx < widthA && row < heightA ) {
+         tileA[ ty ][ tx ] =
+            ( TransposeA == TransposeState::None ) ? matrixA( row, m * tileDim + tx ) : matrixA( m * tileDim + tx, row );
       }
+      else {
+         tileA[ ty ][ tx ] = 0.0;
+      }
+
+      // Load tileB from matrix B
+      if( m * tileDim + ty < heightB && col < widthB ) {
+         tileB[ ty ][ tx ] =
+            ( TransposeB == TransposeState::None ) ? matrixB( m * tileDim + ty, col ) : matrixB( col, m * tileDim + ty );
+      }
+      else {
+         tileB[ ty ][ tx ] = 0.0;
+      }
+
       __syncthreads();
 
-      const IndexType tileALastRow = TNL::min( tileDim, matrixARows - resultTileRow );
-      const IndexType tileALastColumn = TNL::min( tileDim, matrixAColumns - i );
-      // const IndexType tileBLastRow = TNL::min( tileDim, matrixBRows - i );
-      // const IndexType tileBLastColumn = TNL::min( tileDim, matrixBColumns - resultTileColumn );
-
-      for( IndexType row = 0; row < tileALastRow; row += tileRowBlockSize ) {
-         RealType sum( 0.0 );
-         for( IndexType j = 0; j < tileALastColumn; j++ )
-            sum += matrixMultiplicator * tileA[ ( threadIdx.y + row ) * tileDim + j ] * tileB[ j * tileDim + threadIdx.x ];
-         tileC[ ( row + threadIdx.y ) * tileDim + threadIdx.x ] += sum;
+   // Perform the multiplication for the current tile
+   #pragma unroll
+      for( IndexType k = 0; k < tileDim; ++k ) {
+         CValue += tileA[ ty ][ k ] * tileB[ k ][ tx ];
       }
+
       __syncthreads();
    }
 
-   // Write the result tile to the result matrix
-   const IndexType& matrixCRows = resultMatrix.getRows();
-   const IndexType& matrixCColumns = resultMatrix.getColumns();
-   for( IndexType row = 0; row < tileDim; row += tileRowBlockSize ) {
-      const IndexType matrixCRow = resultTileRow + row + threadIdx.y;
-      const IndexType matrixCColumn = resultTileColumn + threadIdx.x;
-      if( matrixCRow < matrixCRows && matrixCColumn < matrixCColumns )
-         resultMatrix( matrixCRow, matrixCColumn ) = tileC[ ( row + threadIdx.y ) * tileDim + threadIdx.x ];
+   // Write the computed value back to the result matrix
+   if( row < resultMatrix.getRows() && col < resultMatrix.getColumns() ) {
+      resultMatrix( row, col ) = CValue * matrixMultiplicator;
    }
-#endif
+#endif  // __CUDACC__
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
@@ -229,10 +232,23 @@ template< typename Matrix1, typename Matrix2, int tileDim >
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduct( const Matrix1& matrix1,
                                                                                    const Matrix2& matrix2,
-                                                                                   Real matrixMultiplicator )
+                                                                                   Real matrixMultiplicator,
+                                                                                   TransposeState transposeA,
+                                                                                   TransposeState transposeB )
 {
-   TNL_ASSERT_EQ( matrix1.getColumns(), matrix2.getRows(), "invalid dimensions of input matrices" );
-   setDimensions( matrix1.getRows(), matrix2.getColumns() );
+   // Determine dimensions based on transpose states
+   Index aRows = ( transposeA == TransposeState::None ) ? matrix1.getRows() : matrix1.getColumns();
+   Index aCols = ( transposeA == TransposeState::None ) ? matrix1.getColumns() : matrix1.getRows();
+
+   Index bRows = ( transposeB == TransposeState::None ) ? matrix2.getRows() : matrix2.getColumns();
+   Index bCols = ( transposeB == TransposeState::None ) ? matrix2.getColumns() : matrix2.getRows();
+
+   // Check for dimension compatibility
+   if( aCols != bRows )
+      throw std::invalid_argument( "invalid dimensions of input matrices" );
+
+   // Adjust the dimensions of the result matrix
+   setDimensions( aRows, bCols );
 
    if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > ) {
       for( Index i = 0; i < this->getRows(); i += tileDim )
@@ -275,119 +291,64 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
             if( gridIdx_y == rowGrids - 1 )
                launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
-            constexpr auto kernel = DenseMatrixProductKernel< tileDim,
-                                                              cudaBlockRows,
-                                                              ViewType,
-                                                              typename Matrix1::ConstViewType,
-                                                              typename Matrix2::ConstViewType >;
+            constexpr auto kernel =
+               DenseMatrixProductKernel< tileDim, ViewType, typename Matrix1::ConstViewType, typename Matrix2::ConstViewType >;
             Backend::launchKernelAsync( kernel,
                                         launch_config,
                                         getView(),
                                         matrix1.getConstView(),
                                         matrix2.getConstView(),
                                         matrixMultiplicator,
-                                        gridIdx_x,
-                                        gridIdx_y );
+                                        transposeA,
+                                        transposeB
+
+            );
          }
       Backend::streamSynchronize( launch_config.stream );
    }
 }
 
-template< int tileDim, int tileRowBlockSize, typename OutputMatrix, typename InputMatrix, typename Real, typename Index >
+template< int tileDim, typename OutputMatrix, typename InputMatrix, typename Real, typename Index >
 __global__
 void
-DenseTranspositionAlignedKernel( OutputMatrix resultMatrix,
-                                 const InputMatrix inputMatrix,
-                                 const Real matrixMultiplicator,
-                                 const Index gridIdx_x,
-                                 const Index gridIdx_y )
+DenseTranspositionKernel( OutputMatrix resultMatrix, const InputMatrix inputMatrix, const Real matrixMultiplicator )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   __shared__ Real tile[ tileDim * tileDim ];
+   __shared__ Real tile[ tileDim ][ tileDim + 1 ];
 
-   const Index columns = inputMatrix.getColumns();
-   const Index rows = inputMatrix.getRows();
+   constexpr auto organization = inputMatrix.getOrganization();
 
-   // Diagonal mapping of the CUDA blocks
-   Index blockIdx_x, blockIdx_y;
-   if( columns == rows ) {
-      blockIdx_y = blockIdx.x;
-      blockIdx_x = ( blockIdx.x + blockIdx.y ) % gridDim.x;
-   }
-   else {
-      Index bID = blockIdx.x + gridDim.x * blockIdx.y;
-      blockIdx_y = bID % gridDim.y;
-      blockIdx_x = ( ( bID / gridDim.y ) + blockIdx_y ) % gridDim.x;
-   }
+   Index row = blockIdx.y * tileDim + threadIdx.y;
+   Index col = blockIdx.x * tileDim + threadIdx.x;
 
-   // Read the tile to the shared memory
-   const Index readRowPosition = ( gridIdx_y * gridDim.y + blockIdx_y ) * tileDim + threadIdx.y;
-   const Index readColumnPosition = ( gridIdx_x * gridDim.x + blockIdx_x ) * tileDim + threadIdx.x;
-   for( Index rowBlock = 0; rowBlock < tileDim; rowBlock += tileRowBlockSize ) {
-      tile[ Backend::getInterleaving( threadIdx.x * tileDim + threadIdx.y + rowBlock ) ] =
-         inputMatrix( readRowPosition + rowBlock, readColumnPosition );
-   }
-   __syncthreads();
-
-   // Write the tile to the global memory
-   const Index writeRowPosition = ( gridIdx_x * gridDim.x + blockIdx_x ) * tileDim + threadIdx.y;
-   const Index writeColumnPosition = ( gridIdx_y * gridDim.y + blockIdx_y ) * tileDim + threadIdx.x;
-   for( Index rowBlock = 0; rowBlock < tileDim; rowBlock += tileRowBlockSize ) {
-      resultMatrix( writeRowPosition + rowBlock, writeColumnPosition ) =
-         matrixMultiplicator * tile[ Backend::getInterleaving( ( threadIdx.y + rowBlock ) * tileDim + threadIdx.x ) ];
-   }
-#endif
-}
-
-template< int tileDim, int tileRowBlockSize, typename OutputMatrix, typename InputMatrix, typename Real, typename Index >
-__global__
-void
-DenseTranspositionNonAlignedKernel( OutputMatrix resultMatrix,
-                                    const InputMatrix inputMatrix,
-                                    const Real matrixMultiplicator,
-                                    const Index gridIdx_x,
-                                    const Index gridIdx_y )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   __shared__ Real tile[ tileDim * tileDim ];
-
-   const Index columns = inputMatrix.getColumns();
-   const Index rows = inputMatrix.getRows();
-
-   // Diagonal mapping of the CUDA blocks
-   Index blockIdx_x, blockIdx_y;
-   if( columns == rows ) {
-      blockIdx_y = blockIdx.x;
-      blockIdx_x = ( blockIdx.x + blockIdx.y ) % gridDim.x;
-   }
-   else {
-      Index bID = blockIdx.x + gridDim.x * blockIdx.y;
-      blockIdx_y = bID % gridDim.y;
-      blockIdx_x = ( ( bID / gridDim.y ) + blockIdx_y ) % gridDim.x;
-   }
-
-   // Read the tile to the shared memory
-   const Index readRowPosition = ( gridIdx_y * gridDim.y + blockIdx_y ) * tileDim + threadIdx.y;
-   const Index readColumnPosition = ( gridIdx_x * gridDim.x + blockIdx_x ) * tileDim + threadIdx.x;
-   if( readColumnPosition < columns ) {
-      // const Index readOffset = readRowPosition * columns + readColumnPosition;
-      for( Index rowBlock = 0; rowBlock < tileDim; rowBlock += tileRowBlockSize ) {
-         if( readRowPosition + rowBlock < rows )
-            tile[ Backend::getInterleaving( threadIdx.x * tileDim + threadIdx.y + rowBlock ) ] =
-               inputMatrix( readRowPosition + rowBlock, readColumnPosition );
+   // Checks ensuring that only valid indices are processed for both loading from the input matrix to the shared memory tile
+   if constexpr( organization == Algorithms::Segments::ElementsOrganization::ColumnMajorOrder ) {
+      // Column-major order
+      if( row < inputMatrix.getRows() && col < inputMatrix.getColumns() ) {
+         tile[ threadIdx.y ][ threadIdx.x ] = inputMatrix( row, col ) * matrixMultiplicator;
       }
    }
+   else {  // Row-major order
+      if( row < inputMatrix.getRows() && col < inputMatrix.getColumns() ) {
+         tile[ threadIdx.x ][ threadIdx.y ] = inputMatrix( row, col ) * matrixMultiplicator;
+      }
+   }
+
    __syncthreads();
 
-   // Write the tile to the global memory
-   const Index writeRowPosition = ( gridIdx_x * gridDim.x + blockIdx_x ) * tileDim + threadIdx.y;
-   const Index writeColumnPosition = ( gridIdx_y * gridDim.y + blockIdx_y ) * tileDim + threadIdx.x;
-   if( writeColumnPosition < rows ) {
-      // const Index writeOffset = writeRowPosition * rows + writeColumnPosition;
-      for( Index rowBlock = 0; rowBlock < tileDim; rowBlock += tileRowBlockSize ) {
-         if( writeRowPosition + rowBlock < columns )
-            resultMatrix( writeRowPosition + rowBlock, writeColumnPosition ) =
-               matrixMultiplicator * tile[ Backend::getInterleaving( ( threadIdx.y + rowBlock ) * tileDim + threadIdx.x ) ];
+   // Adjust writing based on result matrix organization
+   row = blockIdx.x * tileDim + threadIdx.y;
+   col = blockIdx.y * tileDim + threadIdx.x;
+
+   if constexpr( organization == Algorithms::Segments::ElementsOrganization::ColumnMajorOrder ) {
+      // Column-major order
+      if( row < resultMatrix.getRows() && col < resultMatrix.getColumns() ) {
+         resultMatrix( row, col ) = tile[ threadIdx.x ][ threadIdx.y ];
+      }
+   }
+   else {  // Row-major order
+      if( row < resultMatrix.getRows() && col < resultMatrix.getColumns() ) {
+         resultMatrix( row, col ) = tile[ threadIdx.y ][ threadIdx.x ];
       }
    }
 #endif
@@ -432,28 +393,8 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTranspositio
             if( gridIdx_y == rowGrids - 1 )
                launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
-            if( ( gridIdx_x < columnGrids - 1 || matrix.getColumns() % tileDim == 0 )
-                && ( gridIdx_y < rowGrids - 1 || matrix.getRows() % tileDim == 0 ) )
-            {
-               constexpr auto kernel = DenseTranspositionAlignedKernel< tileDim,
-                                                                        cudaBlockRows,
-                                                                        ViewType,
-                                                                        typename Matrix::ConstViewType,
-                                                                        Real,
-                                                                        Index >;
-               Backend::launchKernelAsync(
-                  kernel, launch_config, getView(), matrix.getConstView(), matrixMultiplicator, gridIdx_x, gridIdx_y );
-            }
-            else {
-               constexpr auto kernel = DenseTranspositionNonAlignedKernel< tileDim,
-                                                                           cudaBlockRows,
-                                                                           ViewType,
-                                                                           typename Matrix::ConstViewType,
-                                                                           Real,
-                                                                           Index >;
-               Backend::launchKernelAsync(
-                  kernel, launch_config, getView(), matrix.getConstView(), matrixMultiplicator, gridIdx_x, gridIdx_y );
-            }
+            constexpr auto kernel = DenseTranspositionKernel< tileDim, ViewType, typename Matrix::ConstViewType, Real, Index >;
+            Backend::launchKernelAsync( kernel, launch_config, getView(), matrix.getConstView(), matrixMultiplicator );
          }
       Backend::streamSynchronize( launch_config.stream );
    }
