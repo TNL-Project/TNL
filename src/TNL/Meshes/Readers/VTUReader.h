@@ -118,7 +118,7 @@ class VTUReader : public XMLVTK
                throw MeshReaderError( "VTUReader",
                                       "size of the offsets data array does not match the NumberOfCells attribute" );
             for( auto c : array ) {
-               if( c <= (decltype( c )) max_offset )
+               if( (std::size_t) c <= max_offset )
                   throw MeshReaderError( "VTUReader", "the offsets array is not monotonically increasing" );
                max_offset = c;
             }
@@ -168,7 +168,7 @@ class VTUReader : public XMLVTK
                   // NOTE: VTK stores -1 for cells that are not a polyhedron. We would need to populate
                   if( c < 0 )
                      continue;
-                  if( c <= (decltype( c )) max_offset )
+                  if( (std::size_t) c <= max_offset )
                      throw MeshReaderError( "VTUReader", "the faceoffsets array is not monotonically increasing" );
                   max_offset = c;
                }
