@@ -148,7 +148,7 @@ void
 Array< Value, Device, Index, Allocator >::releaseData()
 {
    if( this->data ) {
-      if( ! std::is_fundamental_v< ValueType > )
+      if constexpr( ! std::is_fundamental_v< ValueType > )
          // call the destructor of each element
          detail::MemoryOperations< Device >::destruct( this->data, this->size );
       allocator.deallocate( this->data, this->size );
@@ -177,7 +177,7 @@ Array< Value, Device, Index, Allocator >::reallocate( IndexType size )
    // handle initial allocations
    if( this->size == 0 ) {
       this->data = allocator.allocate( size );
-      if( ! std::is_fundamental_v< ValueType > )
+      if constexpr( ! std::is_fundamental_v< ValueType > )
          // call the constructor of each element
          detail::MemoryOperations< Device >::construct( this->data, size );
 
@@ -205,7 +205,7 @@ Array< Value, Device, Index, Allocator >::resize( IndexType size )
    reallocate( size );
 
    if( old_size < size )
-      if( ! std::is_fundamental_v< ValueType > )
+      if constexpr( ! std::is_fundamental_v< ValueType > )
          // initialize the appended elements
          detail::MemoryOperations< Device >::construct( this->data + old_size, size - old_size );
 }
