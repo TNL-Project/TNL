@@ -558,7 +558,8 @@ protected:
             buffer.recv_view.bind( &call_with_offsets( buffer.recv_offsets, array_view.getLocalView() ) );
          }
          else {
-            CopyKernel< decltype( buffer.send_view ) > copy_kernel;
+            using BufferView = typename Buffer::NDArrayType::ViewType;
+            CopyKernel< BufferView > copy_kernel;
             copy_kernel.local_array_view.bind( array_view.getLocalView() );
             copy_kernel.to_buffer = to_buffer;
 

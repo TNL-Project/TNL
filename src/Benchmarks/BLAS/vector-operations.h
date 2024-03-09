@@ -6,10 +6,15 @@
 #include <cstdlib>     // srand48
 #include <algorithm>   // std::max_element, std::min_element, std::transform, etc.
 #include <numeric>     // std::reduce, std::transform_reduce, std::partial_sum, std::inclusive_scan, std::exclusive_scan
-#include <execution>   // std::execution policies
 #include <functional>  // std::function
 
-#if defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+#if __CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ == 4
+   // nvcc 12.4 fails when used with GCC 13 and the `execution` header is included
+   // https://gitlab.com/-/snippets/3684272
+   #define STDEXEC
+#elif defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
+   #include <execution>   // std::execution policies
+
    #if defined( __NVCOMPILER )
       // nvc++ does not support par_unseq for std::max_element: https://gitlab.com/-/snippets/2576260
       #define STDEXEC std::execution::par,

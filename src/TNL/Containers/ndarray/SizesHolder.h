@@ -32,6 +32,7 @@ public:
    using IndexType = Index;
 
    //! \brief Default constructor.
+   __cuda_callable__
    constexpr SizesHolder()
    {
       dynamicSizes.setValue( 0 );
