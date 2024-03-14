@@ -33,7 +33,7 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
 
    const int n = parameters.getParameter< int >( "grid-size" );
-   const std::string executor_string = parameters.getParameter< std::string >( "executor" );
+   const auto executor_string = parameters.getParameter< std::string >( "executor" );
 
    // Create the linear system in TNL
    VectorType x;
@@ -50,10 +50,10 @@ main( int argc, char* argv[] )
       exec = gko::OmpExecutor::create();
    else if( executor_string == "cuda" )
       // NOTE: false here disables device reset in the executor's destructor
-      exec = gko::CudaExecutor::create( 0, gko::OmpExecutor::create(), false );
+      exec = gko::CudaExecutor::create( 0, gko::OmpExecutor::create() );
    else if( executor_string == "hip" )
       // NOTE: false here disables device reset in the executor's destructor
-      exec = gko::HipExecutor::create( 0, gko::OmpExecutor::create(), false );
+      exec = gko::HipExecutor::create( 0, gko::OmpExecutor::create() );
    else if( executor_string == "dpcpp" )
       exec = gko::DpcppExecutor::create( 0, gko::OmpExecutor::create() );
    else if( executor_string == "reference" )

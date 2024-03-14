@@ -39,8 +39,8 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
 
    const int n = parameters.getParameter< int >( "grid-size" );
-   const std::string executor_string = parameters.getParameter< std::string >( "executor" );
-   const std::string preconditioner = parameters.getParameter< std::string >( "preconditioner" );
+   const auto executor_string = parameters.getParameter< std::string >( "executor" );
+   const auto preconditioner = parameters.getParameter< std::string >( "preconditioner" );
 
    // Create the linear system in TNL
    MatrixType A;
@@ -57,10 +57,10 @@ main( int argc, char* argv[] )
       exec = gko::OmpExecutor::create();
    else if( executor_string == "cuda" )
       // NOTE: false here disables device reset in the executor's destructor
-      exec = gko::CudaExecutor::create( 0, gko::OmpExecutor::create(), false );
+      exec = gko::CudaExecutor::create( 0, gko::OmpExecutor::create() );
    else if( executor_string == "hip" )
       // NOTE: false here disables device reset in the executor's destructor
-      exec = gko::HipExecutor::create( 0, gko::OmpExecutor::create(), false );
+      exec = gko::HipExecutor::create( 0, gko::OmpExecutor::create() );
    else if( executor_string == "dpcpp" )
       exec = gko::DpcppExecutor::create( 0, gko::OmpExecutor::create() );
    else if( executor_string == "reference" )
@@ -118,13 +118,13 @@ main( int argc, char* argv[] )
       auto ilu_pre_factory = gko::share(
             gko::preconditioner::Ilu< gko::preconditioner::LowerIsai< ValueType, IndexType >,
                                       gko::preconditioner::UpperIsai< ValueType, IndexType > >::build()
-               .with_factorization_factory( fact_factory )
-               .with_l_solver_factory(
+               .with_factorization( fact_factory )
+               .with_l_solver(
                   gko::preconditioner::LowerIsai< ValueType, IndexType >::build()
                      .with_sparsity_power( sparsity_power )
                      .on( exec )
                   )
-               .with_u_solver_factory(
+               .with_u_solver(
                   gko::preconditioner::UpperIsai< ValueType, IndexType >::build()
                      .with_sparsity_power( sparsity_power )
                      .on( exec )

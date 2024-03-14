@@ -166,7 +166,7 @@ protected:
    }
 
 private:
-   const Matrix* wrapped_matrix;
+   const Matrix* wrapped_matrix = nullptr;
 };
 
 }  // namespace TNL::Matrices
