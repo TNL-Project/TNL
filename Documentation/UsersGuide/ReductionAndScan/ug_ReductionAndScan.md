@@ -52,7 +52,7 @@ Putting everything together gives the following example:
 
 \includelineno SumExample.cpp
 
-Since TNL vectors cannot be pass to CUDA kernels and so they cannot be captured
+Since TNL vectors cannot be passed to CUDA kernels and so they cannot be captured
 by CUDA lambdas, we must first get vector view from the vector using a method
 `getConstView()`.
 

@@ -14,7 +14,7 @@ some cases even faster then [BLAS][BLAS] or [cuBLAS][cuBLAS] implementation.
 
 \ref TNL::Containers::Vector "Vector" is a class template similar to
 \ref TNL::Containers::Array "Array", which is defined in the `TNL::Containers`
-namespaca and has four template parameters:
+namespace and has four template parameters:
 
 * `Real` is type of data to be stored in the vector
 * `Device` is the device to be used for the execution of vector operations. It

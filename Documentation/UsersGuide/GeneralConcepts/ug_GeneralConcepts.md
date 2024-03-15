@@ -164,7 +164,7 @@ distinction is the copy-constructor: while the copy-constructor of a data
 structure typically makes a _deep copy_, copy-constructing a view results in a
 _shallow copy_. Intuitively, views represent references to a data structure
 and thus copies of a view provide references to the same data. Therefore, views
-can by captured _by value_ in lambda functions, which provides a way to
+can be captured _by value_ in lambda functions, which provides a way to
 transfer a _reference_ to a data structure into a computational kernel.
 
 The example with the array would look as follows:

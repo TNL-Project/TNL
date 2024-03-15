@@ -155,7 +155,7 @@ The result looks as follows:
 
 The following example shows creation of a grid independently on the grid
 dimension. The domain covered by the grid is \f$ [0,1]^d\f$ where \f$ d \f$ is
-the grid dimension. The resolution os the same along each axis. Tho code looks
+the grid dimension. The resolution is the same along each axis. The code looks
 as follows:
 
 \includelineno GridExample_constructor-2.h
@@ -166,7 +166,7 @@ The result looks as follows:
 
 ## Traversing the grid
 
-The grid does not store any data it only provides only indexing of the grid
+The grid does not store any data, it only provides indexing of the grid
 entities. The indexes then serve for accessing data stored in an array or
 vector. The grid entities may be traversed in parallel as we show in the
 following example:

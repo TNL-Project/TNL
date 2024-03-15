@@ -49,7 +49,7 @@ kernel since it requires making a copy of itself. This is, however, from the
 nature of this object, prohibited. For this reason we have to derreference the
 pointer on the host. This is done by a method `getData`. Its template parameter
 tells what object image we want to dereference – the one on the host or the one
-on the device. When we passing the object on the device, we need to get the
+on the device. When we pass the object to the device, we need to get the
 device image. The method `getData` returns constant reference on the object.
 
 Non-constant reference is accessible via a method `modifyData`. When this

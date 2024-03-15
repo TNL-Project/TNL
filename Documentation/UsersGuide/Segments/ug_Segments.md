@@ -144,7 +144,7 @@ sparse matrices. We could name at least few other applications for segments:
    of the hash table, elements in segments corresponds with colliding hashed
    elements.
 
-In general, segments can be used for problems that somehow corresponds wit 2D
+In general, segments can be used for problems that somehow correspond with 2D
 data structure where each row can have different size and we need to perform
 miscellaneous operations within the rows. The name *segments* comes from
 segmented parallel reduction or [segmented scan (prefix-sum)](

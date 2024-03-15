@@ -166,7 +166,7 @@ The functions \ref TNL::Algorithms::contains and
 arrays, vectors or their views. `contains` returns `true` if there is at least
 one element in the array with given value. `containsOnlyValue` returns `true`
 only if all elements of the array are equal to the given value. The test can be
-restricted to a subinterval of array elements. See the following code snippet
+restricted to a subrange of array elements. See the following code snippet
 for usage example.
 
 \include contains.cpp
@@ -203,7 +203,7 @@ template parameters:
 The interface of StaticArray is very smillar to Array but much simpler. It
 contains set of common constructors. Array elements can be accessed by the
 `operator[]` and also using method `x()`, `y()` and `z()` when it makes sense.
-See the following example for typical use of StaticArray.
+See the following example for typical use of `StaticArray`.
 
 \include StaticArrayExample.cpp
 

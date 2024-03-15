@@ -101,7 +101,7 @@ The result looks as follows:
 ### Setup with a solver monitor
 
 Solution of large linear systems may take a lot of time. In such situations, it
-is useful to be able to monitor the convergence of the solver of the solver
+is useful to be able to monitor the convergence of the solver or the solver
 status in general. For this purpose, TNL provides a solver monitor which can
 show various metrics in real time, such as current number of iterations,
 current residue of the approximate solution, etc. The solver monitor in TNL
