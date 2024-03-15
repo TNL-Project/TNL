@@ -651,7 +651,7 @@ public:
     * \param fetch is an instance of lambda function for data fetch.
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
-    * \param zero is zero of given reduction operation also known as idempotent element.
+    * \param zero is the identity element of given reduction operation.
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
@@ -672,7 +672,7 @@ public:
     * \param fetch is an instance of lambda function for data fetch.
     * \param reduce is an instance of lambda function for reduction.
     * \param keep in an instance of lambda function for storing results.
-    * \param zero is zero of given reduction operation also known as idempotent element.
+    * \param zero is the identity element of given reduction operation.
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void

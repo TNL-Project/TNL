@@ -398,7 +398,7 @@ Finally, we call the method `reduceAllSegments`
 (\ref TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel::reduceAllSegments
 for example) to compute the reductions in the segments - first with `fetch_full`
 and then with `fetch_brief`. In both cases, we use `std::plus` for the reduction
-and we pass zero (the last argument) as an idempotent element for summation. In
+and we pass zero (the last argument) as the identity element for summation. In
 both cases we print the results which are supposed to be the same.
 
 The result looks as follows:

@@ -27,7 +27,7 @@ double sum( const Vector< double, Device >& v )
 
    /***
     * Finally we call the templated function Reduction and pass number of elements to reduce,
-    * lambdas defined above and finally value of idempotent element, zero in this case, which serve for the
+    * lambdas defined above and finally value of identity element, zero in this case, which serve for the
     * reduction initiation.
     */
    return reduce< Device >( 0, view.getSize(), fetch, reduction, 0.0 );

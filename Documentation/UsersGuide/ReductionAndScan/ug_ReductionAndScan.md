@@ -57,7 +57,7 @@ by CUDA lambdas, we must first get vector view from the vector using a method
 `getConstView()`.
 
 Note that we pass `0.0` as the last argument of the template function
-`reduce< Device >`. It is an [idempotent element][idempotence] for given
+`reduce< Device >`. It is an [identity element][identity element] for given
 operation, i.e., an element which does not change the result of the operation.
 For addition, it is zero.
 
@@ -68,14 +68,14 @@ The result of the previous code sample looks as follows:
 Note that the sum of vector elements can be also obtained as `TNL::sum(v)`.
 
 [cuda_reduction]: https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf
-[idempotence]: https://cs.wikipedia.org/wiki/Idempotence
+[identity element]: https://en.wikipedia.org/wiki/Identity_element
 
 ### Product
 
-To demonstrate the effect of the *idempotent element*, we will now compute
-product of all elements of the vector. The *idempotent element* is one for
-multiplication and we also need to replace `a+b` with `a*b` in the definition
-of `reduction`. We get the following code:
+To demonstrate the effect of the *identity element*, we will now compute
+product of all elements of the vector. The *identity element* is one for
+multiplication and we also need to replace `a + b` with `a * b` in the
+definition of `reduction`. We get the following code:
 
 \includelineno ProductExample.cpp
 
@@ -121,7 +121,7 @@ The comparison of two vectors involves (parallel) reduction as well. The `fetch`
 part is responsible for the comparison of corresponding vector elements,
 resulting in a boolean value `true` or `false` for each of the vector elements.
 The `reduction` part must perform logical *and* operation on all fetched values.
-We must not forget to change the *idempotent element* to `true`. The code may
+We must not forget to change the *identity element* to `true`. The code may
 look as follows:
 
 \includelineno ComparisonExample.cpp
@@ -224,12 +224,12 @@ The result looks as:
 ### Using functionals for reduction
 
 You might notice, that the lambda function `reduction` does not take so many
-different form compared to fetch. In addition, setting the idempotent element
+different form compared to fetch. In addition, setting the identity element
 can be annoying especially when computing minimum or maximum and we need to
 use \ref std::numeric_limits to make the code general for any type. To make
 things simpler, TNL offers variants of several functionals known from the STL.
 They can be used instead of the lambda function `reduction` and they also carry
-the idempotent element. See the following example showing the scalar product of
+the identity element. See the following example showing the scalar product of
 two vectors, now with a functional:
 
 \includelineno ScalarProductWithFunctionalExample.cpp
@@ -319,7 +319,7 @@ to do some operation with the array elements before the scan, this can be done
 explicitly and it will not affect the performance significantly. On the other
 hand, the scan function takes interval of the vector elements where the scan is
 performed as its second and third argument. The next argument is the reduction
-operation to be performed by the scan and the last parameter is the idempotent
+operation to be performed by the scan and the last parameter is the identity
 element of the reduction operation.
 
 The result looks as:
