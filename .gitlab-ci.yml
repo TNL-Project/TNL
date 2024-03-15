@@ -42,7 +42,6 @@ workflow:
     # build targets
     BUILD_COVERAGE: "no"
     BUILD_DOC: "no"  # only used in the "documentation" job
-    BUILD_EXAMPLES: "no"  # only used in the "Ginkgo examples" job
     # toolchain flags defaults
     CMAKE_CXX_FLAGS: ""
     CMAKE_CUDA_FLAGS: ""
@@ -164,8 +163,6 @@ workflow:
                 BUILD_TARGETS=("benchmarks" "examples" "tools");
           elif [[ ${BUILD_DOC} == "yes" ]]; then
                 BUILD_TARGETS=("documentation");
-          elif [[ ${BUILD_EXAMPLES} == "yes" ]]; then
-                BUILD_TARGETS=("examples");
           fi
         - cmake -B "./build/$CI_JOB_NAME_SLUG" -S . -G Ninja
                 -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
@@ -314,34 +311,6 @@ icpx:
         - .build_template
         - .matrix_template
         - .icpx
-
-
-
-
-
-Ginkgo examples:
-    extends: .build_template
-    stage: build:cuda
-    tags:
-        - docker
-        - nvidia
-    variables:
-        <<: *default_cmake_flags
-        USE_CUDA: "yes"
-        BUILD_TYPE: Debug
-        # build the TNL examples
-        BUILD_EXAMPLES: "yes"
-    before_script:
-        - *env_setup
-        # clone and build Ginkgo
-        - git clone https://github.com/ginkgo-project/ginkgo.git
-        - cmake -B "./build_ginkgo/$CI_JOB_NAME_SLUG" -S "ginkgo" -G Ninja
-                -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
-                -DGINKGO_BUILD_TESTS="no"
-                -DGINKGO_BUILD_EXAMPLES="no"
-                -DGINKGO_BUILD_BENCHMARKS="no"
-        # "install" implies the "all" target
-        - cmake --build "./build_ginkgo/$CI_JOB_NAME_SLUG" --parallel ${NUM_CORES} --target install
 
 
 

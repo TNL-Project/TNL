@@ -18,13 +18,15 @@ set( CUDA_EXAMPLES
          tnl-ginkgo-PoissonEquation3D-cuda
 )
 
-if( Ginkgo_FOUND )
+# FIXME: we can't link to ginkgo when using LLVM's libc++: https://github.com/ginkgo-project/ginkgo/issues/1571
+if( Ginkgo_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
    foreach( target IN ITEMS ${CPP_EXAMPLES} )
       add_executable( ${target} ${target}.cpp )
       target_link_libraries( ${target} TNL::TNL_CXX Ginkgo::ginkgo )
       install( TARGETS ${target} RUNTIME DESTINATION bin COMPONENT examples )
    endforeach()
-   if( TNL_BUILD_CUDA )
+   # FIXME: we can't link to ginkgo when using LLVM's libc++: https://github.com/ginkgo-project/ginkgo/issues/1571
+   if( TNL_BUILD_CUDA AND CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA" )
       foreach( target IN ITEMS ${CUDA_EXAMPLES} )
          add_executable( ${target} ${target}.cu )
          target_link_libraries( ${target} TNL::TNL_CUDA Ginkgo::ginkgo )
