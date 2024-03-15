@@ -55,7 +55,8 @@ struct SharedMemory< T, 8 >
    }
 
    __device__
-   inline operator const T*() const
+   inline
+   operator const T*() const
    {
       extern __shared__ uint8_t __smem8[];
       return reinterpret_cast< T* >( __smem8 );
@@ -74,7 +75,8 @@ struct SharedMemory< T, 16 >
    }
 
    __device__
-   inline operator const T*() const
+   inline
+   operator const T*() const
    {
       extern __shared__ uint16_t __smem16[];
       return reinterpret_cast< T* >( __smem16 );
@@ -93,7 +95,8 @@ struct SharedMemory< T, 32 >
    }
 
    __device__
-   inline operator const T*() const
+   inline
+   operator const T*() const
    {
       extern __shared__ uint32_t __smem32[];
       return reinterpret_cast< T* >( __smem32 );
@@ -112,7 +115,8 @@ struct SharedMemory< T, 64 >
    }
 
    __device__
-   inline operator const T*() const
+   inline
+   operator const T*() const
    {
       extern __shared__ uint64_t __smem64[];
       return reinterpret_cast< T* >( __smem64 );
@@ -133,7 +137,8 @@ struct SharedMemory< T, 8 >
    }
 
    __device__
-   inline operator const T*() const
+   inline
+   operator const T*() const
    {
       HIP_DYNAMIC_SHARED( uint8_t, __smem8 )
       return reinterpret_cast< T* >( __smem8 );
@@ -152,7 +157,8 @@ struct SharedMemory< T, 16 >
    }
 
    __device__
-   inline operator const T*() const
+   inline
+   operator const T*() const
    {
       HIP_DYNAMIC_SHARED( uint16_t, __smem16 )
       return reinterpret_cast< T* >( __smem16 );
@@ -171,7 +177,8 @@ struct SharedMemory< T, 32 >
    }
 
    __device__
-   inline operator const T*() const
+   inline
+   operator const T*() const
    {
       HIP_DYNAMIC_SHARED( uint32_t, __smem32 )
       return reinterpret_cast< T* >( __smem32 );
@@ -190,7 +197,8 @@ struct SharedMemory< T, 64 >
    }
 
    __device__
-   inline operator const T*() const
+   inline
+   operator const T*() const
    {
       HIP_DYNAMIC_SHARED( uint64_t, __smem64 )
       return reinterpret_cast< T* >( __smem64 );

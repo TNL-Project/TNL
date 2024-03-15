@@ -85,7 +85,8 @@ public:
    operator>=( const Quad< T >& ) const;
    bool
    operator<=( const Quad< T >& ) const;
-   explicit operator T() const;
+   explicit
+   operator T() const;
 };
 
 template< typename T >

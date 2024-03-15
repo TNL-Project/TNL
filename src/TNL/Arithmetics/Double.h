@@ -56,7 +56,8 @@ public:
    operator>=( const Double< T >& rhs ) const;
    bool
    operator<=( const Double< T >& rhs ) const;
-   explicit operator T() const;
+   explicit
+   operator T() const;
 };
 
 /// TODO

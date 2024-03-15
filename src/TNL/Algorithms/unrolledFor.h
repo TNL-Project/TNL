@@ -35,7 +35,7 @@ unrolled_for_dispatch( Func&& f )
 
 // specialization for long loops - normal for-loop
 template< typename Index, Index begin, Index end, Index unrollFactor, typename Func >
-constexpr std::enable_if_t< ( begin< end && end - begin > 1 && end - begin > unrollFactor ) >
+constexpr std::enable_if_t< ( begin < end && end - begin > 1 && end - begin > unrollFactor ) >
 unrolled_for_dispatch( Func&& f )
 {
    for( Index i = begin; i < end; i++ )

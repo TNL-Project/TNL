@@ -47,7 +47,8 @@ public:
    explicit HypreSolver( const Matrices::HypreParCSRMatrix& A );
 
    //! Type-cast to \e HYPRE_Solver
-   virtual operator HYPRE_Solver() const
+   virtual
+   operator HYPRE_Solver() const
    {
       return solver;
    }

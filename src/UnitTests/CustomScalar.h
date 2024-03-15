@@ -40,7 +40,7 @@ public:
       return *this;                                                  \
    }                                                                 \
    template< typename S >                                            \
-   constexpr CustomScalar& operator op( const S& v )                 \
+   constexpr CustomScalar& operator op( const S & v )                \
    {                                                                 \
       value op v;                                                    \
       return *this;                                                  \
@@ -122,28 +122,29 @@ public:
    }
 
    // cast to T
-   constexpr operator T() const
+   constexpr
+   operator T() const
    {
       return value;
    }
 };
 
-#define MAKE_BINARY_OP( op )                                                                                          \
-   template< class T, class S >                                                                                       \
-   constexpr auto operator op( const CustomScalar< T >& v1, const CustomScalar< S >& v2 )                             \
-      ->CustomScalar< decltype( v1.value op v2.value ) >                                                              \
-   {                                                                                                                  \
-      return v1.value op v2.value;                                                                                    \
-   }                                                                                                                  \
-   template< class T, class S >                                                                                       \
-   constexpr auto operator op( const CustomScalar< T >& v1, const S& v2 )->CustomScalar< decltype( v1.value op v2 ) > \
-   {                                                                                                                  \
-      return v1.value op v2;                                                                                          \
-   }                                                                                                                  \
-   template< class S, class T >                                                                                       \
-   constexpr auto operator op( const S& v1, const CustomScalar< T >& v2 )->CustomScalar< decltype( v1 op v2.value ) > \
-   {                                                                                                                  \
-      return v1 op v2.value;                                                                                          \
+#define MAKE_BINARY_OP( op )                                                                                            \
+   template< class T, class S >                                                                                         \
+   constexpr auto operator op( const CustomScalar< T >& v1, const CustomScalar< S >& v2 )                               \
+      -> CustomScalar< decltype( v1.value op v2.value ) >                                                               \
+   {                                                                                                                    \
+      return v1.value op v2.value;                                                                                      \
+   }                                                                                                                    \
+   template< class T, class S >                                                                                         \
+   constexpr auto operator op( const CustomScalar< T >& v1, const S& v2 ) -> CustomScalar< decltype( v1.value op v2 ) > \
+   {                                                                                                                    \
+      return v1.value op v2;                                                                                            \
+   }                                                                                                                    \
+   template< class S, class T >                                                                                         \
+   constexpr auto operator op( const S& v1, const CustomScalar< T >& v2 ) -> CustomScalar< decltype( v1 op v2.value ) > \
+   {                                                                                                                    \
+      return v1 op v2.value;                                                                                            \
    }
 
 MAKE_BINARY_OP( +)
@@ -201,29 +202,29 @@ operator<<( std::ostream& str, const CustomScalar< T >& v )
    return str << v.value;
 }
 
-#define MAKE_UNARY_FUNC( fname )                                                                         \
-   template< class T >                                                                                   \
-   constexpr auto fname( const CustomScalar< T >& v )->CustomScalar< decltype( TNL::fname( v.value ) ) > \
-   {                                                                                                     \
-      return TNL::fname( v.value );                                                                      \
+#define MAKE_UNARY_FUNC( fname )                                                                           \
+   template< class T >                                                                                     \
+   constexpr auto fname( const CustomScalar< T >& v ) -> CustomScalar< decltype( TNL::fname( v.value ) ) > \
+   {                                                                                                       \
+      return TNL::fname( v.value );                                                                        \
    }
 
-#define MAKE_BINARY_FUNC( fname )                                                                                       \
-   template< class T, class S >                                                                                         \
-   constexpr auto fname( const CustomScalar< T >& v, const CustomScalar< S >& w )                                       \
-      ->CustomScalar< decltype( TNL::fname( v.value, w.value ) ) >                                                      \
-   {                                                                                                                    \
-      return TNL::fname( v.value, w.value );                                                                            \
-   }                                                                                                                    \
-   template< class T, class S >                                                                                         \
-   constexpr auto fname( const CustomScalar< T >& v, const S& w )->CustomScalar< decltype( TNL::fname( v.value, w ) ) > \
-   {                                                                                                                    \
-      return TNL::fname( v.value, w );                                                                                  \
-   }                                                                                                                    \
-   template< class S, class T >                                                                                         \
-   constexpr auto fname( const S& w, const CustomScalar< T >& v )->CustomScalar< decltype( TNL::fname( w, v.value ) ) > \
-   {                                                                                                                    \
-      return TNL::fname( w, v.value );                                                                                  \
+#define MAKE_BINARY_FUNC( fname )                                                                                         \
+   template< class T, class S >                                                                                           \
+   constexpr auto fname( const CustomScalar< T >& v, const CustomScalar< S >& w )                                         \
+      -> CustomScalar< decltype( TNL::fname( v.value, w.value ) ) >                                                       \
+   {                                                                                                                      \
+      return TNL::fname( v.value, w.value );                                                                              \
+   }                                                                                                                      \
+   template< class T, class S >                                                                                           \
+   constexpr auto fname( const CustomScalar< T >& v, const S& w ) -> CustomScalar< decltype( TNL::fname( v.value, w ) ) > \
+   {                                                                                                                      \
+      return TNL::fname( v.value, w );                                                                                    \
+   }                                                                                                                      \
+   template< class S, class T >                                                                                           \
+   constexpr auto fname( const S& w, const CustomScalar< T >& v ) -> CustomScalar< decltype( TNL::fname( w, v.value ) ) > \
+   {                                                                                                                      \
+      return TNL::fname( w, v.value );                                                                                    \
    }
 
 MAKE_UNARY_FUNC( abs )
