@@ -22,7 +22,7 @@ maximumNorm( const Vector< double, Device >& v )
       else if( a == b && bIdx < aIdx )
          aIdx = bIdx;
    };
-   return reduceWithArgument< Device >( 0, view.getSize(), fetch, reduction, std::numeric_limits< double >::max() );
+   return reduceWithArgument< Device >( 0, view.getSize(), fetch, reduction, std::numeric_limits< double >::lowest() );
 }
 
 int main( int argc, char* argv[] )
