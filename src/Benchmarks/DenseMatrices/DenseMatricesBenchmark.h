@@ -41,8 +41,11 @@ struct DenseMatricesBenchmark
       config.addEntryEnum< TNL::String >( "cuda" );
       config.addEntryEnum< TNL::String >( "host" );
       TNL::Devices::Cuda::configSetup( config );
-      config.addEntry< int >( "loops", "Number of iterations for every computation.", 20 );
-      config.addEntry< int >( "verbose", "Verbose mode.", 1 );
+      config.addEntry< IndexType >( "loops", "Number of iterations for every computation.", 20 );
+      config.addEntry< IndexType >( "verbose", "Verbose mode.", 1 );
+      config.addEntry< TNL::String >( "fill-mode", "Method to fill matrices.", "linear" );
+      config.addEntryEnum( "linear" );
+      config.addEntryEnum( "trigonometric" );
    }
 
    TNL::Config::ParameterContainer parameters;
@@ -53,8 +56,9 @@ struct DenseMatricesBenchmark
    {
       const TNL::String logFileName = parameters.getParameter< TNL::String >( "log-file" );
       const TNL::String outputMode = parameters.getParameter< TNL::String >( "output-mode" );
-      const int loops = parameters.getParameter< int >( "loops" );
-      const int verbose = parameters.getParameter< int >( "verbose" );
+      const IndexType loops = parameters.getParameter< IndexType >( "loops" );
+      const IndexType verbose = parameters.getParameter< IndexType >( "verbose" );
+      bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
 
       auto mode = std::ios::out;
       if( outputMode == "append" )
@@ -67,20 +71,21 @@ struct DenseMatricesBenchmark
 
       TNL::String device = parameters.getParameter< TNL::String >( "device" );
 
-      std::cout << "Dense Matrices benchmark with " << TNL::getType< Real >() << " precision and device: " << device << "\n";
-      std::cout << "\n";
+      std::cout << "Dense Matrices benchmark with " << TNL::getType< Real >() << " precision and device: " << device
+                << std::endl;
+      std::cout << std::endl;
       std::cout << "=== Dense Matrices Multiplication "
                    "==========================================================================================================="
                    "==================="
-                << "\n";
-      std::cout << "\n";
+                << std::endl;
+      std::cout << std::endl;
 
-      const int numMatrices = 50;  // Number of matrices for the cycle
-      int matrix1Rows = 20;        // Number of rows in matrix1
-      int matrix1Columns = 10;     // Number of columns in matrix1 && rows in matrix2
-      int matrix2Columns = 20;     // Number of columns in matrix2
+      const IndexType numMatrices = 100;  // Number of matrices for the cycle
+      IndexType matrix1Rows = 20;         // Number of rows in matrix1
+      IndexType matrix1Columns = 10;      // Number of columns in matrix1 && rows in matrix2
+      IndexType matrix2Columns = 20;      // Number of columns in matrix2
 
-      for( int i = 0; i < numMatrices; ++i ) {
+      for( IndexType i = 0; i < numMatrices; ++i ) {
          // Modify the matrix sizes for each iteration
          matrix1Rows += 100;
          matrix1Columns += 100;
@@ -97,13 +102,19 @@ struct DenseMatricesBenchmark
             auto denseMatrix2View = denseMatrix2.getView();
 
             // Fill the matrices
-            // const double h_x = 1.0 / 100;
-            // const double h_y = 1.0 / 100;
+            const RealType h_x = 1.0 / 100;
+            const RealType h_y = 1.0 / 100;
+
             auto fill1 = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
             {
                for( IndexType i = 0; i < matrix1Columns; i++ ) {
-                  double value = 3 * i;
-                  // double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * i);
+                  RealType value;
+                  if( isLinearFill ) {
+                     value = 3 * i;
+                  }
+                  else {  // trigonometric
+                     value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
+                  }
                   denseMatrix1View.setElement( i, rowIdx, value );
                }
             };
@@ -112,8 +123,13 @@ struct DenseMatricesBenchmark
             auto fill2 = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
             {
                for( IndexType i = 0; i < matrix2Columns; i++ ) {
-                  double value = 2 * i;
-                  // double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * i);
+                  RealType value;
+                  if( isLinearFill ) {
+                     value = 2 * i;
+                  }
+                  else {  // trigonometric
+                     value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
+                  }
                   denseMatrix2View.setElement( i, rowIdx, value );
                }
             };
@@ -496,16 +512,18 @@ struct DenseMatricesBenchmark
 
             std::cout << "-----------------------------------------------------------------------------------------------------"
                          "-----------------------------------------------------------"
-                      << "\n";
+                      << std::endl;
 #endif  //__CUDACC__
          }
 
          if( device == "host" || device == "all" ) {
             TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > denseMatrix1;
             denseMatrix1.setDimensions( matrix1Rows, matrix1Columns );
+            auto denseMatrix1View = denseMatrix1.getView();
 
             TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > denseMatrix2;
             denseMatrix2.setDimensions( matrix1Columns, matrix2Columns );
+            auto denseMatrix2View = denseMatrix2.getView();
 
             TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > resultMatrix;
             resultMatrix.setDimensions( matrix1Rows, matrix2Columns );
@@ -514,23 +532,38 @@ struct DenseMatricesBenchmark
             BlasResultMatrix.setDimensions( matrix1Rows, matrix2Columns );
 
             // Fill the matrices
-            //const double h_x = 1.0 / 100;
-            //const double h_y = 1.0 / 100;
-            for( int i = 0; i < matrix1Rows; i++ ) {
-               for( int j = 0; j < matrix1Columns; j++ ) {
-                  //double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
-                  double value = 3 * i;
-                  denseMatrix1.setElement( i, j, value );
-               }
-            }
+            const RealType h_x = 1.0 / 100;
+            const RealType h_y = 1.0 / 100;
 
-            for( int i = 0; i < matrix1Columns; i++ ) {
-               for( int j = 0; j < matrix2Columns; j++ ) {
-                  //double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * j);
-                  double value = 2 * i;
-                  denseMatrix2.setElement( i, j, value );
+            auto fill1 = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+            {
+               for( IndexType i = 0; i < matrix1Columns; i++ ) {
+                  RealType value;
+                  if( isLinearFill ) {
+                     value = 3 * i;
+                  }
+                  else {  // trigonometric
+                     value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
+                  }
+                  denseMatrix1View.setElement( i, rowIdx, value );
                }
-            }
+            };
+            TNL::Algorithms::parallelFor< Devices::Host >( 0, matrix1Columns, fill1 );
+
+            auto fill2 = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+            {
+               for( IndexType i = 0; i < matrix2Columns; i++ ) {
+                  RealType value;
+                  if( isLinearFill ) {
+                     value = 2 * i;
+                  }
+                  else {  // trigonometric
+                     value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
+                  }
+                  denseMatrix2View.setElement( i, rowIdx, value );
+               }
+            };
+            TNL::Algorithms::parallelFor< Devices::Host >( 0, matrix2Columns, fill2 );
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
@@ -566,21 +599,21 @@ struct DenseMatricesBenchmark
 
             std::cout << "-----------------------------------------------------------------------------------------------------"
                          "-----------------------------------------------------------"
-                      << "\n";
+                      << std::endl;
          }
       }
 
-      std::cout << "\n";
+      std::cout << std::endl;
       std::cout << "=== Dense Matrix Trasnposition "
                    "==========================================================================================================="
                    "========"
-                << "\n";
-      std::cout << "\n";
+                << std::endl;
+      std::cout << std::endl;
 
-      int dmatrix1Rows = 10;     // Number of rows in matrix1 (same as columns in matrix2)
-      int dmatrix1Columns = 10;  // Number of columns in matrix1
-      int numMatrices1 = 10;     // NUmber of matrices that are going to be generated
-      for( int i = 0; i < numMatrices1; ++i ) {
+      IndexType dmatrix1Rows = 10;     // Number of rows in matrix1 (same as columns in matrix2)
+      IndexType dmatrix1Columns = 10;  // Number of columns in matrix1
+      IndexType numMatrices1 = 1000;   // NUmber of matrices that are going to be generated
+      for( IndexType i = 0; i < numMatrices1; ++i ) {
          // Modify the matrix sizes for each iteration
          dmatrix1Rows += 100;
          dmatrix1Columns += 100;
@@ -605,18 +638,23 @@ struct DenseMatricesBenchmark
             MagmaOutputMatrix.setDimensions( dmatrix1Columns, dmatrix1Rows );
 
             // Fill the matrix
-            //const double h_x = 1.0 / 100;
-            //const double h_y = 1.0 / 100;
+            const RealType h_x = 1.0 / 100;
+            const RealType h_y = 1.0 / 100;
 
-            auto fill1 = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+            auto fill = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
             {
                for( IndexType i = 0; i < dmatrix1Columns; i++ ) {
-                  // double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * i);
-                  double value = 3 * i;
+                  RealType value;
+                  if( isLinearFill ) {
+                     value = 3 * i;
+                  }
+                  else {  // trigonometric
+                     value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
+                  }
                   denseMatrixView.setElement( i, rowIdx, value );
                }
             };
-            TNL::Algorithms::parallelFor< Devices::Cuda >( 0, dmatrix1Columns, fill1 );
+            TNL::Algorithms::parallelFor< Devices::Cuda >( 0, dmatrix1Columns, fill );
 
    #ifdef HAVE_MAGMA
             // Lambda function to perform matrix transposition using MAGMA
@@ -778,7 +816,7 @@ struct DenseMatricesBenchmark
 
             std::cout << "-----------------------------------------------------------------------------------------------------"
                          "----------------------------------------------"
-                      << "\n";
+                      << std::endl;
 #endif  //__CUDACC__
          }
          if( device == "host" || device == "all" ) {
@@ -791,9 +829,28 @@ struct DenseMatricesBenchmark
 
             TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > denseMatrix;
             denseMatrix.setDimensions( dmatrix1Rows, dmatrix1Columns );
+            auto denseMatrixView = denseMatrix.getView();
 
             TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > outputMatrix;
             outputMatrix.setDimensions( dmatrix1Columns, dmatrix1Rows );
+
+            const RealType h_x = 1.0 / 100;
+            const RealType h_y = 1.0 / 100;
+
+            auto fill1 = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+            {
+               for( IndexType i = 0; i < dmatrix1Columns; i++ ) {
+                  RealType value;
+                  if( isLinearFill ) {
+                     value = 3 * i;
+                  }
+                  else {  // trigonometric
+                     value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
+                  }
+                  denseMatrixView.setElement( i, rowIdx, value );
+               }
+            };
+            TNL::Algorithms::parallelFor< Devices::Host >( 0, dmatrix1Columns, fill1 );
 
             // Lambda function to perform matrix transposition using TNL
             auto matrixTranspositionBenchmarkTNL = [ & ]() mutable
@@ -804,22 +861,22 @@ struct DenseMatricesBenchmark
 
             std::cout << "-----------------------------------------------------------------------------------------------------"
                          "----------------------------------------------"
-                      << "\n";
+                      << std::endl;
          }
       }
-      std::cout << "\n";
+      std::cout << std::endl;
       std::cout << "=== Final Kernel Tests "
                    "==========================================================================================================="
                    "========"
-                << "\n";
-      std::cout << "\n";
+                << std::endl;
+      std::cout << std::endl;
 
-      const int numMatrices2 = 100;  // Number of matrices for the cycle
-      int matrix1Rows2 = 10;         // Number of rows in matrix1
-      int matrix1Columns2 = 10;      // Number of columns in matrix1 && rows in matrix2
-      int matrix2Columns2 = 10;      // Number of columns in matrix2
+      const IndexType numMatrices2 = 100;  // Number of matrices for the cycle
+      IndexType matrix1Rows2 = 10;         // Number of rows in matrix1
+      IndexType matrix1Columns2 = 10;      // Number of columns in matrix1 && rows in matrix2
+      IndexType matrix2Columns2 = 10;      // Number of columns in matrix2
 
-      for( int i = 0; i < numMatrices2; ++i ) {
+      for( IndexType i = 0; i < numMatrices2; ++i ) {
          // Modify the matrix sizes for each iteration
          matrix1Rows2 += 10;
          matrix1Columns2 += 20;
@@ -850,14 +907,19 @@ struct DenseMatricesBenchmark
             auto denseMatrix2TransposedView = denseMatrix2Transposed.getView();
 
             // Fill the matrices
-            // const double h_x = 1.0 / 100;
-            // const double h_y = 1.0 / 100;
+            const RealType h_x = 1.0 / 100;
+            const RealType h_y = 1.0 / 100;
 
             auto fill1 = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
             {
                for( IndexType i = 0; i < matrix1Columns2; i++ ) {
-                  double value = 3 * i;
-                  // double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * i);
+                  RealType value;
+                  if( isLinearFill ) {
+                     value = 3 * i;
+                  }
+                  else {  // trigonometric
+                     value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
+                  }
                   denseMatrix1View.setElement( i, rowIdx, value );
                }
             };
@@ -866,8 +928,13 @@ struct DenseMatricesBenchmark
             auto fill2 = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
             {
                for( IndexType i = 0; i < matrix2Columns2; i++ ) {
-                  // double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * i);
-                  double value = 2 * i;
+                  RealType value;
+                  if( isLinearFill ) {
+                     value = 2 * i;
+                  }
+                  else {  // trigonometric
+                     value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
+                  }
                   denseMatrix2View.setElement( i, rowIdx, value );
                }
             };
@@ -876,8 +943,13 @@ struct DenseMatricesBenchmark
             auto fill1Transposed = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
             {
                for( IndexType i = 0; i < matrix1Rows2; i++ ) {  // Note: Iterating over `matrix1Rows` for the transposed matrix
-                  // double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * i);
-                  double value = 3 * i;
+                  RealType value;
+                  if( isLinearFill ) {
+                     value = 2 * i;
+                  }
+                  else {  // trigonometric
+                     value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
+                  }
                   denseMatrix1TransposedView.setElement( i, rowIdx, value );
                }
             };
@@ -885,10 +957,14 @@ struct DenseMatricesBenchmark
 
             auto fill2Transposed = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
             {
-               for( IndexType i = 0; i < matrix1Columns2; i++ )
-               {  // Note: Using `matrix1Columns` to match the transposed dimension
-                  // double value = std::sin(2 * M_PI * h_x * i) + std::cos(2 * M_PI * h_y * i);
-                  double value = 2 * i;
+               for( IndexType i = 0; i < matrix1Columns2; i++ ) {
+                  RealType value;
+                  if( isLinearFill ) {
+                     value = 2 * i;
+                  }
+                  else {  // trigonometric
+                     value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
+                  }
                   denseMatrix2TransposedView.setElement( i, rowIdx, value );
                }
             };
@@ -927,12 +1003,12 @@ struct DenseMatricesBenchmark
             const Index rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
             const Index columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
 
-            std::cout << "\n";
+            std::cout << std::endl;
             std::cout << "=== A Transposed "
                          "====================================================================================================="
                          "=========================================="
-                      << "\n";
-            std::cout << "\n";
+                      << std::endl;
+            std::cout << std::endl;
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
@@ -987,13 +1063,13 @@ struct DenseMatricesBenchmark
             DenseMatricesResult< RealType, Devices::Cuda, IndexType > ATransResult( resultMatrix, benchmarkMatricesATrans );
             benchmark.time< Devices::Cuda >( device, matrixMultiplicationBenchmarkTransA, ATransResult );
 
-            std::cout << "\n";
+            std::cout << std::endl;
             std::cout << "=== B Transposed "
                          "====================================================================================================="
                          "=========================================="
 
-                      << "\n";
-            std::cout << "\n";
+                      << std::endl;
+            std::cout << std::endl;
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
@@ -1048,13 +1124,13 @@ struct DenseMatricesBenchmark
             DenseMatricesResult< RealType, Devices::Cuda, IndexType > BTransResult( resultMatrix, benchmarkMatricesBTrans );
             benchmark.time< Devices::Cuda >( device, matrixMultiplicationBenchmarkTransB, BTransResult );
 
-            std::cout << "\n";
+            std::cout << std::endl;
             std::cout << "=== A and B Transposed "
                          "====================================================================================================="
                          "===================================="
 
-                      << "\n";
-            std::cout << "\n";
+                      << std::endl;
+            std::cout << std::endl;
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },

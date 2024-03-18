@@ -37,10 +37,10 @@ struct DenseMatricesResult : public BenchmarkResult
       return headers;
    }
 
-   virtual std::vector< int >
+   virtual std::vector< IndexType >
    getColumnWidthHints() const override
    {
-      std::vector< int > columnWidths = { 14, 14, 14, 6, 14, 14 };
+      std::vector< IndexType > columnWidths = { 14, 14, 14, 6, 14, 14 };
       for( size_t i = 0; i < benchmarkResults.size(); i++ ) {
          columnWidths.push_back( 14 );  // Width for "Diff.Max"
          columnWidths.push_back( 14 );  // Width for "Diff.L2"
