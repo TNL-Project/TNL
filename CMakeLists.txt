@@ -249,17 +249,20 @@ if( PROJECT_IS_TOP_LEVEL )
    # install a CMake file for the interface target
    install( EXPORT TNLTargets
             NAMESPACE TNL::
-            DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY} )
+            DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY}
+            COMPONENT headers )
    # install the TNLConfig.cmake file
    include( CMakePackageConfigHelpers )
    configure_package_config_file( "cmake/${PROJECT_NAME}Config.cmake.in"
                                   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
                                   INSTALL_DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY} )
    install( FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-            DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY} )
+            DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY}
+            COMPONENT headers )
    # install necessary modules
    install( FILES cmake/FindFilesystem.cmake
-            DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY}/Modules )
+            DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY}/Modules
+            COMPONENT headers )
 endif()
 
 # Add all subdirectories
