@@ -23,7 +23,7 @@ matrixMultiplicationBLAS( const DenseMatrix& matrix1, const DenseMatrix& matrix2
    IndexType k = matrix1.getColumns();
    IndexType m = matrix1.getRows();
 
-   constexpr auto organization = matrix1.getOrganization();
+   auto organization = matrix1.getOrganization();
 
    // Call BLAS function with the matrix data
    if constexpr( std::is_same_v< RealType, float > ) {

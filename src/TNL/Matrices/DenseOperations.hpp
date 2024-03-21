@@ -2,8 +2,10 @@
 
 #include <TNL/Backend.h>
 #include <TNL/Devices/Host.h>
+#include <TNL/Devices/Hip.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Sequential.h>
+#include <TNL/Devices/Host.h>
 
 #include "DenseOperations.h"
 
@@ -120,7 +122,7 @@ getMatrixProduct( ResultMatrix& resultMatrix,
             }
          }
    }
-   if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
+   if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = tileDim;
       launch_config.blockSize.y = tileDim;
@@ -204,7 +206,7 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
                for( Index l = j; l < j + tileDim && l < columns; l++ )
                   resultMatrix.setElement( l, k, matrixMultiplicator * matrix.getElement( k, l ) );
    }
-   if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
+   if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = tileDim;
       launch_config.blockSize.y = tileDim;
@@ -287,7 +289,7 @@ getInPlaceTransposition( Matrix& matrix, Real matrixMultiplicator )
       }
    }
 
-   if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
+   if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = tileDim;
       launch_config.blockSize.y = tileDim;

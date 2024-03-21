@@ -1,16 +1,9 @@
-
-#pragma once
-
+#include <gtest/gtest.h>
 #include <functional>
 #include <iostream>
 #include <sstream>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Matrices/DenseMatrix.h>
-#include <TNL/Devices/Host.h>
-#include <TNL/Devices/Cuda.h>
-#include <TNL/Backend/Types.h>
-
-#include <gtest/gtest.h>
 
 template< typename Matrix >
 class DenseMatrixTranspositionTest : public ::testing::Test
@@ -27,14 +20,23 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::
       DenseMatrix< float, TNL::Devices::Host, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >
-#ifdef __CUDACC__
+#if defined( __CUDACC__ )
    ,
    TNL::Matrices::
       DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >,
    TNL::Matrices::
       DenseMatrix< float, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
-   TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >
+
+#elif defined( __HIP__ )
+   ,
+   TNL::Matrices::
+      DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >,
+   TNL::Matrices::
+      DenseMatrix< float, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >
 #endif
    >;
 

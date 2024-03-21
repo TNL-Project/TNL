@@ -1,5 +1,5 @@
 # CUDA Setup
-find_package(CUDAToolkit REQUIRED)
+#find_package(CUDAToolkit REQUIRED)
 
 # TNL Build CPP Targets
 if(TNL_BUILD_CPP_TARGETS)
@@ -10,6 +10,7 @@ endif()
 
 # TNL Build CUDA Targets
 if(TNL_BUILD_CUDA)
+    find_package(CUDAToolkit REQUIRED)
     add_executable(tnl-benchmark-densematrices-cuda tnl-benchmark-densematrices.cu)
     target_link_libraries(tnl-benchmark-densematrices-cuda PUBLIC TNL::TNL)
     target_include_directories(tnl-benchmark-densematrices-cuda PUBLIC /opt/cuda/targets/x86_64-linux/include)
@@ -35,6 +36,14 @@ if(TNL_BUILD_CUDA)
     endif()
 
     set(BENCHMARKS ${BENCHMARKS} tnl-benchmark-densematrices-cuda)
+endif()
+
+if( TNL_BUILD_HIP )
+   add_executable( tnl-benchmark-densematrices-hip tnl-benchmark-densematrices.hip )
+   target_link_libraries( tnl-benchmark-densematrices-hip PUBLIC TNL::TNL )
+   find_package( HIPBLAS REQUIRED )
+   target_link_libraries( tnl-benchmark-densematrices-hip PUBLIC roc::hipblas )
+   set( BENCHMARKS ${BENCHMARKS} tnl-benchmark-densematrices-hip )
 endif()
 
 # Installation

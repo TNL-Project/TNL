@@ -5,6 +5,7 @@
 
 #include <TNL/Backend.h>
 #include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/Hip.h>
 
 #include "DenseMatrix.h"
 #include "SparseOperations.h"

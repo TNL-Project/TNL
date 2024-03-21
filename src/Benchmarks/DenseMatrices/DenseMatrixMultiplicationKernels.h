@@ -20,7 +20,7 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
                           const typename ResultMatrix::IndexType gridIdx_x,
                           const typename ResultMatrix::IndexType gridIdx_y )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    // Here we compute product C = A * B. To profit from the fast
    // shared memory we do it by tiles.
    using IndexType = typename ResultMatrix::IndexType;
@@ -95,7 +95,7 @@ OptimizedDenseMatrixProductKernel( ResultMatrix resultMatrix,
                                    const typename ResultMatrix::IndexType gridIdx_x,
                                    const typename ResultMatrix::IndexType gridIdx_y )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    // Here we compute product C = A * B. To profit from the fast
    // shared memory we do it by tiles.
    using IndexType = typename ResultMatrix::IndexType;
@@ -164,7 +164,7 @@ Optimized2DenseMatrixProductKernel( ResultMatrix resultMatrix,
                                     const typename ResultMatrix::IndexType gridIdx_x,
                                     const typename ResultMatrix::IndexType gridIdx_y )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename ResultMatrix::IndexType;
    using RealType = typename ResultMatrix::RealType;
 
@@ -233,7 +233,7 @@ WarpTilingDenseMatrixProductKernel( ResultMatrix resultMatrix,
                                     const Matrix2 matrixB,
                                     const typename ResultMatrix::RealType matrixMultiplicator )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename ResultMatrix::IndexType;
    using RealType = typename ResultMatrix::RealType;
 
@@ -289,7 +289,7 @@ OptimizedWarpTilingDenseMatrixProductKernel( ResultMatrix resultMatrix,
                                              const Matrix2 matrixB,
                                              const typename ResultMatrix::RealType matrixMultiplicator )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename ResultMatrix::IndexType;
    using RealType = typename ResultMatrix::RealType;
 
@@ -341,7 +341,7 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
                           const Matrix2 matrixB,
                           const typename ResultMatrix::RealType matrixMultiplicator )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename ResultMatrix::IndexType;
    using RealType = typename ResultMatrix::RealType;
 
@@ -432,7 +432,7 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
                           const Matrix2 matrixB,
                           const typename ResultMatrix::RealType matrixMultiplicator )
 {
-#ifdef __CUDACC__
+#if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename ResultMatrix::IndexType;
    using RealType = typename ResultMatrix::RealType;
 
@@ -456,23 +456,41 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
    for( IndexType m = 0; m < numTiles; ++m ) {
       RealType AReg[ 4 ], BReg[ 4 ];
 
-   // Load elements from A and B into registers for this tile
+      // Pre-compute the valid ranges for loading from A and B to avoid repeating boundary checks
+      IndexType validARowStart = row;
+      IndexType validARowEnd = min( matrixARows, row + 4 );
+      IndexType validAColStart = m * 16;
+      IndexType validAColEnd = min( matrixAColumns, ( m + 1 ) * 16 );
+
+      IndexType validBRowStart = m * 16;
+      IndexType validBRowEnd = min( matrixBRows, ( m + 1 ) * 16 );
+      IndexType validBColStart = col;
+      IndexType validBColEnd = min( matrixBColumns, col + 4 );
+
+   // Load elements from A and B into registers for this tile, using pre-computed valid ranges
    #pragma unroll
       for( IndexType i = 0; i < 4; ++i ) {
-         IndexType aRow = row + i;
-         IndexType bCol = col + i;
-         AReg[ i ] = ( aRow < matrixARows && m * 16 < matrixAColumns ) ? matrixA( aRow, m * 16 ) : 0;
-         BReg[ i ] = ( m * 16 < matrixBRows && bCol < matrixBColumns ) ? matrixB( m * 16, bCol ) : 0;
+         IndexType aRow = validARowStart + i;
+         IndexType bCol = validBColStart + i;
+
+         AReg[ i ] = ( aRow < validARowEnd && validAColStart < validAColEnd ) ? matrixA( aRow, validAColStart ) : 0;
+         BReg[ i ] = ( validBRowStart < validBRowEnd && bCol < validBColEnd ) ? matrixB( validBRowStart, bCol ) : 0;
       }
 
    // Compute sub-tile
    #pragma unroll
       for( IndexType k = 0; k < 16; ++k ) {
-   // Load the next element from A and B into registers
+         // Adjust valid ranges based on k for loading next elements
+         validAColStart = min( matrixAColumns, m * 16 + k );
+         validBRowStart = min( matrixBRows, m * 16 + k );
+
    #pragma unroll
          for( IndexType i = 0; i < 4; ++i ) {
-            AReg[ i ] = ( ( row + i ) < matrixARows && ( m * 16 + k ) < matrixAColumns ) ? matrixA( row + i, m * 16 + k ) : 0;
-            BReg[ i ] = ( ( m * 16 + k ) < matrixBRows && ( col + i ) < matrixBColumns ) ? matrixB( m * 16 + k, col + i ) : 0;
+            IndexType aRow = validARowStart + i;
+            IndexType bCol = validBColStart + i;
+
+            AReg[ i ] = ( aRow < validARowEnd && validAColStart < validAColEnd ) ? matrixA( aRow, validAColStart ) : 0;
+            BReg[ i ] = ( validBRowStart < validBRowEnd && bCol < validBColEnd ) ? matrixB( validBRowStart, bCol ) : 0;
          }
 
    // Multiply and accumulate in CValue
