@@ -9,14 +9,9 @@
 #include <TNL/Allocators/Default.h>
 
 #include "DenseMatrixView.h"
+#include "DenseOperations.h"
 
 namespace TNL::Matrices {
-
-enum class TransposeState
-{
-   None,
-   Transpose
-};
 
 /**
  * \brief Implementation of dense matrix, i.e. matrix storing explicitly all of its elements including zeros.
@@ -218,7 +213,27 @@ public:
    void
    reset();
 
-   // TODO: refactor this to a free function
+   /**
+    * \brief Computes the product of two matrices and stores the result in this matrix.
+    *
+    * This method calculates the product of two given matrices (matrix1 and matrix2) and stores the result in this matrix.
+    * It optionally supports transposing the input matrices before performing the multiplication and scaling the result by a
+    * specified factor.
+    *
+    * \tparam Matrix1 Type of the first input matrix.
+    * \tparam Matrix2 Type of the second input matrix.
+    * \tparam tileDim Tile dimension for GPU computation optimization. Default is 16.
+    * \param matrix1 The first input matrix.
+    * \param matrix2 The second input matrix.
+    * \param matrixMultiplicator A scalar value by which the matrix product is scaled. Default is 1.0.
+    * \param transposeA Specifies whether to transpose matrix1 before multiplication. Default is TransposeState::None.
+    * \param transposeB Specifies whether to transpose matrix2 before multiplication. Default is TransposeState::None.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixOperationsExample_getProduct.cpp
+    * \par Output
+    * \include DenseMatrixOperationsExample_getProduct.out
+    */
    template< typename Matrix1, typename Matrix2, int tileDim = 16 >
    void
    getMatrixProduct( const Matrix1& matrix1,
@@ -227,11 +242,40 @@ public:
                      TransposeState transposeA = TransposeState::None,
                      TransposeState transposeB = TransposeState::None );
 
-   // TODO: refactor this to a free function
+   /**
+    * \brief Computes the transposition of a given matrix and stores the result in this matrix.
+    *
+    * This method calculates the transpose of a given matrix and stores the result in this matrix.
+    * The result can also be scaled by a specified factor.
+    *
+    * \tparam Matrix Type of the input matrix.
+    * \tparam tileDim Tile dimension for GPU computation optimization. Default is 16.
+    * \param matrix The input matrix to be transposed.
+    * \param matrixMultiplicator A scalar value by which the transposed matrix is scaled. Default is 1.0.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixOperationsExample_getTransposition.cpp
+    * \par Output
+    * \include DenseMatrixOperationsExample_getTransposition.out
+    */
    template< typename Matrix, int tileDim = 16 >
    void
    getTransposition( const Matrix& matrix, Real matrixMultiplicator = 1.0 );
 
+   /**
+    * \brief Performs an in-place transposition of this matrix.
+    *
+    * This method transposes this matrix in place, modifying the original matrix.
+    * The operation can optionally scale the matrix by a specified factor.
+    *
+    * \tparam tileDim Tile dimension for GPU computation optimization. Default is 16.
+    * \param matrixMultiplicator A scalar value by which the matrix is scaled during the transposition. Default is 1.0.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixOperationsExample_getInPlaceTransposition.cpp
+    * \par Output
+    * \include DenseMatrixOperationsExample_getInPlaceTransposition.out
+    */
    template< int tileDim = 16 >
    void
    getInPlaceTransposition( Real matrixMultiplicator = 1.0 );
