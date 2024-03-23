@@ -52,10 +52,10 @@ following example we build a 3D mesh function on top of \ref TNL::Containers::Ve
 Three-dimensional indices `i = ( x, y, z )` are mapped to the vector index `idx`
 as `idx = ( z * ySize + y ) * xSize + x`, where the mesh function has dimensions
 `xSize * ySize * zSize`. Note that since `x` values change the fastest and `z`
-values the slowest, the index mapping `j * xSize + i` achieves sequential access
-to the vector elements on CPU and coalesced memory accesses on GPU. The
-following simple example performs initiation of the mesh function with a
-constant value `c = 1.0`:
+values the slowest, this index mapping achieves sequential access to the vector
+elements on CPU and coalesced memory accesses on GPU. The following simple
+example performs initiation of the mesh function with a constant value
+`c = 1.0`:
 
 \include parallelForMultiIndexExample.cpp
 
