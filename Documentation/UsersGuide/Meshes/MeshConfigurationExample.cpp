@@ -1,12 +1,11 @@
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
 
 // Define the tag for the MeshTypeResolver configuration
-struct MyConfigTag {};
+struct MyConfigTag
+{};
 
 //! [Configuration example]
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 // Create a template specialization of the tag specifying the MeshConfig template to use as the Config parameter for the mesh.
 template<>
@@ -17,43 +16,45 @@ struct MeshConfigTemplateTag< MyConfigTag >
              typename Real = double,
              typename GlobalIndex = int,
              typename LocalIndex = short int >
-   struct MeshConfig
-      : public DefaultConfig< Cell, SpaceDimension, Real, GlobalIndex, LocalIndex >
+   struct MeshConfig : public DefaultConfig< Cell, SpaceDimension, Real, GlobalIndex, LocalIndex >
    {
-      static constexpr bool subentityStorage( int entityDimension, int subentityDimension )
+      static constexpr bool
+      subentityStorage( int entityDimension, int subentityDimension )
       {
          return subentityDimension == 0 && entityDimension >= Cell::dimension - 1;
       }
    };
 };
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+}  // namespace TNL::Meshes::BuildConfigTags
 //! [Configuration example]
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
 struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >
-{ enum { enabled = false }; };
+{
+   static constexpr bool enabled = false;
+};
 
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle > { enum { enabled = true }; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >
+{
+   static constexpr bool enabled = true;
+};
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+}  // namespace TNL::Meshes::BuildConfigTags
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    const std::string inputFileName = "example-triangles.vtu";
 
-   auto wrapper = [] ( auto& reader, auto&& mesh ) -> bool
+   auto wrapper = []( auto& reader, auto&& mesh ) -> bool
    {
       return true;
    };
-   return ! TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
+   const bool result = TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
+   return static_cast< int >( ! result );
 }

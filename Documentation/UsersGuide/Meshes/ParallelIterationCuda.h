@@ -5,26 +5,30 @@
 #include <TNL/Pointers/DevicePointer.h>
 
 // Define the tag for the MeshTypeResolver configuration
-struct MyConfigTag {};
+struct MyConfigTag
+{};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
 // disable all grids
 template< int Dimension, typename Real, typename Device, typename Index >
 struct GridTag< MyConfigTag, Grid< Dimension, Real, Device, Index > >
-{ enum { enabled = false }; };
+{
+   static constexpr bool enabled = false;
+};
 
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle > { enum { enabled = true }; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >
+{
+   static constexpr bool enabled = true;
+};
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+}  // namespace TNL::Meshes::BuildConfigTags
 
 // Define the main task/function of the program
 template< typename HostMesh >
-bool task( const HostMesh& hostMesh )
+bool
+task( const HostMesh& hostMesh )
 {
    //! [Parallel iteration CUDA]
    // Copy the mesh from host to the device
@@ -36,7 +40,7 @@ bool task( const HostMesh& hostMesh )
    const DeviceMesh* meshPointer = &meshDevicePointer.template getData< typename DeviceMesh::DeviceType >();
 
    // Define and execute the kernel on the device
-   auto kernel = [meshPointer] __cuda_callable__ ( typename DeviceMesh::GlobalIndexType i ) mutable
+   auto kernel = [ meshPointer ] __cuda_callable__( typename DeviceMesh::GlobalIndexType i ) mutable
    {
       typename DeviceMesh::Cell elem = meshPointer->template getEntity< DeviceMesh::getMeshDimension() >( i );
       // [Do some work with the current cell `elem`...]
@@ -48,13 +52,15 @@ bool task( const HostMesh& hostMesh )
    return true;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    const std::string inputFileName = "example-triangles.vtu";
 
-   auto wrapper = [] ( auto& reader, auto&& mesh ) -> bool
+   auto wrapper = []( auto& reader, auto&& mesh ) -> bool
    {
       return task( mesh );
    };
-   return ! TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
+   const bool result = TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
+   return static_cast< int >( ! result );
 }

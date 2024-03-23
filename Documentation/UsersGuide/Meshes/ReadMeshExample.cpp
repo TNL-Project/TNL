@@ -2,40 +2,48 @@
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
 
 // Define the tag for the MeshTypeResolver configuration
-struct MyConfigTag {};
+struct MyConfigTag
+{};
 
-namespace TNL {
-namespace Meshes {
-namespace BuildConfigTags {
+namespace TNL::Meshes::BuildConfigTags {
 
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle > { enum { enabled = true }; };
-template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle > { enum { enabled = true }; };
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >
+{
+   static constexpr bool enabled = true;
+};
 
-} // namespace BuildConfigTags
-} // namespace Meshes
-} // namespace TNL
+template<>
+struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle >
+{
+   static constexpr bool enabled = true;
+};
+
+}  // namespace TNL::Meshes::BuildConfigTags
 //! [config]
 
 //! [task]
 // Define the main task/function of the program
 template< typename Mesh >
-bool task( const Mesh& mesh, const std::string& inputFileName )
+bool
+task( const Mesh& mesh, const std::string& inputFileName )
 {
-   std::cout << "The file '" << inputFileName << "' contains the following mesh: "
-             << TNL::getType<Mesh>() << std::endl;
+   std::cout << "The file '" << inputFileName << "' contains the following mesh: " << TNL::getType< Mesh >() << std::endl;
    return true;
 }
 //! [task]
 
 //! [main]
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    const std::string inputFileName = "example-triangles.vtu";
 
-   auto wrapper = [&] ( auto& reader, auto&& mesh ) -> bool
+   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
    {
       return task( mesh, inputFileName );
    };
-   return ! TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
+   const bool result = TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
+   return static_cast< int >( ! result );
 }
 //! [main]

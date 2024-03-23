@@ -1,48 +1,81 @@
-# Flexible reduction and prefix-sum  {#ug_ReductionAndScan}
+# Flexible parallel reduction and scan  {#ug_ReductionAndScan}
 
 [TOC]
 
 ## Introduction
 
-This chapter introduces flexible parallel reduction in TNL. It shows how to easily implement parallel reduction with user defined operations which may run on both CPU and GPU. Parallel reduction is a programming pattern appearing very often in different kind of algorithms for example in scalar product, vector norms or mean value evaluation but also in sequences or strings comparison.
+This chapter introduces flexible parallel reduction in TNL. It shows how to
+easily implement parallel reduction with user defined operations which may run
+on both CPU and GPU. Parallel reduction is a programming pattern appearing very
+often in different kind of algorithms for example in scalar product, vector
+norms or mean value evaluation but also in sequences or strings comparison.
 
 ## Flexible reduction
 
-We will explain the *flexible parallel reduction* on several examples. We start with the simplest sum of sequence of numbers followed by more advanced problems like scalar product or vector norms.
+We will explain the *flexible parallel reduction* on several examples. We start
+with the simplest sum of sequence of numbers followed by more advanced problems
+like scalar product or vector norms.
 
 ### Sum
 
-We start with simple problem of computing sum of sequence of numbers \f[ s = \sum_{i=1}^n a_i. \f] Sequentialy, such sum can be computed very easily as follows:
+We start with simple problem of computing sum of sequence of numbers
+
+\f[ s = \sum_{i=1}^n a_i. \f]
+
+Sequentialy, such sum can be computed very easily as follows:
 
 \includelineno SequentialSum.cpp
 
-Doing the same in CUDA for GPU is, however, much more difficult (see. [Optimizing Parallel Reduction in CUDA](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf)). The final code has tens of lines and it is something you do not want to write again and again anytime you need to sum a series of numbers. Using TNL and C++ lambda functions we may do the same on few lines of code efficiently and independently on the hardware beneath. Let us first rewrite the previous example using the C++ lambda functions:
+Doing the same in CUDA for GPU is, however, much more difficult (see
+[Optimizing Parallel Reduction in CUDA][cuda_reduction]). The final code has
+tens of lines and it is something you do not want to write again and again
+anytime you need to sum a series of numbers. Using TNL and C++ lambda functions
+we may do the same on few lines of code efficiently and independently on the
+hardware beneath. Let us first rewrite the previous example using the C++
+lambda functions:
 
 \includelineno SequentialSumWithLambdas.cpp
 
 As can be seen, we split the reduction into two steps:
 
 1. `fetch` reads the input data. Thanks to this lambda you can:
-   1. Connect the reduction algorithm with given input arrays or vectors (or any other data structure).
+   1. Connect the reduction algorithm with given input arrays or vectors (or
+      any other data structure).
    2. Perform operation you need to do with the input data.
-   3. Perform another secondary operation simoultanously with the parallel reduction.
-2. `reduction` is operation we want to do after the data fetch. Usually it is summation, multiplication, evaluation of minimum or maximum or some logical operation.
+   3. Perform another secondary operation simoultanously with the parallel
+      reduction.
+2. `reduction` is operation we want to do after the data fetch. Usually it is
+   summation, multiplication, evaluation of minimum or maximum or some logical
+   operation.
 
 Putting everything together gives the following example:
 
 \includelineno SumExample.cpp
 
-Since TNL vectors cannot be pass to CUDA kernels and so they cannot be captured by CUDA lambdas, we must first get vector view from the vector using a method `getConstView()`.
+Since TNL vectors cannot be passed to CUDA kernels and so they cannot be captured
+by CUDA lambdas, we must first get vector view from the vector using a method
+`getConstView()`.
 
-Note tha we pass `0.0` as the last argument of the template function `reduce< Device >`. It is an *idempotent element* (see [Idempotence](https://cs.wikipedia.org/wiki/Idempotence)). It is an element which, for given operation, does not change the result. For addition, it is zero. The result looks as follows.
+Note that we pass `0.0` as the last argument of the template function
+`reduce< Device >`. It is an [identity element][identity element] for given
+operation, i.e., an element which does not change the result of the operation.
+For addition, it is zero.
+
+The result of the previous code sample looks as follows:
 
 \include SumExample.out
 
-Sum of vector elements can be also obtained as [`sum(v)`](../html/namespaceTNL.html#a41cea4796188f0877dbb6e72e2d3559e).
+Note that the sum of vector elements can be also obtained as `TNL::sum(v)`.
+
+[cuda_reduction]: https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf
+[identity element]: https://en.wikipedia.org/wiki/Identity_element
 
 ### Product
 
-To demonstrate the effect of the *idempotent element*, we will now compute product of all elements of the vector. The *idempotent element* is one for multiplication and we also need to replace `a+b` with `a*b` in the definition of `reduction`. We get the following code:
+To demonstrate the effect of the *identity element*, we will now compute
+product of all elements of the vector. The *identity element* is one for
+multiplication and we also need to replace `a + b` with `a * b` in the
+definition of `reduction`. We get the following code:
 
 \includelineno ProductExample.cpp
 
@@ -50,11 +83,14 @@ leading to output like this:
 
 \include ProductExample.out
 
-Product of vector elements can be computed using fuction [`product(v)`](../html/namespaceTNL.html#ac11e1901681d36b19a0ad3c6f167a718).
+Note that the product of vector elements can be computed as `TNL::product(v)`.
 
 ### Scalar product
 
-One of the most important operation in the linear algebra is the scalar product of two vectors. Compared to computing the sum of vector elements we must change the function `fetch` to read elements from both vectors and multiply them. See the following example.
+One of the most important operation in the linear algebra is the scalar product
+of two vectors. Compared to computing the sum of vector elements we must change
+the function `fetch` to read elements from both vectors and multiply them. See
+the following example.
 
 \includelineno ScalarProductExample.cpp
 
@@ -62,11 +98,14 @@ The result is:
 
 \include ScalarProductExample.out
 
-Scalar product of vectors `u` and `v` in TNL can be computed by `TNL::dot(u, v)` or simply as `(u, v)`.
+Note that the scalar product of vectors `u` and `v` can be computed by
+`TNL::dot(u, v)` or simply as `(u, v)`.
 
 ### Maximum norm
 
-Maximum norm of a vector equals the modulus of the vector largest element.  Therefore, `fetch` must return the absolute value of the vector elements and `reduction` wil return maximum of given values. Look at the following example.
+The maximum norm of a vector equals the modulus of the vector largest element.
+Therefore, `fetch` must return the absolute value of the vector elements and
+`reduction` will return maximum of given values. Look at the following example.
 
 \includelineno MaximumNormExample.cpp
 
@@ -74,11 +113,16 @@ The output is:
 
 \include MaximumNormExample.out
 
-Maximum norm in TNL is computed by the function `TNL::maxNorm`.
+Note that the maximum norm can be computed by `TNL::maxNorm(v)`.
 
 ### Vectors comparison
 
-Comparison of two vectors involve (parallel) reduction as well. The `fetch` part is responsible for comparison of corresponding vector elements results of which is boolean `true` or `false` for each vector elements. The `reduction` part must perform logical and operation on all of them. We must not forget to change the *idempotent element* to `true`. The code may look as follows:
+The comparison of two vectors involves (parallel) reduction as well. The `fetch`
+part is responsible for the comparison of corresponding vector elements,
+resulting in a boolean value `true` or `false` for each of the vector elements.
+The `reduction` part must perform logical *and* operation on all fetched values.
+We must not forget to change the *identity element* to `true`. The code may
+look as follows:
 
 \includelineno ComparisonExample.cpp
 
@@ -88,13 +132,16 @@ And the output looks as:
 
 ### Update and residue
 
-In iterative solvers we often need to update a vector and compute the update norm at the same time. For example the [Euler method](https://en.wikipedia.org/wiki/Euler_method) is defined as
+In iterative solvers we often need to update a vector and compute the norm at
+the same time. For example, the [Euler method][Euler method] is defined as
 
-\f[
-\bf u^{k+1} = \bf u^k + \tau \Delta \bf u.
-\f]
+\f[ \bf u^{k+1} = \bf u^k + \tau \Delta \bf u. \f]
 
-Together with the vector addition, we may want to compute also \f$L_2\f$-norm of \f$\Delta \bf u\f$ which may indicate convergence. Computing first the addition and then the norm would be inefficient because we would have to fetch the vector \f$\Delta \bf u\f$ twice from the memory. The following example shows how to do the addition and norm computation at the same time.
+Together with the vector addition, we may want to compute also \f$L_2\f$-norm
+of \f$ \Delta \bf u \f$ which may indicate convergence. Computing first the
+addition and then the norm would be inefficient because we would have to fetch
+the vector \f$ \Delta \bf u \f$ twice from the memory. The following example
+shows how to do the addition and norm computation at the same time.
 
 \includelineno UpdateAndResidueExample.cpp
 
@@ -102,11 +149,16 @@ The result reads as:
 
 \include UpdateAndResidueExample.out
 
+[Euler method]: https://en.wikipedia.org/wiki/Euler_method
+
 ### Simple MapReduce
 
-We can also filter the data to be reduced. This operation is called [MapReduce](https://en.wikipedia.org/wiki/MapReduce) . You simply add necessary if statement to the fetch function, or in the case of the following example we use a statement
+We can also filter the data to be reduced. This operation is called
+[MapReduce](https://en.wikipedia.org/wiki/MapReduce). You simply add the
+necessary *if*-statement to the fetch function, or in the case of the following
+example, we use the ternary conditional operator
 
-```
+```cpp
 return u_view[ i ] > 0.0 ? u_view[ i ] : 0.0;
 ```
 
@@ -118,7 +170,8 @@ The result is:
 
 \include MapReduceExample-1.out
 
-Take a look at the following example where the filtering depends on the element indexes rather than values:
+Take a look at the following example where the filtering depends on the element
+indexes rather than values:
 
 \includelineno MapReduceExample-2.cpp
 
@@ -126,9 +179,11 @@ The result is:
 
 \include MapReduceExample-2.out
 
-This is not very efficient. For half of the elements, we return zero which has no effect during the reductin. Better solution is to run the reduction only for a half of the elements and to change the fetch function to
+This is not very efficient. For half of the elements, we return zero which has
+no effect during the reduction. A better solution is to run the reduction only
+for a half of the elements and to change the fetch function to
 
-```
+```cpp
 return u_view[ 2 * i ];
 ```
 
@@ -140,17 +195,27 @@ See the following example and compare the execution times.
 
 ### Reduction with argument
 
-In some situations we may need to locate given element in the vector. For example index of the smallest or the largest element. `reduceWithArgument` is a function which can do it. In the following example, we modify function for computing the maximum norm of a vector. Instead of just computing the value, now we want to get index of the element having the absolute value equal to the max norm. The lambda function `reduction` do not compute only maximum of two given elements anymore, but it must also compute index of the winner. See the following code:
+In some situations we may need to locate given element in the vector. For
+example index of the smallest or the largest element. `reduceWithArgument` is
+a function which can do it. In the following example, we modify function for
+computing the maximum norm of a vector. Instead of just computing the value,
+now we want to get index of the element having the absolute value equal to the
+max norm. The lambda function `reduction` do not compute only maximum of two
+given elements anymore, but it must also compute index of the winner. See the
+following code:
 
 \includelineno ReductionWithArgument.cpp
 
 The definition of the lambda function `reduction` reads as:
 
-```
+```cpp
 auto reduction = [] __cuda_callable__ ( double& a, const double& b, int& aIdx, const int& bIdx );
 ```
 
-In addition to vector elements values `a` and `b`, it gets also their positions `aIdx` and `bIdx`. The functions is responsible to set `a` to maximum of the two and `aIdx` to the position of the larger element. Note, that the parameters have the above mentioned meaning only in case of computing minimum or maximum.
+In addition to vector elements values `a` and `b`, it gets also their positions
+`aIdx` and `bIdx`. The functions is responsible to set `a` to maximum of the
+two and `aIdx` to the position of the larger element. Note that the parameters
+have the above mentioned meaning only in case of computing minimum or maximum.
 
 The result looks as:
 
@@ -158,16 +223,25 @@ The result looks as:
 
 ### Using functionals for reduction
 
-You might notice, that the lambda function `reduction` does not take so many different form compared to fetch. In addition, setting the zero (or idempotent) element can be annoying especially when computing minimum or maximum and we need to check std::limits function to make the code working with any type. To make things simpler, TNL offers variants of several functionals known from STL. They can be used instead of the lambda function `reduction` and they also carry the idempotent element. See the following example showing the scalar product of two vectors, now with functional:
+You might notice, that the lambda function `reduction` does not take so many
+different form compared to fetch. In addition, setting the identity element
+can be annoying especially when computing minimum or maximum and we need to
+use \ref std::numeric_limits to make the code general for any type. To make
+things simpler, TNL offers variants of several functionals known from the STL.
+They can be used instead of the lambda function `reduction` and they also carry
+the identity element. See the following example showing the scalar product of
+two vectors, now with a functional:
 
 \includelineno ScalarProductWithFunctionalExample.cpp
 
-
-This example also shows more compact how to evoke the function `reduce` (lines 19-22). This way, one should be able to perform (parallel) reduction very easily. The result looks as follows:
+This example also shows a more compact way to invoke the function `reduce`.
+This way, one should be able to perform (parallel) reduction very easily.
+The result looks as follows:
 
 \include ScalarProductWithFunctionalExample.out
 
-In `TNL/Functional.h` you may find probably all operations that can be reasonably used for reduction:
+In `TNL/Functional.h` you may find probably all operations that can be
+reasonably used for reduction:
 
 | Functional                      | Reduction operation      |
 |---------------------------------|--------------------------|
@@ -186,7 +260,8 @@ In `TNL/Functional.h` you may find probably all operations that can be reasonabl
 
 ### Inclusive and exclusive scan
 
-Inclusive scan (or prefix sum) operation turns a sequence \f$a_1, \ldots, a_n\f$ into a sequence \f$s_1, \ldots, s_n\f$ defined as
+Inclusive scan (or prefix sum) operation turns a sequence
+\f$ a_1, \ldots, a_n \f$ into a sequence \f$ s_1, \ldots, s_n \f$ defined as
 
 \f[
 s_i = \sum_{j=1}^i a_i.
@@ -198,33 +273,39 @@ Exclusive scan (or prefix sum) is defined as
 \sigma_i = \sum_{j=1}^{i-1} a_i.
 \f]
 
-For example, inclusive prefix sum of
+For example, inclusive scan of
 
-```
+```text
 [1,3,5,7,9,11,13]
 ```
 
 is
 
-```
+```text
 [1,4,9,16,25,36,49]
 ```
 
-and exclusive prefix sum of the same sequence is
+and exclusive scan of the same sequence is
 
-```
+```text
 [0,1,4,9,16,25,36]
 ```
 
-Both kinds of [scan](https://en.wikipedia.org/wiki/Prefix_sum) have many different [applications](https://www.cs.cmu.edu/~guyb/papers/Ble93.pdf) but they are usually applied only on summation, however product or logical operations could be handy as well. In TNL, prefix sum is implemented in similar way as reduction and so it can be easily modified by lambda functions. The following example shows how it works:
+Both kinds of [scan](https://en.wikipedia.org/wiki/Prefix_sum) have many
+different [applications](https://www.cs.cmu.edu/~guyb/papers/Ble93.pdf) but
+they are usually applied only on summation, however product or logical
+operations could be handy as well. In TNL, scan is implemented in a similar way
+as reduction and so it can be easily modified by lambda functions. The
+following example shows how it works:
 
-```
+```cpp
 inplaceInclusiveScan( array, 0, array.getSize(), TNL::Plus{} );
 ```
 
-This is equivalent to the following shortened call (the second, third and fourth parameters have a default value):
+This is equivalent to the following shortened call (the second, third and
+fourth parameters have a default value):
 
-```
+```cpp
 inplaceInclusiveScan( array );
 ```
 
@@ -232,7 +313,14 @@ The complete example looks as follows:
 
 \includelineno inplaceInclusiveScanExample.cpp
 
-Scan does not use `fetch` function because the scan must be performed on an array. Its complexity is also higher compared to reduction. Thus if one needs to do some operation with the array elements before the scan, this can be done explicitly and it will not affect the performance significantly. On the other hand, the scan function takes interval of the vector elements where the scan is performed as its second and third argument. The next argument is the operation to be performed by the scan and the last parameter is the idempotent ("zero") element of the operation.
+Scan does not use `fetch` function because the scan must be performed on an
+array. Its complexity is also higher compared to reduction. Thus if one needs
+to do some operation with the array elements before the scan, this can be done
+explicitly and it will not affect the performance significantly. On the other
+hand, the scan function takes interval of the vector elements where the scan is
+performed as its second and third argument. The next argument is the reduction
+operation to be performed by the scan and the last parameter is the identity
+element of the reduction operation.
 
 The result looks as:
 
@@ -248,30 +336,36 @@ And the result looks as:
 
 ### Segmented scan
 
-Segmented scan is a modification of common scan. In this case the sequence of numbers in hand is divided into segments like this, for example
+Segmented scan is a modification of common scan. In this case the sequence of
+numbers in hand is divided into segments like this, for example
 
-```
+```text
 [1,3,5][2,4,6,9][3,5],[3,6,9,12,15]
 ```
 
-and we want to compute inclusive or exclusive scan of each segment. For inclusive segmented prefix sum we get
+and we want to compute inclusive or exclusive scan of each segment. For
+inclusive segmented prefix sum we get
 
-```
+```text
 [1,4,9][2,6,12,21][3,8][3,9,18,30,45]
 ```
 
-and for exclusive segmented prefix sum it is
+and the result for exclusive segmented prefix sum is
 
-```
+```text
 [0,1,4][0,2,6,12][0,3][0,3,9,18,30]
 ```
 
-In addition to common scan, we need to encode the segments of the input sequence. It is done by auxiliary flags array (it can be array of booleans) having `1` at the begining of each segment and `0` on all other positions. In our example, it would be like this:
+In addition to common scan, we need to encode the segments of the input
+sequence. It is done by auxiliary flags array (it can be array of booleans)
+having `1` at the begining of each segment and `0` on all other positions.
+In our example, it would be like this:
 
-```
+```text
 [1,0,0,1,0,0,0,1,0,1,0,0, 0, 0]
 [1,3,5,2,4,6,9,3,5,3,6,9,12,15]
 ```
+
 **Note: Segmented scan is not implemented for CUDA yet.**
 
 \includelineno SegmentedScanExample.cpp

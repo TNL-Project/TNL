@@ -10,57 +10,42 @@ template< typename Device >
 void
 writeGrid()
 {
-   /***
-    * Define grid dimension and size.
-    */
+   // Define grid dimension and size.
    static constexpr int Dimension = 2;
    const int grid_size = 5;
 
-   /***
-    * Setup necessary type.
-    */
+   // Setup necessary type.
    using GridType = TNL::Meshes::Grid< Dimension, double, Device >;
    using PointType = typename GridType::PointType;
    using VectorType = TNL::Containers::Vector< double, Device >;
 
-   /***
-    * Setup types of grid entities.
-    */
+   // Setup types of grid entities.
    using GridCell = typename GridType::Cell;
    using GridVertex = typename GridType::Vertex;
 
-   /***
-    * Create an instance of a grid.
-    */
+   // Create an instance of a grid.
    GridType grid( grid_size );
-   PointType origin( 0.0 ), proportions( 1.0 );
+   PointType origin( 0.0 );
+   PointType proportions( 1.0 );
    grid.setDomain( origin, proportions );
 
-   /***
-    * Allocate vectors for values stored in particular grid entities.
-    */
+   // Allocate vectors for values stored in particular grid entities.
    VectorType cells( grid.template getEntitiesCount< Dimension >(), 0.0 );
    VectorType vertexes( grid.template getEntitiesCount< 0 >(), 0.0 );
 
-   /***
-    * Prepare views for the data at the grid entities so that we can
-    * manipulate them in lambda functions runnig eventually on GPU.
-    */
+   // Prepare views for the data at the grid entities so that we can
+   // manipulate them in lambda functions runnig eventually on GPU.
    auto cells_view = cells.getView();
    auto vertexes_view = vertexes.getView();
 
-   /***
-    * Setup value of each cell to its index in the grid.
-    */
+   // Setup value of each cell to its index in the grid.
    grid.template forAllEntities< Dimension >(
       [ = ] __cuda_callable__( const GridCell& cell ) mutable
       {
          cells_view[ cell.getIndex() ] = cell.getIndex();
       } );
 
-   /***
-    * Write values of all cells in the grid into a file in VTI format.
-    */
+   // Write values of all cells in the grid into a file in VTI format.
    TNL::String cells_file_name_vti( "GridExample-cells-values-" + TNL::getType( Device{} ) + ".vti" );
    std::cout << "Writing a file " << cells_file_name_vti << " ..." << std::endl;
    std::fstream cells_file_vti;
@@ -69,9 +54,7 @@ writeGrid()
    cells_vti_writer.writeImageData( grid );
    cells_vti_writer.writeCellData( cells, "cell-values" );
 
-   /***
-    * Write values of all cells in the grid into a file in VTK format.
-    */
+   // Write values of all cells in the grid into a file in VTK format.
    TNL::String cells_file_name_vtk( "GridExample-cells-values-" + TNL::getType( Device{} ) + ".vtk" );
    std::cout << "Writing a file " << cells_file_name_vtk << " ..." << std::endl;
    std::fstream cells_file_vtk;
@@ -80,9 +63,7 @@ writeGrid()
    cells_vtk_writer.writeEntities( grid );
    cells_vtk_writer.writeCellData( cells, "cell-values" );
 
-   /***
-    * Write values of all cells in the grid into a file in Gnuplot format.
-    */
+   // Write values of all cells in the grid into a file in Gnuplot format.
    TNL::String cells_file_name_gplt( "GridExample-cells-values-" + TNL::getType( Device{} ) + ".gplt" );
    std::cout << "Writing a file " << cells_file_name_gplt << " ..." << std::endl;
    std::fstream cells_file_gplt;
@@ -91,9 +72,7 @@ writeGrid()
    cells_gplt_writer.writeEntities( grid );
    cells_gplt_writer.writeCellData( grid, cells, "cell-values" );
 
-   /***
-    * Setup values of all vertexes to an average value of its neighbouring cells.
-    */
+   // Setup values of all vertexes to an average value of its neighboring cells.
    grid.template forAllEntities< 0 >(
       [ = ] __cuda_callable__( const GridVertex& vertex ) mutable
       {
@@ -123,9 +102,7 @@ writeGrid()
          vertexes_view[ vertex.getIndex() ] = sum / count;
       } );
 
-   /***
-    * Write values of all vertexes in the grid to a file in VTI format
-    */
+   // Write values of all vertexes in the grid to a file in VTI format
    TNL::String vertexes_file_name_vti( "GridExample-vertexes-values-" + TNL::getType( Device{} ) + ".vti" );
    std::cout << "Writing a file " << vertexes_file_name_vti << " ..." << std::endl;
    std::fstream vertexes_file_vti;
@@ -134,9 +111,7 @@ writeGrid()
    vertexes_vti_writer.writeImageData( grid );
    vertexes_vti_writer.writePointData( vertexes, "vertexes-values" );
 
-   /***
-    * Write values of all vertexes in the grid to a file in VTK format
-    */
+   // Write values of all vertexes in the grid to a file in VTK format
    TNL::String vertexes_file_name_vtk( "GridExample-vertexes-values-" + TNL::getType( Device{} ) + ".vtk" );
    std::cout << "Writing a file " << vertexes_file_name_vtk << " ..." << std::endl;
    std::fstream vertexes_file_vtk;
@@ -145,9 +120,7 @@ writeGrid()
    vertexes_vtk_writer.writeEntities( grid );
    vertexes_vtk_writer.writePointData( vertexes, "vertexes-values" );
 
-   /***
-    * Write values of all vertexes in the grid to a file in Gnuplot format
-    */
+   // Write values of all vertexes in the grid to a file in Gnuplot format
    TNL::String vertexes_file_name_gplt( "GridExample-vertexes-values-" + TNL::getType( Device{} ) + ".gplt" );
    std::cout << "Writing a file " << vertexes_file_name_gplt << " ..." << std::endl;
    std::fstream vertexes_file_gplt;

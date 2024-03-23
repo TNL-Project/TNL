@@ -1370,7 +1370,7 @@ The method `reduceRows` (\ref TNL::Matrices::DenseMatrix::reduceRows, \ref TNL::
 3. `fetch` is the lambda function for data fetching.
 4. `reduce` is the the lambda function performing the reduction.
 5. `keep` is the lambda function responsible for processing the results from particular matrix rows.
-6. `zero` is the "zero" element of given reduction operation also known as *idempotent*.
+6. `zero` is the identity element of given reduction operation.
 
 Though the interface is the same for all matrix types, in the following part we will show several examples for different matrix types to better demonstrate possible ways of use of the flexible reduction for matrices.
 
@@ -1410,7 +1410,7 @@ The lambda functions rare:
 * `reduce` lambda function returns larger of given values.
 * `keep` stores the results to the output vector the same way as in the previous example.
 
-Note, that the idempotent value for the reduction is \ref std::numeric_limits< double >::lowest. Of course, if we compute the maximum of all output vector elements, we get some kind of maximal matrix norm. The output looks as:
+Note, that the identity value for the reduction is \ref std::numeric_limits< double >::lowest. Of course, if we compute the maximum of all output vector elements, we get some kind of maximal matrix norm. The output looks as:
 
 \include DenseMatrixExample_reduceRows_maxNorm.out
 
@@ -1464,7 +1464,7 @@ Here we first set the tridiagonal matrix (lines 10-27). Next we allocate the vec
 * `reduce` (lines 49-51), performs reduction operation. In this case, it returns maximum of two input values `a` and `b`.
 * `keep` (lines 56-58) takes the result of the reduction in variable `value` in each row and stores it into the vector `rowMax` via related vector view `rowMaxView`.
 
-Note, that the idempotent value for the reduction is \ref std::numeric_limits< double >::lowest. The results looks as follows:
+Note, that the identity value for the reduction is \ref std::numeric_limits< double >::lowest. The results looks as follows:
 
 \include TridiagonalMatrixViewExample_reduceRows.out
 
@@ -1490,7 +1490,7 @@ We first create vector `rowMax` into which we will store the results and fetch i
 * `reduce` (lines 51-53) returns maximum value of the two input values `a` and `b`.
 * `keep` (line 58-60) stores the input `value` at the corresponding position, given by the row index `rowIdx`, in the output vector view `rowMaxView`.
 
-Finally, we call the method `reduceRows` (\ref TNL::Matrices::MultidiagonalMatrix::reduceRows) with parameters telling the interval of rows to be processed (the first and second parameter), the lambda functions `fetch`, `reduce` and `keep`, and the idempotent element for the reduction operation which is the lowest number of given type (\ref std::numeric_limits< double >::lowest ). The result looks as follows:
+Finally, we call the method `reduceRows` (\ref TNL::Matrices::MultidiagonalMatrix::reduceRows) with parameters telling the interval of rows to be processed (the first and second parameter), the lambda functions `fetch`, `reduce` and `keep`, and the identity element for the reduction operation which is the lowest number of given type (\ref std::numeric_limits< double >::lowest ). The result looks as follows:
 
 \include MultidiagonalMatrixViewExample_reduceRows.out
 

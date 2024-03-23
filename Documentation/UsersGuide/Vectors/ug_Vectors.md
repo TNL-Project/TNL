@@ -4,25 +4,47 @@
 
 ## Introduction
 
-This chapter introduces vectors in TNL. `Vector`, in addition to `Array`, offers also basic operations from linear algebra. The reader will mainly learn how to do Blas level 1 operations in TNL. Thanks to the design of TNL, it is easier to implement, hardware architecture transparent and in some cases even faster then [Blas](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms) or [cuBlas](https://developer.nvidia.com/cublas) implementation.
+This chapter introduces vectors in TNL. `Vector`, in addition to `Array`,
+offers also basic operations from linear algebra. The reader will mainly
+learn how to do BLAS level 1 operations in TNL. Thanks to the design of TNL,
+it is easier to implement, independent of the hardware architecture, and in
+some cases even faster then [BLAS][BLAS] or [cuBLAS][cuBLAS] implementation.
 
 ## Dynamic vectors
 
-`Vector` is, similar to `Array`, templated class defined in namespace `TNL::Containers` having three template parameters:
+\ref TNL::Containers::Vector "Vector" is a class template similar to
+\ref TNL::Containers::Array "Array", which is defined in the `TNL::Containers`
+namespace and has four template parameters:
 
 * `Real` is type of data to be stored in the vector
-* `Device` is the device where the vector is allocated. Currently it can be either `Devices::Host` for CPU or `Devices::Cuda` for GPU supporting CUDA.
+* `Device` is the device to be used for the execution of vector operations. It
+  can be any class defined in the \ref TNL::Devices namespace.
 * `Index` is the type to be used for indexing the vector elements.
+* `Allocator` is the type of the allocator used for the allocation and
+  deallocation of memory used by the vector. By default, an appropriate allocator
+  for the specified `Device` is selected with \ref TNL::Allocators::Default.
 
-`Vector`, unlike `Array`, requires that the `Real` type is numeric or a type for which basic algebraic operations are defined. What kind of algebraic operations is required depends on what vector operations the user will call. `Vector` is derived from `Array` so it inherits all its methods. In the same way the `Array` has its counterpart `ArraView`, `Vector` has `VectorView` which is derived from `ArrayView`. See [Arrays](#ug_Arrays) for more details.
+Unlike `Array`, `Vector` requires that the `Real` type is numeric or a type for
+which basic algebraic operations are defined. What kind of algebraic operations
+are required depends on what vector operations the user will call. `Vector` is
+derived from `Array` so it inherits all its methods. In the same way the `Array`
+has its counterpart `ArraView`, `Vector` has `VectorView` which is derived from
+`ArrayView`. See [Arrays](#ug_Arrays) for more details.
 
-In addition to the comparison operators `==` and `!=` defined for `Array` and `ArrayView`, the comparison operators `<`, `<=`, `>`, and `>=` are
-available for `Vector` and `VectorView`. The comparison follows the [lexicographic order](https://en.wikipedia.org/wiki/Lexicographic_order)
-and it is performed by an algorithm equivalent to \ref std::lexicographical_compare.
+In addition to the comparison operators `==` and `!=` defined for `Array` and
+`ArrayView`, the comparison operators `<`, `<=`, `>`, and `>=` are available for
+`Vector` and `VectorView`. The comparison follows the
+[lexicographic order][lexicographic order] and it is performed by an algorithm
+equivalent to \ref std::lexicographical_compare.
 
 ### Horizontal operations
 
-By *horizontal* operations we mean vector expressions where we have one or more vectors as an input and a vector as an output. In TNL, this kind of operations is performed by the [Expression Templates](https://en.wikipedia.org/wiki/Expression_templates). It makes algebraic operations with vectors easy to do and very efficient at the same time. In some cases, one get even more efficient code compared to [Blas](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms) and [cuBlas](https://developer.nvidia.com/cublas). See the following example.
+By *horizontal* operations we mean vector expressions where we have one or more
+vectors as an input and a vector as an output. Horizontal operations in TNL are
+performed by the [expression templates][expression templates]. It makes
+algebraic operations with vectors easy to do and very efficient at the same
+time. In some cases, one gets code even more efficient compared to [BLAS][BLAS]
+and [cuBLAS][cuBLAS]. See the following example.
 
 \includelineno Expressions.cpp
 
@@ -30,11 +52,15 @@ Output is:
 
 \include Expressions.out
 
-The expression is evaluated on the same device where the vectors are allocated, this is done automatically. One cannot, however, mix vectors from different devices in one expression.
+The expression is evaluated on the same device where the vectors are allocated,
+this is done automatically. One cannot, however, mix vectors from different
+devices in one expression.
 
 Vector expressions consist of *operands*, *operators*, and *functions*.
-Operands may be \ref TNL::Containers::Vector "vectors", \ref TNL::Containers::VectorView "vector views", or other vector expressions.
-Operators available for vector expressions are listed in the following table, where `v` is a result vector and `expr`, `expr1`, `expr2` are vector expressions:
+Operands may be \ref TNL::Containers::Vector "vectors",
+\ref TNL::Containers::VectorView "vector views", or other vector expressions.
+Operators available for vector expressions are listed in the following table,
+where `v` is a result vector and `expr`, `expr1`, `expr2` are vector expressions:
 
 | Expression                        | Meaning                                          |
 | --------------------------------- | ------------------------------------------------ |
@@ -53,7 +79,9 @@ Operators available for vector expressions are listed in the following table, wh
 | `v = !expr1`                      | `v[ i ] = !expr1[ i ]`                           |
 | `v = ~expr1`                      | `v[ i ] = ~expr1[ i ]`                           |
 
-Additionally, vector expressions may contain any function listed in the following table, where `v` is a result vector and `expr`, `expr1`, `expr2` are vector expressions:
+Additionally, vector expressions may contain any function listed in the
+following table, where `v` is a result vector and `expr`, `expr1`, `expr2` are
+vector expressions:
 
 | Expression                              | Meaning                                  |
 | --------------------------------------- | ---------------------------------------- |
@@ -91,7 +119,10 @@ Additionally, vector expressions may contain any function listed in the followin
 
 ### Vertical operations
 
-By *vertical operations* we mean (parallel) reduction based operations where we have one vector expressions as an input and one value as an output. For example computing scalar product, vector norm or finding minimum or maximum of vector elements is based on reduction. See the following example.
+By *vertical operations* we mean (parallel) reduction based operations where we
+have one vector expressions as an input and one value as an output. For example
+computing scalar product, vector norm or finding minimum or maximum of vector
+elements is based on reduction. See the following example.
 
 \includelineno Reduction.cpp
 
@@ -99,7 +130,8 @@ Output is:
 
 \include Reduction.out
 
-The following table shows vertical operations that can be used on vector expressions:
+The following table shows vertical operations that can be used on vector
+expressions:
 
 | Expression                            | Meaning                                                                                                                             |
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
@@ -119,15 +151,18 @@ The following table shows vertical operations that can be used on vector express
 
 ## Static vectors
 
-Static vectors are derived from static arrays and so they are allocated on the stack and can be created in CUDA kernels as well.
-Their size is fixed and given by a template parameter. The \ref TNL::Containers::StaticVector "StaticVector" class template is
-defined in the \ref TNL::Containers namespace and has two template parameters:
+Static vectors are derived from static arrays and so they are allocated on the
+stack and can be created in CUDA kernels as well. Their size is fixed and given
+by a template parameter. The \ref TNL::Containers::StaticVector "StaticVector"
+class template is defined in the \ref TNL::Containers namespace and has two
+template parameters:
 
 1. `Size` is the vector size.
 2. `Real` is type of elements stored in the vector.
 
-The interface of `StaticVector` is smilar to `Vector`. `StaticVector` also supports expression templates, which make the use of
-static vectors simple and efficient at the same time, together with [lexicographic comparison](https://en.wikipedia.org/wiki/Lexicographic_order)
+The interface of `StaticVector` is smilar to `Vector`. `StaticVector` also
+supports expression templates, which make the use of static vectors simple and
+efficient at the same time, and [lexicographic comparison][lexicographic order]
 by operators `<`, `<=`, `>` and `>=`.
 
 Example:
@@ -140,9 +175,11 @@ The output looks as:
 
 ## Distributed vectors
 
-\ref TNL::Containers::DistributedVector "DistributedVector" extends \ref TNL::Containers::DistributedArray "DistributedArray" with algebraic operations.
-The functionality is similar to how \ref TNL::Containers::Vector "Vector" extends \ref TNL::Containers::Array "Array".
-`DistributedVector` also supports expression templates and other operations present in `Vector`.
+\ref TNL::Containers::DistributedVector "DistributedVector" extends
+\ref TNL::Containers::DistributedArray "DistributedArray" with algebraic
+operations. The functionality is similar to how \ref TNL::Containers::Vector
+"Vector" extends \ref TNL::Containers::Array "Array". `DistributedVector`
+also supports expression templates and other operations present in `Vector`.
 
 Example:
 
@@ -151,3 +188,8 @@ Example:
 The output looks as:
 
 \include DistributedVectorExample.out
+
+[BLAS]: https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms
+[cuBLAS]: https://developer.nvidia.com/cublas
+[lexicographic order]: https://en.wikipedia.org/wiki/Lexicographic_order
+[expression templates]: https://en.wikipedia.org/wiki/Expression_templates

@@ -17,7 +17,7 @@ void segmentedScan( Array< double, Device >& v, Array< bool, Device >& flags )
    /***
     * As parameters, we pass array on which the scan is to be performed, interval
     * where the scan is performed, lambda function which is used by the scan and
-    * zero element (idempotent) of the 'sum' operation.
+    * zero as the identity element of the 'sum' operation.
     */
    SegmentedScan< Device >::perform( v, flags, 0, v.getSize(), reduce, 0.0 );
 }

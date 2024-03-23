@@ -23,7 +23,7 @@ namespace TNL::Containers {
  * \tparam Value  The type of array elements.
  * \tparam Device The device where the array is allocated. This ensures the
  *                compile-time checks of correct pointers manipulation. It can
- *                be either \ref Devices::Host or \ref Devices::Cuda.
+ *                be any class defined in the \ref TNL::Devices namespace.
  * \tparam Index  The indexing type.
  *
  * \e ArrayView provides access to array elements and general array operations
