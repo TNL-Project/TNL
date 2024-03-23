@@ -9,16 +9,16 @@ symmetricSparseMatrixExample()
    TNL::Matrices::SparseMatrix< double, Device, int, TNL::Matrices::SymmetricMatrix > symmetricMatrix(
       5,  // number of matrix rows
       5,  // number of matrix columns
-      {   // matrix elements definition
-        { 0, 0, 1.0 },
-        { 1, 0, 2.0 },
-        { 1, 1, 1.0 },
-        { 2, 0, 3.0 },
-        { 2, 2, 1.0 },
-        { 3, 0, 4.0 },
-        { 3, 3, 1.0 },
-        { 4, 0, 5.0 },
-        { 4, 4, 1.0 } } );
+      {
+         // matrix elements definition
+         // clang-format off
+         { 0, 0, 1.0 },
+         { 1, 0, 2.0 }, { 1, 1, 1.0 },
+         { 2, 0, 3.0 }, { 2, 2, 1.0 },
+         { 3, 0, 4.0 }, { 3, 3, 1.0 },
+         { 4, 0, 5.0 }, { 4, 4, 1.0 }
+         // clang-format on
+      } );
 
    std::cout << "Symmetric sparse matrix: " << std::endl << symmetricMatrix << std::endl;
 

@@ -8,18 +8,16 @@ void
 setElementsExample()
 {
    TNL::Matrices::SparseMatrix< double, Device > matrix( 5, 5 );  // matrix dimensions
-   matrix.setElements( {                                          // matrix elements definition
-                         { 0, 0, 2.0 },
-                         { 1, 0, -1.0 },
-                         { 1, 1, 2.0 },
-                         { 1, 2, -1.0 },
-                         { 2, 1, -1.0 },
-                         { 2, 2, 2.0 },
-                         { 2, 3, -1.0 },
-                         { 3, 2, -1.0 },
-                         { 3, 3, 2.0 },
-                         { 3, 4, -1.0 },
-                         { 4, 4, 2.0 } } );
+   // matrix elements definition
+   matrix.setElements( {
+      // clang-format off
+      { 0, 0,  2.0 },
+      { 1, 0, -1.0 }, { 1, 1, 2.0 }, { 1, 2, -1.0 },
+      { 2, 1, -1.0 }, { 2, 2, 2.0 }, { 2, 3, -1.0 },
+      { 3, 2, -1.0 }, { 3, 3, 2.0 }, { 3, 4, -1.0 },
+      { 4, 4,  2.0 }
+      // clang-format on
+   } );
 
    std::cout << matrix << std::endl;
 }

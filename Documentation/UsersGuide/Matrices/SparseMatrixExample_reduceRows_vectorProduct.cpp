@@ -9,9 +9,15 @@ template< typename Device >
 void
 reduceRows()
 {
-   TNL::Matrices::SparseMatrix< double, Device > matrix{
-      5, 5, { { 0, 0, 1 }, { 1, 0, 1 }, { 1, 1, 2 }, { 2, 1, 1 }, { 2, 2, 8 }, { 3, 2, 1 }, { 3, 3, 9 }, { 4, 4, 1 } }
-   };
+   // clang-format off
+   TNL::Matrices::SparseMatrix< double, Device > matrix{ 5, 5, {
+      { 0, 0, 1 },
+      { 1, 0, 1 }, { 1, 1, 2 },
+      { 2, 1, 1 }, { 2, 2, 8 },
+      { 3, 2, 1 }, { 3, 3, 9 },
+      { 4, 4, 1 }
+   } };
+   // clang-format on
 
    /***
     * Allocate input and output vectors for matrix-vector product

@@ -9,7 +9,13 @@ void
 wrapMatrixView()
 {
    const int rows( 3 ), columns( 4 );
-   TNL::Containers::Vector< double, Device > valuesVector{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+   TNL::Containers::Vector< double, Device > valuesVector{
+      // clang-format off
+      1,  2,  3,  4,
+      5,  6,  7,  8,
+      9, 10, 11, 12
+      // clang-format on
+   };
    double* values = valuesVector.getData();
 
    /***

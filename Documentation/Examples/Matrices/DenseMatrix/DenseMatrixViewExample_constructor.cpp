@@ -7,7 +7,13 @@ template< typename Device >
 void
 createMatrixView()
 {
-   TNL::Containers::Vector< double, Device > values{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+   TNL::Containers::Vector< double, Device > values{
+      // clang-format off
+      1,  2,  3,  4,
+      5,  6,  7,  8,
+      9, 10, 11, 12
+      // clang-format on
+   };
 
    /***
     * Create dense matrix view with row major order

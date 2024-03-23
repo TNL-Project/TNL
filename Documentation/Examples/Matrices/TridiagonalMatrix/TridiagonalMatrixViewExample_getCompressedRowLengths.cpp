@@ -12,8 +12,16 @@ laplaceOperatorMatrix()
    TNL::Matrices::TridiagonalMatrix< double, Device > matrix( matrixSize,  // number of rows
                                                               matrixSize   // number of columns
    );
-   matrix.setElements(
-      { { 0.0, 1.0 }, { -1.0, 2.0, -1.0 }, { -1.0, 2.0, -1.0 }, { -1.0, 2.0, -1.0 }, { -1.0, 2.0, -1.0 }, { 0.0, 1.0 } } );
+   matrix.setElements( {
+      // clang-format off
+      {  0.0, 1.0 },
+      { -1.0, 2.0, -1.0 },
+      { -1.0, 2.0, -1.0 },
+      { -1.0, 2.0, -1.0 },
+      { -1.0, 2.0, -1.0 },
+      {  0.0, 1.0 }
+      // clang-format on
+   } );
    auto view = matrix.getView();
 
    TNL::Containers::Vector< int, Device > rowLengths;

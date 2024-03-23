@@ -9,7 +9,13 @@ void
 getRowExample()
 {
    TNL::Matrices::DenseMatrix< double, Device > matrix{
-      { 1, 0, 0, 0, 0 }, { 1, 2, 0, 0, 0 }, { 1, 2, 3, 0, 0 }, { 1, 2, 3, 4, 0 }, { 1, 2, 3, 4, 5 }
+      // clang-format off
+      { 1, 0, 0, 0, 0 },
+      { 1, 2, 0, 0, 0 },
+      { 1, 2, 3, 0, 0 },
+      { 1, 2, 3, 4, 0 },
+      { 1, 2, 3, 4, 5 }
+      // clang-format on
    };
 
    /***

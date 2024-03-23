@@ -8,7 +8,13 @@ void
 getElementsCountExample()
 {
    TNL::Matrices::DenseMatrix< double, Device > triangularMatrix{
-      { 1 }, { 2, 3 }, { 4, 5, 6 }, { 7, 8, 9, 10 }, { 11, 12, 13, 14, 15 }
+      // clang-format off
+      {  1 },
+      {  2,  3 },
+      {  4,  5,  6 },
+      {  7,  8,  9, 10 },
+      { 11, 12, 13, 14, 15 }
+      // clang-format on
    };
    auto triangularMatrixView = triangularMatrix.getConstView();
 

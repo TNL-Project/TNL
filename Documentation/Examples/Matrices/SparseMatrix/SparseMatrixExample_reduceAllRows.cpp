@@ -10,7 +10,20 @@ void
 reduceAllRows()
 {
    TNL::Matrices::SparseMatrix< double, Device > matrix(
-      5, 5, { { 0, 0, 1 }, { 1, 1, 1 }, { 1, 2, 8 }, { 2, 2, 1 }, { 2, 3, 9 }, { 3, 3, 1 }, { 3, 4, 9 }, { 4, 4, 1 } } );
+      // number of matrix rows
+      5,
+      // number of matrix columns
+      5,
+      // matrix elements definition
+      {
+         // clang-format off
+         { 0, 0, 1 },
+         { 1, 1, 1 }, { 1, 2, 8 },
+         { 2, 2, 1 }, { 2, 3, 9 },
+         { 3, 3, 1 }, { 3, 4, 9 },
+         { 4, 4, 1 }
+         // clang-format on
+      } );
 
    /***
     * Find largest element in each row.
