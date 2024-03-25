@@ -516,6 +516,52 @@ struct DenseMatricesBenchmark
             };
             DenseMatricesResult< RealType, DeviceType, IndexType > FermiResult( resultMatrix, benchmarkMatricesFermi );
             benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkFermi, FermiResult );
+               /*
+               benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  { { "index type", TNL::getType< Index >() },
+                    { "device", device },
+                    { "algorithm", "TensorCores" },
+                    { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
+                    { "matrix2 size", std::to_string( matrix1Columns ) + "x" + std::to_string( matrix2Columns ) } } ) );
+
+               // Lambda function for the optimized kernel launch
+               auto matrixMultiplicationBenchmarkTensorCores = [ & ]() mutable
+               {
+                  for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ ) {
+                     for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
+                        launch_config.gridSize.x = Backend::getMaxGridXSize();
+                        launch_config.gridSize.y = Backend::getMaxGridYSize();
+                        if( gridIdx_x == columnGrids - 1 )
+                           launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
+                        if( gridIdx_y == rowGrids - 1 )
+                           launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
+
+                        auto resultMatrixView = resultMatrix2.getView();
+                        auto denseMatrix1View = denseMatrix1.getConstView();
+                        auto denseMatrix2View = denseMatrix2.getConstView();
+
+                        Backend::launchKernelAsync( TensorCoreDenseMatrixProductKernel< tileDim,
+                                                                                        decltype( resultMatrixView ),
+                                                                                        decltype( denseMatrix1View ),
+                                                                                        decltype( denseMatrix2View ) >,
+                                                    launch_config,
+                                                    resultMatrixView,
+                                                    denseMatrix1View,
+                                                    denseMatrix2View,
+                                                    1.0 );
+                     }
+                  }
+                  cudaStreamSynchronize( launch_config.stream );
+                  TNL_CHECK_CUDA_DEVICE;
+               };
+               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesTensorCores = {
+                  cuBLASResultMatrix, MagmaResultMatrix, CutlassResultMatrix
+               };
+               DenseMatricesResult< RealType, DeviceType, IndexType > TensorCoresResult( resultMatrix2,
+                                                                                         benchmarkMatricesTensorCores );
+               benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkTensorCores, TensorCoresResult );
+               */
+
    #endif
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },

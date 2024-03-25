@@ -36,12 +36,12 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
 
    RealType CValue = 0;
 
-   IndexType widthA = ( TransposeA == TransposeState::None ) ? matrixA.getColumns() : matrixA.getRows();
-   IndexType heightA = ( TransposeA == TransposeState::None ) ? matrixA.getRows() : matrixA.getColumns();
-   IndexType widthB = ( TransposeB == TransposeState::None ) ? matrixB.getColumns() : matrixB.getRows();
-   IndexType heightB = ( TransposeB == TransposeState::None ) ? matrixB.getRows() : matrixB.getColumns();
+   const IndexType& widthA = ( TransposeA == TransposeState::None ) ? matrixA.getColumns() : matrixA.getRows();
+   const IndexType& heightA = ( TransposeA == TransposeState::None ) ? matrixA.getRows() : matrixA.getColumns();
+   const IndexType& widthB = ( TransposeB == TransposeState::None ) ? matrixB.getColumns() : matrixB.getRows();
+   const IndexType& heightB = ( TransposeB == TransposeState::None ) ? matrixB.getRows() : matrixB.getColumns();
 
-   IndexType numPhases = ( tileDim + widthA - 1 ) / tileDim;
+   const IndexType numPhases = ( tileDim + widthA - 1 ) / tileDim;
 
    for( IndexType m = 0; m < numPhases; ++m ) {
       IndexType aCols = m * tileDim + tx;
@@ -169,10 +169,13 @@ DenseTranspositionKernel( OutputMatrix resultMatrix, const InputMatrix inputMatr
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Real tile[ tileDim ][ tileDim + 1 ];
 
+   const Index matrixColumns = inputMatrix.getColumns();
+   const Index matrixRows = inputMatrix.getRows();
+
    Index row = blockIdx.y * tileDim + threadIdx.y;
    Index col = blockIdx.x * tileDim + threadIdx.x;
 
-   if( row < inputMatrix.getRows() && col < inputMatrix.getColumns() ) {
+   if( row < matrixRows && col < matrixColumns ) {
       tile[ threadIdx.y ][ threadIdx.x ] = inputMatrix( row, col ) * matrixMultiplicator;
    }
 
@@ -182,7 +185,7 @@ DenseTranspositionKernel( OutputMatrix resultMatrix, const InputMatrix inputMatr
    row = blockIdx.x * tileDim + threadIdx.y;
    col = blockIdx.y * tileDim + threadIdx.x;
 
-   if( row < resultMatrix.getRows() && col < resultMatrix.getColumns() ) {
+   if( row < matrixColumns && col < matrixRows ) {
       resultMatrix( row, col ) = tile[ threadIdx.x ][ threadIdx.y ];
    }
 
@@ -247,10 +250,13 @@ DenseInPlaceTranspositionKernel( Matrix matrix, const Real matrixMultiplicator )
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Real tile[ tileDim ][ tileDim + 1 ];
 
+   const Index matrixColumns = matrix.getColumns();
+   const Index matrixRows = matrix.getRows();
+
    Index xIndex = blockIdx.x * tileDim + threadIdx.x;
    Index yIndex = blockIdx.y * tileDim + threadIdx.y;
 
-   if( xIndex < matrix.getColumns() && yIndex < matrix.getRows() ) {
+   if( xIndex < matrixColumns && yIndex < matrixRows ) {
       tile[ threadIdx.y ][ threadIdx.x ] = matrix( yIndex, xIndex ) * matrixMultiplicator;
    }
 
@@ -259,7 +265,7 @@ DenseInPlaceTranspositionKernel( Matrix matrix, const Real matrixMultiplicator )
    xIndex = blockIdx.y * tileDim + threadIdx.x;
    yIndex = blockIdx.x * tileDim + threadIdx.y;
 
-   if( xIndex < matrix.getRows() && yIndex < matrix.getColumns() ) {
+   if( xIndex < matrixRows && yIndex < matrixColumns ) {
       matrix( yIndex, xIndex ) = tile[ threadIdx.x ][ threadIdx.y ];
    }
 #endif

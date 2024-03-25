@@ -17,8 +17,8 @@ struct DenseMatricesResult : public BenchmarkResult
 
    using BenchmarkResult::bandwidth;
    using BenchmarkResult::speedup;
-   using BenchmarkResult::stddev;
    using BenchmarkResult::time;
+   using BenchmarkResult::time_stddev;
    using typename BenchmarkResult::HeaderElements;
    using typename BenchmarkResult::RowElements;
 
@@ -29,7 +29,7 @@ struct DenseMatricesResult : public BenchmarkResult
    virtual HeaderElements
    getTableHeader() const override
    {
-      HeaderElements headers = { "time", "stddev", "stddev/time", "loops", "bandwidth", "speedup" };
+      HeaderElements headers = { "time", "time_stddev", "time_stddev/time", "loops", "bandwidth", "speedup" };
       for( size_t i = 0; i < benchmarkResults.size(); i++ ) {
          headers.push_back( "Diff.Max " + std::to_string( i + 1 ) );
          headers.push_back( "Diff.L2 " + std::to_string( i + 1 ) );
@@ -40,7 +40,7 @@ struct DenseMatricesResult : public BenchmarkResult
    virtual std::vector< IndexType >
    getColumnWidthHints() const override
    {
-      std::vector< IndexType > columnWidths = { 14, 14, 14, 6, 14, 14 };
+      std::vector< IndexType > columnWidths = { 14, 16, 18, 6, 14, 14 };
       for( size_t i = 0; i < benchmarkResults.size(); i++ ) {
          columnWidths.push_back( 14 );  // Width for "Diff.Max"
          columnWidths.push_back( 14 );  // Width for "Diff.L2"
@@ -52,7 +52,7 @@ struct DenseMatricesResult : public BenchmarkResult
    getRowElements() const override
    {
       RowElements elements;
-      elements << std::scientific << time << stddev << stddev / time << loops << bandwidth;
+      elements << std::scientific << time << time_stddev << time_stddev / time << loops << bandwidth;
 
       if( speedup != 0.0 )
          elements << speedup;

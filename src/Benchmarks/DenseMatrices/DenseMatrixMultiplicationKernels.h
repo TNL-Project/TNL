@@ -423,7 +423,7 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
 #endif  // __CUDACC__
 }
 */
-
+//kernel 6 (Fermi)
 template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
@@ -432,7 +432,7 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
                           const Matrix2 matrixB,
                           const typename ResultMatrix::RealType matrixMultiplicator )
 {
-#if defined( __CUDACC__ ) || defined( __HIP__ )
+#ifdef __CUDACC__
    using IndexType = typename ResultMatrix::IndexType;
    using RealType = typename ResultMatrix::RealType;
 
@@ -450,50 +450,100 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
    const IndexType matrixBRows = matrixB.getRows();
    const IndexType matrixBColumns = matrixB.getColumns();
 
+   const auto& AValues = matrixA.getValues();      // Vector of A's elements
+   const auto& BValues = matrixB.getValues();      // Vector of B's elements
+   auto& resultValues = resultMatrix.getValues();  // Vector of ResultMatrix's elements
+
    // Calculate number of phases required to cover all columns of A / rows of B
    const IndexType numTiles = ( matrixAColumns + 15 ) / 16;
 
-   for( IndexType m = 0; m < numTiles; ++m ) {
-      RealType AReg[ 4 ], BReg[ 4 ];
+   bool matrixARowWithinBounds[ 4 ];
+   bool matrixBColWithinBounds[ 4 ];
+   const IndexType matrixATileLimit = matrixAColumns / 16;
+   const IndexType matrixBTileLimit = matrixBRows / 16;
+   int maxRowIndexA = -1, maxColIndexB = -1;
 
-      // Pre-compute the valid ranges for loading from A and B to avoid repeating boundary checks
-      IndexType validARowStart = row;
-      IndexType validARowEnd = min( matrixARows, row + 4 );
-      IndexType validAColStart = m * 16;
-      IndexType validAColEnd = min( matrixAColumns, ( m + 1 ) * 16 );
-
-      IndexType validBRowStart = m * 16;
-      IndexType validBRowEnd = min( matrixBRows, ( m + 1 ) * 16 );
-      IndexType validBColStart = col;
-      IndexType validBColEnd = min( matrixBColumns, col + 4 );
-
-   // Load elements from A and B into registers for this tile, using pre-computed valid ranges
+   // Precompute row and column boundary checks
    #pragma unroll
-      for( IndexType i = 0; i < 4; ++i ) {
-         IndexType aRow = validARowStart + i;
-         IndexType bCol = validBColStart + i;
+   for( IndexType i = 0; i < 4; ++i ) {
+      matrixARowWithinBounds[ i ] = ( row + i ) < matrixARows;
+      if( matrixARowWithinBounds[ i ] )
+         maxRowIndexA = i;
 
-         AReg[ i ] = ( aRow < validARowEnd && validAColStart < validAColEnd ) ? matrixA( aRow, validAColStart ) : 0;
-         BReg[ i ] = ( validBRowStart < validBRowEnd && bCol < validBColEnd ) ? matrixB( validBRowStart, bCol ) : 0;
+      matrixBColWithinBounds[ i ] = ( col + i ) < matrixBColumns;
+      if( matrixBColWithinBounds[ i ] )
+         maxColIndexB = i;
+   }
+
+   for( IndexType m = 0; m < numTiles; ++m ) {
+      RealType AReg[ 4 ] = { 0 };
+      RealType BReg[ 4 ] = { 0 };
+
+      bool inColumnRangeForA = m < matrixATileLimit;
+      bool inColumnRangeForB = m < matrixBTileLimit;
+
+      if( inColumnRangeForA ) {
+   #pragma unroll
+         for( IndexType i = 0; i < maxRowIndexA; ++i ) {
+            IndexType index = ( row + i ) * matrixAColumns + m * 16;
+            AReg[ i ] = AValues[ index ];
+         }
       }
 
-   // Compute sub-tile
+      if( inColumnRangeForB ) {
+   #pragma unroll
+         for( IndexType i = 0; i < maxColIndexB; ++i ) {
+            IndexType index = m * 16 * matrixBColumns + col + i;
+            BReg[ i ] = BValues[ index ];
+         }
+      }
+
+      IndexType maxKForA = ( matrixAColumns - m * 16 > 16 ) ? 15 : ( matrixAColumns - m * 16 ) - 1;
+      IndexType maxKForB = ( matrixBRows - m * 16 > 16 ) ? 15 : ( matrixBRows - m * 16 ) - 1;
+
    #pragma unroll
       for( IndexType k = 0; k < 16; ++k ) {
-         // Adjust valid ranges based on k for loading next elements
-         validAColStart = min( matrixAColumns, m * 16 + k );
-         validBRowStart = min( matrixBRows, m * 16 + k );
-
+         // Precomputed check for A
+         if( k <= maxKForA ) {
    #pragma unroll
-         for( IndexType i = 0; i < 4; ++i ) {
-            IndexType aRow = validARowStart + i;
-            IndexType bCol = validBColStart + i;
-
-            AReg[ i ] = ( aRow < validARowEnd && validAColStart < validAColEnd ) ? matrixA( aRow, validAColStart ) : 0;
-            BReg[ i ] = ( validBRowStart < validBRowEnd && bCol < validBColEnd ) ? matrixB( validBRowStart, bCol ) : 0;
+            for( IndexType i = 0; i <= maxRowIndexA; ++i ) {
+               IndexType indexA = ( m * 16 + k ) * matrixARows + ( row + i );
+               if( indexA < matrixARows * matrixAColumns ) {
+                  AReg[ i ] = AValues[ indexA ];
+               }
+               else {
+                  AReg[ i ] = 0;
+               }
+            }
+         }
+         else {
+   #pragma unroll
+            for( IndexType i = 0; i <= maxRowIndexA; ++i ) {
+               AReg[ i ] = 0;
+            }
          }
 
-   // Multiply and accumulate in CValue
+         // Precomputed check for B
+         if( k <= maxKForB ) {
+   #pragma unroll
+            for( IndexType i = 0; i <= maxColIndexB; ++i ) {
+               IndexType indexB = ( col + i ) * matrixBRows + ( m * 16 + k );
+               if( indexB < matrixBRows * matrixBColumns ) {
+                  BReg[ i ] = BValues[ indexB ];
+               }
+               else {
+                  BReg[ i ] = 0;
+               }
+            }
+         }
+         else {
+   #pragma unroll
+            for( IndexType i = 0; i <= maxColIndexB; ++i ) {
+               BReg[ i ] = 0;
+            }
+         }
+
+   // Perform matrix multiplication with reduced conditions
    #pragma unroll
          for( IndexType i = 0; i < 4; ++i ) {
    #pragma unroll
@@ -511,12 +561,67 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
       for( IndexType j = 0; j < 4; j++ ) {
          IndexType cRow = row + i;
          IndexType cCol = col + j;
+         IndexType index = cCol * resultMatrix.getRows() + cRow;
          if( cRow < resultMatrix.getRows() && cCol < resultMatrix.getColumns() ) {
-            resultMatrix( cRow, cCol ) = CValue[ i ][ j ];
+            resultValues[ index ] = CValue[ i ][ j ];
          }
       }
    }
 #endif
 }
 
+/*
+//kernel 7 (Tensor Cores)
+template< int tileDim, typename ResultMatrix, typename Matrix1, typename Matrix2 >
+__global__
+void
+TensorCoreDenseMatrixProductKernel( ResultMatrix resultMatrix,
+                                    const Matrix1 matrixA,
+                                    const Matrix2 matrixB,
+                                    const typename ResultMatrix::RealType matrixMultiplicator )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   #include <mma.h>
+   using namespace nvcuda;
+
+   // Define the size of the WMMA matrix.
+   const int WMMA_M = 16;
+   const int WMMA_N = 16;
+   const int WMMA_K = 16;
+
+   // Declare the fragments
+   wmma::fragment< wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major > fragA;
+   wmma::fragment< wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major > fragB;
+   wmma::fragment< wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float > fragC;
+
+   // Initialize the output fragment
+   wmma::fill_fragment( fragC, 0.0f );
+
+   // Calculate the indices of the tile each thread block is processing
+   int blockRow = blockIdx.y;
+   int blockCol = blockIdx.x;
+
+   // Calculate the starting index of the matrices A, B, and C
+   const half* aStart = &matrixA[ blockRow * WMMA_M * matrixA.getLeadingDimension() ];
+   const half* bStart = &matrixB[ blockCol * WMMA_N ];
+   float* cStart = &resultMatrix[ blockRow * WMMA_M * resultMatrix.getLeadingDimension() + blockCol * WMMA_N ];
+
+   // Loop over the K dimension
+   for( int i = 0; i < matrixA.getColumns(); i += WMMA_K ) {
+      // Load the matrices from global memory to fragment using column-major layout
+      wmma::load_matrix_sync( fragA, aStart + i * matrixA.getLeadingDimension(), matrixA.getLeadingDimension() );
+      wmma::load_matrix_sync( fragB, bStart + i, matrixB.getLeadingDimension() );
+
+      // Perform the matrix multiplication
+      wmma::mma_sync( fragC, fragA, fragB, fragC );
+   }
+
+   // Scale the result and store it back to global memory
+   for( int i = 0; i < fragC.num_elements; i++ ) {
+      fragC.x[ i ] *= matrixMultiplicator;
+   }
+   wmma::store_matrix_sync( cStart, fragC, resultMatrix.getLeadingDimension(), wmma::mem_col_major );
+#endif  // __CUDACC__ or __HIP__
+}
+*/
 }  //namespace TNL::Benchmarks::DenseMatrices
