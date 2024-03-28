@@ -648,7 +648,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 void
 Grid< Dimension, Real, Device, Index >::setInteriorEnd( const CoordinatesType& end )
 {
-   this->interiorBegin = end;
+   this->interiorEnd = end;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
