@@ -7,11 +7,9 @@
 #include <TNL/Algorithms/parallelFor.h>
 
 namespace TNL {
-   namespace Benchmarks {
+namespace Benchmarks {
 
-template< typename Real = double,
-   typename Device = Devices::Host,
-   typename Index = int >
+template< typename Real = double, typename Device = Devices::Host, typename Index = int >
 struct SimpleProblem
 {
    using RealType = Real;
@@ -20,16 +18,14 @@ struct SimpleProblem
    using DofVectorType = Containers::Vector< RealType, DeviceType, IndexType >;
 
    template< typename VectorPointer >
-   void getExplicitUpdate( const RealType& time,
-      const RealType& tau,
-      VectorPointer& _u,
-      VectorPointer& _fu )
+   void
+   getExplicitUpdate( const RealType& time, const RealType& tau, VectorPointer& _u, VectorPointer& _fu )
    {
       using VectorType = typename VectorPointer::ObjectType;
       using ViewType = typename VectorType::ViewType;
       auto u = _u->getView();
       auto fu = _fu->getView();
-      auto computeF = [=] __cuda_callable__ ( IndexType i, ViewType& u, ViewType& fu )
+      auto computeF = [ = ] __cuda_callable__( IndexType i, ViewType & u, ViewType & fu )
       {
          fu[ i ] = 1.0;
       };
@@ -37,9 +33,9 @@ struct SimpleProblem
    }
 
    template< typename Vector >
-   void applyBoundaryConditions( const RealType& t, Vector& u ) {};
-
+   void
+   applyBoundaryConditions( const RealType& t, Vector& u ){};
 };
 
-   } // namespace Benchmarks
-} // namespace TNL
+}  // namespace Benchmarks
+}  // namespace TNL

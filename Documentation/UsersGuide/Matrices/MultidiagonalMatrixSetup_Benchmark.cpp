@@ -9,7 +9,8 @@
 const int testsCount = 5;
 
 template< typename Device >
-TNL::Containers::Vector< int, Device > getOffsets( const int gridSize )
+TNL::Containers::Vector< int, Device >
+getOffsets( const int gridSize )
 {
    TNL::Containers::Vector< int, Device > offsets( 5 );
    offsets.setElement( 0, -gridSize );
@@ -21,7 +22,8 @@ TNL::Containers::Vector< int, Device > getOffsets( const int gridSize )
 }
 
 template< typename Matrix >
-void setElement_on_host( const int gridSize, Matrix& matrix )
+void
+setElement_on_host( const int gridSize, Matrix& matrix )
 {
    /***
     * Set  matrix representing approximation of the Laplace operator on regular
@@ -32,24 +34,23 @@ void setElement_on_host( const int gridSize, Matrix& matrix )
    matrix.setDimensions( matrixSize, matrixSize, getOffsets< typename Matrix::DeviceType >( gridSize ) );
 
    for( int j = 0; j < gridSize; j++ )
-      for( int i = 0; i < gridSize; i++ )
-      {
+      for( int i = 0; i < gridSize; i++ ) {
          const int rowIdx = j * gridSize + i;
          if( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 )
-            matrix.setElement( rowIdx, rowIdx,  1.0 );
-         else
-         {
-            matrix.setElement( rowIdx, rowIdx - gridSize,  1.0 );
-            matrix.setElement( rowIdx, rowIdx - 1,  1.0 );
-            matrix.setElement( rowIdx, rowIdx,  -4.0 );
-            matrix.setElement( rowIdx, rowIdx + 1,  1.0 );
-            matrix.setElement( rowIdx, rowIdx + gridSize,  1.0 );
+            matrix.setElement( rowIdx, rowIdx, 1.0 );
+         else {
+            matrix.setElement( rowIdx, rowIdx - gridSize, 1.0 );
+            matrix.setElement( rowIdx, rowIdx - 1, 1.0 );
+            matrix.setElement( rowIdx, rowIdx, -4.0 );
+            matrix.setElement( rowIdx, rowIdx + 1, 1.0 );
+            matrix.setElement( rowIdx, rowIdx + gridSize, 1.0 );
          }
       }
 }
 
 template< typename Matrix >
-void setElement_on_host_and_transfer( const int gridSize, Matrix& matrix )
+void
+setElement_on_host_and_transfer( const int gridSize, Matrix& matrix )
 {
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
@@ -58,26 +59,24 @@ void setElement_on_host_and_transfer( const int gridSize, Matrix& matrix )
    HostMatrix hostMatrix( matrixSize, matrixSize, getOffsets< typename Matrix::DeviceType >( gridSize ) );
 
    for( int j = 0; j < gridSize; j++ )
-      for( int i = 0; i < gridSize; i++ )
-      {
+      for( int i = 0; i < gridSize; i++ ) {
          const int rowIdx = j * gridSize + i;
          if( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 )
-            hostMatrix.setElement( rowIdx, rowIdx,  1.0 );
-         else
-         {
-            hostMatrix.setElement( rowIdx, rowIdx - gridSize,  1.0 );
-            hostMatrix.setElement( rowIdx, rowIdx - 1,  1.0 );
-            hostMatrix.setElement( rowIdx, rowIdx,  -4.0 );
-            hostMatrix.setElement( rowIdx, rowIdx + 1,  1.0 );
-            hostMatrix.setElement( rowIdx, rowIdx + gridSize,  1.0 );
+            hostMatrix.setElement( rowIdx, rowIdx, 1.0 );
+         else {
+            hostMatrix.setElement( rowIdx, rowIdx - gridSize, 1.0 );
+            hostMatrix.setElement( rowIdx, rowIdx - 1, 1.0 );
+            hostMatrix.setElement( rowIdx, rowIdx, -4.0 );
+            hostMatrix.setElement( rowIdx, rowIdx + 1, 1.0 );
+            hostMatrix.setElement( rowIdx, rowIdx + gridSize, 1.0 );
          }
       }
    matrix = hostMatrix;
 }
 
-
 template< typename Matrix >
-void setElement_on_device( const int gridSize, Matrix& matrix )
+void
+setElement_on_device( const int gridSize, Matrix& matrix )
 {
    /***
     * Set  matrix representing approximation of the Laplace operator on regular
@@ -88,17 +87,17 @@ void setElement_on_device( const int gridSize, Matrix& matrix )
    matrix.setDimensions( matrixSize, matrixSize, getOffsets< typename Matrix::DeviceType >( gridSize ) );
 
    auto matrixView = matrix.getView();
-   auto f = [=] __cuda_callable__ ( TNL::Containers::StaticArray< 2, int > i ) mutable {
+   auto f = [ = ] __cuda_callable__( TNL::Containers::StaticArray< 2, int > i ) mutable
+   {
       const int rowIdx = i[ 1 ] * gridSize + i[ 0 ];
       if( i[ 0 ] == 0 || i[ 1 ] == 0 || i[ 0 ] == gridSize - 1 || i[ 1 ] == gridSize - 1 )
-         matrixView.setElement( rowIdx, rowIdx,  1.0 );
-      else
-      {
-         matrixView.setElement( rowIdx, rowIdx - gridSize,  1.0 );
-         matrixView.setElement( rowIdx, rowIdx - 1,  1.0 );
-         matrixView.setElement( rowIdx, rowIdx,  -4.0 );
-         matrixView.setElement( rowIdx, rowIdx + 1,  1.0 );
-         matrixView.setElement( rowIdx, rowIdx + gridSize,  1.0 );
+         matrixView.setElement( rowIdx, rowIdx, 1.0 );
+      else {
+         matrixView.setElement( rowIdx, rowIdx - gridSize, 1.0 );
+         matrixView.setElement( rowIdx, rowIdx - 1, 1.0 );
+         matrixView.setElement( rowIdx, rowIdx, -4.0 );
+         matrixView.setElement( rowIdx, rowIdx + 1, 1.0 );
+         matrixView.setElement( rowIdx, rowIdx + gridSize, 1.0 );
       }
    };
    const TNL::Containers::StaticArray< 2, int > begin = { 0, 0 };
@@ -107,7 +106,8 @@ void setElement_on_device( const int gridSize, Matrix& matrix )
 }
 
 template< typename Matrix >
-void getRow( const int gridSize, Matrix& matrix )
+void
+getRow( const int gridSize, Matrix& matrix )
 {
    /***
     * Set  matrix representing approximation of the Laplace operator on regular
@@ -117,14 +117,14 @@ void getRow( const int gridSize, Matrix& matrix )
    matrix.setDimensions( matrixSize, matrixSize, getOffsets< typename Matrix::DeviceType >( gridSize ) );
 
    auto matrixView = matrix.getView();
-   auto f = [=] __cuda_callable__ ( int rowIdx ) mutable {
+   auto f = [ = ] __cuda_callable__( int rowIdx ) mutable
+   {
       const int i = rowIdx % gridSize;
       const int j = rowIdx / gridSize;
       auto row = matrixView.getRow( rowIdx );
       if( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 )
          row.setElement( 2, 1.0 );
-      else
-      {
+      else {
          row.setElement( 0, 1.0 );
          row.setElement( 1, 1.0 );
          row.setElement( 2, -4.0 );
@@ -136,7 +136,8 @@ void getRow( const int gridSize, Matrix& matrix )
 }
 
 template< typename Matrix >
-void forElements( const int gridSize, Matrix& matrix )
+void
+forElements( const int gridSize, Matrix& matrix )
 {
    /***
     * Set  matrix representing approximation of the Laplace operator on regular
@@ -146,15 +147,14 @@ void forElements( const int gridSize, Matrix& matrix )
    const int matrixSize = gridSize * gridSize;
    matrix.setDimensions( matrixSize, matrixSize, getOffsets< typename Matrix::DeviceType >( gridSize ) );
 
-   auto f = [=] __cuda_callable__ ( int rowIdx, int localIdx, int columnIdx, float& value ) mutable {
+   auto f = [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, float& value ) mutable
+   {
       const int i = rowIdx % gridSize;
       const int j = rowIdx / gridSize;
-      if( ( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 ) && localIdx == 0 )
-      {
+      if( ( i == 0 || j == 0 || i == gridSize - 1 || j == gridSize - 1 ) && localIdx == 0 ) {
          value = 1.0;
       }
-      else
-      {
+      else {
          if( localIdx == 2 )
             value = -4.0;
          else
@@ -165,76 +165,70 @@ void forElements( const int gridSize, Matrix& matrix )
 }
 
 template< typename Device >
-void laplaceOperatorMultidiagonalMatrix()
+void
+laplaceOperatorMultidiagonalMatrix()
 {
    std::cout << " Sparse matrix test:" << std::endl;
-   for( int gridSize = 16; gridSize <= 8192; gridSize *= 2 )
-   {
+   for( int gridSize = 16; gridSize <= 8192; gridSize *= 2 ) {
       std::cout << "  Grid size = " << gridSize << std::endl;
       TNL::Timer timer;
 
       std::cout << "   setElement on host: ";
       timer.reset();
       timer.start();
-      for( int i = 0; i < testsCount; i++ )
-      {
+      for( int i = 0; i < testsCount; i++ ) {
          TNL::Matrices::MultidiagonalMatrix< float, Device, int > matrix;
          setElement_on_host( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / ( double ) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
 
-      if( std::is_same< Device, TNL::Devices::Cuda >::value )
-      {
+      if( std::is_same< Device, TNL::Devices::Cuda >::value ) {
          std::cout << "   setElement on host and transfer on GPU: ";
          timer.reset();
          timer.start();
-         for( int i = 0; i < testsCount; i++ )
-         {
+         for( int i = 0; i < testsCount; i++ ) {
             TNL::Matrices::MultidiagonalMatrix< float, Device, int > matrix;
             setElement_on_host_and_transfer( gridSize, matrix );
          }
          timer.stop();
-         std::cout << timer.getRealTime() / ( double ) testsCount << " sec." << std::endl;
+         std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
       }
 
       std::cout << "   setElement on device: ";
       timer.reset();
       timer.start();
-      for( int i = 0; i < testsCount; i++ )
-      {
+      for( int i = 0; i < testsCount; i++ ) {
          TNL::Matrices::MultidiagonalMatrix< float, Device, int > matrix;
          setElement_on_device( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / ( double ) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
 
       std::cout << "   getRow: ";
       timer.reset();
       timer.start();
-      for( int i = 0; i < testsCount; i++ )
-      {
+      for( int i = 0; i < testsCount; i++ ) {
          TNL::Matrices::MultidiagonalMatrix< float, Device, int > matrix;
          getRow( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / ( double ) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
 
       std::cout << "   forElements: ";
       timer.reset();
       timer.start();
-      for( int i = 0; i < testsCount; i++ )
-      {
+      for( int i = 0; i < testsCount; i++ ) {
          TNL::Matrices::MultidiagonalMatrix< float, Device, int > matrix;
          forElements( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / ( double ) testsCount << " sec." << std::endl;
-
+      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
    }
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Creating Laplace operator matrix on CPU ... " << std::endl;
    laplaceOperatorMultidiagonalMatrix< TNL::Devices::Host >();

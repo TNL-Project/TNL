@@ -5,25 +5,26 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void getRowExample()
+void
+getRowExample()
 {
    const int matrixSize = 5;
    using MatrixType = TNL::Matrices::TridiagonalMatrix< double, Device >;
-   MatrixType matrix (
-      matrixSize,           // number of matrix columns
-      {  { 0.0, 2.0, 1.0 }, // matrix elements
-         { 0.0, 2.0, 1.0 },
-         { 3.0, 2.0, 1.0 },
-         { 3.0, 2.0, 1.0 },
-         { 0.0, 2.0, 1.0 } } );
+   MatrixType matrix( matrixSize,           // number of matrix columns
+                      { { 0.0, 2.0, 1.0 },  // matrix elements
+                        { 0.0, 2.0, 1.0 },
+                        { 3.0, 2.0, 1.0 },
+                        { 3.0, 2.0, 1.0 },
+                        { 0.0, 2.0, 1.0 } } );
    auto view = matrix.getView();
 
    /***
     * Fetch lambda function returns diagonal element in each row.
     */
-   auto fetch = [=] __cuda_callable__ ( int rowIdx ) mutable -> double {
+   auto fetch = [ = ] __cuda_callable__( int rowIdx ) mutable -> double
+   {
       auto row = view.getRow( rowIdx );
-      return row.getValue( 2 ); // get value from subdiagonal with index 2, i.e. the main diagonal
+      return row.getValue( 2 );  // get value from subdiagonal with index 2, i.e. the main diagonal
    };
 
    /***
@@ -34,7 +35,8 @@ void getRowExample()
    std::cout << "Matrix trace is: " << trace << "." << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Getting matrix rows on host: " << std::endl;
    getRowExample< TNL::Devices::Host >();

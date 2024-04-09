@@ -4,7 +4,8 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void forRowsExample()
+void
+forRowsExample()
 {
    using MatrixType = TNL::Matrices::MultidiagonalMatrix< double, Device >;
    /***
@@ -19,14 +20,14 @@ void forRowsExample()
     *
     * The diagonals offsets are { -1, 0, 1 }.
     */
-    const int size = 5;
-    MatrixType matrix(
-      size,            // number of matrix rows
-      size,            // number of matrix columns
-      { -1, 0, 1 } ); // matrix diagonals offsets
+   const int size = 5;
+   MatrixType matrix( size,            // number of matrix rows
+                      size,            // number of matrix columns
+                      { -1, 0, 1 } );  // matrix diagonals offsets
    auto view = matrix.getView();
 
-   auto f = [] __cuda_callable__ ( typename MatrixType::RowView& row ) {
+   auto f = [] __cuda_callable__( typename MatrixType::RowView & row )
+   {
       const int& rowIdx = row.getRowIndex();
       if( rowIdx > 0 )
          row.setElement( 0, -1.0 );  // elements below the diagonal
@@ -38,7 +39,8 @@ void forRowsExample()
    std::cout << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Creating matrix on host: " << std::endl;
    forRowsExample< TNL::Devices::Host >();

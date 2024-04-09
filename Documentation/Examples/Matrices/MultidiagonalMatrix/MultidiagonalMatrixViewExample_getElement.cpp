@@ -4,30 +4,29 @@
 #include <TNL/Devices/Host.h>
 
 template< typename Device >
-void getElements()
+void
+getElements()
 {
    const int matrixSize( 5 );
-   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix (
-      matrixSize,   // number of matrix columns
-      { -1, 0, 1 }, // matrix diagonals offsets
-      {             // matrix elements definition
-         {  0.0, 2.0, -1.0 },
-         { -1.0, 2.0, -1.0 },
-         { -1.0, 2.0, -1.0 },
-         { -1.0, 2.0, -1.0 },
-         { -1.0, 2.0,  0.0 }
-      } );
+   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix( matrixSize,    // number of matrix columns
+                                                                { -1, 0, 1 },  // matrix diagonals offsets
+                                                                {              // matrix elements definition
+                                                                  { 0.0, 2.0, -1.0 },
+                                                                  { -1.0, 2.0, -1.0 },
+                                                                  { -1.0, 2.0, -1.0 },
+                                                                  { -1.0, 2.0, -1.0 },
+                                                                  { -1.0, 2.0, 0.0 } } );
    auto view = matrix.getView();
 
-   for( int i = 0; i < matrixSize; i++ )
-   {
+   for( int i = 0; i < matrixSize; i++ ) {
       for( int j = 0; j < matrixSize; j++ )
          std::cout << std::setw( 5 ) << view.getElement( i, j );  // or matrix.getElement
       std::cout << std::endl;
    }
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Get elements on host:" << std::endl;
    getElements< TNL::Devices::Host >();

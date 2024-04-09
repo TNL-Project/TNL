@@ -5,14 +5,17 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void getRowExample()
+void
+getRowExample()
 {
-   TNL::Matrices::DenseMatrix< double, Device > matrix {
+   TNL::Matrices::DenseMatrix< double, Device > matrix{
+      // clang-format off
       { 1, 0, 0, 0, 0 },
       { 1, 2, 0, 0, 0 },
       { 1, 2, 3, 0, 0 },
       { 1, 2, 3, 4, 0 },
       { 1, 2, 3, 4, 5 }
+      // clang-format on
    };
 
    /***
@@ -23,7 +26,8 @@ void getRowExample()
    /***
     * Fetch lambda function returns diagonal element in each row.
     */
-   auto fetch = [=] __cuda_callable__ ( int rowIdx ) -> double {
+   auto fetch = [ = ] __cuda_callable__( int rowIdx ) -> double
+   {
       auto row = matrixView.getRow( rowIdx );
       return row.getValue( rowIdx );
    };
@@ -32,7 +36,8 @@ void getRowExample()
    std::cout << "Matrix trace is " << trace << "." << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Getting matrix rows on host: " << std::endl;
    getRowExample< TNL::Devices::Host >();

@@ -6,7 +6,8 @@
 using namespace TNL;
 using namespace TNL::Containers;
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /****
     * Create one array on host and one array on device.
@@ -31,12 +32,12 @@ int main( int argc, char* argv[] )
    /****
     * There are few other ways how to initialize arrays...
     */
-   std::list< int > list { 1, 2, 3, 4, 5 };
-   std::vector< int > vector { 6, 7, 8, 9, 10 };
+   std::list< int > list{ 1, 2, 3, 4, 5 };
+   std::vector< int > vector{ 6, 7, 8, 9, 10 };
 
    Array< int, Devices::Cuda > device_array_list( list );
    Array< int, Devices::Cuda > device_array_vector( vector );
-   Array< int, Devices::Cuda > device_array_init_list { 11, 12, 13, 14, 15 };
+   Array< int, Devices::Cuda > device_array_init_list{ 11, 12, 13, 14, 15 };
 
    /****
     * ... and print them all

@@ -4,14 +4,17 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void getCompressedRowLengthsExample()
+void
+getCompressedRowLengthsExample()
 {
-   TNL::Matrices::DenseMatrix< double, Device > denseMatrix {
+   TNL::Matrices::DenseMatrix< double, Device > denseMatrix{
+      // clang-format off
       {  1 },
       {  2,  3 },
       {  4,  5,  6 },
       {  7,  8,  9, 10 },
       { 11, 12, 13, 14, 15 }
+      // clang-format on
    };
    auto denseMatrixView = denseMatrix.getConstView();
 
@@ -23,7 +26,8 @@ void getCompressedRowLengthsExample()
    std::cout << "Compressed row lengths are: " << rowLengths << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Getting compressed row lengths on host: " << std::endl;
    getCompressedRowLengthsExample< TNL::Devices::Host >();

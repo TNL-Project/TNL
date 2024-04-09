@@ -6,7 +6,8 @@ using namespace TNL;
 using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /***
     * Firstly, test the prefix sum with an array allocated on CPU.

@@ -37,7 +37,8 @@ TEST( SharedPointerCudaTest, getDataTest )
 
    TestType aux;
 
-   TNL_BACKEND_SAFE_CALL( cudaMemcpy( (void*) &aux, &ptr1.getData< Devices::Cuda >(), sizeof( TestType ), cudaMemcpyDeviceToHost ) );
+   TNL_BACKEND_SAFE_CALL(
+      cudaMemcpy( (void*) &aux, &ptr1.getData< Devices::Cuda >(), sizeof( TestType ), cudaMemcpyDeviceToHost ) );
 
    ASSERT_EQ( aux[ 0 ], 1 );
    ASSERT_EQ( aux[ 1 ], 2 );

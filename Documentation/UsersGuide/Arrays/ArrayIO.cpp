@@ -5,7 +5,8 @@
 using namespace TNL;
 using namespace TNL::Containers;
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    /****
     * Create new arrays
@@ -37,4 +38,3 @@ int main( int argc, char* argv[] )
    std::cout << "a_view = " << a_view << std::endl;
    std::cout << "b = " << b << std::endl;
 }
-

@@ -3,13 +3,13 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
-
 template< typename Device >
-void createMultidiagonalMatrix()
+void
+createMultidiagonalMatrix()
 {
    const int matrixSize = 6;
 
-   /***
+   /*
     * Setup the following matrix (dots represent zeros):
     *
     * /  4 -1 .  -1  .  . \
@@ -22,31 +22,35 @@ void createMultidiagonalMatrix()
     * The diagonals offsets are { -3, -1, 0, 1, 3 }.
     */
    TNL::Matrices::MultidiagonalMatrix< double, Device > matrix(
-      matrixSize, { -3, -1, 0, 1, 3 }, {
-   /***
-    * To set the matrix elements we first extend the diagonals to their full
-    * lengths even outside the matrix (dots represent zeros and zeros are
-    * artificial zeros used for memory alignment):
-    *
-    * 0  .  0 /  4 -1 .  -1  .  . \              -> {  0,  0,  4, -1, -1 }
-    * .  0  . | -1  4 -1  . -1  . | .            -> {  0, -1,  4, -1, -1 }
-    * .  .  0 |  . -1  4 -1  . -1 | .  .         -> {  0, -1,  4, -1, -1 }
-    *    .  . | -1  . -1  4 -1  . | 0  .  .      -> { -1, -1,  4, -1,  0 }
-    *       . |  . -1  . -1  4 -1 | .  0  .  .   -> { -1, -1,  4, -1,  0 }
-    *         \  .  .  1  . -1  4 / 0  .  0  . . -> { -1, -1,  4,  0,  0 }
-    *
-    */
-      {  0,  0,  4, -1, -1 },
-      {  0, -1,  4, -1, -1 },
-      {  0, -1,  4, -1, -1 },
-      { -1, -1,  4, -1,  0 },
-      { -1, -1,  4, -1,  0 },
-      { -1, -1,  4,  0,  0 }
+      matrixSize,
+      { -3, -1, 0, 1, 3 },
+      {
+         /*
+          * To set the matrix elements we first extend the diagonals to their full
+          * lengths even outside the matrix (dots represent zeros and zeros are
+          * artificial zeros used for memory alignment):
+          *
+          * 0  .  0 /  4 -1 .  -1  .  . \              -> {  0,  0,  4, -1, -1 }
+          * .  0  . | -1  4 -1  . -1  . | .            -> {  0, -1,  4, -1, -1 }
+          * .  .  0 |  . -1  4 -1  . -1 | .  .         -> {  0, -1,  4, -1, -1 }
+          *    .  . | -1  . -1  4 -1  . | 0  .  .      -> { -1, -1,  4, -1,  0 }
+          *       . |  . -1  . -1  4 -1 | .  0  .  .   -> { -1, -1,  4, -1,  0 }
+          *         \  .  .  1  . -1  4 / 0  .  0  . . -> { -1, -1,  4,  0,  0 }
+          */
+         // clang-format off
+         {  0,  0,  4, -1, -1 },
+         {  0, -1,  4, -1, -1 },
+         {  0, -1,  4, -1, -1 },
+         { -1, -1,  4, -1,  0 },
+         { -1, -1,  4, -1,  0 },
+         { -1, -1,  4,  0,  0 }
+         // clang-format on
       } );
    std::cout << "The matrix reads as: " << std::endl << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Create multidiagonal matrix on CPU ... " << std::endl;
    createMultidiagonalMatrix< TNL::Devices::Host >();

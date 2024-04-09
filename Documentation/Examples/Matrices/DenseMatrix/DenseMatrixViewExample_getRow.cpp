@@ -5,7 +5,8 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void getRowExample()
+void
+getRowExample()
 {
    const int size = 5;
    TNL::Matrices::DenseMatrix< double, Device > matrix( size, size );
@@ -16,7 +17,8 @@ void getRowExample()
     */
    auto matrixView = matrix.getView();
 
-   auto f = [=] __cuda_callable__ ( int rowIdx ) mutable {
+   auto f = [ = ] __cuda_callable__( int rowIdx ) mutable
+   {
       auto row = matrixView.getRow( rowIdx );
       if( rowIdx > 0 )
          row.setValue( rowIdx - 1, -1.0 );
@@ -32,7 +34,8 @@ void getRowExample()
    std::cout << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Getting matrix rows on host: " << std::endl;
    getRowExample< TNL::Devices::Host >();

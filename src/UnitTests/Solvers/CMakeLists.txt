@@ -1,1 +1,1 @@
-ADD_SUBDIRECTORY( ODE )
+add_subdirectory(ODE)

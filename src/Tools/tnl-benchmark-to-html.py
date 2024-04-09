@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
@@ -10,12 +10,15 @@ from TNL.BenchmarkLogs import *
 from TNL.BenchmarkPlots import *
 
 if len(sys.argv) < 2 or len(sys.argv) > 3:
-    print(f"""\
+    print(
+        f"""\
 usage: {sys.argv[0]} FILE.log [OUTPUT.html]
 
 where FILE.log contains one JSON record per line,
 and OUTPUT.html is the output file name (by default, OUTPUT=FILE).
-""", file=sys.stderr)
+""",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 logFile = sys.argv[1]
@@ -33,10 +36,11 @@ else:
 dataframes = list(gen_dataframes_per_operation(logFile))
 
 print(f"Writing output to {htmlFile}")
-with open(htmlFile, 'w') as f:
+with open(htmlFile, "w") as f:
     print("<html>", file=f)
     # add some basic style
-    print("""\
+    print(
+        """\
 <head>
 <meta charset="UTF-8">
 <style>
@@ -46,7 +50,9 @@ with open(htmlFile, 'w') as f:
     th, td { padding: 2px; }
 </style>
 </head>
-<body>""", file=f)
+<body>""",
+        file=f,
+    )
 
     print(f"<h1>{title}</h1>", file=f)
     if metadata is not None:
@@ -57,7 +63,7 @@ with open(htmlFile, 'w') as f:
     print("<ol>", file=f)
     for op, df in dataframes:
         id = op.replace(" ", "_")
-        print(f"<li><a href=\"#{id}\">{op}</a></li>", file=f)
+        print(f'<li><a href="#{id}">{op}</a></li>', file=f)
     print("</ol>", file=f)
 
     # formatters for specific columns of the table
@@ -70,7 +76,7 @@ with open(htmlFile, 'w') as f:
     for op, df in dataframes:
         # section heading
         id = op.replace(" ", "_")
-        print(f"<h2 id=\"{id}\">{op}</h2>", file=f)
+        print(f'<h2 id="{id}">{op}</h2>', file=f)
         # table
         print(df.to_html(classes="benchmark", formatters=formatters), file=f)
 

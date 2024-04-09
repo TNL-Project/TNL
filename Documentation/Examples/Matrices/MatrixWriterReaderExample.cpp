@@ -6,20 +6,23 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
-
 template< typename Device >
-void matrixWriterExample()
+void
+matrixWriterExample()
 {
    using Matrix = TNL::Matrices::SparseMatrix< double, Device >;
-   Matrix matrix (
-      5, // number of matrix rows
-      5, // number of matrix columns
-      {  // matrix elements definition
-         {  0,  0,  2.0 },
-         {  1,  0, -1.0 }, {  1,  1,  2.0 }, {  1,  2, -1.0 },
-         {  2,  1, -1.0 }, {  2,  2,  2.0 }, {  2,  3, -1.0 },
-         {  3,  2, -1.0 }, {  3,  3,  2.0 }, {  3,  4, -1.0 },
-         {  4,  4,  2.0 } } );
+   Matrix matrix( 5,  // number of matrix rows
+                  5,  // number of matrix columns
+                  {
+                     // matrix elements definition
+                     // clang-format off
+                     { 0, 0,  2.0 },
+                     { 1, 0, -1.0 }, { 1, 1, 2.0 }, { 1, 2, -1.0 },
+                     { 2, 1, -1.0 }, { 2, 2, 2.0 }, { 2, 3, -1.0 },
+                     { 3, 2, -1.0 }, { 3, 3, 2.0 }, { 3, 4, -1.0 },
+                     { 4, 4,  2.0 }
+                     // clang-format on
+                  } );
 
    std::cout << "Matrix: " << std::endl << matrix << std::endl;
    std::cout << "Writing matrix in Gnuplot format into the file matrix-writer-example.gplt ...";
@@ -34,7 +37,8 @@ void matrixWriterExample()
 }
 
 template< typename Device >
-void matrixReaderExample()
+void
+matrixReaderExample()
 {
    using SparseMatrix = TNL::Matrices::SparseMatrix< double, Device >;
    SparseMatrix sparseMatrix;
@@ -53,7 +57,8 @@ void matrixReaderExample()
    std::cout << "Imported matrix is: " << std::endl << denseMatrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Creating matrices on CPU ... " << std::endl;
    matrixWriterExample< TNL::Devices::Host >();

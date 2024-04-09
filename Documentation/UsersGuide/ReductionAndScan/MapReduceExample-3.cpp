@@ -9,16 +9,23 @@ using namespace TNL::Containers;
 using namespace TNL::Algorithms;
 
 template< typename Device >
-double mapReduce( Vector< double, Device >& u )
+double
+mapReduce( Vector< double, Device >& u )
 {
    auto u_view = u.getView();
-   auto fetch = [=] __cuda_callable__ ( int i )->double {
-      return u_view[ 2 * i ]; };
-   auto reduction = [] __cuda_callable__ ( const double& a, const double& b ) { return a + b; };
+   auto fetch = [ = ] __cuda_callable__( int i ) -> double
+   {
+      return u_view[ 2 * i ];
+   };
+   auto reduction = [] __cuda_callable__( const double& a, const double& b )
+   {
+      return a + b;
+   };
    return reduce< Device >( 0, u_view.getSize() / 2, fetch, reduction, 0.0 );
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    Timer timer;
    Vector< double, Devices::Host > host_u( 100000 );
@@ -38,4 +45,3 @@ int main( int argc, char* argv[] )
 #endif
    return EXIT_SUCCESS;
 }
-

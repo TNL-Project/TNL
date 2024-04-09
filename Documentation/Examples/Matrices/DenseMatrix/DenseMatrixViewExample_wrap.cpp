@@ -5,13 +5,17 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void wrapMatrixView()
+void
+wrapMatrixView()
 {
    const int rows( 3 ), columns( 4 );
-   TNL::Containers::Vector< double, Device > valuesVector {
+   TNL::Containers::Vector< double, Device > valuesVector{
+      // clang-format off
       1,  2,  3,  4,
       5,  6,  7,  8,
-      9, 10, 11, 12 };
+      9, 10, 11, 12
+      // clang-format on
+   };
    double* values = valuesVector.getData();
 
    /***
@@ -21,7 +25,8 @@ void wrapMatrixView()
    std::cout << "Matrix reads as: " << std::endl << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Wraping matrix view on host: " << std::endl;
    wrapMatrixView< TNL::Devices::Host >();

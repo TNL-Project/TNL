@@ -74,7 +74,9 @@ main( int argc, char* argv[] )
 
       if( print_usage && myid == 0 ) {
          std::cerr << "\n"
-                      "Usage: " << argv[ 0 ] << " [<options>]\n"
+                      "Usage: "
+                   << argv[ 0 ]
+                   << " [<options>]\n"
                       "\n"
                       "  -n <n>              : problem size in each direction (default: 33)\n"
                       "  -solver <ID>        : solver ID\n"
@@ -95,8 +97,8 @@ main( int argc, char* argv[] )
    // Preliminaries: we want at least one rank per row
    if( n * n * n < num_procs )
       n = std::cbrt( num_procs ) + 1;
-   const int N = n * n * n;            // global number of rows
-   const double h = 1.0 / ( n + 1 );   // mesh cell size
+   const int N = n * n * n;           // global number of rows
+   const double h = 1.0 / ( n + 1 );  // mesh cell size
 
    /* Each rank knows only of its own rows - the range is denoted by ilower
       and upper.  Here we partition the rows. We account for the fact that
@@ -124,6 +126,7 @@ main( int argc, char* argv[] )
    typename CSR::RowCapacitiesType capacities;
    capacities.setSize( local_size );
    auto capacities_view = capacities.getView();
+   // clang-format off
    TNL::Algorithms::parallelFor< TNL::HYPRE_Device >( ilower, iupper + 1,
       [=] __cuda_callable__ ( HYPRE_Int i ) mutable
       {
@@ -159,9 +162,11 @@ main( int argc, char* argv[] )
          // The row index must be converted from global to local
          capacities_view[ i - ilower ] = nnz;
       } );
+   // clang-format on
    A_local.setRowCapacities( capacities );
 
    // Now assemble the local matrix. Each row has at most 7 entries.
+   // clang-format off
    A_local.forAllRows( [=] __cuda_callable__ ( typename CSR::RowView& row ) mutable {
          // The row index must be converted from local to global
          const HYPRE_Int i = ilower + row.getRowIndex();
@@ -194,6 +199,7 @@ main( int argc, char* argv[] )
          if( i + n * n < N )
             row.setElement( nnz++, i + n * n, -1.0 );
       } );
+   // clang-format on
 
    // Bind the TNL matrix to HypreCSR
    TNL::Matrices::HypreCSRMatrix A_local_hypre;
@@ -203,24 +209,23 @@ main( int argc, char* argv[] )
    // Note that this is a square matrix, so we indicate the row partition
    // size twice (since number of rows = number of cols)
    using HypreParCSR = TNL::Matrices::HypreParCSRMatrix;
-   HypreParCSR parcsr_A = HypreParCSR::fromLocalBlocks( MPI_COMM_WORLD, N, N, {ilower, iupper + 1}, {ilower, iupper + 1}, A_local_hypre );
+   HypreParCSR parcsr_A =
+      HypreParCSR::fromLocalBlocks( MPI_COMM_WORLD, N, N, { ilower, iupper + 1 }, { ilower, iupper + 1 }, A_local_hypre );
 
    // Deallocate the local matrix since it is not needed anymore in this example
    A_local_hypre.reset();
    A_local.reset();
 
-
    // Create the rhs and solution vectors
    TNL::Containers::HypreParVector par_b;
    TNL::Containers::HypreParVector par_x;
 
-   par_b.setDistribution( {ilower, iupper + 1}, 0, N, MPI_COMM_WORLD );
-   par_x.setDistribution( {ilower, iupper + 1}, 0, N, MPI_COMM_WORLD );
+   par_b.setDistribution( { ilower, iupper + 1 }, 0, N, MPI_COMM_WORLD );
+   par_x.setDistribution( { ilower, iupper + 1 }, 0, N, MPI_COMM_WORLD );
 
    // Set the rhs values to h^2 and the solution to zero
    par_b.setValue( h * h );
    par_x.setValue( 0.0 );
-
 
    // Choose a solver and solve the system
 

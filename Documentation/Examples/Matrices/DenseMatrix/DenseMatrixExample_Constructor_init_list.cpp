@@ -2,30 +2,35 @@
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
 
-
 template< typename Device >
-void initializerListExample()
+void
+initializerListExample()
 {
-   TNL::Matrices::DenseMatrix< double, Device > matrix {
+   TNL::Matrices::DenseMatrix< double, Device > matrix{
+      // clang-format off
       {  1,  2,  3,  4,  5,  6 },
       {  7,  8,  9, 10, 11, 12 },
       { 13, 14, 15, 16, 17, 18 }
+      // clang-format on
    };
 
    std::cout << "General dense matrix: " << std::endl << matrix << std::endl;
 
-   TNL::Matrices::DenseMatrix< double, Device > triangularMatrix {
+   TNL::Matrices::DenseMatrix< double, Device > triangularMatrix{
+      // clang-format off
       {  1 },
       {  2,  3 },
       {  4,  5,  6 },
       {  7,  8,  9, 10 },
       { 11, 12, 13, 14, 15 }
+      // clang-format on
    };
 
    std::cout << "Triangular dense matrix: " << std::endl << triangularMatrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Creating matrices on CPU ... " << std::endl;
    initializerListExample< TNL::Devices::Host >();

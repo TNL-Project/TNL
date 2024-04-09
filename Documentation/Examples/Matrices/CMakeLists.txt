@@ -1,25 +1,27 @@
-ADD_SUBDIRECTORY( DenseMatrix )
-ADD_SUBDIRECTORY( LambdaMatrix )
-ADD_SUBDIRECTORY( MultidiagonalMatrix )
-ADD_SUBDIRECTORY( SparseMatrix )
-ADD_SUBDIRECTORY( TridiagonalMatrix )
+add_subdirectory(DenseMatrix)
+add_subdirectory(LambdaMatrix)
+add_subdirectory(MultidiagonalMatrix)
+add_subdirectory(SparseMatrix)
+add_subdirectory(TridiagonalMatrix)
 
-IF( TNL_BUILD_CUDA )
-   ADD_EXECUTABLE( MatrixWriterReaderExample MatrixWriterReaderExample.cu )
-   target_link_libraries( MatrixWriterReaderExample PUBLIC TNL::TNL_CUDA )
-   ADD_CUSTOM_COMMAND( COMMAND MatrixWriterReaderExample > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out
-                       OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out
-                       DEPENDS MatrixWriterReaderExample )
-ELSE()
-   ADD_EXECUTABLE( MatrixWriterReaderExample MatrixWriterReaderExample.cpp )
-   target_link_libraries( MatrixWriterReaderExample PUBLIC TNL::TNL_CXX )
-   ADD_CUSTOM_COMMAND( COMMAND MatrixWriterReaderExample > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out
-                       OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out
-                       DEPENDS MatrixWriterReaderExample )
-ENDIF()
-set( DOC_OUTPUTS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out )
+if(TNL_BUILD_CUDA)
+    add_executable(MatrixWriterReaderExample MatrixWriterReaderExample.cu)
+    target_link_libraries(MatrixWriterReaderExample PUBLIC TNL::TNL_CUDA)
+    add_custom_command(
+        COMMAND MatrixWriterReaderExample > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out
+        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out DEPENDS MatrixWriterReaderExample
+    )
+else()
+    add_executable(MatrixWriterReaderExample MatrixWriterReaderExample.cpp)
+    target_link_libraries(MatrixWriterReaderExample PUBLIC TNL::TNL_CXX)
+    add_custom_command(
+        COMMAND MatrixWriterReaderExample > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out
+        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out DEPENDS MatrixWriterReaderExample
+    )
+endif()
+set(DOC_OUTPUTS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/MatrixWriterReaderExample.out)
 
-add_custom_target( RunMatricesExamples ALL DEPENDS ${DOC_OUTPUTS} )
+add_custom_target(RunMatricesExamples ALL DEPENDS ${DOC_OUTPUTS})
 
 # add the dependency to the main target
-add_dependencies( run-doc-examples RunMatricesExamples )
+add_dependencies(run-doc-examples RunMatricesExamples)

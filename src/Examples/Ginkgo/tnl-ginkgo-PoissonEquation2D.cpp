@@ -80,15 +80,11 @@ main( int argc, char* argv[] )
 
    // Create stopping criteria so we can add the logger
    // https://github.com/ginkgo-project/ginkgo/discussions/1099#discussioncomment-3439954
-   auto iter_stop = gko::share(
-               gko::stop::Iteration::build()
-                  .with_max_iters( 2000 )
-                  .on( exec ) );
-   auto tol_stop = gko::share(
-               gko::stop::ResidualNorm< ValueType >::build()
-                  .with_baseline( gko::stop::mode::rhs_norm )
-                  .with_reduction_factor( 1e-7 )
-                  .on( exec ) );
+   auto iter_stop = gko::share( gko::stop::Iteration::build().with_max_iters( 2000 ).on( exec ) );
+   auto tol_stop = gko::share( gko::stop::ResidualNorm< ValueType >::build()
+                                  .with_baseline( gko::stop::mode::rhs_norm )
+                                  .with_reduction_factor( 1e-7 )
+                                  .on( exec ) );
    iter_stop->add_logger( logger );
    tol_stop->add_logger( logger );
 
@@ -96,102 +92,73 @@ main( int argc, char* argv[] )
 
    if( preconditioner == "Jacobi" ) {
       // Create the solver
-      auto solver_factory =
-            gko::solver::Cg< ValueType >::build()
-               .with_preconditioner(
-                  gko::preconditioner::Jacobi< ValueType, IndexType >::build()
-                     .on( exec ) )
-               .with_criteria( iter_stop, tol_stop )
-               .on( exec );
+      auto solver_factory = gko::solver::Cg< ValueType >::build()
+                               .with_preconditioner( gko::preconditioner::Jacobi< ValueType, IndexType >::build().on( exec ) )
+                               .with_criteria( iter_stop, tol_stop )
+                               .on( exec );
       solver = solver_factory->generate( gko_A );
    }
    else if( preconditioner == "ParILU" ) {
       // Generate incomplete factors using ParILU
-      auto fact_factory = gko::share(
-            gko::factorization::ParIlu< ValueType, IndexType >::build()
-               .on( exec )
-      );
+      auto fact_factory = gko::share( gko::factorization::ParIlu< ValueType, IndexType >::build().on( exec ) );
 
       // Generate an ILU preconditioner factory by setting lower and upper
       // triangular solver - in this case incomplete sparse approximate inverse
-      const int sparsity_power = 2; // TODO: parametrize
-      auto ilu_pre_factory = gko::share(
-            gko::preconditioner::Ilu< gko::preconditioner::LowerIsai< ValueType, IndexType >,
-                                      gko::preconditioner::UpperIsai< ValueType, IndexType > >::build()
-               .with_factorization( fact_factory )
-               .with_l_solver(
-                  gko::preconditioner::LowerIsai< ValueType, IndexType >::build()
-                     .with_sparsity_power( sparsity_power )
-                     .on( exec )
-                  )
-               .with_u_solver(
-                  gko::preconditioner::UpperIsai< ValueType, IndexType >::build()
-                     .with_sparsity_power( sparsity_power )
-                     .on( exec )
-                  )
-               .on( exec )
-      );
+      const int sparsity_power = 2;  // TODO: parametrize
+      auto ilu_pre_factory =
+         gko::share( gko::preconditioner::Ilu< gko::preconditioner::LowerIsai< ValueType, IndexType >,
+                                               gko::preconditioner::UpperIsai< ValueType, IndexType > >::build()
+                        .with_factorization( fact_factory )
+                        .with_l_solver( gko::preconditioner::LowerIsai< ValueType, IndexType >::build()
+                                           .with_sparsity_power( sparsity_power )
+                                           .on( exec ) )
+                        .with_u_solver( gko::preconditioner::UpperIsai< ValueType, IndexType >::build()
+                                           .with_sparsity_power( sparsity_power )
+                                           .on( exec ) )
+                        .on( exec ) );
 
       // Create the solver
-      auto solver_factory =
-            gko::solver::Cg< ValueType >::build()
-               .with_preconditioner( ilu_pre_factory )
-               .with_criteria( iter_stop, tol_stop )
-               .on( exec );
+      auto solver_factory = gko::solver::Cg< ValueType >::build()
+                               .with_preconditioner( ilu_pre_factory )
+                               .with_criteria( iter_stop, tol_stop )
+                               .on( exec );
       solver = solver_factory->generate( gko_A );
    }
    else if( preconditioner == "AMGX" ) {
       // Create smoother factory (ir with bj)
-      auto inner_solver_gen = gko::share(
-            gko::preconditioner::Jacobi< ValueType, IndexType >::build()
-               .with_max_block_size( 1 )
-               .on( exec )
-      );
-      auto smoother_gen = gko::share(
-            gko::solver::Ir< ValueType >::build()
-               .with_solver( inner_solver_gen )
-               .with_relaxation_factor( 0.9 )
-               .with_criteria(
-                   gko::stop::Iteration::build().with_max_iters( 2 ).on( exec ) )
-               .on( exec )
-      );
+      auto inner_solver_gen =
+         gko::share( gko::preconditioner::Jacobi< ValueType, IndexType >::build().with_max_block_size( 1 ).on( exec ) );
+      auto smoother_gen = gko::share( gko::solver::Ir< ValueType >::build()
+                                         .with_solver( inner_solver_gen )
+                                         .with_relaxation_factor( 0.9 )
+                                         .with_criteria( gko::stop::Iteration::build().with_max_iters( 2 ).on( exec ) )
+                                         .on( exec ) );
       // Create MultigridLevel factory
-      auto mg_level_gen = gko::share(
-            gko::multigrid::Pgm< ValueType, IndexType >::build()
-               .with_deterministic( true )
-               .on( exec )
-      );
+      auto mg_level_gen =
+         gko::share( gko::multigrid::Pgm< ValueType, IndexType >::build().with_deterministic( true ).on( exec ) );
       // Create CoarsestSolver factory
-      auto coarsest_gen = gko::share(
-            gko::solver::Ir< ValueType >::build()
-               .with_solver( inner_solver_gen )
-               .with_relaxation_factor( 0.9 )
-               .with_criteria(
-                   gko::stop::Iteration::build().with_max_iters( 4 ).on( exec ) )
-               .on( exec )
-      );
+      auto coarsest_gen = gko::share( gko::solver::Ir< ValueType >::build()
+                                         .with_solver( inner_solver_gen )
+                                         .with_relaxation_factor( 0.9 )
+                                         .with_criteria( gko::stop::Iteration::build().with_max_iters( 4 ).on( exec ) )
+                                         .on( exec ) );
       // Create multigrid factory
-      auto multigrid_gen = gko::share(
-            gko::solver::Multigrid::build()
-               .with_max_levels( 9 )
-               .with_min_coarse_rows( 10 )
-               .with_pre_smoother( smoother_gen )
-               .with_post_uses_pre( true )
-               .with_mg_level( mg_level_gen )
-               .with_coarsest_solver( coarsest_gen )
-               .with_default_initial_guess(
-                   gko::solver::initial_guess_mode::zero )
-               .with_criteria(
-                   gko::stop::Iteration::build().with_max_iters( 1 ).on( exec ) )
-               .on( exec )
-      );
+      auto multigrid_gen = gko::share( gko::solver::Multigrid::build()
+                                          .with_max_levels( 9 )
+                                          .with_min_coarse_rows( 10 )
+                                          .with_pre_smoother( smoother_gen )
+                                          .with_post_uses_pre( true )
+                                          .with_mg_level( mg_level_gen )
+                                          .with_coarsest_solver( coarsest_gen )
+                                          .with_default_initial_guess( gko::solver::initial_guess_mode::zero )
+                                          .with_criteria( gko::stop::Iteration::build().with_max_iters( 1 ).on( exec ) )
+                                          .on( exec ) );
 
       // Create the solver
-      auto solver_factory =
-            gko::solver::Cg< ValueType >::build()
-               .with_preconditioner( multigrid_gen )
-               .with_criteria( iter_stop, tol_stop )
-               .on( exec );
+      auto solver_factory = gko::solver::Cg< ValueType >::build()
+                               .with_preconditioner( multigrid_gen )
+                               .with_criteria( iter_stop, tol_stop )
+                               .on( exec );
       solver = solver_factory->generate( gko_A );
    }
 
@@ -205,7 +172,8 @@ main( int argc, char* argv[] )
    std::cout << "converged: " << logger->has_converged() << "\n"
              << "number of iterations: " << logger->get_num_iterations() << "\n"
              << "residual norm: " << get_scalar_value< ValueType >( logger->get_residual_norm() ) << "\n"
-             << "implicit residual norm: " << std::sqrt( get_scalar_value< ValueType >( logger->get_implicit_sq_resnorm() ) ) << "\n"
+             << "implicit residual norm: " << std::sqrt( get_scalar_value< ValueType >( logger->get_implicit_sq_resnorm() ) )
+             << "\n"
              << "time to solution: " << t.getRealTime() << " seconds\n"
              << std::flush;
 }

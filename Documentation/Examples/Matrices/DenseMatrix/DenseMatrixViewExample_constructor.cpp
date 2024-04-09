@@ -4,29 +4,36 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void createMatrixView()
+void
+createMatrixView()
 {
-   TNL::Containers::Vector< double, Device > values {
+   TNL::Containers::Vector< double, Device > values{
+      // clang-format off
       1,  2,  3,  4,
       5,  6,  7,  8,
-      9, 10, 11, 12 };
+      9, 10, 11, 12
+      // clang-format on
+   };
 
    /***
     * Create dense matrix view with row major order
     */
-   TNL::Matrices::DenseMatrixView< double, Device, int, TNL::Algorithms::Segments::RowMajorOrder > rowMajorMatrix( 3, 4, values.getView() );
+   TNL::Matrices::DenseMatrixView< double, Device, int, TNL::Algorithms::Segments::RowMajorOrder > rowMajorMatrix(
+      3, 4, values.getView() );
    std::cout << "Row major order matrix:" << std::endl;
    std::cout << rowMajorMatrix << std::endl;
 
    /***
     * Create dense matrix view with column major order
     */
-   TNL::Matrices::DenseMatrixView< double, Device, int, TNL::Algorithms::Segments::RowMajorOrder > columnMajorMatrix( 4, 3, values.getView() );
+   TNL::Matrices::DenseMatrixView< double, Device, int, TNL::Algorithms::Segments::RowMajorOrder > columnMajorMatrix(
+      4, 3, values.getView() );
    std::cout << "Column major order matrix:" << std::endl;
    std::cout << columnMajorMatrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Creating matrix view on host: " << std::endl;
    createMatrixView< TNL::Devices::Host >();

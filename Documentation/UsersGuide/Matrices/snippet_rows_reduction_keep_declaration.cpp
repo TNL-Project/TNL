@@ -1,1 +1,1 @@
-auto keep = [=] __cuda_callable__ ( Index rowIdx, const Real& value ) mutable;
+auto keep = [=] __cuda_callable__( Index rowIdx, const Real& value ) mutable;

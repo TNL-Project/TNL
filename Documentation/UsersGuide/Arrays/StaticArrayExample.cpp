@@ -5,9 +5,10 @@
 using namespace TNL;
 using namespace TNL::Containers;
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
-   StaticArray< 3, int > a1, a2( 1, 2, 3 ), a3{ 4,3,2 };
+   StaticArray< 3, int > a1, a2( 1, 2, 3 ), a3{ 4, 3, 2 };
    a1 = 0.0;
 
    std::cout << "a1 = " << a1 << std::endl;
@@ -21,4 +22,3 @@ int main( int argc, char* argv[] )
    a1.sort();
    std::cout << "Sorted a1 = " << a1 << std::endl;
 }
-

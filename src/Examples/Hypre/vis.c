@@ -5,6 +5,8 @@
  * SPDX-License-Identifier: (Apache-2.0 OR MIT)
  ******************************************************************************/
 
+// clang-format off
+
 /* Save a structured n x n mesh of square elements on the unit square into a
    GLVis mesh file with the given name. */
 #include <math.h>

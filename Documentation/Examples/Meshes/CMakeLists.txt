@@ -1,1 +1,1 @@
-ADD_SUBDIRECTORY( Grid )
+add_subdirectory(Grid)

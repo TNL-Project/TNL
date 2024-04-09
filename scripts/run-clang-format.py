@@ -34,7 +34,7 @@ except ImportError:
     DEVNULL = open(os.devnull, "wb")
 
 
-DEFAULT_EXTENSIONS = 'c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx,hip'
+DEFAULT_EXTENSIONS = 'c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx,cu,hip'
 DEFAULT_CLANG_FORMAT_IGNORE = '.clang-format-ignore'
 # use a wrapper script which formats #pragmas nicely
 _p_clang_format = os.path.join(os.path.dirname(__file__), "p-clang-format")
@@ -91,10 +91,14 @@ def list_files(files, recursive=False, extensions=None, exclude=None):
                         x for x in fpaths if not fnmatch.fnmatch(x, pattern)
                     ]
                 for f in fpaths:
+                    # skip symbolic links (they may lead to a different source tree)
+                    if os.path.islink(f):
+                        continue
                     ext = os.path.splitext(f)[1][1:]
                     if ext in extensions:
                         out.append(f)
-        else:
+        # skip symbolic links (they may lead to a different source tree)
+        elif not os.path.islink(file):
             out.append(file)
     return out
 

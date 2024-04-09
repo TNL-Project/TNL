@@ -13,7 +13,7 @@
    // https://gitlab.com/-/snippets/3684272
    #define STDEXEC
 #elif defined( HAVE_TBB ) && defined( __cpp_lib_parallel_algorithm )
-   #include <execution>   // std::execution policies
+   #include <execution>  // std::execution policies
 
    #if defined( __NVCOMPILER )
       // nvc++ does not support par_unseq for std::max_element: https://gitlab.com/-/snippets/2576260

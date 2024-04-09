@@ -4,7 +4,8 @@
 using namespace TNL;
 using namespace TNL::Containers;
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    using Vector = StaticVector< 3, double >;
 
@@ -21,4 +22,3 @@ int main( int argc, char* argv[] )
    std::cout << "abs( v3 - 2.0 ) = " << abs( v3 - 2.0 ) << std::endl;
    std::cout << "v2 * v2 = " << v2 * v2 << std::endl;
 }
-

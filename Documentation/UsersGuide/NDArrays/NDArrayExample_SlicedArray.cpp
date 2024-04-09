@@ -2,7 +2,8 @@
 
 using namespace TNL::Containers;
 
-int main()
+int
+main()
 {
    // compile-time constant number of rows
    constexpr int num_rows = 3;
@@ -13,11 +14,11 @@ int main()
    // number of columns per slice
    constexpr int slice_size = 4;
 
-   using SlicedArray = SlicedNDArray< int,  // Value
-                                      SizesHolder< int, num_rows, 0 >,   // SizesHolder
-                                      std::index_sequence< 0, 1 >,       // Permutation
-                                      SliceInfo< 1, slice_size >,        // SliceInfo
-                                      TNL::Devices::Host >;              // Device
+   using SlicedArray = SlicedNDArray< int,                              // Value
+                                      SizesHolder< int, num_rows, 0 >,  // SizesHolder
+                                      std::index_sequence< 0, 1 >,      // Permutation
+                                      SliceInfo< 1, slice_size >,       // SliceInfo
+                                      TNL::Devices::Host >;             // Device
    SlicedArray a;
 
    // set array sizes: statically-sized axes must have 0

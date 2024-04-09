@@ -10,15 +10,14 @@
 #include <TNL/Benchmarks/Benchmarks.h>
 
 #ifdef HAVE_ARMADILLO
-#include <armadillo>
-#include <TNL/Matrices/CSR.h>
+   #include <armadillo>
+   #include <TNL/Matrices/CSR.h>
 #endif
 
 #include <stdexcept>  // std::runtime_error
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
-
 
 template< typename Device >
 const char*
@@ -30,18 +29,20 @@ getPerformer()
 }
 
 template< typename Matrix >
-void barrier( const Matrix& matrix )
-{
-}
+void
+barrier( const Matrix& matrix )
+{}
 
 template< typename Matrix >
-void barrier( const Matrices::DistributedMatrix< Matrix >& matrix )
+void
+barrier( const Matrices::DistributedMatrix< Matrix >& matrix )
 {
    TNL::MPI::Barrier( matrix.getCommunicator() );
 }
 
 template< typename Device >
-bool checkDevice( const Config::ParameterContainer& parameters )
+bool
+checkDevice( const Config::ParameterContainer& parameters )
 {
    const String device = parameters.getParameter< String >( "devices" );
    if( device == "all" )
@@ -53,7 +54,7 @@ bool checkDevice( const Config::ParameterContainer& parameters )
    return false;
 }
 
-template< template<typename> class Preconditioner, typename Matrix >
+template< template< typename > class Preconditioner, typename Matrix >
 void
 benchmarkPreconditionerUpdate( Benchmark<>& benchmark,
                                const Config::ParameterContainer& parameters,
@@ -69,7 +70,8 @@ benchmarkPreconditionerUpdate( Benchmark<>& benchmark,
    preconditioner.setup( parameters );
 
    auto reset = []() {};
-   auto compute = [&]() {
+   auto compute = [ & ]()
+   {
       preconditioner.update( matrix );
       barrier( matrix );
    };
@@ -77,7 +79,7 @@ benchmarkPreconditionerUpdate( Benchmark<>& benchmark,
    benchmark.time< typename Matrix::DeviceType >( reset, performer, compute );
 }
 
-template< template<typename> class Solver, template<typename> class Preconditioner, typename Matrix, typename Vector >
+template< template< typename > class Solver, template< typename > class Preconditioner, typename Matrix, typename Vector >
 void
 benchmarkSolver( Benchmark<>& benchmark,
                  const Config::ParameterContainer& parameters,
@@ -107,22 +109,25 @@ benchmarkSolver( Benchmark<>& benchmark,
    try {
       pre->update( matrix );
    }
-   catch ( const std::runtime_error& ) {}
+   catch( const std::runtime_error& ) {
+   }
 
    Vector x;
    x.setLike( x0 );
 
    // reset function
-   auto reset = [&]() {
+   auto reset = [ & ]()
+   {
       x = x0;
    };
 
    // benchmark function
-   auto compute = [&]() {
+   auto compute = [ & ]()
+   {
       const bool converged = solver.solve( b, x );
       barrier( matrix );
       if( ! converged )
-         throw std::runtime_error("solver did not converge");
+         throw std::runtime_error( "solver did not converge" );
    };
 
    // subclass BenchmarkResult to add extra columns to the benchmark
@@ -137,21 +142,21 @@ benchmarkSolver( Benchmark<>& benchmark,
       const Vector& x;
       const Vector& b;
 
-      MyBenchmarkResult( Solver< Matrix >& solver,
-                         const std::shared_ptr< Matrix >& matrix,
-                         const Vector& x,
-                         const Vector& b )
-      : solver(solver), matrix(matrix), x(x), b(b)
+      MyBenchmarkResult( Solver< Matrix >& solver, const std::shared_ptr< Matrix >& matrix, const Vector& x, const Vector& b )
+      : solver( solver ), matrix( matrix ), x( x ), b( b )
       {}
 
-      virtual HeaderElements getTableHeader() const override
+      virtual HeaderElements
+      getTableHeader() const override
       {
-         return HeaderElements({ "time", "stddev", "stddev/time", "speedup", "converged", "iterations", "residue_precond", "residue_true" });
+         return HeaderElements(
+            { "time", "stddev", "stddev/time", "speedup", "converged", "iterations", "residue_precond", "residue_true" } );
       }
 
-      virtual RowElements getRowElements() const override
+      virtual RowElements
+      getRowElements() const override
       {
-         const bool converged = ! std::isnan(solver.getResidue()) && solver.getResidue() < solver.getConvergenceResidue();
+         const bool converged = ! std::isnan( solver.getResidue() ) && solver.getResidue() < solver.getConvergenceResidue();
          const long iterations = solver.getIterations();
          const double residue_precond = solver.getResidue();
 
@@ -162,11 +167,11 @@ benchmarkSolver( Benchmark<>& benchmark,
          const double residue_true = lpNorm( r, 2.0 ) / lpNorm( b, 2.0 );
 
          RowElements elements;
-         elements << time << time_stddev << time_stddev/time;
-         if( speedup != 0  )
+         elements << time << time_stddev << time_stddev / time;
+         if( speedup != 0 )
             elements << speedup;
          else
-            elements <<  "N/A";
+            elements << "N/A";
          elements << ( converged ? "yes" : "no" ) << iterations << residue_precond << residue_true;
          return elements;
       }
@@ -185,59 +190,58 @@ benchmarkArmadillo( const Config::ParameterContainer& parameters,
                     const Vector& x0,
                     const Vector& b )
 {
-    // copy matrix into Armadillo's class
-    // sp_mat is in CSC format
-    arma::uvec _colptr( matrix->getRowPointers().getSize() );
-    for( int i = 0; i < matrix->getRowPointers().getSize(); i++ )
-        _colptr[ i ] = matrix->getRowPointers()[ i ];
-    arma::uvec _rowind( matrix->getColumnIndexes().getSize() );
-    for( int i = 0; i < matrix->getColumnIndexes().getSize(); i++ )
-        _rowind[ i ] = matrix->getColumnIndexes()[ i ];
-    arma::vec _values( matrix->getValues().getData(), matrix->getValues().getSize() );
-    arma::sp_mat AT( _rowind,
-                     _colptr,
-                     _values,
-                     matrix->getColumns(),
-                     matrix->getRows() );
-    arma::sp_mat A = AT.t();
+   // copy matrix into Armadillo's class
+   // sp_mat is in CSC format
+   arma::uvec _colptr( matrix->getRowPointers().getSize() );
+   for( int i = 0; i < matrix->getRowPointers().getSize(); i++ )
+      _colptr[ i ] = matrix->getRowPointers()[ i ];
+   arma::uvec _rowind( matrix->getColumnIndexes().getSize() );
+   for( int i = 0; i < matrix->getColumnIndexes().getSize(); i++ )
+      _rowind[ i ] = matrix->getColumnIndexes()[ i ];
+   arma::vec _values( matrix->getValues().getData(), matrix->getValues().getSize() );
+   arma::sp_mat AT( _rowind, _colptr, _values, matrix->getColumns(), matrix->getRows() );
+   arma::sp_mat A = AT.t();
 
-    Vector x;
-    x.setLike( x0 );
+   Vector x;
+   x.setLike( x0 );
 
-    // Armadillo vector using the same memory as x (with copy_aux_mem=false, strict=true)
-    arma::vec arma_x( x.getData(), x.getSize(), false, true );
-    arma::vec arma_b( b.getData(), b.getSize() );
+   // Armadillo vector using the same memory as x (with copy_aux_mem=false, strict=true)
+   arma::vec arma_x( x.getData(), x.getSize(), false, true );
+   arma::vec arma_b( b.getData(), b.getSize() );
 
-    arma::superlu_opts settings;
-//    settings.equilibrate = false;
-    settings.equilibrate = true;
-    settings.pivot_thresh = 1.0;
-//    settings.permutation = arma::superlu_opts::COLAMD;
-    settings.permutation = arma::superlu_opts::MMD_AT_PLUS_A;
-//    settings.refine = arma::superlu_opts::REF_DOUBLE;
-    settings.refine = arma::superlu_opts::REF_NONE;
+   arma::superlu_opts settings;
+   //    settings.equilibrate = false;
+   settings.equilibrate = true;
+   settings.pivot_thresh = 1.0;
+   //    settings.permutation = arma::superlu_opts::COLAMD;
+   settings.permutation = arma::superlu_opts::MMD_AT_PLUS_A;
+   //    settings.refine = arma::superlu_opts::REF_DOUBLE;
+   settings.refine = arma::superlu_opts::REF_NONE;
 
-    // reset function
-    auto reset = [&]() {
-        x = x0;
-    };
+   // reset function
+   auto reset = [ & ]()
+   {
+      x = x0;
+   };
 
-    // benchmark function
-    auto compute = [&]() {
-        const bool converged = arma::spsolve( arma_x, A, arma_b, "superlu", settings );
-        if( ! converged )
-            throw std::runtime_error("solver did not converge");
-    };
+   // benchmark function
+   auto compute = [ & ]()
+   {
+      const bool converged = arma::spsolve( arma_x, A, arma_b, "superlu", settings );
+      if( ! converged )
+         throw std::runtime_error( "solver did not converge" );
+   };
 
-    const int loops = parameters.getParameter< int >( "loops" );
-    double time = timeFunction( compute, reset, loops );
+   const int loops = parameters.getParameter< int >( "loops" );
+   double time = timeFunction( compute, reset, loops );
 
-    arma::vec r = A * arma_x - arma_b;
-//    std::cout << "Converged: " << (time > 0) << ", residue = " << arma::norm( r ) / arma::norm( arma_b ) << "                                                 " << std::endl;
-//    std::cout << "Mean time: " << time / loops << " seconds." << std::endl;
-    std::cout << "Converged: "   << std::setw( 5) << std::boolalpha << (time > 0) << "   "
-              << "iterations = " << std::setw( 4) << "N/A" << "   "
-              << "residue = "    << std::setw(10) << arma::norm( r ) / arma::norm( arma_b ) << "   "
-              << "mean time = "  << std::setw( 9) << time / loops << " seconds." << std::endl;
+   arma::vec r = A * arma_x - arma_b;
+   //    std::cout << "Converged: " << (time > 0) << ", residue = " << arma::norm( r ) / arma::norm( arma_b ) << " " <<
+   //    std::endl; std::cout << "Mean time: " << time / loops << " seconds." << std::endl;
+   std::cout << "Converged: " << std::setw( 5 ) << std::boolalpha << ( time > 0 ) << "   "
+             << "iterations = " << std::setw( 4 ) << "N/A"
+             << "   "
+             << "residue = " << std::setw( 10 ) << arma::norm( r ) / arma::norm( arma_b ) << "   "
+             << "mean time = " << std::setw( 9 ) << time / loops << " seconds." << std::endl;
 }
 #endif

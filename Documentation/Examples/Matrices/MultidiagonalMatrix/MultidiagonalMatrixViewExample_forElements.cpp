@@ -4,7 +4,8 @@
 #include <TNL/Devices/Cuda.h>
 
 template< typename Device >
-void forElementsExample()
+void
+forElementsExample()
 {
    /***
     * Set the following matrix (dots represent zero matrix elements and zeros are
@@ -18,13 +19,13 @@ void forElementsExample()
     *
     * The diagonals offsets are { -2, -1, 0 }.
     */
-   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix(
-      5,               // number of matrix rows
-      5,               // number of matrix columns
-      { -2, -1, 0 } ); // matrix diagonals offsets
+   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix( 5,                // number of matrix rows
+                                                                5,                // number of matrix columns
+                                                                { -2, -1, 0 } );  // matrix diagonals offsets
    auto view = matrix.getView();
 
-   auto f = [] __cuda_callable__ ( int rowIdx, int localIdx, int columnIdx, double& value ) {
+   auto f = [] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, double& value )
+   {
       /***
        * 'forElements' method iterates only over matrix elements lying on given subdiagonals
        * and so we do not need to check anything. The element value can be expressed
@@ -45,7 +46,8 @@ void forElementsExample()
    std::cout << matrix << std::endl;
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Creating matrix on host: " << std::endl;
    forElementsExample< TNL::Devices::Host >();

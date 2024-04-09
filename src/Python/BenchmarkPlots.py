@@ -14,7 +14,22 @@ from cycler import cycler
 import io
 import base64
 
-custom_cycler = cycler(linestyle=["-", "--", ":", "-."]) * cycler("color", ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"])
+custom_cycler = cycler(linestyle=["-", "--", ":", "-."]) * cycler(
+    "color",
+    [
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
+        "#bcbd22",
+        "#17becf",
+    ],
+)
+
 
 def plot_bandwidth_vs_size(df, size_name="size", prop_cycler=custom_cycler, **kwargs):
     """
@@ -47,11 +62,14 @@ def plot_bandwidth_vs_size(df, size_name="size", prop_cycler=custom_cycler, **kw
     for idx in df.index.unique():
         part = df.loc[idx]
         err = part["bandwidth"] * part["time_stddev/time"]
-        ax.errorbar(part[size_name], part["bandwidth"], yerr=err, label=", ".join(idx), **kwargs)
+        ax.errorbar(
+            part[size_name], part["bandwidth"], yerr=err, label=", ".join(idx), **kwargs
+        )
     # see https://stackoverflow.com/a/43439132
-    ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left", borderaxespad=0.)
+    ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left", borderaxespad=0.0)
 
     return fig, ax
+
 
 def heatmaps_bandwidth(df, x_name="columns", y_name="rows", *, cbar_kw=None, **kwargs):
     """
@@ -112,6 +130,7 @@ def heatmaps_bandwidth(df, x_name="columns", y_name="rows", *, cbar_kw=None, **k
 
         yield fig, ax
 
+
 def get_image_html_tag(fig, format="svg"):
     """
     Returns an HTML tag with embedded image data in the given format.
@@ -128,4 +147,4 @@ def get_image_html_tag(fig, format="svg"):
     if format == "svg":
         return data.decode("utf-8")
     data = base64.b64encode(data).decode("utf-8")
-    return f"<img src=\"data:image/{format};base64,{data}\">"
+    return f'<img src="data:image/{format};base64,{data}">'

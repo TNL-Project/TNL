@@ -2,16 +2,17 @@
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Host.h>
 
-
 template< typename Device >
-void getSerializationTypeExample()
+void
+getSerializationTypeExample()
 {
    TNL::Matrices::SparseMatrix< double, Device > matrix;
 
    std::cout << "Matrix type is: " << matrix.getSerializationType();
 }
 
-int main( int argc, char* argv[] )
+int
+main( int argc, char* argv[] )
 {
    std::cout << "Get serialization type on CPU ... " << std::endl;
    getSerializationTypeExample< TNL::Devices::Host >();

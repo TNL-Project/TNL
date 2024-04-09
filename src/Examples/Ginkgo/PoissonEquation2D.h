@@ -134,9 +134,7 @@ struct FivePointStencilCapacitiesFunctor
    Index N;
    Index ilower;
 
-   FivePointStencilCapacitiesFunctor( Index n, Index N, Index ilower )
-   : n( n ), N( N ), ilower( ilower )
-   {}
+   FivePointStencilCapacitiesFunctor( Index n, Index N, Index ilower ) : n( n ), N( N ), ilower( ilower ) {}
 
    __cuda_callable__
    int
@@ -181,13 +179,11 @@ struct FivePointStencilElementsFunctor
    Index N;
    Index ilower;
 
-   FivePointStencilElementsFunctor( Index n, Index N, Index ilower )
-   : n( n ), N( N ), ilower( ilower )
-   {}
+   FivePointStencilElementsFunctor( Index n, Index N, Index ilower ) : n( n ), N( N ), ilower( ilower ) {}
 
    __cuda_callable__
    void
-   operator()( Index local_rows, Index local_columns, Index local_rowIdx, Index segmentIdx, Index & columnIdx, Real & value )
+   operator()( Index local_rows, Index local_columns, Index local_rowIdx, Index segmentIdx, Index& columnIdx, Real& value )
    {
       // The row index must be converted from local to global
       const Index i = ilower + local_rowIdx;
@@ -269,8 +265,8 @@ getLambdaMatrix( Vector& b_local, typename Vector::IndexType n, int myid = 0, in
    FivePointStencilElementsFunctor< Real, Index > elementsFunctor( n, N, ilower );
 
    // Let each rank create its local matrix in the CSR format in TNL
-   auto A_local =
-      TNL::Matrices::LambdaMatrixFactory< Real, typename Vector::DeviceType, Index >::create( elementsFunctor, capacitiesFunctor );
+   auto A_local = TNL::Matrices::LambdaMatrixFactory< Real, typename Vector::DeviceType, Index >::create( elementsFunctor,
+                                                                                                          capacitiesFunctor );
    A_local.setDimensions( local_size, N );
 
    // Initialize the right hand side vector

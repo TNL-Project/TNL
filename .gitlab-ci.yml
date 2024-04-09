@@ -361,27 +361,11 @@ pages:
         paths:
             - public
 
-copyright-headers:
+clang-format:
     stage: lint
     rules:
         - changes:
-            - src/**/*.{h,hpp,cpp,cu,hip}
-            - scripts/updage-copyright-headers.py
-    script:
-        - ./scripts/update-copyright-headers.py
-                --dir src/
-                --exclude
-                    'src/TNL/3rdparty/*'
-                    'src/UnitTests/*'
-                    'src/Benchmarks/Sorting/ReferenceAlgorithms/*'
-                    'src/Examples/Hypre/*'
-        - git --no-pager diff --color=always --exit-code
-    interruptible: true
-
-clang-format src/TNL:
-    stage: lint
-    rules:
-        - changes:
+            - Documentation/**/*.{h,hpp,cpp,cu,hip}
             - src/TNL/**/*.{h,hpp,cpp,cu,hip}
     script:
         - ./scripts/run-clang-format.py
@@ -389,79 +373,9 @@ clang-format src/TNL:
                 --style file
                 --exclude "src/TNL/3rdparty/*"
                 --recursive
-                src/TNL
-    interruptible: true
-
-clang-format src/Benchmarks:
-    stage: lint
-    rules:
-        - changes:
-            - src/Benchmarks/**/*.{h,hpp,cpp,cu,hip}
-    script:
-        - ./scripts/run-clang-format.py
-                --color always
-                --style file
-                --recursive
-                src/Benchmarks
-    interruptible: true
-    # TODO: remove to enforce formatting
-    allow_failure: true
-
-clang-format src/Examples:
-    stage: lint
-    rules:
-        - changes:
-            - src/Examples/**/*.{h,hpp,cpp,cu,hip}
-    script:
-        - ./scripts/run-clang-format.py
-                --color always
-                --style file
-                --recursive
-                src/Examples
-    interruptible: true
-    # TODO: remove to enforce formatting
-    allow_failure: true
-
-clang-format src/Tools:
-    stage: lint
-    rules:
-        - changes:
-            - src/Tools/**/*.{h,hpp,cpp,cu,hip}
-    script:
-        - ./scripts/run-clang-format.py
-                --color always
-                --style file
-                --recursive
-                src/Tools
-    interruptible: true
-
-clang-format src/UnitTests:
-    stage: lint
-    rules:
-        - changes:
-            - src/UnitTests/**/*.{h,hpp,cpp,cu,hip}
-    script:
-        - ./scripts/run-clang-format.py
-                --color always
-                --style file
-                --recursive
-                src/UnitTests
-    interruptible: true
-
-clang-format Documentation:
-    stage: lint
-    rules:
-        - changes:
-            - Documentation/**/*.{h,hpp,cpp,cu,hip}
-    script:
-        - ./scripts/run-clang-format.py
-                --color always
-                --style file
-                --recursive
                 Documentation
+                src
     interruptible: true
-    # TODO: remove to enforce formatting
-    allow_failure: true
 
 clang-tidy:
     stage: lint
@@ -496,3 +410,46 @@ clang-tidy:
     interruptible: true
     # TODO: remove to enforce
     allow_failure: true
+
+cmake-format:
+    stage: lint
+    rules:
+        - changes:
+            - ./**/CMakeLists.txt
+            - ./**/*.cmake
+            - .cmake-format.yaml
+    script:
+        - shopt -s globstar
+        - cmake-format --in-place **/CMakeLists.txt cmake/**/*.*
+        - git --no-pager diff --color=always --exit-code
+    interruptible: true
+
+copyright-headers:
+    stage: lint
+    rules:
+        - changes:
+            - src/**/*.{h,hpp,cpp,cu,hip}
+            - scripts/updage-copyright-headers.py
+    script:
+        - ./scripts/update-copyright-headers.py
+                --dir src/
+                --exclude
+                    'src/TNL/3rdparty/*'
+                    'src/UnitTests/*'
+                    'src/Benchmarks/Sorting/ReferenceAlgorithms/*'
+                    'src/Examples/Hypre/*'
+        - git --no-pager diff --color=always --exit-code
+    interruptible: true
+
+python-black:
+    stage: lint
+    rules:
+        - changes:
+            - src/**/*.py
+            - Documentation/**/*.py
+    image: "archlinux:latest"
+    before_script:
+        - pacman -Syu --needed --noconfirm python-black python-colorama
+    script:
+        - black --color --diff --check Documentation/ src/
+    interruptible: true
