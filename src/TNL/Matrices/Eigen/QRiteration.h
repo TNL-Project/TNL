@@ -8,47 +8,60 @@
 
 #include "TNL/Containers/Expressions/ExpressionTemplates.h"
 #include "TNL/Matrices/Factorization/QR/QR.h"
-#include "TNL/Backend/DeviceInfo.h"
 #include "TNL/Math.h"
 
 namespace TNL::Matrices::Eigen {
 
 /**
- * \brief Performs QR iteration on a given matrix to compute its eigenvalues and eigenvectors, using a specified QR factorization method.
+ * \brief Computes the eigenvalues and eigenvectors of a matrix using the QR iteration algorithm with a specified QR
+ * factorization method.
  *
- * This function implements the QR iteration algorithm, a numerical method used to compute the eigenvalues and eigenvectors of a matrix.
- * It iteratively applies QR factorization, followed by the multiplication of the resulting R and Q matrices in reverse order. The process
- * is repeated until the matrix converges to an upper triangular form, where the diagonal elements approximate the eigenvalues of the
- * original matrix. The accumulated product of Q matrices converges to the matrix of eigenvectors.
+ * QR iteration is a sophisticated numerical technique employed to find the eigenvalues and eigenvectors of a matrix. This
+ * method involves the repeated application of QR factorization to the matrix, followed by the recombination of the factorized
+ * matrices in reverse order (RQ instead of QR). Through successive iterations, the matrix transforms into an upper triangular
+ * matrix whose diagonal elements are the eigenvalues of the original matrix. Simultaneously, the product of Q matrices across
+ * iterations converges to the eigenvector matrix of the original matrix.
  *
- * \tparam T The data type of the matrix elements (e.g., float, double), which determines the precision of the computations.
- * \tparam Device The computational device where the data is stored and operations are performed (e.g., Host, GPU).
- * \tparam MatrixType The type of the matrix (e.g., dense matrix, sparse matrix), which must support basic matrix operations like
- * getMatrixProduct.
+ * \tparam T Data type of the matrix elements (e.g., float, double), influencing the precision of computations.
+ * \tparam Device Computational device (e.g., CPU, GPU) for data storage and operations.
+ * \tparam MatrixType Type of matrix (e.g., dense, sparse) involved in the computation.
  *
- * \param matrix The matrix for which the eigenvalues and eigenvectors are to be computed. It should be a square matrix.
- * \param precision The precision threshold for the convergence check. The iteration stops when all off-diagonal elements
- * of the current matrix are below this threshold.
- * \param QRtype The type of QR factorization method to be used, specified by an enumeration. This can be one of the QR
- * factorization methods like Gram-Schmidt, Givens, or Householder.
+ * \param matrix The square matrix for which to compute eigenvalues and eigenvectors. Non-square matrices are not supported.
+ * \param epsilon The convergence threshold for the algorithm. The iteration process is considered complete when all
+ * off-diagonal elements in the current matrix are smaller than this value.
+ * \param QRtype Enumerated type specifying the QR factorization method to use (e.g., Gram-Schmidt, Givens rotations,
+ * Householder reflections), impacting the algorithm's efficiency and numerical stability.
+ * \param maxIterations (Optional) The maximum number of iterations to perform, defaulting to 10000. If this limit is
+ * reached before convergence, the function terminates, returning the last computed matrices and an iteration count of -1.
  *
- * \return A pair of matrices where the first element is the converged matrix approximating the upper triangular matrix with
- * eigenvalues on its diagonal, and the second element is the matrix of eigenvectors corresponding to these eigenvalues.
+ * \return A tuple comprising three elements:
+ *         - The matrix converged to an upper triangular form, with eigenvalues on the diagonal (of type MatrixType).
+ *         - The matrix of eigenvectors corresponding to the eigenvalues (of type MatrixType).
+ *         - The number of iterations conducted (of type int), where -1 indicates that the iteration limit was reached
+ *           without achieving convergence.
  *
- * \note The convergence of this method depends on the matrix having distinct eigenvalues. The method is more efficient
- * for matrices that are close to upper triangular form.
- * \note The precision parameter controls the accuracy of the eigenvalues and eigenvectors computed. Lower values
- * lead to more accurate results but may require more iterations.
+ * \exception std::logic_error Thrown if the matrix is not square, as QR iteration requires a square matrix to function
+ * correctly.
+ *
+ * \note This algorithm assumes that the input matrix has distinct eigenvalues for effective convergence. Matrices that are
+ * already close to upper triangular form may see faster convergence.
+ * \note The specified precision (epsilon) controls the accuracy of the computed eigenvalues and eigenvectors. A smaller epsilon
+ * results in higher precision but may necessitate a greater number of iterations to achieve convergence.
  */
 template< typename T, typename Device, typename MatrixType >
-static std::pair< MatrixType, MatrixType >
-QRiteration( MatrixType matrix, const T& precision, const TNL::Matrices::Factorization::QR::QRfactorizationType& QRtype )
+static std::tuple< MatrixType, MatrixType, int >
+QRiteration( MatrixType matrix,
+             const T& epsilon,
+             const TNL::Matrices::Factorization::QR::QRfactorizationType& QRtype,
+             const uint& maxIterations = 10000 )
 {
    TNL_ASSERT_EQ( matrix.getRows(), matrix.getColumns(), "QR iteration is possible only for square matrices" );
-   typename MatrixType::IndexType size = matrix.getColumns();
+   using indexType = typename MatrixType::IndexType;
+   indexType size = matrix.getColumns();
    MatrixType Q( size, size );
    MatrixType R( size, size );
    MatrixType Q_acc( size, size );
+   int iterations = 0;
    for( int i = 0; i < size; i++ )
       Q_acc.setElement( i, i, 1 );
    while( true ) {
@@ -56,10 +69,11 @@ QRiteration( MatrixType matrix, const T& precision, const TNL::Matrices::Factori
       matrix.getMatrixProduct( R, Q );
       MatrixType Q_acc_pom( size, size );
       Q_acc_pom.getMatrixProduct( Q_acc, Q );
-      Q_acc = Q_acc_pom;
+      Q_acc = std::move( Q_acc_pom );
       bool converged = true;
-      for( int i = 0; i < size - 1; i++ ) {
-         if( abs( matrix.getElement( i + 1, i ) ) >= precision ) {
+      iterations++;
+      for( indexType i = 0; i < size - 1; i++ ) {
+         if( abs( matrix.getElement( i + 1, i ) ) >= epsilon ) {
             converged = false;
             break;
          }
@@ -68,8 +82,12 @@ QRiteration( MatrixType matrix, const T& precision, const TNL::Matrices::Factori
       if( converged ) {
          break;
       }
+      if( iterations == maxIterations ) {
+         iterations = -1;
+         break;
+      }
    }
-   return std::make_pair( matrix, Q_acc );
+   return std::make_tuple( matrix, Q_acc, iterations );
 }
 
 }  //namespace TNL::Matrices::Eigen
