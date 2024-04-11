@@ -1,5 +1,5 @@
-# CUDA Setup
-#find_package(CUDAToolkit REQUIRED)
+# Option to enable Tensor Core support explicitly
+option(USE_TENSOR_CORES "Enable to compile with Tensor Core support" OFF)
 
 # TNL Build CPP Targets
 if(TNL_BUILD_CPP_TARGETS)
@@ -16,6 +16,19 @@ if(TNL_BUILD_CUDA)
     target_include_directories(tnl-benchmark-densematrices-cuda PUBLIC /opt/cuda/targets/x86_64-linux/include)
     target_include_directories(tnl-benchmark-densematrices-cuda PUBLIC /opt/cuda/targets/x86_64-linux/include)
     target_link_libraries(tnl-benchmark-densematrices-cuda PUBLIC CUDA::cublas)
+
+    if(USE_TENSOR_CORES)
+    message(STATUS "Compiling with Tensor Core support.")
+    target_compile_definitions(tnl-benchmark-densematrices-cuda PRIVATE USE_TENSOR_CORES=1)
+    target_compile_options(tnl-benchmark-densematrices-cuda PRIVATE
+        $<$<COMPILE_LANGUAGE:CUDA>:--generate-code arch=compute_75,code=sm_75>
+    )
+    else()
+    message(STATUS "Compiling without Tensor Core support.")
+    target_compile_options(tnl-benchmark-densematrices-cuda PRIVATE
+        $<$<COMPILE_LANGUAGE:CUDA>:--generate-code arch=compute_50,code=sm_50>
+    )
+    endif()
 
     # Linking MAGMA
     find_library(MAGMA_LIBRARY NAMES magma PATHS /opt/cuda/targets/x86_64-linux/lib)
@@ -90,5 +103,6 @@ if(BLAS_FOUND)
 else()
     message(WARNING "Could not find BLAS - benchmarks with BLAS will not be built.")
 endif()
+
 
 

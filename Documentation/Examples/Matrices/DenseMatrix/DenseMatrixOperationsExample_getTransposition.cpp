@@ -1,12 +1,20 @@
 #include <iostream>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
+#include <TNL/Devices/Cuda.h>
 
 template< typename Device >
 void
 getTranspositionExample()
 {
-   TNL::Matrices::DenseMatrix< double, Device > matrix{ { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 }, { 10, 11, 12 }, { 13, 14, 15 } };
+   // clang-format off
+   TNL::Matrices::DenseMatrix< double, Device > matrix{
+   { 1, 2, 3 },
+   { 4, 5, 6 },
+   { 7, 8, 9 },
+   { 10, 11, 12 },
+   { 13, 14, 15 } };
+   // clang-format on
 
    std::cout << "Dense matrix: " << std::endl << matrix << std::endl;
 

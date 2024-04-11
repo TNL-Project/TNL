@@ -1,113 +1,107 @@
+#include "TNL/Algorithms/Segments/ElementsOrganization.h"
 #include <iostream>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
-template< typename Device >
+template< typename Device, TNL::Matrices::ElementsOrganization Organization >
 void
-getProductExample1()
+matrixProductExample( TNL::Matrices::TransposeState transposeA, TNL::Matrices::TransposeState transposeB )
 {
-   std::cout << "Normal x Normal" << std::endl;
+   std::cout << "Matrix product (";
+   std::cout << ( transposeA == TNL::Matrices::TransposeState::Transpose ? "Transposed x " : "Normal x " );
+   std::cout << ( transposeB == TNL::Matrices::TransposeState::Transpose ? "Transposed)" : "Normal)" ) << std::endl;
 
-   TNL::Matrices::DenseMatrix< double, Device > matrix1{ { 5, 6, 7, 3 }, { 6, 5, 2, 3 }, { 6, 7, 1, 9 } };
+   TNL::Matrices::DenseMatrix< double, Device, int, Organization > matrix1;
+   TNL::Matrices::DenseMatrix< double, Device, int, Organization > matrix2;
+
+   if( transposeA == TNL::Matrices::TransposeState::Transpose ) {
+      // clang-format off
+      matrix1 = {
+      { 5, 6, 6 },
+      { 6, 5, 7 },
+      { 7, 2, 1 },
+      { 3, 3, 9 } };
+      // clang-format on
+   }
+   else {
+      // clang-format off
+      matrix1 = {
+      { 5, 6, 7, 3 },
+      { 6, 5, 2, 3 },
+      { 6, 7, 1, 9 } };
+      // clang-format on
+   }
 
    std::cout << "Dense matrix 1: " << std::endl << matrix1 << std::endl;
 
-   TNL::Matrices::DenseMatrix< double, Device > matrix2{
-      { 4, 3, 2, 6, 7, 8, 4 }, { 3, 4, 2, 8, 6, 1, 5 }, { 1, 4, 7, 9, 5, 2, 6 }, { 2, 3, 8, 0, 4, 0, 7 }
-   };
+   if( transposeB == TNL::Matrices::TransposeState::Transpose ) {
+      // clang-format off
+      matrix2 = {
+      { 4, 3, 2, 6 },
+      { 3, 4, 2, 8 },
+      { 1, 4, 7, 9 },
+      { 2, 3, 8, 0 },
+      { 7, 6, 5, 4 } };
+      // clang-format on
+   }
+   else {
+      // clang-format off
+      matrix2 = {
+      { 4, 3, 2, 6, 7 },
+      { 3, 4, 2, 8, 6 },
+      { 1, 4, 7, 9, 5 },
+      { 2, 3, 8, 0, 4 } };
+      // clang-format on
+   }
 
    std::cout << "Dense matrix 2: " << std::endl << matrix2 << std::endl;
 
-   TNL::Matrices::DenseMatrix< double, Device > resultMatrix;
-
-   resultMatrix.getMatrixProduct( matrix1, matrix2 );
+   TNL::Matrices::DenseMatrix< double, Device, int, Organization > resultMatrix;
+   resultMatrix.getMatrixProduct( matrix1, matrix2, 1.0, transposeA, transposeB );
 
    std::cout << "Product: " << std::endl << resultMatrix << std::endl;
 }
 
-template< typename Device >
-void
-getProductExample2()
-{
-   std::cout << "Transposed x Normal" << std::endl;
-
-   TNL::Matrices::DenseMatrix< double, Device > matrix1{ { 5, 6, 6 }, { 6, 5, 7 }, { 7, 2, 1 }, { 3, 3, 9 } };
-
-   std::cout << "Dense matrix 1: " << std::endl << matrix1 << std::endl;
-
-   TNL::Matrices::DenseMatrix< double, Device > matrix2{
-      { 4, 3, 2, 6, 7, 8, 4 }, { 3, 4, 2, 8, 6, 1, 5 }, { 1, 4, 7, 9, 5, 2, 6 }, { 2, 3, 8, 0, 4, 0, 7 }
-   };
-
-   std::cout << "Dense matrix 2: " << std::endl << matrix2 << std::endl;
-
-   TNL::Matrices::DenseMatrix< double, Device > resultMatrix;
-
-   resultMatrix.getMatrixProduct(
-      matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::None );
-
-   std::cout << "Product: " << std::endl << resultMatrix << std::endl;
-}
-
-template< typename Device >
-void
-getProductExample3()
-{
-   std::cout << "Normal x Transposed" << std::endl;
-
-   TNL::Matrices::DenseMatrix< double, Device > matrix1{ { 5, 6, 7, 3 }, { 6, 5, 2, 3 }, { 6, 7, 1, 9 } };
-
-   std::cout << "Dense matrix 1: " << std::endl << matrix1 << std::endl;
-
-   TNL::Matrices::DenseMatrix< double, Device > matrix2{
-      { 4, 3, 2, 6, 7 }, { 3, 4, 2, 8, 6 }, { 1, 4, 7, 9, 5 }, { 2, 3, 8, 0, 4 }
-   };
-
-   std::cout << "Dense matrix 2: " << std::endl << matrix2 << std::endl;
-
-   TNL::Matrices::DenseMatrix< double, Device > resultMatrix;
-
-   resultMatrix.getMatrixProduct(
-      matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::Transpose );
-
-   std::cout << "Product: " << std::endl << resultMatrix << std::endl;
-}
-
-template< typename Device >
-void
-getProductExample4()
-{
-   std::cout << "Transposed x Transposed" << std::endl;
-
-   TNL::Matrices::DenseMatrix< double, Device > matrix1{ { 5, 6, 6 }, { 6, 5, 7 }, { 7, 2, 1 }, { 3, 3, 9 } };
-
-   std::cout << "Dense matrix 1: " << std::endl << matrix1 << std::endl;
-
-   TNL::Matrices::DenseMatrix< double, Device > matrix2{
-      { 4, 3, 2, 6, 7 }, { 3, 4, 2, 8, 6 }, { 1, 4, 7, 9, 5 }, { 2, 3, 8, 0, 4 }
-   };
-
-   std::cout << "Dense matrix 2: " << std::endl << matrix2 << std::endl;
-
-   TNL::Matrices::DenseMatrix< double, Device > resultMatrix;
-
-   resultMatrix.getMatrixProduct(
-      matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::Transpose );
-
-   std::cout << "Product: " << std::endl << resultMatrix << std::endl;
-}
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrix on CPU ... " << std::endl;
-   getProductExample1< TNL::Devices::Host >();
+   std::cout << "Creating matrices on CPU ... " << std::endl;
+   std::cout << "Stored in Row Major Order ... " << std::endl;
+   matrixProductExample< TNL::Devices::Host, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >(
+      TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::None );
+   std::cout << "Stored in Column Major Order" << std::endl;
+   matrixProductExample< TNL::Devices::Host, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >(
+      TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::None );
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrix on CUDA GPU ... " << std::endl;
-   getProductExample1< TNL::Devices::Cuda >();
-   getProductExample2< TNL::Devices::Cuda >();
-   getProductExample3< TNL::Devices::Cuda >();
-   getProductExample4< TNL::Devices::Cuda >();
+   std::cout << "Creating matrices on CUDA GPU ... " << std::endl;
+   std::cout << "Stored in Row Major Order ... " << std::endl;
+   matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >(
+      TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::None );
+   std::cout << "Stored in Column Major Order ... " << std::endl;
+   matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >(
+      TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::None );
+
+   std::cout << "Stored in Row Major Order ... " << std::endl;
+   matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >(
+      TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::None );
+   std::cout << "Stored in Column Major Order ... " << std::endl;
+   matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >(
+      TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::None );
+
+   std::cout << "Stored in Row Major Order ... " << std::endl;
+   matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >(
+      TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::Transpose );
+   std::cout << "Stored in Column Major Order ... " << std::endl;
+   matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >(
+      TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::Transpose );
+
+   std::cout << "Stored in Row Major Order ... " << std::endl;
+   matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >(
+      TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::Transpose );
+   std::cout << "Stored in Column Major Order ... " << std::endl;
+   matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >(
+      TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::Transpose );
 #endif
 }

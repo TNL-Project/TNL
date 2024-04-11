@@ -7,6 +7,12 @@
 #include <TNL/Backend/SharedMemory.h>
 #include <TNL/Matrices/MatrixBase.h>
 
+#ifdef __CUDACC__
+   #ifdef USE_TENSOR_CORES
+      #include <mma.h>
+   #endif
+#endif
+
 namespace TNL::Benchmarks::DenseMatrices {
 
 //main kernel for dense matrix multiplication
@@ -423,6 +429,7 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
 #endif  // __CUDACC__
 }
 */
+
 //kernel 6 (Fermi)
 template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
@@ -570,9 +577,8 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
 #endif
 }
 
-/*
-//kernel 7 (Tensor Cores)
-template< int tileDim, typename ResultMatrix, typename Matrix1, typename Matrix2 >
+//kernel 7 (Tensor Cores Utilization)
+template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
 TensorCoreDenseMatrixProductKernel( ResultMatrix resultMatrix,
@@ -580,48 +586,73 @@ TensorCoreDenseMatrixProductKernel( ResultMatrix resultMatrix,
                                     const Matrix2 matrixB,
                                     const typename ResultMatrix::RealType matrixMultiplicator )
 {
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   #include <mma.h>
+#ifdef __CUDACC__
+   #ifdef USE_TENSOR_CORES
    using namespace nvcuda;
+   using IndexType = typename ResultMatrix::IndexType;
+   using RealType = typename ResultMatrix::RealType;
 
-   // Define the size of the WMMA matrix.
-   const int WMMA_M = 16;
-   const int WMMA_N = 16;
-   const int WMMA_K = 16;
+   const IndexType WMMA_M = 16;
+   const IndexType WMMA_N = 16;
+   const IndexType WMMA_K = 16;
+
+   const IndexType M = matrixA.getRows();
+   const IndexType N = matrixB.getColumns();
+   const IndexType K = matrixB.getRows();
+
+   // Calculate the indices for the warps
+   IndexType warpM = ( blockIdx.x * blockDim.x + threadIdx.x ) / warpSize;
+   IndexType warpN = ( blockIdx.y * blockDim.y + threadIdx.y );
 
    // Declare the fragments
-   wmma::fragment< wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major > fragA;
-   wmma::fragment< wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major > fragB;
-   wmma::fragment< wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float > fragC;
+   wmma::fragment< wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major > a_frag;
+   wmma::fragment< wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major > b_frag;
+   wmma::fragment< wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float > acc_frag;
+   wmma::fragment< wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float > c_frag;
 
-   // Initialize the output fragment
-   wmma::fill_fragment( fragC, 0.0f );
+   // Initialize the accumulator
+   wmma::fill_fragment( acc_frag, 0.0f );
 
-   // Calculate the indices of the tile each thread block is processing
-   int blockRow = blockIdx.y;
-   int blockCol = blockIdx.x;
+   // Compute each tile
+   for( IndexType tile_k = 0; tile_k < K; tile_k += WMMA_K ) {
+      IndexType aRow = warpM * WMMA_M;
+      IndexType bCol = warpN * WMMA_N;
 
-   // Calculate the starting index of the matrices A, B, and C
-   const half* aStart = &matrixA[ blockRow * WMMA_M * matrixA.getLeadingDimension() ];
-   const half* bStart = &matrixB[ blockCol * WMMA_N ];
-   float* cStart = &resultMatrix[ blockRow * WMMA_M * resultMatrix.getLeadingDimension() + blockCol * WMMA_N ];
+      if( aRow < M && bCol < N ) {
+         for( IndexType step_k = 0; step_k < WMMA_K; step_k++ ) {
+            if( ( tile_k + step_k ) < K ) {
+               const half* aPtr = reinterpret_cast< const half* >( matrixA.getValues().getData() + aRow * K + tile_k + step_k );
+               const half* bPtr =
+                  reinterpret_cast< const half* >( matrixB.getValues().getData() + ( tile_k + step_k ) * N + bCol );
 
-   // Loop over the K dimension
-   for( int i = 0; i < matrixA.getColumns(); i += WMMA_K ) {
-      // Load the matrices from global memory to fragment using column-major layout
-      wmma::load_matrix_sync( fragA, aStart + i * matrixA.getLeadingDimension(), matrixA.getLeadingDimension() );
-      wmma::load_matrix_sync( fragB, bStart + i, matrixB.getLeadingDimension() );
+               // Load the matrix tiles into the fragments
+               wmma::load_matrix_sync( a_frag, aPtr, K );
+               wmma::load_matrix_sync( b_frag, bPtr, N );
 
-      // Perform the matrix multiplication
-      wmma::mma_sync( fragC, fragA, fragB, fragC );
+               // Perform the matrix multiplication
+               wmma::mma_sync( acc_frag, a_frag, b_frag, acc_frag );
+            }
+         }
+      }
+
+      // Load in current value of C and combine it with the result of multiplication
+      IndexType cRow = warpM * WMMA_M;
+      IndexType cCol = warpN * WMMA_N;
+
+      if( cRow < M && cCol < N ) {
+         float* cPtr = reinterpret_cast< float* >( resultMatrix.getValues().getData() + cRow * N + cCol );
+         wmma::load_matrix_sync( c_frag, cPtr, N, wmma::mem_col_major );
+
+         for( IndexType i = 0; i < c_frag.num_elements; ++i ) {
+            c_frag.x[ i ] = acc_frag.x[ i ] * matrixMultiplicator + c_frag.x[ i ];
+         }
+
+         // Store the updated value back to the result matrix
+         wmma::store_matrix_sync( cPtr, c_frag, N, wmma::mem_col_major );
+      }
    }
-
-   // Scale the result and store it back to global memory
-   for( int i = 0; i < fragC.num_elements; i++ ) {
-      fragC.x[ i ] *= matrixMultiplicator;
-   }
-   wmma::store_matrix_sync( cStart, fragC, resultMatrix.getLeadingDimension(), wmma::mem_col_major );
-#endif  // __CUDACC__ or __HIP__
+   #endif
+#endif
 }
-*/
+
 }  //namespace TNL::Benchmarks::DenseMatrices

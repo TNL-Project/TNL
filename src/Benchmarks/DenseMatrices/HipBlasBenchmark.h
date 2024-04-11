@@ -14,6 +14,10 @@ matrixMultiplicationHIPBLAS( const DenseMatrix& matrix1,
 {
    using RealType = typename DenseMatrix::RealType;
    using IndexType = typename DenseMatrix::IndexType;
+   using Device = typename DenseMatrix::DeviceType;
+
+   // Ensure matrices are on the GPU
+   static_assert( std::is_same_v< Device, TNL::Devices::Hip >, "This function is specialized for Hip device only." );
 
    hipblasHandle_t handle;
    hipblasCreate( &handle );

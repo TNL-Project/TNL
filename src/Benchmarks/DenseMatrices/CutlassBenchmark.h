@@ -14,22 +14,22 @@ matrixMultiplicationCutlass( const DenseMatrix& matrix1, const DenseMatrix& matr
 {
    using RealType = typename DenseMatrix::RealType;
    using IndexType = typename DenseMatrix::IndexType;
+   using Device = typename DenseMatrix::DeviceType;
+
+   // Ensure matrices are on the GPU
+   static_assert( std::is_same_v< Device, TNL::Devices::Cuda >, "This function is specialized for CUDA device only." );
 
    // Define the matrix sizes
    IndexType m = matrix1.getRows();
    IndexType n = matrix2.getColumns();
    IndexType k = matrix1.getColumns();
 
-   // Define the element types and layout for column-major order
-   using ElementA = RealType;
-   using LayoutA = cutlass::layout::ColumnMajor;
-   using ElementB = RealType;
-   using LayoutB = cutlass::layout::ColumnMajor;
-   using ElementC = RealType;
-   using LayoutC = cutlass::layout::ColumnMajor;
+   // Define the layout for column-major order
+
+   using Layout = cutlass::layout::ColumnMajor;
 
    // Define the GEMM operation
-   using CutlassGemm = cutlass::gemm::device::Gemm< ElementA, LayoutA, ElementB, LayoutB, ElementC, LayoutC >;
+   using CutlassGemm = cutlass::gemm::device::Gemm< RealType, Layout, RealType, Layout, RealType, Layout >;
    CutlassGemm gemm_operator;
 
    typename CutlassGemm::Arguments args( { m, n, k },                                // Problem size

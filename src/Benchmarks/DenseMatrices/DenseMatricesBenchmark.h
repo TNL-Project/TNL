@@ -101,16 +101,16 @@ struct DenseMatricesBenchmark
                 << std::endl;
       std::cout << std::endl;
 
-      const IndexType numMatrices = 10;  // Number of matrices for the cycle
-      IndexType matrix1Rows = 20;        // Number of rows in matrix1
-      IndexType matrix1Columns = 10;     // Number of columns in matrix1 && rows in matrix2
-      IndexType matrix2Columns = 20;     // Number of columns in matrix2
+      const IndexType numMatrices = 100;  // Number of matrices for the cycle
+      IndexType matrix1Rows = 10;         // Number of rows in matrix1
+      IndexType matrix1Columns = 10;      // Number of columns in matrix1 && rows in matrix2
+      IndexType matrix2Columns = 10;      // Number of columns in matrix2
 
       for( IndexType i = 0; i < numMatrices; ++i ) {
          // Modify the matrix sizes for each iteration
-         matrix1Rows += 100;
-         matrix1Columns += 100;
-         matrix2Columns += 100;
+         matrix1Rows += 10;
+         matrix1Columns += 20;
+         matrix2Columns += 30;
 
          if( device == "cuda" || device == "hip" || device == "all" ) {
 #if defined( __CUDACC__ ) || ( __HIP__ )
@@ -162,14 +162,12 @@ struct DenseMatricesBenchmark
             TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > MagmaResultMatrix;
             TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > BlasResultMatrix;
             TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > HipBlasResultMatrix;
-            TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > resultMatrix2;
 
             resultMatrix.setDimensions( matrix1Rows, matrix2Columns );
             cuBLASResultMatrix.setDimensions( matrix1Rows, matrix2Columns );
             CutlassResultMatrix.setDimensions( matrix1Rows, matrix2Columns );
             MagmaResultMatrix.setDimensions( matrix1Rows, matrix2Columns );
             BlasResultMatrix.setDimensions( matrix1Rows, matrix2Columns );
-            resultMatrix2.setDimensions( matrix1Rows, matrix2Columns );
 
    #if defined( __CUDACC__ )
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
@@ -480,7 +478,7 @@ struct DenseMatricesBenchmark
             Backend::LaunchConfiguration fermiLaunchConfig;
             fermiLaunchConfig.blockSize.x = 16;  // Adjusted for the Fermi kernel
             fermiLaunchConfig.blockSize.y = 16;  // Adjusted for the Fermi kernel
-            //fermiLaunchConfig.dynamicSharedMemorySize = sizeof( Real ) * ( ( 64 * 16 ) + ( 16 * 64 ) );
+            // fermiLaunchConfig.dynamicSharedMemorySize = sizeof( Real ) * ( ( 64 * 16 ) + ( 16 * 64 ) );
 
             auto matrixMultiplicationBenchmarkFermi = [ & ]() mutable
             {
@@ -516,52 +514,60 @@ struct DenseMatricesBenchmark
             };
             DenseMatricesResult< RealType, DeviceType, IndexType > FermiResult( resultMatrix, benchmarkMatricesFermi );
             benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkFermi, FermiResult );
-               /*
-               benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
-                  { { "index type", TNL::getType< Index >() },
-                    { "device", device },
-                    { "algorithm", "TensorCores" },
-                    { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
-                    { "matrix2 size", std::to_string( matrix1Columns ) + "x" + std::to_string( matrix2Columns ) } } ) );
 
-               // Lambda function for the optimized kernel launch
-               auto matrixMultiplicationBenchmarkTensorCores = [ & ]() mutable
-               {
-                  for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ ) {
-                     for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-                        launch_config.gridSize.x = Backend::getMaxGridXSize();
-                        launch_config.gridSize.y = Backend::getMaxGridYSize();
-                        if( gridIdx_x == columnGrids - 1 )
-                           launch_config.gridSize.x = columnTiles % Backend::getMaxGridXSize();
-                        if( gridIdx_y == rowGrids - 1 )
-                           launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
+      #ifdef USE_TENSOR_CORES
 
-                        auto resultMatrixView = resultMatrix2.getView();
-                        auto denseMatrix1View = denseMatrix1.getConstView();
-                        auto denseMatrix2View = denseMatrix2.getConstView();
+            Backend::LaunchConfiguration launch_config_tensor;
+            const int rowTilesTensor = ( matrix1Rows + 15 ) / 16;
+            const int colTilesTensor = ( matrix2Columns + 15 ) / 16;
+            benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               { { "index type", TNL::getType< Index >() },
+                 { "device", device },
+                 { "algorithm", "TensorCores" },
+                 { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
+                 { "matrix2 size", std::to_string( matrix1Columns ) + "x" + std::to_string( matrix2Columns ) } } ) );
 
-                        Backend::launchKernelAsync( TensorCoreDenseMatrixProductKernel< tileDim,
-                                                                                        decltype( resultMatrixView ),
-                                                                                        decltype( denseMatrix1View ),
-                                                                                        decltype( denseMatrix2View ) >,
-                                                    launch_config,
-                                                    resultMatrixView,
-                                                    denseMatrix1View,
-                                                    denseMatrix2View,
-                                                    1.0 );
-                     }
+            auto matrixMultiplicationBenchmarkTensorCores = [ & ]() mutable
+            {
+               for( int gridIdx_y = 0; gridIdx_y < rowTilesTensor; gridIdx_y++ ) {
+                  for( int gridIdx_x = 0; gridIdx_x < colTilesTensor; gridIdx_x++ ) {
+                     int currentBlockRows = 16;
+                     if( ( gridIdx_y + 1 ) * 16 > matrix1Rows )  // Adjust rows for the last grid
+                        currentBlockRows = matrix1Rows % 16;
+
+                     int currentBlockCols = 16;
+                     if( ( gridIdx_x + 1 ) * 16 > matrix2Columns )  // Adjust columns for the last grid
+                        currentBlockCols = matrix2Columns % 16;
+
+                     launch_config_tensor.gridSize.x = currentBlockCols;
+                     launch_config_tensor.gridSize.y = currentBlockRows;
+
+                     auto resultMatrixView = resultMatrix.getView();
+                     auto denseMatrix1View = denseMatrix1.getConstView();
+                     auto denseMatrix2View = denseMatrix2.getConstView();
+
+                     Backend::launchKernelAsync( TensorCoreDenseMatrixProductKernel< decltype( resultMatrixView ),
+                                                                                     decltype( denseMatrix1View ),
+                                                                                     decltype( denseMatrix2View ) >,
+                                                 launch_config_tensor,
+                                                 resultMatrixView,
+                                                 denseMatrix1View,
+                                                 denseMatrix2View,
+                                                 1.0 );
                   }
-                  cudaStreamSynchronize( launch_config.stream );
-                  TNL_CHECK_CUDA_DEVICE;
-               };
-               std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesTensorCores = {
-                  cuBLASResultMatrix, MagmaResultMatrix, CutlassResultMatrix
-               };
-               DenseMatricesResult< RealType, DeviceType, IndexType > TensorCoresResult( resultMatrix2,
-                                                                                         benchmarkMatricesTensorCores );
-               benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkTensorCores, TensorCoresResult );
-               */
+               }
+               cudaStreamSynchronize( launch_config_tensor.stream );
+               TNL_CHECK_CUDA_DEVICE;
+            };
+            std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesTensorCores = {
+               cuBLASResultMatrix, MagmaResultMatrix, CutlassResultMatrix
+            };
 
+            DenseMatricesResult< RealType, DeviceType, IndexType > TensorCoresResult( resultMatrix,
+                                                                                      benchmarkMatricesTensorCores );
+
+            benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkTensorCores, TensorCoresResult );
+      #endif  // USE_TENSOR_CORES
    #endif
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
@@ -857,6 +863,51 @@ struct DenseMatricesBenchmark
             DenseMatricesResult< RealType, DeviceType, IndexType > TranspositionResult2(
                outputMatrix, benchmarkMatricesTranspositionCombined );
             benchmark.time< DeviceType >( device, matrixTranspositionBenchmarkCombined, TranspositionResult2 );
+
+   #ifdef USE_TENSOR_CORES
+            Backend::LaunchConfiguration launch_config_tensor;
+            const int rowTilesTensor = ( matrix1Rows + 15 ) / 16;
+            const int colTilesTensor = ( matrix2Columns + 15 ) / 16;
+
+            benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
+               { "index type", TNL::getType< Index >() },
+               { "device", device },
+               { "algorithm", "TensorCores" },
+               { "matrix size", std::to_string( dmatrix1Rows ) + "x" + std::to_string( dmatrix1Columns ) },
+            } ) );
+
+            auto matrixTranspositionBenchmarkTensorCores = [ & ]() mutable
+            {
+               for( int gridIdx_y = 0; gridIdx_y < rowTilesTensor; gridIdx_y++ )
+                  for( int gridIdx_x = 0; gridIdx_x < colTilesTensor; gridIdx_x++ ) {
+                     int currentBlockRows = 16;
+                     if( ( gridIdx_y + 1 ) * 16 > matrix1Rows )  // Adjust rows for the last grid
+                        currentBlockRows = matrix1Rows % 16;
+
+                     int currentBlockCols = 16;
+                     if( ( gridIdx_x + 1 ) * 16 > matrix2Columns )  // Adjust columns for the last grid
+                        currentBlockCols = matrix2Columns % 16;
+
+                     launch_config_tensor.gridSize.x = currentBlockCols;
+                     launch_config_tensor.gridSize.y = currentBlockRows;
+
+                     auto outputMatrixView = outputMatrix.getView();
+                     auto denseMatrixView = denseMatrix.getConstView();
+                     constexpr auto kernel = TensorCoreDenseMatrixTranspositionKernel< decltype( outputMatrixView ),
+                                                                                       decltype( denseMatrixView ),
+                                                                                       Real,
+                                                                                       Index >;
+
+                     Backend::launchKernelAsync( kernel, launch_config_tensor, outputMatrixView, denseMatrixView, 1.0 );
+                  }
+               Backend::streamSynchronize( launch_config_tensor.stream );
+            };
+            std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > >
+               benchmarkMatricesTranspositionTensorCores = { MagmaOutputMatrix };
+            DenseMatricesResult< RealType, DeviceType, IndexType > TranspositionResultTensorCores(
+               outputMatrix, benchmarkMatricesTranspositionTensorCores );
+            benchmark.time< DeviceType >( device, matrixTranspositionBenchmarkTensorCores, TranspositionResultTensorCores );
+   #endif  // USE_TENSOR_CORES
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
                { "index type", TNL::getType< Index >() },

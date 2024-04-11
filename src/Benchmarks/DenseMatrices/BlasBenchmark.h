@@ -17,6 +17,10 @@ matrixMultiplicationBLAS( const DenseMatrix& matrix1, const DenseMatrix& matrix2
 {
    using RealType = typename DenseMatrix::RealType;
    using IndexType = typename DenseMatrix::IndexType;
+   using Device = typename DenseMatrix::DeviceType;
+
+   // Ensure matrices are on the GPU
+   static_assert( std::is_same_v< Device, TNL::Devices::Host >, "This function is specialized for Host device only." );
 
    // Ensure proper dimensions for matrix multiplication
    IndexType n = matrix2.getColumns();

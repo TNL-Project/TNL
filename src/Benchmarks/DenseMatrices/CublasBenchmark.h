@@ -20,6 +20,10 @@ matrixMultiplicationCuBLAS( const DenseMatrix& matrix1,
 {
    using RealType = typename DenseMatrix::RealType;
    using IndexType = typename DenseMatrix::IndexType;
+   using Device = typename DenseMatrix::DeviceType;
+
+   // Ensure matrices are on the GPU
+   static_assert( std::is_same_v< Device, TNL::Devices::Cuda >, "This function is specialized for CUDA device only." );
 
    cublasHandle_t handle;
    cublasCreate( &handle );
