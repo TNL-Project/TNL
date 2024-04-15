@@ -311,7 +311,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::getElement( IndexTyp
    if( isSymmetric() && row < column ) {
       swap( row, column );
       if( row >= this->getRows() || column >= this->getColumns() )
-         return 0.0;
+         return 0;
    }
 
    // SANDBOX_TODO: Replace the following lines with a code for getting number of elements allocated for given row.
@@ -329,7 +329,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::getElement( IndexTyp
             return this->values.getElement( globalIdx );
       }
    }
-   return 0.0;
+   return 0;
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType >
@@ -402,7 +402,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::vectorProduct( const
       const IndexType column = columnIndexesView[ globalIdx ];
       compute = ( column != paddingIndex );
       if( ! compute )
-         return 0.0;
+         return 0;
       if( isSymmetric() && column < row ) {
          if( isBinary() )
             Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ column ],
@@ -430,7 +430,7 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::vectorProduct( const
          Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ row ], aux );
       }
       else {
-         if( outVectorMultiplicator == 0.0 )
+         if( outVectorMultiplicator == 0 )
             outVectorView[ row ] = matrixMultiplicator * value;
          else
             outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
@@ -454,14 +454,14 @@ SparseSandboxMatrixView< Real, Device, Index, MatrixType >::vectorProduct( const
    if( isSymmetric() )
       this->reduceRows( firstRow, lastRow, symmetricFetch, std::plus<>{}, keeperGeneral, (RealType) 0.0 );
    else {
-      if( outVectorMultiplicator == 0.0 ) {
-         if( matrixMultiplicator == 1.0 )
+      if( outVectorMultiplicator == 0 ) {
+         if( matrixMultiplicator == 1 )
             this->reduceRows( firstRow, lastRow, fetch, std::plus<>{}, keeperDirect, (RealType) 0.0 );
          else
             this->reduceRows( firstRow, lastRow, fetch, std::plus<>{}, keeperMatrixMult, (RealType) 0.0 );
       }
       else {
-         if( matrixMultiplicator == 1.0 )
+         if( matrixMultiplicator == 1 )
             this->reduceRows( firstRow, lastRow, fetch, std::plus<>{}, keeperVectorMult, (RealType) 0.0 );
          else
             this->reduceRows( firstRow, lastRow, fetch, std::plus<>{}, keeperGeneral, (RealType) 0.0 );

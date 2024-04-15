@@ -178,7 +178,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::getElement( IndexTyp
    TNL_ASSERT_LT( column, this->getColumns(), "" );
 
    if( abs( column - row ) > 1 )
-      return 0.0;
+      return 0;
    return this->values.getElement( this->getElementIndex( row, column ) );
 }
 
@@ -425,7 +425,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct( const
    };
    if( end == 0 )
       end = this->getRows();
-   if( matrixMultiplicator == 1.0 && outVectorMultiplicator == 0.0 )
+   if( matrixMultiplicator == 1 && outVectorMultiplicator == 0 )
       this->reduceRows( begin, end, fetch, reduction, keeper1, (RealType) 0.0 );
    else
       this->reduceRows( begin, end, fetch, reduction, keeper2, (RealType) 0.0 );
@@ -445,7 +445,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::addMatrix(
       throw std::invalid_argument( "addMatrix: numbers of matrix columns are not equal." );
 
    if( Organization == Organization_ ) {
-      if( thisMatrixMultiplicator == 1.0 )
+      if( thisMatrixMultiplicator == 1 )
          this->values += matrixMultiplicator * matrix.getValues();
       else
          this->values = thisMatrixMultiplicator * this->values + matrixMultiplicator * matrix.getValues();
@@ -468,9 +468,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::addMatrix(
       {
          value = thisMult * value + matrixMult * matrix.getValues()[ matrix.getIndexer().getGlobalIndex( rowIdx, localIdx ) ];
       };
-      if( thisMult == 0.0 )
+      if( thisMult == 0 )
          this->forAllElements( add0 );
-      else if( thisMult == 1.0 )
+      else if( thisMult == 1 )
          this->forAllElements( add1 );
       else
          this->forAllElements( addGen );

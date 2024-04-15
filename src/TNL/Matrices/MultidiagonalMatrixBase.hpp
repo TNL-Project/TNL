@@ -216,7 +216,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::getElement( IndexT
    for( IndexType localIdx = 0; localIdx < diagonalOffsets.getSize(); localIdx++ )
       if( row + diagonalOffsets.getElement( localIdx ) == column )
          return this->values.getElement( this->indexer.getGlobalIndex( row, localIdx ) );
-   return 0.0;
+   return 0;
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -460,7 +460,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::addMatrix(
 
    /*if( Organization == Organization_ )
    {
-      if( thisMatrixMultiplicator == 1.0 )
+      if( thisMatrixMultiplicator == 1 )
          this->values += matrixMultiplicator * matrix.getValues();
       else
          this->values = thisMatrixMultiplicator * this->values + matrixMultiplicator * matrix.getValues();
@@ -480,9 +480,9 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::addMatrix(
    value ) mutable { value = thisMult * value + matrixMult * matrix.getValues()[ matrix.getIndexer().getGlobalIndex( rowIdx,
    localIdx ) ];
       };
-      if( thisMult == 0.0 )
+      if( thisMult == 0 )
          this->forAllElements( add0 );
-      else if( thisMult == 1.0 )
+      else if( thisMult == 1 )
          this->forAllElements( add1 );
       else
          this->forAllElements( addGen );

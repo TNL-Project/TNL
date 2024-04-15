@@ -167,8 +167,8 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    auto outVectorView = outVector.getView();
    auto fetch = [ = ] __cuda_callable__( IndexType row, IndexType columnIdx, const RealType& value ) mutable -> RealType
    {
-      if( value == 0.0 )
-         return 0.0;
+      if( value == 0 )
+         return 0;
       return value * inVectorView[ columnIdx ];
    };
    auto reduce = [] __cuda_callable__( RealType & sum, const RealType& value ) -> RealType
@@ -177,7 +177,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    };
    auto keep = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
    {
-      if( outVectorMultiplicator == 0.0 )
+      if( outVectorMultiplicator == 0 )
          outVectorView[ row ] = matrixMultiplicator * value;
       else
          outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
