@@ -330,11 +330,9 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          const IndexType column = columnIndexesView[ globalIdx ];
          TNL_ASSERT_TRUE( (column >= 0 || column == paddingIndex< Index >), "Wrong column index." );
          TNL_ASSERT_LT( column, inVectorView.getSize(), "Wrong column index." );
-         if constexpr( SegmentsViewType::havePadding() ) {
-            compute = ( column != paddingIndex< Index > );
-            if( ! compute )
-               return 0;
-         }
+         compute = ( column != paddingIndex< Index > );
+         if( ! compute )
+            return 0;
          TNL_ASSERT_TRUE( column >= 0, "Wrong column index." );
          if constexpr( Base::isBinary() )
             return inVectorView[ column ];

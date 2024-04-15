@@ -12,6 +12,60 @@
 
 template< typename Matrix, typename Kernel >
 void
+test_VectorProduct_zeroMatrix()
+{
+   using RealType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   /*
+    * Sets up an empty 4x4 sparse matrix with the following row capacities: [1, 2, 1, 1].
+    * The matrix values are uninitialized and the column indexes are set to the padding index (-1).
+    */
+
+   const IndexType m_rows_1 = 4;
+   const IndexType m_cols_1 = 4;
+
+   Matrix m_1;
+   m_1.reset();
+   m_1.setDimensions( m_rows_1, m_cols_1 );
+   typename Matrix::RowCapacitiesType rowLengths_1{ 1, 2, 1, 1 };
+   m_1.setRowCapacities( rowLengths_1 );
+
+   VectorType inVector_1;
+   inVector_1.setSize( m_cols_1 );
+   inVector_1.setValue( 1 );
+
+   VectorType outVector_1;
+   outVector_1.setSize( m_rows_1 );
+   outVector_1.setValue( -1 );
+
+   Kernel kernel;
+   kernel.init( m_1.getSegments() );
+   m_1.vectorProduct( inVector_1, outVector_1, kernel );
+
+   EXPECT_EQ( outVector_1.getElement( 0 ), RealType{ 0 } );
+   EXPECT_EQ( outVector_1.getElement( 1 ), RealType{ 0 } );
+   EXPECT_EQ( outVector_1.getElement( 2 ), RealType{ 0 } );
+   EXPECT_EQ( outVector_1.getElement( 3 ), RealType{ 0 } );
+
+   // Test transposedVectorProduct
+   // TODO: implement it for complex types
+   if constexpr( ! TNL::is_complex_v< RealType > ) {
+      Matrix m_1_transposed;
+      m_1_transposed.getTransposition( m_1 );
+      VectorType inVector_1_transposed( m_rows_1, 1 );
+      VectorType outVector_1_transposed( m_cols_1, -1 );
+      VectorType outVector_2_transposed( m_cols_1, -1 );
+      m_1_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
+      m_1.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+   }
+}
+
+template< typename Matrix, typename Kernel >
+void
 test_VectorProduct_smallMatrix1()
 {
    using RealType = typename Matrix::RealType;
