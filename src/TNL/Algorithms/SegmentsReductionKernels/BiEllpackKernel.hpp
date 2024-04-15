@@ -260,7 +260,7 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if( segments.getStorageSize() == 0 )
       return;
-   if constexpr( std::is_same< DeviceType, Devices::Host >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       for( IndexType segmentIdx = 0; segmentIdx < segments.getSegmentsCount(); segmentIdx++ ) {
          const IndexType stripIdx = segmentIdx / SegmentsView::getWarpSize();
          const IndexType groupIdx = stripIdx * ( SegmentsView::getLogWarpSize() + 1 );
@@ -299,7 +299,7 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          keeper( segmentIdx, aux );
       }
    }
-   if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
       Backend::LaunchConfiguration launch_config;
       constexpr int BlockDim = 256;
       launch_config.blockSize.x = BlockDim;

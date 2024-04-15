@@ -148,7 +148,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
                                                        const Value& identity )
 {
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   if constexpr( std::is_same< DeviceType, Devices::Host >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
          const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
          TNL_ASSERT_LE( sliceIndex, segments.getSegmentsCount(), "" );
@@ -186,7 +186,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
          keeper( segmentIdx, aux );
       }
    }
-   if constexpr( std::is_same< DeviceType, Devices::Cuda >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
       Backend::LaunchConfiguration launch_config;
       // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
       //  TODO: This ignores parameters begin and end
