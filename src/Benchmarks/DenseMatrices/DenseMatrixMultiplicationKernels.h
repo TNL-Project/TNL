@@ -464,98 +464,35 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
    // Calculate number of phases required to cover all columns of A / rows of B
    const IndexType numTiles = ( matrixAColumns + 15 ) / 16;
 
-   bool matrixARowWithinBounds[ 4 ];
-   bool matrixBColWithinBounds[ 4 ];
-   const IndexType matrixATileLimit = matrixAColumns / 16;
-   const IndexType matrixBTileLimit = matrixBRows / 16;
-   int maxRowIndexA = -1, maxColIndexB = -1;
-
    // Precompute row and column boundary checks
-   #pragma unroll
-   for( IndexType i = 0; i < 4; ++i ) {
-      matrixARowWithinBounds[ i ] = ( row + i ) < matrixARows;
-      if( matrixARowWithinBounds[ i ] )
-         maxRowIndexA = i;
-
-      matrixBColWithinBounds[ i ] = ( col + i ) < matrixBColumns;
-      if( matrixBColWithinBounds[ i ] )
-         maxColIndexB = i;
-   }
+   const IndexType maxRowIndexA = min( matrixARows - 1, row + 3 );
+   const IndexType maxColIndexB = min( matrixBColumns - 1, col + 3 );
 
    for( IndexType m = 0; m < numTiles; ++m ) {
-      RealType AReg[ 4 ] = { 0 };
-      RealType BReg[ 4 ] = { 0 };
+      RealType AReg[ 4 ][ 16 ] = { { 0 } };
+      RealType BReg[ 4 ][ 16 ] = { { 0 } };
 
-      bool inColumnRangeForA = m < matrixATileLimit;
-      bool inColumnRangeForB = m < matrixBTileLimit;
+      IndexType maxKForA = min( 15, matrixAColumns - 1 - m * 16 );
+      IndexType maxKForB = min( 15, matrixBRows - 1 - m * 16 );
 
-      if( inColumnRangeForA ) {
-   #pragma unroll
-         for( IndexType i = 0; i < maxRowIndexA; ++i ) {
-            IndexType index = ( row + i ) * matrixAColumns + m * 16;
-            AReg[ i ] = AValues[ index ];
+      // Load data into registers
+      for( IndexType k = 0; k <= maxKForA; ++k ) {
+         for( IndexType i = 0; i <= maxRowIndexA - row; ++i ) {
+            AReg[ i ][ k ] = AValues[ ( m * 16 + k ) * matrixARows + ( row + i ) ];
+         }
+      }
+      for( IndexType k = 0; k <= maxKForB; ++k ) {
+         for( IndexType j = 0; j <= maxColIndexB - col; ++j ) {
+            BReg[ j ][ k ] = BValues[ ( col + j ) * matrixBRows + ( m * 16 + k ) ];
          }
       }
 
-      if( inColumnRangeForB ) {
+   // Matrix multiplication for the current tile
    #pragma unroll
-         for( IndexType i = 0; i < maxColIndexB; ++i ) {
-            IndexType index = m * 16 * matrixBColumns + col + i;
-            BReg[ i ] = BValues[ index ];
-         }
-      }
-
-      IndexType maxKForA = ( matrixAColumns - m * 16 > 16 ) ? 15 : ( matrixAColumns - m * 16 ) - 1;
-      IndexType maxKForB = ( matrixBRows - m * 16 > 16 ) ? 15 : ( matrixBRows - m * 16 ) - 1;
-
-   #pragma unroll
-      for( IndexType k = 0; k < 16; ++k ) {
-         // Precomputed check for A
-         if( k <= maxKForA ) {
-   #pragma unroll
-            for( IndexType i = 0; i <= maxRowIndexA; ++i ) {
-               IndexType indexA = ( m * 16 + k ) * matrixARows + ( row + i );
-               if( indexA < matrixARows * matrixAColumns ) {
-                  AReg[ i ] = AValues[ indexA ];
-               }
-               else {
-                  AReg[ i ] = 0;
-               }
-            }
-         }
-         else {
-   #pragma unroll
-            for( IndexType i = 0; i <= maxRowIndexA; ++i ) {
-               AReg[ i ] = 0;
-            }
-         }
-
-         // Precomputed check for B
-         if( k <= maxKForB ) {
-   #pragma unroll
-            for( IndexType i = 0; i <= maxColIndexB; ++i ) {
-               IndexType indexB = ( col + i ) * matrixBRows + ( m * 16 + k );
-               if( indexB < matrixBRows * matrixBColumns ) {
-                  BReg[ i ] = BValues[ indexB ];
-               }
-               else {
-                  BReg[ i ] = 0;
-               }
-            }
-         }
-         else {
-   #pragma unroll
-            for( IndexType i = 0; i <= maxColIndexB; ++i ) {
-               BReg[ i ] = 0;
-            }
-         }
-
-   // Perform matrix multiplication with reduced conditions
-   #pragma unroll
+      for( IndexType k = 0; k < 16; ++k ) {  // Now unconditionally iterating over all k
          for( IndexType i = 0; i < 4; ++i ) {
-   #pragma unroll
             for( IndexType j = 0; j < 4; ++j ) {
-               CValue[ i ][ j ] += AReg[ i ] * BReg[ j ] * matrixMultiplicator;
+               CValue[ i ][ j ] += AReg[ i ][ k ] * BReg[ j ][ k ] * matrixMultiplicator;
             }
          }
       }

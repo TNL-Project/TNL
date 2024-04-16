@@ -101,16 +101,16 @@ struct DenseMatricesBenchmark
                 << std::endl;
       std::cout << std::endl;
 
-      const IndexType numMatrices = 100;  // Number of matrices for the cycle
-      IndexType matrix1Rows = 10;         // Number of rows in matrix1
-      IndexType matrix1Columns = 10;      // Number of columns in matrix1 && rows in matrix2
-      IndexType matrix2Columns = 10;      // Number of columns in matrix2
+      const IndexType numMatrices = 1000;  // Number of matrices for the cycle
+      IndexType matrix1Rows = 10;          // Number of rows in matrix1
+      IndexType matrix1Columns = 10;       // Number of columns in matrix1 && rows in matrix2
+      IndexType matrix2Columns = 10;       // Number of columns in matrix2
 
       for( IndexType i = 0; i < numMatrices; ++i ) {
          // Modify the matrix sizes for each iteration
-         matrix1Rows += 10;
-         matrix1Columns += 20;
-         matrix2Columns += 30;
+         matrix1Rows += 100;
+         matrix1Columns += 1;
+         matrix2Columns += 300;
 
          if( device == "cuda" || device == "hip" || device == "all" ) {
 #if defined( __CUDACC__ ) || ( __HIP__ )
@@ -130,7 +130,7 @@ struct DenseMatricesBenchmark
                for( IndexType i = 0; i < matrix1Columns; i++ ) {
                   RealType value;
                   if( isLinearFill ) {
-                     value = 3 * i;
+                     value = 3 + i * 2;
                   }
                   else {  // trigonometric
                      value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
@@ -145,7 +145,7 @@ struct DenseMatricesBenchmark
                for( IndexType i = 0; i < matrix2Columns; i++ ) {
                   RealType value;
                   if( isLinearFill ) {
-                     value = 2 * i;
+                     value = 2 + i * 2;
                   }
                   else {  // trigonometric
                      value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
@@ -482,15 +482,19 @@ struct DenseMatricesBenchmark
 
             auto matrixMultiplicationBenchmarkFermi = [ & ]() mutable
             {
+               Index blockSize = 64;  // Each block computes a 64x64 block of the output matrix
                for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ ) {
                   for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
-                     Index blockSize = 64;  // Each block computes a 64x64 block of the output matrix
                      fermiLaunchConfig.gridSize.x = ( matrix2Columns + blockSize - 1 ) / blockSize;
                      fermiLaunchConfig.gridSize.y = ( matrix1Rows + blockSize - 1 ) / blockSize;
+
+                     // Adjust grid dimensions for potentially partial blocks on matrix edges
                      if( gridIdx_x == columnGrids - 1 )
-                        fermiLaunchConfig.gridSize.x = ( columnTiles % blockSize == 0 ) ? blockSize : columnTiles % blockSize;
+                        fermiLaunchConfig.gridSize.x =
+                           ( ( columnTiles % blockSize == 0 ) ? ( columnTiles / blockSize ) : ( columnTiles / blockSize + 1 ) );
                      if( gridIdx_y == rowGrids - 1 )
-                        fermiLaunchConfig.gridSize.y = ( rowTiles % blockSize == 0 ) ? blockSize : rowTiles % blockSize;
+                        fermiLaunchConfig.gridSize.y =
+                           ( ( rowTiles % blockSize == 0 ) ? ( rowTiles / blockSize ) : ( rowTiles / blockSize + 1 ) );
 
                      auto resultMatrixView = resultMatrix.getView();
                      auto denseMatrix1View = denseMatrix1.getConstView();
@@ -508,6 +512,12 @@ struct DenseMatricesBenchmark
                }
                cudaStreamSynchronize( fermiLaunchConfig.stream );
                TNL_CHECK_CUDA_DEVICE;
+               /*
+               std::cout << "matrix1: " << denseMatrix1 << std::endl;
+               std::cout << "matrix2: " << denseMatrix2 << std::endl;
+               std::cout << "result: " << resultMatrix << std::endl;
+               std::cout << "result should be : " << cuBLASResultMatrix << std::endl;
+               */
             };
             std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesFermi = {
                cuBLASResultMatrix, MagmaResultMatrix, CutlassResultMatrix
@@ -516,7 +526,6 @@ struct DenseMatricesBenchmark
             benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkFermi, FermiResult );
 
       #ifdef USE_TENSOR_CORES
-
             Backend::LaunchConfiguration launch_config_tensor;
             const int rowTilesTensor = ( matrix1Rows + 15 ) / 16;
             const int colTilesTensor = ( matrix2Columns + 15 ) / 16;
@@ -630,7 +639,7 @@ struct DenseMatricesBenchmark
                for( int j = 0; j < matrix1Columns; j++ ) {
                   RealType value;
                   if( isLinearFill ) {
-                     value = 3 * i;
+                     value = 3 + i * 2;
                   }
                   else {  // trigonometric
                      value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
@@ -643,7 +652,7 @@ struct DenseMatricesBenchmark
                for( int j = 0; j < matrix2Columns; j++ ) {
                   RealType value;
                   if( isLinearFill ) {
-                     value = 3 * i;
+                     value = 3 + i * 2;
                   }
                   else {  // trigonometric
                      value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
@@ -733,7 +742,7 @@ struct DenseMatricesBenchmark
                for( IndexType i = 0; i < dmatrix1Columns; i++ ) {
                   RealType value;
                   if( isLinearFill ) {
-                     value = 3 * i;
+                     value = 3 + i * 2;
                   }
                   else {  // trigonometric
                      value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
@@ -974,7 +983,7 @@ struct DenseMatricesBenchmark
                for( int j = 0; j < dmatrix1Columns; j++ ) {
                   RealType value;
                   if( isLinearFill ) {
-                     value = 3 * i;
+                     value = 3 + i * 2;
                   }
                   else {  // trigonometric
                      value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
@@ -1046,7 +1055,7 @@ struct DenseMatricesBenchmark
                for( IndexType i = 0; i < matrix1Columns2; i++ ) {
                   RealType value;
                   if( isLinearFill ) {
-                     value = 3 * i;
+                     value = 3 + i * 2;
                   }
                   else {  // trigonometric
                      value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
@@ -1061,7 +1070,7 @@ struct DenseMatricesBenchmark
                for( IndexType i = 0; i < matrix2Columns2; i++ ) {
                   RealType value;
                   if( isLinearFill ) {
-                     value = 2 * i;
+                     value = 2 + i * 2;
                   }
                   else {  // trigonometric
                      value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
@@ -1076,7 +1085,7 @@ struct DenseMatricesBenchmark
                for( IndexType i = 0; i < matrix1Rows2; i++ ) {  // Note: Iterating over `matrix1Rows` for the transposed matrix
                   RealType value;
                   if( isLinearFill ) {
-                     value = 2 * i;
+                     value = 2 + i * 2;
                   }
                   else {  // trigonometric
                      value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * i );
