@@ -39,7 +39,11 @@ SpMVCSRLight2( OffsetsView offsets,
       result = reduce( result, fetch( i, compute ) );
 
    // Parallel reduction
+   #if defined( __HIP__ )
+   result = reduce( result, __shfl_down( result, 1 ) );
+   #else
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
+   #endif
 
    // Write the result
    if( inGroupID == 0 )
@@ -75,8 +79,13 @@ SpMVCSRLight4( OffsetsView offsets,
       result = reduce( result, fetch( i, compute ) );
 
    // Parallel reduction
+   #if defined( __HIP__ )
+   result = reduce( result, __shfl_down( result, 2 ) );
+   result = reduce( result, __shfl_down( result, 1 ) );
+   #else
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
+   #endif
 
    // Write the result
    if( inGroupID == 0 )
@@ -113,9 +122,15 @@ SpMVCSRLight8( OffsetsView offsets,
       result = reduce( result, fetch( i, compute ) );
 
    // Parallel reduction
+   #if defined( __HIP__ )
+   result = reduce( result, __shfl_down( result, 4 ) );
+   result = reduce( result, __shfl_down( result, 2 ) );
+   result = reduce( result, __shfl_down( result, 1 ) );
+   #else
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
+   #endif
 
    // Write the result
    if( inGroupID == 0 )
@@ -153,10 +168,17 @@ SpMVCSRLight16( OffsetsView offsets,
       result = reduce( result, fetch( i, compute ) );
 
    // Parallel reduction
+   #if defined( __HIP__ )
+   result = reduce( result, __shfl_down( result, 8 ) );
+   result = reduce( result, __shfl_down( result, 4 ) );
+   result = reduce( result, __shfl_down( result, 2 ) );
+   result = reduce( result, __shfl_down( result, 1 ) );
+   #else
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
    result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
+   #endif
 
    // Write the result
    if( inGroupID == 0 )
@@ -198,11 +220,19 @@ void SpMVCSRVector( OffsetsView offsets,
       result = reduce( result, fetch( i, compute ) );
 
    // Parallel reduction
-   result = reduce( result, __shfl_down_sync(0xFFFFFFFF, result, 16 ) );
-   result = reduce( result, __shfl_down_sync(0xFFFFFFFF, result,  8 ) );
-   result = reduce( result, __shfl_down_sync(0xFFFFFFFF, result,  4 ) );
-   result = reduce( result, __shfl_down_sync(0xFFFFFFFF, result,  2 ) );
-   result = reduce( result, __shfl_down_sync(0xFFFFFFFF, result,  1 ) );
+   #if defined( __HIP__ )
+   result = reduce( result, __shfl_down( result, 16 ) );
+   result = reduce( result, __shfl_down( result,  8 ) );
+   result = reduce( result, __shfl_down( result,  4 ) );
+   result = reduce( result, __shfl_down( result,  2 ) );
+   result = reduce( result, __shfl_down( result,  1 ) );
+   #else
+   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
+   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result,  8 ) );
+   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result,  4 ) );
+   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result,  2 ) );
+   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result,  1 ) );
+   #endif
 
    // Write the result
    if( laneID == 0 )
@@ -246,6 +276,32 @@ SpMVCSRVector( OffsetsView offsets,
       result = reduce( result, fetch( i, compute ) );
 
    // Parallel reduction
+   #if defined( __HIP__ )
+   if( ThreadsPerSegment > 16 ) {
+      result = reduce( result, __shfl_down( result, 16 ) );
+      result = reduce( result, __shfl_down( result, 8 ) );
+      result = reduce( result, __shfl_down( result, 4 ) );
+      result = reduce( result, __shfl_down( result, 2 ) );
+      result = reduce( result, __shfl_down( result, 1 ) );
+   }
+   else if( ThreadsPerSegment > 8 ) {
+      result = reduce( result, __shfl_down( result, 8 ) );
+      result = reduce( result, __shfl_down( result, 4 ) );
+      result = reduce( result, __shfl_down( result, 2 ) );
+      result = reduce( result, __shfl_down( result, 1 ) );
+   }
+   else if( ThreadsPerSegment > 4 ) {
+      result = reduce( result, __shfl_down( result, 4 ) );
+      result = reduce( result, __shfl_down( result, 2 ) );
+      result = reduce( result, __shfl_down( result, 1 ) );
+   }
+   else if( ThreadsPerSegment > 2 ) {
+      result = reduce( result, __shfl_down( result, 2 ) );
+      result = reduce( result, __shfl_down( result, 1 ) );
+   }
+   else if( ThreadsPerSegment > 1 )
+      result = reduce( result, __shfl_down( result, 1 ) );
+   #else
    if( ThreadsPerSegment > 16 ) {
       result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
       result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
@@ -270,6 +326,7 @@ SpMVCSRVector( OffsetsView offsets,
    }
    else if( ThreadsPerSegment > 1 )
       result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
+   #endif
 
    // Write the result
    if( laneID == 0 )
@@ -320,11 +377,20 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
          reduce( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
       localIdx += ThreadsPerSegment;
    }
+
+   #if defined( __HIP__ )
+   result += __shfl_down( result, 16 );
+   result += __shfl_down( result, 8 );
+   result += __shfl_down( result, 4 );
+   result += __shfl_down( result, 2 );
+   result += __shfl_down( result, 1 );
+   #else
    result += __shfl_down_sync( 0xFFFFFFFF, result, 16 );
    result += __shfl_down_sync( 0xFFFFFFFF, result, 8 );
    result += __shfl_down_sync( 0xFFFFFFFF, result, 4 );
    result += __shfl_down_sync( 0xFFFFFFFF, result, 2 );
    result += __shfl_down_sync( 0xFFFFFFFF, result, 1 );
+   #endif
 
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
    if( inWarpLaneIdx == 0 )
