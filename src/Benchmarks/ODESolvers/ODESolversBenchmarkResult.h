@@ -4,24 +4,20 @@
 
 namespace TNL::Benchmarks {
 
-template< typename Solver,
-          bool isStatic = Solver::isStatic() >
-struct SolverElementType{
+template< typename Solver, bool isStatic = Solver::isStatic() >
+struct SolverElementType
+{
    using type = typename Solver::ValueType;
 };
 
 template< typename Solver >
-struct SolverElementType< Solver, true >{
+struct SolverElementType< Solver, true >
+{
    using type = typename Solver::VectorType;
 };
 
-
-template< typename Solver,
-          typename Device,
-          typename Index,
-          typename Logger = JsonLogging >
-struct ODESolversBenchmarkResult
-: public BenchmarkResult
+template< typename Solver, typename Device, typename Index, typename Logger = JsonLogging >
+struct ODESolversBenchmarkResult : public BenchmarkResult
 {
    using SolverType = Solver;
    using RealType = typename SolverType::RealType;
@@ -31,33 +27,37 @@ struct ODESolversBenchmarkResult
    using ElementType = typename SolverElementType< SolverType >::type;
    using BenchmarkVector = Containers::Vector< ElementType, DeviceType, IndexType >;
 
-   using typename BenchmarkResult::HeaderElements;
-   using typename BenchmarkResult::RowElements;
-   using BenchmarkResult::stddev;
    using BenchmarkResult::bandwidth;
    using BenchmarkResult::speedup;
    using BenchmarkResult::time;
+   using BenchmarkResult::time_stddev;
+   using typename BenchmarkResult::HeaderElements;
+   using typename BenchmarkResult::RowElements;
 
-
-   ODESolversBenchmarkResult( const RealType& exactSolution,
-                              const SolverType& solver,
-                              const BenchmarkVector& benchmarkResult )
+   ODESolversBenchmarkResult( const RealType& exactSolution, const SolverType& solver, const BenchmarkVector& benchmarkResult )
    : exactSolution( exactSolution ), solver( solver ), benchmarkResult( benchmarkResult )
    {}
 
-   virtual HeaderElements getTableHeader() const override {
-      return HeaderElements({ "time", "stddev", "stddev/time", "loops", "bandwidth", "speed-up", "error", "EOC", "iters" });
+   virtual HeaderElements
+   getTableHeader() const override
+   {
+      return HeaderElements( { "time", "stddev", "stddev/time", "loops", "bandwidth", "speed-up", "error", "EOC", "iters" } );
    }
 
-   virtual std::vector< int > getColumnWidthHints() const override {
-      return std::vector< int >({ 14, 14, 14, 6, 14, 10, 14, 10, 14 });
+   virtual std::vector< int >
+   getColumnWidthHints() const override
+   {
+      return std::vector< int >( { 14, 14, 14, 6, 14, 10, 14, 10, 14 } );
    }
 
-   virtual RowElements getRowElements() const override {
+   virtual RowElements
+   getRowElements() const override
+   {
       RealType error;
       if constexpr( SolverType::isStatic() )
-         error  = abs( exactSolution - benchmarkResult.getElement( 0 )[ 0 ] );
-      else error = abs( exactSolution - benchmarkResult.getElement( 0 ) );
+         error = abs( exactSolution - benchmarkResult.getElement( 0 )[ 0 ] );
+      else
+         error = abs( exactSolution - benchmarkResult.getElement( 0 ) );
       RealType eoc = -1.0;
       if( lastError != -1.0 )
          eoc = log( lastError / error ) / log( 2.0 );
@@ -65,7 +65,7 @@ struct ODESolversBenchmarkResult
 
       RowElements elements;
       // write in scientific format to avoid precision loss
-      elements << std::scientific << time << stddev << stddev/time << loops << bandwidth;
+      elements << std::scientific << time << time_stddev << time_stddev / time << loops << bandwidth;
       elements << std::fixed;
       if( speedup != 0.0 )
          elements << speedup;
@@ -81,7 +81,11 @@ struct ODESolversBenchmarkResult
       return elements;
    }
 
-   void reset() { this->lastError = -1.0; }
+   void
+   reset()
+   {
+      this->lastError = -1.0;
+   }
 
 protected:
    RealType exactSolution;
@@ -90,4 +94,4 @@ protected:
    const BenchmarkVector& benchmarkResult;
 };
 
-} // namespace TNL::Benchmarks
+}  // namespace TNL::Benchmarks
