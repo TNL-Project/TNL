@@ -30,7 +30,7 @@ z = np.array(z_lst)
 ###
 # Draw the graph of u(t) using Matplotlib
 fig, ax = plt.subplots()
-ax.plot(x, y, label='Lorenz attractor')
+ax.plot(x, y, label="Lorenz attractor")
 ax.legend()
 plt.savefig(sys.argv[2])
 plt.close(fig)
