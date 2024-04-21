@@ -348,4 +348,4 @@ ODESolver< Method, Vector, SolverMonitor, false >::reset()
 }
 
 }  // namespace TNL::Solvers::ODE
-#endif // DOXYGEN_ONLY
+#endif  // DOXYGEN_ONLY
