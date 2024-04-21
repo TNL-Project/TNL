@@ -1,27 +1,25 @@
-set(COMMON_TESTS
-   ODESolverTest_Euler
-   ODESolverTest_Merson
-   StaticODESolverTest_Merson # This is to test the static ODE solver for CUDA and HIP
+set(COMMON_TESTS ODESolverTest_Euler ODESolverTest_Merson
+                 StaticODESolverTest_Merson # This is to test the static ODE solver for CUDA and HIP
 )
 
 set(CPP_TESTS
-   StaticODESolverTest_BogackiShampin
-   StaticODESolverTest_CashKarp
-   StaticODESolverTest_DormandPrince
-   StaticODESolverTest_Euler
-   StaticODESolverTest_Fehlberg2
-   StaticODESolverTest_Fehlberg5
-   StaticODESolverTest_Heun2
-   StaticODESolverTest_Heun3
-   StaticODESolverTest_Kutta
-   StaticODESolverTest_Midpoint
-   StaticODESolverTest_OriginalRungeKutta
-   StaticODESolverTest_Ralston2
-   StaticODESolverTest_Ralston3
-   StaticODESolverTest_Ralston4
-   StaticODESolverTest_Rule38
-   StaticODESolverTest_SSPRK3
-   StaticODESolverTest_VanDerHouwenWray
+    StaticODESolverTest_BogackiShampin
+    StaticODESolverTest_CashKarp
+    StaticODESolverTest_DormandPrince
+    StaticODESolverTest_Euler
+    StaticODESolverTest_Fehlberg2
+    StaticODESolverTest_Fehlberg5
+    StaticODESolverTest_Heun2
+    StaticODESolverTest_Heun3
+    StaticODESolverTest_Kutta
+    StaticODESolverTest_Midpoint
+    StaticODESolverTest_OriginalRungeKutta
+    StaticODESolverTest_Ralston2
+    StaticODESolverTest_Ralston3
+    StaticODESolverTest_Ralston4
+    StaticODESolverTest_Rule38
+    StaticODESolverTest_SSPRK3
+    StaticODESolverTest_VanDerHouwenWray
 )
 
 if(TNL_BUILD_CUDA)

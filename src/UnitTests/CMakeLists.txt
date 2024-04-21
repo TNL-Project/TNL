@@ -8,25 +8,23 @@ add_subdirectory(MPI)
 add_subdirectory(Pointers)
 add_subdirectory(Solvers)
 
-set( CPP_TESTS  AllocatorsTest
-                AssertTest
-                FileTest
-                base64Test
-                CustomScalarTest
-                DiscreteMathTest
-                FileNameTest
-                MathTest
-                ObjectTest
-                StringTest
-                TimerTest
-                TypeInfoTest
-                TypeTraitsTest )
-set( CUDA_TESTS  AllocatorsTestCuda
-                 AssertTestCuda
-                 FileTestCuda )
-set( HIP_TESTS  AllocatorsTestHip
-                AssertTestHip
-                FileTestHip )
+set(CPP_TESTS
+    AllocatorsTest
+    AssertTest
+    FileTest
+    base64Test
+    CustomScalarTest
+    DiscreteMathTest
+    FileNameTest
+    MathTest
+    ObjectTest
+    StringTest
+    TimerTest
+    TypeInfoTest
+    TypeTraitsTest
+)
+set(CUDA_TESTS AllocatorsTestCuda AssertTestCuda FileTestCuda)
+set(HIP_TESTS AllocatorsTestHip AssertTestHip FileTestHip)
 
 foreach(target IN ITEMS ${CPP_TESTS})
     add_executable(${target} ${target}.cpp)
