@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include <functional>
+#include <cmath>
+#include <TNL/Containers/Expressions/ExpressionTemplates.h>
 #include <iostream>
 #include <sstream>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
@@ -39,31 +41,6 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >
 #endif
    >;
-
-template< typename MatrixType >
-void
-readMatrixFromCSV( MatrixType& matrix, const std::string& fileName )
-{
-   std::ifstream file( fileName );
-   if( ! file.is_open() ) {
-      std::cerr << "Failed to open file: " << fileName << "\n";
-      return;
-   }
-   std::string line;
-   typename MatrixType::IndexType row = 0;
-
-   while( std::getline( file, line ) ) {
-      std::stringstream lineStream( line );
-      std::string cell;
-      typename MatrixType::IndexType col = 0;
-
-      while( std::getline( lineStream, cell, ',' ) ) {
-         matrix.setElement( row, col, std::stod( cell ) );
-         col++;
-      }
-      row++;
-   }
-}
 
 TYPED_TEST_SUITE( DenseMatrixMultiplicationTest, MatrixTypes );
 
@@ -254,19 +231,50 @@ TYPED_TEST( DenseMatrixMultiplicationTest, NormalProductWrong )
    ASSERT_EQ( check, false );
 }
 
-TYPED_TEST( DenseMatrixMultiplicationTest, LargeMatricesProduct )
+TYPED_TEST( DenseMatrixMultiplicationTest, LargeMatrices )
 {
    using DenseMatrixType = typename TestFixture::DenseMatrixType;
 
-   DenseMatrixType matrix1( 100, 150 );
-   readMatrixFromCSV( matrix1, std::string( RELATIVE_PATH_TO_MATRICES ) + "matrix1.csv" );
-   DenseMatrixType matrix2( 150, 110 );
-   readMatrixFromCSV( matrix2, std::string( RELATIVE_PATH_TO_MATRICES ) + "matrix2.csv" );
+   DenseMatrixType matrix1;
+   matrix1.setDimensions( 50, 70 );
+
+   DenseMatrixType matrix2;
+   matrix2.setDimensions( 70, 40 );
+
+   // Fill the matrices
+   const double h_x = 1.0 / 100;
+   const double h_y = 1.0 / 100;
+
+   for( int i = 0; i < matrix1.getRows(); i++ ) {
+      for( int j = 0; j < matrix1.getColumns(); j++ ) {
+         double value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * j );
+         matrix1.setElement( i, j, value );
+      }
+   }
+
+   for( int i = 0; i < matrix2.getRows(); i++ ) {
+      for( int j = 0; j < matrix2.getColumns(); j++ ) {
+         double value = std::sin( 3 * M_PI * h_x * i ) + std::cos( 3 * M_PI * h_y * j );
+         matrix2.setElement( i, j, value );
+      }
+   }
 
    DenseMatrixType resultMatrix;
+   resultMatrix.setDimensions( 50, 40 );
 
-   DenseMatrixType checkMatrix( 100, 110 );
-   readMatrixFromCSV( checkMatrix, std::string( RELATIVE_PATH_TO_MATRICES ) + "checkMatrix.csv" );
+   DenseMatrixType checkMatrix;
+   checkMatrix.setDimensions( 50, 40 );
+
+   // Calculate the product of matrix1 and matrix2 manually
+   for( int i = 0; i < matrix1.getRows(); i++ ) {
+      for( int j = 0; j < matrix2.getColumns(); j++ ) {
+         double sum = 0;
+         for( int k = 0; k < matrix1.getColumns(); k++ ) {
+            sum += matrix1.getElement( i, k ) * matrix2.getElement( k, j );
+         }
+         checkMatrix.setElement( i, j, sum );
+      }
+   }
 
    resultMatrix.getMatrixProduct( matrix1, matrix2 );
 

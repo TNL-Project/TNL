@@ -40,31 +40,6 @@ using MatrixTypes = ::testing::Types<
 #endif
    >;
 
-template< typename MatrixType >
-void
-readMatrixFromCSV( MatrixType& matrix, const std::string& fileName )
-{
-   std::ifstream file( fileName );
-   if( ! file.is_open() ) {
-      std::cerr << "Failed to open file: " << fileName << "\n";
-      return;
-   }
-   std::string line;
-   typename MatrixType::IndexType row = 0;
-
-   while( std::getline( file, line ) ) {
-      std::stringstream lineStream( line );
-      std::string cell;
-      typename MatrixType::IndexType col = 0;
-
-      while( std::getline( lineStream, cell, ',' ) ) {
-         matrix.setElement( row, col, std::stod( cell ) );
-         col++;
-      }
-      row++;
-   }
-}
-
 TYPED_TEST_SUITE( DenseMatrixTranspositionTest, MatrixTypes );
 
 TYPED_TEST( DenseMatrixTranspositionTest, EmptyMatrix )
@@ -216,22 +191,36 @@ TYPED_TEST( DenseMatrixTranspositionTest, Transposition3 )
    ASSERT_EQ( check, true );
 }
 
-TYPED_TEST( DenseMatrixTranspositionTest, LargeSquaredMatrices )
+TYPED_TEST( DenseMatrixTranspositionTest, LargeMatrices )
 {
    using DenseMatrixType = typename TestFixture::DenseMatrixType;
 
    DenseMatrixType matrix( 110, 110 );
-   readMatrixFromCSV( matrix, std::string( RELATIVE_PATH_TO_MATRICES ) + "matrixInPlace.csv" );
-
    DenseMatrixType InPlaceMatrix( 110, 110 );
-   readMatrixFromCSV( InPlaceMatrix, std::string( RELATIVE_PATH_TO_MATRICES ) + "matrixInPlace.csv" );
+
+   // Fill the matrices
+   const double h_x = 1.0 / 100;
+   const double h_y = 1.0 / 100;
+   for( int i = 0; i < matrix.getRows(); i++ ) {
+      for( int j = 0; j < matrix.getColumns(); j++ ) {
+         double value = std::sin( 2 * M_PI * h_x * i ) + std::cos( 2 * M_PI * h_y * j );
+         matrix.setElement( i, j, value );
+         InPlaceMatrix.setElement( i, j, value );
+      }
+   }
 
    DenseMatrixType checkMatrix( 110, 110 );
-   readMatrixFromCSV( checkMatrix, std::string( RELATIVE_PATH_TO_MATRICES ) + "matrixInPlace_transposed.csv" );
+
+   // Transpose the checkMatrix manually
+   for( int i = 0; i < checkMatrix.getRows(); i++ ) {
+      for( int j = 0; j < checkMatrix.getColumns(); j++ ) {
+         checkMatrix.setElement( i, j, matrix.getElement( j, i ) );
+      }
+   }
 
    DenseMatrixType resultMatrix;
-
    resultMatrix.getTransposition( matrix );
+
    InPlaceMatrix.getInPlaceTransposition();
 
    auto tolerance = 1e-3;

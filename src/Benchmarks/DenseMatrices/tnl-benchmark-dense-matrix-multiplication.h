@@ -1,7 +1,7 @@
 #include <TNL/Devices/Hip.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include "DenseMatricesBenchmark.h"
+#include "DenseMultiplicationBenchmark.h"
 
 void
 configSetup( TNL::Config::ConfigDescription& config )
@@ -15,9 +15,9 @@ configSetup( TNL::Config::ConfigDescription& config )
 
 template< typename Real >
 bool
-runDenseMatricesBenchmark( TNL::Config::ParameterContainer& parameters )
+runDenseMultiplicationBenchmark( TNL::Config::ParameterContainer& parameters )
 {
-   TNL::Benchmarks::DenseMatrices::DenseMatricesBenchmark< Real > benchmark( parameters );
+   TNL::Benchmarks::DenseMatrices::DenseMultiplicationBenchmark< Real > benchmark( parameters );
    benchmark.runBenchmark();
    return true;
 }
@@ -33,7 +33,7 @@ main( int argc, char* argv[] )
 #elif defined( __HIP__ )
    TNL::Devices::Hip::configSetup( config );
 #endif
-   TNL::Benchmarks::DenseMatrices::DenseMatricesBenchmark<>::configSetup( config );
+   TNL::Benchmarks::DenseMatrices::DenseMultiplicationBenchmark<>::configSetup( config );
 
    TNL::Config::ParameterContainer parameters;
 
@@ -50,10 +50,10 @@ main( int argc, char* argv[] )
    auto precision = parameters.getParameter< TNL::String >( "precision" );
 
    if( precision == "float" || precision == "all" ) {
-      success = runDenseMatricesBenchmark< float >( parameters );
+      success = runDenseMultiplicationBenchmark< float >( parameters );
    }
    else if( precision == "double" || precision == "all" ) {
-      success = runDenseMatricesBenchmark< double >( parameters );
+      success = runDenseMultiplicationBenchmark< double >( parameters );
    }
    else {
       std::cerr << "Unknown precision " << precision << "." << std::endl;

@@ -15,16 +15,16 @@
 
 namespace TNL::Benchmarks::DenseMatrices {
 
-//main kernel for dense matrix multiplication
+//previous main kernel for dense matrix multiplication
 template< int tileDim, int tileRowBlockSize, typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
-DenseMatrixProductKernel( ResultMatrix resultMatrix,
-                          const Matrix1 matrixA,
-                          const Matrix2 matrixB,
-                          const typename ResultMatrix::RealType matrixMultiplicator,
-                          const typename ResultMatrix::IndexType gridIdx_x,
-                          const typename ResultMatrix::IndexType gridIdx_y )
+MultiplicationKernel1( ResultMatrix resultMatrix,
+                       const Matrix1 matrixA,
+                       const Matrix2 matrixB,
+                       const typename ResultMatrix::RealType matrixMultiplicator,
+                       const typename ResultMatrix::IndexType gridIdx_x,
+                       const typename ResultMatrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    // Here we compute product C = A * B. To profit from the fast
@@ -94,12 +94,12 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
 template< int tileDim, int tileRowBlockSize, typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
-OptimizedDenseMatrixProductKernel( ResultMatrix resultMatrix,
-                                   const Matrix1 matrixA,
-                                   const Matrix2 matrixB,
-                                   const typename ResultMatrix::RealType matrixMultiplicator,
-                                   const typename ResultMatrix::IndexType gridIdx_x,
-                                   const typename ResultMatrix::IndexType gridIdx_y )
+MultiplicationKernel2( ResultMatrix resultMatrix,
+                       const Matrix1 matrixA,
+                       const Matrix2 matrixB,
+                       const typename ResultMatrix::RealType matrixMultiplicator,
+                       const typename ResultMatrix::IndexType gridIdx_x,
+                       const typename ResultMatrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    // Here we compute product C = A * B. To profit from the fast
@@ -163,12 +163,12 @@ OptimizedDenseMatrixProductKernel( ResultMatrix resultMatrix,
 template< int tileDim, int tileRowBlockSize, typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
-Optimized2DenseMatrixProductKernel( ResultMatrix resultMatrix,
-                                    const Matrix1 matrixA,
-                                    const Matrix2 matrixB,
-                                    const typename ResultMatrix::RealType matrixMultiplicator,
-                                    const typename ResultMatrix::IndexType gridIdx_x,
-                                    const typename ResultMatrix::IndexType gridIdx_y )
+MultiplicationKernel3( ResultMatrix resultMatrix,
+                       const Matrix1 matrixA,
+                       const Matrix2 matrixB,
+                       const typename ResultMatrix::RealType matrixMultiplicator,
+                       const typename ResultMatrix::IndexType gridIdx_x,
+                       const typename ResultMatrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename ResultMatrix::IndexType;
@@ -234,10 +234,10 @@ Optimized2DenseMatrixProductKernel( ResultMatrix resultMatrix,
 template< int tileDim, typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
-WarpTilingDenseMatrixProductKernel( ResultMatrix resultMatrix,
-                                    const Matrix1 matrixA,
-                                    const Matrix2 matrixB,
-                                    const typename ResultMatrix::RealType matrixMultiplicator )
+MultiplicationKernel4( ResultMatrix resultMatrix,
+                       const Matrix1 matrixA,
+                       const Matrix2 matrixB,
+                       const typename ResultMatrix::RealType matrixMultiplicator )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename ResultMatrix::IndexType;
@@ -290,10 +290,10 @@ WarpTilingDenseMatrixProductKernel( ResultMatrix resultMatrix,
 template< int tileDim, typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
-OptimizedWarpTilingDenseMatrixProductKernel( ResultMatrix resultMatrix,
-                                             const Matrix1 matrixA,
-                                             const Matrix2 matrixB,
-                                             const typename ResultMatrix::RealType matrixMultiplicator )
+MultiplicationKernel5( ResultMatrix resultMatrix,
+                       const Matrix1 matrixA,
+                       const Matrix2 matrixB,
+                       const typename ResultMatrix::RealType matrixMultiplicator )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename ResultMatrix::IndexType;
@@ -434,10 +434,10 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
 template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
-optimizedFermiGemmKernel( ResultMatrix resultMatrix,
-                          const Matrix1 matrixA,
-                          const Matrix2 matrixB,
-                          const typename ResultMatrix::RealType matrixMultiplicator )
+MultiplicationKernel6( ResultMatrix resultMatrix,
+                       const Matrix1 matrixA,
+                       const Matrix2 matrixB,
+                       const typename ResultMatrix::RealType matrixMultiplicator )
 {
 #ifdef __CUDACC__
    using IndexType = typename ResultMatrix::IndexType;
@@ -446,9 +446,8 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
    IndexType bx = blockIdx.x, by = blockIdx.y;
    IndexType tx = threadIdx.x, ty = threadIdx.y;
 
-   // Adjusting for a larger computation per thread
-   IndexType row = by * 16 + ty * 4;  // Each thread computes 4 rows at a time
-   IndexType col = bx * 16 + tx * 4;  // Each thread computes 4 columns at a time
+   IndexType row = by * 64 + ty * 4;  // Each thread computes 4 rows at a time
+   IndexType col = bx * 64 + tx * 4;  // Each thread computes 4 columns at a time
 
    RealType CValue[ 4 ][ 4 ] = { 0 };  // Accumulator for the result sub-tile
 
@@ -462,35 +461,38 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
    auto& resultValues = resultMatrix.getValues();  // Vector of ResultMatrix's elements
 
    // Calculate number of phases required to cover all columns of A / rows of B
-   const IndexType numTiles = ( matrixAColumns + 15 ) / 16;
+   const IndexType numTiles = ( matrixAColumns + 1 ) / 2;
 
    // Precompute row and column boundary checks
    const IndexType maxRowIndexA = min( matrixARows - 1, row + 3 );
    const IndexType maxColIndexB = min( matrixBColumns - 1, col + 3 );
 
    for( IndexType m = 0; m < numTiles; ++m ) {
-      RealType AReg[ 4 ][ 16 ] = { { 0 } };
-      RealType BReg[ 4 ][ 16 ] = { { 0 } };
+      RealType AReg[ 4 ][ 2 ] = { { 0 } };
+      RealType BReg[ 4 ][ 2 ] = { { 0 } };
 
-      IndexType maxKForA = min( 15, matrixAColumns - 1 - m * 16 );
-      IndexType maxKForB = min( 15, matrixBRows - 1 - m * 16 );
+      IndexType maxKForA = min( 1, matrixAColumns - 1 - m * 2 );
+      IndexType maxKForB = min( 1, matrixBRows - 1 - m * 2 );
 
       // Load data into registers
       for( IndexType k = 0; k <= maxKForA; ++k ) {
+   #pragma unroll
          for( IndexType i = 0; i <= maxRowIndexA - row; ++i ) {
-            AReg[ i ][ k ] = AValues[ ( m * 16 + k ) * matrixARows + ( row + i ) ];
-         }
-      }
-      for( IndexType k = 0; k <= maxKForB; ++k ) {
-         for( IndexType j = 0; j <= maxColIndexB - col; ++j ) {
-            BReg[ j ][ k ] = BValues[ ( col + j ) * matrixBRows + ( m * 16 + k ) ];
+            AReg[ i ][ k ] = AValues[ ( m * 2 + k ) * matrixARows + ( row + i ) ];
          }
       }
 
-   // Matrix multiplication for the current tile
+      for( IndexType k = 0; k <= maxKForB; ++k ) {
    #pragma unroll
-      for( IndexType k = 0; k < 16; ++k ) {  // Now unconditionally iterating over all k
+         for( IndexType j = 0; j <= maxColIndexB - col; ++j ) {
+            BReg[ j ][ k ] = BValues[ ( col + j ) * matrixBRows + ( m * 2 + k ) ];
+         }
+      }
+
+      // Matrix multiplication for the current tile
+      for( IndexType k = 0; k < 2; ++k ) {
          for( IndexType i = 0; i < 4; ++i ) {
+   #pragma unroll
             for( IndexType j = 0; j < 4; ++j ) {
                CValue[ i ][ j ] += AReg[ i ][ k ] * BReg[ j ][ k ] * matrixMultiplicator;
             }
@@ -499,14 +501,13 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
    }
 
    // Store the result from CValue to the result matrix
-   #pragma unroll
    for( IndexType i = 0; i < 4; i++ ) {
    #pragma unroll
       for( IndexType j = 0; j < 4; j++ ) {
          IndexType cRow = row + i;
          IndexType cCol = col + j;
-         IndexType index = cCol * resultMatrix.getRows() + cRow;
          if( cRow < resultMatrix.getRows() && cCol < resultMatrix.getColumns() ) {
+            IndexType index = cCol * resultMatrix.getRows() + cRow;
             resultValues[ index ] = CValue[ i ][ j ];
          }
       }
@@ -518,10 +519,10 @@ optimizedFermiGemmKernel( ResultMatrix resultMatrix,
 template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
-TensorCoreDenseMatrixProductKernel( ResultMatrix resultMatrix,
-                                    const Matrix1 matrixA,
-                                    const Matrix2 matrixB,
-                                    const typename ResultMatrix::RealType matrixMultiplicator )
+MultiplicationKernel7( ResultMatrix resultMatrix,
+                       const Matrix1 matrixA,
+                       const Matrix2 matrixB,
+                       const typename ResultMatrix::RealType matrixMultiplicator )
 {
 #ifdef __CUDACC__
    #ifdef USE_TENSOR_CORES
