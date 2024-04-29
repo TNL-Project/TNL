@@ -1,7 +1,7 @@
 # vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 default:
-    image: "archlinux/devel-tnl:latest"
+    image: "jlk.fjfi.cvut.cz:5000/fjfi-mmg/archlinux-tnl-cuda:latest"
     tags:
         - docker
     retry:
@@ -68,7 +68,7 @@ workflow:
 
 # base for NVHPC builds
 .nvhpc:
-    image: "archlinux/devel-tnl-nvhpc:latest"
+    image: "jlk.fjfi.cvut.cz:5000/fjfi-mmg/archlinux-tnl-nvhpc:latest"
     variables:
         <<: *default_cmake_flags
         USE_CUDA: "yes"
@@ -97,12 +97,13 @@ workflow:
         - docker
         - nvidia
     extends: .clang
+    image: "jlk.fjfi.cvut.cz:5000/fjfi-mmg/archlinux-tnl-cuda11.8:latest"
     variables:
         CUDACXX: clang++
         CUDAHOSTCXX: clang++
         CMAKE_CUDA_FLAGS: "-stdlib=libc++"
         USE_CUDA: "yes"
-        # use CUDA 11.8 from the Arch Linux-based Docker image
+        # use CUDA 11.8 from the Arch Linux-based container image
         "CUDA_PATH": "/opt/cuda-11.8"
         "Thrust_DIR": "${CUDA_PATH}/lib64/cmake/thrust/"
         "CUB_DIR": "${CUDA_PATH}/lib64/cmake/cub/"
@@ -110,7 +111,7 @@ workflow:
 # base for Intel oneAPI builds
 .icpx:
     stage: build:host
-    image: "archlinux/devel-tnl-oneapi:latest"
+    image: "jlk.fjfi.cvut.cz:5000/fjfi-mmg/archlinux-tnl-oneapi:latest"
     variables:
         <<: *default_cmake_flags
         CXX: icpx
@@ -119,7 +120,7 @@ workflow:
 # base for HIP/ROCm builds
 .hip_rocm:
     stage: build:hip_rocm
-    image: "archlinux/devel-tnl-rocm:latest"
+    image: "jlk.fjfi.cvut.cz:5000/fjfi-mmg/archlinux-tnl-rocm:latest"
     tags:
         - docker
         - hip-rocm
@@ -354,7 +355,7 @@ pages:
     # use "dependencies" instead of "needs" to deploy only when the entire pipeline succeeds
     dependencies:
         - documentation
-    image: "archlinux:latest"
+    image: "quay.io/archlinux/archlinux:latest"
     script:
         - mv ./html/ public/
     artifacts:
@@ -447,7 +448,7 @@ python-black:
         - changes:
             - src/**/*.py
             - Documentation/**/*.py
-    image: "archlinux:latest"
+    image: "quay.io/archlinux/archlinux:latest"
     before_script:
         - pacman -Syu --needed --noconfirm python-black python-colorama
     script:
