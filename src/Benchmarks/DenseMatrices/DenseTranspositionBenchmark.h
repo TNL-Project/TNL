@@ -98,12 +98,12 @@ struct DenseTranspositionBenchmark
                 << std::endl;
       std::cout << std::endl;
 
-      IndexType dmatrix1Rows = 10;     // Number of rows in matrix1 (same as columns in matrix2)
-      IndexType dmatrix1Columns = 10;  // Number of columns in matrix1
-      IndexType numMatrices1 = 10;     // NUmber of matrices that are going to be generated
+      IndexType dmatrix1Rows = 0;     // Number of rows in matrix1 (same as columns in matrix2)
+      IndexType dmatrix1Columns = 0;  // Number of columns in matrix1
+      IndexType numMatrices1 = 100;   // NUmber of matrices that are going to be generated
       for( IndexType i = 0; i < numMatrices1; ++i ) {
          // Modify the matrix sizes for each iteration
-         dmatrix1Rows += 100;
+         dmatrix1Rows += 1;
          dmatrix1Columns += 100;
 
          if( device == "cuda" || device == "hip" || device == "all" ) {
@@ -157,7 +157,7 @@ struct DenseTranspositionBenchmark
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
                   { "index type", TNL::getType< Index >() },
                   { "device", device },
-                  { "algorithm", "TNL" },
+                  { "algorithm", "Kernel 2.1" },
                   { "matrix size", std::to_string( dmatrix1Rows ) + "x" + std::to_string( dmatrix1Columns ) },
                } ) );
 
@@ -185,7 +185,7 @@ struct DenseTranspositionBenchmark
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
                   { "index type", TNL::getType< Index >() },
                   { "device", device },
-                  { "algorithm", "Combined" },
+                  { "algorithm", "Kernel 2.2" },
                   { "matrix size", std::to_string( dmatrix1Rows ) + "x" + std::to_string( dmatrix1Columns ) },
                } ) );
 
@@ -214,7 +214,7 @@ struct DenseTranspositionBenchmark
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
                { "index type", TNL::getType< Index >() },
                { "device", device },
-               { "algorithm", "Final" },
+               { "algorithm", "Kernel 2.3" },
                { "matrix size", std::to_string( dmatrix1Rows ) + "x" + std::to_string( dmatrix1Columns ) },
             } ) );
 
@@ -244,7 +244,7 @@ struct DenseTranspositionBenchmark
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
                   { "index type", TNL::getType< Index >() },
                   { "device", device },
-                  { "algorithm", "InPlace" },
+                  { "algorithm", "Kernel 2.4" },
                   { "matrix size", std::to_string( dmatrix1Rows ) + "x" + std::to_string( dmatrix1Columns ) },
                } ) );
 

@@ -93,7 +93,7 @@ def create_html_table(data):
 
     # Define primary and secondary algorithms
     primary_algorithms = ['cuBLAS', 'Magma', 'Cutlass','BLAS']
-    secondary_algorithms = ['TNL', 'TNL2', '2D SMA', 'Warptiling', 'Warptiling2', 'Fermi']
+    secondary_algorithms = ['Kernel 1.1', 'Kernel 1.2', 'Kernel 1.3', 'Kernel 1.4', 'Kernel 1.5', 'Kernel 1.6']
     all_algorithms = primary_algorithms + secondary_algorithms
 
     # Header row 1: Algorithm names

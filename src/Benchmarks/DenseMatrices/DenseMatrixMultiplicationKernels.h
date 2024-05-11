@@ -338,99 +338,7 @@ MultiplicationKernel5( ResultMatrix resultMatrix,
 }
 
 /*
-//kernel 6 (Fermi)
-template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
-__global__
-void
-optimizedFermiGemmKernel( ResultMatrix resultMatrix,
-                          const Matrix1 matrixA,
-                          const Matrix2 matrixB,
-                          const typename ResultMatrix::RealType matrixMultiplicator )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   using IndexType = typename ResultMatrix::IndexType;
-   using RealType = typename ResultMatrix::RealType;
-
-   // Define shared memory tiles
-   __shared__ RealType tileA[ 64 ][ 16 + 1 ];
-   __shared__ RealType tileB[ 16 ][ 64 + 1 ];
-
-   auto matrixARows = matrixA.getRows();
-   auto matrixAColumns = matrixA.getColumns();
-   auto matrixBRows = matrixB.getRows();
-   auto matrixBColumns = matrixB.getColumns();
-   auto matrixCRows = resultMatrix.getRows();
-   auto matrixCColumns = resultMatrix.getColumns();
-
-   IndexType bx = blockIdx.x, by = blockIdx.y;
-   IndexType tx = threadIdx.x, ty = threadIdx.y;
-
-   // Each thread computes a 4x4 sub-matrix
-   IndexType row = by * 64 + ty * 4;
-   IndexType col = bx * 64 + tx * 4;
-
-   RealType CValue[ 4 ][ 4 ] = { 0 };
-
-   for( IndexType m = 0; m < ( matrixA.getColumns() + 15 ) / 16; ++m ) {
-      // Load tiles from A and B into shared memory
-      for( IndexType i = 0; i < 4; i++ ) {
-         IndexType aRow = row + i;
-         IndexType bCol = col + i;
-         IndexType aCol = m * 16 + tx;
-         IndexType bRow = m * 16 + ty;
-
-         // Check and load for tileA
-         if( aRow < matrixARows && aCol < matrixAColumns ) {
-            tileA[ ty * 4 + i ][ tx ] = matrixA( aRow, aCol );
-         }
-         else {
-            tileA[ ty * 4 + i ][ tx ] = 0.0;
-         }
-
-         // Check and load for tileB
-         if( bRow < matrixBRows && bCol < matrixBColumns ) {
-            tileB[ ty ][ tx * 4 + i ] = matrixB( bRow, bCol );
-         }
-         else {
-            tileB[ ty ][ tx * 4 + i ] = 0.0;
-         }
-      }
-
-      __syncthreads();
-
-      // Perform the multiplication for this tile
-      for( IndexType k = 0; k < 16; ++k ) {
-         RealType regA[ 4 ], regB[ 4 ];  //Assing registers computing 8 elements
-         // Load elements from shared memory into registers
-         for( IndexType i = 0; i < 4; ++i ) {
-            regA[ i ] = tileA[ ty * 4 + i ][ k ];
-            regB[ i ] = tileB[ k ][ tx * 4 + i ];
-         }
-         // Compute using the loaded elements
-         for( IndexType i = 0; i < 4; ++i ) {
-            for( IndexType j = 0; j < 4; ++j ) {
-               CValue[ i ][ j ] += regA[ i ] * regB[ j ] * matrixMultiplicator;
-            }
-         }
-      }
-      __syncthreads();
-   }
-
-   // Write the result to the global memory
-   for( IndexType i = 0; i < 4; i++ ) {
-      for( IndexType j = 0; j < 4; j++ ) {
-         IndexType cRow = row + i;
-         IndexType cCol = col + j;
-         if( cRow < matrixCRows && cCol < matrixCColumns ) {
-            resultMatrix( cRow, cCol ) = CValue[ i ][ j ] * matrixMultiplicator;
-         }
-      }
-   }
-#endif  // __CUDACC__
-}
-*/
-
-//kernel 6 (Fermi)
+//kernel 6 (Fermi) Without shared memory
 template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
@@ -515,82 +423,196 @@ MultiplicationKernel6( ResultMatrix resultMatrix,
 #endif
 }
 
-//kernel 7 (Tensor Cores Utilization)
+*/
+
+//kernel 6 (Fermi)
 template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
-MultiplicationKernel7( ResultMatrix resultMatrix,
+MultiplicationKernel6( ResultMatrix resultMatrix,
                        const Matrix1 matrixA,
                        const Matrix2 matrixB,
                        const typename ResultMatrix::RealType matrixMultiplicator )
 {
 #ifdef __CUDACC__
-   #ifdef USE_TENSOR_CORES
-   using namespace nvcuda;
    using IndexType = typename ResultMatrix::IndexType;
    using RealType = typename ResultMatrix::RealType;
+
+   // Shared memory for submatrices of A and B
+   __shared__ RealType sharedA[ 16 ][ 64 + 1 ];  // Padding to prevent bank conflicts
+   __shared__ RealType sharedB[ 64 ][ 16 + 1 ];  // Padding to prevent bank conflicts
+
+   IndexType bx = blockIdx.x, by = blockIdx.y;
+   IndexType tx = threadIdx.x, ty = threadIdx.y;
+
+   // Each thread computes a 4x4 block of the result matrix
+   IndexType row = by * 64 + ty * 4;
+   IndexType col = bx * 64 + tx * 4;
+
+   RealType CValue[ 4 ][ 4 ] = { 0 };
+
+   // Bounds
+   const IndexType matrixARows = matrixA.getRows();
+   const IndexType matrixAColumns = matrixA.getColumns();
+   const IndexType matrixBRows = matrixB.getRows();
+   const IndexType matrixBColumns = matrixB.getColumns();
+
+   const auto& AValues = matrixA.getValues();
+   const auto& BValues = matrixB.getValues();
+   auto& resultValues = resultMatrix.getValues();
+
+   // Compute number of tiles
+   const IndexType numTiles = ( matrixAColumns + 15 ) / 16;
+
+   // Precompute the maximum valid iterations for aRow and bCol
+   IndexType maxARow = min( 4, matrixARows - row );
+   IndexType maxBCol = min( 4, matrixBColumns - col );
+
+   // Iterate through each tile
+   for( IndexType m = 0; m < numTiles; ++m ) {
+      IndexType aCol = m * 16 + tx;
+      IndexType bRow = m * 16 + ty;
+
+      // Load valid data from global memory into shared memory for matrix A
+      if( aCol < matrixAColumns ) {
+         for( IndexType i = 0; i < maxARow; ++i ) {
+            IndexType aRow = row + i;
+            sharedA[ tx ][ ty * 4 + i ] = AValues[ aCol * matrixARows + aRow ];
+         }
+
+         for( IndexType i = maxARow; i < 4; ++i ) {
+            sharedA[ tx ][ ty * 4 + i ] = 0.0;
+         }
+      }
+      else {
+   #pragma unroll
+         for( IndexType i = 0; i < 4; ++i ) {
+            sharedA[ tx ][ ty * 4 + i ] = 0.0;
+         }
+      }
+
+      // Load valid data from global memory into shared memory for matrix B
+      if( bRow < matrixBRows ) {
+         for( IndexType i = 0; i < maxBCol; ++i ) {
+            IndexType bCol = col + i;
+            sharedB[ tx * 4 + i ][ ty ] = BValues[ bCol * matrixBRows + bRow ];
+         }
+
+         for( IndexType i = maxBCol; i < 4; ++i ) {
+            sharedB[ tx * 4 + i ][ ty ] = 0.0;
+         }
+      }
+      else {
+   #pragma unroll
+         for( IndexType i = 0; i < 4; ++i ) {
+            sharedB[ tx * 4 + i ][ ty ] = 0.0;
+         }
+      }
+      __syncthreads();
+
+      // Compute the matrix multiplication for this tile
+      for( IndexType k = 0; k < 16; ++k ) {
+         RealType regA[ 4 ], regB[ 4 ];
+   #pragma unroll
+         for( IndexType i = 0; i < 4; ++i ) {
+            regA[ i ] = sharedA[ k ][ ty * 4 + i ];
+            regB[ i ] = sharedB[ tx * 4 + i ][ k ];
+         }
+         for( IndexType i = 0; i < 4; ++i ) {
+   #pragma unroll
+            for( IndexType j = 0; j < 4; ++j ) {
+               CValue[ i ][ j ] += regA[ i ] * regB[ j ] * matrixMultiplicator;
+            }
+         }
+      }
+
+      __syncthreads();
+   }
+
+   // Store the result into the result matrix
+   for( IndexType i = 0; i < maxARow; ++i ) {
+      for( IndexType j = 0; j < maxBCol; ++j ) {
+         IndexType cRow = row + i;
+         IndexType cCol = col + j;
+         IndexType index = cCol * matrixARows + cRow;
+         resultValues[ index ] = CValue[ i ][ j ];
+      }
+   }
+#endif  // __CUDACC__
+}
+
+//kernel 7 (Tensor Cores Utilization)
+template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
+__global__
+void
+MultiplicationKernel7( ResultMatrix resultMatrix, const Matrix1 matrixA, const Matrix2 matrixB )
+{
+#ifdef USE_TENSOR_CORES
+   #ifdef __CUDACC__
+   using namespace nvcuda;
+   using IndexType = typename ResultMatrix::IndexType;
 
    const IndexType WMMA_M = 16;
    const IndexType WMMA_N = 16;
    const IndexType WMMA_K = 16;
 
-   const IndexType M = matrixA.getRows();
-   const IndexType N = matrixB.getColumns();
-   const IndexType K = matrixB.getRows();
+   const auto& AValues = matrixA.getValues();
+   const auto& BValues = matrixB.getValues();
+   auto& CValues = resultMatrix.getValues();
 
-   // Calculate the indices for the warps
+   IndexType M = matrixA.getRows();
+   IndexType N = matrixB.getColumns();
+   IndexType K = matrixA.getColumns();
+
+   // Tile using a 2D grid
    IndexType warpM = ( blockIdx.x * blockDim.x + threadIdx.x ) / warpSize;
-   IndexType warpN = ( blockIdx.y * blockDim.y + threadIdx.y );
+   IndexType warpN = ( blockIdx.y * blockDim.y + threadIdx.y ) / warpSize;
 
    // Declare the fragments
    wmma::fragment< wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major > a_frag;
    wmma::fragment< wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major > b_frag;
-   wmma::fragment< wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float > acc_frag;
-   wmma::fragment< wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float > c_frag;
+   wmma::fragment< wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, half > acc_frag;
 
-   // Initialize the accumulator
    wmma::fill_fragment( acc_frag, 0.0f );
 
    // Compute each tile
-   for( IndexType tile_k = 0; tile_k < K; tile_k += WMMA_K ) {
+   for( IndexType i = 0; i < K; i += WMMA_K ) {
       IndexType aRow = warpM * WMMA_M;
+      IndexType aCol = i;
+      IndexType bRow = i;
       IndexType bCol = warpN * WMMA_N;
 
       if( aRow < M && bCol < N ) {
-         for( IndexType step_k = 0; step_k < WMMA_K; step_k++ ) {
-            if( ( tile_k + step_k ) < K ) {
-               const half* aPtr = reinterpret_cast< const half* >( matrixA.getValues().getData() + aRow * K + tile_k + step_k );
-               const half* bPtr =
-                  reinterpret_cast< const half* >( matrixB.getValues().getData() + ( tile_k + step_k ) * N + bCol );
-
-               // Load the matrix tiles into the fragments
-               wmma::load_matrix_sync( a_frag, aPtr, K );
-               wmma::load_matrix_sync( b_frag, bPtr, N );
-
-               // Perform the matrix multiplication
-               wmma::mma_sync( acc_frag, a_frag, b_frag, acc_frag );
+         // Load the inputs (directly using matrix value indexing)
+         for( IndexType j = 0; j < WMMA_M && aRow + j < M; ++j ) {
+            for( IndexType k = 0; k < WMMA_K && aCol + k < K; ++k ) {
+               reinterpret_cast< half* >( a_frag.x )[ j * WMMA_K + k ] = __float2half( AValues[ aRow + j + M * ( aCol + k ) ] );
             }
          }
-      }
-
-      // Load in current value of C and combine it with the result of multiplication
-      IndexType cRow = warpM * WMMA_M;
-      IndexType cCol = warpN * WMMA_N;
-
-      if( cRow < M && cCol < N ) {
-         float* cPtr = reinterpret_cast< float* >( resultMatrix.getValues().getData() + cRow * N + cCol );
-         wmma::load_matrix_sync( c_frag, cPtr, N, wmma::mem_col_major );
-
-         for( IndexType i = 0; i < c_frag.num_elements; ++i ) {
-            c_frag.x[ i ] = acc_frag.x[ i ] * matrixMultiplicator + c_frag.x[ i ];
+         for( IndexType j = 0; j < WMMA_K && bRow + j < K; ++j ) {
+            for( IndexType k = 0; k < WMMA_N && bCol + k < N; ++k ) {
+               reinterpret_cast< half* >( b_frag.x )[ j * WMMA_N + k ] = __float2half( BValues[ bRow + j + K * ( bCol + k ) ] );
+            }
          }
 
-         // Store the updated value back to the result matrix
-         wmma::store_matrix_sync( cPtr, c_frag, N, wmma::mem_col_major );
+         // Perform the matrix multiplication
+         wmma::mma_sync( acc_frag, a_frag, b_frag, acc_frag );
+      }
+   }
+
+   // Store results back to C matrix
+   IndexType cRow = warpM * WMMA_M;
+   IndexType cCol = warpN * WMMA_N;
+
+   if( cRow < M && cCol < N ) {
+      for( IndexType j = 0; j < WMMA_M && cRow + j < M; ++j ) {
+         for( IndexType k = 0; k < WMMA_N && cCol + k < N; ++k ) {
+            auto& cVal = CValues[ cRow + j + M * ( cCol + k ) ];
+            cVal += __half2float( acc_frag.x[ j * WMMA_N + k ] );
+         }
       }
    }
    #endif
 #endif
 }
-
 }  //namespace TNL::Benchmarks::DenseMatrices

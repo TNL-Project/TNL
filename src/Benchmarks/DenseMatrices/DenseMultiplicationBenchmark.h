@@ -61,7 +61,7 @@ struct DenseMultiplicationBenchmark
       TNL::Devices::Hip::configSetup( config );
 #endif
 
-      config.addEntry< IndexType >( "loops", "Number of iterations for every computation.", 20 );
+      config.addEntry< IndexType >( "loops", "Number of iterations for every computation.", 5 );
       config.addEntry< IndexType >( "verbose", "Verbose mode.", 1 );
       config.addEntry< TNL::String >( "fill-mode", "Method to fill matrices.", "linear" );
       config.addEntryEnum( "linear" );
@@ -104,16 +104,16 @@ struct DenseMultiplicationBenchmark
                 << std::endl;
       std::cout << std::endl;
 
-      const IndexType numMatrices = 100;  // Number of matrices for the cycle
-      IndexType matrix1Rows = 10;         // Number of rows in matrix1
-      IndexType matrix1Columns = 10;      // Number of columns in matrix1 && rows in matrix2
-      IndexType matrix2Columns = 10;      // Number of columns in matrix2
+      const IndexType numMatrices = 50;  // Number of matrices for the cycle
+      IndexType matrix1Rows = 0;         // Number of rows in matrix1
+      IndexType matrix1Columns = 0;      // Number of columns in matrix1 && rows in matrix2
+      IndexType matrix2Columns = 0;      // Number of columns in matrix2
 
       for( IndexType i = 0; i < numMatrices; ++i ) {
          // Modify the matrix sizes for each iteration
-         matrix1Rows += 10;
-         matrix1Columns += 15;
-         matrix2Columns += 10;
+         matrix1Rows += 100;
+         matrix1Columns += 1;
+         matrix2Columns += 100;
 
          if( device == "cuda" || device == "hip" || device == "all" ) {
 #if defined( __CUDACC__ ) || ( __HIP__ )
@@ -229,12 +229,13 @@ struct DenseMultiplicationBenchmark
                                                                                   benchmarkMatricesCutlass );
             benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkCutlass, CutlassResult );
       #endif  //HAVE_CUTLASS
+   #endif     // __CUDACC__
 
             if( LegacyOn ) {
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "device", device },
-                    { "algorithm", "TNL" },
+                    { "algorithm", "Kernel 1.1" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
                     { "matrix2 size", std::to_string( matrix1Columns ) + "x" + std::to_string( matrix2Columns ) } } ) );
 
@@ -247,15 +248,15 @@ struct DenseMultiplicationBenchmark
                };
                std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesTNL = {
                   cuBLASResultMatrix
-      #ifdef HAVE_MAGMA
+   #ifdef HAVE_MAGMA
                   ,
                   MagmaResultMatrix
-      #endif  // HAVE_MAGMA
+   #endif  // HAVE_MAGMA
 
-      #ifdef HAVE_CUTLASS
+   #ifdef HAVE_CUTLASS
                   ,
                   CutlassResultMatrix
-      #endif  // HAVE_CUTLASS
+   #endif  // HAVE_CUTLASS
                };
                DenseMatricesResult< RealType, DeviceType, IndexType > TNLResult( resultMatrix, benchmarkMatricesTNL );
                benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkOriginal, TNLResult );
@@ -263,7 +264,7 @@ struct DenseMultiplicationBenchmark
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "device", device },
-                    { "algorithm", "TNL2" },
+                    { "algorithm", "Kernel 1.2" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
                     { "matrix2 size", std::to_string( matrix1Columns ) + "x" + std::to_string( matrix2Columns ) } } ) );
 
@@ -276,15 +277,15 @@ struct DenseMultiplicationBenchmark
                };
                std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesTNL2 = {
                   cuBLASResultMatrix
-      #ifdef HAVE_MAGMA
+   #ifdef HAVE_MAGMA
                   ,
                   MagmaResultMatrix
-      #endif  // HAVE_MAGMA
+   #endif  // HAVE_MAGMA
 
-      #ifdef HAVE_CUTLASS
+   #ifdef HAVE_CUTLASS
                   ,
                   CutlassResultMatrix
-      #endif  // HAVE_CUTLASS
+   #endif  // HAVE_CUTLASS
                };
                DenseMatricesResult< RealType, DeviceType, IndexType > TNL2Result( resultMatrix, benchmarkMatricesTNL2 );
                benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkOptimized, TNL2Result );
@@ -292,7 +293,7 @@ struct DenseMultiplicationBenchmark
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "device", device },
-                    { "algorithm", "2D SMA" },
+                    { "algorithm", "Kernel 1.3" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
                     { "matrix2 size", std::to_string( matrix1Columns ) + "x" + std::to_string( matrix2Columns ) } } ) );
 
@@ -305,15 +306,15 @@ struct DenseMultiplicationBenchmark
                };
                std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesSMA = {
                   cuBLASResultMatrix
-      #ifdef HAVE_MAGMA
+   #ifdef HAVE_MAGMA
                   ,
                   MagmaResultMatrix
-      #endif  // HAVE_MAGMA
+   #endif  // HAVE_MAGMA
 
-      #ifdef HAVE_CUTLASS
+   #ifdef HAVE_CUTLASS
                   ,
                   CutlassResultMatrix
-      #endif  // HAVE_CUTLASS
+   #endif  // HAVE_CUTLASS
                };
                DenseMatricesResult< RealType, DeviceType, IndexType > SMAResult( resultMatrix, benchmarkMatricesSMA );
                benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkOptimized2, SMAResult );
@@ -321,7 +322,7 @@ struct DenseMultiplicationBenchmark
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "device", device },
-                    { "algorithm", "Warptiling" },
+                    { "algorithm", "Kernel 1.4" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
                     { "matrix2 size", std::to_string( matrix1Columns ) + "x" + std::to_string( matrix2Columns ) } } ) );
 
@@ -334,15 +335,15 @@ struct DenseMultiplicationBenchmark
                };
                std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesWarptiling = {
                   cuBLASResultMatrix
-      #ifdef HAVE_MAGMA
+   #ifdef HAVE_MAGMA
                   ,
                   MagmaResultMatrix
-      #endif  // HAVE_MAGMA
+   #endif  // HAVE_MAGMA
 
-      #ifdef HAVE_CUTLASS
+   #ifdef HAVE_CUTLASS
                   ,
                   CutlassResultMatrix
-      #endif  // HAVE_CUTLASS
+   #endif  // HAVE_CUTLASS
                };
                DenseMatricesResult< RealType, DeviceType, IndexType > WarptilingResult( resultMatrix,
                                                                                         benchmarkMatricesWarptiling );
@@ -351,7 +352,7 @@ struct DenseMultiplicationBenchmark
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "device", device },
-                    { "algorithm", "Warptiling2" },
+                    { "algorithm", "Kernel 1.5" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
                     { "matrix2 size", std::to_string( matrix1Columns ) + "x" + std::to_string( matrix2Columns ) } } ) );
 
@@ -364,15 +365,15 @@ struct DenseMultiplicationBenchmark
                };
                std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesWarptiling2 = {
                   cuBLASResultMatrix
-      #ifdef HAVE_MAGMA
+   #ifdef HAVE_MAGMA
                   ,
                   MagmaResultMatrix
-      #endif  // HAVE_MAGMA
+   #endif  // HAVE_MAGMA
 
-      #ifdef HAVE_CUTLASS
+   #ifdef HAVE_CUTLASS
                   ,
                   CutlassResultMatrix
-      #endif  // HAVE_CUTLASS
+   #endif  // HAVE_CUTLASS
                };
                DenseMatricesResult< RealType, DeviceType, IndexType > Warptiling2Result( resultMatrix,
                                                                                          benchmarkMatricesWarptiling2 );
@@ -381,7 +382,7 @@ struct DenseMultiplicationBenchmark
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "device", device },
-                    { "algorithm", "Fermi" },
+                    { "algorithm", "Kernel 1.6" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
                     { "matrix2 size", std::to_string( matrix1Columns ) + "x" + std::to_string( matrix2Columns ) } } ) );
 
@@ -393,20 +394,20 @@ struct DenseMultiplicationBenchmark
                };
                std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesFermi = {
                   cuBLASResultMatrix
-      #ifdef HAVE_MAGMA
+   #ifdef HAVE_MAGMA
                   ,
                   MagmaResultMatrix
-      #endif  // HAVE_MAGMA
+   #endif  // HAVE_MAGMA
 
-      #ifdef HAVE_CUTLASS
+   #ifdef HAVE_CUTLASS
                   ,
                   CutlassResultMatrix
-      #endif  // HAVE_CUTLASS
+   #endif  // HAVE_CUTLASS
                };
                DenseMatricesResult< RealType, DeviceType, IndexType > FermiResult( resultMatrix, benchmarkMatricesFermi );
                benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkFermi, FermiResult );
 
-      #ifdef USE_TENSOR_CORES
+   #ifdef USE_TENSOR_CORES
 
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
@@ -423,23 +424,23 @@ struct DenseMultiplicationBenchmark
                };
                std::vector< TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType > > benchmarkMatricesTensorCores = {
                   cuBLASResultMatrix
-         #ifdef HAVE_MAGMA
+      #ifdef HAVE_MAGMA
                   ,
                   MagmaResultMatrix
-         #endif  // HAVE_MAGMA
+      #endif  // HAVE_MAGMA
 
-         #ifdef HAVE_CUTLASS
+      #ifdef HAVE_CUTLASS
                   ,
                   CutlassResultMatrix
-         #endif  // HAVE_CUTLASS
+      #endif  // HAVE_CUTLASS
                };
 
                DenseMatricesResult< RealType, DeviceType, IndexType > TensorCoresResult( resultMatrix,
                                                                                          benchmarkMatricesTensorCores );
 
                benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkTensorCores, TensorCoresResult );
-      #endif  // USE_TENSOR_CORES
-   #endif
+   #endif  // USE_TENSOR_CORES
+
             }  //LegacyOn
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(

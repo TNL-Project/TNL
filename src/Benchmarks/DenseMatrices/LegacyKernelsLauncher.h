@@ -104,8 +104,8 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
                                      gridIdx_y );
       }
    }
-   cudaStreamSynchronize( launch_config.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( launch_config.stream );
+
 #endif
 }
 
@@ -161,8 +161,8 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
                                      gridIdx_y );
       }
    }
-   cudaStreamSynchronize( launch_config.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( launch_config.stream );
+
 #endif
 }
 
@@ -218,8 +218,8 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
                                      gridIdx_y );
       }
    }
-   cudaStreamSynchronize( launch_config.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( launch_config.stream );
+
 #endif
 }
 
@@ -270,8 +270,8 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
             1.0 );
       }
    }
-   cudaStreamSynchronize( launch_config.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( launch_config.stream );
+
 #endif
 }
 
@@ -322,8 +322,8 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
             1.0 );
       }
    }
-   cudaStreamSynchronize( launch_config.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( launch_config.stream );
+
 #endif
 }
 
@@ -359,8 +359,8 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
       matrix2View,
       1.0 );
 
-   cudaStreamSynchronize( fermiLaunchConfig.stream );
-   TNL_CHECK_CUDA_DEVICE;
+   Backend::streamSynchronize( fermiLaunchConfig.stream );
+
 #endif
 }
 
@@ -375,45 +375,33 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
    #ifdef USE_TENSOR_CORES
 
    Backend::LaunchConfiguration launch_config_tensor;
-   const IndexType rowTilesTensor = ( matrix1Rows + 15 ) / 16;
-   const IndexType colTilesTensor = ( matrix2Columns + 15 ) / 16;
-   benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
-      { { "IndexType type", TNL::getType< IndexType >() },
-        { "device", device },
-        { "algorithm", "TensorCores" },
-        { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
-        { "matrix2 size", std::to_string( matrix1Columns ) + "x" + std::to_string( matrix2Columns ) } } ) );
 
-   for( IndexType gridIdx_y = 0; gridIdx_y < rowTilesTensor; gridIdx_y++ ) {
-      for( IndexType gridIdx_x = 0; gridIdx_x < colTilesTensor; gridIdx_x++ ) {
-         IndexType currentBlockRows = 16;
-         if( ( gridIdx_y + 1 ) * 16 > matrix1Rows )  // Adjust rows for the last grid
-            currentBlockRows = matrix1Rows % 16;
+   IndexType matrix1Rows = matrix1.getRows();
+   IndexType matrix2Columns = matrix2.getColumns();
+   IndexType matrix1Columns = matrix1.getColumns();
 
-         IndexType currentBlockCols = 16;
-         if( ( gridIdx_x + 1 ) * 16 > matrix2Columns )  // Adjust columns for the last grid
-            currentBlockCols = matrix2Columns % 16;
+   // Configure the block and grid dimensions for the multiplication kernel
+   launch_config_tensor.blockSize.x = 128;  // Total threads in x direction must be a multiple of warp size (32)
+   launch_config_tensor.blockSize.y = 4;    // Threads in y direction
 
-         launch_config_tensor.gridSize.x = currentBlockCols;
-         launch_config_tensor.gridSize.y = currentBlockRows;
+   launch_config_tensor.gridSize.x = ( matrix2Columns + 15 ) / 16;
+   launch_config_tensor.gridSize.y = ( matrix1Rows + 15 ) / 16;
 
-         auto resultMatrixView = resultMatrix.getView();
-         auto matrix1View = matrix1.getConstView();
-         auto matrix2View = matrix2.getConstView();
+   auto resultMatrixView = resultMatrix.getView();
+   auto matrix1View = matrix1.getConstView();
+   auto matrix2View = matrix2.getConstView();
 
-         Backend::launchKernelAsync(
-            MultiplicationKernel7< decltype( resultMatrixView ), decltype( matrix1View ), decltype( matrix2View ) >,
-            launch_config_tensor,
-            resultMatrixView,
-            matrix1View,
-            matrix2View,
-            1.0 );
-      }
-   }
-   cudaStreamSynchronize( launch_config_tensor.stream );
-   TNL_CHECK_CUDA_DEVICE;
-   #endif
-#endif
+   // Launch the main matrix multiplication kernel
+   Backend::launchKernelAsync(
+      MultiplicationKernel7< decltype( resultMatrixView ), decltype( matrix1View ), decltype( matrix2View ) >,
+      launch_config_tensor,
+      resultMatrixView,
+      matrix1View,
+      matrix2View );
+   Backend::streamSynchronize( launch_config_tensor.stream );
+
+   #endif  // USE_TENSOR_CORES
+#endif     // __CUDACC__ || __HIP__
 }
 
 template< typename RealType, typename DeviceType, typename IndexType >

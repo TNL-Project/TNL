@@ -96,7 +96,7 @@ def create_html_table(data):
 
     # Define primary and secondary algorithms
     primary_algorithms = ['MAGMA']
-    secondary_algorithms = ['TNL', 'Combined', 'Optimized']
+    secondary_algorithms = ['Kernel 2.1', 'Kernel 2.2', 'Kernel 2.3']
     all_algorithms = primary_algorithms + secondary_algorithms
 
     # Header row 1: Algorithm names
