@@ -58,10 +58,8 @@ static std::tuple< T, TNL::Containers::Vector< T, Device >, int >
 powerIteration( const MatrixType& matrix,
                 const T& epsilon,
                 TNL::Containers::Vector< T, Device >& initialVec,
-                const uint& maxIterations = 100000 )  //Vytvořit přetížení fce pro initialVec
+                const uint& maxIterations = 100000 )
 {
-   // upravit vyjímky na std excpetion, invalid argument
-   //přidat vyjímku pro nulovou matici
    if( matrix.getRows() == matrix.getColumns() )
       std::invalid_argument( "Power iteration is possible only for square matrices" );
    if( matrix.getRows() == 0 )
@@ -71,18 +69,23 @@ powerIteration( const MatrixType& matrix,
    using IndexType = typename MatrixType::IndexType;
    IndexType vecSize = matrix.getColumns();
    TNL::Containers::Vector< T, Device > eigenVecOut( vecSize );
+   eigenVecOut.setValue( 0 );
    T norm = 0;
    T normOld = 0;
    int iterations = 0;
    TNL::Containers::Vector< T, Device > eigenVecOld( vecSize );
    eigenVecOld.setValue( 0 );
    //std::cout << "start" << "\n";
+   norm = TNL::l2Norm( initialVec );
+   if(norm == 0)
+      std::invalid_argument( "The initial vector must be nonzero" );
+   if( norm != 1 )
+      initialVec = initialVec / norm;
    while( true ) {
-      std::cout << initialVec << "\n";
       matrix.vectorProduct( initialVec, eigenVecOut );
-      //auto [ v, i ] = TNL::argMax( abs( eigenVecOut ) );
-      //norm = eigenVecOut.getElement( i );
       norm = TNL::l2Norm( eigenVecOut );
+      if(isnan(norm))
+         break;
       initialVec = std::move( eigenVecOut / norm );
       iterations++;
       if( iterations == maxIterations )
@@ -92,15 +95,11 @@ powerIteration( const MatrixType& matrix,
             return std::make_tuple( norm, initialVec, iterations );
          if( TNL::all( TNL::less( TNL::abs( initialVec + eigenVecOld ), epsilon ) ) )
             return std::make_tuple( -norm, initialVec, iterations );
-         if( TNL::abs( normOld - norm ) < epsilon * epsilon )
-            break;
       }
       eigenVecOld = initialVec;
       normOld = norm;
    }
    iterations = -1;
-   //matrix.vectorProduct(initialVec, eigenVecOld);
-   //norm = (initialVec, eigenVecOld);
    return std::make_tuple( norm, initialVec, iterations );
 }
 
