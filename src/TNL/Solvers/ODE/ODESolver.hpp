@@ -13,7 +13,6 @@
 #ifndef DOXYGEN_ONLY
 namespace TNL::Solvers::ODE {
 
-////
 // Specialization for static vectors
 
 template< typename Method, typename Value, typename SolverMonitor >
@@ -81,7 +80,6 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
 
    this->init( u );
 
-   /////
    // Set necessary parameters
    RealType& time = this->time;
    RealType currentTau = min( this->getTau(), this->getMaxTau() );
@@ -92,21 +90,18 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
    this->resetIterations();
    this->setResidue( this->getConvergenceResidue() + 1.0 );
 
-   /////
    // Start the main loop
    while( this->checkNextIteration() ) {
       this->iterate( u, time, currentTau, rhsFunction, params... );
       if( ! this->nextIteration() )
          return false;
 
-      /////
       // Tune the new time step.
       if( time + currentTau > this->getStopTime() )
          currentTau = this->getStopTime() - time;  // we don't want to keep such tau
       else
          this->tau = currentTau;
 
-      /////
       // Check stop conditions.
       if( time >= this->getStopTime()
           || ( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() ) )
@@ -156,14 +151,12 @@ ODESolver< Method, Value, SolverMonitor, true >::iterate( VectorType& u,
             / currentTau );
          time += currentTau;
 
-         /////
          // When time is close to stopTime the new residue may be inaccurate significantly.
          if( abs( time - this->stopTime ) < 1.0e-7 )
             this->setResidue( lastResidue );
          compute = false;
       }
 
-      /////
       // Compute the new time step.
       RealType newTau = currentTau;
       if( this->adaptivity != 0.0 && error != 0.0 )
@@ -178,7 +171,6 @@ void
 ODESolver< Method, Value, SolverMonitor, true >::reset()
 {}
 
-////
 // Specialization for dynamic vectors
 template< typename Method, typename Vector, typename SolverMonitor >
 ODESolver< Method, Vector, SolverMonitor, false >::ODESolver()
@@ -234,7 +226,6 @@ ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunc
 
    this->init( u );
 
-   /////
    // Set necessary parameters
    RealType& time = this->time;
    RealType currentTau = min( this->getTau(), this->getMaxTau() );
@@ -245,21 +236,18 @@ ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunc
    this->resetIterations();
    this->setResidue( this->getConvergenceResidue() + 1.0 );
 
-   /////
    // Start the main loop
    while( this->checkNextIteration() ) {
       this->iterate( u, time, currentTau, rhsFunction, params... );
       if( ! this->nextIteration() )
          return false;
 
-      /////
       // Tune the new time step.
       if( time + currentTau > this->getStopTime() )
          currentTau = this->getStopTime() - time;  // we don't want to keep such tau
       else
          this->tau = currentTau;
 
-      /////
       // Check stop conditions.
       if( time >= this->getStopTime()
           || ( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() ) )
@@ -296,7 +284,6 @@ ODESolver< Method, Vector, SolverMonitor, false >::iterate( VectorType& u,
    using VectorView = typename Vector::ViewType;
    std::array< VectorView, Stages > k_views;
 
-   /////
    // Setup the supporting vectors
    // TODO: the views are not necessary probably
    for( int i = 0; i < Stages; i++ ) {
@@ -321,14 +308,12 @@ ODESolver< Method, Vector, SolverMonitor, false >::iterate( VectorType& u,
             / ( currentTau * (RealType) u.getSize() ) );
          time += currentTau;
 
-         /////
          // When time is close to stopTime the new residue may be inaccurate significantly.
          if( abs( time - this->stopTime ) < 1.0e-7 )
             this->setResidue( lastResidue );
          compute = false;
       }
 
-      /////
       // Compute the new time step.
       RealType newTau = currentTau;
       if( this->adaptivity != 0.0 && error != 0.0 )

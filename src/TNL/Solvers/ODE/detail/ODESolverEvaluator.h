@@ -118,7 +118,6 @@ struct StaticODESolverEvaluator< Method,
    {}
 };
 
-/////
 // Dynamic ODE solver evaluator
 template< typename Method,
           typename Stage = std::integral_constant< std::size_t, 0 >,
