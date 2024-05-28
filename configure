@@ -133,9 +133,13 @@ fi
 
 if [[ "$CUDA_COMPILER" == "nvcc" ]]; then
     export CUDACXX=nvcc
-    # check if the system has a preferred CUDA host compiler via a symlink
+    # check if the system has a preferred CUDA host compiler
     if command -v nvcc > /dev/null; then
-        CUDAHOSTCXX="$(dirname "$(command -v nvcc)")"/g++
+        if [[ -n "$NVCC_CCBIN" ]]; then
+            CUDAHOSTCXX="$NVCC_CCBIN"
+        else
+            CUDAHOSTCXX="$(dirname "$(command -v nvcc)")"/g++
+        fi
         if [[ -e "$CUDAHOSTCXX" ]]; then
             export CUDAHOSTCXX
         else
