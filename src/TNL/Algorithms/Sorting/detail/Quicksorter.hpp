@@ -14,6 +14,11 @@
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
 
+// TODO: This is to disable Doxygen errors
+/**
+ * \cond
+ */
+
 namespace TNL::Algorithms::Sorting {
 
 template< typename Value >
@@ -385,3 +390,7 @@ Quicksorter< Value, Devices::Cuda >::processNewTasks()
 }
 
 }  // namespace TNL::Algorithms::Sorting
+
+/**
+ * \endcond
+ */
