@@ -6,6 +6,7 @@
 #include <TNL/TypeTraits.h>
 #include <TNL/Backend/Macros.h>
 #include <TNL/Containers/LinearCombination.h>
+#include <TNL/Algorithms/staticFor.h>
 
 namespace TNL::Solvers::ODE::detail {
 
@@ -66,14 +67,12 @@ struct ErrorCoefficientsProxy
    }
 };
 
-template< typename Method,
-          typename Stage = std::integral_constant< std::size_t, 0 >,
-          typename Stages = std::integral_constant< std::size_t, Method::getStages() > >
+template< typename Method >
 struct StaticODESolverEvaluator
 {
    template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
    static void __cuda_callable__
-   computeKVectors( std::array< VectorView, Stages::value >& k,
+   computeKVectors( std::array< VectorView, Method::getStages() >& k,
                     const Value& time,
                     const Value& currentTau,
                     const ConstVectorView& u,
@@ -82,51 +81,25 @@ struct StaticODESolverEvaluator
                     Params&&... params )
    {
       static_assert( IsStaticArrayType< VectorView >::value, "VectorView must be a static array type" );
-      if constexpr( Stage::value == 0 ) {  // k[ 0 ] = f( t, u )
-         rhsFunction(
-            time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, u, k[ Stage::value ], params... );
-         StaticODESolverEvaluator< Method, std::integral_constant< std::size_t, Stage::value + 1 > >::computeKVectors(
-            k, time, currentTau, u, aux, rhsFunction, params... );
-      }
-      else {
-         using Coefficients = CoefficientsProxy< Method, Stage::value >;
-         aux = u + currentTau * Containers::linearCombination< Coefficients >( k );
-         rhsFunction(
-            time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, aux, k[ Stage::value ], params... );
-         StaticODESolverEvaluator< Method, std::integral_constant< std::size_t, Stage::value + 1 > >::computeKVectors(
-            k, time, currentTau, u, aux, rhsFunction, params... );
-      }
+
+      rhsFunction( time + Method::getTimeCoefficient( 0 ) * currentTau, currentTau, u, k[ 0 ], params... );
+      Algorithms::staticFor< int, 1, Method::getStages() >(
+         [ & ]( auto stage )
+         {
+            using Coefficients = CoefficientsProxy< Method, stage >;
+            aux = u + currentTau * Containers::linearCombination< Coefficients >( k );
+            rhsFunction( time + Method::getTimeCoefficient( stage ) * currentTau, currentTau, aux, k[ stage ], params... );
+         } );
    }
 };
 
-template< typename Method >
-struct StaticODESolverEvaluator< Method,
-                                 std::integral_constant< std::size_t, Method::getStages() >,
-                                 std::integral_constant< std::size_t, Method::getStages() > >
-{
-   static constexpr std::size_t Stages = Method::getStages();
-
-   template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
-   static void __cuda_callable__
-   computeKVectors( std::array< VectorView, Stages >& k_vectors,
-                    const Value& time,
-                    const Value& currentTau,
-                    const ConstVectorView& u,
-                    const VectorView& aux,
-                    RHSFunction&& rhsFunction,
-                    Params&&... params )
-   {}
-};
-
 // Dynamic ODE solver evaluator
-template< typename Method,
-          typename Stage = std::integral_constant< std::size_t, 0 >,
-          typename Stages = std::integral_constant< std::size_t, Method::getStages() > >
+template< typename Method >
 struct ODESolverEvaluator
 {
    template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
    static void
-   computeKVectors( std::array< VectorView, Stages::value >& k,
+   computeKVectors( std::array< VectorView, Method::getStages() >& k,
                     const Value& time,
                     const Value& currentTau,
                     const ConstVectorView& u,
@@ -135,40 +108,16 @@ struct ODESolverEvaluator
                     Params&&... params )
    {
       static_assert( ! IsStaticArrayType< VectorView >::value, "VectorView must NOT be a static array type" );
-      if constexpr( Stage::value == 0 ) {  // k[ 0 ] = f( t, u )
-         rhsFunction(
-            time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, u, k[ Stage::value ], params... );
-         ODESolverEvaluator< Method, std::integral_constant< std::size_t, Stage::value + 1 > >::computeKVectors(
-            k, time, currentTau, u, aux, rhsFunction, params... );
-      }
-      else {
-         using Coefficients = CoefficientsProxy< Method, Stage::value >;
-         aux = u + currentTau * Containers::linearCombination< Coefficients >( k );
-         rhsFunction(
-            time + Method::getTimeCoefficient( Stage::value ) * currentTau, currentTau, aux, k[ Stage::value ], params... );
-         ODESolverEvaluator< Method, std::integral_constant< std::size_t, Stage::value + 1 > >::computeKVectors(
-            k, time, currentTau, u, aux, rhsFunction, params... );
-      }
+
+      rhsFunction( time + Method::getTimeCoefficient( 0 ) * currentTau, currentTau, u, k[ 0 ], params... );
+      Algorithms::staticFor< int, 1, Method::getStages() >(
+         [ & ]( auto stage )
+         {
+            using Coefficients = CoefficientsProxy< Method, stage >;
+            aux = u + currentTau * Containers::linearCombination< Coefficients >( k );
+            rhsFunction( time + Method::getTimeCoefficient( stage ) * currentTau, currentTau, aux, k[ stage ], params... );
+         } );
    }
-};
-
-template< typename Method >
-struct ODESolverEvaluator< Method,
-                           std::integral_constant< std::size_t, Method::getStages() >,
-                           std::integral_constant< std::size_t, Method::getStages() > >
-{
-   static constexpr std::size_t Stages = Method::getStages();
-
-   template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
-   static void
-   computeKVectors( std::array< VectorView, Stages >& k_vectors,
-                    const Value& time,
-                    const Value& currentTau,
-                    const ConstVectorView& u,
-                    const VectorView& aux,
-                    RHSFunction&& rhsFunction,
-                    Params&&... params )
-   {}
 };
 
 }  // namespace TNL::Solvers::ODE::detail
