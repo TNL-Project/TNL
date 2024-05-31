@@ -284,8 +284,7 @@ ODESolver< Method, Vector, SolverMonitor, false >::iterate( VectorType& u,
    using VectorView = typename Vector::ViewType;
    std::array< VectorView, Stages > k_views;
 
-   // Setup the supporting vectors
-   // TODO: the views are not necessary probably
+   // Setup the supporting vectors views which will be passed to rhsFunction
    for( int i = 0; i < Stages; i++ ) {
       k_views[ i ].bind( k_vectors[ i ] );
    }
