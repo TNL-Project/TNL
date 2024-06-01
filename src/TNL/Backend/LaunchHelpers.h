@@ -64,19 +64,23 @@ getMaxBlockZSize()
 
 /*
  * The warpSize variable is of type int and contains the warp size (in threads)
- * for the target device. Note that all current Nvidia devices return 32 for
- * this variable, and all current AMD devices return 64. Device code should use
- * the warpSize built-in to develop portable wave-aware code.
+ * for the target device. This should be used only from device code in order to
+ * develop portable wave-aware code.
  *
- * https://rocmdocs.amd.com/en/latest/Programming_Guides/HIP-GUIDE.html
+ * Note that NVIDIA devices return 32; AMD devices return 64 for gfx9 and 32 for
+ * gfx10 and above.
+ *
+ * https://rocm.docs.amd.com/projects/HIP/en/latest/reference/kernel_language.html#warpsize
  */
 inline constexpr int
 getWarpSize()
 {
 #if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
    return 32;
-#else
+#elif defined( __GFX8__ ) || defined( __GFX9__ )
    return 64;
+#else
+   return 32;
 #endif
 }
 
