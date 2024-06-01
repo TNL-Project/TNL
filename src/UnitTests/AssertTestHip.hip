@@ -1,5 +1,7 @@
 #ifdef NDEBUG
    #undef NDEBUG
+#endif
+#ifndef HIP_ENABLE_PRINTF
    #define HIP_ENABLE_PRINTF
 #endif
 
