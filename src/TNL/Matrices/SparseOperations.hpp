@@ -370,6 +370,7 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
          Index localIdx( rowLocalIndexes_view[ rowIdx ] );
          if( value != 0.0 && columnIndex != paddingIndex< RHSIndexType > ) {
             Index thisGlobalIdx = segments_view.getGlobalIndex( rowIdx, localIdx++ );
+            TNL_ASSERT_GE( thisGlobalIdx, 0, "Global index must be non-negative." );
             columns_view[ thisGlobalIdx ] = columnIndex;
             if( ! Matrix1::isBinary() )
                values_view[ thisGlobalIdx ] = value;
@@ -761,6 +762,47 @@ reorderSparseMatrix( const Matrix1& matrix1, Matrix2& matrix2, const Permutation
       for( IndexType j = 0; j < rowLength; j++ )
          row2.setElement( j, columns[ indices[ j ] ], values[ indices[ j ] ] );
    }
+}
+
+template< typename Matrix >
+void
+compressSparseMatrix( Matrix& A )
+{
+   using Real = typename Matrix::RealType;
+   using Device = typename Matrix::DeviceType;
+   using Index = typename Matrix::IndexType;
+   using RowView = typename Matrix::RowView;
+
+   if( all( notEqualTo( A.getValues(), Real{ 0 } ) ) )
+      return;
+
+   Containers::Vector< Index, Device, Index > row_capacities( A.getRows() );
+   auto row_capacities_view = row_capacities.getView();
+   A.reduceAllRows(
+      [ = ] __cuda_callable__( Index rowIdx, Index columnIdx, const Real& value ) -> Index
+      {
+         return ( columnIdx != paddingIndex< Index > && ( value != Real{ 0 } ) );
+      },
+      std::plus<>{},
+      [ = ] __cuda_callable__( Index rowIdx, Index value ) mutable
+      {
+         row_capacities_view[ rowIdx ] = value;
+      },
+      0 );
+   Matrix aux_matrix( A.getRows(), A.getColumns() );
+   aux_matrix.setRowCapacities( row_capacities );
+
+   auto aux_matrix_view = aux_matrix.getView();
+   A.forAllRows(
+      [ = ] __cuda_callable__( RowView & row ) mutable
+      {
+         auto aux_matrix_row = aux_matrix_view.getRow( row.getRowIndex() );
+         Index localIdx = 0;
+         for( auto element : row )
+            if( element.value() != 0.0 )
+               aux_matrix_row.setElement( localIdx++, element.columnIndex(), element.value() );
+      } );
+   A = aux_matrix;
 }
 
 template< typename Array1, typename Array2, typename PermutationArray >

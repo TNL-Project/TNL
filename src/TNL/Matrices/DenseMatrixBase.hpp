@@ -290,9 +290,9 @@ template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begin,
                                                                   IndexType end,
-                                                                  Fetch& fetch,
+                                                                  Fetch&& fetch,
                                                                   const Reduce& reduce,
-                                                                  Keep& keep,
+                                                                  Keep&& keep,
                                                                   const FetchValue& identity ) const
 {
    const auto values = this->getValues().getConstView();
@@ -307,9 +307,9 @@ DenseMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begi
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-DenseMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch& fetch,
+DenseMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch&& fetch,
                                                                      const Reduce& reduce,
-                                                                     Keep& keep,
+                                                                     Keep&& keep,
                                                                      const FetchReal& identity ) const
 {
    this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );

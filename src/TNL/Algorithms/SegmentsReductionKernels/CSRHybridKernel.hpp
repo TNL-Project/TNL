@@ -108,8 +108,6 @@ reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
       return;
 
    __shared__ ReturnType shared[ BlockSize / Backend::getWarpSize() ];
-   if( threadIdx.x < BlockSize / Backend::getWarpSize() )
-      shared[ threadIdx.x ] = identity;
 
    const int laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
    const int inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %

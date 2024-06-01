@@ -3,6 +3,7 @@ set(COMMON_TESTS
     DenseMatrixCopyTest
     TridiagonalMatrixTest
     MultidiagonalMatrixTest
+    SparseMatrixOperationsTest_CSR
     SparseMatrixTest_CSR
     SparseMatrixTest_Ellpack
     SparseMatrixTest_SlicedEllpack

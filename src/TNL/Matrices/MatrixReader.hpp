@@ -54,8 +54,9 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtx( std::istream& file, Matrix&
    IndexType rows = 0;
    IndexType columns = 0;
    bool symmetricSourceMatrix = false;
+   bool sourceMatrixPattern = false;
 
-   readMtxHeader( file, rows, columns, symmetricSourceMatrix, verbose );
+   readMtxHeader( file, rows, columns, symmetricSourceMatrix, sourceMatrixPattern, verbose );
 
    if( Matrix::isSymmetric() && ! symmetricSourceMatrix )
       throw std::runtime_error( "Matrix is not symmetric, but flag for symmetric matrix is given. Aborting." );
@@ -64,7 +65,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtx( std::istream& file, Matrix&
       std::cout << "Matrix dimensions are " << rows << " x " << columns << std::endl;
    matrix.setDimensions( rows, columns );
 
-   readMatrixElementsFromMtxFile( file, matrix, symmetricSourceMatrix, verbose );
+   readMatrixElementsFromMtxFile( file, matrix, symmetricSourceMatrix, sourceMatrixPattern, verbose );
 }
 
 template< typename Matrix >
@@ -72,9 +73,10 @@ void
 MatrixReader< Matrix, TNL::Devices::Host >::verifyMtxFile( std::istream& file, const Matrix& matrix, bool verbose )
 {
    bool symmetricSourceMatrix = false;
+   bool sourceMatrixPattern = false;
    IndexType rows = 0;
    IndexType columns = 0;
-   readMtxHeader( file, rows, columns, symmetricSourceMatrix, false );
+   readMtxHeader( file, rows, columns, symmetricSourceMatrix, sourceMatrixPattern, false );
 
    file.clear();
    file.seekg( 0, std::ios::beg );
@@ -93,7 +95,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::verifyMtxFile( std::istream& file, c
       IndexType row = 1;
       IndexType column = 1;
       RealType value;
-      parseMtxLineWithElement( line, row, column, value );
+      parseMtxLineWithElement( line, sourceMatrixPattern, row, column, value );
       if( value != matrix.getElement( row - 1, column - 1 )
           || ( symmetricSourceMatrix && value != matrix.getElement( column - 1, row - 1 ) ) )
       {
@@ -154,7 +156,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::findLineByElement( std::istream& fil
 
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::checkMtxHeader( const String& header, bool& symmetric )
+MatrixReader< Matrix, TNL::Devices::Host >::checkMtxHeader( const String& header, bool& symmetric, bool& matrixPattern )
 {
    std::vector< String > parsedLine = header.split( ' ', String::SplitSkip::SkipEmpty );
    if( (int) parsedLine.size() < 5 || parsedLine[ 0 ] != "%%MatrixMarket" )
@@ -165,9 +167,13 @@ MatrixReader< Matrix, TNL::Devices::Host >::checkMtxHeader( const String& header
    if( parsedLine[ 2 ] != "coordinates" && parsedLine[ 2 ] != "coordinate" )
       throw std::runtime_error( std::string( "Error: Only 'coordinates' format is supported now, not " )
                                 + parsedLine[ 2 ].getString() );
-   if( parsedLine[ 3 ] != "real" && parsedLine[ 3 ] != "integer" )
+   if( parsedLine[ 3 ] != "real" && parsedLine[ 3 ] != "integer" && parsedLine[ 3 ] != "pattern" )
       throw std::runtime_error( std::string( "Only 'real' and 'integer' matrices are supported, not " )
                                 + parsedLine[ 3 ].getString() );
+   if( parsedLine[ 3 ] == "pattern" )
+      matrixPattern = true;
+   else
+      matrixPattern = false;
    if( parsedLine[ 4 ] != "general" ) {
       if( parsedLine[ 4 ] == "symmetric" )
          symmetric = true;
@@ -181,7 +187,8 @@ void
 MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file,
                                                            IndexType& rows,
                                                            IndexType& columns,
-                                                           bool& symmetric,
+                                                           bool& symmetricMatrix,
+                                                           bool& matrixPattern,
                                                            bool verbose )
 {
    file.clear();
@@ -192,9 +199,9 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file,
    while( true ) {
       std::getline( file, line );
       if( ! headerParsed ) {
-         checkMtxHeader( line, symmetric );
+         checkMtxHeader( line, symmetricMatrix, matrixPattern );
          headerParsed = true;
-         if( verbose && symmetric )
+         if( verbose && symmetricMatrix )
             std::cout << "The matrix is SYMMETRIC ... ";
          continue;
       }
@@ -220,6 +227,7 @@ void
 MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::istream& file,
                                                                            Matrix& matrix,
                                                                            bool symmetricMatrix,
+                                                                           bool matrixPattern,
                                                                            bool verbose )
 {
    file.clear();
@@ -246,7 +254,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::
       IndexType row = 1;
       IndexType column = 1;
       RealType value;
-      parseMtxLineWithElement( line, row, column, value );
+      parseMtxLineWithElement( line, matrixPattern, row, column, value );
 
       if( column > matrix.getColumns() || row > matrix.getRows() ) {
          std::stringstream str;
@@ -294,19 +302,24 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::
 template< typename Matrix >
 void
 MatrixReader< Matrix, TNL::Devices::Host >::parseMtxLineWithElement( const String& line,
+                                                                     bool matrixPattern,
                                                                      IndexType& row,
                                                                      IndexType& column,
                                                                      RealType& value )
 {
    std::vector< String > parsedLine = line.split( ' ', String::SplitSkip::SkipEmpty );
-   if( (int) parsedLine.size() != 3 ) {
+   if( (int) parsedLine.size() != 3 - (int) matrixPattern ) {
       std::stringstream str;
       str << "Wrong number of parameters in the matrix row at line:" << line;
       throw std::runtime_error( str.str() );
    }
    row = atoi( parsedLine[ 0 ].getString() );
    column = atoi( parsedLine[ 1 ].getString() );
-   value = (RealType) atof( parsedLine[ 2 ].getString() );
+   if( matrixPattern )
+      // If the MTX file stores only the matrix pattern, there is no value in the file.
+      value = RealType{ 1 };
+   else
+      value = (RealType) atof( parsedLine[ 2 ].getString() );
 }
 /// \endcond
 

@@ -655,7 +655,7 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceRows( IndexType begin, IndexType end, Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& zero ) const;
+   reduceRows( IndexType begin, IndexType end, Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& zero ) const;
 
    /**
     * \brief Method for performing general reduction on all matrix rows for constant instances.
@@ -676,7 +676,7 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
    void
-   reduceAllRows( Fetch& fetch, const Reduce& reduce, Keep& keep, const FetchReal& zero ) const;
+   reduceAllRows( Fetch&& fetch, const Reduce& reduce, Keep&& keep, const FetchReal& zero ) const;
 
    /**
     * \brief Method for parallel iteration over matrix elements of given rows for constant instances.

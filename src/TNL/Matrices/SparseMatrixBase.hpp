@@ -98,14 +98,9 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 Index
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getNonzeroElementsCount() const
 {
-   const auto columns_view = this->columnIndexes.getConstView();
-   if constexpr( ! Base::isSymmetric() ) {
-      auto fetch = [ = ] __cuda_callable__( IndexType i ) -> IndexType
-      {
-         return ( columns_view[ i ] != paddingIndex< IndexType > );
-      };
-      return Algorithms::reduce< DeviceType >( (IndexType) 0, this->columnIndexes.getSize(), fetch, std::plus<>{}, 0 );
-   }
+   if constexpr( ! Base::isSymmetric() )
+      return sum( notEqualTo( this->getColumnIndexes(), paddingIndex< Index > )
+                  && notEqualTo( this->getValues(), RealType{ 0 } ) );
    else {
       const auto rows = this->getRows();
       const auto columns = this->getColumns();
@@ -300,6 +295,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       auto fetch = [ valuesView, columnIndexesView, inVectorView, outVectorView, matrixMultiplicator ] __cuda_callable__(
                       IndexType row, IndexType localIdx, IndexType globalIdx, bool& compute ) mutable -> ComputeRealType
       {
+         TNL_ASSERT_GE( globalIdx, 0, "Global index must be non-negative." );
+         TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "Global index must be smaller than the number of elements." );
          const IndexType column = columnIndexesView[ globalIdx ];
          compute = ( column != paddingIndex< IndexType > );
          if( ! compute )
@@ -328,16 +325,17 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       auto fetch = [ inVectorView, valuesView, columnIndexesView ] __cuda_callable__( IndexType globalIdx,
                                                                                       bool& compute ) mutable -> ComputeRealType
       {
-         TNL_ASSERT_GE( globalIdx, 0, "" );
-         TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "" );
+         TNL_ASSERT_GE( globalIdx, 0, "Global index must be non-negative." );
+         TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "Global index must be smaller than the number of elements." );
          const IndexType column = columnIndexesView[ globalIdx ];
          TNL_ASSERT_TRUE( (column >= 0 || column == paddingIndex< Index >), "Wrong column index." );
          TNL_ASSERT_LT( column, inVectorView.getSize(), "Wrong column index." );
-         if( SegmentsViewType::havePadding() ) {
+         if constexpr( SegmentsViewType::havePadding() ) {
             compute = ( column != paddingIndex< Index > );
             if( ! compute )
                return 0;
          }
+         TNL_ASSERT_TRUE( column >= 0, "Wrong column index." );
          if constexpr( Base::isBinary() )
             return inVectorView[ column ];
          return valuesView[ globalIdx ] * inVectorView[ column ];
@@ -346,6 +344,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          if( matrixMultiplicator == ComputeRealType{ 1 } ) {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
             {
+               TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+               TNL_ASSERT_LT( row, outVectorView.getSize(), "Row index must be smaller than the number of elements." );
                outVectorView[ row ] = value;
             };
             kernel.reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
@@ -353,6 +353,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          else {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
             {
+               TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
                outVectorView[ row ] = matrixMultiplicator * value;
             };
             kernel.reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
@@ -362,6 +363,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          if( matrixMultiplicator == ComputeRealType{ 1 } ) {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
             {
+               TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
             };
             kernel.reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
@@ -369,6 +371,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          else {
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
             {
+               TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
             };
             kernel.reduceSegments( this->segments, begin, end, fetch, std::plus<>{}, keep, (ComputeRealType) 0.0 );
@@ -449,9 +452,9 @@ void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows(
    IndexType begin,
    IndexType end,
-   Fetch& fetch,
+   Fetch&& fetch,
    const Reduce& reduce,
-   Keep& keep,
+   Keep&& keep,
    const FetchValue& identity,
    const SegmentsReductionKernel& kernel ) const
 {
@@ -477,9 +480,9 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceAllRows(
-   Fetch& fetch,
+   Fetch&& fetch,
    const Reduce& reduce,
-   Keep& keep,
+   Keep&& keep,
    const FetchValue& identity,
    const SegmentsReductionKernel& kernel ) const
 {
