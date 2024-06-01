@@ -100,13 +100,16 @@ if(TNL_BUILD_MPI)
         NAME DistributedMeshTest_2x2 NPROC 4 COMMAND
         "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
     )
-    add_test_mpi(
-        NAME DistributedMeshTest_3x3 NPROC 9 COMMAND
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
-    )
-    add_test_mpi(
-        NAME DistributedMeshTest_4x4 NPROC 16 COMMAND
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
-    )
+    # FIXME: 3x3 and 4x4 tests cause a deadlock on a single AMD Radeon RX 7900 GRE
+    if(NOT TNL_BUILD_HIP)
+        add_test_mpi(
+            NAME DistributedMeshTest_3x3 NPROC 9 COMMAND
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
+        )
+        add_test_mpi(
+            NAME DistributedMeshTest_4x4 NPROC 16 COMMAND
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMeshTest${CMAKE_EXECUTABLE_SUFFIX}"
+        )
+    endif()
 
 endif()
