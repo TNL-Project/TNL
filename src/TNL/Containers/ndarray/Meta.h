@@ -17,7 +17,7 @@ template< std::size_t index, typename T, typename... Ts, typename = std::enable_
 constexpr T
 get_from_pack( T&& arg, Ts&&... args )
 {
-   return arg;
+   return std::forward< T >( arg );
 }
 
 template< std::size_t index,
@@ -40,7 +40,7 @@ constexpr T
 get_from_pack( T&& arg, Ts&&... args )
 {
    static_assert( index >= 0 && index <= sizeof...( Ts ), "invalid index passed to the get function" );
-   return arg;
+   return std::forward< T >( arg );
 }
 
 // Get N-th element from std::integer_sequence.

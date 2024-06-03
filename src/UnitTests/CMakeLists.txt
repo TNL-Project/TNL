@@ -21,6 +21,7 @@ set(CPP_TESTS
     StringTest
     TimerTest
     TypeInfoTest
+    TypeTraitsTest
 )
 set(CUDA_TESTS AllocatorsTestCuda AssertTestCuda FileTestCuda)
 set(HIP_TESTS AllocatorsTestHip AssertTestHip FileTestHip)

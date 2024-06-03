@@ -29,7 +29,7 @@ public:
          Coordinate boundary =
             grid.getDimensions() + grid.template getNormals< NeighbourEntityDimension >( neighbourEntityOrientation );
 
-         if( all( greaterEqual( alignedCoordinate, 0 ) ) && all( less( alignedCoordinate, boundary ) ) ) {
+         if( TNL::all( greaterEqual( alignedCoordinate, 0 ) ) && TNL::all( less( alignedCoordinate, boundary ) ) ) {
             auto neighbour = entity.template getNeighbourEntity< NeighbourEntityDimension >( offset );
 
             neighbour.refresh();
@@ -54,7 +54,7 @@ public:
          Coordinate boundary =
             grid.getDimensions() + grid.template getNormals< NeighbourEntityDimension >( NeighbourEntityOrientation );
 
-         if( all( greaterEqual( alignedCoordinate, 0 ) ) && all( less( alignedCoordinate, boundary ) ) ) {
+         if( TNL::all( greaterEqual( alignedCoordinate, 0 ) ) && TNL::all( less( alignedCoordinate, boundary ) ) ) {
             auto neighbour =
                entity.template getNeighbourEntity< NeighbourEntityDimension, NeighbourEntityOrientation >( offset );
 
@@ -106,8 +106,8 @@ public:
             Coordinate alignedCoordinate = iterator.getCoordinate() + offset;
 
             // Unable to get entity out of bounds
-            bool expectCall = all( greaterEqual( alignedCoordinate, 0 ) )
-                           && all( less( alignedCoordinate, grid.getDimensions() + neighbourEntityNormals ) );
+            bool expectCall = TNL::all( greaterEqual( alignedCoordinate, 0 ) )
+                           && TNL::all( less( alignedCoordinate, grid.getDimensions() + neighbourEntityNormals ) );
 
             EXPECT_EQ( expectCall, neighbourEntity.calls == 1 ) << "Expect, that the parent entity was called";
             EXPECT_EQ( expectCall ? alignedCoordinate : Coordinate( 0 ), neighbourEntity.coordinate )

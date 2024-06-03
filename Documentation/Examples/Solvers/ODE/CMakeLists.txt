@@ -1,4 +1,4 @@
-set(HOST_EXAMPLES StaticODESolver-SineExample StaticODESolver-LorenzExample)
+set(HOST_EXAMPLES StaticODESolver-SineExample StaticODESolver-SineExample_iterate StaticODESolver-LorenzExample)
 
 set(COMMON_EXAMPLES StaticODESolver-SineParallelExample StaticODESolver-LorenzParallelExample ODESolver-HeatEquationExample
                     ODESolver-HeatEquationWithMonitorExample
@@ -41,10 +41,12 @@ endif()
 # check if the system has python3 and matplotlib
 find_package(Python3 COMPONENTS Interpreter QUIET)
 set(TNL_PYTHON3_MATPLOTLIB_FOUND FALSE)
+
 if(Python3_FOUND)
     execute_process(
         COMMAND ${Python3_EXECUTABLE} -c "import matplotlib" RESULT_VARIABLE TNL_MATPLOTLIB_CHECK_EXIT_CODE OUTPUT_QUIET
     )
+
     if(TNL_MATPLOTLIB_CHECK_EXIT_CODE EQUAL 0)
         set(TNL_PYTHON3_MATPLOTLIB_FOUND TRUE)
     else()

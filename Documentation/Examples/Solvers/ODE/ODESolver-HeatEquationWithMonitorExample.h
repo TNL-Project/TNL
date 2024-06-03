@@ -1,7 +1,8 @@
 #include <iostream>
 #include <TNL/FileName.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Solvers/ODE/Euler.h>
+#include <TNL/Solvers/ODE/ODESolver.h>
+#include <TNL/Solvers/ODE/Methods/Euler.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 #include "write.h"
 
@@ -14,7 +15,8 @@ solveHeatEquation( const char* file_name )
 {
    using Vector = TNL::Containers::Vector< Real, Device, Index >;
    using VectorView = typename Vector::ViewType;
-   using ODESolver = TNL::Solvers::ODE::Euler< Vector >;
+   using Method = TNL::Solvers::ODE::Methods::Euler< Real >;
+   using ODESolver = TNL::Solvers::ODE::ODESolver< Method, Vector >;
 
    /***
     * Parameters of the discertisation
@@ -46,12 +48,14 @@ solveHeatEquation( const char* file_name )
    /***
     * Setup monitor for the ODE solver.
     */
+   //! [Monitor setup]
    using IterativeSolverMonitorType = TNL::Solvers::IterativeSolverMonitor< Real, Index >;
    IterativeSolverMonitorType monitor;
    TNL::Solvers::SolverMonitorThread monitorThread( monitor );
    monitor.setRefreshRate( 10 );  // refresh rate in miliseconds
    monitor.setVerbose( 1 );
    monitor.setStage( "ODE solver stage:" );
+   //! [Monitor setup]
 
    /***
     * Setup of the solver
@@ -86,6 +90,10 @@ solveHeatEquation( const char* file_name )
 int
 main( int argc, char* argv[] )
 {
+   if( argc != 2 ) {
+      std::cout << "Usage: " << argv[ 0 ] << " <path to output directory>" << std::endl;
+      return EXIT_FAILURE;
+   }
    TNL::String file_name( argv[ 1 ] );
    file_name += "/ODESolver-HeatEquationExampleWithMonitor-result.out";
 

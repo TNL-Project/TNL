@@ -328,4 +328,49 @@ public:
 
 // clang-format on
 
+/**
+ * \brief Get the underlying value type of `T`.
+ *
+ * This recursively descends into the `::ValueType` or `::value_type` local
+ * type aliases and returns the underlying value type. For example, if a vector
+ * type such as
+ *
+ * ```cpp
+ * TNL::Containers::StaticVector< 1, TNL::Arithmetics::Complex< double > >
+ * ```
+ *
+ * is given as `T`, this will return `double`.
+ */
+template< typename T >
+struct GetValueType
+{
+private:
+   template< typename TT, bool IsArithmetic = std::is_arithmetic_v< T > >
+   struct impl;
+
+   template< typename TT >
+   struct impl< std::complex< TT >, false >
+   {
+      using type = TT;
+   };
+
+   template< typename TT >
+   struct impl< TT, true >
+   {
+      using type = TT;
+   };
+
+   template< typename TT >
+   struct impl< TT, false >
+   {
+      using type = typename GetValueType< typename T::ValueType >::type;
+   };
+
+public:
+   using type = typename impl< T >::type;
+};
+
+template< typename T >
+using GetValueType_t = typename GetValueType< T >::type;
+
 }  // namespace TNL

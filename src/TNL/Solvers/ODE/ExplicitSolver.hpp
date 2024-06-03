@@ -5,6 +5,8 @@
 
 #include <limits>
 
+#include <TNL/Solvers/ODE/ExplicitSolver.h>
+
 namespace TNL::Solvers::ODE {
 
 template< typename Real, typename Index, typename SolverMonitor >

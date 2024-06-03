@@ -14,9 +14,8 @@
 namespace TNL::Solvers::ODE {
 
 /**
- * \brief Base class for ODE solvers and explicit solvers od PDEs.
+ * \brief Base class for ODE solvers.
  *
- * See also: \ref TNL::Solvers::ODE::Euler, \ref TNL::Solvers::ODE::Merson.
  *
  * \tparam Real is type of the floating-point arithmetics.
  * \tparam Index is type for indexing.
@@ -149,7 +148,7 @@ protected:
    /****
     * The method solve will stop when reaching the stopTime.
     */
-   RealType stopTime;
+   RealType stopTime = 0.0;
 
    /****
     * Current time step.
