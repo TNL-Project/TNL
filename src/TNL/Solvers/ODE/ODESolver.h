@@ -61,14 +61,14 @@ template< typename Method,
 struct ODESolver;
 
 template< typename Method, typename Vector, typename SolverMonitor >
-struct ODESolver< Method, Vector, SolverMonitor, true > : public StaticExplicitSolver< GetRealType< Vector >, std::size_t >
+struct ODESolver< Method, Vector, SolverMonitor, true > : public StaticExplicitSolver< GetValueType_t< Vector >, std::size_t >
 {
 public:
    static constexpr int Stages = Method::getStages();
    /**
     * \brief Type of floating-point arithemtics.
     */
-   using RealType = GetRealType< Vector >;
+   using RealType = GetValueType_t< Vector >;
 
    using VectorType = Vector;
 
@@ -256,7 +256,7 @@ public:
    /**
     * \brief Type of floating-point arithemtics.
     */
-   using RealType = GetRealType< Vector >;
+   using RealType = GetValueType_t< Vector >;
 
    using ValueType = typename Vector::ValueType;
 

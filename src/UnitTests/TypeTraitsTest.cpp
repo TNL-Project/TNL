@@ -9,18 +9,18 @@ using namespace TNL;
 using namespace TNL::Containers;
 using namespace TNL::Arithmetics;
 
-TEST( TypeTraitsTest, GetRealType )
+TEST( TypeTraitsTest, GetValueType )
 {
-   EXPECT_TRUE( (std::is_same_v< GetRealType< float >, float >) );
-   EXPECT_TRUE( (std::is_same_v< GetRealType< double >, double >) );
-   EXPECT_TRUE( (std::is_same_v< GetRealType< StaticVector< 1, double > >, double >) );
-   EXPECT_TRUE( (std::is_same_v< GetRealType< StaticVector< 1, float > >, float >) );
-   EXPECT_TRUE( (std::is_same_v< GetRealType< StaticVector< 1, Complex< double > > >, double >) );
-   EXPECT_TRUE( (std::is_same_v< GetRealType< StaticVector< 1, Complex< float > > >, float >) );
-   EXPECT_TRUE( (std::is_same_v< GetRealType< Vector< double > >, double >) );
-   EXPECT_TRUE( (std::is_same_v< GetRealType< Vector< float > >, float >) );
-   EXPECT_TRUE( (std::is_same_v< GetRealType< Vector< Complex< double > > >, double >) );
-   EXPECT_TRUE( (std::is_same_v< GetRealType< Vector< Complex< float > > >, float >) );
+   static_assert( std::is_same_v< GetValueType_t< float >, float > );
+   static_assert( std::is_same_v< GetValueType_t< double >, double > );
+   static_assert( std::is_same_v< GetValueType_t< StaticVector< 1, double > >, double > );
+   static_assert( std::is_same_v< GetValueType_t< StaticVector< 1, float > >, float > );
+   static_assert( std::is_same_v< GetValueType_t< StaticVector< 1, Complex< double > > >, double > );
+   static_assert( std::is_same_v< GetValueType_t< StaticVector< 1, Complex< float > > >, float > );
+   static_assert( std::is_same_v< GetValueType_t< Vector< double > >, double > );
+   static_assert( std::is_same_v< GetValueType_t< Vector< float > >, float > );
+   static_assert( std::is_same_v< GetValueType_t< Vector< Complex< double > > >, double > );
+   static_assert( std::is_same_v< GetValueType_t< Vector< Complex< float > > >, float > );
 }
 
 #include "main.h"

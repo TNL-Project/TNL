@@ -26,7 +26,7 @@ ODESolver< Method, Value, SolverMonitor, true >::ODESolver()
 template< typename Method, typename Value, typename SolverMonitor >
 __cuda_callable__
 ODESolver< Method, Value, SolverMonitor, true >::ODESolver( const ODESolver& solver )
-: StaticExplicitSolver< GetRealType< Value >, std::size_t >( solver )
+: StaticExplicitSolver< GetValueType_t< Value >, std::size_t >( solver )
 {
    // It is better to turn off the convergence check for the ODE solver by default.
    this->setConvergenceResidue( 0.0 );

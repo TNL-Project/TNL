@@ -23,8 +23,6 @@ struct Complex
 {
    using ValueType = Value;
 
-   using RealType = Value;  // This is here because of GetRealType function.
-
    __cuda_callable__
    constexpr Complex();
 
