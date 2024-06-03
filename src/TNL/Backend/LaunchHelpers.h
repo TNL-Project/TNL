@@ -70,6 +70,10 @@ getMaxBlockZSize()
  * Note that NVIDIA devices return 32; AMD devices return 64 for gfx9 and 32 for
  * gfx10 and above.
  *
+ * Warning: the returned value may be inconsistent when used from a host-code
+ * context on HIP where it defaults to 64, but the device code may use 32.
+ * See https://clang.llvm.org/docs/HIPSupport.html#predefined-macros for details.
+ *
  * https://rocm.docs.amd.com/projects/HIP/en/latest/reference/kernel_language.html#warpsize
  */
 inline constexpr int
@@ -77,10 +81,13 @@ getWarpSize()
 {
 #if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
    return 32;
-#elif defined( __GFX8__ ) || defined( __GFX9__ )
-   return 64;
+#elif defined( __AMDGCN_WAVEFRONT_SIZE__ )
+   return __AMDGCN_WAVEFRONT_SIZE__;
+// this is deprecated, alias to the previous one
+#elif defined( __AMDGCN_WAVEFRONT_SIZE )
+   return __AMDGCN_WAVEFRONT_SIZE;
 #else
-   return 32;
+   return 64;  // default, same as __AMDGCN_WAVEFRONT_SIZE__ for host code
 #endif
 }
 
