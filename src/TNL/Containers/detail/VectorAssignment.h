@@ -131,7 +131,7 @@ struct VectorAssignmentWithOperation< Vector, T, true, true >
    static void
    division( Vector& v, const T& t )
    {
-      VectorAssignmentWithOperation< Vector, typename T::ConstViewType >::subtraction( v, t.getConstView() );
+      VectorAssignmentWithOperation< Vector, typename T::ConstViewType >::division( v, t.getConstView() );
    }
 };
 
