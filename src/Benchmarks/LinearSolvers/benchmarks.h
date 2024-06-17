@@ -149,11 +149,24 @@ benchmarkSolver( Benchmark<>& benchmark,
         b( b )
       {}
 
-      virtual HeaderElements
+      [[nodiscard]] virtual HeaderElements
       getTableHeader() const override
       {
          return HeaderElements(
-            { "time", "stddev", "stddev/time", "speedup", "converged", "iterations", "residue_precond", "residue_true" } );
+            { "time", "speedup", "stddev", "stddev/time", "converged", "iterations", "residue_precond", "residue_true" } );
+      }
+
+      [[nodiscard]] virtual std::vector< int >
+      getColumnWidthHints() const
+      {
+         return std::vector< int >( { 14,      // time
+                                      8,       // speedup
+                                      16,      // time_stddev
+                                      18,      // time_stddev/time
+                                      8,       // converged
+                                      14,      // iterations
+                                      14,      // residue precond
+                                      14 } );  // residue true
       }
 
       virtual RowElements
@@ -170,11 +183,12 @@ benchmarkSolver( Benchmark<>& benchmark,
          const double residue_true = lpNorm( r, 2.0 ) / lpNorm( b, 2.0 );
 
          RowElements elements;
-         elements << time << time_stddev << time_stddev / time;
+         elements << time;
          if( speedup != 0 )
             elements << speedup;
          else
             elements << "N/A";
+         elements << time_stddev << time_stddev / time;
          elements << ( converged ? "yes" : "no" ) << iterations << residue_precond << residue_true;
          return elements;
       }
@@ -241,10 +255,8 @@ benchmarkArmadillo( const Config::ParameterContainer& parameters,
    arma::vec r = A * arma_x - arma_b;
    //    std::cout << "Converged: " << (time > 0) << ", residue = " << arma::norm( r ) / arma::norm( arma_b ) << " " <<
    //    std::endl; std::cout << "Mean time: " << time / loops << " seconds." << std::endl;
-   std::cout << "Converged: " << std::setw( 5 ) << std::boolalpha << ( time > 0 ) << "   "
-             << "iterations = " << std::setw( 4 ) << "N/A"
-             << "   "
-             << "residue = " << std::setw( 10 ) << arma::norm( r ) / arma::norm( arma_b ) << "   "
+   std::cout << "Converged: " << std::setw( 5 ) << std::boolalpha << ( time > 0 ) << "   " << "iterations = " << std::setw( 4 )
+             << "N/A" << "   " << "residue = " << std::setw( 10 ) << arma::norm( r ) / arma::norm( arma_b ) << "   "
              << "mean time = " << std::setw( 9 ) << time / loops << " seconds." << std::endl;
 }
 #endif
