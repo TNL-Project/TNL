@@ -12,7 +12,7 @@
 namespace TNL::Solvers::Linear {
 
 bool
-UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >::solve( ConstVectorViewType b, VectorViewType x )
+UmfpackWrapper< CSRMatrix< double, Devices::Host, int > >::solve( ConstVectorViewType b, VectorViewType x )
 {
    if( this->matrix->getRows() != this->matrix->getColumns() )
       throw std::invalid_argument( "UmfpackWrapper::solve: matrix must be square" );
@@ -26,7 +26,7 @@ UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >::solve( ConstVecto
    this->resetIterations();
    this->setResidue( this->getConvergenceResidue() + 1.0 );
 
-   RealType bNorm = b.lpNorm( (RealType) 2.0 );
+   RealType bNorm = lpNorm( b, (RealType) 2.0 );
 
    // UMFPACK objects
    void* Symbolic = nullptr;
@@ -36,6 +36,9 @@ UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >::solve( ConstVecto
    double Control[ UMFPACK_CONTROL ];
    double Info[ UMFPACK_INFO ];
 
+   // The solver does not work without calling umfpack_di_defaults
+   umfpack_di_defaults( Control );
+
    // umfpack expects Compressed Sparse Column format, we have Compressed Sparse Row
    // so we need to solve  A^T * x = rhs
    int system_type = UMFPACK_Aat;
@@ -43,7 +46,7 @@ UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >::solve( ConstVecto
    // symbolic reordering of the sparse matrix
    status = umfpack_di_symbolic( size,
                                  size,
-                                 this->matrix->getRowPointers().getData(),
+                                 this->matrix->getSegments().getOffsets().getData(),
                                  this->matrix->getColumnIndexes().getData(),
                                  this->matrix->getValues().getData(),
                                  &Symbolic,
@@ -55,7 +58,7 @@ UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >::solve( ConstVecto
    }
 
    // numeric factorization
-   status = umfpack_di_numeric( this->matrix->getRowPointers().getData(),
+   status = umfpack_di_numeric( this->matrix->getSegments().getOffsets().getData(),
                                 this->matrix->getColumnIndexes().getData(),
                                 this->matrix->getValues().getData(),
                                 Symbolic,
@@ -69,7 +72,7 @@ UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >::solve( ConstVecto
 
    // solve with specified right-hand-side
    status = umfpack_di_solve( system_type,
-                              this->matrix->getRowPointers().getData(),
+                              this->matrix->getSegments().getOffsets().getData(),
                               this->matrix->getColumnIndexes().getData(),
                               this->matrix->getValues().getData(),
                               x.getData(),
@@ -98,7 +101,15 @@ finished:
 
    this->setResidue( LinearResidueGetter::getResidue( *this->matrix, x, b, bNorm ) );
    this->refreshSolverMonitor( true );
-   return status == UMFPACK_OK;
+   return true;
+}
+
+UmfpackWrapper< CSRMatrix< double, Devices::Host, int > >::~UmfpackWrapper()
+{
+   if( this->Symbolic )
+      umfpack_di_free_symbolic( &Symbolic );
+   if( this->Numeric )
+      umfpack_di_free_numeric( &Numeric );
 }
 
 }  // namespace TNL::Solvers::Linear
