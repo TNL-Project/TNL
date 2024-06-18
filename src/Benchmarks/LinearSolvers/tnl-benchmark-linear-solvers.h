@@ -462,8 +462,10 @@ struct LinearSolversBenchmark
             local_row.setElement( j, global_row.getColumnIndex( j ), global_row.getValue( j ) );
       }
 
-      std::cout << "Iterative solvers:" << std::endl;
-      benchmarkIterativeSolvers( benchmark, parameters, distMatrixPointer, dist_x0, dist_b );
+      if( parameters.getParameter< bool >( "with-iterative" ) ) {
+         std::cout << "Iterative solvers:" << std::endl;
+         benchmarkIterativeSolvers( benchmark, parameters, distMatrixPointer, dist_x0, dist_b );
+      }
    }
 
    static void
@@ -479,12 +481,12 @@ struct LinearSolversBenchmark
             SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
          auto matrixCopy = std::make_shared< CSR >();
          Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
+         Matrices::compressSparseMatrix( *matrixCopy );
+         matrixCopy->sortColumnIndexes();
 
 #ifdef HAVE_UMFPACK
-         std::cout << "UMFPACK wrapper:" << std::endl;
-         using UmfpackSolver = Solvers::Linear::UmfpackWrapper< CSR >;
-         using Preconditioner = Solvers::Linear::Preconditioners::Preconditioner< CSR >;
-         benchmarkSolver< UmfpackSolver, Preconditioner >( parameters, matrixCopy, x0, b );
+         benchmarkSolver< Solvers::Linear::UmfpackWrapper, Solvers::Linear::Preconditioners::Preconditioner >(
+            benchmark, parameters, matrixCopy, x0, b );
 #endif
 
 #ifdef HAVE_ARMADILLO
@@ -493,8 +495,10 @@ struct LinearSolversBenchmark
 #endif
       }
 
-      std::cout << "Iterative solvers:" << std::endl;
-      benchmarkIterativeSolvers( benchmark, parameters, matrixPointer, x0, b );
+      if( parameters.getParameter< bool >( "with-iterative" ) ) {
+         std::cout << "Iterative solvers:" << std::endl;
+         benchmarkIterativeSolvers( benchmark, parameters, matrixPointer, x0, b );
+      }
 
 #ifdef HAVE_CUSOLVER
       std::cout << "CuSOLVER:" << std::endl;
@@ -539,6 +543,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntry< String >( "name", "Name of the matrix in the benchmark.", "" );
    config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    config.addEntry< bool >( "reorder-dofs", "Reorder matrix entries corresponding to the same DOF together.", false );
+   config.addEntry< bool >( "with-iterative", "Includes the iterative solvers in the benchmark.", true );
    config.addEntry< bool >( "with-direct", "Includes the 3rd party direct solvers in the benchmark.", false );
    config.addEntry< String >(
       "solvers",
