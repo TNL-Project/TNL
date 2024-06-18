@@ -26,4 +26,11 @@ if(TNL_BUILD_CPP_TARGETS)
         # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
         target_link_libraries(tnl-benchmark-linear-solvers PUBLIC MPI::MPI_CXX)
     endif()
+
+    if(UMFPACK_FOUND)
+        target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_UMFPACK")
+        target_include_directories(tnl-benchmark-linear-solvers PUBLIC ${UMFPACK_INCLUDE_DIR})
+        target_link_libraries(tnl-benchmark-linear-solvers PUBLIC -lumfpack)
+    endif()
 endif()
+
