@@ -6,6 +6,7 @@
 #include "Diagonal.h"
 
 #include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Algorithms/contains.h>
 
 namespace TNL::Solvers::Linear::Preconditioners {
 
@@ -31,6 +32,7 @@ Diagonal< Matrix >::update( const MatrixPointer& matrixPointer )
    };
 
    Algorithms::parallelFor< DeviceType >( 0, diagonal.getSize(), kernel );
+   TNL_ASSERT_FALSE( Algorithms::contains( diag_view, 0 ), "Diagonal::update: the matrix has a zero diagonal element" );
 }
 
 template< typename Matrix >
