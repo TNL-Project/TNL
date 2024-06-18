@@ -8,7 +8,8 @@
    #include <umfpack.h>
 
    #include "LinearSolver.h"
-   #include <TNL/Matrices/CSR.h>
+   #include <TNL/Matrices/SparseMatrix.h>
+   #include <TNL/Algorithms/Segments/CSR.h>
 
 namespace TNL::Solvers::Linear {
 
@@ -18,11 +19,21 @@ struct is_csr_matrix
    static constexpr bool value = false;
 };
 
-template< typename Real, typename Device, typename Index >
-struct is_csr_matrix< Matrices::CSR< Real, Device, Index > >
+template< typename Real, typename Device, typename Index, typename ComputeReal, typename RealAllocator, typename IndexAllocator >
+struct is_csr_matrix< Matrices::SparseMatrix< Real,
+                                              Device,
+                                              Index,
+                                              Matrices::GeneralMatrix,
+                                              Algorithms::Segments::CSR,
+                                              ComputeReal,
+                                              RealAllocator,
+                                              IndexAllocator > >
 {
    static constexpr bool value = true;
 };
+
+template< typename Real, typename Device, typename Index >
+using CSRMatrix = Matrices::SparseMatrix< Real, Device, Index, Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
 
 template< typename Matrix >
 class UmfpackWrapper : public LinearSolver< Matrix >
@@ -56,10 +67,9 @@ public:
 };
 
 template<>
-class UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >
-: public LinearSolver< Matrices::CSR< double, Devices::Host, int > >
+class UmfpackWrapper< CSRMatrix< double, Devices::Host, int > > : public LinearSolver< CSRMatrix< double, Devices::Host, int > >
 {
-   using Base = LinearSolver< Matrices::CSR< double, Devices::Host, int > >;
+   using Base = LinearSolver< CSRMatrix< double, Devices::Host, int > >;
 
 public:
    using RealType = typename Base::RealType;
