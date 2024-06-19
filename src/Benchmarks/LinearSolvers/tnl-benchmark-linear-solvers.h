@@ -489,6 +489,12 @@ struct LinearSolversBenchmark
             benchmark, parameters, matrixCopy, x0, b );
 #endif
 
+#ifdef HAVE_GINKGO
+         std::cout << "UMFPACK wrapper:" << std::endl;
+         benchmarkSolver< Solvers::Linear::GinkgoDirectSolver, Solvers::Linear::Preconditioners::Preconditioner >(
+            benchmark, parameters, matrixCopy, x0, b );
+#endif
+
 #ifdef HAVE_ARMADILLO
          std::cout << "Armadillo wrapper (which wraps SuperLU):" << std::endl;
          benchmarkArmadillo( parameters, matrixCopy, x0, b );
@@ -544,7 +550,7 @@ configSetup( Config::ConfigDescription& config )
    config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    config.addEntry< bool >( "reorder-dofs", "Reorder matrix entries corresponding to the same DOF together.", false );
    config.addEntry< bool >( "with-iterative", "Includes the iterative solvers in the benchmark.", true );
-   config.addEntry< bool >( "with-direct", "Includes the 3rd party direct solvers in the benchmark.", false );
+   config.addEntry< bool >( "with-direct", "Includes the 3rd party direct solvers in the benchmark.", true );
    config.addEntry< String >(
       "solvers",
       "Comma-separated list of solvers to run benchmarks for. Options: gmres, tfqmr, bicgstab, bicgstab-ell, idrs.",

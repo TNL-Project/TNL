@@ -32,5 +32,10 @@ if(TNL_BUILD_CPP_TARGETS)
         target_include_directories(tnl-benchmark-linear-solvers PUBLIC ${UMFPACK_INCLUDE_DIR})
         target_link_libraries(tnl-benchmark-linear-solvers PUBLIC -lumfpack)
     endif()
+
+    if(Ginkgo_FOUND)
+        target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_GINKGO")
+        target_link_libraries(tnl-benchmark-linear-solvers PUBLIC TNL::TNL_CXX Ginkgo::ginkgo)
+    endif()
 endif()
 
