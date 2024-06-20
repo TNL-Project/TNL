@@ -524,7 +524,7 @@ protected:
 
       // set default tags from tag_offset
       for( auto& [ direction, buffer ] : buffers ) {
-         if( buffer.tag_recv < 0 && buffer.tag_send < 0 ) {
+         if( tag_offset >= 0 && buffer.tag_recv < 0 && buffer.tag_send < 0 ) {
             buffer.tag_recv = tag_offset + static_cast< std::uint8_t >( opposite( direction ) );
             buffer.tag_send = tag_offset + static_cast< std::uint8_t >( direction );
          }
