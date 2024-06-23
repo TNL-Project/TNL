@@ -31,6 +31,7 @@
 #include <TNL/Solvers/Linear/BICGStabL.h>
 #include <TNL/Solvers/Linear/IDRs.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
+#include <TNL/Solvers/Linear/GinkgoDirectSolver.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
 #include "ordering.h"
@@ -52,8 +53,13 @@
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 
+#ifdef HAVE_GINKGO
+   #include <ginkgo/ginkgo.hpp>
+#endif
+
 template< typename _Device, typename _Index, typename _IndexAlocator >
-using SegmentsType = TNL::Algorithms::Segments::SlicedEllpack< _Device, _Index, _IndexAlocator >;
+//using SegmentsType = TNL::Algorithms::Segments::SlicedEllpack< _Device, _Index, _IndexAlocator >;
+using SegmentsType = TNL::Algorithms::Segments::CSR< _Device, _Index, _IndexAlocator >;
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
@@ -370,7 +376,10 @@ struct LinearSolversBenchmark
          // generate random vector x
          VectorType x;
          x.setSize( matrixPointer->getColumns() );
-         set_random_vector( x, 1e2, 1e3 );
+         if( parameters.getParameter< String >( "set-rhs" ) == "random" )
+            set_random_vector( x, 1e2, 1e3 );
+         else
+            x = 1;
 
          // set b := A*x
          b.setSize( matrixPointer->getRows() );
@@ -485,14 +494,26 @@ struct LinearSolversBenchmark
          matrixCopy->sortColumnIndexes();
 
 #ifdef HAVE_UMFPACK
-         benchmarkSolver< Solvers::Linear::UmfpackWrapper, Solvers::Linear::Preconditioners::Preconditioner >(
-            benchmark, parameters, matrixCopy, x0, b );
+         std::cout << "UMFPACK:" << std::endl;
+         if( std::is_same_v< DeviceType, TNL::Devices::Host > || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
+            benchmarkSolver< Solvers::Linear::UmfpackWrapper, Solvers::Linear::Preconditioners::Preconditioner >(
+               benchmark, parameters, matrixCopy, x0, b );
 #endif
 
 #ifdef HAVE_GINKGO
-         std::cout << "UMFPACK wrapper:" << std::endl;
+         std::cout << "Ginkgo:" << std::endl;
          benchmarkSolver< Solvers::Linear::GinkgoDirectSolver, Solvers::Linear::Preconditioners::Preconditioner >(
             benchmark, parameters, matrixCopy, x0, b );
+   #ifdef __CUDACC__
+         std::cout << "Ginkgo with CUDA: \n";
+         using CudaCSR = TNL::Matrices::
+            SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
+         auto cudaMatrix = std::make_shared< CudaCSR >();
+         *cudaMatrix = *matrixCopy;
+         TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
+         benchmarkSolver< Solvers::Linear::GinkgoDirectSolver, Solvers::Linear::Preconditioners::Preconditioner >(
+            benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
+   #endif
 #endif
 
 #ifdef HAVE_ARMADILLO
@@ -546,6 +567,9 @@ configSetup( Config::ConfigDescription& config )
                                       "File name of the input matrix (in binary TNL format or textual MTX format)." );
    config.addEntry< String >( "input-dof", "File name of the input DOF vector (in binary TNL format).", "" );
    config.addEntry< String >( "input-rhs", "File name of the input right-hand-side vector (in binary TNL format).", "" );
+   config.addEntry< String >( "set-rhs", "Saya how to set the right-hand-side vector if no input file is given.", "ones" );
+   config.addEntryEnum( "ones" );
+   config.addEntryEnum( "random" );
    config.addEntry< String >( "name", "Name of the matrix in the benchmark.", "" );
    config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    config.addEntry< bool >( "reorder-dofs", "Reorder matrix entries corresponding to the same DOF together.", false );

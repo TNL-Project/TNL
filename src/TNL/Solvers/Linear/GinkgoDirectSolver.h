@@ -3,30 +3,17 @@
 
 #pragma once
 
-#ifdef HAVE_UMFPACK
+#ifdef HAVE_GINKGO
 
-   #include <umfpack.h>
+   #include <ginkgo/ginkgo.hpp>
 
    #include "LinearSolver.h"
    #include <TNL/Matrices/SparseMatrix.h>
    #include <TNL/Algorithms/Segments/CSR.h>
+   #include <TNL/Matrices/GinkgoOperator.h>
+   #include <TNL/Containers/GinkgoVector.h>
 
 namespace TNL::Solvers::Linear {
-
-/*template< typename Real, typename Device, typename Index >
-using CSRMatrix = Matrices::SparseMatrix< Real, Device, Index, Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
-
-template< typename Matrix >
-struct is_csr_matrix
-{
-   static constexpr bool value = false;
-};
-
-template< typename Real, typename Device, typename Index >
-struct is_csr_matrix< CSRMatrix< Real, Device, Index > >
-{
-   static constexpr bool value = true;
-};*/
 
 template< typename Matrix >
 class GinkgoDirectSolver : public LinearSolver< Matrix >
@@ -39,6 +26,7 @@ public:
    using IndexType = typename Base::IndexType;
    using VectorViewType = typename Base::VectorViewType;
    using ConstVectorViewType = typename Base::ConstVectorViewType;
+   using MatrixPointer = typename Base::MatrixPointer;
 
    GinkgoDirectSolver()
    {
@@ -85,27 +73,13 @@ public:
       gk_solver->apply( gko_b, gko_x );
       return true;
    }
-};
 
-template<>
-class GinkgoDirectSolver< CSRMatrix< double, Devices::Host, int > >
-: public LinearSolver< CSRMatrix< double, Devices::Host, int > >
-{
-   using Base = LinearSolver< CSRMatrix< double, Devices::Host, int > >;
-
-public:
-   using RealType = typename Base::RealType;
-   using DeviceType = typename Base::DeviceType;
-   using IndexType = typename Base::IndexType;
-   using VectorViewType = typename Base::VectorViewType;
-   using ConstVectorViewType = typename Base::ConstVectorViewType;
-
-   bool
-   solve( ConstVectorViewType b, VectorViewType x ) override;
+   std::shared_ptr< gko::Executor > gk_exec;
+   std::shared_ptr< gko::experimental::solver::Direct< RealType, IndexType > > gk_solver;
 };
 
 }  // namespace TNL::Solvers::Linear
 
-   #include "GinkgoDirectSolver.hpp"
+//#include "GinkgoDirectSolver.hpp"
 
 #endif
