@@ -11,7 +11,18 @@ if(TNL_BUILD_CUDA)
         target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_MPI")
         # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
         target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC MPI::MPI_CXX)
+        if(Ginkgo_FOUND)
+            target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_GINKGO")
+            target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC Ginkgo::ginkgo)
+        endif()
     endif()
+
+    if(UMFPACK_FOUND)
+        target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_UMFPACK")
+        target_include_directories(tnl-benchmark-linear-solvers-cuda PUBLIC ${UMFPACK_INCLUDE_DIR})
+        target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC -lumfpack)
+    endif()
+
 endif()
 
 # skip building host-only targets in CUDA-enabled CI jobs
@@ -25,6 +36,10 @@ if(TNL_BUILD_CPP_TARGETS)
         target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_MPI")
         # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
         target_link_libraries(tnl-benchmark-linear-solvers PUBLIC MPI::MPI_CXX)
+        if(Ginkgo_FOUND)
+            target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_GINKGO")
+            target_link_libraries(tnl-benchmark-linear-solvers PUBLIC TNL::TNL_CXX Ginkgo::ginkgo)
+        endif()
     endif()
 
     if(UMFPACK_FOUND)
@@ -33,9 +48,5 @@ if(TNL_BUILD_CPP_TARGETS)
         target_link_libraries(tnl-benchmark-linear-solvers PUBLIC -lumfpack)
     endif()
 
-    if(Ginkgo_FOUND)
-        target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_GINKGO")
-        target_link_libraries(tnl-benchmark-linear-solvers PUBLIC TNL::TNL_CXX Ginkgo::ginkgo)
-    endif()
 endif()
 
