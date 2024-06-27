@@ -546,7 +546,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       typename Matrix1::RowCapacitiesType rowLengths;
       rowLengths.setSize( rows );
 #ifdef HAVE_OPENMP
-      #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < rows; i++ ) {
          const auto row = B.getRow( i );
@@ -561,7 +561,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       A.setRowCapacities( rowLengths );
 
 #ifdef HAVE_OPENMP
-      #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < rows; i++ ) {
          const auto length = rowLengths[ i ];
@@ -708,11 +708,14 @@ void
 reorderSparseMatrix( const Matrix1& matrix1, Matrix2& matrix2, const PermutationArray& perm, const PermutationArray& iperm )
 {
    // TODO: implement on GPU
-   static_assert( std::is_same_v< typename Matrix1::DeviceType, Devices::Host >,
+   static_assert( std::is_same_v< typename Matrix1::DeviceType, Devices::Host >
+                     || std::is_same_v< typename Matrix1::DeviceType, Devices::Sequential >,
                   "matrix reordering is implemented only for host" );
-   static_assert( std::is_same_v< typename Matrix2::DeviceType, Devices::Host >,
+   static_assert( std::is_same_v< typename Matrix2::DeviceType, Devices::Host >
+                     || std::is_same_v< typename Matrix2::DeviceType, Devices::Sequential >,
                   "matrix reordering is implemented only for host" );
-   static_assert( std::is_same_v< typename PermutationArray::DeviceType, Devices::Host >,
+   static_assert( std::is_same_v< typename PermutationArray::DeviceType, Devices::Host >
+                     || std::is_same_v< typename PermutationArray::DeviceType, Devices::Sequential >,
                   "matrix reordering is implemented only for host" );
 
    using IndexType = typename Matrix1::IndexType;
