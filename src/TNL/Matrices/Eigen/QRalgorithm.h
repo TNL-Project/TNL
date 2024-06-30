@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <tuple>
 #include <utility>
 
@@ -50,14 +51,17 @@ namespace TNL::Matrices::Eigen {
  */
 template< typename T, typename Device, typename MatrixType >
 static std::tuple< MatrixType, MatrixType, int >
-QRiteration( MatrixType matrix,
+QRalgorithm( MatrixType matrix,
              const T& epsilon,
              const TNL::Matrices::Factorization::QR::QRfactorizationType& QRtype,
-             const uint& maxIterations = 10000 )
+             const int& maxIterations = 10000 )
 {
-   TNL_ASSERT_EQ( matrix.getRows(), matrix.getColumns(), "QR iteration is possible only for square matrices" );
-   using indexType = typename MatrixType::IndexType;
-   indexType size = matrix.getColumns();
+   if( matrix.getRows() != matrix.getColumns() )
+      throw std::invalid_argument( "Power iteration is possible only for square matrices" );
+   if( matrix.getRows() == 0 )
+      throw std::invalid_argument( "Zero-sized matrices are not allowed" );
+   using IndexType = typename MatrixType::IndexType;
+   IndexType size = matrix.getColumns();
    MatrixType Q( size, size );
    MatrixType R( size, size );
    MatrixType Q_acc( size, size );
@@ -72,7 +76,11 @@ QRiteration( MatrixType matrix,
       Q_acc = std::move( Q_acc_pom );
       bool converged = true;
       iterations++;
-      for( indexType i = 0; i < size - 1; i++ ) {
+      for( IndexType i = 0; i < size - 1; i++ ) {
+         if(isnan(matrix.getElement( i + 1, i )))
+         {
+            return std::make_tuple( matrix, Q_acc, -1 );
+         }
          if( abs( matrix.getElement( i + 1, i ) ) >= epsilon ) {
             converged = false;
             break;
@@ -83,7 +91,7 @@ QRiteration( MatrixType matrix,
          break;
       }
       if( iterations == maxIterations ) {
-         iterations = -1;
+         iterations = 0;
          break;
       }
    }
