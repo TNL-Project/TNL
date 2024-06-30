@@ -60,12 +60,12 @@ powerIteration( const MatrixType& matrix,
                 TNL::Containers::Vector< T, Device >& initialVec,
                 const uint& maxIterations = 100000 )
 {
-   if( matrix.getRows() == matrix.getColumns() )
-      std::invalid_argument( "Power iteration is possible only for square matrices" );
+   if( matrix.getRows() != matrix.getColumns() )
+      throw std::invalid_argument( "Power iteration is possible only for square matrices" );
    if( matrix.getRows() == 0 )
-      std::invalid_argument( "Zero-sized matrices are not allowed" );
-   if( matrix.getRows() == initialVec.getSize() )
-      std::invalid_argument( "The initial vector must have the same size as the matrix" );
+      throw std::invalid_argument( "Zero-sized matrices are not allowed" );
+   if( matrix.getRows() != initialVec.getSize() )
+      throw std::invalid_argument( "The initial vector must have the same size as the matrix" );
    using IndexType = typename MatrixType::IndexType;
    IndexType vecSize = matrix.getColumns();
    TNL::Containers::Vector< T, Device > eigenVecOut( vecSize );
@@ -78,7 +78,7 @@ powerIteration( const MatrixType& matrix,
    //std::cout << "start" << "\n";
    norm = TNL::l2Norm( initialVec );
    if(norm == 0)
-      std::invalid_argument( "The initial vector must be nonzero" );
+      throw std::invalid_argument( "The initial vector must be nonzero" );
    if( norm != 1 )
       initialVec = initialVec / norm;
    while( true ) {
@@ -109,7 +109,7 @@ powerIteration( const MatrixType& matrix, const T& epsilon, const uint& maxItera
 {
    using IndexType = typename MatrixType::IndexType;
    if( matrix.getRows() == 0 )
-      std::invalid_argument( "Zero-sized matrices are not allowed" );
+      throw std::invalid_argument( "Zero-sized matrices are not allowed" );
    IndexType vecSize = matrix.getRows();
    TNL::Containers::Vector< T, Device > initialVec( vecSize );
    initialVec.resize( vecSize );
