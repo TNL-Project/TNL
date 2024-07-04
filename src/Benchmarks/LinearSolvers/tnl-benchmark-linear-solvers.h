@@ -32,10 +32,13 @@
 #include <TNL/Solvers/Linear/IDRs.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
 #include <TNL/Solvers/Linear/GinkgoDirectSolver.h>
-
+#include <TNL/Matrices/SparseMatrix.h>
+#include <TNL/Algorithms/Segments/CSR.h>
+#include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Benchmarks/Benchmarks.h>
 #include "ordering.h"
 #include "benchmarks.h"
+#include "StrumpackWrapper.h"
 
 // FIXME: nvcc 8.0 fails when cusolverSp.h is included (works fine with clang):
 // /opt/cuda/include/cuda_fp16.h(3068): error: more than one instance of overloaded function "isinf" matches the argument list:
@@ -47,14 +50,6 @@
 #if 0
    #include "CuSolverWrapper.h"
    #define HAVE_CUSOLVER
-#endif
-
-#include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Algorithms/Segments/CSR.h>
-#include <TNL/Algorithms/Segments/SlicedEllpack.h>
-
-#ifdef HAVE_GINKGO
-   #include <ginkgo/ginkgo.hpp>
 #endif
 
 template< typename _Device, typename _Index, typename _IndexAlocator >
@@ -404,30 +399,36 @@ struct LinearSolversBenchmark
          { "max elements per row", convertToString( maxRowLength ) },
       } ) );
 
-      const bool reorder = parameters.getParameter< bool >( "reorder-dofs" );
-      if( reorder ) {
-         using PermutationVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-         PermutationVector perm, iperm;
-         getTrivialOrdering( *matrixPointer, perm, iperm );
-         auto matrix_perm = std::make_shared< MatrixType >();
-         VectorType x0_perm, b_perm;
-         x0_perm.setLike( x0 );
-         b_perm.setLike( b );
-         Matrices::reorderSparseMatrix( *matrixPointer, *matrix_perm, perm, iperm );
-         Matrices::reorderArray( x0, x0_perm, perm );
-         Matrices::reorderArray( b, b_perm, perm );
-         if( TNL::MPI::GetSize() > 1 )
-            runDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
-         else
-            runNonDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
-      }
-      else {
-         if( TNL::MPI::GetSize() > 1 )
-            runDistributed( benchmark, parameters, matrixPointer, x0, b );
-         else
-            runNonDistributed( benchmark, parameters, matrixPointer, x0, b );
-      }
+      if( parameters.getParameter< bool >( "with-iterative" ) ) {
+         std::cout << "Iterative solvers:" << std::endl;
 
+         if( parameters.getParameter< bool >( "reorder-dofs" ) ) {
+            using PermutationVector = Containers::Vector< IndexType, DeviceType, IndexType >;
+            PermutationVector perm, iperm;
+            getTrivialOrdering( *matrixPointer, perm, iperm );
+            auto matrix_perm = std::make_shared< MatrixType >();
+            VectorType x0_perm, b_perm;
+            x0_perm.setLike( x0 );
+            b_perm.setLike( b );
+            Matrices::reorderSparseMatrix( *matrixPointer, *matrix_perm, perm, iperm );
+            Matrices::reorderArray( x0, x0_perm, perm );
+            Matrices::reorderArray( b, b_perm, perm );
+            if( TNL::MPI::GetSize() > 1 )
+               runDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
+            else
+               runNonDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
+         }
+         else {
+            if( TNL::MPI::GetSize() > 1 )
+               runDistributed( benchmark, parameters, matrixPointer, x0, b );
+            else
+               runNonDistributed( benchmark, parameters, matrixPointer, x0, b );
+         }
+      }
+      if( parameters.getParameter< bool >( "with-direct" ) ) {
+         std::cout << "Direct solvers:" << std::endl;
+         runDirect( benchmark, parameters, matrixPointer, x0, b );
+      }
       return true;
    }
 
@@ -470,11 +471,7 @@ struct LinearSolversBenchmark
          for( IndexType j = 0; j < global_row.getSize(); j++ )
             local_row.setElement( j, global_row.getColumnIndex( j ), global_row.getValue( j ) );
       }
-
-      if( parameters.getParameter< bool >( "with-iterative" ) ) {
-         std::cout << "Iterative solvers:" << std::endl;
-         benchmarkIterativeSolvers( benchmark, parameters, distMatrixPointer, dist_x0, dist_b );
-      }
+      benchmarkIterativeSolvers( benchmark, parameters, distMatrixPointer, dist_x0, dist_b );
    }
 
    static void
@@ -484,48 +481,7 @@ struct LinearSolversBenchmark
                       const VectorType& x0,
                       const VectorType& b )
    {
-      // direct solvers
-      if( parameters.getParameter< bool >( "with-direct" ) ) {
-         using CSR = TNL::Matrices::
-            SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
-         auto matrixCopy = std::make_shared< CSR >();
-         Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
-         Matrices::compressSparseMatrix( *matrixCopy );
-         matrixCopy->sortColumnIndexes();
-
-#ifdef HAVE_UMFPACK
-         std::cout << "UMFPACK:" << std::endl;
-         if( std::is_same_v< DeviceType, TNL::Devices::Host > || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
-            benchmarkSolver< Solvers::Linear::UmfpackWrapper, Solvers::Linear::Preconditioners::Preconditioner >(
-               benchmark, parameters, matrixCopy, x0, b );
-#endif
-
-#ifdef HAVE_GINKGO
-         std::cout << "Ginkgo:" << std::endl;
-         benchmarkSolver< Solvers::Linear::GinkgoDirectSolver, Solvers::Linear::Preconditioners::Preconditioner >(
-            benchmark, parameters, matrixCopy, x0, b );
-   #ifdef __CUDACC__
-         std::cout << "Ginkgo with CUDA: \n";
-         using CudaCSR = TNL::Matrices::
-            SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
-         auto cudaMatrix = std::make_shared< CudaCSR >();
-         *cudaMatrix = *matrixCopy;
-         TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
-         benchmarkSolver< Solvers::Linear::GinkgoDirectSolver, Solvers::Linear::Preconditioners::Preconditioner >(
-            benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
-   #endif
-#endif
-
-#ifdef HAVE_ARMADILLO
-         std::cout << "Armadillo wrapper (which wraps SuperLU):" << std::endl;
-         benchmarkArmadillo( parameters, matrixCopy, x0, b );
-#endif
-      }
-
-      if( parameters.getParameter< bool >( "with-iterative" ) ) {
-         std::cout << "Iterative solvers:" << std::endl;
-         benchmarkIterativeSolvers( benchmark, parameters, matrixPointer, x0, b );
-      }
+      benchmarkIterativeSolvers( benchmark, parameters, matrixPointer, x0, b );
 
 #ifdef HAVE_CUSOLVER
       std::cout << "CuSOLVER:" << std::endl;
@@ -550,6 +506,55 @@ struct LinearSolversBenchmark
          using namespace Solvers::Linear::Preconditioners;
          benchmarkSolver< CuSolverWrapper, Preconditioner >( benchmark, parameters, cuda_matrixCopy, cuda_x0, cuda_b );
       }
+#endif
+   }
+
+   static void
+   runDirect( Benchmark<>& benchmark,
+              const Config::ParameterContainer& parameters,
+              const std::shared_ptr< MatrixType >& matrixPointer,
+              const VectorType& x0,
+              const VectorType& b )
+   {  // direct solvers
+
+      using CSR = TNL::Matrices::
+         SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
+      auto matrixCopy = std::make_shared< CSR >();
+      Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
+      Matrices::compressSparseMatrix( *matrixCopy );
+      matrixCopy->sortColumnIndexes();
+
+#ifdef HAVE_UMFPACK
+      benchmark.setOperation( "UMFPACK" );
+      if( std::is_same_v< DeviceType, TNL::Devices::Host > || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
+         benchmarkSolver< Solvers::Linear::UmfpackWrapper, Solvers::Linear::Preconditioners::Preconditioner >(
+            benchmark, parameters, matrixCopy, x0, b );
+#endif
+
+#ifdef HAVE_GINKGO
+      benchmark.setOperation( "Ginkgo" );
+      benchmarkSolver< Solvers::Linear::GinkgoDirectSolver, Solvers::Linear::Preconditioners::Preconditioner >(
+         benchmark, parameters, matrixCopy, x0, b );
+   #ifdef __CUDACC__
+      using CudaCSR = TNL::Matrices::
+         SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
+      auto cudaMatrix = std::make_shared< CudaCSR >();
+      *cudaMatrix = *matrixCopy;
+      TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
+      benchmarkSolver< Solvers::Linear::GinkgoDirectSolver, Solvers::Linear::Preconditioners::Preconditioner >(
+         benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
+   #endif
+#endif
+
+#ifdef HAVE_STRUMPACK
+      benchmark.setOperation( "Strumpack" );
+      benchmarkSolver< StrumpackWrapper, Solvers::Linear::Preconditioners::Preconditioner >(
+         benchmark, parameters, matrixCopy, x0, b );
+#endif
+
+#ifdef HAVE_ARMADILLO
+      std::cout << "Armadillo wrapper (which wraps SuperLU):" << std::endl;
+      benchmarkArmadillo( parameters, matrixCopy, x0, b );
 #endif
    }
 };
