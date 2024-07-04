@@ -1,3 +1,6 @@
+# Find the STRUMPACK library
+find_package(STRUMPACK)
+
 if(TNL_BUILD_CUDA)
     add_executable(tnl-benchmark-linear-solvers-cuda tnl-benchmark-linear-solvers.cu)
     target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC TNL::TNL)
@@ -23,6 +26,12 @@ if(TNL_BUILD_CUDA)
         target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC -lumfpack)
     endif()
 
+    if(STRUMPACK_FOUND)
+        target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_STRUMPACK")
+        target_include_directories(tnl-benchmark-linear-solvers-cuda PUBLIC ${STRUMPACK_INCLUDE_DIR})
+        target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC  STRUMPACK::strumpack )
+    endif()
+
 endif()
 
 # skip building host-only targets in CUDA-enabled CI jobs
@@ -46,6 +55,12 @@ if(TNL_BUILD_CPP_TARGETS)
         target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_UMFPACK")
         target_include_directories(tnl-benchmark-linear-solvers PUBLIC ${UMFPACK_INCLUDE_DIR})
         target_link_libraries(tnl-benchmark-linear-solvers PUBLIC -lumfpack)
+    endif()
+
+    if(STRUMPACK_FOUND)
+        target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_STRUMPACK")
+        target_include_directories(tnl-benchmark-linear-solvers PUBLIC ${STRUMPACK_INCLUDE_DIR})
+        target_link_libraries(tnl-benchmark-linear-solvers PUBLIC -lstrumpack)
     endif()
 
 endif()
