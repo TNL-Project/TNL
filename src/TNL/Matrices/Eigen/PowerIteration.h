@@ -53,12 +53,12 @@ namespace TNL::Matrices::Eigen {
  * \note The overload without an initial vector argument generates a random initial vector appropriate for the matrix size
  *       and type. The nature of the initial vector can affect the convergence speed of the algorithm.
  */
-template< typename T, typename Device, typename MatrixType >
-static std::tuple< T, TNL::Containers::Vector< T, Device >, int >
+template< typename Real, typename Device, typename MatrixType >
+std::tuple< Real, TNL::Containers::Vector< Real, Device >, int >
 powerIteration( const MatrixType& matrix,
-                const T& epsilon,
-                TNL::Containers::Vector< T, Device >& initialVec,
-                const uint& maxIterations = 100000 )
+                const Real& epsilon,
+                TNL::Containers::Vector< Real, Device >& initialVec,
+                const int& maxIterations = 100000 )
 {
    if( matrix.getRows() != matrix.getColumns() )
       throw std::invalid_argument( "Power iteration is possible only for square matrices" );
@@ -68,34 +68,34 @@ powerIteration( const MatrixType& matrix,
       throw std::invalid_argument( "The initial vector must have the same size as the matrix" );
    using IndexType = typename MatrixType::IndexType;
    IndexType vecSize = matrix.getColumns();
-   TNL::Containers::Vector< T, Device > eigenVecOut( vecSize );
+   TNL::Containers::Vector< Real, Device > eigenVecOut( vecSize );
    eigenVecOut.setValue( 0 );
-   T norm = 0;
-   T normOld = 0;
+   Real norm = 0;
+   Real normOld = 0;
    int iterations = 0;
-   TNL::Containers::Vector< T, Device > eigenVecOld( vecSize );
+   TNL::Containers::Vector< Real, Device > eigenVecOld( vecSize );
    eigenVecOld.setValue( 0 );
    //std::cout << "start" << "\n";
    norm = TNL::l2Norm( initialVec );
-   if(norm == 0)
+   if( norm == 0 )
       throw std::invalid_argument( "The initial vector must be nonzero" );
    if( norm != 1 )
       initialVec = initialVec / norm;
    while( true ) {
       matrix.vectorProduct( initialVec, eigenVecOut );
       norm = TNL::l2Norm( eigenVecOut );
-      if(isnan(norm))
-         break;
+      if( isnan( norm ) )
+         return std::make_tuple( norm, initialVec, -1 );
       initialVec = std::move( eigenVecOut / norm );
       iterations++;
-      if( iterations == maxIterations )
-         return std::make_tuple( norm, initialVec, -1 );
       if( TNL::abs( normOld - norm ) < epsilon ) {
          if( TNL::all( TNL::less( TNL::abs( initialVec - eigenVecOld ), epsilon ) ) )
             return std::make_tuple( norm, initialVec, iterations );
          if( TNL::all( TNL::less( TNL::abs( initialVec + eigenVecOld ), epsilon ) ) )
             return std::make_tuple( -norm, initialVec, iterations );
       }
+      if( iterations == maxIterations )
+         return std::make_tuple( norm, initialVec, 0 );
       eigenVecOld = initialVec;
       normOld = norm;
    }
@@ -103,21 +103,21 @@ powerIteration( const MatrixType& matrix,
    return std::make_tuple( norm, initialVec, iterations );
 }
 
-template< typename T, typename Device, typename MatrixType >
-static std::tuple< T, TNL::Containers::Vector< T, Device >, int >
-powerIteration( const MatrixType& matrix, const T& epsilon, const uint& maxIterations = 100000 )
+template< typename Real, typename Device, typename MatrixType >
+std::tuple< Real, TNL::Containers::Vector< Real, Device >, int >
+powerIteration( const MatrixType& matrix, const Real& epsilon, const int& maxIterations = 100000 )
 {
    using IndexType = typename MatrixType::IndexType;
    if( matrix.getRows() == 0 )
       throw std::invalid_argument( "Zero-sized matrices are not allowed" );
    IndexType vecSize = matrix.getRows();
-   TNL::Containers::Vector< T, Device > initialVec( vecSize );
+   TNL::Containers::Vector< Real, Device > initialVec( vecSize );
    initialVec.resize( vecSize );
-   if constexpr( std::is_integral_v< T > ) {
-      TNL::Algorithms::fillRandom< Device >( initialVec.getData(), vecSize, (T) -10000, (T) 10000 );
+   if constexpr( std::is_integral_v< Real > ) {
+      TNL::Algorithms::fillRandom< Device >( initialVec.getData(), vecSize, (Real) -10000, (Real) 10000 );
    }
    else {
-      TNL::Algorithms::fillRandom< Device >( initialVec.getData(), vecSize, (T) -1, (T) 1 );
+      TNL::Algorithms::fillRandom< Device >( initialVec.getData(), vecSize, (Real) -1, (Real) 1 );
    }
    return powerIteration( matrix, epsilon, initialVec, maxIterations );
 }

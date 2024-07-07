@@ -49,10 +49,10 @@ namespace TNL::Matrices::Eigen {
  * \note The specified precision (epsilon) controls the accuracy of the computed eigenvalues and eigenvectors. A smaller epsilon
  * results in higher precision but may necessitate a greater number of iterations to achieve convergence.
  */
-template< typename T, typename Device, typename MatrixType >
-static std::tuple< MatrixType, MatrixType, int >
+template< typename Real, typename Device, typename MatrixType >
+std::tuple< MatrixType, MatrixType, int >
 QRalgorithm( MatrixType matrix,
-             const T& epsilon,
+             const Real& epsilon,
              const TNL::Matrices::Factorization::QR::QRfactorizationType& QRtype,
              const int& maxIterations = 10000 )
 {
@@ -64,22 +64,21 @@ QRalgorithm( MatrixType matrix,
    IndexType size = matrix.getColumns();
    MatrixType Q( size, size );
    MatrixType R( size, size );
-   MatrixType Q_acc( size, size );
+   MatrixType accQ( size, size );
    int iterations = 0;
    for( int i = 0; i < size; i++ )
-      Q_acc.setElement( i, i, 1 );
+      accQ.setElement( i, i, 1 );
    while( true ) {
       TNL::Matrices::Factorization::QR::QRfactorization( matrix, Q, R, QRtype );
       matrix.getMatrixProduct( R, Q );
-      MatrixType Q_acc_pom( size, size );
-      Q_acc_pom.getMatrixProduct( Q_acc, Q );
-      Q_acc = std::move( Q_acc_pom );
+      MatrixType Q_acc_temp( size, size );
+      Q_acc_temp.getMatrixProduct( accQ, Q );
+      accQ = std::move( Q_acc_temp );
       bool converged = true;
       iterations++;
       for( IndexType i = 0; i < size - 1; i++ ) {
-         if(isnan(matrix.getElement( i + 1, i )))
-         {
-            return std::make_tuple( matrix, Q_acc, -1 );
+         if( isnan( matrix.getElement( i + 1, i ) ) ) {
+            return std::make_tuple( matrix, accQ, -1 );
          }
          if( abs( matrix.getElement( i + 1, i ) ) >= epsilon ) {
             converged = false;
@@ -88,14 +87,13 @@ QRalgorithm( MatrixType matrix,
       }
 
       if( converged ) {
-         break;
+         return std::make_tuple( matrix, accQ, iterations );
       }
       if( iterations == maxIterations ) {
-         iterations = 0;
-         break;
+         return std::make_tuple( matrix, accQ, 0 );
       }
    }
-   return std::make_tuple( matrix, Q_acc, iterations );
+   return std::make_tuple( matrix, accQ, iterations );
 }
 
 }  //namespace TNL::Matrices::Eigen

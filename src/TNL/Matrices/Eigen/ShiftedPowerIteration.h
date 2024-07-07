@@ -5,7 +5,6 @@
 
 #include <TNL/Matrices/Eigen/PowerIteration.h>
 #include <TNL/Matrices/LambdaMatrix.h>
-#include <concepts>
 
 namespace TNL::Matrices::Eigen {
 
@@ -43,13 +42,13 @@ namespace TNL::Matrices::Eigen {
  * \note In the overload without an initial vector, a random vector is generated as a starting point. The nature of this
  *       initial vector can affect the algorithm's convergence speed and success.
  */
-template< typename T, typename Device, typename MatrixType >
-static std::tuple< T, TNL::Containers::Vector< T, Device >, int >
-ShiftedPowerIteration( const MatrixType& matrix,
-                       const T& epsilon,
-                       const T& shiftValue,
-                       TNL::Containers::Vector< T, Device >& initialVec,
-                       const uint& maxIterations = 100000 )
+template< typename Real, typename Device, typename MatrixType >
+std::tuple< Real, TNL::Containers::Vector< Real, Device >, int >
+shiftedPowerIteration( const MatrixType& matrix,
+                       const Real& epsilon,
+                       const Real& shiftValue,
+                       TNL::Containers::Vector< Real, Device >& initialVec,
+                       const int& maxIterations = 100000 )
 {
    if( matrix.getRows() != matrix.getColumns() )
       throw std::invalid_argument( "Shifted power iteration is possible only for square matrices" );
@@ -71,7 +70,7 @@ ShiftedPowerIteration( const MatrixType& matrix,
                                                   const IndexType rowIdx,
                                                   const IndexType localIdx,
                                                   IndexType& columnIdx,
-                                                  T& value )
+                                                  Real& value )
    {
       auto row = matrix.getRow( rowIdx );
       IndexType size = row.getSize();
@@ -87,30 +86,32 @@ ShiftedPowerIteration( const MatrixType& matrix,
             value = row.getValue( localIdx );
       }
    };
-   using MatrixFactory = TNL::Matrices::LambdaMatrixFactory< T, Device, IndexType >;
+   using MatrixFactory = TNL::Matrices::LambdaMatrixFactory< Real, Device, IndexType >;
    auto shiftedMatrix = MatrixFactory::create( size, size, matrixElements, rowLengths );
-   std::tuple< T, TNL::Containers::Vector< T, Device >, int > tuple =
-      TNL::Matrices::Eigen::powerIteration< T, Device >( shiftedMatrix, epsilon, initialVec , maxIterations );
+   std::tuple< Real, TNL::Containers::Vector< Real, Device >, int > tuple =
+      TNL::Matrices::Eigen::powerIteration< Real, Device >( shiftedMatrix, epsilon, initialVec , maxIterations );
    return std::make_tuple( std::get< 0 >( tuple ) - shiftValue, std::get< 1 >( tuple ), std::get< 2 >( tuple ) );
 }
 
-template< typename T, typename Device, typename MatrixType >
-static std::tuple< T, TNL::Containers::Vector< T, Device >, int >
-ShiftedPowerIteration( const MatrixType& matrix, const T& epsilon, const T& shiftValue, const uint& maxIterations = 100000 )
+template< typename Real, typename Device, typename MatrixType >
+std::tuple< Real, TNL::Containers::Vector< Real, Device >, int >
+shiftedPowerIteration( const MatrixType& matrix, const Real& epsilon, const Real& shiftValue, const int& maxIterations = 100000 )
 {
    using IndexType = typename MatrixType::IndexType;
+      if( matrix.getRows() != matrix.getColumns() )
+      throw std::invalid_argument( "Shifted power iteration is possible only for square matrices" );
    if( matrix.getRows() == 0 )
       throw std::invalid_argument( "Zero-sized matrices are not allowed" );
    IndexType vecSize = matrix.getRows();
-   TNL::Containers::Vector< T, Device > initialVec( vecSize );
+   TNL::Containers::Vector< Real, Device > initialVec( vecSize );
    initialVec.resize( vecSize );
-   if constexpr( std::is_integral_v< T > ) {
-      TNL::Algorithms::fillRandom< Device >( initialVec.getData(), vecSize, (T) -10000, (T) 10000 );
+   if constexpr( std::is_integral_v< Real > ) {
+      TNL::Algorithms::fillRandom< Device >( initialVec.getData(), vecSize, (Real) -10000, (Real) 10000 );
    }
    else {
-      TNL::Algorithms::fillRandom< Device >( initialVec.getData(), vecSize, (T) -1, (T) 1 );
+      TNL::Algorithms::fillRandom< Device >( initialVec.getData(), vecSize, (Real) -1, (Real) 1 );
    }
-   return ShiftedPowerIteration( matrix, epsilon, shiftValue, initialVec, maxIterations );
+   return shiftedPowerIteration( matrix, epsilon, shiftValue, initialVec, maxIterations );
 }
 
 }  //namespace TNL::Matrices::Eigen
