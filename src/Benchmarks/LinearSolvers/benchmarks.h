@@ -16,14 +16,11 @@
 
 #include <stdexcept>  // std::runtime_error
 
-using namespace TNL;
-using namespace TNL::Benchmarks;
-
 template< typename Device >
 const char*
 getPerformer()
 {
-   if( std::is_same< Device, Devices::Cuda >::value )
+   if( std::is_same< Device, TNL::Devices::Cuda >::value )
       return "GPU";
    return "CPU";
 }
@@ -35,29 +32,29 @@ barrier( const Matrix& matrix )
 
 template< typename Matrix >
 void
-barrier( const Matrices::DistributedMatrix< Matrix >& matrix )
+barrier( const TNL::Matrices::DistributedMatrix< Matrix >& matrix )
 {
    TNL::MPI::Barrier( matrix.getCommunicator() );
 }
 
 template< typename Device >
 bool
-checkDevice( const Config::ParameterContainer& parameters )
+checkDevice( const TNL::Config::ParameterContainer& parameters )
 {
-   const String device = parameters.getParameter< String >( "devices" );
+   const TNL::String device = parameters.getParameter< TNL::String >( "devices" );
    if( device == "all" )
       return true;
-   if( std::is_same< Device, Devices::Host >::value && device == "host" )
+   if( std::is_same< Device, TNL::Devices::Host >::value && device == "host" )
       return true;
-   if( std::is_same< Device, Devices::Cuda >::value && device == "cuda" )
+   if( std::is_same< Device, TNL::Devices::Cuda >::value && device == "cuda" )
       return true;
    return false;
 }
 
 template< template< typename > class Preconditioner, typename Matrix >
 void
-benchmarkPreconditionerUpdate( Benchmark<>& benchmark,
-                               const Config::ParameterContainer& parameters,
+benchmarkPreconditionerUpdate( TNL::Benchmarks::Benchmark<>& benchmark,
+                               const TNL::Config::ParameterContainer& parameters,
                                const std::shared_ptr< Matrix >& matrix )
 {
    // skip benchmarks on devices which the user did not select
@@ -81,8 +78,8 @@ benchmarkPreconditionerUpdate( Benchmark<>& benchmark,
 
 template< template< typename > class Solver, template< typename > class Preconditioner, typename Matrix, typename Vector >
 void
-benchmarkSolver( Benchmark<>& benchmark,
-                 const Config::ParameterContainer& parameters,
+benchmarkSolver( TNL::Benchmarks::Benchmark<>& benchmark,
+                 const TNL::Config::ParameterContainer& parameters,
                  const std::shared_ptr< Matrix >& matrix,
                  const Vector& x0,
                  const Vector& b )
@@ -136,7 +133,7 @@ benchmarkSolver( Benchmark<>& benchmark,
 
    // subclass BenchmarkResult to add extra columns to the benchmark
    // (iterations, preconditioned residue, true residue)
-   struct MyBenchmarkResult : public BenchmarkResult
+   struct MyBenchmarkResult : public TNL::Benchmarks::BenchmarkResult
    {
       using HeaderElements = BenchmarkResult::HeaderElements;
       using RowElements = BenchmarkResult::RowElements;
