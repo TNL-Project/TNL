@@ -39,6 +39,7 @@
 #include "ordering.h"
 #include "benchmarks.h"
 #include "StrumpackWrapper.h"
+#include "TachoWrapper.h"
 
 // FIXME: nvcc 8.0 fails when cusolverSp.h is included (works fine with clang):
 // /opt/cuda/include/cuda_fp16.h(3068): error: more than one instance of overloaded function "isinf" matches the argument list:
@@ -509,46 +510,64 @@ struct LinearSolversBenchmark
    }
 
    static void
-   runDirect( Benchmark<>& benchmark,
-              const Config::ParameterContainer& parameters,
+   runDirect( TNL::Benchmarks::Benchmark<>& benchmark,
+              const TNL::Config::ParameterContainer& parameters,
               const std::shared_ptr< MatrixType >& matrixPointer,
               const VectorType& x0,
               const VectorType& b )
    {  // direct solvers
 
       using CSR = TNL::Matrices::
-         SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
+         SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
       auto matrixCopy = std::make_shared< CSR >();
-      Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
-      Matrices::compressSparseMatrix( *matrixCopy );
+      TNL::Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
+      TNL::Matrices::compressSparseMatrix( *matrixCopy );
       matrixCopy->sortColumnIndexes();
 
 #ifdef HAVE_UMFPACK
       benchmark.setOperation( "UMFPACK" );
       if( std::is_same_v< DeviceType, TNL::Devices::Host > || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
-         benchmarkSolver< Solvers::Linear::UmfpackWrapper, Solvers::Linear::Preconditioners::Preconditioner >(
+         benchmarkSolver< TNL::Solvers::Linear::UmfpackWrapper, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
             benchmark, parameters, matrixCopy, x0, b );
 #endif
 
 #ifdef HAVE_GINKGO
       benchmark.setOperation( "Ginkgo" );
-      benchmarkSolver< Solvers::Linear::GinkgoDirectSolver, Solvers::Linear::Preconditioners::Preconditioner >(
+      benchmarkSolver< TNL::Solvers::Linear::GinkgoDirectSolver, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
          benchmark, parameters, matrixCopy, x0, b );
    #ifdef __CUDACC__
       using CudaCSR = TNL::Matrices::
-         SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
+         SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
       auto cudaMatrix = std::make_shared< CudaCSR >();
       *cudaMatrix = *matrixCopy;
       TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
-      benchmarkSolver< Solvers::Linear::GinkgoDirectSolver, Solvers::Linear::Preconditioners::Preconditioner >(
+      benchmarkSolver< TNL::Solvers::Linear::GinkgoDirectSolver, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
          benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
    #endif
 #endif
 
 #ifdef HAVE_STRUMPACK
       benchmark.setOperation( "Strumpack" );
-      benchmarkSolver< StrumpackWrapper, Solvers::Linear::Preconditioners::Preconditioner >(
+      benchmarkSolver< StrumpackWrapper, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
          benchmark, parameters, matrixCopy, x0, b );
+      // Strumpack currently support only GPU offloading - https://github.com/pghysels/STRUMPACK/issues/113
+#endif
+
+#ifdef HAVE_TRILINOS
+      benchmark.setOperation( "Tacho" );
+      benchmarkSolver< TachoWrapper, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
+         benchmark, parameters, matrixCopy, x0, b );
+   #ifdef __CUDACC__
+      using CudaCSR = TNL::Matrices::
+         SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
+      if( ! std::is_same_v< Kokkos::DefaultHostExecutionSpace, Kokkos::DefaultExecutionSpace > ) {
+         auto cudaMatrix = std::make_shared< CudaCSR >();
+         *cudaMatrix = *matrixCopy;
+         TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
+         benchmarkSolver< TachoWrapper, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
+            benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
+      }
+   #endif
 #endif
 
 #ifdef HAVE_ARMADILLO
@@ -652,16 +671,25 @@ main( int argc, char* argv[] )
       logFile.open( logFileName, mode );
 
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
+   TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
 
    // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = getHardwareMetadata();
-   writeMapAsJson( metadata, logFileName, ".metadata.json" );
+   std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
+   TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
 
    // TODO: implement resolveMatrixType
    //   return ! Matrices::resolveMatrixType< MainConfig,
    //                                         Devices::Host,
    //                                         LinearSolversBenchmark >( benchmark, parameters );
-   using MatrixType = TNL::Matrices::SparseMatrix< double, Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
-   return ! LinearSolversBenchmark< MatrixType >::run( benchmark, parameters );
+   using MatrixType =
+      TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
+   bool ret_code = LinearSolversBenchmark< MatrixType >::run( benchmark, parameters );
+
+#ifdef HAVE_TRILINOS
+   Kokkos::finalize();
+#endif
+
+   if( ret_code )
+      return EXIT_SUCCESS;
+   return EXIT_FAILURE;
 }
