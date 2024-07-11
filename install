@@ -68,7 +68,8 @@ for option in "$@"; do
     fi
 done
 
-for option in "$@"; do
+while [[ $# -gt 0 ]]; do
+    option="$1"
     case $option in
         --prefix=*            ) PREFIX="${option#*=}" ;;
         --build-type=*        ) BUILD_TYPE="${option#*=}" ;;
@@ -79,10 +80,17 @@ for option in "$@"; do
         -B)
             shift
             BUILD_DIR="$1"
+            CONFIGURE_OPTIONS+=(-B "$1")
             ;;
         # -Bdir
         -B*)
             BUILD_DIR="${option#"-B"}"
+            CONFIGURE_OPTIONS+=("$option")
+            ;;
+        # -D something
+        -D)
+            shift
+            CONFIGURE_OPTIONS+=(-D "$1")
             ;;
         -*)
             CONFIGURE_OPTIONS+=("$option")
@@ -105,7 +113,6 @@ for target in "$@"; do
             echo "Use --help for more information." >&2
             exit 1
     esac
-    shift
 done
 
 # configure the build
