@@ -630,6 +630,10 @@ configSetup( TNL::Config::ConfigDescription& config )
    BiCGstabL::configSetup( config );
    using ILUT = TNL::Solvers::Linear::Preconditioners::ILUT< Matrix >;
    ILUT::configSetup( config );
+
+   config.addEntry< TNL::String >( "precision", "Precision of the solver.", "double" );
+   config.addEntryEnum( "double" );
+   config.addEntryEnum( "float" );
 }
 
 int
@@ -681,9 +685,19 @@ main( int argc, char* argv[] )
    //   return ! Matrices::resolveMatrixType< MainConfig,
    //                                         Devices::Host,
    //                                         LinearSolversBenchmark >( benchmark, parameters );
-   using MatrixType =
-      TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
-   bool ret_code = LinearSolversBenchmark< MatrixType >::run( benchmark, parameters );
+   auto precision = parameters.getParameter< TNL::String >( "precision" );
+   bool ret_code = false;
+   if( precision == "float" ) {
+      using MatrixType =
+         TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
+      ret_code = LinearSolversBenchmark< MatrixType >::run( benchmark, parameters );
+   }
+
+   if( precision == "double" ) {
+      using MatrixType =
+         TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
+      ret_code = LinearSolversBenchmark< MatrixType >::run( benchmark, parameters );
+   }
 
 #ifdef HAVE_TRILINOS
    Kokkos::finalize();

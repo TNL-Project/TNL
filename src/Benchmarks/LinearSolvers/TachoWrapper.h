@@ -14,8 +14,6 @@
 #include <TNL/Solvers/Linear/LinearSolver.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Algorithms/Segments/CSR.h>
-#include <TNL/Matrices/GinkgoOperator.h>
-#include <TNL/Containers/GinkgoVector.h>
 
 template< typename Device >
 struct KokkosDevice
