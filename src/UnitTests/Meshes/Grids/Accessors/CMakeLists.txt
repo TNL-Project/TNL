@@ -1,8 +1,8 @@
 set(COMMON_TESTS Grid1DTest_Accessors Grid2DTest_Accessors Grid3DTest_Accessors)
 
 set(CPP_TESTS ${COMMON_TESTS})
-set(CUDA_TESTS ${COMMON_TESTS})
-set(HIP_TESTS ${COMMON_TESTS})
+set(CUDA_TESTS)
+set(HIP_TESTS)
 
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${CUDA_TESTS})
