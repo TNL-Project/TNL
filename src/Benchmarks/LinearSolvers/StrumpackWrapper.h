@@ -10,8 +10,6 @@
 #include <TNL/Solvers/Linear/LinearSolver.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Algorithms/Segments/CSR.h>
-#include <TNL/Matrices/GinkgoOperator.h>
-#include <TNL/Containers/GinkgoVector.h>
 
 template< typename Matrix >
 class StrumpackWrapper : public TNL::Solvers::Linear::LinearSolver< Matrix >
@@ -64,5 +62,7 @@ public:
    }
 
 protected:
+#ifdef HAVE_STRUMPACK
    strumpack::StrumpackSparseSolver< RealType, IndexType > solver;
+#endif
 };
