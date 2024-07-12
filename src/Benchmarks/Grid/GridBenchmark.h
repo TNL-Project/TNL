@@ -82,7 +82,7 @@ public:
 
       Grid grid;
 
-      grid.setDimensions( dimensions );
+      grid.setSizes( dimensions );
 
       auto forEachEntityDimension = [ & ]( const auto entityDimension )
       {
@@ -120,7 +120,7 @@ public:
 
       auto operation = TNL::getType< Operation >();
 
-      const Benchmark::MetadataColumns columns = { { "dimensions", TNL::convertToString( grid.getDimensions() ) },
+      const Benchmark::MetadataColumns columns = { { "dimensions", TNL::convertToString( grid.getSizes() ) },
                                                    { "entity_dimension", TNL::convertToString( EntityDimension ) },
                                                    { "entitiesCounts",
                                                      TNL::convertToString( grid.getEntitiesCount( EntityDimension ) ) },
