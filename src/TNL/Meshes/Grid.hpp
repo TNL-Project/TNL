@@ -817,7 +817,7 @@ template< int Dimension, typename Real, typename Device, typename Index >
 void
 Grid< Dimension, Real, Device, Index >::fillProportions()
 {
-   this->proportions = this->spaceSteps * this->dimensions;
+   this->proportions = this->spaceSteps * this->sizes;
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
