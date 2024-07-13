@@ -199,9 +199,8 @@ template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension >
 __cuda_callable__
 auto
-Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityIdx,
-                                                              IndexType& totalOrientationIndex ) const noexcept
-   -> CoordinatesType
+Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityIdx, IndexType& totalOrientationIndex )
+   const noexcept -> CoordinatesType
 {
    if constexpr( EntityDimension != 0 && EntityDimension != getMeshDimension() ) {
       IndexType i = EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( 0 ) + EntityDimension + 1;
@@ -857,18 +856,14 @@ Grid< Dimension, Real, Device, Index >::forEntities( const CoordinatesType& begi
 {
    using GridEntityType = typename Grid::template EntityType< EntityDimension >;
    if constexpr( EntityDimension == getMeshDimension() || EntityDimension == 0 ) {
-      auto exec = [ = ] __cuda_callable__( GridEntityType & entity, const Grid& grid, Func f, FuncArgs... args ) mutable
+      auto exec = [ = ] __cuda_callable__( GridEntityType & entity, const Grid& grid, FuncArgs... args ) mutable
       {
          entity.setGrid( grid );
          entity.refresh();
-         f( entity, args... );
+         function( entity, args... );
       };
-      Algorithms::ParallelForND< Device, false >::exec( GridEntityType( begin_ ),
-                                                        GridEntityType( end_ + CoordinatesType( EntityDimension == 0 ) ),
-                                                        exec,
-                                                        *this,
-                                                        function,
-                                                        args... );
+      Algorithms::ParallelForND< Device, false >::exec(
+         GridEntityType( begin_ ), GridEntityType( end_ + CoordinatesType( EntityDimension == 0 ) ), exec, *this, args... );
    }
    else {
       /*auto exec = [ = ] __cuda_callable__( GridEntityType& entity, const Grid& grid,
@@ -884,9 +879,11 @@ Grid< Dimension, Real, Device, Index >::forEntities( const CoordinatesType& begi
       };
       const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension>();
       const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
-      const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, orientationsCount
-      ); GridEntityType begin( begin_ ); GridEntityType end( end_ + CoordinatesType( 1 ) ); begin[ Grid::getMeshDimension() ] =
-      totalOrientationsBegin; end[ Grid::getMeshDimension() ] = totalOrientationsEnd; Algorithms::ParallelForND< Device, false
+      const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension,
+      orientationsCount
+      ); GridEntityType begin( begin_ ); GridEntityType end( end_ + CoordinatesType( 1 ) ); begin[ Grid::getMeshDimension() ]
+      = totalOrientationsBegin; end[ Grid::getMeshDimension() ] = totalOrientationsEnd; Algorithms::ParallelForND< Device,
+      false
       >::exec( begin, end, exec, *this, args... );*/
 
       const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension >();
@@ -961,9 +958,11 @@ Grid< Dimension, Real, Device, Index >::forBoundaryEntities( const CoordinatesTy
       };
       const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension>();
       const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
-      const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, orientationsCount
-      ); GridEntityType begin( begin_ ); GridEntityType end( end_ + CoordinatesType( 1 ) ); begin[ Grid::getMeshDimension() ] =
-      totalOrientationsBegin; end[ Grid::getMeshDimension() ] = totalOrientationsEnd; Algorithms::ParallelForND< Device, false
+      const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension,
+      orientationsCount
+      ); GridEntityType begin( begin_ ); GridEntityType end( end_ + CoordinatesType( 1 ) ); begin[ Grid::getMeshDimension() ]
+      = totalOrientationsBegin; end[ Grid::getMeshDimension() ] = totalOrientationsEnd; Algorithms::ParallelForND< Device,
+      false
       >::exec( begin, end, exec, *this, args... );*/
 
       const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension >();
@@ -1032,7 +1031,8 @@ Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs
       };
       const Index orientationsCount = EntitiesOrientations::template getOrientationsCount< EntityDimension>();
       const IndexType totalOrientationsBegin = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, 0 );
-      const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension, orientationsCount
+      const IndexType totalOrientationsEnd = EntitiesOrientations::getTotalOrientationIndex( EntityDimension,
+      orientationsCount
       ); GridEntityType begin( CoordinatesType( 0 ) ); GridEntityType end( CoordinatesType( this->getSizes() ) ); begin[
       Grid::getMeshDimension() ] = totalOrientationsBegin; end[ Grid::getMeshDimension() ] = totalOrientationsEnd;
       Algorithms::ParallelForND< Device, false >::exec( begin, end, exec, *this, args... );*/

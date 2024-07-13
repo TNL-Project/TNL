@@ -91,10 +91,14 @@ public:
     *
     *  See. \ref TNL::Meshes::GridEntitiesOrientations for details.
     */
-   static constexpr IndexType getTotalOrientationsCount() { return EntitiesOrientations::getTotalOrientationsCount(); }
+   static constexpr IndexType
+   getTotalOrientationsCount()
+   {
+      return EntitiesOrientations::getTotalOrientationsCount();
+   }
 
-   template< int EntityDimension, int SuperentityDimension  >
-   using SuperentitiesContainer = Containers::StaticVector< 1 << ( SuperentityDimension - Dimension - 1), IndexType >;
+   template< int EntityDimension, int SuperentityDimension >
+   using SuperentitiesContainer = Containers::StaticVector< 1 << ( SuperentityDimension - Dimension - 1 ), IndexType >;
 
    /**
     * \brief Alias for grid entities with given dimension.
@@ -145,7 +149,8 @@ public:
    Grid( const CoordinatesType& dimensions );
 
    __cuda_callable__
-   const EntitiesOrientations& getEntitiesOrientations() const;
+   const EntitiesOrientations&
+   getEntitiesOrientations() const;
 
    /**
     * \brief Returns the number of orientations for entity dimension.
@@ -193,7 +198,7 @@ public:
    template< int EntityDimension >
    [[nodiscard]] __cuda_callable__
    Index
-   getEntitiesCount() const noexcept; // TODO: remove this if it is not necessary for compatibility with Mesh
+   getEntitiesCount() const noexcept;  // TODO: remove this if it is not necessary for compatibility with Mesh
 
    /**
     * \brief Returns number of entities of specific entity type as a template parameter.
@@ -205,7 +210,7 @@ public:
    template< typename Entity >
    [[nodiscard]] __cuda_callable__
    Index
-   getEntitiesCount() const noexcept; // TODO: remove this if it is not necessary for compatibility with Mesh
+   getEntitiesCount() const noexcept;  // TODO: remove this if it is not necessary for compatibility with Mesh
 
    /**
     * \brief Returns count of entities for all dimensions.
@@ -234,8 +239,7 @@ public:
     * \tparam EntityOrientation is orientation of the grid entities.
     * \return number of entities of specific dimension and orientation.
     */
-   template< int EntityDimension,
-             int EntityOrientation >
+   template< int EntityDimension, int EntityOrientation >
    [[nodiscard]] __cuda_callable__
    Index
    getOrientedEntitiesCount() const noexcept;
@@ -469,8 +473,7 @@ public:
    template< int OtherEntityDimension, typename Entity >
    __cuda_callable__
    Index
-   getEntityIndex( const Entity& entity, const CoordinatesType& offset,
-                   Index otherEntityOrientationIndex ) const;
+   getEntityIndex( const Entity& entity, const CoordinatesType& offset, Index otherEntityOrientationIndex ) const;
 
    /**
     * \brief Creates an entity shifted by \e offset from the original \e entity.
@@ -506,8 +509,7 @@ public:
    template< int OtherEntityDimension, typename Entity >
    __cuda_callable__
    EntityType< OtherEntityDimension >
-   getEntity( const Entity& entity, const CoordinatesType& offset,
-              const NormalsType& otherEntityOrientation ) const;
+   getEntity( const Entity& entity, const CoordinatesType& offset, const NormalsType& otherEntityOrientation ) const;
 
    /**
     * \brief Computes index of an entity shifted in a direction of one given axis from the
@@ -557,9 +559,10 @@ public:
     */
    template< int SuperentityDimension, typename Entity >
    __cuda_callable__
-   void getSuperentitiesIndexes( const Entity& entity,
-      SuperentitiesContainer< SuperentityDimension, Entity::getDimension() >& closer,
-      SuperentitiesContainer< SuperentityDimension, Entity::getDimension() >& remoter ) const;
+   void
+   getSuperentitiesIndexes( const Entity& entity,
+                            SuperentitiesContainer< SuperentityDimension, Entity::getDimension() >& closer,
+                            SuperentitiesContainer< SuperentityDimension, Entity::getDimension() >& remoter ) const;
 
    /**
     * \brief Computes indexes of faces belonging to given cell.
@@ -583,7 +586,8 @@ public:
     */
    template< typename Entity >
    __cuda_callable__
-   PointType getEntityOrigin( const Entity& entity ) const;
+   PointType
+   getEntityOrigin( const Entity& entity ) const;
 
    /**
     * \brief Computes point at the center of the entity.
@@ -594,7 +598,8 @@ public:
     */
    template< typename Entity >
    __cuda_callable__
-   PointType getEntityCenter( const Entity& entity ) const;
+   PointType
+   getEntityCenter( const Entity& entity ) const;
 
    /**
     * \brief Computes measure of the entity. i.e. volume of cell in 3D, surface of cell in 2D or faces in 3D,
@@ -606,7 +611,8 @@ public:
     */
    template< typename Entity >
    __cuda_callable__
-   RealType getEntityMeasure( const Entity& entity ) const;
+   RealType
+   getEntityMeasure( const Entity& entity ) const;
 
    /**
     * \brief Computes measure of a cell, i.e. volume of cell in 3D, surface of cell 2D, length of cell in 1D
@@ -626,7 +632,8 @@ public:
     */
    template< typename Entity >
    __cuda_callable__
-   bool isBoundaryEntity( const Entity& entity ) const;
+   bool
+   isBoundaryEntity( const Entity& entity ) const;
 
    /**
     * \brief Sets the subdomain of distributed grid.
@@ -873,8 +880,7 @@ public:
    partitionEntities( Vector& allEntities, int entitiesDimension, int entitiesOrientationIndex ) const;
 
 protected:
-
-   using CoordinatesMultiplicatorsContainer = Containers::StaticVector< getTotalOrientationsCount(),  CoordinatesType >;
+   using CoordinatesMultiplicatorsContainer = Containers::StaticVector< getTotalOrientationsCount(), CoordinatesType >;
 
    void
    setEntitiesIndexesOffsets();
@@ -1066,7 +1072,7 @@ protected:
     */
    CoordinatesMultiplicatorsContainer coordinatesMultiplicators;
 
-   EntitiesOrientations entitiesOrientations; // TODO: make this static - I do not know any good solution working with CUDA
+   EntitiesOrientations entitiesOrientations;  // TODO: make this static - I do not know any good solution working with CUDA
 };
 
 /**
