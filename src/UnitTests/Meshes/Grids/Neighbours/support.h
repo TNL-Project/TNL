@@ -24,11 +24,11 @@ public:
 
       constexpr int neighbourEntitiesOrientationsCount = Grid::getEntityOrientationsCount( NeighbourEntityDimension );
 
-      auto check = [ = ]( const typename Grid::template EntityType< EntityDimension >& entity ) mutable
+      auto check = [ = ] __cuda_callable__( const typename Grid::template EntityType< EntityDimension >& entity ) mutable
       {
          /////
          // First test neighbour entities with the same dimension and orientation
-         if constexpr( EntityDimension == NeighbourEntityDimension )
+         if( EntityDimension == NeighbourEntityDimension )  // TODO: add constexpr when nvcc accepts it
             if( TNL::all( TNL::greater( entity.getCoordinates() + offset, 0 ) )
                 && TNL::all(
                    TNL::less( entity.getCoordinates() + offset, entity.getGrid().getSizes() + entity.getNormals() ) ) )
@@ -239,6 +239,7 @@ protected:
          return result;
       }
    };
+};
 
 template< typename Grid, int EntityDimension, int NeighbourEntityDimension >
 void
