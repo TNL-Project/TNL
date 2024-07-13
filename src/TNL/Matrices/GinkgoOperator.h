@@ -82,8 +82,8 @@ public:
 
    GinkgoOperator( std::shared_ptr< const gko::Executor > exec, const Matrix& matrix )
    : gko::EnableLinOp< GinkgoOperator< Matrix > >(
-      exec,
-      gko::dim< 2 >{ static_cast< std::size_t >( matrix.getRows() ), static_cast< std::size_t >( matrix.getColumns() ) } ),
+        exec,
+        gko::dim< 2 >{ static_cast< std::size_t >( matrix.getRows() ), static_cast< std::size_t >( matrix.getColumns() ) } ),
      gko::EnableCreateMethod< GinkgoOperator< Matrix > >()
    {
       wrapped_matrix = &matrix;

@@ -79,8 +79,8 @@ EllpackBase< Device, Index, Organization, Alignment >::getStorageSize() const ->
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 __cuda_callable__
 auto
-EllpackBase< Device, Index, Organization, Alignment >::getGlobalIndex( const Index segmentIdx, const Index localIdx ) const
-   -> IndexType
+EllpackBase< Device, Index, Organization, Alignment >::getGlobalIndex( const Index segmentIdx,
+                                                                       const Index localIdx ) const -> IndexType
 {
    if constexpr( Organization == RowMajorOrder )
       return segmentIdx * this->segmentSize + localIdx;

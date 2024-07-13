@@ -186,7 +186,7 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
             stackArrBegin, stackArrEnd, stackDepth, stackTop, begin, begin + pivotBegin, begin + pivotEnd, end, iteration );
       }
       __syncthreads();  // sync to update stackTop
-   }                    // ends while loop
+   }  // ends while loop
 }
 
 //--------------------------------------------------------------

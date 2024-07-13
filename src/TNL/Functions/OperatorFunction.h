@@ -66,26 +66,27 @@ public:
    getEntitiesDimension()
    {
       return OperatorType::getImageEntitiesDimension();
-   };
+   }
 
-   OperatorFunction( const OperatorType& operator_ ) : operator_( operator_ ), preimageFunction( 0 ){};
+   OperatorFunction( const OperatorType& operator_ ) : operator_( operator_ ), preimageFunction( 0 ) {}
 
    OperatorFunction( const OperatorType& operator_, const FunctionType& preimageFunction )
-   : operator_( operator_ ), preimageFunction( &preimageFunction ){};
+   : operator_( operator_ ), preimageFunction( &preimageFunction )
+   {}
 
    const MeshType&
    getMesh() const
    {
       TNL_ASSERT_TRUE( this->preimageFunction, "The preimage function was not set." );
       return this->preimageFunction->getMesh();
-   };
+   }
 
    const MeshPointer&
    getMeshPointer() const
    {
       TNL_ASSERT_TRUE( this->preimageFunction, "The preimage function was not set." );
       return this->preimageFunction->getMeshPointer();
-   };
+   }
 
    void
    setPreimageFunction( const FunctionType& preimageFunction )
@@ -109,13 +110,13 @@ public:
    refresh( const RealType& time = 0.0 )
    {
       return true;
-   };
+   }
 
    bool
    deepRefresh( const RealType& time = 0.0 )
    {
       return true;
-   };
+   }
 
    template< typename MeshEntity >
    __cuda_callable__
@@ -165,49 +166,50 @@ public:
    getEntitiesDimension()
    {
       return OperatorType::getImageEntitiesDimension();
-   };
+   }
 
-   OperatorFunction( OperatorType& operator_, const MeshPointer& mesh ) : operator_( operator_ ), imageFunction( mesh ){};
+   OperatorFunction( OperatorType& operator_, const MeshPointer& mesh ) : operator_( operator_ ), imageFunction( mesh ) {}
 
    OperatorFunction( OperatorType& operator_, PreimageFunctionType& preimageFunction )
-   : operator_( operator_ ), imageFunction( preimageFunction.getMeshPointer() ), preimageFunction( &preimageFunction ){};
+   : operator_( operator_ ), imageFunction( preimageFunction.getMeshPointer() ), preimageFunction( &preimageFunction )
+   {}
 
    const MeshType&
    getMesh() const
    {
       return this->imageFunction.getMesh();
-   };
+   }
 
    const MeshPointer&
    getMeshPointer() const
    {
       return this->imageFunction.getMeshPointer();
-   };
+   }
 
    ImageFunctionType&
    getImageFunction()
    {
       return this->imageFunction;
-   };
+   }
 
    const ImageFunctionType&
    getImageFunction() const
    {
       return this->imageFunction;
-   };
+   }
 
    void
    setPreimageFunction( PreimageFunctionType& preimageFunction )
    {
       this->preimageFunction = &preimageFunction;
       this->imageFunction.setMesh( preimageFunction.getMeshPointer() );
-   };
+   }
 
    const PreimageFunctionType&
    getPreimageFunction() const
    {
       return *this->preimageFunction;
-   };
+   }
 
    Operator&
    getOperator()
@@ -230,7 +232,7 @@ public:
          return false;
       this->imageFunction = operatorFunction;
       return true;
-   };
+   }
 
    bool
    deepRefresh( const RealType& time = 0.0 )
@@ -238,7 +240,7 @@ public:
       if( ! this->preimageFunction->deepRefresh( time ) )
          return false;
       return this->refresh( time );
-   };
+   }
 
    template< typename MeshEntity >
    __cuda_callable__
@@ -299,32 +301,33 @@ public:
    getEntitiesDimension()
    {
       return OperatorType::getImageEntitiesDimension();
-   };
+   }
 
    OperatorFunction( OperatorType& operator_, const BoundaryConditionsType& boundaryConditions, const MeshPointer& meshPointer )
    : operator_( operator_ ), boundaryConditions( boundaryConditions ), imageFunction( meshPointer )  //,
    // preimageFunction( 0 )
    {
       this->preimageFunction = NULL;
-   };
+   }
 
    OperatorFunction( OperatorType& operator_,
                      const BoundaryConditionsType& boundaryConditions,
                      const PreimageFunctionType& preimageFunction )
    : operator_( operator_ ), boundaryConditions( boundaryConditions ), imageFunction( preimageFunction.getMeshPointer() ),
-     preimageFunction( &preimageFunction ){};
+     preimageFunction( &preimageFunction )
+   {}
 
    const MeshType&
    getMesh() const
    {
       return imageFunction.getMesh();
-   };
+   }
 
    const MeshPointer&
    getMeshPointer() const
    {
       return imageFunction.getMeshPointer();
-   };
+   }
 
    void
    setPreimageFunction( const PreimageFunctionType& preimageFunction )
@@ -337,26 +340,26 @@ public:
    {
       TNL_ASSERT_TRUE( this->preimageFunction, "The preimage function was not set." );
       return *this->preimageFunction;
-   };
+   }
 
    PreimageFunctionType&
    getPreimageFunction()
    {
       TNL_ASSERT_TRUE( this->preimageFunction, "The preimage function was not set." );
       return *this->preimageFunction;
-   };
+   }
 
    const ImageFunctionType&
    getImageFunction() const
    {
       return this->imageFunction;
-   };
+   }
 
    ImageFunctionType&
    getImageFunction()
    {
       return this->imageFunction;
-   };
+   }
 
    Operator&
    getOperator()
@@ -381,13 +384,13 @@ public:
       Solvers::PDE::BoundaryConditionsSetter< ImageFunctionType, BoundaryConditionsType >::apply(
          this->boundaryConditions, time, this->imageFunction );
       return true;
-   };
+   }
 
    bool
    deepRefresh( const RealType& time = 0.0 )
    {
       return preimageFunction->deepRefresh( time ) && this->refresh( time );
-   };
+   }
 
    template< typename MeshEntity >
    __cuda_callable__

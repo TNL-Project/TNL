@@ -18,7 +18,7 @@ class tnlFlopsCounter
    long int functions_flops;
 
 public:
-   tnlFlopsCounter() : compute_flops( true ), adding_flops( 0 ), multiplying_flops( 0 ), dividing_flops( 0 ){};
+   tnlFlopsCounter() : compute_flops( true ), adding_flops( 0 ), multiplying_flops( 0 ), dividing_flops( 0 ) {};
 
    void
    recordAdding( const int ops = 1 )

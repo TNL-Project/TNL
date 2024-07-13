@@ -46,7 +46,7 @@ protected:
    {
       // This constructor is here only because of bug in g++, we might fix it later.
       // http://stackoverflow.com/questions/22357887/comparing-two-mapiterators-why-does-it-need-the-copy-constructor-of-stdpair
-      DataWithIndex(){};
+      DataWithIndex() {}
 
       DataWithIndex( const DataWithIndex& d ) : data( d.data ), index( d.index ) {}
 

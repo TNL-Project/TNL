@@ -15,13 +15,13 @@ class Real
    T data;
 
 public:
-   Real() : data( 0 ){};
+   Real() : data( 0 ) {};
 
    template< class S >
    Real( const S& d ) : data( d )
    {}
 
-   Real( const Real& v ) : data( v.data ){};
+   Real( const Real& v ) : data( v.data ) {};
 
    T&
    Data()

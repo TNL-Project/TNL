@@ -102,13 +102,13 @@ public:
          FunctionType::configSetup( config, prefix + convertToString( i ) + "-" );
    }
 
-   VectorField(){};
+   VectorField() {}
 
    VectorField( const MeshPointer& meshPointer )
    {
       for( int i = 0; i < Size; i++ )
          this->vectorField[ i ]->setMesh( meshPointer );
-   };
+   }
 
    void
    setMesh( const MeshPointer& meshPointer )
@@ -321,13 +321,13 @@ public:
          FunctionType::configSetup( config, prefix + convertToString( i ) + "-" );
    }
 
-   VectorField(){};
+   VectorField() {}
 
    VectorField( const MeshPointer& meshPointer )
    {
       for( int i = 0; i < Size; i++ )
          this->vectorField[ i ]->setMesh( meshPointer );
-   };
+   }
 
    void
    setMesh( const MeshPointer& meshPointer )
@@ -373,7 +373,7 @@ public:
       for( int i = 0; i < Size; i++ ) {
          this->vectorField[ i ]->bind( vectorField[ i ] );
       }
-   };
+   }
 
    template< typename Vector >
    void
