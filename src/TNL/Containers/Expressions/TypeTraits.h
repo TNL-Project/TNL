@@ -42,9 +42,10 @@ template< typename ET1, typename ET2, typename T = void >
 using EnableIfBinaryExpression_t = std::enable_if_t<
    // we need to avoid ambiguity with operators defined in Array (e.g. Array::operator==)
    // so the first operand must not be Array
-   (HasAddAssignmentOperator< std::decay_t< ET1 > >::value || HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
-    || std::is_arithmetic_v< std::decay_t< ET1 > >) &&( HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value
-                                                        || HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value ),
+   ( HasAddAssignmentOperator< std::decay_t< ET1 > >::value || HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
+     || std::is_arithmetic_v< std::decay_t< ET1 > > )
+      && ( HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value
+           || HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value ),
    T >;
 
 template< typename ET1, typename T = void >
@@ -55,11 +56,10 @@ template< typename ET1, typename ET2, typename T = void >
 using EnableIfDistributedBinaryExpression_t = std::enable_if_t<
    // we need to avoid ambiguity with operators defined in Array (e.g. Array::operator==)
    // so the first operand must not be Array
-   (HasAddAssignmentOperator< std::decay_t< ET1 > >::value
-    || HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
-    || std::is_arithmetic_v< std::decay_t< ET1 > >) &&( HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value
-                                                        || HasEnabledDistributedExpressionTemplates<
-                                                           std::decay_t< ET1 > >::value ),
+   ( HasAddAssignmentOperator< std::decay_t< ET1 > >::value
+     || HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value || std::is_arithmetic_v< std::decay_t< ET1 > > )
+      && ( HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value
+           || HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value ),
    T >;
 
 // helper trait class for recursively turning expression template classes into compatible vectors

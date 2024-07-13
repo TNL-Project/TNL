@@ -2,6 +2,9 @@
 # cmake 3.25 is required for the "SYSTEM" keyword in FetchContent_Declare
 cmake_minimum_required(VERSION 3.25)
 
+# set all CMake policies introduced in versions up to 3.30 to NEW
+cmake_policy(VERSION 3.25...3.30)
+
 project(TNL)
 
 set(tnlVersion "0.1")

@@ -5,6 +5,7 @@
 
 #include <TNL/Devices/Host.h>
 #include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Containers/Vector.h>
 
 namespace TNL {
 namespace Benchmarks {
@@ -34,7 +35,8 @@ struct SimpleProblem
 
    template< typename Vector >
    void
-   applyBoundaryConditions( const RealType& t, Vector& u ){};
+   applyBoundaryConditions( const RealType& t, Vector& u )
+   {}
 };
 
 }  // namespace Benchmarks

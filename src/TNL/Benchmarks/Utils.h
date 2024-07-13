@@ -108,26 +108,31 @@ getHardwareMetadata()
       nproc = TNL::MPI::GetSize();
 #endif
 
-   std::map< std::string, std::string > metadata
-   {
-      { "host name", getHostname() }, { "architecture", getSystemArchitecture() }, { "system", getSystemName() },
-         { "system release", getSystemRelease() }, { "compiler", getCompilerName() }, { "start time", getCurrentTime() },
+   std::map< std::string, std::string > metadata{
+      { "host name", getHostname() },
+      { "architecture", getSystemArchitecture() },
+      { "system", getSystemName() },
+      { "system release", getSystemRelease() },
+      { "compiler", getCompilerName() },
+      { "start time", getCurrentTime() },
 #ifdef HAVE_MPI
-         { "number of MPI processes", std::to_string( nproc ) },
+      { "number of MPI processes", std::to_string( nproc ) },
 #endif
-         { "OpenMP enabled", Devices::Host::isOMPEnabled() ? "yes" : "no" },
-         { "OpenMP threads", std::to_string( Devices::Host::getMaxThreadsCount() ) },
-         { "CPU model name", getCPUInfo().modelName }, { "CPU cores", std::to_string( getCPUInfo().cores ) },
-         { "CPU threads per core", std::to_string( getCPUInfo().threads / getCPUInfo().cores ) },
-         { "CPU max frequency (MHz)", std::to_string( getCPUMaxFrequency() / 1e3 ) },
-         { "CPU cache sizes (L1d, L1i, L2, L3) (kiB)", cacheInfo },
+      { "OpenMP enabled", Devices::Host::isOMPEnabled() ? "yes" : "no" },
+      { "OpenMP threads", std::to_string( Devices::Host::getMaxThreadsCount() ) },
+      { "CPU model name", getCPUInfo().modelName },
+      { "CPU cores", std::to_string( getCPUInfo().cores ) },
+      { "CPU threads per core", std::to_string( getCPUInfo().threads / getCPUInfo().cores ) },
+      { "CPU max frequency (MHz)", std::to_string( getCPUMaxFrequency() / 1e3 ) },
+      { "CPU cache sizes (L1d, L1i, L2, L3) (kiB)", cacheInfo },
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-         { "GPU name", Backend::getDeviceName( activeGPU ) }, { "GPU architecture", deviceArch },
-         { "GPU CUDA cores", std::to_string( Backend::getDeviceCores( activeGPU ) ) },
-         { "GPU clock rate (MHz)", std::to_string( (double) Backend::getClockRate( activeGPU ) / 1e3 ) },
-         { "GPU global memory (GB)", std::to_string( (double) Backend::getGlobalMemorySize( activeGPU ) / 1e9 ) },
-         { "GPU memory clock rate (MHz)", std::to_string( (double) Backend::getMemoryClockRate( activeGPU ) / 1e3 ) },
-         { "GPU memory ECC enabled", std::to_string( Backend::getECCEnabled( activeGPU ) ) },
+      { "GPU name", Backend::getDeviceName( activeGPU ) },
+      { "GPU architecture", deviceArch },
+      { "GPU CUDA cores", std::to_string( Backend::getDeviceCores( activeGPU ) ) },
+      { "GPU clock rate (MHz)", std::to_string( (double) Backend::getClockRate( activeGPU ) / 1e3 ) },
+      { "GPU global memory (GB)", std::to_string( (double) Backend::getGlobalMemorySize( activeGPU ) / 1e9 ) },
+      { "GPU memory clock rate (MHz)", std::to_string( (double) Backend::getMemoryClockRate( activeGPU ) / 1e3 ) },
+      { "GPU memory ECC enabled", std::to_string( Backend::getECCEnabled( activeGPU ) ) },
 #endif
    };
 

@@ -8,8 +8,6 @@
 
 #include <TNL/Benchmarks/Benchmarks.h>
 
-#include <stdexcept>  // std::runtime_error
-
 using namespace TNL;
 using namespace TNL::Pointers;
 using namespace TNL::Benchmarks;
