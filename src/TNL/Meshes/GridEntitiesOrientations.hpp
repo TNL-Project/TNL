@@ -1,10 +1,5 @@
-// Copyright (c) 2004-2022 Tomáš Oberhuber et al.
-//
-// This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
-//
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
-
-// Implemented by: Tomáš Oberhuber, Yury Hayeu
 
 #pragma once
 
@@ -15,17 +10,18 @@ namespace Meshes {
 
 template< int GridDimension >
 constexpr int
-GridEntitiesOrientations< GridDimension >::
-getTotalOrientationsCount() {
+GridEntitiesOrientations< GridDimension >::getTotalOrientationsCount()
+{
    return cumulativeCombinationsCount( GridDimension, GridDimension );
 }
 
 template< int GridDimension >
 constexpr int
-GridEntitiesOrientations< GridDimension >::
-getEntityDimension( int totalOrientationIndex )
+GridEntitiesOrientations< GridDimension >::getEntityDimension( int totalOrientationIndex )
 {
-   TNL_ASSERT_LT( totalOrientationIndex, GridEntitiesOrientations< GridDimension >::getTotalOrientationsCount(), "Wrong total orientation index." );
+   TNL_ASSERT_LT( totalOrientationIndex,
+                  GridEntitiesOrientations< GridDimension >::getTotalOrientationsCount(),
+                  "Wrong total orientation index." );
    int dim = 0;
    while( totalOrientationIndex >= getOrientationsCount( dim ) && dim < GridDimension )
       totalOrientationIndex -= getOrientationsCount( dim++ );
@@ -33,120 +29,114 @@ getEntityDimension( int totalOrientationIndex )
 }
 
 template< int GridDimension >
-   template< int TotalOrientation >
+template< int TotalOrientation >
 constexpr int
-GridEntitiesOrientations< GridDimension >::
-getEntityDimension() {
+GridEntitiesOrientations< GridDimension >::getEntityDimension()
+{
    return NormalsGetter< int, 0, GridDimension >::template getEntityDimension< TotalOrientation >();
 }
 template< int GridDimension >
-   template< int EntityDimension >
+template< int EntityDimension >
 constexpr int
-GridEntitiesOrientations< GridDimension >::
-getOrientationsCount() {
+GridEntitiesOrientations< GridDimension >::getOrientationsCount()
+{
    return combinationsCount( EntityDimension, GridDimension );
 }
 
 template< int GridDimension >
 constexpr int
-GridEntitiesOrientations< GridDimension >::
-getOrientationsCount( int entityDimension ) {
+GridEntitiesOrientations< GridDimension >::getOrientationsCount( int entityDimension )
+{
    return combinationsCount( entityDimension, GridDimension );
 }
 template< int GridDimension >
-   template< int EntityDimension >
+template< int EntityDimension >
 constexpr int
-GridEntitiesOrientations< GridDimension >::
-getOrientationIndex( int totalOrientationIndex )
+GridEntitiesOrientations< GridDimension >::getOrientationIndex( int totalOrientationIndex )
 {
    return totalOrientationIndex - cumulativeCombinationsCount( EntityDimension - 1, GridDimension );
 }
 
 template< int GridDimension >
-   template< int EntityDimension, int... Normals >
+template< int EntityDimension, int... Normals >
 constexpr int
-GridEntitiesOrientations< GridDimension >::
-getOrientationIndex() {
+GridEntitiesOrientations< GridDimension >::getOrientationIndex()
+{
    return NormalsGetter< int, EntityDimension, GridDimension >::template getOrientationIndex< Normals... >();
 }
 
 template< int GridDimension >
-   template< int... Normals >
+template< int... Normals >
 constexpr int
-GridEntitiesOrientations< GridDimension >::
-getTotalOrientationIndex() {
+GridEntitiesOrientations< GridDimension >::getTotalOrientationIndex()
+{
    return NormalsGetter< int, 0, GridDimension >::template getTotalOrientationIndex< Normals... >();
 }
 
 template< int GridDimension >
-   template< int EntityDimension >
+template< int EntityDimension >
 constexpr int
-GridEntitiesOrientations< GridDimension >::
-getTotalOrientationIndex( int orientationIndex ) {
+GridEntitiesOrientations< GridDimension >::getTotalOrientationIndex( int orientationIndex )
+{
    return cumulativeCombinationsCount( EntityDimension - 1, GridDimension ) + orientationIndex;
 }
 
 template< int GridDimension >
 constexpr int
-GridEntitiesOrientations< GridDimension >::
-getTotalOrientationIndex( int entityDimension, int orientation ) {
+GridEntitiesOrientations< GridDimension >::getTotalOrientationIndex( int entityDimension, int orientation )
+{
    return cumulativeCombinationsCount( entityDimension - 1, GridDimension ) + orientation;
 }
 
 template< int GridDimension >
-   template< int EntityDimension, int Orientation >
-auto
-__cuda_callable__
-GridEntitiesOrientations< GridDimension >::
-getNormals() -> NormalsType {
+template< int EntityDimension, int Orientation >
+auto __cuda_callable__
+GridEntitiesOrientations< GridDimension >::getNormals()->NormalsType
+{
    return NormalsGetter< int, EntityDimension, GridDimension >::template getNormals< Orientation >();
 }
 
 template< int GridDimension >
-   template< int TotalOrientation >
-auto
-__cuda_callable__
-GridEntitiesOrientations< GridDimension >::
-getNormals() -> NormalsType {
+template< int TotalOrientation >
+auto __cuda_callable__
+GridEntitiesOrientations< GridDimension >::getNormals()->NormalsType
+{
    static_assert( TotalOrientation >= 0 && TotalOrientation < ( 1 << GridDimension ), "Wrong index of total orientation." );
    return NormalsGetter< int, 0, GridDimension >::template getNormalsByTotalOrientation< TotalOrientation >();
 }
 
 template< int GridDimension >
 __cuda_callable__
-GridEntitiesOrientations< GridDimension >::
-   GridEntitiesOrientations() { addNormalsToTable< 0, 0 >( 0 ); }
+GridEntitiesOrientations< GridDimension >::GridEntitiesOrientations()
+{
+   addNormalsToTable< 0, 0 >( 0 );
+}
 
 template< int GridDimension >
-   template< int EntityDimension >
-auto
-__cuda_callable__
-GridEntitiesOrientations< GridDimension >::
-getNormals( int orientation ) const -> const NormalsType& {
+template< int EntityDimension >
+auto __cuda_callable__
+GridEntitiesOrientations< GridDimension >::getNormals( int orientation ) const->const NormalsType&
+{
    return normalsTable[ getTotalOrientationIndex< EntityDimension >( orientation ) ];
 }
 
 template< int GridDimension >
-auto
-__cuda_callable__
-GridEntitiesOrientations< GridDimension >::
-getNormals( int entityDimension, int orientation ) const -> const NormalsType& {
+auto __cuda_callable__
+GridEntitiesOrientations< GridDimension >::getNormals( int entityDimension, int orientation ) const->const NormalsType&
+{
    return normalsTable[ getTotalOrientationIndex( entityDimension, orientation ) ];
 }
 
 template< int GridDimension >
-auto
-__cuda_callable__
-GridEntitiesOrientations< GridDimension >::
-getNormals( int totalOrientation ) const -> const NormalsType& {
+auto __cuda_callable__
+GridEntitiesOrientations< GridDimension >::getNormals( int totalOrientation ) const->const NormalsType&
+{
    return normalsTable[ totalOrientation ];
 }
 
 template< int GridDimension >
-int
-__cuda_callable__
-GridEntitiesOrientations< GridDimension >::
-getEntityDimension( const NormalsType& normals )
+int __cuda_callable__
+GridEntitiesOrientations< GridDimension >::getEntityDimension( const NormalsType& normals )
 {
    TNL_ASSERT_GE( sum( normals ), 0, "Wrong normals for entity orientation." );
    TNL_ASSERT_LE( sum( normals ), GridDimension, "Wrong normals for entity orientation." );
@@ -154,17 +144,14 @@ getEntityDimension( const NormalsType& normals )
 }
 
 template< int GridDimension >
-int
-__cuda_callable__
-GridEntitiesOrientations< GridDimension >::
-getOrientationIndex( const NormalsType& normals ) const
+int __cuda_callable__
+GridEntitiesOrientations< GridDimension >::getOrientationIndex( const NormalsType& normals ) const
 {
    const int entityDimension = getEntityDimension( normals );
    const int begin = cumulativeCombinationsCount( entityDimension - 1, GridDimension );
    const int end = cumulativeCombinationsCount( entityDimension, GridDimension );
    int orientationIdx = 0;
-   for( int i = begin; i < end; i++, orientationIdx++ )
-   {
+   for( int i = begin; i < end; i++, orientationIdx++ ) {
       if( normalsTable[ i ] == normals )
          return orientationIdx;
    }
@@ -172,10 +159,8 @@ getOrientationIndex( const NormalsType& normals ) const
 }
 
 template< int GridDimension >
-int
-__cuda_callable__
-GridEntitiesOrientations< GridDimension >::
-getTotalOrientationIndex( const NormalsType& normals ) const
+int __cuda_callable__
+GridEntitiesOrientations< GridDimension >::getTotalOrientationIndex( const NormalsType& normals ) const
 {
    const int entityDimension = getEntityDimension( normals );
    const int begin = cumulativeCombinationsCount( entityDimension - 1, GridDimension );
@@ -187,11 +172,10 @@ getTotalOrientationIndex( const NormalsType& normals ) const
 }
 
 template< int GridDimension >
-   template< int EntityDimension, int Orientation >
-void
-__cuda_callable__
-GridEntitiesOrientations< GridDimension >::
-addNormalsToTable( int offset ) {
+template< int EntityDimension, int Orientation >
+void __cuda_callable__
+GridEntitiesOrientations< GridDimension >::addNormalsToTable( int offset )
+{
    normalsTable[ offset ] = getNormals< EntityDimension, Orientation >();
    if constexpr( Orientation < getOrientationsCount< EntityDimension >() - 1 )
       addNormalsToTable< EntityDimension, Orientation + 1 >( offset + 1 );
@@ -199,5 +183,5 @@ addNormalsToTable( int offset ) {
       addNormalsToTable< EntityDimension + 1, 0 >( offset + 1 );
 }
 
-} //namespace Meshes
-} //namespace TNL
+}  //namespace Meshes
+}  //namespace TNL
