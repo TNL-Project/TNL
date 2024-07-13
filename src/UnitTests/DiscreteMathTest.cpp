@@ -71,7 +71,7 @@ TEST( DiscreteMathTest, Log2Test )
 void
 testCombinations( const int k, const int n, const int expectation )
 {
-   EXPECT_EQ( TNL::combinationsCount( k, n ), expectation ) << " k = " << k << " n =  " << n;;
+   EXPECT_EQ( TNL::combinationsCount( k, n ), expectation ) << " k = " << k << " n =  " << n;
 }
 
 TEST( DiscreteMathTest, CombinationsTest )
@@ -95,28 +95,31 @@ TEST( DiscreteMathTest, CombinationsTest )
    testCombinations( 4, 4, 1 );
 }
 
-void testCumulativeCombinations(const int k, const int n, const int expectation) {
-   EXPECT_EQ(TNL::cumulativeCombinationsCount(k, n), expectation) << " k = " << k << " n =  " << n;
+void
+testCumulativeCombinations( const int k, const int n, const int expectation )
+{
+   EXPECT_EQ( TNL::cumulativeCombinationsCount( k, n ), expectation ) << " k = " << k << " n =  " << n;
 }
 
-TEST(TemplatesTestSuite, cumulativeCombinationsTest) {
-  testCumulativeCombinations(0, 1, 1);
-  testCumulativeCombinations(1, 1, 2);
+TEST( TemplatesTestSuite, cumulativeCombinationsTest )
+{
+   testCumulativeCombinations( 0, 1, 1 );
+   testCumulativeCombinations( 1, 1, 2 );
 
-  testCumulativeCombinations(0, 2, 1);
-  testCumulativeCombinations(1, 2, 3);
-  testCumulativeCombinations(2, 2, 4);
+   testCumulativeCombinations( 0, 2, 1 );
+   testCumulativeCombinations( 1, 2, 3 );
+   testCumulativeCombinations( 2, 2, 4 );
 
-  testCumulativeCombinations(0, 3, 1);
-  testCumulativeCombinations(1, 3, 4);
-  testCumulativeCombinations(2, 3, 7);
-  testCumulativeCombinations(3, 3, 8);
+   testCumulativeCombinations( 0, 3, 1 );
+   testCumulativeCombinations( 1, 3, 4 );
+   testCumulativeCombinations( 2, 3, 7 );
+   testCumulativeCombinations( 3, 3, 8 );
 
-  testCumulativeCombinations(0, 4, 1 );
-  testCumulativeCombinations(1, 4, 5 );
-  testCumulativeCombinations(2, 4, 11);
-  testCumulativeCombinations(3, 4, 15);
-  testCumulativeCombinations(4, 4, 16);
+   testCumulativeCombinations( 0, 4, 1 );
+   testCumulativeCombinations( 1, 4, 5 );
+   testCumulativeCombinations( 2, 4, 11 );
+   testCumulativeCombinations( 3, 4, 15 );
+   testCumulativeCombinations( 4, 4, 16 );
 }
 
 TEST( DiscreteMathTest, detectMultiplicationOverflowTest )
