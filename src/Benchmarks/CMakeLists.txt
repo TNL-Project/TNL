@@ -1,3 +1,4 @@
+add_subdirectory(Algorithms)
 add_subdirectory(HeatEquation)
 add_subdirectory(Graphs)
 add_subdirectory(Grid)
