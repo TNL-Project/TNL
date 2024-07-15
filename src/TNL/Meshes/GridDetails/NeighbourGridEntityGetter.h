@@ -42,16 +42,15 @@ public:
    inline GridEntity< Grid, NeighbourEntityDimension >
    getEntityIndex( const GridEntity< Grid, ParentEntityDimension >& entity, const typename Grid::CoordinatesType& offset )
    {
-      if constexpr( ParentEntityDimension == Grid::getMeshDimension() && ParentEntityDimension == NeighbourEntityDimension )
-      {
-         TNL_ASSERT_GE( entity.getCoordinates() + offset, Grid::CoordinatesType( 0 ), "Wrong coordinates of neighbour entity." );
+      if constexpr( ParentEntityDimension == Grid::getMeshDimension() && ParentEntityDimension == NeighbourEntityDimension ) {
+         TNL_ASSERT_GE(
+            entity.getCoordinates() + offset, Grid::CoordinatesType( 0 ), "Wrong coordinates of neighbour entity." );
          TNL_ASSERT_LT( entity.getCoordinates(), entity.getMesh().getDimensions(), "Wrong coordinates of neighbour entity." );
 
          //Algorithms::staticFor< IndexType, 0,
          return entity.getIndex() + ( offset, entity.getMesh().getDimensions() );
       }
-      else
-      {
+      else {
          using NormalsGetterType = NormalsGetter< typename Grid::IndexType, NeighbourEntityDimension, GridDimension >;
          using CoordinatesType = typename Grid::CoordinatesType;
 
@@ -70,7 +69,6 @@ public:
          return { entity.getMesh(), coordinate, normals, orientation };
       }
    }
-
 
    template< class Grid,
              int Orientation,

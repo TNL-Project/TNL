@@ -133,6 +133,10 @@ protected:
  * \brief Returns true if the device type is Host.
  */
 template< typename Device >
-constexpr bool isHost() { return std::is_same< Device, Host >::value; }
+constexpr bool
+isHost()
+{
+   return std::is_same< Device, Host >::value;
+}
 
 }  // namespace TNL::Devices

@@ -145,7 +145,7 @@ constexpr Index
 cumulativeCombinationsCount( Index k, Index n )
 {
    Index result = 0;
-   for( Index i = 0; i <=k; i++ )
+   for( Index i = 0; i <= k; i++ )
       result += combinationsCount( i, n );
    return result;
 }

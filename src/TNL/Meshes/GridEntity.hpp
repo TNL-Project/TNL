@@ -23,21 +23,18 @@ GridEntity< Grid, EntityDimension >::getEntityDimension()
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::GridEntity() : GridEntityBaseType( 0 ),  grid( nullptr )
-{}
+GridEntity< Grid, EntityDimension >::GridEntity() : GridEntityBaseType( 0 ), grid( nullptr ) {}
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::GridEntity( const CoordinatesType& c ) : GridEntityBaseType( c ),  grid( nullptr )
-{}
+GridEntity< Grid, EntityDimension >::GridEntity( const CoordinatesType& c ) : GridEntityBaseType( c ), grid( nullptr ) {}
 
 template< class Grid, int EntityDimension >
-   template< typename Value >
+template< typename Value >
 __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const std::initializer_list< Value >& elems )
-   : GridEntityBaseType( elems ), grid( 0 )
-{
-}
+: GridEntityBaseType( elems ), grid( 0 )
+{}
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
@@ -52,8 +49,7 @@ __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
                                                  const CoordinatesType& coordinates,
                                                  const NormalsType& normals )
-: GridEntityBaseType( coordinates, grid.getEntitiesOrientations().getTotalOrientationIndex( normals ) ),
-  grid( &grid )
+: GridEntityBaseType( coordinates, grid.getEntitiesOrientations().getTotalOrientationIndex( normals ) ), grid( &grid )
 {
    this->refresh();
 }
@@ -75,7 +71,8 @@ __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
                                                  const CoordinatesType& coordinates,
                                                  const IndexType orientationIndex )
-: GridEntityBaseType( coordinates, EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIndex ) ),
+: GridEntityBaseType( coordinates,
+                      EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIndex ) ),
   grid( &grid )
 {
    this->refresh();
@@ -166,8 +163,7 @@ GridEntity< Grid, EntityDimension >::getMesh() const
 template< class Grid, int EntityDimension >
 __cuda_callable__
 auto
-GridEntity< Grid, EntityDimension >::
-getOrientationIndex() const -> IndexType
+GridEntity< Grid, EntityDimension >::getOrientationIndex() const -> IndexType
 {
    return GridEntityBaseType::getOrientationIndex();
 }
@@ -175,13 +171,13 @@ getOrientationIndex() const -> IndexType
 template< class Grid, int EntityDimension >
 __cuda_callable__
 void
-GridEntity< Grid, EntityDimension >::
-setOrientationIndex( IndexType orientationIndex )
+GridEntity< Grid, EntityDimension >::setOrientationIndex( IndexType orientationIndex )
 {
-   TNL_ASSERT_LT( orientationIndex, ( EntitiesOrientations::template getOrientationsCount< EntityDimension >() ),
-      "Wrong orientation index for grid entity with given dimension." );
-   std::cerr << "EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIndex ) = " <<
-      EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIndex ) << std::endl;
+   TNL_ASSERT_LT( orientationIndex,
+                  ( EntitiesOrientations::template getOrientationsCount< EntityDimension >() ),
+                  "Wrong orientation index for grid entity with given dimension." );
+   std::cerr << "EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIndex ) = "
+             << EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIndex ) << std::endl;
    GridEntityBaseType::setTotalOrientationIndex(
       EntitiesOrientations::template getTotalOrientationIndex< EntityDimension >( orientationIndex ) );
 }
@@ -189,8 +185,7 @@ setOrientationIndex( IndexType orientationIndex )
 template< class Grid, int EntityDimension >
 __cuda_callable__
 auto
-GridEntity< Grid, EntityDimension >::
-getTotalOrientationIndex() const -> IndexType
+GridEntity< Grid, EntityDimension >::getTotalOrientationIndex() const -> IndexType
 {
    return GridEntityBaseType::getTotalOrientationIndex();
 }
@@ -198,13 +193,12 @@ getTotalOrientationIndex() const -> IndexType
 template< class Grid, int EntityDimension >
 __cuda_callable__
 void
-GridEntity< Grid, EntityDimension >::
-setTotalOrientationIndex( IndexType totalOrientationIndex )
+GridEntity< Grid, EntityDimension >::setTotalOrientationIndex( IndexType totalOrientationIndex )
 {
-   TNL_ASSERT_LT( totalOrientationIndex, EntitiesOrientations::getTotalOrientationsCount(),
-      "Wrong total orientation index." );
-   TNL_ASSERT_EQ( EntityDimension, EntitiesOrientations::getEntityDimension( totalOrientationIndex ),
-      "Total orientation index does not agree with entity dimension." );
+   TNL_ASSERT_LT( totalOrientationIndex, EntitiesOrientations::getTotalOrientationsCount(), "Wrong total orientation index." );
+   TNL_ASSERT_EQ( EntityDimension,
+                  EntitiesOrientations::getEntityDimension( totalOrientationIndex ),
+                  "Total orientation index does not agree with entity dimension." );
    GridEntityBaseType::setTotalOrientationIndex( totalOrientationIndex );
 }
 
@@ -228,8 +222,7 @@ GridEntity< Grid, EntityDimension >::getBasis() const -> NormalsType
 template< class Grid, int EntityDimension >
 [[nodiscard]] __cuda_callable__
 GridEntity< Grid, EntityDimension >
-GridEntity< Grid, EntityDimension >::
-getEntity( const CoordinatesType& offset ) const
+GridEntity< Grid, EntityDimension >::getEntity( const CoordinatesType& offset ) const
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
    return this->grid->getEntity( *this, offset );
@@ -238,20 +231,18 @@ getEntity( const CoordinatesType& offset ) const
 template< class Grid, int EntityDimension >
 __cuda_callable__
 auto
-GridEntity< Grid, EntityDimension >::
-getEntityIndex( const CoordinatesType& offset ) const -> IndexType
+GridEntity< Grid, EntityDimension >::getEntityIndex( const CoordinatesType& offset ) const -> IndexType
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
    return this->grid->getEntityIndex( *this, offset );
 }
 
 template< class Grid, int EntityDimension >
-   template< int NeighbourEntityDimension >
+template< int NeighbourEntityDimension >
 [[nodiscard]] __cuda_callable__
 GridEntity< Grid, NeighbourEntityDimension >
-GridEntity< Grid, EntityDimension >::
-getEntity( const CoordinatesType& offset,
-           const NormalsType& neighbourEntityOrientation ) const
+GridEntity< Grid, EntityDimension >::getEntity( const CoordinatesType& offset,
+                                                const NormalsType& neighbourEntityOrientation ) const
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
    return this->grid->template getEntity< NeighbourEntityDimension >( *this, offset, neighbourEntityOrientation );
@@ -261,9 +252,8 @@ template< class Grid, int EntityDimension >
 template< int NeighbourEntityDimension >
 __cuda_callable__
 auto
-GridEntity< Grid, EntityDimension >::
-getEntityIndex( const CoordinatesType& offset,
-                IndexType neighbourEntityOrientation ) const -> IndexType
+GridEntity< Grid, EntityDimension >::getEntityIndex( const CoordinatesType& offset,
+                                                     IndexType neighbourEntityOrientation ) const -> IndexType
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
    return this->grid->template getEntityIndex< NeighbourEntityDimension >( *this, offset, neighbourEntityOrientation );
@@ -272,8 +262,7 @@ getEntityIndex( const CoordinatesType& offset,
 template< class Grid, int EntityDimension >
 __cuda_callable__
 void
-GridEntity< Grid, EntityDimension >::
-getAdjacentCells( IndexType& closer, IndexType& remoter ) const
+GridEntity< Grid, EntityDimension >::getAdjacentCells( IndexType& closer, IndexType& remoter ) const
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
    this->grid->getAdjacentCells( *this, closer, remoter );
@@ -282,19 +271,17 @@ getAdjacentCells( IndexType& closer, IndexType& remoter ) const
 template< class Grid, int EntityDimension >
 __cuda_callable__
 void
-GridEntity< Grid, EntityDimension >::
-getAdjacentFacesIndexes( CoordinatesType& closer, CoordinatesType& remoter ) const
+GridEntity< Grid, EntityDimension >::getAdjacentFacesIndexes( CoordinatesType& closer, CoordinatesType& remoter ) const
 {
    TNL_ASSERT_NE( this->grid, nullptr, "Trying to dereference null pointer. Use setGrid method first." );
    this->grid->getAdjacentFacesIndexes( *this, closer, remoter );
 }
 
 template< class Grid, int EntityDimension >
-   template< int Direction, int Step >
+template< int Direction, int Step >
 __cuda_callable__
 auto
-GridEntity< Grid, EntityDimension >::
-getAdjacentEntityIndex() const -> IndexType
+GridEntity< Grid, EntityDimension >::getAdjacentEntityIndex() const -> IndexType
 {
    return this->grid->template getAdjacentEntityIndex< Direction, Step >( *this );
 }

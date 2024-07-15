@@ -126,8 +126,7 @@ checkXFace( const GridType& grid, const DofType& dof, bool west, typename DofTyp
    int add = getAdd( grid, true, true, west );
    for( int i = 1; i < grid.getSizes().z() - 1; i++ )
       for( int j = 1; j < grid.getSizes().y() - 1; j++ ) {
-         EXPECT_EQ( dof[ grid.getSizes().y() * grid.getSizes().x() * i + grid.getSizes().x() * j + add ],
-                    expectedValue )
+         EXPECT_EQ( dof[ grid.getSizes().y() * grid.getSizes().x() * i + grid.getSizes().x() * j + add ], expectedValue )
             << "X Face test failed " << i << " " << j;
       }
 }

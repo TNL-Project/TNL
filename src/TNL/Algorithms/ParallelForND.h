@@ -122,7 +122,7 @@ struct ParallelForND< Devices::Host, expand >
          // Benchmarks show that this is significantly faster compared
          // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() && end - start > 512 )'
          if( Devices::Host::isOMPEnabled() && end[ 0 ] - begin[ 0 ] > 512 ) {
-   #pragma omp parallel for
+            #pragma omp parallel for
             for( Index i = begin[ 0 ]; i < end[ 0 ]; i++ )
                if constexpr( expand )
                   f( i, args... );
@@ -138,7 +138,7 @@ struct ParallelForND< Devices::Host, expand >
          // Benchmarks show that this is significantly faster compared
          // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() )'
          if( Devices::Host::isOMPEnabled() ) {
-   #pragma omp parallel for
+            #pragma omp parallel for
             for( Index j = begin[ 1 ]; j < end[ 1 ]; j++ ) {
                Coordinates c{ 0, j };  // TODO: Move this outside the loop like in sequential version
                for( c[ 0 ] = begin[ 0 ]; c[ 0 ] < end[ 0 ]; c[ 0 ]++ )
@@ -153,7 +153,7 @@ struct ParallelForND< Devices::Host, expand >
          // Benchmarks show that this is significantly faster compared
          // to '#pragma omp parallel for if( Devices::Host::isOMPEnabled() )'
          if( Devices::Host::isOMPEnabled() ) {
-   #pragma omp parallel for
+            #pragma omp parallel for
             for( Index k = begin[ 2 ]; k < end[ 2 ]; k++ ) {
                Coordinates c{ 0, 0, k };  // TODO: Move this outside the loop like in sequential version
                for( c[ 1 ] = begin[ 1 ]; c[ 1 ] < end[ 1 ]; c[ 1 ]++ )
@@ -171,7 +171,7 @@ struct ParallelForND< Devices::Host, expand >
          if( Devices::Host::isOMPEnabled() ) {
             Coordinates c = begin;
             while( c[ Dimension - 1 ] < end[ Dimension - 1 ] ) {
-   #pragma omp parallel for firstprivate( c )
+               #pragma omp parallel for firstprivate( c )
                for( Index k = begin[ 2 ]; k < end[ 2 ]; k++ ) {
                   Coordinates c1( c );
                   c1[ 2 ] = k;

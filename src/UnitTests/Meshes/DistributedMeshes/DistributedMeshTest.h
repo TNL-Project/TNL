@@ -134,11 +134,15 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
          cell.setCoordinates( { x, y } );
          cell.refresh();
          if( cell_global_to_local.count( cell.getIndex() ) == 0 ) {
-            meshBuilder.getCellSeed( idx ).setCornerId( 0, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 0, 0 }, 0 ) ] );
-            meshBuilder.getCellSeed( idx ).setCornerId( 1, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 1, 0 }, 0 ) ] );
-            meshBuilder.getCellSeed( idx ).setCornerId( 2, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 1, 1 }, 0 ) ] );
-            meshBuilder.getCellSeed( idx ).setCornerId( 3, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 0, 1 }, 0 ) ] );
-            cell_global_to_local.insert( {cell.getIndex(), idx} );
+            meshBuilder.getCellSeed( idx ).setCornerId(
+               0, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 0, 0 }, 0 ) ] );
+            meshBuilder.getCellSeed( idx ).setCornerId(
+               1, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 1, 0 }, 0 ) ] );
+            meshBuilder.getCellSeed( idx ).setCornerId(
+               2, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 1, 1 }, 0 ) ] );
+            meshBuilder.getCellSeed( idx ).setCornerId(
+               3, vert_global_to_local[ cell.template getEntityIndex< 0 >( { 0, 1 }, 0 ) ] );
+            cell_global_to_local.insert( { cell.getIndex(), idx } );
             idx++;
          }
       };
@@ -754,7 +758,7 @@ TEST( DistributedMeshTest, 2D_ghostLevel0 )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setSizes( {nproc, nproc} );
+   grid.setSizes( { nproc, nproc } );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 0;
@@ -771,7 +775,7 @@ TEST( DistributedMeshTest, 2D_ghostLevel1 )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setSizes( {nproc, nproc} );
+   grid.setSizes( { nproc, nproc } );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 1;
@@ -789,7 +793,7 @@ TEST( DistributedMeshTest, 2D_ghostLevel2 )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setSizes( {nproc, nproc} );
+   grid.setSizes( { nproc, nproc } );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 2;
@@ -807,7 +811,7 @@ TEST( DistributedMeshTest, PVTUWriterReader )
    GridType grid;
    grid.setDomain( { 0, 0 }, { 1, 1 } );
    const int nproc = TNL::MPI::GetSize();
-   grid.setSizes( {nproc, nproc} );
+   grid.setSizes( { nproc, nproc } );
    Mesh mesh;
    GridDistributor< GridType > distributor( std::sqrt( nproc ), MPI_COMM_WORLD );
    const int ghostLevels = 2;

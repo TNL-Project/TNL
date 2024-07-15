@@ -25,8 +25,8 @@ class GridEntityCenterGetter;
  * \tparam EntityDimension is a dimensions of the grid entity.
  */
 template< class Grid, int EntityDimension >
-class GridEntity : public //Grid::CoordinatesType,
-   GridEntityBase< Grid, Grid::getMeshDimension(), EntityDimension >
+class GridEntity : public  //Grid::CoordinatesType,
+                   GridEntityBase< Grid, Grid::getMeshDimension(), EntityDimension >
 {
 public:
    using GridEntityBaseType = GridEntityBase< Grid, Grid::getMeshDimension(), EntityDimension >;
@@ -266,19 +266,22 @@ public:
    /**
     * brief Setter of the grid entity orientation index.
     *
-    * This is rather internal information. The index can be computed using the method \ref TNL::Meshes::Grid::getOrientationIndex.
+    * This is rather internal information. The index can be computed using the method \ref
+    * TNL::Meshes::Grid::getOrientationIndex.
     *
     * param orientation is a index of the grid entity orientation.
     */
    __cuda_callable__
-   void setOrientationIndex( IndexType orientationIndex );
+   void
+   setOrientationIndex( IndexType orientationIndex );
 
    __cuda_callable__
-   IndexType getTotalOrientationIndex() const;
+   IndexType
+   getTotalOrientationIndex() const;
 
    __cuda_callable__
-   void setTotalOrientationIndex( IndexType totalOrientationIndex );
-
+   void
+   setTotalOrientationIndex( IndexType totalOrientationIndex );
 
    /**
     * \brief Returns the neighbour grid entity. TODO: FIX - CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -309,8 +312,7 @@ public:
    template< int NeighbourEntityDimension >
    [[nodiscard]] __cuda_callable__
    GridEntity< Grid, NeighbourEntityDimension >
-   getEntity( const CoordinatesType& offset,
-              const NormalsType& neighbourEntityOrientation ) const;
+   getEntity( const CoordinatesType& offset, const NormalsType& neighbourEntityOrientation ) const;
 
    /**
     * \brief
@@ -325,8 +327,7 @@ public:
    template< int NeighbourEntityDimension >
    [[nodiscard]] __cuda_callable__
    IndexType
-   getEntityIndex( const CoordinatesType& offset,
-                   IndexType neighbourEntityOrientation ) const;
+   getEntityIndex( const CoordinatesType& offset, IndexType neighbourEntityOrientation ) const;
 
    template< int Direction, int Step >
    __cuda_callable__
@@ -334,7 +335,8 @@ public:
    getAdjacentEntityIndex() const;
 
    __cuda_callable__
-   void getAdjacentCells( IndexType& closer, IndexType& remoter ) const;
+   void
+   getAdjacentCells( IndexType& closer, IndexType& remoter ) const;
 
    __cuda_callable__
    void
@@ -355,7 +357,6 @@ public:
    __cuda_callable__
    void
    setMesh( const Grid& );
-
 
    /**
     * \brief Returns a reference on the grid the grid entity belongs to.

@@ -290,7 +290,7 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
       auto alpha_ = this->alpha;
       auto beta_ = this->beta;
       auto gamma_ = this->gamma;
-      auto init = [=] __cuda_callable__( const CoordinatesType& idx ) mutable
+      auto init = [ = ] __cuda_callable__( const CoordinatesType& idx ) mutable
       {
          const Index& i = idx.x();
          const Index& j = idx.y();
@@ -299,9 +299,9 @@ struct HeatEquationSolverBenchmark< 2, Real, Device, Index > : public HeatEquati
          auto x = i * hx - xDomainSize_ / 2.;
          auto y = j * hy - yDomainSize_ / 2.;
 
-         uxView[index] = TNL::max( ( ( ( x*x / alpha_ )  + ( y*y / beta_ ) ) + gamma_ ) * 0.2, 0.0 );
+         uxView[ index ] = TNL::max( ( ( ( x * x / alpha_ ) + ( y * y / beta_ ) ) + gamma_ ) * 0.2, 0.0 );
       };
-      TNL::Algorithms::parallelFor<Device>( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1 }, init );
+      TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1 }, init );
    }
 
    template< typename Vector >
@@ -426,11 +426,11 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
       auto alpha_ = this->alpha;
       auto beta_ = this->beta;
       auto gamma_ = this->gamma;
-      auto init = [=] __cuda_callable__( const CoordinatesType& idx ) mutable
+      auto init = [ = ] __cuda_callable__( const CoordinatesType& idx ) mutable
       {
-         const Index& i = idx[0];
-         const Index& j = idx[1];
-         const Index& k = idx[2];
+         const Index& i = idx[ 0 ];
+         const Index& j = idx[ 1 ];
+         const Index& k = idx[ 2 ];
          auto index = ( k * ySize + j ) * xSize + i;
 
          auto x = i * hx - xDomainSize_ / 2.0;
@@ -438,7 +438,8 @@ struct HeatEquationSolverBenchmark< 3, Real, Device, Index > : public HeatEquati
          auto z = k * hz - zDomainSize_ / 2.0;
          uxView[ index ] = delta_ * ( 1.0 - TNL::sign( x * x / alpha_ + y * y / beta_ + z * z / gamma_ - 1.0 ) );
       };
-      TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, init );
+      TNL::Algorithms::parallelFor< Device >(
+         CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, init );
    }
 
    template< typename Vector >

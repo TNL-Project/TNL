@@ -124,7 +124,8 @@ struct HeatEquationSolverBenchmarkFDMGrid< 2, Real, Device, Index >
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
          //auto xSize = grid.getSizes().x();
-         auto next = [=] __cuda_callable__( const typename Grid::Cell& entity ) mutable {
+         auto next = [ = ] __cuda_callable__( const typename Grid::Cell& entity ) mutable
+         {
             const Index centerIdx = entity.getIndex();
             const Real& element = uxView[ centerIdx ];
             auto center = (Real) 2.0 * element;

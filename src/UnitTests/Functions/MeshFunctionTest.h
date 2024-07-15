@@ -1,11 +1,11 @@
 #pragma once
 
 #ifdef HAVE_GTEST
-#include <gtest/gtest.h>
-#include <sstream>
-#include <TNL/Functions/MeshFunction.h>
-#include <TNL/Meshes/Grid.h>
-#include <TNL/Pointers/SharedPointer.h>
+   #include <gtest/gtest.h>
+   #include <sstream>
+   #include <TNL/Functions/MeshFunction.h>
+   #include <TNL/Meshes/Grid.h>
+   #include <TNL/Pointers/SharedPointer.h>
 
 TEST( MeshFunctionTest, BasicConstructor )
 {
@@ -30,8 +30,6 @@ TEST( MeshFunctionTest, OstreamOperatorTest )
    EXPECT_EQ( string_stream1.str(), string_stream2.str() );
 }
 
-
 #endif
-
 
 #include "../main.h"

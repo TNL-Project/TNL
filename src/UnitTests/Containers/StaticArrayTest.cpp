@@ -114,14 +114,14 @@ TYPED_TEST( StaticArrayTest, constructors )
 
    ArrayType u6{ 1, 2, 3, 4, 5 };
    for( int i = 0; i < size; i++ )
-      EXPECT_EQ( u6[ i ], i+1 );
+      EXPECT_EQ( u6[ i ], i + 1 );
 
    std::array< ValueType, size > a;
    for( int i = 0; i < size; i++ )
-      a[ i ] = i+1;
+      a[ i ] = i + 1;
    ArrayType u7( a );
    for( int i = 0; i < size; i++ )
-      EXPECT_EQ( u7[ i ], i+1 );
+      EXPECT_EQ( u7[ i ], i + 1 );
 }
 
 TYPED_TEST( StaticArrayTest, getSize )
@@ -291,12 +291,12 @@ TYPED_TEST( StaticArrayTest, assignAt )
    for( int position = 0; position < 5; position++ ) {
       l = 0;
       l.assignAt( a, position );
-         for( int i = 0; i < position; i++ )
-            EXPECT_EQ( l[ i ], 0 );
-         for( int i = position; i < position+size; i++ )
-            EXPECT_EQ( l[ i ], 1 );
-         for( int i = position+size; i < larger_size; i++ )
-            EXPECT_EQ( l[ i ], 0 );
+      for( int i = 0; i < position; i++ )
+         EXPECT_EQ( l[ i ], 0 );
+      for( int i = position; i < position + size; i++ )
+         EXPECT_EQ( l[ i ], 1 );
+      for( int i = position + size; i < larger_size; i++ )
+         EXPECT_EQ( l[ i ], 0 );
    }
 }
 

@@ -109,7 +109,7 @@ struct HeatEquationSolverBenchmarkFDMParallelFor< 2, Real, Device, Index >
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
-         auto next = [=] __cuda_callable__( const CoordinatesType& i ) mutable
+         auto next = [ = ] __cuda_callable__( const CoordinatesType& i ) mutable
          {
             auto index = i.y() * xSize + i.x();
             auto element = uxView[ index ];
@@ -177,11 +177,11 @@ struct HeatEquationSolverBenchmarkFDMParallelFor< 3, Real, Device, Index >
       while( start < this->finalTime && ( ! this->maxIterations || iterations < this->maxIterations ) ) {
          auto uxView = this->ux.getView();
          auto auxView = this->aux.getView();
-         auto next = [=] __cuda_callable__( const CoordinatesType& idx ) mutable
+         auto next = [ = ] __cuda_callable__( const CoordinatesType& idx ) mutable
          {
             auto index = ( idx.z() * ySize + idx.y() ) * xSize + idx.x();
-            auto element = uxView[index];
-            auto center = ( Real ) 2.0 * element;
+            auto element = uxView[ index ];
+            auto center = (Real) 2.0 * element;
 
             auxView[ index ] = element
                              + ( ( uxView[ index - 1 ] - center + uxView[ index + 1 ] ) * hx_inv
@@ -189,7 +189,8 @@ struct HeatEquationSolverBenchmarkFDMParallelFor< 3, Real, Device, Index >
                                  + ( uxView[ index - xySize ] - center + uxView[ index + xySize ] ) * hz_inv )
                                   * timestep;
          };
-         TNL::Algorithms::parallelFor< Device >( CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, next );
+         TNL::Algorithms::parallelFor< Device >(
+            CoordinatesType{ 1, 1, 1 }, CoordinatesType{ xSize - 1, ySize - 1, zSize - 1 }, next );
          this->ux.swap( this->aux );
          start += timestep;
          iterations++;

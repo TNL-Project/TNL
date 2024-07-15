@@ -148,7 +148,8 @@ public:
    /**
     * \brief Swaps data with another array of the same type.
     */
-   void swap( NDArrayStorage& storage )
+   void
+   swap( NDArrayStorage& storage )
    {
       array.swap( storage.array );
    }

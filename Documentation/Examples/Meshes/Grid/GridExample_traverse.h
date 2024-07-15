@@ -72,20 +72,22 @@ traverseGrid()
 
    //! [initialize faces]
    // Setup values of all faces to an average value of its neighbour cells.
-   grid.template forAllEntities< Dimension - 1 >( [=] __cuda_callable__ ( const GridFace& face ) mutable {
-      const CoordinatesType normal =  face.getNormals();
-      double sum = 0.0;
-      double count = 0.0;
-      if( TNL::all(greaterEqual( face.getCoordinates() - normal, 0 )) ) {
-         sum += cells_view[ face.template getEntityIndex< Dimension >( -normal, 0 ) ];
-         count++;
-      }
-      if( TNL::all(less( face.getCoordinates(), face.getGrid().getSizes() )) ) {
-         sum += cells_view[ face.template getEntityIndex< Dimension >( { 0, 0 }, 0 ) ];
-         count++;
-      }
-      faces_view[ face.getIndex() ] = sum / count;
-   } );
+   grid.template forAllEntities< Dimension - 1 >(
+      [ = ] __cuda_callable__( const GridFace& face ) mutable
+      {
+         const CoordinatesType normal = face.getNormals();
+         double sum = 0.0;
+         double count = 0.0;
+         if( TNL::all( greaterEqual( face.getCoordinates() - normal, 0 ) ) ) {
+            sum += cells_view[ face.template getEntityIndex< Dimension >( -normal, 0 ) ];
+            count++;
+         }
+         if( TNL::all( less( face.getCoordinates(), face.getGrid().getSizes() ) ) ) {
+            sum += cells_view[ face.template getEntityIndex< Dimension >( { 0, 0 }, 0 ) ];
+            count++;
+         }
+         faces_view[ face.getIndex() ] = sum / count;
+      } );
    //! [initialize faces]
 
    //! [print faces]
@@ -111,28 +113,30 @@ traverseGrid()
 
    //! [initialize vertexes]
    // Setup values of all vertexes to an average value of its neighboring cells
-   grid.template forAllEntities< 0 >( [=] __cuda_callable__ ( const GridVertex& vertex ) mutable {
-      double sum = 0.0;
-      double count = 0.0;
-      auto grid_dimensions = vertex.getGrid().getSizes();
-      if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() > 0 ) {
-         sum += cells_view[ vertex.template getEntityIndex< Dimension >( { -1,-1 }, 0 ) ];
-         count++;
-      }
-      if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() < grid_dimensions.y() ) {
-         sum += cells_view[ vertex.template getEntityIndex< Dimension >( { -1,0 }, 0 ) ];
-         count++;
-      }
-      if( vertex.getCoordinates().x() < grid_dimensions.x() && vertex.getCoordinates().y() > 0 ) {
-         sum += cells_view[ vertex.template getEntityIndex< Dimension >( { 0,-1 }, 0 ) ];
-         count++;
-      }
-      if( TNL::all(less( vertex.getCoordinates(), vertex.getGrid().getSizes() )) ) {
-         sum += cells_view[ vertex.template getEntityIndex< Dimension >( {0,0}, 0 ) ];
-         count++;
-      }
-      vertexes_view[ vertex.getIndex() ] = sum / count;
-   } );
+   grid.template forAllEntities< 0 >(
+      [ = ] __cuda_callable__( const GridVertex& vertex ) mutable
+      {
+         double sum = 0.0;
+         double count = 0.0;
+         auto grid_dimensions = vertex.getGrid().getSizes();
+         if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() > 0 ) {
+            sum += cells_view[ vertex.template getEntityIndex< Dimension >( { -1, -1 }, 0 ) ];
+            count++;
+         }
+         if( vertex.getCoordinates().x() > 0 && vertex.getCoordinates().y() < grid_dimensions.y() ) {
+            sum += cells_view[ vertex.template getEntityIndex< Dimension >( { -1, 0 }, 0 ) ];
+            count++;
+         }
+         if( vertex.getCoordinates().x() < grid_dimensions.x() && vertex.getCoordinates().y() > 0 ) {
+            sum += cells_view[ vertex.template getEntityIndex< Dimension >( { 0, -1 }, 0 ) ];
+            count++;
+         }
+         if( TNL::all( less( vertex.getCoordinates(), vertex.getGrid().getSizes() ) ) ) {
+            sum += cells_view[ vertex.template getEntityIndex< Dimension >( { 0, 0 }, 0 ) ];
+            count++;
+         }
+         vertexes_view[ vertex.getIndex() ] = sum / count;
+      } );
    //! [initialize vertexes]
 
    //! [print vertices]
