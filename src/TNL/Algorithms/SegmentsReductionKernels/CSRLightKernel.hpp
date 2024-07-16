@@ -42,9 +42,8 @@ CSRVectorReduction( OffsetsView offsets,
    Index endID = offsets[ warpID + 1 ];
 
    // Calculate result
-   bool compute = true;
    for( Index i = offsets[ warpID ] + laneID; i < endID; i += ThreadsPerSegment )
-      result = reduce( result, fetch( i, compute ) );
+      result = reduce( result, fetch( i ) );
 
    // Parallel reduction
    #if defined( __HIP__ )
@@ -141,11 +140,9 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
    const Index endIdx = offsets[ segmentIdx + 1 ];
 
    ReturnType result = identity;
-   bool compute = true;
    Index localIdx = laneIdx;
-   for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx && compute; globalIdx += ThreadsPerSegment ) {
-      result =
-         reduce( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
+   for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
+      result = reduce( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
       localIdx += ThreadsPerSegment;
    }
 

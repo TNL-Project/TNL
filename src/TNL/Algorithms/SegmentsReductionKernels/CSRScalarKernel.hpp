@@ -63,15 +63,14 @@ CSRScalarKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       const Index end = offsets[ segmentIdx + 1 ];
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       ReturnType aux = identity;
-      bool compute = true;
       if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
          Index localIdx = 0;
-         for( Index globalIdx = begin; globalIdx < end && compute; globalIdx++ )
-            aux = reduction( aux, fetch( segmentIdx, localIdx++, globalIdx, compute ) );
+         for( Index globalIdx = begin; globalIdx < end; globalIdx++ )
+            aux = reduction( aux, fetch( segmentIdx, localIdx++, globalIdx ) );
       }
       else {
-         for( Index globalIdx = begin; globalIdx < end && compute; globalIdx++ )
-            aux = reduction( aux, fetch( globalIdx, compute ) );
+         for( Index globalIdx = begin; globalIdx < end; globalIdx++ )
+            aux = reduction( aux, fetch( globalIdx ) );
       }
       keeper( segmentIdx, aux );
    };

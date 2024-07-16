@@ -16,7 +16,7 @@ private:
 
    template< typename C >
    static YesType&
-   test( decltype( std::declval< C >()( Index(), Index(), Index(), std::declval< bool& >() ) ) );
+   test( decltype( std::declval< C >()( Index(), Index(), Index() ) ) );
    template< typename C >
    static NoType&
    test( ... );

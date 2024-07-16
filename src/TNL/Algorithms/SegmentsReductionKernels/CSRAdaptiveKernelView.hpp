@@ -51,7 +51,6 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
       multivectorShared[ threadIdx.x ] = identity;
    __syncthreads();
    ReturnType result = identity;
-   bool compute = true;
    const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
    /*if( laneIdx == 0 )
       sharedBlocks[ warpIdx ] = blocks[ blockIdx ];
@@ -68,7 +67,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
 
       // Stream data to shared memory
       for( Index globalIdx = laneIdx + begin; globalIdx < end; globalIdx += WarpSize )
-         streamShared[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx, compute );
+         streamShared[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx );
       __syncwarp();
       const Index lastSegmentIdx = firstSegmentIdx + block.getSegmentsInBlock();
 
@@ -87,7 +86,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
       const Index segmentIdx = block.getFirstSegment();
 
       for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += WarpSize )
-         result = reduction( result, fetch( globalIdx, compute ) );
+         result = reduction( result, fetch( globalIdx ) );
 
       // Parallel reduction
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
@@ -106,7 +105,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
       for( Index globalIdx = begin + laneIdx + Backend::getWarpSize() * block.getWarpIdx(); globalIdx < end;
            globalIdx += Backend::getWarpSize() * block.getWarpsCount() )
       {
-         result = reduction( result, fetch( globalIdx, compute ) );
+         result = reduction( result, fetch( globalIdx ) );
       }
 
       // Parallel reduction

@@ -66,7 +66,7 @@ struct CSRScalarKernel
     * reduction.  Some kernels are optimized so that they can be significantly
     * faster with the brief variant of the \e fetch lambda function.
     *
-    * \param reduction is a lambda function representing the reduction opeartion. It is
+    * \param reduction is a lambda function representing the reduction operation. It is
     * supposed to be defined as:
     *
     * ```

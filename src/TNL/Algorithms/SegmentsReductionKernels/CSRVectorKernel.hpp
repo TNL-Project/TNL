@@ -38,11 +38,9 @@ reduceSegmentsCSRKernelVector( int gridIdx,
 
    Index localIdx = laneIdx;
    ReturnType result = identity;
-   bool compute = true;
    for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += Backend::getWarpSize() ) {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      result = reduction( result,
-                          detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
+      result = reduction( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
       localIdx += Backend::getWarpSize();
    }
 

@@ -296,7 +296,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begi
                                                                   const FetchValue& identity ) const
 {
    const auto values = this->getValues().getConstView();
-   auto fetch_ = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx, bool& compute ) mutable
+   auto fetch_ = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx ) mutable
       -> decltype( fetch( IndexType(), IndexType(), RealType() ) )
    {
       return fetch( rowIdx, columnIdx, values[ globalIdx ] );
@@ -494,7 +494,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
     * The rest is general implementation based on segments
     */
 
-   auto fetch = [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType offset, bool& compute ) -> RealType
+   auto fetch = [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType offset ) -> RealType
    {
       return valuesView[ offset ] * inVectorView[ column ];
    };

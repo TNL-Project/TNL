@@ -34,7 +34,6 @@ EllpackCudaReductionKernel( Index begin,
       return;
 
    ReturnType result = identity;
-   bool compute = true;
    const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
    begin = segmentIdx * segmentSize;
    end = begin + segmentSize;
@@ -43,11 +42,11 @@ EllpackCudaReductionKernel( Index begin,
    if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
       Index localIdx = laneIdx;
       for( Index i = begin + laneIdx; i < end; i += warpSize, localIdx += warpSize )
-         result = reduction( result, fetch( segmentIdx, localIdx, i, compute ) );
+         result = reduction( result, fetch( segmentIdx, localIdx, i ) );
    }
    else {
       for( Index i = begin + laneIdx; i < end; i += warpSize )
-         result = reduction( result, fetch( i, compute ) );
+         result = reduction( result, fetch( i ) );
    }
 
    // Reduction
@@ -127,10 +126,8 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
             const IndexType end = begin + segmentSize;
             ReturnType aux = identity;
             IndexType localIdx = 0;
-            bool compute = true;
-            for( IndexType j = begin; j < end && compute; j++ )
-               aux = reduction(
-                  aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j, compute ) );
+            for( IndexType j = begin; j < end; j++ )
+               aux = reduction( aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
             keeper( segmentIdx, aux );
          };
          Algorithms::parallelFor< Device >( begin, end, l );
@@ -145,10 +142,8 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          const IndexType end = storageSize;
          ReturnType aux = identity;
          IndexType localIdx = 0;
-         bool compute = true;
-         for( IndexType j = begin; j < end && compute; j += alignedSize )
-            aux = reduction(
-               aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j, compute ) );
+         for( IndexType j = begin; j < end; j += alignedSize )
+            aux = reduction( aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
          keeper( segmentIdx, aux );
       };
       Algorithms::parallelFor< Device >( begin, end, l );
