@@ -722,6 +722,22 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 std::ostream&
 operator<<( std::ostream& str, const DenseMatrixBase< Real, Device, Index, Organization >& matrix );
 
+[[nodiscard]] constexpr std::false_type
+isDenseMatrix( ... )
+{
+   return {};
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+[[nodiscard]] constexpr std::true_type
+isDenseMatrix( const DenseMatrixBase< Real, Device, Index, Organization >& )
+{
+   return {};
+}
+
+template< typename T >
+constexpr bool is_dense_matrix_type_v = decltype( isDenseMatrix( std::declval< T >() ) )::value;
+
 }  // namespace TNL::Matrices
 
 #include "DenseMatrixBase.hpp"
