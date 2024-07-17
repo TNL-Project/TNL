@@ -1,7 +1,6 @@
 # Documentation: https://clang.llvm.org/extra/clang-tidy/
 ---
 HeaderFilterRegex: '.*'
-AnalyzeTemporaryDtors: false
 FormatStyle:      file
 User:             user
 UseColor:         true
