@@ -4,6 +4,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Containers/Vector.h>
@@ -86,17 +87,6 @@ public:
    getOrganization()
    {
       return Organization;
-   }
-
-   /**
-    * \brief Test of matrix type.
-    *
-    * \return \e true.
-    */
-   [[nodiscard]] static constexpr bool
-   isMatrix()
-   {
-      return true;
    }
 
    /**
@@ -267,11 +257,21 @@ protected:
    bind( IndexType rows, IndexType columns, ValuesViewType values );
 };
 
-template< typename T >
-struct IsMatrixType
+[[nodiscard]] constexpr std::false_type
+isMatrix( ... )
 {
-   static constexpr bool value = HasIsMatrixMethod< T >::value;
-};
+   return {};
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, ElementsOrganization Organization >
+[[nodiscard]] constexpr std::true_type
+isMatrix( const MatrixBase< Real, Device, Index, MatrixType, Organization >& )
+{
+   return {};
+}
+
+template< typename T >
+constexpr bool is_matrix_type_v = decltype( isMatrix( std::declval< T >() ) )::value;
 
 }  // namespace TNL::Matrices
 

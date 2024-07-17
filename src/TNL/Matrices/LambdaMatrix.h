@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <TNL/Devices/Host.h>
 #include <TNL/Matrices/LambdaMatrixRowView.h>
+#include <TNL/Matrices/MatrixBase.h>
 
 namespace TNL::Matrices {
 
@@ -629,6 +630,13 @@ struct LambdaMatrixFactory
          rows, columns, matrixElementsLambda, compressedRowLengthsLambda );
    }
 };
+
+template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
+[[nodiscard]] constexpr std::true_type
+isMatrix( const LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >& )
+{
+   return {};
+}
 
 }  // namespace TNL::Matrices
 
