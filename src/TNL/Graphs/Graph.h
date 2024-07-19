@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <type_traits>
 #include <map>
 #include <ostream>
 #include <TNL/TypeTraits.h>
@@ -18,11 +17,11 @@ enum class GraphTypes
    Undirected  //!< Undirected graphs.
 };
 
-template< typename Matrix,
-          GraphTypes GraphType = GraphTypes::Directed,
-          typename = std::enable_if_t< Matrices::IsMatrixType< Matrix >::value > >
+template< typename Matrix, GraphTypes GraphType = GraphTypes::Directed >
 struct Graph
 {
+   static_assert( Matrices::is_matrix_type_v< Matrix > );
+
    using MatrixType = Matrix;
    using IndexType = typename Matrix::IndexType;
    using DeviceType = typename Matrix::DeviceType;

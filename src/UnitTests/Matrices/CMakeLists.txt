@@ -31,7 +31,7 @@ set(COMMON_TESTS
     MatrixWrappingTest
 )
 
-set(CPP_TESTS ${COMMON_TESTS} StaticMatrixTest)
+set(CPP_TESTS ${COMMON_TESTS} StaticMatrixTest MatrixTypeTraitsTest)
 set(CUDA_TESTS ${COMMON_TESTS})
 set(HIP_TESTS ${COMMON_TESTS})
 
