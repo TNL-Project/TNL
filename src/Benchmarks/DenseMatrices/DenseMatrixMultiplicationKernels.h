@@ -439,15 +439,12 @@ MultiplicationKernel6( ResultMatrix resultMatrix,
    using RealType = typename ResultMatrix::RealType;
 
    // Shared memory for submatrices of A and B
-   __shared__ RealType sharedA[ 16 ][ 64 + 1 ];  // Padding to prevent bank conflicts
-   __shared__ RealType sharedB[ 64 ][ 16 + 1 ];  // Padding to prevent bank conflicts
-
-   IndexType bx = blockIdx.x, by = blockIdx.y;
-   IndexType tx = threadIdx.x, ty = threadIdx.y;
+   __shared__ RealType sharedA[ 64 ][ 17 ];  // Padding to prevent bank conflicts
+   __shared__ RealType sharedB[ 16 ][ 65 ];  // Padding to prevent bank conflicts
 
    // Each thread computes a 4x4 block of the result matrix
-   IndexType row = by * 64 + ty * 4;
-   IndexType col = bx * 64 + tx * 4;
+   IndexType row = blockIdx.y * 64 + threadIdx.y * 4;
+   IndexType col = blockIdx.x * 64 + threadIdx.x * 4;
 
    RealType CValue[ 4 ][ 4 ] = { 0 };
 
@@ -470,24 +467,23 @@ MultiplicationKernel6( ResultMatrix resultMatrix,
 
    // Iterate through each tile
    for( IndexType m = 0; m < numTiles; ++m ) {
-      IndexType aCol = m * 16 + tx;
-      IndexType bRow = m * 16 + ty;
+      IndexType aCol = m * 16 + threadIdx.x;
+      IndexType bRow = m * 16 + threadIdx.y;
 
       // Load valid data from global memory into shared memory for matrix A
       if( aCol < matrixAColumns ) {
          for( IndexType i = 0; i < maxARow; ++i ) {
             IndexType aRow = row + i;
-            sharedA[ tx ][ ty * 4 + i ] = AValues[ aCol * matrixARows + aRow ];
+            sharedA[ threadIdx.y * 4 + i ][ threadIdx.x ] = AValues[ aRow + aCol * matrixARows ];
          }
-
          for( IndexType i = maxARow; i < 4; ++i ) {
-            sharedA[ tx ][ ty * 4 + i ] = 0.0;
+            sharedA[ threadIdx.y * 4 + i ][ threadIdx.x ] = 0.0;
          }
       }
       else {
    #pragma unroll
          for( IndexType i = 0; i < 4; ++i ) {
-            sharedA[ tx ][ ty * 4 + i ] = 0.0;
+            sharedA[ threadIdx.y * 4 + i ][ threadIdx.x ] = 0.0;
          }
       }
 
@@ -495,17 +491,16 @@ MultiplicationKernel6( ResultMatrix resultMatrix,
       if( bRow < matrixBRows ) {
          for( IndexType i = 0; i < maxBCol; ++i ) {
             IndexType bCol = col + i;
-            sharedB[ tx * 4 + i ][ ty ] = BValues[ bCol * matrixBRows + bRow ];
+            sharedB[ threadIdx.y ][ threadIdx.x * 4 + i ] = BValues[ bRow + bCol * matrixBRows ];
          }
-
          for( IndexType i = maxBCol; i < 4; ++i ) {
-            sharedB[ tx * 4 + i ][ ty ] = 0.0;
+            sharedB[ threadIdx.y ][ threadIdx.x * 4 + i ] = 0.0;
          }
       }
       else {
    #pragma unroll
          for( IndexType i = 0; i < 4; ++i ) {
-            sharedB[ tx * 4 + i ][ ty ] = 0.0;
+            sharedB[ threadIdx.y ][ threadIdx.x * 4 + i ] = 0.0;
          }
       }
       __syncthreads();
@@ -515,8 +510,8 @@ MultiplicationKernel6( ResultMatrix resultMatrix,
          RealType regA[ 4 ], regB[ 4 ];
    #pragma unroll
          for( IndexType i = 0; i < 4; ++i ) {
-            regA[ i ] = sharedA[ k ][ ty * 4 + i ];
-            regB[ i ] = sharedB[ tx * 4 + i ][ k ];
+            regA[ i ] = sharedA[ threadIdx.y * 4 + i ][ k ];
+            regB[ i ] = sharedB[ k ][ threadIdx.x * 4 + i ];
          }
          for( IndexType i = 0; i < 4; ++i ) {
    #pragma unroll
@@ -525,7 +520,6 @@ MultiplicationKernel6( ResultMatrix resultMatrix,
             }
          }
       }
-
       __syncthreads();
    }
 
@@ -534,7 +528,7 @@ MultiplicationKernel6( ResultMatrix resultMatrix,
       for( IndexType j = 0; j < maxBCol; ++j ) {
          IndexType cRow = row + i;
          IndexType cCol = col + j;
-         IndexType index = cCol * matrixARows + cRow;
+         IndexType index = cRow + cCol * matrixARows;
          resultValues[ index ] = CValue[ i ][ j ];
       }
    }
