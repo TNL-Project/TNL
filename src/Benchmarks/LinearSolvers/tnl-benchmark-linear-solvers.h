@@ -38,6 +38,7 @@
 #include <TNL/Benchmarks/Benchmarks.h>
 #include "ordering.h"
 #include "benchmarks.h"
+#include "BenchmarkResults.h"
 #include "StrumpackWrapper.h"
 #include "TachoWrapper.h"
 
