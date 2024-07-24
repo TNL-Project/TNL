@@ -358,6 +358,8 @@ struct LinearSolversBenchmark
       else {
          matrixPointer->load( file_matrix );
       }
+      TNL::Matrices::compressSparseMatrix( *matrixPointer );
+      matrixPointer->sortColumnIndexes();
 
       // load the vectors
       if( file_dof && file_rhs ) {
@@ -522,8 +524,17 @@ struct LinearSolversBenchmark
          SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
       auto matrixCopy = std::make_shared< CSR >();
       TNL::Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
-      TNL::Matrices::compressSparseMatrix( *matrixCopy );
-      matrixCopy->sortColumnIndexes();
+
+#ifdef __CUDACC__
+      const std::string performer = "CPU/GPU";
+      auto compute = [ & ]()
+      {
+         TNL::Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
+      };
+      TNL::Benchmarks::BenchmarkResult benchmarkResult;
+      benchmark.setOperation( "Copy" );
+      benchmark.time< TNL::Devices::Host >( performer, compute, benchmarkResult );
+#endif
 
 #ifdef HAVE_UMFPACK
       benchmark.setOperation( "UMFPACK" );
