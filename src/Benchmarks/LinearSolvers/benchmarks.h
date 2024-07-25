@@ -131,7 +131,60 @@ benchmarkSolver( TNL::Benchmarks::Benchmark<>& benchmark,
    };
 
    BenchmarkResult< Vector, Matrix, Solver > benchmarkResult( solver, matrix, x, b );
+   benchmark.time< typename Matrix::DeviceType >( reset, performer, compute, benchmarkResult );
+}
 
+template< template< typename > class Solver, typename Matrix, typename Vector >
+void
+benchmarkDirectSolver( const TNL::String& solverName,
+                       TNL::Benchmarks::Benchmark<>& benchmark,
+                       const TNL::Config::ParameterContainer& parameters,
+                       const std::shared_ptr< Matrix >& matrix,
+                       const Vector& x0,
+                       const Vector& b )
+{
+   // skip benchmarks on devices which the user did not select
+   if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
+      return;
+
+   barrier( matrix );
+   const char* performer = getPerformer< typename Matrix::DeviceType >();
+
+   // setup
+   Solver< Matrix > solver;
+   solver.setup( parameters );
+
+   Vector x;
+   x.setLike( x0 );
+
+   BenchmarkResult< Vector, Matrix, Solver > benchmarkResult( solver, matrix, x, b );
+
+   auto set_matrix = [ & ]()
+   {
+      solver.setMatrix( matrix );
+   };
+   benchmark.setOperation( solverName + " setup" );
+   benchmark.time< typename Matrix::DeviceType >( set_matrix, performer, set_matrix, benchmarkResult );
+   //solver.setMatrix( matrix );
+
+   // FIXME: getMonitor returns solver monitor specialized for double and int
+   solver.setSolverMonitor( benchmark.getMonitor() );
+
+   // reset function
+   auto reset = [ & ]()
+   {
+      x = x0;
+   };
+
+   // benchmark function
+   auto compute = [ & ]()
+   {
+      const bool converged = solver.solve( b, x );
+      barrier( matrix );
+      if( ! converged )
+         throw std::runtime_error( "solver did not converge" );
+   };
+   benchmark.setOperation( solverName + " solve" );
    benchmark.time< typename Matrix::DeviceType >( reset, performer, compute, benchmarkResult );
 }
 
