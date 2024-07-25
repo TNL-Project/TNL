@@ -537,38 +537,30 @@ struct LinearSolversBenchmark
 #endif
 
 #ifdef HAVE_UMFPACK
-      benchmark.setOperation( "UMFPACK" );
       if( std::is_same_v< DeviceType, TNL::Devices::Host > || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
-         benchmarkSolver< TNL::Solvers::Linear::UmfpackWrapper, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
-            benchmark, parameters, matrixCopy, x0, b );
+         benchmarkDirectSolver< TNL::Solvers::Linear::UmfpackWrapper >( "UMFPACK", benchmark, parameters, matrixCopy, x0, b );
 #endif
 
 #ifdef HAVE_GINKGO
-      benchmark.setOperation( "Ginkgo" );
-      benchmarkSolver< TNL::Solvers::Linear::GinkgoDirectSolver, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
-         benchmark, parameters, matrixCopy, x0, b );
+      benchmarkDirectSolver< TNL::Solvers::Linear::GinkgoDirectSolver >( "Ginkgo", benchmark, parameters, matrixCopy, x0, b );
    #ifdef __CUDACC__
       using CudaCSR = TNL::Matrices::
          SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
       auto cudaMatrix = std::make_shared< CudaCSR >();
       *cudaMatrix = *matrixCopy;
       TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
-      benchmarkSolver< TNL::Solvers::Linear::GinkgoDirectSolver, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
-         benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
+      benchmarkDirectSolver< TNL::Solvers::Linear::GinkgoDirectSolver >(
+         "Ginkgo", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
    #endif
 #endif
 
 #ifdef HAVE_STRUMPACK
-      benchmark.setOperation( "Strumpack" );
-      benchmarkSolver< StrumpackWrapper, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
-         benchmark, parameters, matrixCopy, x0, b );
+      benchmarkDirectSolver< StrumpackWrapper >( "Strumpack", benchmark, parameters, matrixCopy, x0, b );
       // Strumpack currently support only GPU offloading - https://github.com/pghysels/STRUMPACK/issues/113
 #endif
 
 #ifdef HAVE_TRILINOS
-      benchmark.setOperation( "Tacho" );
-      benchmarkSolver< TachoWrapper, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
-         benchmark, parameters, matrixCopy, x0, b );
+      benchmarkDirectSolver< TachoWrapper >( "Tacho", benchmark, parameters, matrixCopy, x0, b );
    #ifdef __CUDACC__
       using CudaCSR = TNL::Matrices::
          SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
@@ -576,8 +568,7 @@ struct LinearSolversBenchmark
          auto cudaMatrix = std::make_shared< CudaCSR >();
          *cudaMatrix = *matrixCopy;
          TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
-         benchmarkSolver< TachoWrapper, TNL::Solvers::Linear::Preconditioners::Preconditioner >(
-            benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
+         benchmarkDirectSolver< TachoWrapper >( "Tacho", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
       }
    #endif
 #endif
