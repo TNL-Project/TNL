@@ -154,8 +154,7 @@ benchmarkDirectSolver( const TNL::String& solverName,
    Solver< Matrix > solver;
    solver.setup( parameters );
 
-   Vector x;
-   x.setLike( x0 );
+   Vector x( x0.getSize(), 0 );
 
    BenchmarkResult< Vector, Matrix, Solver > benchmarkResult( solver, matrix, x, b );
 
