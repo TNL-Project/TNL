@@ -78,8 +78,22 @@ public:
    using VectorViewType = typename Base::VectorViewType;
    using ConstVectorViewType = typename Base::ConstVectorViewType;
 
+   void
+   setMatrix( const MatrixPointer& matrix ) override;
+
    bool
    solve( ConstVectorViewType b, VectorViewType x ) override;
+
+   ~UmfpackWrapper();
+
+protected:
+   // UMFPACK objects
+   void* Symbolic = nullptr;
+   void* Numeric = nullptr;
+   double Control[ UMFPACK_CONTROL ];
+   double Info[ UMFPACK_INFO ];
+
+   bool factorized = false;
 };
 
 }  // namespace TNL::Solvers::Linear
