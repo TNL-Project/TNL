@@ -116,7 +116,7 @@ public:
     *
     * \param matrix is a shared pointer to the matrix of the linear system
     */
-   void
+   virtual void
    setMatrix( const MatrixPointer& matrix )
    {
       this->matrix = matrix;
