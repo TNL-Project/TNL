@@ -78,9 +78,13 @@ struct ParallelFor1D< Devices::Cuda >
       if( end <= begin )
          return;
 
-      launch_config.blockSize.x = 256;
+      // check default-initialized blockSize, otherwise use the user-specified value
+      if( launch_config.blockSize.x == 1 ) {
+         launch_config.blockSize.x = 256;
+      }
       launch_config.blockSize.y = 1;
       launch_config.blockSize.z = 1;
+
       launch_config.gridSize.x =
          TNL::min( Backend::getMaxGridXSize(), Backend::getNumberOfBlocks( end - begin, launch_config.blockSize.x ) );
       launch_config.gridSize.y = 1;

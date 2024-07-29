@@ -111,19 +111,23 @@ struct ParallelFor2D< Devices::Cuda >
       const auto sizeX = end.x() - begin.x();
       const auto sizeY = end.y() - begin.y();
 
-      if( sizeX >= sizeY * sizeY ) {
-         launch_config.blockSize.x = TNL::min( 256, sizeX );
-         launch_config.blockSize.y = 1;
-      }
-      else if( sizeY >= sizeX * sizeX ) {
-         launch_config.blockSize.x = 1;
-         launch_config.blockSize.y = TNL::min( 256, sizeY );
-      }
-      else {
-         launch_config.blockSize.x = TNL::min( 32, sizeX );
-         launch_config.blockSize.y = TNL::min( 8, sizeY );
+      // check default-initialized blockSize, otherwise use the user-specified value
+      if( launch_config.blockSize.x == 1 && launch_config.blockSize.y == 1 ) {
+         if( sizeX >= sizeY * sizeY ) {
+            launch_config.blockSize.x = TNL::min( 256, sizeX );
+            launch_config.blockSize.y = 1;
+         }
+         else if( sizeY >= sizeX * sizeX ) {
+            launch_config.blockSize.x = 1;
+            launch_config.blockSize.y = TNL::min( 256, sizeY );
+         }
+         else {
+            launch_config.blockSize.x = TNL::min( 32, sizeX );
+            launch_config.blockSize.y = TNL::min( 8, sizeY );
+         }
       }
       launch_config.blockSize.z = 1;
+
       launch_config.gridSize.x =
          TNL::min( Backend::getMaxGridXSize(), Backend::getNumberOfBlocks( sizeX, launch_config.blockSize.x ) );
       launch_config.gridSize.y =

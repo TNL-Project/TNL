@@ -123,42 +123,46 @@ struct ParallelFor3D< Devices::Cuda >
       const auto sizeY = end.y() - begin.y();
       const auto sizeZ = end.z() - begin.z();
 
-      if( sizeX >= sizeY * sizeY * sizeZ * sizeZ ) {
-         launch_config.blockSize.x = TNL::min( 256, sizeX );
-         launch_config.blockSize.y = 1;
-         launch_config.blockSize.z = 1;
+      // check default-initialized blockSize, otherwise use the user-specified value
+      if( launch_config.blockSize.x == 1 && launch_config.blockSize.y == 1 && launch_config.blockSize.z == 1 ) {
+         if( sizeX >= sizeY * sizeY * sizeZ * sizeZ ) {
+            launch_config.blockSize.x = TNL::min( 256, sizeX );
+            launch_config.blockSize.y = 1;
+            launch_config.blockSize.z = 1;
+         }
+         else if( sizeY >= sizeX * sizeX * sizeZ * sizeZ ) {
+            launch_config.blockSize.x = 1;
+            launch_config.blockSize.y = TNL::min( 256, sizeY );
+            launch_config.blockSize.z = 1;
+         }
+         else if( sizeZ >= sizeX * sizeX * sizeY * sizeY ) {
+            launch_config.blockSize.x = TNL::min( 2, sizeX );
+            launch_config.blockSize.y = TNL::min( 2, sizeY );
+            // CUDA allows max 64 for launch_config.blockSize.z
+            launch_config.blockSize.z = TNL::min( 64, sizeZ );
+         }
+         else if( sizeX >= sizeZ * sizeZ && sizeY >= sizeZ * sizeZ ) {
+            launch_config.blockSize.x = TNL::min( 32, sizeX );
+            launch_config.blockSize.y = TNL::min( 8, sizeY );
+            launch_config.blockSize.z = 1;
+         }
+         else if( sizeX >= sizeY * sizeY && sizeZ >= sizeY * sizeY ) {
+            launch_config.blockSize.x = TNL::min( 32, sizeX );
+            launch_config.blockSize.y = 1;
+            launch_config.blockSize.z = TNL::min( 8, sizeZ );
+         }
+         else if( sizeY >= sizeX * sizeX && sizeZ >= sizeX * sizeX ) {
+            launch_config.blockSize.x = 1;
+            launch_config.blockSize.y = TNL::min( 32, sizeY );
+            launch_config.blockSize.z = TNL::min( 8, sizeZ );
+         }
+         else {
+            launch_config.blockSize.x = TNL::min( 16, sizeX );
+            launch_config.blockSize.y = TNL::min( 4, sizeY );
+            launch_config.blockSize.z = TNL::min( 4, sizeZ );
+         }
       }
-      else if( sizeY >= sizeX * sizeX * sizeZ * sizeZ ) {
-         launch_config.blockSize.x = 1;
-         launch_config.blockSize.y = TNL::min( 256, sizeY );
-         launch_config.blockSize.z = 1;
-      }
-      else if( sizeZ >= sizeX * sizeX * sizeY * sizeY ) {
-         launch_config.blockSize.x = TNL::min( 2, sizeX );
-         launch_config.blockSize.y = TNL::min( 2, sizeY );
-         // CUDA allows max 64 for launch_config.blockSize.z
-         launch_config.blockSize.z = TNL::min( 64, sizeZ );
-      }
-      else if( sizeX >= sizeZ * sizeZ && sizeY >= sizeZ * sizeZ ) {
-         launch_config.blockSize.x = TNL::min( 32, sizeX );
-         launch_config.blockSize.y = TNL::min( 8, sizeY );
-         launch_config.blockSize.z = 1;
-      }
-      else if( sizeX >= sizeY * sizeY && sizeZ >= sizeY * sizeY ) {
-         launch_config.blockSize.x = TNL::min( 32, sizeX );
-         launch_config.blockSize.y = 1;
-         launch_config.blockSize.z = TNL::min( 8, sizeZ );
-      }
-      else if( sizeY >= sizeX * sizeX && sizeZ >= sizeX * sizeX ) {
-         launch_config.blockSize.x = 1;
-         launch_config.blockSize.y = TNL::min( 32, sizeY );
-         launch_config.blockSize.z = TNL::min( 8, sizeZ );
-      }
-      else {
-         launch_config.blockSize.x = TNL::min( 16, sizeX );
-         launch_config.blockSize.y = TNL::min( 4, sizeY );
-         launch_config.blockSize.z = TNL::min( 4, sizeZ );
-      }
+
       launch_config.gridSize.x =
          TNL::min( Backend::getMaxGridXSize(), Backend::getNumberOfBlocks( sizeX, launch_config.blockSize.x ) );
       launch_config.gridSize.y =
