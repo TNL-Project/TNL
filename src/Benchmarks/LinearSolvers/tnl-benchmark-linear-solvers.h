@@ -555,8 +555,8 @@ struct LinearSolversBenchmark
 #endif
 
 #ifdef HAVE_STRUMPACK
-      benchmarkDirectSolver< StrumpackWrapper >( "Strumpack", benchmark, parameters, matrixCopy, x0, b );
       // Strumpack currently support only GPU offloading - https://github.com/pghysels/STRUMPACK/issues/113
+      //benchmarkDirectSolver< StrumpackWrapper >( "Strumpack", benchmark, parameters, matrixCopy, x0, b );
 #endif
 
 #ifdef HAVE_TRILINOS
