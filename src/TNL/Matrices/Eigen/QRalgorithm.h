@@ -22,7 +22,6 @@ namespace TNL::Matrices::Eigen {
  * product of Q matrices across iterations converges to the eigenvector matrix.
  *
  * \tparam Real Data type of the matrix elements (e.g., float, double).
- * \tparam Device Computational device (e.g., CPU, GPU).
  * \tparam MatrixType Type of matrix (e.g., dense, sparse).
  *
  * \param matrix The square matrix for which to compute eigenvalues and eigenvectors. Non-square matrices are not supported.
@@ -41,14 +40,13 @@ namespace TNL::Matrices::Eigen {
  *
  * \exception std::invalid_argument Thrown if the matrix is not square or is zero-sized.
  */
-template< typename Real, typename Device, typename MatrixType >
+template< typename Real, typename MatrixType >
 std::tuple< MatrixType, MatrixType, int >
 QRalgorithm( MatrixType matrix,
              const Real& epsilon,
              const TNL::Matrices::Factorization::QR::FactorizationMethod& QRmethod,
              const int& maxIterations = 10000 )
 {
-   static_assert( std::is_same_v< Device, typename MatrixType::DeviceType > );
    if( matrix.getRows() != matrix.getColumns() )
       throw std::invalid_argument( "Power iteration is possible only for square matrices" );
    if( matrix.getRows() == 0 )

@@ -158,7 +158,7 @@ benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, Matrices::Factorizatio
       auto testfunction = [ & ]()
       {
          std::tie( eigenvalues, eigenvectors, iter ) =
-            Matrices::Eigen::QRalgorithm< PrecisionType, Device, MatrixType >( matrix, epsilon, factorType, 5000 );
+            Matrices::Eigen::QRalgorithm< PrecisionType, MatrixType >( matrix, epsilon, factorType, 5000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testfunction, eigenBenchmarkResult );
