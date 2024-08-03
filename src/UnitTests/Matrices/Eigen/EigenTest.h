@@ -1,8 +1,10 @@
-#include "TNL/Algorithms/Segments/ElementsOrganization.h"
-#include "TNL/Devices/Cuda.h"
-#include "TNL/Devices/Host.h"
-#include "TNL/Math.h"
-#include "TNL/Matrices/Factorization/QR/QR.h"
+#include <tuple>
+#if defined( __CUDACC__ )
+   #include <TNL/Devices/Cuda.h>
+#endif
+#include <TNL/Devices/Host.h>
+#include <TNL/Math.h>
+#include <TNL/Matrices/Factorization/QR/QR.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/Eigen/PowerIteration.h>
@@ -25,13 +27,13 @@ checkPowerIterationDense0D()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const MatrixTypeCMO B;
@@ -39,13 +41,13 @@ checkPowerIterationDense0D()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( B, epsilon, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -55,26 +57,26 @@ checkPowerIterationDense0D()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeRMO >( C, epsilon, initialVecRMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const MatrixTypeRMO D;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeRMO >( D, epsilon, initialVecRMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -91,13 +93,13 @@ checkPowerIterationExceptionSizeSquare()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Power iteration is possible only for square matrices", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -107,13 +109,13 @@ checkPowerIterationExceptionSizeSquare()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, initialVecRMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Power iteration is possible only for square matrices", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -130,13 +132,13 @@ checkPowerIterationExceptionSizeVector()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "The initial vector must have the same size as the matrix", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -146,13 +148,13 @@ checkPowerIterationExceptionSizeVector()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, initialVecRMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "The initial vector must have the same size as the matrix", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -169,13 +171,13 @@ checkPowerIterationExceptionZeroVector()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixType >( A, epsilon, initialVec, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "The initial vector must be nonzero", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -185,13 +187,13 @@ checkPowerIterationExceptionZeroVector()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, initialVecRMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "The initial vector must be nonzero", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -201,26 +203,43 @@ checkPowerIterationDense1D()
 {
    const TNL::Algorithms::Segments::ElementsOrganization organizationCMO = TNL::Algorithms::Segments::ColumnMajorOrder;
    using MatrixTypeCMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationCMO >;
-   const MatrixTypeCMO A = { { 1.0 } };
+   MatrixTypeCMO A = { { 1.0 } };
    using VectorType = TNL::Containers::Vector< RealType, Device >;
-   VectorType initialVecCMO = { 2.0 };
+   VectorType initialVec = { 2.0 };
    RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, initialVecCMO, 100 );
+      TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, initialVec, 100 );
    EXPECT_EQ( eigenvalue, 1 );
+   for( int i = 0; i < eigenvector.getSize(); i++ ) {
+      EXPECT_EQ( eigenvector.getElement( i ), 1 );
+   }
+
+   A.setElement( 0, 0, -1 );
+
+   std::tie( eigenvalue, eigenvector, iterations ) =
+      TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, initialVec, 100 );
+   EXPECT_EQ( eigenvalue, -1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
    using MatrixTypeRMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationRMO >;
-   const MatrixTypeRMO B = { { 1.0 } };
-   VectorType initialVecRMO = { 2.0 };
-   auto [ eigenvalueRMO, eigenvectorRMO, iterationsRMO ] =
-      TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, initialVecRMO, 10000 );
-   EXPECT_EQ( eigenvalueRMO, 1 );
-   for( int i = 0; i < eigenvectorRMO.getSize(); i++ ) {
-      EXPECT_EQ( eigenvectorRMO.getElement( i ), 1 );
+   MatrixTypeRMO B = { { 1.0 } };
+   std::tie( eigenvalue, eigenvector, iterations ) =
+      TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, initialVec, 10000 );
+   EXPECT_EQ( eigenvalue, 1 );
+   for( int i = 0; i < eigenvector.getSize(); i++ ) {
+      EXPECT_EQ( eigenvector.getElement( i ), 1 );
+   }
+
+   B.setElement( 0, 0, -1 );
+
+   std::tie( eigenvalue, eigenvector, iterations ) =
+      TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, initialVec, 100 );
+   EXPECT_EQ( eigenvalue, -1 );
+   for( int i = 0; i < eigenvector.getSize(); i++ ) {
+      EXPECT_EQ( eigenvector.getElement( i ), 1 );
    }
 }
 
@@ -246,7 +265,7 @@ checkPowerIterationDense2D()
    VectorType initialVecB = { 1.0, 2.0 };
    auto [ eigenvalueB, eigenvectorB, iterationsB ] =
       TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixType >( B, epsilon, initialVecB, 10000 );
-   EXPECT_EQ( iterationsB, 0);
+   EXPECT_EQ( iterationsB, 0 );
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
    using MatrixTypeRMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationRMO >;
@@ -263,7 +282,7 @@ checkPowerIterationDense2D()
    VectorType initialVecRMOD = { 1.0, 2.0 };
    auto [ eigenvalueRMOD, eigenvectorRMOD, iterationsRMOD ] =
       TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeRMO >( D, epsilon, initialVecRMOD, 10000 );
-   EXPECT_EQ( iterationsRMOD, 0);
+   EXPECT_EQ( iterationsRMOD, 0 );
 }
 
 template< typename RealType, typename Device >
@@ -278,13 +297,13 @@ checkPowerIterationSparse0D()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const MatrixTypeCMO B;
@@ -292,13 +311,13 @@ checkPowerIterationSparse0D()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( B, epsilon, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -314,13 +333,13 @@ checkPowerIterationExceptionSizeSquareSparse()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixType >( A, epsilon, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Power iteration is possible only for square matrices", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -339,13 +358,13 @@ checkPowerIterationExceptionSizeVectorSparse()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "The initial vector must have the same size as the matrix", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -367,13 +386,13 @@ checkPowerIterationExceptionZeroVectorSparse()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixType >( A, epsilon, initialVec, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
-      EXPECT_STREQ(    "The initial vector must be nonzero", e.what() );
+      EXPECT_STREQ( "The initial vector must be nonzero", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -387,11 +406,19 @@ checkPowerIterationSparse1D()
    A.setRowCapacities( rowCapacities );
    A.setElement( 0, 0, 1 );
    using VectorType = TNL::Containers::Vector< RealType, Device >;
-   VectorType initialVecCMO = { 2.0 };
+   VectorType initialVec = { 2.0 };
    RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, initialVecCMO, 100 );
+      TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, initialVec, 100 );
    EXPECT_EQ( eigenvalue, 1 );
+   for( int i = 0; i < eigenvector.getSize(); i++ ) {
+      EXPECT_EQ( eigenvector.getElement( i ), 1 );
+   }
+
+   A.setElement( 0, 0, -1 );
+   std::tie( eigenvalue, eigenvector, iterations ) =
+      TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, initialVec, 100 );
+   EXPECT_EQ( eigenvalue, -1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
    }
@@ -427,7 +454,7 @@ checkPowerIterationSparse2D()
    VectorType initialVecB = { 1.0, 2.0 };
    auto [ eigenvalueB, eigenvectorB, iterationsB ] =
       TNL::Matrices::Eigen::powerIteration< RealType, Device, MatrixType >( B, epsilon, initialVecB, 10000 );
-   EXPECT_EQ( iterationsB, 0);
+   EXPECT_EQ( iterationsB, 0 );
 }
 
 TEST( EigenTest, PowerIteration )
@@ -500,13 +527,13 @@ checkShiftedPowerIterationDense0D()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const MatrixTypeCMO B;
@@ -514,13 +541,13 @@ checkShiftedPowerIterationDense0D()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeCMO >( B, epsilon, 2, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -530,26 +557,26 @@ checkShiftedPowerIterationDense0D()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeRMO >( C, epsilon, 2, initialVecRMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const MatrixTypeRMO D;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeRMO >( D, epsilon, 2, initialVecRMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -566,13 +593,13 @@ checkShiftedPowerIterationExceptionSizeSquare()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Shifted power iteration is possible only for square matrices", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -582,13 +609,13 @@ checkShiftedPowerIterationExceptionSizeSquare()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, 2, initialVecRMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Shifted power iteration is possible only for square matrices", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -605,13 +632,13 @@ checkShiftedPowerIterationExceptionSizeVector()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "The initial vector must have the same size as the matrix", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -621,13 +648,13 @@ checkShiftedPowerIterationExceptionSizeVector()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, 2, initialVecRMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "The initial vector must have the same size as the matrix", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -635,7 +662,7 @@ template< typename RealType, typename Device >
 void
 checkShiftedPowerIterationExceptionZeroVector()
 {
-  const TNL::Algorithms::Segments::ElementsOrganization organization = TNL::Algorithms::Segments::ColumnMajorOrder;
+   const TNL::Algorithms::Segments::ElementsOrganization organization = TNL::Algorithms::Segments::ColumnMajorOrder;
    using MatrixType = TNL::Matrices::DenseMatrix< RealType, Device, int, organization >;
    const MatrixType A = { { 2.0, 1.0 }, { 1.0, 2.0 } };
    using VectorType = TNL::Containers::Vector< RealType, Device >;
@@ -644,13 +671,13 @@ checkShiftedPowerIterationExceptionZeroVector()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixType >( A, epsilon, 2, initialVec, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "The initial vector must be nonzero", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -660,13 +687,13 @@ checkShiftedPowerIterationExceptionZeroVector()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, 2, initialVecRMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "The initial vector must be nonzero", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -676,26 +703,41 @@ checkShiftedPowerIterationDense1D()
 {
    const TNL::Algorithms::Segments::ElementsOrganization organizationCMO = TNL::Algorithms::Segments::ColumnMajorOrder;
    using MatrixTypeCMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationCMO >;
-   const MatrixTypeCMO A = { { 1.0 } };
+   MatrixTypeCMO A = { { 1.0 } };
    using VectorType = TNL::Containers::Vector< RealType, Device >;
-   VectorType initialVecCMO = { 2.0 };
+   VectorType initialVec = { 2.0 };
    RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 100 );
+      TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, 2, initialVec, 100 );
    EXPECT_EQ( eigenvalue, 1 );
+   for( int i = 0; i < eigenvector.getSize(); i++ ) {
+      EXPECT_EQ( eigenvector.getElement( i ), 1 );
+   }
+
+   A.setElement( 0, 0, -1 );
+   std::tie( eigenvalue, eigenvector, iterations ) =
+      TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, 2, initialVec, 100 );
+   EXPECT_EQ( eigenvalue, -1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
    using MatrixTypeRMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationRMO >;
-   const MatrixTypeRMO B = { { 1.0 } };
-   VectorType initialVecRMO = { 2.0 };
-   auto [ eigenvalueRMO, eigenvectorRMO, iterationsRMO ] =
-      TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, 2, initialVecRMO, 10000 );
-   EXPECT_EQ( eigenvalueRMO, 1 );
-   for( int i = 0; i < eigenvectorRMO.getSize(); i++ ) {
-      EXPECT_EQ( eigenvectorRMO.getElement( i ), 1 );
+   MatrixTypeRMO B = { { 1.0 } };
+   std::tie( eigenvalue, eigenvector, iterations ) =
+      TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, 2, initialVec, 10000 );
+   EXPECT_EQ( eigenvalue, 1 );
+   for( int i = 0; i < eigenvector.getSize(); i++ ) {
+      EXPECT_EQ( eigenvector.getElement( i ), 1 );
+   }
+
+   B.setElement( 0, 0, -1 );
+   std::tie( eigenvalue, eigenvector, iterations ) =
+      TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeRMO >( B, epsilon, 2, initialVec, 10000 );
+   EXPECT_EQ( eigenvalue, -1 );
+   for( int i = 0; i < eigenvector.getSize(); i++ ) {
+      EXPECT_EQ( eigenvector.getElement( i ), 1 );
    }
 }
 
@@ -715,7 +757,6 @@ checkShiftedPowerIterationDense2D()
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_NEAR( eigenvector.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
    }
-
 
    const MatrixType B = { { 0, 1 }, { 1, 0 } };
    VectorType initialVecB = { 0.1, 1.2 };
@@ -759,13 +800,13 @@ checkShiftedPowerIterationSparse0D()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixType >( A, epsilon, 2, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const MatrixType B;
@@ -773,13 +814,13 @@ checkShiftedPowerIterationSparse0D()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixType >( B, epsilon, 2, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -795,13 +836,13 @@ checkShiftedPowerIterationExceptionSizeSquareSparse()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixType >( A, epsilon, 2, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Shifted power iteration is possible only for square matrices", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -820,13 +861,13 @@ checkShiftedPowerIterationExceptionSizeVectorSparse()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixType >( A, epsilon, 2, initialVecCMO, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "The initial vector must have the same size as the matrix", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -848,13 +889,13 @@ checkShiftedPowerIterationExceptionZeroVectorSparse()
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
          TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixType >( A, epsilon, 2, initialVec, 10 );
-      FAIL();
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "The initial vector must be nonzero", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
@@ -873,6 +914,14 @@ checkShiftedPowerIterationSparse1D()
    auto [ eigenvalue, eigenvector, iterations ] =
       TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 100 );
    EXPECT_EQ( eigenvalue, 1 );
+   for( int i = 0; i < eigenvector.getSize(); i++ ) {
+      EXPECT_EQ( eigenvector.getElement( i ), 1 );
+   }
+
+   A.setElement( 0, 0, -1 );
+   std::tie( eigenvalue, eigenvector, iterations ) =
+      TNL::Matrices::Eigen::shiftedPowerIteration< RealType, Device, MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 100 );
+   EXPECT_EQ( eigenvalue, -1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
    }
@@ -963,7 +1012,7 @@ TEST( EigenTest, ShiftedPowerIteration )
 
 template< typename RealType, typename Device >
 void
-checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::QRfactorizationType& QRtype )
+checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::FactorizationMethod& QRmethod )
 {
    const TNL::Algorithms::Segments::ElementsOrganization organizationCMO = TNL::Algorithms::Segments::ColumnMajorOrder;
    using MatrixTypeCMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationCMO >;
@@ -971,28 +1020,28 @@ checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::QRfactorization
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeCMO >( A, epsilon, QRtype, 10 );
-      FAIL();
+         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeCMO >( A, epsilon, QRmethod, 10 );
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    MatrixTypeCMO B;
 
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeCMO >( B, epsilon, QRtype, 10 );
-      FAIL();
+         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeCMO >( B, epsilon, QRmethod, 10 );
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -1000,33 +1049,33 @@ checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::QRfactorization
    MatrixTypeRMO C = {};
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( C, epsilon, QRtype, 10 );
-      FAIL();
+         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( C, epsilon, QRmethod, 10 );
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    MatrixTypeRMO D;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( D, epsilon, QRtype, 10 );
-      FAIL();
+         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( D, epsilon, QRmethod, 10 );
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Zero-sized matrices are not allowed", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
 template< typename RealType, typename Device >
 void
-checkQRAlgorithmExceptionSizeSquare( const TNL::Matrices::Factorization::QR::QRfactorizationType& QRtype )
+checkQRAlgorithmExceptionSizeSquare( const TNL::Matrices::Factorization::QR::FactorizationMethod& QRmethod )
 {
    const TNL::Algorithms::Segments::ElementsOrganization organizationCMO = TNL::Algorithms::Segments::ColumnMajorOrder;
    using MatrixTypeCMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationCMO >;
@@ -1034,14 +1083,14 @@ checkQRAlgorithmExceptionSizeSquare( const TNL::Matrices::Factorization::QR::QRf
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeCMO >( A, epsilon, QRtype, 10 );
-      FAIL();
+         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeCMO >( A, epsilon, QRmethod, 10 );
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Power iteration is possible only for square matrices", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -1049,62 +1098,80 @@ checkQRAlgorithmExceptionSizeSquare( const TNL::Matrices::Factorization::QR::QRf
    MatrixTypeRMO B = { { 1, 2, 3 } };
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( B, epsilon, QRtype, 10 );
-      FAIL();
+         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( B, epsilon, QRmethod, 10 );
+      ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
       EXPECT_STREQ( "Power iteration is possible only for square matrices", e.what() );
    }
    catch( ... ) {
-      FAIL();
+      ADD_FAILURE();
    }
 }
 
 template< typename RealType, typename Device >
 void
-checkQRAlgorithmDense1D( const TNL::Matrices::Factorization::QR::QRfactorizationType& QRtype )
+checkQRAlgorithmDense1D( const TNL::Matrices::Factorization::QR::FactorizationMethod& QRmethod )
 {
    const TNL::Algorithms::Segments::ElementsOrganization organizationCMO = TNL::Algorithms::Segments::ColumnMajorOrder;
    using MatrixTypeCMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationCMO >;
    MatrixTypeCMO A = { { 1.0 } };
    RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeCMO >( A, epsilon, QRtype, 10000 );
+      TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeCMO >( A, epsilon, QRmethod, 10000 );
    EXPECT_EQ( eigenvalue.getElement( 0, 0 ), 1 );
    EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
-   if( QRtype == TNL::Matrices::Factorization::QR::GivensType ) {
+
+   A.setElement( 0, 0, -1 );
+   std::tie( eigenvalue, eigenvector, iterations ) =
+      TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeCMO >( A, epsilon, QRmethod, 10000 );
+   EXPECT_EQ( eigenvalue.getElement( 0, 0 ), -1 );
+   EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
+   if( QRmethod == TNL::Matrices::Factorization::QR::FactorizationMethod::Givens ) {
       const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
       using MatrixTypeRMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationRMO >;
       MatrixTypeRMO B = { { 1.0 } };
-      auto [ eigenvalueRMO, eigenvectorRMO, iterationsRMO ] =
-         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( B, epsilon, QRtype, 10000 );
-      EXPECT_EQ( eigenvalueRMO.getElement( 0, 0 ), 1 );
-      EXPECT_EQ( eigenvectorRMO.getElement( 0, 0 ), 1 );
+      std::tie( eigenvalue, eigenvector, iterations ) =
+         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( B, epsilon, QRmethod, 10000 );
+      EXPECT_EQ( eigenvalue.getElement( 0, 0 ), 1 );
+      EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
+
+      B.setElement( 0, 0, -1 );
+      std::tie( eigenvalue, eigenvector, iterations ) =
+         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( B, epsilon, QRmethod, 10000 );
+      EXPECT_EQ( eigenvalue.getElement( 0, 0 ), -1 );
+      EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
    }
 }
 
 template< typename RealType, typename Device >
 void
-checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::QRfactorizationType& QRtype )
+checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMethod& QRmethod )
 {
    const TNL::Algorithms::Segments::ElementsOrganization organization = TNL::Algorithms::Segments::ColumnMajorOrder;
    using MatrixType = TNL::Matrices::DenseMatrix< RealType, Device, int, organization >;
    MatrixType A = { { 2.0, 1.0 }, { 1.0, 2.0 } };
-   RealType epsilon = 1e-8;
+   const RealType epsilon = 1e-8;
    auto [ eigenvalues, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixType >( A, epsilon, QRtype, 10000 );
+      TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixType >( A, epsilon, QRmethod, 10000 );
    EXPECT_NEAR( eigenvalues.getElement( 0, 0 ), 3, 1e-6 );
    EXPECT_NEAR( eigenvalues.getElement( 1, 1 ), 1, 1e-6 );
    EXPECT_NEAR( eigenvector.getElement( 0, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
    EXPECT_NEAR( eigenvector.getElement( 1, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
    EXPECT_NEAR( eigenvector.getElement( 0, 1 ), -TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
    EXPECT_NEAR( eigenvector.getElement( 1, 1 ), TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
-   if( QRtype == TNL::Matrices::Factorization::QR::GivensType ) {
-      const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
-      using MatrixTypeRMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationRMO >;
-      MatrixTypeRMO B = { { 2.0, 1.0 }, { 1.0, 2.0 } };
+
+   MatrixType B = { { 0.0, 1.0 }, { -1.0, 0.0 } };
+   auto [ eigenvaluesB, eigenvectorB, iterationsB ] =
+      TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixType >( B, epsilon, QRmethod, 10000 );
+   EXPECT_EQ( iterationsB, 0 );
+
+   const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
+   using MatrixTypeRMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationRMO >;
+   MatrixTypeRMO C = { { 2.0, 1.0 }, { 1.0, 2.0 } };
+   if( QRmethod == TNL::Matrices::Factorization::QR::FactorizationMethod::Givens ) {
       auto [ eigenvaluesRMO, eigenvectorRMO, iterationsRMO ] =
-         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( B, epsilon, QRtype, 10000 );
+         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( C, epsilon, QRmethod, 10000 );
       EXPECT_NEAR( eigenvaluesRMO.getElement( 0, 0 ), 3, 1e-6 );
       EXPECT_NEAR( eigenvaluesRMO.getElement( 1, 1 ), 1, 1e-6 );
       EXPECT_NEAR( eigenvectorRMO.getElement( 0, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
@@ -1112,62 +1179,105 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::QRfactorization
       EXPECT_NEAR( eigenvector.getElement( 0, 1 ), -TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
       EXPECT_NEAR( eigenvector.getElement( 1, 1 ), TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
    }
+   else {
+      try {
+         auto [ eigenvalue, eigenvector, iterations ] =
+            TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( C, epsilon, QRmethod, 10 );
+         ADD_FAILURE();
+      }
+      catch( const std::invalid_argument& e ) {
+         EXPECT_STREQ( "Wrong QR factorization type for dense matrix with row-major order organization.", e.what() );
+      }
+      catch( ... ) {
+         ADD_FAILURE();
+      }
+   }
+
+   MatrixTypeRMO D = { { 0.0, 1.0 }, { -1.0, 0.0 } };
+   if( QRmethod == TNL::Matrices::Factorization::QR::FactorizationMethod::Givens ) {
+      auto [ eigenvaluesRMO, eigenvectorSRMO, iterationsRMO ] =
+         TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( D, epsilon, QRmethod, 10000 );
+      EXPECT_NEAR( iterationsRMO, 0, 10000 );
+   }
+   else {
+      try {
+         auto [ eigenvaluesRMO, eigenvectorsRMO, iterationsRMO ] =
+            TNL::Matrices::Eigen::QRalgorithm< RealType, Device, MatrixTypeRMO >( D, epsilon, QRmethod, 10 );
+         ADD_FAILURE();
+      }
+      catch( const std::invalid_argument& e ) {
+         EXPECT_STREQ( "Wrong QR factorization type for dense matrix with row-major order organization.", e.what() );
+      }
+      catch( ... ) {
+         ADD_FAILURE();
+      }
+   }
 }
 
 TEST( EigenTest, QRalgorithm )
 {
 #if ! defined( __CUDACC__ )
-   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   // Returns -1 for HH type
-   //checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   //checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
+   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Host >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Host >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Host >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Host >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Host >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Host >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
 #else
-   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   // Returns -1 for HH type
-   //checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   //checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Cuda >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Cuda >( TNL::Matrices::Factorization::QR::GivensType );
-   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Cuda >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Cuda >( TNL::Matrices::Factorization::QR::GramSchmidtType );
-   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Cuda >( TNL::Matrices::Factorization::QR::HouseholderType );
-   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Cuda >( TNL::Matrices::Factorization::QR::HouseholderType );
+   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense0D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmDense0D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense1D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmDense1D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmDense2D< double, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmDense2D< float, TNL::Devices::Host >( TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Cuda >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Cuda >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::Givens );
+   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Cuda >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Cuda >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+   checkQRAlgorithmExceptionSizeSquare< double, TNL::Devices::Cuda >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
+   checkQRAlgorithmExceptionSizeSquare< float, TNL::Devices::Cuda >(
+      TNL::Matrices::Factorization::QR::FactorizationMethod::Householder );
 #endif
 }
 
