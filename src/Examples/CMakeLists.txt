@@ -1,6 +1,5 @@
-#add_subdirectory(Ginkgo)
-#add_subdirectory(Hypre)
-add_subdirectory(Eigen)
+add_subdirectory(Ginkgo)
+add_subdirectory(Hypre)
 
 set(CPP_TARGETS tnl-optimize-ranks tnl-turbulence-generator)
 set(CUDA_TARGETS tnl-optimize-ranks-cuda tnl-turbulence-generator-cuda)
