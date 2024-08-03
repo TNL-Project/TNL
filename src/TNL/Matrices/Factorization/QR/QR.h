@@ -3,91 +3,79 @@
 
 #pragma once
 
-#include "TNL/Matrices/Factorization/QR/GramSchmidt.h"
-#include "TNL/Matrices/Factorization/QR/Givens.h"
-#include "TNL/Matrices/Factorization/QR/Householder.h"
+#include <TNL/Matrices/Factorization/QR/GramSchmidt.h>
+#include <TNL/Matrices/Factorization/QR/Givens.h>
+#include <TNL/Matrices/Factorization/QR/Householder.h>
 #include <utility>
 
 namespace TNL::Matrices::Factorization::QR {
 
-enum QRfactorizationType
+enum class FactorizationMethod
 {
-   GramSchmidtType,
-   GivensType,
-   HouseholderType
+   GramSchmidt,
+   Givens,
+   Householder
 };
 
 /**
- * \brief Performs QR factorization on a matrix A using a chosen method (Gram-Schmidt, Givens, or Householder),
+ * \brief Performs QR factorization on a matrix A using a specified method (Gram-Schmidt, Givens, or Householder),
  * producing an orthogonal matrix Q and an upper triangular matrix R, such that A = QR.
  *
- * QR factorization is a matrix decomposition technique that decomposes a matrix A into a product of an orthogonal matrix Q
- * and an upper triangular matrix R. This function supports three methods for QR factorization: Gram-Schmidt process,
- * Givens rotations, and Householder reflections. The choice among these methods influences the numerical stability and
- * computational efficiency of the operation. The resulting matrices Q and R satisfy the equation A = QR, where A is the
- * original matrix, Q is orthogonal, and R is upper triangular.
- *
- * \tparam MatrixType The type of the input matrix A, which must be compatible with the operations required by the
- * selected factorization method.
- *
- * \param A The matrix to be factorized. It is a constant reference, ensuring that A remains unchanged by the function.
- * \param Q Reference to a matrix where the orthogonal matrix Q from the QR factorization will be stored.
- * \param R Reference to a matrix where the upper triangular matrix R from the QR factorization will be stored.
- * \param QRtype An enumeration value specifying the method for QR factorization. Options include GramSchmidtType,
- * GivensType, and HouseholderType, each affecting the factorization's efficiency and stability.
- *
- * \note The function does not modify the input matrix A. The matrices Q and R are output parameters that contain the
- * results of the QR factorization.
- * \note The selection of the QR factorization method (QRtype) significantly affects the process's numerical stability
- * and computational requirements. Each method has its own advantages and is suited to different types of matrices and
- * computational contexts.
- *
- * Overload:
- * A convenience overload of the QRfactorization function is provided, which takes the matrix A and the factorization
- * method type as inputs and returns a pair of matrices (Q, R) as the result. This overload simplifies cases where
- * direct access to the Q and R matrices post-factorization is desired without the need to declare them beforehand.
+ * \tparam MatrixType The type of the input matrix A.
  *
  * \param A The matrix to be factorized, remains unchanged.
- * \param QRtype Specifies the QR factorization method to be used.
+ * \param Q Reference to a matrix where the orthogonal matrix Q will be stored.
+ * \param R Reference to a matrix where the upper triangular matrix R will be stored.
+ * \param QRmethod The method for QR factorization: GramSchmidt, Givens, or Householder.
  *
- * \return A std::pair containing the orthogonal matrix Q and the upper triangular matrix R resulting from the QR
- * factorization of A.
+ * \exception std::invalid_argument Thrown if an incorrect QR factorization type is provided.
  */
 template< typename MatrixType >
 void
-QRfactorization( const MatrixType& A, MatrixType& Q, MatrixType& R, const QRfactorizationType& QRtype )
+QRfactorization( const MatrixType& A, MatrixType& Q, MatrixType& R, const FactorizationMethod& QRmethod )
 {
    if constexpr( MatrixType::getOrganization() == Algorithms::Segments::ColumnMajorOrder ) {
-      switch( QRtype ) {
-         case QRfactorizationType::GramSchmidtType:
+      switch( QRmethod ) {
+         case FactorizationMethod::GramSchmidt:
             TNL::Matrices::Factorization::QR::GramSchmidt( A, Q, R );
             break;
-         case QRfactorizationType::GivensType:
+         case FactorizationMethod::Givens:
             TNL::Matrices::Factorization::QR::Givens( A, Q, R );
             break;
-         case QRfactorizationType::HouseholderType:
+         case FactorizationMethod::Householder:
             TNL::Matrices::Factorization::QR::Householder( A, Q, R );
             break;
          default:
-            throw std::invalid_argument( "Wrong factorization type." );
+            throw std::invalid_argument( "Wrong QR factorization type for dense matrix with column-major order organization." );
             break;
       }
    }
    else {
-      switch( QRtype ) {
-         case QRfactorizationType::GivensType:
+      switch( QRmethod ) {
+         case FactorizationMethod::Givens:
             TNL::Matrices::Factorization::QR::Givens( A, Q, R );
             break;
          default:
-            throw std::invalid_argument( "Wrong factorization type." );
+            throw std::invalid_argument( "Wrong QR factorization type for dense matrix with row-major order organization." );
             break;
       }
    }
 }
 
+/**
+ * \brief Overload for QR factorization that returns a pair of matrices (Q, R).
+ *
+ * \tparam MatrixType The type of the input matrix A.
+ *
+ * \param A The matrix to be factorized.
+ * \param QRmethod The method for QR factorization: GramSchmidt, Givens, or Householder.
+ *
+ * \return A std::pair containing the orthogonal matrix Q (of type MatrixType) and the upper triangular matrix R (of type
+ * MatrixType).
+ */
 template< typename MatrixType >
 std::pair< MatrixType, MatrixType >
-QRfactorization( const MatrixType& A, const QRfactorizationType& QRtype )
+QRfactorization( const MatrixType& A, const FactorizationMethod& QRtype )
 {
    MatrixType Q;
    MatrixType R;
@@ -95,4 +83,4 @@ QRfactorization( const MatrixType& A, const QRfactorizationType& QRtype )
    return { Q, R };
 }
 
-}  //namespace TNL::Matrices::Factorization::QR
+}  // namespace TNL::Matrices::Factorization::QR
