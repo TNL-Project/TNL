@@ -3,10 +3,8 @@
 
 #pragma once
 
-#include "TNL/Algorithms/Segments/ElementsOrganization.h"
-#include "TNL/Containers/Vector.h"
-#include "TNL/Matrices/MatrixType.h"
-#include "TNL/TypeInfo.h"
+#include <TNL/Algorithms/Segments/ElementsOrganization.h>
+#include <TNL/TypeInfo.h>
 #include <TNL/Assert.h>
 #include <TNL/Math.h>
 #include <TNL/Algorithms/parallelFor.h>
@@ -23,74 +21,30 @@
 #include <TNL/Algorithms/fillRandom.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
-#include <algorithm>
-#include <cmath>
-#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <string>
 #include <type_traits>
-#include <utility>
-#include <vector>
+
+#include "EigenBenchmark.h"
 
 using namespace TNL;
 using namespace Benchmarks;
 using namespace Containers;
 
-template< typename PrecisionType >
-struct EigenBenchmarkResult : BenchmarkResult
-{
-   EigenBenchmarkResult( const PrecisionType& epsilon, const int& iterations, const PrecisionType& error )
-   : epsilon( epsilon ), iterations( iterations ), error( error )
-   {}
-
-   [[nodiscard]] HeaderElements
-   getTableHeader() const override
-   {
-      return HeaderElements( { "time", "stddev", "stddev/time", "loops", "epsilon", "iterations", "error" } );
-   }
-
-   [[nodiscard]] std::vector< int >
-   getColumnWidthHints() const override
-   {
-      return std::vector< int >( { 14, 14, 14, 6, 14, 12, 14 } );
-   }
-
-   [[nodiscard]] RowElements
-   getRowElements() const override
-   {
-      RowElements elements;
-      // write in scientific format to avoid precision loss
-      elements << std::scientific << time << time_stddev << time_stddev / time << loops << epsilon << ( iterations / loops )
-               << ( error / loops );
-      return elements;
-   }
-
-   const PrecisionType& epsilon;
-   const int& iterations;
-   const PrecisionType& error;
-};
-
-template< typename Device >
-const char*
-performer()
-{
-   if( std::is_same< Device, Devices::Host >::value )
-      return "CPU";
-   else if( std::is_same< Device, Devices::Cuda >::value )
-      return "GPU";
-   else
-      return "unknown";
-}
-
 template< typename Device, typename MatrixType >
 void
-benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, Matrices::Factorization::QR::QRfactorizationType factorType )
+benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, const Matrices::Factorization::QR::FactorizationMethod& factorMethod )
 {
+   using DoubleMatrix = typename MatrixType::template Self< double >;
+   DoubleMatrix doubleMatrix( matrix.getColumns(), matrix.getColumns() );
    using PrecisionType = typename MatrixType::RealType;
+   if constexpr( std::is_same< PrecisionType, double >() ) {
+      doubleMatrix = matrix;
+   }
    for( int i = 1; i < 15; i += 2 ) {
       PrecisionType epsilon = TNL::pow( 10.0, -i );
-      PrecisionType error = 0;
+      double error = 0;
       int iterations = 0;
       MatrixType eigenvalues( matrix.getColumns(), matrix.getColumns() );
       MatrixType eigenvectors( matrix.getColumns(), matrix.getColumns() );
@@ -99,47 +53,61 @@ benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, Matrices::Factorizatio
       int iter = 0;
       auto resetFunction = [ & ]()
       {
-         //std::cout << "Eigenvectors:\n" << eigenvectors << "\n";
-         //std::cout << "Eigenvalues:\n" << eigenvalues << "\n";
-         MatrixType matrixVector( matrix.getColumns(), matrix.getColumns() );
-         matrixVector.getMatrixProduct( matrix, eigenvectors );
-         auto f = [] __cuda_callable__( typename MatrixType::RowView & row )
-         {
-            const int& rowIdx = row.getRowIndex();
-            int size = row.getSize();
-            for( int i = 0; i < size; i++ )
-               if( i != rowIdx )
-                  row.setValue( i, 0 );
-         };
-         eigenvalues.forAllRows( f );
-         //std::cout << "Eigenvalues:\n" << eigenvalues << "\n";
-         //getchar();
-         //std::cout << "MatrixVector:\n" << matrixVector << "\n";
-         MatrixType valuesVector( matrix.getColumns(), matrix.getColumns() );
-         valuesVector.getMatrixProduct( eigenvectors, eigenvalues );
-         //std::cout << "valuesVector:\n" << valuesVector << "\n";
-         matrixVector.addMatrix( valuesVector, -1 );
-         //std::cout << "valuesVector:\n" << matrixVector << "\n";
-         error += TNL::maxNorm( matrixVector.getValues() );
+         if constexpr( std::is_same< PrecisionType, double >() ) {
+            MatrixType matrixVector( matrix.getColumns(), matrix.getColumns() );
+            matrixVector.getMatrixProduct( matrix, eigenvectors );
+            auto f = [] __cuda_callable__( typename MatrixType::RowView & row )
+            {
+               const int& rowIdx = row.getRowIndex();
+               int size = row.getSize();
+               for( int i = 0; i < size; i++ )
+                  if( i != rowIdx )
+                     row.setValue( i, 0 );
+            };
+            eigenvalues.forAllRows( f );
+            MatrixType valuesVector( matrix.getColumns(), matrix.getColumns() );
+            valuesVector.getMatrixProduct( eigenvalues, eigenvectors );
+            matrixVector.addMatrix( valuesVector, -1 );
+            error += TNL::maxNorm( matrixVector.getValues() );
+         }
+         else {
+            DoubleMatrix matrixVector( matrix.getColumns(), matrix.getColumns() );
+            DoubleMatrix doubleEigenvalues( matrix.getColumns(), matrix.getColumns() );
+            DoubleMatrix doubleEigenvectors( matrix.getColumns(), matrix.getColumns() );
+            doubleEigenvalues = eigenvalues;
+            doubleEigenvectors = eigenvectors;
+            matrixVector.getMatrixProduct( doubleMatrix, doubleEigenvectors );
+            auto f = [] __cuda_callable__( typename DoubleMatrix::RowView & row )
+            {
+               const int& rowIdx = row.getRowIndex();
+               int size = row.getSize();
+               for( int i = 0; i < size; i++ )
+                  if( i != rowIdx )
+                     row.setValue( i, 0 );
+            };
+            doubleEigenvalues.forAllRows( f );
+            DoubleMatrix valuesVector( matrix.getColumns(), matrix.getColumns() );
+            valuesVector.getMatrixProduct( doubleEigenvalues, doubleEigenvectors );
+            matrixVector.addMatrix( valuesVector, -1 );
+            error += TNL::maxNorm( matrixVector.getValues() );
+         }
          iterations += iter;
       };
-      auto testfunction = [ & ]()
+      auto testFunction = [ & ]()
       {
          std::tie( eigenvalues, eigenvectors, iter ) =
-            Matrices::Eigen::QRalgorithm< PrecisionType, Device, MatrixType >( matrix, epsilon, factorType, 10000 );
+            Matrices::Eigen::QRalgorithm< PrecisionType, Device, MatrixType >( matrix, epsilon, factorMethod, 10000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
-      benchmark.time< Device >( resetFunction, performer< Device >(), testfunction, eigenBenchmarkResult );
+      benchmark.time< Device >( resetFunction, performer< Device >(), testFunction, eigenBenchmarkResult );
       if( iterations == 0 )
          break;
-      //std::cout << "Eigenvectors:\n" << eigenvectors << "\n";
-      //std::cout << "Eigenvalues:\n" << eigenvalues << "\n";
    }
 }
 
 template< typename Device, typename PrecisionType, typename MatrixTypeCMO >
 void
-run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
+run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const int& size, MatrixTypeCMO& matrixCMO )
 {
    using MatrixTypeRMO = Matrices::DenseMatrix< PrecisionType, Device, int, TNL::Algorithms::Segments::RowMajorOrder >;
    MatrixTypeRMO matrixRMO( size, size );
@@ -148,47 +116,51 @@ run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
    if( ! std::is_same_v< Device, Devices::Cuda > ) {
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "operation", "QR" },
                                                                     { "precision", getType< PrecisionType >() },
-                                                                    { "MatrixType", "DM_CMO" },
+                                                                    { "matrixName", matrixName },
+                                                                    { "matrixType", "DM_CMO" },
                                                                     { "size", std::to_string( size ) },
-                                                                    { "facType", "HH" } } ) );
+                                                                    { "facMethod", "HH" } } ) );
       benchmark_qr< Device, MatrixTypeCMO >(
-         benchmark, matrixCMO, Matrices::Factorization::QR::QRfactorizationType::HouseholderType );
+         benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Householder );
 
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
          { "operation", "QR" },
          { "precision", getType< PrecisionType >() },
-         { "MatrixType", "DM_CMO" },
+         { "matrixName", matrixName },
+         { "matrixType", "DM_CMO" },
          { "size", std::to_string( size ) },
-         { "facType", "GM" },
+         { "facMethod", "GM" },
       } ) );
       benchmark_qr< Device, MatrixTypeCMO >(
-         benchmark, matrixCMO, Matrices::Factorization::QR::QRfactorizationType::GramSchmidtType );
+         benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
 
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
          { "operation", "QR" },
          { "precision", getType< PrecisionType >() },
-         { "MatrixType", "DM_CMO" },
+         { "matrixName", matrixName },
+         { "matrixType", "DM_CMO" },
          { "size", std::to_string( size ) },
-         { "facType", "GV" },
+         { "facMethod", "GV" },
       } ) );
-      benchmark_qr< Device, MatrixTypeCMO >(
-         benchmark, matrixCMO, Matrices::Factorization::QR::QRfactorizationType::GivensType );
+      benchmark_qr< Device, MatrixTypeCMO >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
 
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
          { "operation", "QR" },
          { "precision", getType< PrecisionType >() },
-         { "MatrixType", "DM_RMO" },
+         { "matrixName", matrixName },
+         { "matrixType", "DM_RMO" },
          { "size", std::to_string( size ) },
-         { "facType", "GV" },
+         { "facMethod", "GV" },
       } ) );
-      benchmark_qr< Device, MatrixTypeRMO >(
-         benchmark, matrixRMO, Matrices::Factorization::QR::QRfactorizationType::GivensType );
+      benchmark_qr< Device, MatrixTypeRMO >( benchmark, matrixRMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
    }
 }
 
 void
-run_banchmarks_file( Benchmark<>& benchmark, const std::string& fileName )
+run_benchmarks_file( Benchmark<>& benchmark, const std::string& fileName )
 {
+   std::string matrixName = fileName;
+   matrixName.erase( matrixName.length() - 4, 4 );
    using MatrixTypeHostFloatCMO =
       Matrices::DenseMatrix< float, Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >;
    using MatrixTypeHostDoubleCMO =
@@ -196,30 +168,37 @@ run_banchmarks_file( Benchmark<>& benchmark, const std::string& fileName )
    MatrixTypeHostDoubleCMO matrixDM;
    TNL::Matrices::MatrixReader< MatrixTypeHostDoubleCMO >::readMtx( fileName, matrixDM );
    int size = matrixDM.getColumns();
-   run_benchmarks_DM< Devices::Host, double >( benchmark, size, matrixDM );
+   run_benchmarks_DM< Devices::Host, double >( benchmark, matrixName, size, matrixDM );
    MatrixTypeHostFloatCMO matrixFloatDM;
    TNL::Matrices::MatrixReader< MatrixTypeHostFloatCMO >::readMtx( fileName, matrixFloatDM );
    size = matrixDM.getColumns();
-   run_benchmarks_DM< Devices::Host, float >( benchmark, size, matrixFloatDM );
+   run_benchmarks_DM< Devices::Host, float >( benchmark, matrixName, size, matrixFloatDM );
 }
 
 void
 run_benchmarks( Benchmark<>& benchmark )
 {
-   run_banchmarks_file( benchmark, "/home/salabmar/tnl/.test_matrices/bcspwr01.mtx" );
-   run_banchmarks_file( benchmark, "/home/salabmar/tnl/.test_matrices/bcsstk01.mtx" );
-   run_banchmarks_file( benchmark, "/home/salabmar/tnl/.test_matrices/bfw62b.mtx" );
-   run_banchmarks_file( benchmark, "/home/salabmar/tnl/.test_matrices/bcsstm03.mtx" );
-   run_banchmarks_file( benchmark, "/home/salabmar/tnl/.test_matrices/bcsstm05.mtx" );
-   run_banchmarks_file( benchmark, "/home/salabmar/tnl/.test_matrices/bcsstk05.mtx" );
-   run_banchmarks_file( benchmark, "/home/salabmar/tnl/.test_matrices/polbooks.mtx" );
+   //https://sparse.tamu.edu/HB/bcspwr01
+   run_benchmarks_file( benchmark, "bcspwr01.mtx" );
+   //https://sparse.tamu.edu/HB/bcsstk01
+   run_benchmarks_file( benchmark, "bcsstk01.mtx" );
+   //http://sparse.tamu.edu/Bai/bfwb62
+   run_benchmarks_file( benchmark, "bfwb62.mtx" );
+   //https://sparse.tamu.edu/Newman/polbooks
+   run_benchmarks_file( benchmark, "polbooks.mtx" );
+   //https://sparse.tamu.edu/HB/bcsstm03
+   run_benchmarks_file( benchmark, "bcsstm03.mtx" );
+   //https://sparse.tamu.edu/HB/bcsstm05
+   run_benchmarks_file( benchmark, "bcsstm05.mtx" );
+   //https://sparse.tamu.edu/HB/bcsstk05
+   run_benchmarks_file( benchmark, "bcsstk05.mtx" );
 }
 
 void
 setupConfig( Config::ConfigDescription& config )
 {
    config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-eigen.log" );
+   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-eigen-qr.log" );
    config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "append" );
    config.addEntryEnum( "overwrite" );
