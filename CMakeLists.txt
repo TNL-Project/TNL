@@ -73,18 +73,8 @@ set(TNL_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/src" CACHE INTERNAL "Directories
 
 # create the exported targets
 add_library(TNL INTERFACE)
-add_library(TNL_CXX INTERFACE)
-add_library(TNL_CUDA INTERFACE)
-add_library(TNL_HIP INTERFACE)
 # aliases to match exported targets
 add_library(TNL::TNL ALIAS TNL)
-add_library(TNL::TNL_CXX ALIAS TNL_CXX)
-add_library(TNL::TNL_CUDA ALIAS TNL_CUDA)
-add_library(TNL::TNL_HIP ALIAS TNL_HIP)
-# add dependencies between the exported targets
-target_link_libraries(TNL_CXX INTERFACE TNL)
-target_link_libraries(TNL_CUDA INTERFACE TNL)
-target_link_libraries(TNL_HIP INTERFACE TNL)
 
 # add the include directory to the interface
 if(PROJECT_IS_TOP_LEVEL)
@@ -113,15 +103,17 @@ include(testing)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
-target_link_libraries(TNL_CXX INTERFACE Threads::Threads)
+target_link_libraries(TNL INTERFACE Threads::Threads)
 
 ####
 # Check for OpenMP
 #
 if(OPENMP_FOUND AND TNL_USE_OPENMP)
     # NOTE: OpenMP + CUDA/HIP = segfault in matrix tests (the host code built by nvcc is also not optimal)
-    target_compile_definitions(TNL_CXX INTERFACE HAVE_OPENMP)
-    target_link_libraries(TNL_CXX INTERFACE OpenMP::OpenMP_CXX)
+    target_compile_definitions(TNL INTERFACE $<$<COMPILE_LANGUAGE:CXX>: HAVE_OPENMP>)
+    target_include_directories(TNL INTERFACE $<$<COMPILE_LANGUAGE:CXX>: ${OpenMP_CXX_INCLUDE_DIRS}>)
+    target_compile_options(TNL INTERFACE $<$<COMPILE_LANGUAGE:CXX>: ${OpenMP_CXX_FLAGS}>)
+    target_link_libraries(TNL INTERFACE $<$<LINK_LANGUAGE:CXX>: ${OpenMP_CXX_LIBRARIES}>)
     set(TNL_BUILD_OPENMP TRUE)
 endif()
 
@@ -243,7 +235,7 @@ endif()
 
 if(TNL_EXPORT_INTERFACE_TARGETS)
     # export the interface targets
-    install(TARGETS TNL TNL_CXX TNL_CUDA EXPORT TNLTargets)
+    install(TARGETS TNL EXPORT TNLTargets)
     # install a CMake file for the interface target
     install(
         EXPORT TNLTargets
