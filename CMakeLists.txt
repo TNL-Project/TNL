@@ -23,6 +23,9 @@ option(TNL_USE_MARCH_NATIVE_FLAG
 option(TNL_BUILD_COVERAGE "Enable code coverage reports from unit tests" OFF)
 option(TNL_OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF)
 option(TNL_DOXYGEN_USE_CLANG "Instruct Doxygen to use Clang-assisted parsing" OFF)
+option(TNL_EXPORT_INTERFACE_TARGETS "Instruct CMake to generate rules to export the TNL interface target"
+       ${PROJECT_IS_TOP_LEVEL}
+)
 
 # make cache variables for install destinations
 include(GNUInstallDirs)
@@ -238,7 +241,7 @@ if(TNL_USE_GMP)
     endif()
 endif()
 
-if(PROJECT_IS_TOP_LEVEL)
+if(TNL_EXPORT_INTERFACE_TARGETS)
     # export the interface targets
     install(TARGETS TNL TNL_CXX TNL_CUDA EXPORT TNLTargets)
     # install a CMake file for the interface target
