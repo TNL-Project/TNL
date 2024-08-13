@@ -369,6 +369,9 @@ clang-format:
         - changes:
             - Documentation/**/*.{h,hpp,cpp,cu,hip}
             - src/TNL/**/*.{h,hpp,cpp,cu,hip}
+            - .clang-format
+            - scripts/run-clang-format.py
+            - .gitlab-ci.yml
     script:
         - ./scripts/run-clang-format.py
                 --color always
@@ -387,6 +390,7 @@ clang-tidy:
             - src/**/*.{h,hpp,cpp,cu,hip}
             - "**/CMakeLists.txt"
             - cmake/*
+            - .clang-tidy
             - .gitlab-ci.yml
     variables:
         CXX: clang++
@@ -420,6 +424,7 @@ cmake-format:
             - ./**/CMakeLists.txt
             - ./**/*.cmake
             - .cmake-format.yaml
+            - .gitlab-ci.yml
     script:
         - shopt -s globstar
         - cmake-format --in-place **/CMakeLists.txt cmake/**/*.*
@@ -432,6 +437,7 @@ copyright-headers:
         - changes:
             - src/**/*.{h,hpp,cpp,cu,hip}
             - scripts/updage-copyright-headers.py
+            - .gitlab-ci.yml
     script:
         - ./scripts/update-copyright-headers.py
                 --dir src/
@@ -449,6 +455,7 @@ python-black:
         - changes:
             - src/**/*.py
             - Documentation/**/*.py
+            - .gitlab-ci.yml
     image: "quay.io/archlinux/archlinux:latest"
     before_script:
         - pacman -Syu --needed --noconfirm python-black python-colorama
