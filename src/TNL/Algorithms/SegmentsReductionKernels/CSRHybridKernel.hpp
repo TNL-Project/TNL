@@ -223,7 +223,7 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                                                                   ResultKeeper& keeper,
                                                                   const Value& identity ) const
 {
-   constexpr bool DispatchScalarCSR = std::is_same< Device, Devices::Host >::value;
+   constexpr bool DispatchScalarCSR = std::is_same_v< Device, Devices::Host >;
    if constexpr( DispatchScalarCSR ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
          segments, begin, end, fetch, reduction, keeper, identity );

@@ -200,7 +200,7 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segm
    }
 
    constexpr bool DispatchScalarCSR =
-      detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same< Device, Devices::Host >::value;
+      detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same_v< Device, Devices::Host >;
    if constexpr( DispatchScalarCSR ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
          segments, begin, end, fetch, reduction, keeper, identity );

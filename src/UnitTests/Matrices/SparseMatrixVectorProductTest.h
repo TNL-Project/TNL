@@ -15,6 +15,14 @@ protected:
 
 TYPED_TEST_SUITE( MatrixTest, MatrixAndKernelTypes );
 
+TYPED_TEST( MatrixTest, vectorProductTest_zeroMatrix )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+   using KernelType = typename TestFixture::KernelType;
+
+   test_VectorProduct_zeroMatrix< MatrixType, KernelType >();
+}
+
 TYPED_TEST( MatrixTest, vectorProductTest_smallMatrix1 )
 {
    using MatrixType = typename TestFixture::MatrixType;

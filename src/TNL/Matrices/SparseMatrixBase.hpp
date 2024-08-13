@@ -112,7 +112,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          const IndexType column = columnIndexesView[ globalIdx ];
          compute = ( column != paddingIndex< IndexType > );
          if( ! compute )
-            return 0.0;
+            return 0;
          return 1 + ( column != row && column < rows && row < columns );  // the addition is for non-diagonal elements
       };
       auto keeper = [ = ] __cuda_callable__( IndexType row, const IndexType& value ) mutable
@@ -239,7 +239,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    if( Base::isSymmetric() && row < column ) {
       swap( row, column );
       if( row >= this->getRows() || column >= this->getColumns() )
-         return 0.0;
+         return 0;
    }
 
    const IndexType rowSize = this->segments.getSegmentSize( row );
@@ -254,7 +254,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             return this->values.getElement( globalIdx );
       }
    }
-   return 0.0;
+   return 0;
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -300,7 +300,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          const IndexType column = columnIndexesView[ globalIdx ];
          compute = ( column != paddingIndex< IndexType > );
          if( ! compute )
-            return 0.0;
+            return 0;
          if( column < row ) {
             if constexpr( Base::isBinary() )
                Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ column ],
@@ -330,11 +330,9 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          const IndexType column = columnIndexesView[ globalIdx ];
          TNL_ASSERT_TRUE( (column >= 0 || column == paddingIndex< Index >), "Wrong column index." );
          TNL_ASSERT_LT( column, inVectorView.getSize(), "Wrong column index." );
-         if constexpr( SegmentsViewType::havePadding() ) {
-            compute = ( column != paddingIndex< Index > );
-            if( ! compute )
-               return 0;
-         }
+         compute = ( column != paddingIndex< Index > );
+         if( ! compute )
+            return 0;
          TNL_ASSERT_TRUE( column >= 0, "Wrong column index." );
          if constexpr( Base::isBinary() )
             return inVectorView[ column ];

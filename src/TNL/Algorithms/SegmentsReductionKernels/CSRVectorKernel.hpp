@@ -101,7 +101,7 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                   ResultKeeper& keeper,
                                                   const Value& identity )
 {
-   constexpr bool DispatchScalarCSR = std::is_same< Device, Devices::Host >::value;
+   constexpr bool DispatchScalarCSR = std::is_same_v< Device, Devices::Host >;
    if constexpr( DispatchScalarCSR ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
          segments, begin, end, fetch, reduction, keeper, identity );

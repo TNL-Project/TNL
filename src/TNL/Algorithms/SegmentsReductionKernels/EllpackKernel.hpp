@@ -108,7 +108,7 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
       const IndexType segmentSize = segments.getSegmentSize( 0 );
-      if constexpr( std::is_same< Device, Devices::Cuda >::value ) {
+      if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
          if( end <= begin )
             return;
          const Index segmentsCount = end - begin;
