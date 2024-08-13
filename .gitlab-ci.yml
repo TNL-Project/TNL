@@ -184,9 +184,10 @@ workflow:
         # https://gitlab.kitware.com/cmake/cmake/-/issues/23982
         - "sed 's|\"binaryDir\": \"${sourceDir}/build\",|\"binaryDir\": \"${sourceDir}\",|' CMakePresets.json > \"./build/$CI_JOB_NAME_SLUG/CMakePresets.json\""
         - pushd "./build/$CI_JOB_NAME_SLUG/"
-        - if [[ ${MATRIX_TARGET} == "tests" ]]; then
+        # NOTE: execution of HIP tests is temporarily skipped until we get a reliable GPU
+        - if [[ ${MATRIX_TARGET} == "tests" ]] && [[ ${USE_HIP} != "yes" ]]; then
                 ctest --preset non-matrix-tests --output-junit "./tests-report.xml";
-          elif [[ ${MATRIX_TARGET} == "matrix_tests" ]]; then
+          elif [[ ${MATRIX_TARGET} == "matrix_tests" ]] && [[ ${USE_HIP} != "yes" ]]; then
                 ctest --preset matrix-tests --output-junit "./tests-report.xml";
           fi
         - popd
