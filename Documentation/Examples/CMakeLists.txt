@@ -31,7 +31,7 @@ set(HOST_EXAMPLES
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${COMMON_EXAMPLES} ${CUDA_EXAMPLES})
         add_executable(${target} ${target}.cu)
-        target_link_libraries(${target} PUBLIC TNL::TNL_CUDA)
+        target_link_libraries(${target} PUBLIC TNL::TNL)
         add_custom_command(
             COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
             OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out DEPENDS ${target}
@@ -41,7 +41,7 @@ if(TNL_BUILD_CUDA)
 else()
     foreach(target IN ITEMS ${COMMON_EXAMPLES})
         add_executable(${target} ${target}.cpp)
-        target_link_libraries(${target} PUBLIC TNL::TNL_CXX)
+        target_link_libraries(${target} PUBLIC TNL::TNL)
         add_custom_command(
             COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
             OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out DEPENDS ${target}
@@ -52,7 +52,7 @@ endif()
 
 foreach(target IN ITEMS ${HOST_EXAMPLES})
     add_executable(${target} ${target}.cpp)
-    target_link_libraries(${target} PUBLIC TNL::TNL_CXX)
+    target_link_libraries(${target} PUBLIC TNL::TNL)
     # PerformanceCountersExample example requires admin privileges to run on macOS so we only build it
     # on the Apple platform but do not execute.
     if(NOT (APPLE AND ${target} STREQUAL "PerformanceCountersExample"))

@@ -18,4 +18,4 @@ if(TNL_USE_MARCH_NATIVE_FLAG)
 endif()
 
 # force colorized output (the automatic detection in compilers does not work with Ninja)
-target_compile_options(TNL_HIP INTERFACE $<$<HIP_COMPILER_ID:Clang>:-fcolor-diagnostics> ;)
+target_compile_options(TNL INTERFACE $<$<COMPILE_LANG_AND_ID:HIP,Clang>:-fcolor-diagnostics> ;)

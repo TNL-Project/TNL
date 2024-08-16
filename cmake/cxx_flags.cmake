@@ -31,8 +31,8 @@ endif()
 
 # disable false compiler warnings for NVHPC - see the cuda_flags.cmake file
 target_compile_options(
-    TNL_CXX
-    INTERFACE $<$<CXX_COMPILER_ID:NVHPC>:
+    TNL
+    INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,NVHPC>:
               --diag_suppress=code_is_unreachable
               ;
               --diag_suppress=loop_not_reachable
@@ -122,15 +122,15 @@ endif()
 
 # force colorized output (the automatic detection in compilers does not work with Ninja)
 target_compile_options(
-    TNL_CXX
-    INTERFACE $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>
+    TNL
+    INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-fcolor-diagnostics>
               ;
-              $<$<CXX_COMPILER_ID:AppleClang>:-fcolor-diagnostics>
+              $<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-fcolor-diagnostics>
               ;
-              $<$<CXX_COMPILER_ID:IntelLLVM>:-fcolor-diagnostics>
+              $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM>:-fcolor-diagnostics>
               ;
-              $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color>
+              $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fdiagnostics-color>
               ;
-              $<$<CXX_COMPILER_ID:NVHPC>:-fdiagnostics-color>
+              $<$<COMPILE_LANG_AND_ID:CXX,NVHPC>:-fdiagnostics-color>
               ;
 )

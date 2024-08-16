@@ -4,7 +4,7 @@ if(TNL_BUILD_MPI)
         foreach(source IN ITEMS hypre-ex5.c tnl-hypre-ex5.cpp tnl-hypre-PoissonEquation3D.cpp)
             string(REGEX REPLACE "\.cpp|\.c" "" target ${source})
             add_executable(${target} ${source})
-            target_link_libraries(${target} PUBLIC TNL::TNL_CXX)
+            target_link_libraries(${target} PUBLIC TNL::TNL)
 
             # enable MPI support in TNL
             target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")

@@ -4,7 +4,7 @@ set(CPP_EXAMPLES NDArrayExample_RowMajorArray NDArrayExample_3Dpermutations NDAr
 
 foreach(target IN ITEMS ${CPP_EXAMPLES})
     add_executable(${target} ${target}.cpp)
-    target_link_libraries(${target} PUBLIC TNL::TNL_CXX)
+    target_link_libraries(${target} PUBLIC TNL::TNL)
     add_custom_command(
         COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
         OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out DEPENDS ${target}
