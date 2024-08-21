@@ -446,4 +446,35 @@ getSymmetricPart( const InMatrix& inMatrix )
    return outMatrix;
 }
 
+/**
+ * \brief Computes the maximum norm of a matrix.
+ *
+ * \tparam Matrix is the type of the matrix.
+ * \param matrix is the input matrix.
+ * \return the maximum norm of the matrix.
+ */
+template< typename Matrix >
+auto
+maxNorm( const Matrix& matrix ) -> typename Matrix::RealType
+{
+   using RealType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+   using VectorType = Containers::Vector< RealType, DeviceType, IndexType >;
+   VectorType aux( matrix.getRows(), 0 );
+   auto aux_view = aux.getView();
+   matrix.reduceAllRows(
+      [] __cuda_callable__( const IndexType rowIdx, const IndexType columnIdx, const RealType& value )
+      {
+         return TNL::abs( value );
+      },
+      TNL::Plus(),
+      [ = ] __cuda_callable__( const IndexType rowIdx, const RealType& value ) mutable
+      {
+         aux_view[ rowIdx ] = value;
+      },
+      0 );
+   return max( aux );
+}
+
 }  // namespace TNL::Matrices
