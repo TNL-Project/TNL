@@ -61,7 +61,7 @@ public:
       if( n == 1 ) {
          if( beta != 0.0 ) {
 #ifdef HAVE_OPENMP
-            #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
 #endif
             for( IndexType j = 0; j < m; j++ )
                y[ j ] = A[ j ] * alphax[ 0 ] + beta * y[ j ];
@@ -69,7 +69,7 @@ public:
          else {
 // the vector y might be uninitialized, and 0.0 * NaN = NaN
 #ifdef HAVE_OPENMP
-            #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
 #endif
             for( IndexType j = 0; j < m; j++ )
                y[ j ] = A[ j ] * alphax[ 0 ];
@@ -82,13 +82,13 @@ public:
          const IndexType blocks = m / block_size;
 
 #ifdef HAVE_OPENMP
-         #pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
+   #pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
 #endif
          {
             RealType aux[ block_size ];
 
 #ifdef HAVE_OPENMP
-            #pragma omp for nowait
+   #pragma omp for nowait
 #endif
             for( IndexType b = 0; b < blocks; b++ ) {
                const IndexType block_offset = b * block_size;
@@ -118,7 +118,7 @@ public:
 
 // the first thread that reaches here processes the last, incomplete block
 #ifdef HAVE_OPENMP
-            #pragma omp single nowait
+   #pragma omp single nowait
 #endif
             {
                // TODO: unlike the complete blocks, the tail is traversed row-wise
@@ -182,7 +182,7 @@ public:
 
       if( n == 1 ) {
 #ifdef HAVE_OPENMP
-         #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
 #endif
          for( IndexType j = 0; j < m; j++ )
             C[ j ] = alpha * A[ j ] + beta * B[ j ];
@@ -194,11 +194,11 @@ public:
          const IndexType blocks = m / block_size;
 
 #ifdef HAVE_OPENMP
-         #pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
+   #pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
 #endif
          {
 #ifdef HAVE_OPENMP
-            #pragma omp for nowait
+   #pragma omp for nowait
 #endif
             for( IndexType b = 0; b < blocks; b++ ) {
                const IndexType block_offset = b * block_size;
@@ -213,7 +213,7 @@ public:
 
 // the first thread that reaches here processes the last, incomplete block
 #ifdef HAVE_OPENMP
-            #pragma omp single nowait
+   #pragma omp single nowait
 #endif
             {
                for( IndexType j = 0; j < n; j++ ) {
@@ -478,6 +478,37 @@ getDiagonal( const Matrix& matrix )
       diagonalElements( matrix.getRows() );
    getDiagonal( matrix, diagonalElements );
    return diagonalElements;
+}
+
+/**
+ * \brief Computes the maximum norm of a matrix.
+ *
+ * \tparam Matrix is the type of the matrix.
+ * \param matrix is the input matrix.
+ * \return the maximum norm of the matrix.
+ */
+template< typename Matrix >
+auto
+maxNorm( const Matrix& matrix ) -> typename Matrix::RealType
+{
+   using RealType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+   using VectorType = Containers::Vector< RealType, DeviceType, IndexType >;
+   VectorType aux( matrix.getRows(), 0 );
+   auto aux_view = aux.getView();
+   matrix.reduceAllRows(
+      [] __cuda_callable__( const IndexType rowIdx, const IndexType columnIdx, const RealType& value )
+      {
+         return TNL::abs( value );
+      },
+      TNL::Plus(),
+      [ = ] __cuda_callable__( const IndexType rowIdx, const RealType& value ) mutable
+      {
+         aux_view[ rowIdx ] = value;
+      },
+      0 );
+   return max( aux );
 }
 
 }  // namespace TNL::Matrices
