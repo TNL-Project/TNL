@@ -8,7 +8,7 @@
 #include <numeric>     // std::reduce, std::transform_reduce, std::partial_sum, std::inclusive_scan, std::exclusive_scan
 #include <functional>  // std::function
 
-#if __CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 4 && __CUDACC_VER_MINOR__ <= 5
+#if __CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 4 && __CUDACC_VER_MINOR__ <= 6
    // nvcc 12.4 fails when used with GCC 13 and the `execution` header is included
    // https://gitlab.com/-/snippets/3684272
    #define STDEXEC
