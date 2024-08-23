@@ -64,8 +64,10 @@ protected:
                  const VectorType& u,
                  const VectorType& l,
                  const VectorType& c,
-                 VectorType& x,
-                 VectorType& y,
+                 const VectorView& in_x,
+                 const VectorView& in_y,
+                 VectorView& out_x,
+                 VectorView& out_y,
                  IndexType k,
                  const RealType& current_omega,
                  RealType& current_eta );
