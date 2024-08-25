@@ -41,8 +41,7 @@ TEST( PDLPTest, NoATest )
    VectorType x( 2, 0 );
 
    Solvers::Optimization::PDLP< VectorType > solver;
-   solver.setRelaxation( 0.05, 0.05 );
-   solver.solve( c, G, h, l, u, x );
+   solver.solve( c, G, h, 2, l, u, x );
 
    EXPECT_NEAR( TNL::max( TNL::abs( x - exact_solution ) ), (RealType) 0.0, 0.1 );
 }
@@ -64,10 +63,9 @@ TEST( PDLPTest, AGTest )
     * The minimum value is -40.
     */
 
-   MatrixType G( { { -5, -3 } } );
-   MatrixType A( { { -1, -2 } } );
-   VectorType h( { -45 } );
-   VectorType b( { -16 } );
+   MatrixType GA( { { -5, -3 },
+                   { -1, -2 } } );
+   VectorType hb( { -45, -16 } );
    VectorType c( { -2, -5 } );
    VectorType l( { 0, 0 } );
    VectorType u( 2, std::numeric_limits< RealType >::infinity() );
@@ -75,8 +73,7 @@ TEST( PDLPTest, AGTest )
    VectorType x( 2, 0 );
 
    Solvers::Optimization::PDLP< VectorType > solver;
-   solver.setRelaxation( 0.02, 0.02 );
-   solver.solve( c, G, h, A, b, l, u, x );
+   solver.solve( c, GA, hb, 1, l, u, x );
 
    EXPECT_NEAR( TNL::max( TNL::abs( x - exact_solution ) ), (RealType) 0.0, 0.1 );
 }
@@ -106,15 +103,14 @@ TEST( PDLPTest, TransportationProblemTest )
     * The minimum value is 330.
     */
 
-   MatrixType G( { { -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0 },
+   MatrixType GA( { { -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0 },
                    { 0, 0, 0, 0, -1, -1, -1, -1, 0, 0, 0, 0 },
-                   { 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1 } } );
-   MatrixType A( { { 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 },
+                   { 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1 },
+                   { 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 },
                    { 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0 },
                    { 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0 },
                    { 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 } } );
-   VectorType h( { -50, -60, -50 } );
-   VectorType b( { 30, 40, 40, 50 } );
+   VectorType hb( { -50, -60, -50, 30, 40, 40, 50 } );
    VectorType c( { 4, 3, 2, 7, 2, 5, 4, 3, 5, 1, 3, 2 } );
    VectorType l( 12, 0 );
    VectorType u( 12, std::numeric_limits< RealType >::infinity() );
@@ -122,8 +118,7 @@ TEST( PDLPTest, TransportationProblemTest )
    VectorType x( 12, 0 );
 
    Solvers::Optimization::PDLP< VectorType > solver;
-   solver.setRelaxation( 0.02, 0.02 );
-   solver.solve( c, G, h, A, b, l, u, x );
+   solver.solve( c, GA, hb, 3, l, u, x );
 
    EXPECT_NEAR( TNL::max( TNL::abs( x - exact_solution ) ), (RealType) 0.0, 0.1 );
 }
