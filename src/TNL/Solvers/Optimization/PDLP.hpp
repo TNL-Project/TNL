@@ -10,38 +10,34 @@
 namespace TNL::Solvers::Optimization {
 
 template< typename Vector, typename SolverMonitor >
-template< typename AMatrixType, typename GMatrixType >
+template< typename MatrixType >
 bool
 PDLP< Vector, SolverMonitor >::solve( const Vector& c,
-                                      const GMatrixType& G,
-                                      const Vector& h,
-                                      const AMatrixType& A,
-                                      const Vector& b,
+                                      const MatrixType& GA,
+                                      const Vector& hb,
+                                      const IndexType m1,
                                       const Vector& l,
                                       const Vector& u,
                                       Vector& x )
 {
    using Array2D =
       Containers::NDArray< RealType, Containers::SizesHolder< IndexType, 0, 0 >, std::index_sequence< 0, 1 >, DeviceType >;
-   const IndexType m1 = G.getRows();
-   const IndexType m2 = A.getRows();
-   const IndexType n = G.getColumns();
+   const IndexType m = GA.getRows();
+   const IndexType m2 = m - m1;
+   const IndexType n = GA.getColumns();
    TNL_ASSERT_EQ( c.getSize(), n, "" );
-   TNL_ASSERT_EQ( h.getSize(), m1, "" );
-   TNL_ASSERT_EQ( b.getSize(), m2, "" );
+   TNL_ASSERT_EQ( hb.getSize(), m, "" );
    TNL_ASSERT_EQ( l.getSize(), n, "" );
    TNL_ASSERT_EQ( u.getSize(), n, "" );
    TNL_ASSERT_EQ( x.getSize(), n, "" );
-   AMatrixType AT;
-   GMatrixType GT;
-   AT.getTransposition( A );
-   GT.getTransposition( G );
+   MatrixType GAT;
+   GAT.getTransposition( GA );
 
    VectorType y( m1 + m2, 0 );
-   const RealType max_norm = max( Matrices::maxNorm( G ), Matrices::maxNorm( A ) );
+   const RealType max_norm = Matrices::maxNorm( GA );
    const RealType initial_eta = 1.0 / max_norm;
    const RealType c_norm = lpNorm( c, 2 );
-   const RealType q_norm = sqrt( ( b, b ) + ( h, h ) );
+   const RealType q_norm = l2Norm( hb );
    const RealType initial_omega = ( c_norm > 1.0e-10 && q_norm > 1.0e-10 ) ? c_norm / q_norm : 1;
    std::cout << "initital eta = " << initial_eta << " omega = " << initial_omega << std::endl;
 
@@ -74,13 +70,13 @@ PDLP< Vector, SolverMonitor >::solve( const Vector& c,
          VectorView out_x_view = out_z_view.getView( 0, n );
          VectorView out_y_view = out_z_view.getView( n, n + m1 + m2 );
          if( adaptiveStep(
-                G, GT, A, AT, h, b, u, l, c, in_x_view, in_y_view, out_x_view, out_y_view, k, current_omega, current_eta ) )
+                GA, GAT, hb, m1, u, l, c, in_x_view, in_y_view, out_x_view, out_y_view, k, current_omega, current_eta ) )
             return true;
          eta_container[ t + 1 ] = current_eta;
          eta_sum += current_eta;
          Algorithms::parallelFor< DeviceType >( 0,
                                                 n + m1 + m2,
-                                                [ = ] __cuda_callable__ ( IndexType i ) mutable
+                                                [ = ] __cuda_callable__( IndexType i ) mutable
                                                 {
                                                    //z_c_view[ i ] = z_container_view( t + 1, i );
                                                    z_c_view[ i ] = 0;
@@ -98,14 +94,12 @@ PDLP< Vector, SolverMonitor >::solve( const Vector& c,
 }
 
 template< typename Vector, typename SolverMonitor >
-template< typename AMatrixType, typename GMatrixType >
+template< typename MatrixType >
 bool
-PDLP< Vector, SolverMonitor >::adaptiveStep( const GMatrixType& G,
-                                             const GMatrixType& GT,
-                                             const AMatrixType& A,
-                                             const AMatrixType& AT,
-                                             const VectorType& h,
-                                             const VectorType& b,
+PDLP< Vector, SolverMonitor >::adaptiveStep( const MatrixType& GA,
+                                             const MatrixType& GAT,
+                                             const VectorType& hb,
+                                             const IndexType m1,
                                              const VectorType& u,
                                              const VectorType& l,
                                              const VectorType& c,
@@ -117,50 +111,50 @@ PDLP< Vector, SolverMonitor >::adaptiveStep( const GMatrixType& G,
                                              const RealType& current_omega,
                                              RealType& current_eta )
 {
-   const IndexType m1 = G.getRows();
-   const IndexType m2 = A.getRows();
-   const IndexType n = G.getColumns();
+   TNL_ASSERT_GT( m1, 0, "Number of inequalities must be positive." );
+   const IndexType m = GA.getRows();
+   const IndexType m2 = m - m1;
+   const IndexType n = GA.getColumns();
 
-   VectorType KT_y1( n ), KT_y2( n ), Kx( m1 + m2 );
-   VectorType delta_y( m1 + m2, 0 ), delta_x( n, 0 ), aux( n, 0 );
-   auto in_y1 = in_y.getConstView( 0, m1 );
-   auto in_y2 = in_y.getConstView( m1, m1 + m2 );
+   VectorType KT_y( n ), Kx( m );
+   VectorType delta_y( m, 0 ), delta_x( n, 0 ), aux( n, 0 );
+
+   const auto h = hb.getConstView( 0, m1 );
+   const auto in_y1 = in_y.getConstView( 0, m1 );
+   const auto Kx_1 = Kx.getConstView( 0, m1 );
    auto out_y1 = out_y.getView( 0, m1 );
-   auto out_y2 = out_y.getView( m1, m1 + m2 );
-   VectorView delta_y1 = delta_y.getView( 0, m1 );
-   VectorView delta_y2 = delta_y.getView( m1, m1 + m2 );
-   VectorView Kx_1 = Kx.getView( 0, m1 );
-   VectorView Kx_2 = Kx.getView( m1, m1 + m2 );
 
-   // TODO: Optimize this code - it should not be here
-   VectorType last_x, last_y;
-   last_x = in_x;
-   last_y = in_y;
-   const RealType max_norm = max( Matrices::maxNorm( G ), Matrices::maxNorm( A ) );
+   ConstVectorView b, in_y2, Kx_2;
+   VectorView out_y2;
+   if( m2 > 0 ) {
+      b.bind( hb.getConstView( m1, m ) );
+      in_y2.bind( in_y.getConstView( m1, m ) );
+      Kx_2.bind( Kx.getConstView( m1, m ) );
+      out_y2.bind( out_y.getView( m1, m ) );
+   }
+
+   const RealType max_norm = Matrices::maxNorm( GA );
 
    while( true ) {
       const RealType tau = current_eta / current_omega;
       const RealType sigma = current_eta * current_omega;
 
-      GT.vectorProduct( in_y1, KT_y1 );
-      AT.vectorProduct( in_y2, KT_y2 );
-      KT_y1 += KT_y2;
-      out_x = minimum( u, maximum( l, in_x - tau * ( c - KT_y1 ) ) );
-      aux = 2.0 * out_x - last_x;
-      G.vectorProduct( aux, Kx_1 );
-      A.vectorProduct( aux, Kx_2 );
+      GAT.vectorProduct( in_y, KT_y );
+      out_x = minimum( u, maximum( l, in_x - tau * ( c - KT_y ) ) );
+      aux = 2.0 * out_x - in_x;
+      GA.vectorProduct( aux, Kx );
       out_y1 = maximum( 0, in_y1 + sigma * ( h - Kx_1 ) );
-      out_y2 = in_y2 + sigma * ( b - Kx_2 );
+      if( m2 > 0 )
+         out_y2 = in_y2 + sigma * ( b - Kx_2 );
       std::cout << "ITER: " << k << " TAU: " << tau << " SIGMA: " << sigma << " x: " << out_x << std::endl;
 
       // Compute new step size eta
-      delta_x = out_x - last_x;
-      delta_y = out_y - last_y;
+      delta_x = out_x - in_x;
+      delta_y = out_y - in_y;
       const RealType delta_z_norm = sqrt( current_omega * ( delta_x, delta_x ) + ( delta_y, delta_y ) / current_omega );
 
-      G.vectorProduct( delta_x, Kx_1 );
-      A.vectorProduct( delta_x, Kx_2 );
-      const RealType div = 2.0 * abs( ( Kx_1, delta_y1 ) + ( Kx_2, delta_y2 ) );
+      GA.vectorProduct( delta_x, Kx );
+      const RealType div = 2.0 * abs( ( Kx, delta_y ) );
       if( abs( div ) > 1.0e-10 ) {
          const RealType max_eta = delta_z_norm / div;
 
@@ -178,56 +172,6 @@ PDLP< Vector, SolverMonitor >::adaptiveStep( const GMatrixType& G,
       }
       return false;
    }
-}
-
-template< typename Vector, typename SolverMonitor >
-template< typename GMatrixType >
-bool
-PDLP< Vector, SolverMonitor >::solve( const Vector& c,
-                                      const GMatrixType& G,
-                                      const Vector& h,
-                                      const Vector& l,
-                                      const Vector& u,
-                                      Vector& x )
-{
-   const IndexType m = G.getRows();
-   const IndexType n = G.getColumns();
-   TNL_ASSERT_EQ( c.getSize(), n, "" );
-   TNL_ASSERT_EQ( h.getSize(), m, "" );
-   TNL_ASSERT_EQ( l.getSize(), n, "" );
-   TNL_ASSERT_EQ( u.getSize(), n, "" );
-   TNL_ASSERT_EQ( x.getSize(), n, "" );
-   GMatrixType GT;
-   GT.getTransposition( G );
-
-   const RealType max_norm = Matrices::maxNorm( G );
-   const RealType eta = 1.0 / max_norm;
-   const RealType c_norm = lpNorm( c, 2 );
-   const RealType q_norm = lpNorm( h, 2 );
-   RealType omega;
-   if( c_norm > 1.0e-10 && q_norm > 1.0e-10 )
-      omega = c_norm / q_norm;
-   else
-      omega = 1;
-   const RealType tau = eta / omega;
-   const RealType sigma = eta * omega;
-
-   std::cout << "m = " << m << ", n = " << n << std::endl;
-
-   VectorType y( m, 0 ), last_x( n, 0 ), GT_y( n ), Gx( m );
-   int iter = 0;
-   while( true && iter++ < 2500 ) {  //this->nextIteration() ) {
-      last_x = x;
-      GT.vectorProduct( y, GT_y );
-      x -= tau * ( c - GT_y );
-      x = minimum( u, maximum( l, x ) );
-      last_x = 2 * x - last_x;
-      G.vectorProduct( last_x, Gx );
-      y += sigma * ( h - Gx );
-      y = maximum( 0, y );
-      std::cout << this->getIterations() << " >>> x = " << x << std::endl;
-   }
-   return true;
 }
 
 }  // namespace TNL::Solvers::Optimization
