@@ -28,6 +28,7 @@ public:
    using IndexType = typename Vector::IndexType;
    using VectorType = Vector;
    using VectorView = typename Vector::ViewType;
+   using ConstVectorView = typename Vector::ConstViewType;
 
    PDLP() = default;
 
@@ -37,30 +38,23 @@ public:
    bool
    setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" );
 
-   template< typename AMatrixType, typename GMatrixType >
+   template< typename MatrixType >
    bool
    solve( const Vector& c,
-          const GMatrixType& G,
-          const Vector& h,
-          const AMatrixType& A,
-          const Vector& b,
+          const MatrixType& GA,
+          const Vector& hb,
+          const IndexType m1,
           const Vector& l,
           const Vector& u,
           Vector& x );
 
-   template< typename GMatrixType >
-   bool
-   solve( const Vector& c, const GMatrixType& G, const Vector& h, const Vector& l, const Vector& u, Vector& x );
-
 protected:
-   template< typename AMatrixType, typename GMatrixType >
+   template< typename MatrixType >
    bool
-   adaptiveStep( const GMatrixType& G,
-                 const GMatrixType& GT,
-                 const AMatrixType& A,
-                 const AMatrixType& AT,
-                 const VectorType& h,
-                 const VectorType& b,
+   adaptiveStep( const MatrixType& GA,
+                 const MatrixType& GAT,
+                 const VectorType& hb,
+                 const IndexType m1,
                  const VectorType& u,
                  const VectorType& l,
                  const VectorType& c,
