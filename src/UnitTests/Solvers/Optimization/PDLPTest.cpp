@@ -7,7 +7,7 @@
 using namespace TNL;
 
 /***
- * The unit tests in this file solve the fillowing problem:
+ * The unit tests in this file solve the following problem:
  *
  * min c * x
  * s.t. G * x >= h
@@ -37,11 +37,13 @@ TEST( PDLPTest, NoATest )
    VectorType c( { -2, -5 } );
    VectorType l( { 0, 0 } );
    VectorType u( 2, std::numeric_limits< RealType >::infinity() );
+   using LPProblemType = Solvers::Optimization::LPProblem< MatrixType >;
+   LPProblemType lpProblem( G, h, 2, c, l, u );
    VectorType exact_solution( { 0, 8 } );
    VectorType x( 2, 0 );
 
-   Solvers::Optimization::PDLP< VectorType > solver;
-   solver.solve( c, G, h, 2, l, u, x );
+   Solvers::Optimization::PDLP< LPProblemType > solver;
+   solver.solve( lpProblem, x );
 
    EXPECT_NEAR( TNL::max( TNL::abs( x - exact_solution ) ), (RealType) 0.0, 0.1 );
 }
@@ -63,17 +65,18 @@ TEST( PDLPTest, AGTest )
     * The minimum value is -40.
     */
 
-   MatrixType GA( { { -5, -3 },
-                   { -1, -2 } } );
+   MatrixType GA( { { -5, -3 }, { -1, -2 } } );
    VectorType hb( { -45, -16 } );
    VectorType c( { -2, -5 } );
    VectorType l( { 0, 0 } );
    VectorType u( 2, std::numeric_limits< RealType >::infinity() );
+   using LPProblemType = Solvers::Optimization::LPProblem< MatrixType >;
+   LPProblemType lpProblem( GA, hb, 1, c, l, u );
    VectorType exact_solution( { 0, 8 } );
    VectorType x( 2, 0 );
 
-   Solvers::Optimization::PDLP< VectorType > solver;
-   solver.solve( c, GA, hb, 1, l, u, x );
+   Solvers::Optimization::PDLP< LPProblemType > solver;
+   solver.solve( lpProblem, x );
 
    EXPECT_NEAR( TNL::max( TNL::abs( x - exact_solution ) ), (RealType) 0.0, 0.1 );
 }
@@ -104,21 +107,23 @@ TEST( PDLPTest, TransportationProblemTest )
     */
 
    MatrixType GA( { { -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0 },
-                   { 0, 0, 0, 0, -1, -1, -1, -1, 0, 0, 0, 0 },
-                   { 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1 },
-                   { 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 },
-                   { 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0 },
-                   { 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0 },
-                   { 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 } } );
+                    { 0, 0, 0, 0, -1, -1, -1, -1, 0, 0, 0, 0 },
+                    { 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1 },
+                    { 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 },
+                    { 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0 },
+                    { 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0 },
+                    { 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 } } );
    VectorType hb( { -50, -60, -50, 30, 40, 40, 50 } );
    VectorType c( { 4, 3, 2, 7, 2, 5, 4, 3, 5, 1, 3, 2 } );
    VectorType l( 12, 0 );
    VectorType u( 12, std::numeric_limits< RealType >::infinity() );
+   using LPProblemType = Solvers::Optimization::LPProblem< MatrixType >;
+   LPProblemType lpProblem( GA, hb, 3, c, l, u );
    VectorType exact_solution( { 0, 10, 40, 0, 30, 0, 0, 30, 0, 30, 0, 20 } );
    VectorType x( 12, 0 );
 
-   Solvers::Optimization::PDLP< VectorType > solver;
-   solver.solve( c, GA, hb, 3, l, u, x );
+   Solvers::Optimization::PDLP< LPProblemType > solver;
+   solver.solve( lpProblem, x );
 
    EXPECT_NEAR( TNL::max( TNL::abs( x - exact_solution ) ), (RealType) 0.0, 0.1 );
 }

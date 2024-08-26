@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Solvers/IterativeSolver.h>
+#include <TNL/Solvers/Optimization/LPProblem.h>
 
 namespace TNL::Solvers::Optimization {
 
@@ -18,17 +19,19 @@ namespace TNL::Solvers::Optimization {
  * https://proceedings.neurips.cc/paper/2021/file/a8fbbd3b11424ce032ba813493d95ad7-Paper.pdf
  *
  */
-template< typename Vector,
-          typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
-class PDLP : public IterativeSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
+template< typename LPProblem_,
+          typename SolverMonitor = IterativeSolverMonitor< typename LPProblem_::RealType, typename LPProblem_::IndexType > >
+class PDLP : public IterativeSolver< typename LPProblem_::RealType, typename LPProblem_::IndexType, SolverMonitor >
 {
 public:
-   using RealType = typename Vector::RealType;
-   using DeviceType = typename Vector::DeviceType;
-   using IndexType = typename Vector::IndexType;
-   using VectorType = Vector;
-   using VectorView = typename Vector::ViewType;
-   using ConstVectorView = typename Vector::ConstViewType;
+   using LPProblemType = LPProblem_;
+   using RealType = typename LPProblemType::RealType;
+   using DeviceType = typename LPProblemType::DeviceType;
+   using IndexType = typename LPProblemType::IndexType;
+   using MatrixType = typename LPProblemType::MatrixType;
+   using VectorType = typename LPProblemType::VectorType;
+   using VectorView = typename VectorType::ViewType;
+   using ConstVectorView = typename VectorType::ConstViewType;
 
    PDLP() = default;
 
@@ -38,22 +41,14 @@ public:
    bool
    setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" );
 
-   template< typename MatrixType >
    bool
-   solve( const Vector& c,
-          const MatrixType& GA,
-          const Vector& hb,
-          const IndexType m1,
-          const Vector& l,
-          const Vector& u,
-          Vector& x );
+   solve( const LPProblemType& lpProblem, VectorType& x );
 
 protected:
-   template< typename MatrixType >
    bool
    adaptiveStep( const MatrixType& GA,
                  const MatrixType& GAT,
-                 const VectorType& hb,
+                 const VectorType& q,
                  const IndexType m1,
                  const VectorType& u,
                  const VectorType& l,

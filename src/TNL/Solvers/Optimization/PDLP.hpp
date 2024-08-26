@@ -9,19 +9,20 @@
 
 namespace TNL::Solvers::Optimization {
 
-template< typename Vector, typename SolverMonitor >
-template< typename MatrixType >
+template< typename LPProblem_, typename SolverMonitor >
 bool
-PDLP< Vector, SolverMonitor >::solve( const Vector& c,
-                                      const MatrixType& GA,
-                                      const Vector& hb,
-                                      const IndexType m1,
-                                      const Vector& l,
-                                      const Vector& u,
-                                      Vector& x )
+PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, VectorType& x )
 {
    using Array2D =
       Containers::NDArray< RealType, Containers::SizesHolder< IndexType, 0, 0 >, std::index_sequence< 0, 1 >, DeviceType >;
+
+   const MatrixType& GA = lpProblem.getConstraintMatrix();
+   const VectorType& hb = lpProblem.getConstraintVector();
+   const IndexType m1 = lpProblem.getInequalityCount();
+   const VectorType& l = lpProblem.getLowerBounds();
+   const VectorType& u = lpProblem.getUpperBounds();
+   const VectorType& c = lpProblem.getObjectiveFunction();
+
    const IndexType m = GA.getRows();
    const IndexType m2 = m - m1;
    const IndexType n = GA.getColumns();
@@ -93,23 +94,22 @@ PDLP< Vector, SolverMonitor >::solve( const Vector& c,
    return false;
 }
 
-template< typename Vector, typename SolverMonitor >
-template< typename MatrixType >
+template< typename LPProblem_, typename SolverMonitor >
 bool
-PDLP< Vector, SolverMonitor >::adaptiveStep( const MatrixType& GA,
-                                             const MatrixType& GAT,
-                                             const VectorType& hb,
-                                             const IndexType m1,
-                                             const VectorType& u,
-                                             const VectorType& l,
-                                             const VectorType& c,
-                                             const VectorView& in_x,
-                                             const VectorView& in_y,
-                                             VectorView& out_x,
-                                             VectorView& out_y,
-                                             const IndexType k,
-                                             RealType& current_omega,
-                                             RealType& current_eta )
+PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
+                                                 const MatrixType& GAT,
+                                                 const VectorType& hb,
+                                                 const IndexType m1,
+                                                 const VectorType& u,
+                                                 const VectorType& l,
+                                                 const VectorType& c,
+                                                 const VectorView& in_x,
+                                                 const VectorView& in_y,
+                                                 VectorView& out_x,
+                                                 VectorView& out_y,
+                                                 const IndexType k,
+                                                 RealType& current_omega,
+                                                 RealType& current_eta )
 {
    TNL_ASSERT_GT( m1, 0, "Number of inequalities must be positive." );
    const IndexType m = GA.getRows();
