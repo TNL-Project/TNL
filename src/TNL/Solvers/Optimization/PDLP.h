@@ -63,7 +63,7 @@ protected:
                  VectorView& out_x,
                  VectorView& out_y,
                  IndexType k,
-                 const RealType& current_omega,
+                 RealType& current_omega,
                  RealType& current_eta );
 };
 
