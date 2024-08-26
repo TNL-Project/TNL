@@ -55,7 +55,7 @@ PDLP< Vector, SolverMonitor >::solve( const Vector& c,
    auto eta_container_view = eta_container.getView();
    RealType eta_sum( 0 );
 
-   while( k < 120 ) {  //this->nextIteration() ) {
+   while( k < 80 ) {  //this->nextIteration() ) {
       IndexType t = 0;
       eta_sum = 0;
       VectorView z_view( &z_container( 0, 0 ), n + m1 + m2 );
@@ -108,7 +108,7 @@ PDLP< Vector, SolverMonitor >::adaptiveStep( const MatrixType& GA,
                                              VectorView& out_x,
                                              VectorView& out_y,
                                              const IndexType k,
-                                             const RealType& current_omega,
+                                             RealType& current_omega,
                                              RealType& current_eta )
 {
    TNL_ASSERT_GT( m1, 0, "Number of inequalities must be positive." );
@@ -148,7 +148,7 @@ PDLP< Vector, SolverMonitor >::adaptiveStep( const MatrixType& GA,
          out_y2 = in_y2 + sigma * ( b - Kx_2 );
       std::cout << "ITER: " << k << " TAU: " << tau << " SIGMA: " << sigma << " x: " << out_x << std::endl;
 
-      // Compute new step size eta
+      // Compute new parameter eta
       delta_x = out_x - in_x;
       delta_y = out_y - in_y;
       const RealType delta_z_norm = sqrt( current_omega * ( delta_x, delta_x ) + ( delta_y, delta_y ) / current_omega );
@@ -170,6 +170,15 @@ PDLP< Vector, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       else {
          current_eta = 1.0 / max_norm;
       }
+
+      //Compute new parameter omega
+      RealType delta_x = lpNorm( out_x - in_x, 2 );
+      RealType delta_y = lpNorm( out_y - in_y, 2 );
+      if( delta_x > 1.0e-10 && delta_y > 1.0e-10 ) {
+         const RealType theta = 0.5;
+         current_omega = exp( theta * log( delta_y / delta_x ) + ( 1 - theta ) * log( current_omega ) );
+      }
+
       return false;
    }
 }
