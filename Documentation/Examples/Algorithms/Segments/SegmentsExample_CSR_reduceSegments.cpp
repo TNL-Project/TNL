@@ -42,16 +42,14 @@ SegmentsExample()
     */
    TNL::Containers::Vector< double, Device > sums( size );
    auto sums_view = sums.getView();
-   auto fetch_full = [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx, bool& compute ) -> double
+   auto fetch_full = [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) -> double
    {
       if( localIdx <= segmentIdx )
          return data_view[ globalIdx ];
-      else {
-         compute = false;
+      else
          return 0.0;
-      }
    };
-   auto fetch_brief = [ = ] __cuda_callable__( int globalIdx, bool& compute ) -> double
+   auto fetch_brief = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];
    };

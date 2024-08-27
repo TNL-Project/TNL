@@ -20,14 +20,14 @@ template< int ThreadsPerSegment,
           typename Keep >
 __global__
 void
-SpMVCSRVector( OffsetsView offsets,
-               const Index begin,
-               const Index end,
-               Fetch fetch,
-               Reduce reduce,
-               Keep keep,
-               const Value identity,
-               const Index gridID )
+CSRVectorReduction( OffsetsView offsets,
+                    const Index begin,
+                    const Index end,
+                    Fetch fetch,
+                    Reduce reduce,
+                    Keep keep,
+                    const Value identity,
+                    const Index gridID )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -42,9 +42,8 @@ SpMVCSRVector( OffsetsView offsets,
    Index endID = offsets[ warpID + 1 ];
 
    // Calculate result
-   bool compute = true;
    for( Index i = offsets[ warpID ] + laneID; i < endID; i += ThreadsPerSegment )
-      result = reduce( result, fetch( i, compute ) );
+      result = reduce( result, fetch( i ) );
 
    // Parallel reduction
    #if defined( __HIP__ )
@@ -141,26 +140,24 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
    const Index endIdx = offsets[ segmentIdx + 1 ];
 
    ReturnType result = identity;
-   bool compute = true;
    Index localIdx = laneIdx;
-   for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx && compute; globalIdx += ThreadsPerSegment ) {
-      result =
-         reduce( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
+   for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
+      result = reduce( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
       localIdx += ThreadsPerSegment;
    }
 
    #if defined( __HIP__ )
-   result += __shfl_down( result, 16 );
-   result += __shfl_down( result, 8 );
-   result += __shfl_down( result, 4 );
-   result += __shfl_down( result, 2 );
-   result += __shfl_down( result, 1 );
+   result = reduce( result, __shfl_down( result, 16 ) );
+   result = reduce( result, __shfl_down( result, 8 ) );
+   result = reduce( result, __shfl_down( result, 4 ) );
+   result = reduce( result, __shfl_down( result, 2 ) );
+   result = reduce( result, __shfl_down( result, 1 ) );
    #else
-   result += __shfl_down_sync( 0xFFFFFFFF, result, 16 );
-   result += __shfl_down_sync( 0xFFFFFFFF, result, 8 );
-   result += __shfl_down_sync( 0xFFFFFFFF, result, 4 );
-   result += __shfl_down_sync( 0xFFFFFFFF, result, 2 );
-   result += __shfl_down_sync( 0xFFFFFFFF, result, 1 );
+   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
+   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
+   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
+   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
+   result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
    #endif
 
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
@@ -319,27 +316,27 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          }
 
          if( threadsPerSegment == 1 ) {
-            constexpr auto kernel = SpMVCSRVector< 1, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            constexpr auto kernel = CSRVectorReduction< 1, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
             Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 2 ) {
-            constexpr auto kernel = SpMVCSRVector< 2, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            constexpr auto kernel = CSRVectorReduction< 2, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
             Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 4 ) {
-            constexpr auto kernel = SpMVCSRVector< 4, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            constexpr auto kernel = CSRVectorReduction< 4, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
             Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 8 ) {
-            constexpr auto kernel = SpMVCSRVector< 8, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            constexpr auto kernel = CSRVectorReduction< 8, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
             Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 16 ) {
-            constexpr auto kernel = SpMVCSRVector< 16, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            constexpr auto kernel = CSRVectorReduction< 16, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
             Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 32 ) {
-            constexpr auto kernel = SpMVCSRVector< 32, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
+            constexpr auto kernel = CSRVectorReduction< 32, Value, Index, OffsetsView, Fetch, Reduction, Keep >;
             Backend::launchKernelAsync( kernel, launch_config, offsets, begin, end, fetch, reduction, keep, identity, grid );
          }
          if( threadsPerSegment == 64 ) {  // Execute CSR MultiVector

@@ -42,10 +42,8 @@ reduceSegmentsCSRHybridVectorKernel( int gridIdx,
 
    Index localIdx = laneIdx;
    ReturnType aux = identity;
-   bool compute = true;
    for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-      aux =
-         reduction( aux, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
+      aux = reduction( aux, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
       localIdx += Backend::getWarpSize();
    }
 
@@ -115,11 +113,9 @@ reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
    const Index endIdx = offsets[ segmentIdx + 1 ];
 
    ReturnType result = identity;
-   bool compute = true;
    Index localIdx = laneIdx;
-   for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx && compute; globalIdx += ThreadsPerSegment ) {
-      result = reduction( result,
-                          detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx, compute ) );
+   for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
+      result = reduction( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
       localIdx += ThreadsPerSegment;
    }
 

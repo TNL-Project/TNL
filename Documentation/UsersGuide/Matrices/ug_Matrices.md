@@ -47,8 +47,8 @@ Finally, TNL offers so called *lambda matrices* (\ref TNL::Matrices::LambdaMatri
 
 In the following table we show comparison of expressing a tridiagonal matrix by means of different matrix types.
 
-| Matrix dimensions | Dense elems.   | Dense mem. | Sparse elems. | Sparse mem.  | Tridiag. elems. | Tridiag. mem. | Multidiag. elems. | Mutlidiag. mem. |
-|------------------:|---------------:|-----------:|--------------:|-------------:|----------------:|--------------:|------------------:|----------------:|
+| Matrix dimensions |   Dense elems. | Dense mem. | Sparse elems. |  Sparse mem. | Tridiag. elems. | Tridiag. mem. | Multidiag. elems. | Mutlidiag. mem. |
+| ----------------: | -------------: | ---------: | ------------: | -----------: | --------------: | ------------: | ----------------: | --------------: |
 |             10x10 |            100 |     800  B |           >28 |       >336 B |              30 |         240 B |                30 |           252 B |
 |           100x100 |         10,000 |      80 kB |          >298 |     >3,576 B |             300 |       2,400 B |               300 |         2,412 B |
 |       1,000x1,000 |      1,000,000 |       8 MB |        >2,998 |    >35,976 B |           3,000 |      24,000 B |             3,000 |        24,012 B |
@@ -71,8 +71,8 @@ Choosing the best matrix type can have tremendous impact on the performance but 
 
 The following table shows the same as the one above but when storing a matrix which has only five nonzero elements in each row. Such matrices arise often from the finite difference method for solution of the partial differential equations:
 
-| Matrix dimensions | Dense elems.   | Dense mem. | Sparse elems. | Sparse mem.  | Multidiag. elems. | Mutlidiag. mem. |
-|------------------:|---------------:|-----------:|--------------:|-------------:|------------------:|----------------:|
+| Matrix dimensions |   Dense elems. | Dense mem. | Sparse elems. |  Sparse mem. | Multidiag. elems. | Mutlidiag. mem. |
+| ----------------: | -------------: | ---------: | ------------: | -----------: | ----------------: | --------------: |
 |             10x10 |            100 |     800  B |           >50 |       >600 B |                50 |           420 B |
 |           100x100 |         10,000 |      80 kB |          >500 |     >6,000 B |               500 |         4,020 B |
 |       1,000x1,000 |      1,000,000 |       8 MB |        >5,000 |    >60,000 B |             5,000 |        40,020 B |
@@ -81,12 +81,12 @@ The following table shows the same as the one above but when storing a matrix wh
 
 There is no change in the dense matrix part of the table. The numbers grow proportionally in case of sparse and mutlidiagonal matrix. General sparse matrix formats need to store column indexes for each matrix element which is not true for the multidiagonal matrix. The following table shows how many bytes we need for storing of one matrix element with different matrix types depending on the type of the matrix elements (`Real`) and column indexes (`Index`):
 
-| Real   | Index  | Dense matrix | Multidiagonal matrix |  Sparse matrix | Fill ratio |
-|:------:|:------:|:------------:|:--------------------:|:--------------:|:----------:|
-| float  | 32-bit |          4 B |                  4 B |            8 B |     << 50% |
-| float  | 64-bit |          4 B |                  4 B |           12 B |     << 30% |
-| double | 32-bit |          8 B |                  8 B |           12 B |     << 60% |
-| double | 64-bit |          8 B |                  8 B |           16 B |     << 50% |
+|  Real  | Index  | Dense matrix | Multidiagonal matrix | Sparse matrix | Fill ratio |
+| :----: | :----: | :----------: | :------------------: | :-----------: | :--------: |
+| float  | 32-bit |     4 B      |         4 B          |      8 B      |   << 50%   |
+| float  | 64-bit |     4 B      |         4 B          |     12 B      |   << 30%   |
+| double | 32-bit |     8 B      |         8 B          |     12 B      |   << 60%   |
+| double | 64-bit |     8 B      |         8 B          |     16 B      |   << 50%   |
 
 In this table:
 
@@ -164,32 +164,32 @@ There are several ways how to create a new matrix:
 
 The following table shows pros and cons of particular methods:
 
-|  Method                                 | Efficient | Easy to use |  Pros                                                                 | Cons                                                                  |
-|:----------------------------------------|:----------|:------------|:----------------------------------------------------------------------|:----------------------------------------------------------------------|
-| **Initializer list**                    | `**`      | `*****`     | Very easy to use.                                                     | Only for small matrices.                                              |
-|                                         |           |             | Does not need setting of matrix rows capacities                       |                                                                       |
-| **STL map**                             | `**`      | `*****`     | Very easy to use.                                                     | Higher memory requirements.                                           |
-|                                         |           |             | Does not need setting of matrix rows capacities                       | Slow transfer on GPU.                                                 |
-| **[set,add]Element on host**            | `****/*`  | `*****`     | Very easy to use.                                                     | Requires setting of row capacities.                                   |
-|                                         |           |             |                                                                       | Extremely slow transfer on GPU.                                       |
-| **[set,and]Element on host&copy on GPU**| `***`     | `****`      | Easy to use.                                                          | Requires setting of row capacities.                                   |
-|                                         |           |             | Reasonable efficiency.                                                | Allocation of auxiliary matrix on CPU.                                |
-| **[set,add]Element on native device**   | `****`    |             | Good efficiency.                                                      | Requires setting of row capacities.                                   |
-|                                         |           |             |                                                                       | Requires writing GPU kernel or lambda function.                       |
-|                                         |           |             |                                                                       | Allows accessing only data allocated on the same device/memory space. |
-| **getRow and parallelFor**              | `*****`   | `**`        | Best efficiency for sparse matrices.                                  | Requires setting of row capacities.                                   |
-|                                         |           |             |                                                                       | Requires writing GPU kernel or lambda function.                       |
-|                                         |           |             |                                                                       | Allows accessing only data allocated on the same device/memory space. |
-|                                         |           |             |                                                                       | Use of matrix local indexes can be less intuitive.                    |
-| **forRows**, **forElements**            | `*****`   | `**`        | Best efficiency for sparse matrices.                                  | Requires setting of row capacities.                                   |
-|                                         |           |             | Avoid use of matrix view or shared pointer in kernels/lambda function.| Requires writing GPU kernel or lambda function.                       |
-|                                         |           |             |                                                                       | Allows accessing only data allocated on the same device/memory space. |
-|                                         |           |             |                                                                       | Use of matrix local indexes is less intuitive.                        |
+| Method                                   | Efficient | Easy to use | Pros                                                                   | Cons                                                                  |
+| :--------------------------------------- | :-------- | :---------- | :--------------------------------------------------------------------- | :-------------------------------------------------------------------- |
+| **Initializer list**                     | `**`      | `*****`     | Very easy to use.                                                      | Only for small matrices.                                              |
+|                                          |           |             | Does not need setting of matrix rows capacities                        |                                                                       |
+| **STL map**                              | `**`      | `*****`     | Very easy to use.                                                      | Higher memory requirements.                                           |
+|                                          |           |             | Does not need setting of matrix rows capacities                        | Slow transfer on GPU.                                                 |
+| **[set,add]Element on host**             | `****/*`  | `*****`     | Very easy to use.                                                      | Requires setting of row capacities.                                   |
+|                                          |           |             |                                                                        | Extremely slow transfer on GPU.                                       |
+| **[set,and]Element on host&copy on GPU** | `***`     | `****`      | Easy to use.                                                           | Requires setting of row capacities.                                   |
+|                                          |           |             | Reasonable efficiency.                                                 | Allocation of auxiliary matrix on CPU.                                |
+| **[set,add]Element on native device**    | `****`    |             | Good efficiency.                                                       | Requires setting of row capacities.                                   |
+|                                          |           |             |                                                                        | Requires writing GPU kernel or lambda function.                       |
+|                                          |           |             |                                                                        | Allows accessing only data allocated on the same device/memory space. |
+| **getRow and parallelFor**               | `*****`   | `**`        | Best efficiency for sparse matrices.                                   | Requires setting of row capacities.                                   |
+|                                          |           |             |                                                                        | Requires writing GPU kernel or lambda function.                       |
+|                                          |           |             |                                                                        | Allows accessing only data allocated on the same device/memory space. |
+|                                          |           |             |                                                                        | Use of matrix local indexes can be less intuitive.                    |
+| **forRows**, **forElements**             | `*****`   | `**`        | Best efficiency for sparse matrices.                                   | Requires setting of row capacities.                                   |
+|                                          |           |             | Avoid use of matrix view or shared pointer in kernels/lambda function. | Requires writing GPU kernel or lambda function.                       |
+|                                          |           |             |                                                                        | Allows accessing only data allocated on the same device/memory space. |
+|                                          |           |             |                                                                        | Use of matrix local indexes is less intuitive.                        |
 
 Though it may seem that the later methods come with more cons than pros, they offer much higher performance and we believe that even they are still user friendly. On the other hand, if the matrix setup performance is not a priority, the use easy-to-use but slow method can still be a good choice. The following tables demonstrate the performance of different methods. The tests were performed with the following setup:
 
 |              |                                                   |
-|--------------|---------------------------------------------------|
+| ------------ | ------------------------------------------------- |
 | CPU          | Intel i9-9900KF, 3.60GHz, 8 cores, 16384 KB cache |
 | GPU          | GeForce RTX 2070                                  |
 | g++ version  | 10.2.0                                            |
@@ -200,18 +200,18 @@ Though it may seem that the later methods come with more cons than pros, they of
 
 In the test of dense matrices, we set each matrix element to value equal to `rowIdx + columnIdx`. The times in seconds obtained on CPU looks as follows:
 
-| Matrix rows and columns     | `setElement` on host | `setElement` with `parallelFor` |  `getRow`    | `forElements`   |
-|----------------------------:|---------------------:|--------------------------------:|-------------:|----------------:|
-|                          16 |           0.00000086 |                       0.0000053 |   0.00000035 |       0.0000023 |
-|                          32 |           0.00000278 |                       0.0000050 |   0.00000201 |       0.0000074 |
-|                          64 |           0.00000703 |                       0.0000103 |   0.00000354 |       0.0000203 |
-|                         128 |           0.00002885 |                       0.0000312 |   0.00000867 |       0.0000709 |
-|                         256 |           0.00017543 |                       0.0000439 |   0.00002490 |       0.0001054 |
-|                         512 |           0.00078153 |                       0.0001683 |   0.00005999 |       0.0002713 |
-|                        1024 |           0.00271989 |                       0.0006691 |   0.00003808 |       0.0003942 |
-|                        2048 |           0.01273520 |                       0.0038295 |   0.00039116 |       0.0017083 |
-|                        4096 |           0.08381450 |                       0.0716542 |   0.00937997 |       0.0116771 |
-|                        8192 |           0.51596800 |                       0.3535530 |   0.03971900 |       0.0467374 |
+| Matrix rows and columns | `setElement` on host | `setElement` with `parallelFor` |   `getRow` | `forElements` |
+| ----------------------: | -------------------: | ------------------------------: | ---------: | ------------: |
+|                      16 |           0.00000086 |                       0.0000053 | 0.00000035 |     0.0000023 |
+|                      32 |           0.00000278 |                       0.0000050 | 0.00000201 |     0.0000074 |
+|                      64 |           0.00000703 |                       0.0000103 | 0.00000354 |     0.0000203 |
+|                     128 |           0.00002885 |                       0.0000312 | 0.00000867 |     0.0000709 |
+|                     256 |           0.00017543 |                       0.0000439 | 0.00002490 |     0.0001054 |
+|                     512 |           0.00078153 |                       0.0001683 | 0.00005999 |     0.0002713 |
+|                    1024 |           0.00271989 |                       0.0006691 | 0.00003808 |     0.0003942 |
+|                    2048 |           0.01273520 |                       0.0038295 | 0.00039116 |     0.0017083 |
+|                    4096 |           0.08381450 |                       0.0716542 | 0.00937997 |     0.0116771 |
+|                    8192 |           0.51596800 |                       0.3535530 | 0.03971900 |     0.0467374 |
 
 Here:
 
@@ -221,18 +221,18 @@ Here:
 
 And the same on GPU is in the following table:
 
-| Matrix rows and columns     | `setElement` on host | `setElement` on host and copy | `setElement` on GPU | `getRow`     | `forElements`   |
-|----------------------------:|---------------------:|------------------------------:|--------------------:|-------------:|----------------:|
-|                          16 |           0.027835   |                       0.02675 |         0.000101198 | 0.00009903   |     0.000101214 |
-|                          32 |           0.002776   |                       0.00018 |         0.000099197 | 0.00009901   |     0.000100481 |
-|                          64 |           0.010791   |                       0.00015 |         0.000094446 | 0.00009493   |     0.000101796 |
-|                         128 |           0.043014   |                       0.00021 |         0.000099397 | 0.00010024   |     0.000102729 |
-|                         256 |           0.171029   |                       0.00056 |         0.000100469 | 0.00010448   |     0.000105893 |
-|                         512 |           0.683627   |                       0.00192 |         0.000103346 | 0.00011034   |     0.000112752 |
-|                        1024 |           2.736680   |                       0.00687 |         0.000158805 | 0.00016932   |     0.000170302 |
-|                        2048 |          10.930300   |                       0.02474 |         0.000509000 | 0.00050917   |     0.000511183 |
-|                        4096 |          43.728700   |                       0.13174 |         0.001557030 | 0.00156117   |     0.001557930 |
-|                        8192 |         174.923000   |                       0.70602 |         0.005312470 | 0.00526658   |     0.005263870 |
+| Matrix rows and columns | `setElement` on host | `setElement` on host and copy | `setElement` on GPU |   `getRow` | `forElements` |
+| ----------------------: | -------------------: | ----------------------------: | ------------------: | ---------: | ------------: |
+|                      16 |             0.027835 |                       0.02675 |         0.000101198 | 0.00009903 |   0.000101214 |
+|                      32 |             0.002776 |                       0.00018 |         0.000099197 | 0.00009901 |   0.000100481 |
+|                      64 |             0.010791 |                       0.00015 |         0.000094446 | 0.00009493 |   0.000101796 |
+|                     128 |             0.043014 |                       0.00021 |         0.000099397 | 0.00010024 |   0.000102729 |
+|                     256 |             0.171029 |                       0.00056 |         0.000100469 | 0.00010448 |   0.000105893 |
+|                     512 |             0.683627 |                       0.00192 |         0.000103346 | 0.00011034 |   0.000112752 |
+|                    1024 |             2.736680 |                       0.00687 |         0.000158805 | 0.00016932 |   0.000170302 |
+|                    2048 |            10.930300 |                       0.02474 |         0.000509000 | 0.00050917 |   0.000511183 |
+|                    4096 |            43.728700 |                       0.13174 |         0.001557030 | 0.00156117 |   0.001557930 |
+|                    8192 |           174.923000 |                       0.70602 |         0.005312470 | 0.00526658 |   0.005263870 |
 
 Here:
 
@@ -248,18 +248,18 @@ You can see the source code of the previous benchmark in [Appendix](#benchmark-o
 
 The sparse matrices are tested on computation of matrix the [discrete Laplace operator in 2D](https://en.wikipedia.org/wiki/Discrete_Laplace_operator). This matrix has at most five nonzero elements in each row. The times for sparse matrix (with CSR format) on CPU in seconds look as follows:
 
-| Matrix rows and columns     |  STL Map     | `setElement` on host | `setElement` with `parallelFor` | `getRow`    | `forElements`    |
-|----------------------------:|-------------:|---------------------:|--------------------------------:|------------:|-----------------:|
-|                         256 |      0.00016 |             0.000017 |                        0.000014 |    0.000013 |         0.000020 |
-|                       1,024 |      0.00059 |             0.000044 |                        0.000021 |    0.000019 |         0.000022 |
-|                       4,096 |      0.00291 |             0.000130 |                        0.000031 |    0.000022 |         0.000031 |
-|                      16,384 |      0.01414 |             0.000471 |                        0.000067 |    0.000031 |         0.000065 |
-|                      65,536 |      0.06705 |             0.001869 |                        0.000218 |    0.000074 |         0.000209 |
-|                     262,144 |      0.31728 |             0.007436 |                        0.000856 |    0.000274 |         0.000799 |
-|                   1,048,576 |      1.46388 |             0.027087 |                        0.006162 |    0.005653 |         0.005904 |
-|                   4,194,304 |      7.46147 |             0.102808 |                        0.028385 |    0.027925 |         0.027937 |
-|                  16,777,216 |     38.95900 |             0.413823 |                        0.125870 |    0.124588 |         0.123858 |
-|                  67,108,864 |    185.75700 |             1.652580 |                        0.505232 |    0.501003 |         0.500927 |
+| Matrix rows and columns |   STL Map | `setElement` on host | `setElement` with `parallelFor` | `getRow` | `forElements` |
+| ----------------------: | --------: | -------------------: | ------------------------------: | -------: | ------------: |
+|                     256 |   0.00016 |             0.000017 |                        0.000014 | 0.000013 |      0.000020 |
+|                   1,024 |   0.00059 |             0.000044 |                        0.000021 | 0.000019 |      0.000022 |
+|                   4,096 |   0.00291 |             0.000130 |                        0.000031 | 0.000022 |      0.000031 |
+|                  16,384 |   0.01414 |             0.000471 |                        0.000067 | 0.000031 |      0.000065 |
+|                  65,536 |   0.06705 |             0.001869 |                        0.000218 | 0.000074 |      0.000209 |
+|                 262,144 |   0.31728 |             0.007436 |                        0.000856 | 0.000274 |      0.000799 |
+|               1,048,576 |   1.46388 |             0.027087 |                        0.006162 | 0.005653 |      0.005904 |
+|               4,194,304 |   7.46147 |             0.102808 |                        0.028385 | 0.027925 |      0.027937 |
+|              16,777,216 |  38.95900 |             0.413823 |                        0.125870 | 0.124588 |      0.123858 |
+|              67,108,864 | 185.75700 |             1.652580 |                        0.505232 | 0.501003 |      0.500927 |
 
 Here:
 
@@ -271,18 +271,18 @@ Here:
 
 We see, that the use of STL map makes sense only in situation when it is hard to estimate necessary row capacities. Otherwise very easy setup with `setElement` method is much faster. If the performance is the highest priority, `getRow` method should be preferred. The results for GPU are in the following table:
 
-| Matrix rows and columns     |  STL Map     | `setElement` on host | `setElement` on host and copy |`setElement` on GPU | `getRow`    | `forElements`   |
-|----------------------------:|-------------:|---------------------:|------------------------------:|-------------------:|------------:|----------------:|
-|                         256 |       0.002  |                0.036 |                        0.0280 |            0.00017 |     0.00017 |         0.00017 |
-|                       1,024 |       0.001  |                0.161 |                        0.0006 |            0.00017 |     0.00017 |         0.00017 |
-|                       4,096 |       0.003  |                0.680 |                        0.0010 |            0.00020 |     0.00020 |         0.00020 |
-|                      16,384 |       0.015  |                2.800 |                        0.0034 |            0.00021 |     0.00020 |         0.00021 |
-|                      65,536 |       0.074  |               11.356 |                        0.0130 |            0.00048 |     0.00047 |         0.00048 |
-|                     262,144 |       0.350  |               45.745 |                        0.0518 |            0.00088 |     0.00087 |         0.00088 |
-|                   1,048,576 |       1.630  |              183.632 |                        0.2057 |            0.00247 |     0.00244 |         0.00245 |
-|                   4,194,304 |       8.036  |              735.848 |                        0.8119 |            0.00794 |     0.00783 |         0.00788 |
-|                  16,777,216 |      41.057  |             2946.610 |                        3.2198 |            0.02481 |     0.02429 |         0.02211 |
-|                  67,108,864 |     197.581  |            11791.601 |                       12.7775 |            0.07196 |     0.06329 |         0.06308 |
+| Matrix rows and columns | STL Map | `setElement` on host | `setElement` on host and copy | `setElement` on GPU | `getRow` | `forElements` |
+| ----------------------: | ------: | -------------------: | ----------------------------: | ------------------: | -------: | ------------: |
+|                     256 |   0.002 |                0.036 |                        0.0280 |             0.00017 |  0.00017 |       0.00017 |
+|                   1,024 |   0.001 |                0.161 |                        0.0006 |             0.00017 |  0.00017 |       0.00017 |
+|                   4,096 |   0.003 |                0.680 |                        0.0010 |             0.00020 |  0.00020 |       0.00020 |
+|                  16,384 |   0.015 |                2.800 |                        0.0034 |             0.00021 |  0.00020 |       0.00021 |
+|                  65,536 |   0.074 |               11.356 |                        0.0130 |             0.00048 |  0.00047 |       0.00048 |
+|                 262,144 |   0.350 |               45.745 |                        0.0518 |             0.00088 |  0.00087 |       0.00088 |
+|               1,048,576 |   1.630 |              183.632 |                        0.2057 |             0.00247 |  0.00244 |       0.00245 |
+|               4,194,304 |   8.036 |              735.848 |                        0.8119 |             0.00794 |  0.00783 |       0.00788 |
+|              16,777,216 |  41.057 |             2946.610 |                        3.2198 |             0.02481 |  0.02429 |       0.02211 |
+|              67,108,864 | 197.581 |            11791.601 |                       12.7775 |             0.07196 |  0.06329 |       0.06308 |
 
 Here:
 
@@ -301,18 +301,18 @@ You can see the source code of the previous benchmark in [Appendix](#benchmark-o
 
 Finally, the following tables show the times of the same test performed with multidiagonal matrix. Times on CPU in seconds looks as follows:
 
-| Matrix rows and columns     |  `setElement` on host     | `setElement` with `parallelFor` | `getRow`    | `forElements`   |
-|----------------------------:|--------------------------:|--------------------------------:|------------:|----------------:|
-|                         256 |                  0.000055 |                       0.0000038 |    0.000004 |        0.000009 |
-|                       1,024 |                  0.000002 |                       0.0000056 |    0.000003 |        0.000006 |
-|                       4,096 |                  0.000087 |                       0.0000130 |    0.000005 |        0.000014 |
-|                      16,384 |                  0.000347 |                       0.0000419 |    0.000010 |        0.000046 |
-|                      65,536 |                  0.001378 |                       0.0001528 |    0.000032 |        0.000177 |
-|                     262,144 |                  0.005504 |                       0.0006025 |    0.000131 |        0.000711 |
-|                   1,048,576 |                  0.019392 |                       0.0028773 |    0.001005 |        0.003265 |
-|                   4,194,304 |                  0.072078 |                       0.0162378 |    0.011915 |        0.018065 |
-|                  16,777,216 |                  0.280085 |                       0.0642682 |    0.048876 |        0.072084 |
-|                  67,108,864 |                  1.105120 |                       0.2427610 |    0.181974 |        0.272579 |
+| Matrix rows and columns | `setElement` on host | `setElement` with `parallelFor` | `getRow` | `forElements` |
+| ----------------------: | -------------------: | ------------------------------: | -------: | ------------: |
+|                     256 |             0.000055 |                       0.0000038 | 0.000004 |      0.000009 |
+|                   1,024 |             0.000002 |                       0.0000056 | 0.000003 |      0.000006 |
+|                   4,096 |             0.000087 |                       0.0000130 | 0.000005 |      0.000014 |
+|                  16,384 |             0.000347 |                       0.0000419 | 0.000010 |      0.000046 |
+|                  65,536 |             0.001378 |                       0.0001528 | 0.000032 |      0.000177 |
+|                 262,144 |             0.005504 |                       0.0006025 | 0.000131 |      0.000711 |
+|               1,048,576 |             0.019392 |                       0.0028773 | 0.001005 |      0.003265 |
+|               4,194,304 |             0.072078 |                       0.0162378 | 0.011915 |      0.018065 |
+|              16,777,216 |             0.280085 |                       0.0642682 | 0.048876 |      0.072084 |
+|              67,108,864 |             1.105120 |                       0.2427610 | 0.181974 |      0.272579 |
 
 Here:
 
@@ -323,18 +323,18 @@ Here:
 
 Note, that setup of multidiagonal matrix is faster compared to the same matrix stored in general sparse format. Results for GPU are in the following table:
 
-| Matrix rows and columns     | `setElement` on host | `setElement` on host and copy | `setElement` on GPU | `getRow`    | `forElements`   |
-|----------------------------:|---------------------:|------------------------------:|--------------------:|------------:|----------------:|
-|                         256 |                0.035 |                       0.02468 |            0.000048 |    0.000045 |       0.000047  |
-|                       1,024 |                0.059 |                       0.00015 |            0.000047 |    0.000045 |       0.000047  |
-|                       4,096 |                0.251 |                       0.00044 |            0.000048 |    0.000045 |       0.000047  |
-|                      16,384 |                1.030 |                       0.00158 |            0.000049 |    0.000046 |       0.000048  |
-|                      65,536 |                4.169 |                       0.00619 |            0.000053 |    0.000048 |       0.000052  |
-|                     262,144 |               16.807 |                       0.02187 |            0.000216 |    0.000214 |       0.000217  |
-|                   1,048,576 |               67.385 |                       0.08043 |            0.000630 |    0.000629 |       0.000634  |
-|                   4,194,304 |              270.025 |                       0.31272 |            0.001939 |    0.001941 |       0.001942  |
-|                  16,777,216 |             1080.741 |                       1.18849 |            0.003212 |    0.004185 |       0.004207  |
-|                  67,108,864 |             4326.120 |                       4.74481 |            0.013672 |    0.022494 |       0.030369  |
+| Matrix rows and columns | `setElement` on host | `setElement` on host and copy | `setElement` on GPU | `getRow` | `forElements` |
+| ----------------------: | -------------------: | ----------------------------: | ------------------: | -------: | ------------: |
+|                     256 |                0.035 |                       0.02468 |            0.000048 | 0.000045 |      0.000047 |
+|                   1,024 |                0.059 |                       0.00015 |            0.000047 | 0.000045 |      0.000047 |
+|                   4,096 |                0.251 |                       0.00044 |            0.000048 | 0.000045 |      0.000047 |
+|                  16,384 |                1.030 |                       0.00158 |            0.000049 | 0.000046 |      0.000048 |
+|                  65,536 |                4.169 |                       0.00619 |            0.000053 | 0.000048 |      0.000052 |
+|                 262,144 |               16.807 |                       0.02187 |            0.000216 | 0.000214 |      0.000217 |
+|               1,048,576 |               67.385 |                       0.08043 |            0.000630 | 0.000629 |      0.000634 |
+|               4,194,304 |              270.025 |                       0.31272 |            0.001939 | 0.001941 |      0.001942 |
+|              16,777,216 |             1080.741 |                       1.18849 |            0.003212 | 0.004185 |      0.004207 |
+|              67,108,864 |             4326.120 |                       4.74481 |            0.013672 | 0.022494 |      0.030369 |
 
 * **setElement on host** tests are extremely slow again, especially for large matrices.
 * **setElement on host and copy** tests are much faster compared to the previous.
@@ -430,7 +430,6 @@ We do not need any matrix view and instead of calling \ref TNL::Algorithms::para
 * `rowIdx` is the row index of given matrix element.
 * `columnIdx` is the column index of given matrix element.
 * `value` is a reference on the matrix element value and so by changing this value we can modify the matrix element.
-* `compute` is a boolean which, when set to `false`, indicates that we can skip the rest of the matrix row. This is, however, only a hint and it does not guarantee that the rest of the matrix row is really skipped.
 
 The result looks as follows:
 
@@ -627,7 +626,6 @@ Finally, another efficient way of setting the nonzero matrix elements, is use of
 * `localIdx` is an index of the nonzero matrix element within the matrix row.
 * `columnIdx` is a column index of the matrix element. If the matrix element column index is supposed to be modified, this parameter can be a reference and so its value can be changed.
 * `value` is a value of the matrix element. If the matrix element value is supposed to be modified, this parameter can be a reference as well and so the element value can be changed.
-* `compute` is a bool reference. When it is set to `false` the rest of the row can be omitted. This is, however, only a hint and it depends on the underlying matrix format if it is taken into account.
 
 See the following example:
 
@@ -717,12 +715,12 @@ The elements depicted in grey color are not stored in the memory. The main diffe
 
 If the matrix element value type (i.e. `Real` type) is set to `bool` the matrix elements can be only `1` or `0`. So in the sparse matrix formats, where we do not store the zero matrix elements, explicitly stored elements can have only one possible value which is `1`.  Therefore we do not need to store the values, only the positions of the nonzero elements. The array `values`, which usualy stores the matrix elements values, can be completely omitted and we can reduce the memory requirements. The following table shows how much we can reduce the memory consumption when using binary matrix instead of common sparse matrix using `float` or `double` types:
 
-| Real   | Index  | Common sparse matrix | Binary sparse matrix | Ratio      |
-|:------:|:------:|:--------------------:|:--------------------:|:----------:|
-| float  | 32-bit |         4 + 4 =  8 B |                  4 B |        50% |
-| float  | 64-bit |         4 + 8 = 12 B |                  8 B |        75% |
-| double | 32-bit |         8 + 4 = 12 B |                  4 B |        33% |
-| double | 64-bit |         8 + 8 = 16 B |                  8 B |        50% |
+|  Real  | Index  | Common sparse matrix | Binary sparse matrix | Ratio |
+| :----: | :----: | :------------------: | :------------------: | :---: |
+| float  | 32-bit |     4 + 4 =  8 B     |         4 B          |  50%  |
+| float  | 64-bit |     4 + 8 = 12 B     |         8 B          |  75%  |
+| double | 32-bit |     8 + 4 = 12 B     |         4 B          |  33%  |
+| double | 64-bit |     8 + 8 = 16 B     |         8 B          |  50%  |
 
 The following example demonstrates the use of binary matrix:
 
@@ -751,12 +749,12 @@ Tridiagonal matrix format serves for specific matrix pattern when the nonzero ma
 
 An advantage is that we do not store the column indexes explicitly as it is in \ref TNL::Matrices::SparseMatrix. This can reduce significantly the  memory requirements which also means better performance. See the following table for the storage requirements comparison between \ref TNL::Matrices::TridiagonalMatrix and \ref TNL::Matrices::SparseMatrix.
 
-  Real   | Index      |      SparseMatrix    | TridiagonalMatrix   | Ratio
- --------|------------|----------------------|---------------------|--------
-  float  | 32-bit int | 8 bytes per element  | 4 bytes per element | 50%
-  double | 32-bit int | 12 bytes per element | 8 bytes per element | 75%
-  float  | 64-bit int | 12 bytes per element | 4 bytes per element | 30%
-  double | 64-bit int | 16 bytes per element | 8 bytes per element | 50%
+  | Real   | Index      | SparseMatrix         | TridiagonalMatrix   | Ratio |
+  | ------ | ---------- | -------------------- | ------------------- | ----- |
+  | float  | 32-bit int | 8 bytes per element  | 4 bytes per element | 50%   |
+  | double | 32-bit int | 12 bytes per element | 8 bytes per element | 75%   |
+  | float  | 64-bit int | 12 bytes per element | 4 bytes per element | 30%   |
+  | double | 64-bit int | 16 bytes per element | 8 bytes per element | 50%   |
 
 Tridiagonal matrix is a templated class defined in the namespace \ref TNL::Matrices. It has five template parameters:
 
@@ -927,7 +925,7 @@ Finally, even a bit more simple way of matrix elements manipulation with the met
 
 \includelineno TridiagonalMatrixViewExample_forElements.cpp
 
-On the line 41, we call the method `forElements` (\ref TNL::Matrices::TridiagonalMatrix::forElements) instead of \ref TNL::Algorithms::parallelFor "parallelFor". This method iterates over all matrix rows and all nonzero matrix elements. The lambda function on the line 24 therefore do not receive only the matrix row index but also local index of the matrix element (`localIdx`) which is a rank of the nonzero matrix element in given row  - see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices). Next parameter, `columnIdx` received by the lambda function, is the column index of the matrix element. The fourth parameter `value` is a reference on the matrix element which we use for its modification. If the last parameter `compute` is set to false, the iterations over the matrix rows is terminated.
+On the line 41, we call the method `forElements` (\ref TNL::Matrices::TridiagonalMatrix::forElements) instead of \ref TNL::Algorithms::parallelFor "parallelFor". This method iterates over all matrix rows and all nonzero matrix elements. The lambda function on the line 24 therefore do not receive only the matrix row index but also local index of the matrix element (`localIdx`) which is a rank of the nonzero matrix element in given row  - see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices). Next parameter, `columnIdx` received by the lambda function, is the column index of the matrix element. The fourth parameter `value` is a reference on the matrix element which we use for its modification.
 
 The result looks as follows:
 
@@ -979,12 +977,12 @@ Multidiagonal matrices are generalization of the tridiagonal ones. It is a speci
 
  In this matrix, the offsets reads as \f$\{-3, -1, 0, +1, +3\}\f$. It also means that the column indexes on \f$i-\f$th row are \f$\{i-3, i-1, i, i+1, i+3\}\f$ (where we accept only nonnegative indexes smaller than the number of matrix columns). An advantage is that, similar to the tridiagonal matrix (\ref TNL::Matrices::TridiagonalMatrix), we do not store the column indexes explicitly as it is in \ref TNL::Matrices::SparseMatrix. This can significantly reduce the  memory requirements which also means better performance. See the following table for the storage requirements comparison between multidiagonal matrix (\ref TNL::Matrices::MultidiagonalMatrix) and general sparse matrix (\ref TNL::Matrices::SparseMatrix).
 
-  Real   | Index     |      SparseMatrix    | MultidiagonalMatrix | Ratio
- --------|-----------|----------------------|---------------------|--------
-  float  | 32-bit int| 8 bytes per element  | 4 bytes per element | 50%
-  double | 32-bit int| 12 bytes per element | 8 bytes per element | 75%
-  float  | 64-bit int| 12 bytes per element | 4 bytes per element | 30%
-  double | 64-bit int| 16 bytes per element | 8 bytes per element | 50%
+  | Real   | Index      | SparseMatrix         | MultidiagonalMatrix | Ratio |
+  | ------ | ---------- | -------------------- | ------------------- | ----- |
+  | float  | 32-bit int | 8 bytes per element  | 4 bytes per element | 50%   |
+  | double | 32-bit int | 12 bytes per element | 8 bytes per element | 75%   |
+  | float  | 64-bit int | 12 bytes per element | 4 bytes per element | 30%   |
+  | double | 64-bit int | 16 bytes per element | 8 bytes per element | 50%   |
 
  For the sake of better memory alignment and faster access to the matrix elements, we store all subdiagonals in complete form including the elements which are outside the matrix as depicted on the following figure where zeros stand for the padding artificial zero matrix elements
 
@@ -1203,7 +1201,6 @@ In this case, we need to provide a lambda function `f` (lines 27-43) which is ca
 * `localIdx` is in index of the matrix subdiagonal.
 * `columnIdx` is a column index of the matrix element.
 * `value` is a reference to the matrix element value. It can be used even for changing the value.
-* `compute` is a reference to boolean. If it is set to false, the iteration over the matrix row can be stopped.
 
 In this example, the matrix element value depends only on the subdiagonal index `localIdx` (see [Indexing of nonzero matrix elements in sparse matrices](#indexing-of-nonzero-matrix-elements-in-sparse-matrices)) as we can see on the line 42. The result looks as follows:
 

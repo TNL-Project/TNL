@@ -145,8 +145,7 @@ test_reduceAllSegments_MaximumInSegments()
 
    const auto v_view = v.getConstView();
    auto result_view = result.getView();
-   auto fetch =
-      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool& compute ) -> IndexType
+   auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
    {
       // some segments may use padding zeros and their size may be greater than the original segment size
       if( localIdx < segmentSize )

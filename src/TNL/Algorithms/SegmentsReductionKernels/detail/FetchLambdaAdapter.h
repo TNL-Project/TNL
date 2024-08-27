@@ -16,26 +16,26 @@ struct FetchLambdaAdapter
 template< typename Index, typename Lambda >
 struct FetchLambdaAdapter< Index, Lambda, true >
 {
-   using ReturnType = decltype( std::declval< Lambda >()( Index(), Index(), Index(), std::declval< bool& >() ) );
+   using ReturnType = decltype( std::declval< Lambda >()( Index(), Index(), Index() ) );
 
    __cuda_callable__
    static ReturnType
-   call( Lambda& f, Index segmentIdx, Index localIdx, Index globalIdx, bool& compute )
+   call( Lambda& f, Index segmentIdx, Index localIdx, Index globalIdx )
    {
-      return f( segmentIdx, localIdx, globalIdx, compute );
+      return f( segmentIdx, localIdx, globalIdx );
    }
 };
 
 template< typename Index, typename Lambda >
 struct FetchLambdaAdapter< Index, Lambda, false >
 {
-   using ReturnType = decltype( std::declval< Lambda >()( Index(), std::declval< bool& >() ) );
+   using ReturnType = decltype( std::declval< Lambda >()( Index() ) );
 
    __cuda_callable__
    static ReturnType
-   call( Lambda& f, Index segmentIdx, Index localIdx, Index globalIdx, bool& compute )
+   call( Lambda& f, Index segmentIdx, Index localIdx, Index globalIdx )
    {
-      return f( globalIdx, compute );
+      return f( globalIdx );
    }
 };
 

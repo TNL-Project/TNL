@@ -123,7 +123,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::setSegm
    const auto sizes_view = sizes.getConstView();
    auto slices_view = this->sliceOffsets.getView();
    auto slice_segment_size_view = this->sliceSegmentSizes.getView();
-   auto fetch = [ = ] __cuda_callable__( Index segmentIdx, Index localIdx, Index globalIdx, bool& compute ) -> Index
+   auto fetch = [ = ] __cuda_callable__( Index segmentIdx, Index localIdx, Index globalIdx ) -> Index
    {
       if( globalIdx < size )
          return sizes_view[ globalIdx ];
