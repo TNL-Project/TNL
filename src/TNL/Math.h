@@ -503,20 +503,17 @@ swap( Type& a, Type& b )
 /**
  * \brief This function represents the signum function.
  *
- * It extracts the sign of the number \e a. In other words, the signum function projects
+ * It extracts the sign of \e value. In other words, the signum function projects
  * negative numbers to value -1, positive numbers to value 1 and zero to value 0.
  */
 template< class T,
           // enable_if is necessary to avoid ambiguity in vector expressions
           std::enable_if_t< ! HasSubscriptOperator< T >::value, bool > = true >
 constexpr T
-sign( const T& a )
+sign( const T& value )
 {
-   if( a < (T) 0 )
-      return (T) -1;
-   if( a == (T) 0 )
-      return (T) 0;
-   return (T) 1;
+   // Reference: https://stackoverflow.com/a/4609795
+   return static_cast< T >( T( 0 ) < value ) - static_cast< T >( value < T( 0 ) );
 }
 
 /**
