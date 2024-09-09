@@ -1,7 +1,10 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
 #include <TNL/Devices/Hip.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include "DenseMultiplicationBenchmark.h"
+#include "DenseMatrixMultiplicationBenchmark.h"
 
 void
 configSetup( TNL::Config::ConfigDescription& config )
@@ -15,9 +18,9 @@ configSetup( TNL::Config::ConfigDescription& config )
 
 template< typename Real >
 bool
-runDenseMultiplicationBenchmark( TNL::Config::ParameterContainer& parameters )
+runDenseMatrixMultiplicationBenchmark( TNL::Config::ParameterContainer& parameters )
 {
-   TNL::Benchmarks::DenseMatrices::DenseMultiplicationBenchmark< Real > benchmark( parameters );
+   TNL::Benchmarks::DenseMatrices::DenseMatrixMultiplicationBenchmark< Real > benchmark( parameters );
    benchmark.runBenchmark();
    return true;
 }
@@ -33,7 +36,7 @@ main( int argc, char* argv[] )
 #elif defined( __HIP__ )
    TNL::Devices::Hip::configSetup( config );
 #endif
-   TNL::Benchmarks::DenseMatrices::DenseMultiplicationBenchmark<>::configSetup( config );
+   TNL::Benchmarks::DenseMatrices::DenseMatrixMultiplicationBenchmark<>::configSetup( config );
 
    TNL::Config::ParameterContainer parameters;
 
@@ -50,10 +53,10 @@ main( int argc, char* argv[] )
    auto precision = parameters.getParameter< TNL::String >( "precision" );
 
    if( precision == "float" || precision == "all" ) {
-      success = runDenseMultiplicationBenchmark< float >( parameters );
+      success = runDenseMatrixMultiplicationBenchmark< float >( parameters );
    }
    else if( precision == "double" || precision == "all" ) {
-      success = runDenseMultiplicationBenchmark< double >( parameters );
+      success = runDenseMatrixMultiplicationBenchmark< double >( parameters );
    }
    else {
       std::cerr << "Unknown precision " << precision << "." << std::endl;

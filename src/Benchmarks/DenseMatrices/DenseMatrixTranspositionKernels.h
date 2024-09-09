@@ -1,3 +1,6 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #include <TNL/Config/parseCommandLine.h>
@@ -172,4 +175,5 @@ TranspositionKernel2( OutputMatrix resultMatrix,
    }
 #endif
 }
-};  //namespace TNL::Benchmarks::DenseMatrices
+
+}  // namespace TNL::Benchmarks::DenseMatrices

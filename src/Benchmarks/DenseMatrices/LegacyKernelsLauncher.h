@@ -1,6 +1,14 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
-#include "DenseMatrixMultiplicationKernels.h"
+#include "detail/TileBasedMultiplicationKernel.h"
+#include "detail/OptimizedIndexAccessKernel.h"
+#include "detail/SharedMemory2DKernel.h"
+#include "detail/WarpBasedTileMultiplicationKernel.h"
+#include "detail/PaddedMemoryMultiplicationKernel.h"
+#include "detail/FermiOptimizedMultiplicationKernel.h"
 #include "DenseMatrixTranspositionKernels.h"
 
 namespace TNL::Benchmarks::DenseMatrices {
@@ -67,7 +75,6 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
    Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = tileDim;
    launch_config.blockSize.y = cudaBlockRows;
-   launch_config.dynamicSharedMemorySize = 3 * tileDim * tileDim;
 
    IndexType matrix1Rows = matrix1.getRows();
    IndexType matrix2Columns = matrix2.getColumns();
@@ -124,7 +131,6 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
    Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = tileDim;
    launch_config.blockSize.y = cudaBlockRows;
-   launch_config.dynamicSharedMemorySize = 3 * tileDim * tileDim;
 
    IndexType matrix1Rows = matrix1.getRows();
    IndexType matrix2Columns = matrix2.getColumns();
@@ -181,7 +187,6 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
    Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = tileDim;
    launch_config.blockSize.y = cudaBlockRows;
-   launch_config.dynamicSharedMemorySize = 3 * tileDim * tileDim;
 
    IndexType matrix1Rows = matrix1.getRows();
    IndexType matrix2Columns = matrix2.getColumns();
@@ -238,7 +243,6 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
    Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = tileDim;
    launch_config.blockSize.y = cudaBlockRows;
-   launch_config.dynamicSharedMemorySize = 3 * tileDim * tileDim;
 
    IndexType matrix1Rows = matrix1.getRows();
    IndexType matrix2Columns = matrix2.getColumns();
@@ -290,7 +294,6 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
    Backend::LaunchConfiguration launch_config;
    launch_config.blockSize.x = tileDim;
    launch_config.blockSize.y = cudaBlockRows;
-   launch_config.dynamicSharedMemorySize = 3 * tileDim * tileDim;
 
    IndexType matrix1Rows = matrix1.getRows();
    IndexType matrix2Columns = matrix2.getColumns();

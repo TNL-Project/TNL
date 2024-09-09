@@ -1,3 +1,6 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #include <stdio.h>
@@ -10,7 +13,8 @@
 
    #include <cblas.h>
 
-// Function to perform matrix multiplication using BLAS
+namespace TNL::Benchmarks::DenseMatrices {
+
 template< typename DenseMatrix >
 void
 matrixMultiplicationBLAS( const DenseMatrix& matrix1, const DenseMatrix& matrix2, DenseMatrix& resultMatrix )
@@ -19,17 +23,14 @@ matrixMultiplicationBLAS( const DenseMatrix& matrix1, const DenseMatrix& matrix2
    using IndexType = typename DenseMatrix::IndexType;
    using Device = typename DenseMatrix::DeviceType;
 
-   // Ensure matrices are on the GPU
    static_assert( std::is_same_v< Device, TNL::Devices::Host >, "This function is specialized for Host device only." );
 
-   // Ensure proper dimensions for matrix multiplication
    IndexType n = matrix2.getColumns();
    IndexType k = matrix1.getColumns();
    IndexType m = matrix1.getRows();
 
    auto organization = matrix1.getOrganization();
 
-   // Call BLAS function with the matrix data
    if constexpr( std::is_same_v< RealType, float > ) {
       cblas_sgemm( organization == TNL::Algorithms::Segments::RowMajorOrder ? CblasRowMajor : CblasColMajor,
                    CblasNoTrans,
@@ -63,5 +64,7 @@ matrixMultiplicationBLAS( const DenseMatrix& matrix1, const DenseMatrix& matrix2
                    organization == TNL::Algorithms::Segments::RowMajorOrder ? n : m );
    }
 }
+
+}  // namespace TNL::Benchmarks::DenseMatrices
 
 #endif  //HAVE_BLAS

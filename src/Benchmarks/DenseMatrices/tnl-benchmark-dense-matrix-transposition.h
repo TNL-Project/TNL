@@ -1,7 +1,10 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
 #include <TNL/Devices/Hip.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include "DenseTranspositionBenchmark.h"
+#include "DenseMatrixTranspositionBenchmark.h"
 
 void
 configSetup( TNL::Config::ConfigDescription& config )
@@ -17,7 +20,7 @@ template< typename Real >
 bool
 runDenseTranspositionBenchmark( TNL::Config::ParameterContainer& parameters )
 {
-   TNL::Benchmarks::DenseMatrices::DenseTranspositionBenchmark< Real > benchmark( parameters );
+   TNL::Benchmarks::DenseMatrices::DenseMatrixTranspositionBenchmark< Real > benchmark( parameters );
    benchmark.runBenchmark();
    return true;
 }
@@ -33,7 +36,7 @@ main( int argc, char* argv[] )
 #elif defined( __HIP__ )
    TNL::Devices::Hip::configSetup( config );
 #endif
-   TNL::Benchmarks::DenseMatrices::DenseTranspositionBenchmark<>::configSetup( config );
+   TNL::Benchmarks::DenseMatrices::DenseMatrixTranspositionBenchmark<>::configSetup( config );
 
    TNL::Config::ParameterContainer parameters;
 

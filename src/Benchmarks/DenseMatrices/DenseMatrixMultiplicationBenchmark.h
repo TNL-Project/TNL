@@ -1,3 +1,6 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #include <TNL/Backend/Macros.h>
@@ -27,7 +30,7 @@
 
 namespace TNL::Benchmarks::DenseMatrices {
 template< typename Real = double, typename Index = int >
-struct DenseMultiplicationBenchmark
+struct DenseMatrixMultiplicationBenchmark
 {
    using RealType = Real;
    using IndexType = Index;
@@ -72,7 +75,7 @@ struct DenseMultiplicationBenchmark
    }
 
    TNL::Config::ParameterContainer parameters;
-   DenseMultiplicationBenchmark( const TNL::Config::ParameterContainer& parameters_ ) : parameters( parameters_ ) {}
+   DenseMatrixMultiplicationBenchmark( const TNL::Config::ParameterContainer& parameters_ ) : parameters( parameters_ ) {}
 
    bool
    runBenchmark()
@@ -82,7 +85,6 @@ struct DenseMultiplicationBenchmark
       const IndexType loops = parameters.getParameter< IndexType >( "loops" );
       const IndexType verbose = parameters.getParameter< IndexType >( "verbose" );
       bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
-      bool LegacyOn = parameters.getParameter< TNL::String >( "include-legacy-kernels" ) == "legacy-on";
 
       auto mode = std::ios::out;
       if( outputMode == "append" )
@@ -95,15 +97,6 @@ struct DenseMultiplicationBenchmark
 
       TNL::String device = parameters.getParameter< TNL::String >( "device" );
 
-      std::cout << "Dense Matrices benchmark with " << TNL::getType< Real >() << " precision and device: " << device
-                << std::endl;
-      std::cout << std::endl;
-      std::cout << "=== Dense Matrices Multiplication "
-                   "==========================================================================================================="
-                   "==================="
-                << std::endl;
-      std::cout << std::endl;
-
       const IndexType numMatrices = 50;  // Number of matrices for the cycle
       IndexType matrix1Rows = 0;         // Number of rows in matrix1
       IndexType matrix1Columns = 0;      // Number of columns in matrix1 && rows in matrix2
@@ -112,7 +105,7 @@ struct DenseMultiplicationBenchmark
       for( IndexType i = 0; i < numMatrices; ++i ) {
          // Modify the matrix sizes for each iteration
          matrix1Rows += 100;
-         matrix1Columns += 1;
+         matrix1Columns += 100;
          matrix2Columns += 100;
 
          if( device == "cuda" || device == "hip" || device == "all" ) {
@@ -175,6 +168,7 @@ struct DenseMultiplicationBenchmark
    #if defined( __CUDACC__ )
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "cuBLAS" },
                  { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -190,6 +184,7 @@ struct DenseMultiplicationBenchmark
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "Magma" },
                  { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -211,6 +206,7 @@ struct DenseMultiplicationBenchmark
       #ifdef HAVE_CUTLASS
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "Cutlass" },
                  { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -231,9 +227,11 @@ struct DenseMultiplicationBenchmark
       #endif  //HAVE_CUTLASS
    #endif     // __CUDACC__
 
+            bool LegacyOn = parameters.getParameter< TNL::String >( "include-legacy-kernels" ) == "legacy-on";
             if( LegacyOn ) {
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
+                    { "real type", TNL::getType< Real >() },
                     { "device", device },
                     { "algorithm", "Kernel 1.1" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -263,6 +261,7 @@ struct DenseMultiplicationBenchmark
 
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
+                    { "real type", TNL::getType< Real >() },
                     { "device", device },
                     { "algorithm", "Kernel 1.2" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -292,6 +291,7 @@ struct DenseMultiplicationBenchmark
 
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
+                    { "real type", TNL::getType< Real >() },
                     { "device", device },
                     { "algorithm", "Kernel 1.3" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -321,6 +321,7 @@ struct DenseMultiplicationBenchmark
 
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
+                    { "real type", TNL::getType< Real >() },
                     { "device", device },
                     { "algorithm", "Kernel 1.4" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -351,6 +352,7 @@ struct DenseMultiplicationBenchmark
 
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
+                    { "real type", TNL::getType< Real >() },
                     { "device", device },
                     { "algorithm", "Kernel 1.5" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -381,6 +383,7 @@ struct DenseMultiplicationBenchmark
 
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
+                    { "real type", TNL::getType< Real >() },
                     { "device", device },
                     { "algorithm", "Kernel 1.6" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -411,6 +414,7 @@ struct DenseMultiplicationBenchmark
 
                benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
+                    { "real type", TNL::getType< Real >() },
                     { "device", device },
                     { "algorithm", "TensorCores" },
                     { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -445,6 +449,7 @@ struct DenseMultiplicationBenchmark
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "Final" },
                  { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -465,6 +470,7 @@ struct DenseMultiplicationBenchmark
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "HipBlas" },
                  { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -479,9 +485,6 @@ struct DenseMultiplicationBenchmark
 
    #endif
 
-            std::cout << "-----------------------------------------------------------------------------------------------------"
-                         "-----------------------------------------------------------"
-                      << std::endl;
 #endif  // ( __CUDACC__ ) || defined( __HIP__ )
          }
 
@@ -529,6 +532,7 @@ struct DenseMultiplicationBenchmark
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "BLAS" },
                  { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -544,6 +548,7 @@ struct DenseMultiplicationBenchmark
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "TNL" },
                  { "matrix1 size", std::to_string( matrix1Rows ) + "x" + std::to_string( matrix1Columns ) },
@@ -558,19 +563,8 @@ struct DenseMultiplicationBenchmark
             };
             DenseMatricesResult< RealType, Devices::Host, IndexType > CPUResult( resultMatrix, benchmarkMatricesCPU );
             benchmark.time< Devices::Host >( device, matrixMultiplicationBenchmarkTNL, CPUResult );
-
-            std::cout << "-----------------------------------------------------------------------------------------------------"
-                         "-----------------------------------------------------------"
-                      << std::endl;
          }
       }
-
-      std::cout << std::endl;
-      std::cout << "=== Transposed Multiplication Tests "
-                   "==========================================================================================================="
-                   "========"
-                << std::endl;
-      std::cout << std::endl;
 
       const IndexType numMatrices2 = 100;  // Number of matrices for the cycle
       IndexType matrix1Rows2 = 1;          // Number of rows in matrix1
@@ -682,16 +676,10 @@ struct DenseMultiplicationBenchmark
             CuBLASResultMatrix.setDimensions( matrix1Rows2, matrix2Columns2 );
             HipBlasResultMatrix.setDimensions( matrix1Rows2, matrix2Columns2 );
 
-            std::cout << std::endl;
-            std::cout << "=== A Transposed "
-                         "====================================================================================================="
-                         "=========================================="
-                      << std::endl;
-            std::cout << std::endl;
-
    #if defined( __HIP__ )
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "hipblasA" },
                  { "matrix1 size", std::to_string( matrix1Columns2 ) + "x" + std::to_string( matrix1Rows2 ) },
@@ -709,6 +697,7 @@ struct DenseMultiplicationBenchmark
    #if defined( __CUDACC__ )
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "cublasA" },
                  { "matrix1 size", std::to_string( matrix1Columns2 ) + "x" + std::to_string( matrix1Rows2 ) },
@@ -725,6 +714,7 @@ struct DenseMultiplicationBenchmark
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "magmaA" },
                  { "matrix1 size", std::to_string( matrix1Columns2 ) + "x" + std::to_string( matrix1Rows2 ) },
@@ -741,6 +731,7 @@ struct DenseMultiplicationBenchmark
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "tnlA" },
                  { "matrix1 size", std::to_string( matrix1Columns2 ) + "x" + std::to_string( matrix1Rows2 ) },
@@ -765,18 +756,12 @@ struct DenseMultiplicationBenchmark
             DenseMatricesResult< RealType, DeviceType, IndexType > ATransResult( resultMatrix, benchmarkMatricesATrans );
             benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkTransA, ATransResult );
    #endif
-            std::cout << std::endl;
-            std::cout << "=== B Transposed "
-                         "====================================================================================================="
-                         "=========================================="
-
-                      << std::endl;
-            std::cout << std::endl;
 
    #if defined( __HIP__ )
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "hipblasB" },
                  { "matrix1 size", std::to_string( matrix1Rows2 ) + "x" + std::to_string( matrix1Columns2 ) },
@@ -794,6 +779,7 @@ struct DenseMultiplicationBenchmark
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "cublasB" },
                  { "matrix1 size", std::to_string( matrix1Rows2 ) + "x" + std::to_string( matrix1Columns2 ) },
@@ -810,6 +796,7 @@ struct DenseMultiplicationBenchmark
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "magmaB" },
                  { "matrix1 size", std::to_string( matrix1Rows2 ) + "x" + std::to_string( matrix1Columns2 ) },
@@ -827,6 +814,7 @@ struct DenseMultiplicationBenchmark
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "tnlB" },
                  { "matrix1 size", std::to_string( matrix1Rows2 ) + "x" + std::to_string( matrix1Columns2 ) },
@@ -851,18 +839,12 @@ struct DenseMultiplicationBenchmark
             DenseMatricesResult< RealType, DeviceType, IndexType > BTransResult( resultMatrix, benchmarkMatricesBTrans );
             benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkTransB, BTransResult );
    #endif
-            std::cout << std::endl;
-            std::cout << "=== A and B Transposed "
-                         "====================================================================================================="
-                         "===================================="
-
-                      << std::endl;
-            std::cout << std::endl;
 
    #if defined( __HIP__ )
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "hipblasAB" },
                  { "matrix1 size", std::to_string( matrix1Columns2 ) + "x" + std::to_string( matrix1Rows2 ) },
@@ -880,6 +862,7 @@ struct DenseMultiplicationBenchmark
 
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "cublasAB" },
                  { "matrix1 size", std::to_string( matrix1Columns2 ) + "x" + std::to_string( matrix1Rows2 ) },
@@ -896,6 +879,7 @@ struct DenseMultiplicationBenchmark
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "magmaAB" },
                  { "matrix1 size", std::to_string( matrix1Columns2 ) + "x" + std::to_string( matrix1Rows2 ) },
@@ -913,6 +897,7 @@ struct DenseMultiplicationBenchmark
             resultMatrix.getValues() = 0;
             benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns(
                { { "index type", TNL::getType< Index >() },
+                 { "real type", TNL::getType< Real >() },
                  { "device", device },
                  { "algorithm", "tnlAB" },
                  { "matrix1 size", std::to_string( matrix1Columns2 ) + "x" + std::to_string( matrix1Rows2 ) },

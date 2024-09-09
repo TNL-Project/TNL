@@ -1,9 +1,14 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #if defined( __HIP__ )
 
    #include <hipblas/hipblas.h>
-// Function to perform matrix multiplication using HIPBLAS
+
+namespace TNL::Benchmarks::DenseMatrices {
+
 template< typename DenseMatrix >
 void
 matrixMultiplicationHIPBLAS( const DenseMatrix& matrix1,
@@ -16,22 +21,18 @@ matrixMultiplicationHIPBLAS( const DenseMatrix& matrix1,
    using IndexType = typename DenseMatrix::IndexType;
    using Device = typename DenseMatrix::DeviceType;
 
-   // Ensure matrices are on the GPU
    static_assert( std::is_same_v< Device, TNL::Devices::Hip >, "This function is specialized for Hip device only." );
 
    hipblasHandle_t handle;
    hipblasCreate( &handle );
 
-   // Adjust matrix dimensions based on transposition
    IndexType m = transposeA ? matrix1.getColumns() : matrix1.getRows();
    IndexType n = transposeB ? matrix2.getRows() : matrix2.getColumns();
    IndexType k = transposeA ? matrix1.getRows() : matrix1.getColumns();
 
-   // HIPBLAS operation flags for transposition
    hipblasOperation_t opA = transposeA ? HIPBLAS_OP_T : HIPBLAS_OP_N;
    hipblasOperation_t opB = transposeB ? HIPBLAS_OP_T : HIPBLAS_OP_N;
 
-   // Adjust leading dimensions based on transposition
    IndexType lda = transposeA ? k : m;
    IndexType ldb = transposeB ? n : k;
    IndexType ldc = m;
@@ -39,7 +40,6 @@ matrixMultiplicationHIPBLAS( const DenseMatrix& matrix1,
    RealType alpha = 1.0;
    RealType beta = 0.0;
 
-   // Perform the matrix multiplication using HIPBLAS
    if constexpr( std::is_same_v< RealType, float > ) {
       hipblasSgemm( handle,
                     opA,
@@ -75,5 +75,7 @@ matrixMultiplicationHIPBLAS( const DenseMatrix& matrix1,
 
    hipblasDestroy( handle );
 }
+
+}  // namespace TNL::Benchmarks::DenseMatrices
 
 #endif  // (__HIPP__)

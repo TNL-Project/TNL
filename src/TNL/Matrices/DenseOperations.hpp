@@ -1,11 +1,12 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #include <TNL/Backend.h>
 #include <TNL/Devices/Host.h>
-#include <TNL/Devices/Hip.h>
-#include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Sequential.h>
-#include <TNL/Devices/Host.h>
+#include <TNL/Devices/GPU.h>
 
 #include "DenseOperations.h"
 
@@ -19,7 +20,9 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
                           const Matrix2 matrixB,
                           const typename ResultMatrix::RealType matrixMultiplicator,
                           TransposeState TransposeA,
-                          TransposeState TransposeB )
+                          TransposeState TransposeB,
+                          const typename ResultMatrix::IndexType gridIdx_x,
+                          const typename ResultMatrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename ResultMatrix::IndexType;
@@ -28,7 +31,9 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
    __shared__ RealType tileA[ tileDim ][ tileDim + 1 ];
    __shared__ RealType tileB[ tileDim ][ tileDim + 1 ];
 
-   IndexType bx = blockIdx.x, by = blockIdx.y;
+   // Calculate the global block indices using gridIdx_x and gridIdx_y
+   IndexType bx = blockIdx.x + gridIdx_x * Backend::getMaxGridXSize();
+   IndexType by = blockIdx.y + gridIdx_y * Backend::getMaxGridYSize();
    IndexType tx = threadIdx.x, ty = threadIdx.y;
 
    IndexType row = by * tileDim + ty;
@@ -61,8 +66,8 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
 
       __syncthreads();
 
-   // Perform the multiplication for the current tile
-   #pragma unroll
+      // Perform the multiplication for the current tile
+      #pragma unroll
       for( IndexType k = 0; k < tileDim; ++k ) {
          CValue += tileA[ ty ][ k ] * tileB[ k ][ tx ];
       }
@@ -103,26 +108,7 @@ getMatrixProduct( ResultMatrix& resultMatrix,
    // Adjust the dimensions of the result matrix
    resultMatrix.setDimensions( aRows, bCols );
 
-   if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > ) {
-      for( Index i = 0; i < resultMatrix.getRows(); i += tileDim )
-         for( Index j = 0; j < resultMatrix.getColumns(); j += tileDim ) {
-            const Index tileRows = min( tileDim, resultMatrix.getRows() - i );
-            const Index tileColumns = min( tileDim, resultMatrix.getColumns() - j );
-            for( Index i1 = i; i1 < i + tileRows; i1++ )
-               for( Index j1 = j; j1 < j + tileColumns; j1++ )
-                  resultMatrix.operator()( i1, j1 ) = 0.0;
-
-            for( Index k = 0; k < matrix1.getColumns(); k += tileDim ) {
-               const Index lastK = min( k + tileDim, matrix1.getColumns() );
-               for( Index i1 = 0; i1 < tileRows; i1++ )
-                  for( Index j1 = 0; j1 < tileColumns; j1++ )
-                     for( Index k1 = k; k1 < lastK; k1++ )
-                        resultMatrix.operator()( i + i1, j + j1 ) +=
-                           matrixMultiplicator * matrix1( i + i1, k1 ) * matrix2( k1, j + j1 );
-            }
-         }
-   }
-   if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+   if constexpr( std::is_same_v< Device, Devices::GPU > ) {
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = tileDim;
       launch_config.blockSize.y = tileDim;
@@ -153,18 +139,43 @@ getMatrixProduct( ResultMatrix& resultMatrix,
                                         matrix2.getConstView(),
                                         matrixMultiplicator,
                                         transposeA,
-                                        transposeB
+                                        transposeB,
+                                        gridIdx_x,
+                                        gridIdx_y
 
             );
          }
       Backend::streamSynchronize( launch_config.stream );
+   }
+   else {
+      for( Index i = 0; i < resultMatrix.getRows(); i += tileDim )
+         for( Index j = 0; j < resultMatrix.getColumns(); j += tileDim ) {
+            const Index tileRows = min( tileDim, resultMatrix.getRows() - i );
+            const Index tileColumns = min( tileDim, resultMatrix.getColumns() - j );
+            for( Index i1 = i; i1 < i + tileRows; i1++ )
+               for( Index j1 = j; j1 < j + tileColumns; j1++ )
+                  resultMatrix.operator()( i1, j1 ) = 0.0;
+
+            for( Index k = 0; k < matrix1.getColumns(); k += tileDim ) {
+               const Index lastK = min( k + tileDim, matrix1.getColumns() );
+               for( Index i1 = 0; i1 < tileRows; i1++ )
+                  for( Index j1 = 0; j1 < tileColumns; j1++ )
+                     for( Index k1 = k; k1 < lastK; k1++ )
+                        resultMatrix.operator()( i + i1, j + j1 ) +=
+                           matrixMultiplicator * matrix1( i + i1, k1 ) * matrix2( k1, j + j1 );
+            }
+         }
    }
 }
 
 template< int tileDim, typename OutputMatrix, typename InputMatrix, typename Real, typename Index >
 __global__
 void
-DenseTranspositionKernel( OutputMatrix resultMatrix, const InputMatrix inputMatrix, const Real matrixMultiplicator )
+DenseTranspositionKernel( OutputMatrix resultMatrix,
+                          const InputMatrix inputMatrix,
+                          const Real matrixMultiplicator,
+                          const typename OutputMatrix::IndexType gridIdx_x,
+                          const typename OutputMatrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Real tile[ tileDim ][ tileDim + 1 ];
@@ -172,8 +183,9 @@ DenseTranspositionKernel( OutputMatrix resultMatrix, const InputMatrix inputMatr
    const Index matrixColumns = inputMatrix.getColumns();
    const Index matrixRows = inputMatrix.getRows();
 
-   Index row = blockIdx.y * tileDim + threadIdx.y;
-   Index col = blockIdx.x * tileDim + threadIdx.x;
+   // Adjust block indices based on gridIdx_x and gridIdx_y
+   Index row = ( blockIdx.y + gridIdx_y * Backend::getMaxGridYSize() ) * tileDim + threadIdx.y;
+   Index col = ( blockIdx.x + gridIdx_x * Backend::getMaxGridXSize() ) * tileDim + threadIdx.x;
 
    if( row < matrixRows && col < matrixColumns ) {
       tile[ threadIdx.y ][ threadIdx.x ] = inputMatrix( row, col ) * matrixMultiplicator;
@@ -182,8 +194,8 @@ DenseTranspositionKernel( OutputMatrix resultMatrix, const InputMatrix inputMatr
    __syncthreads();
 
    // Adjust writing based on result matrix organization
-   row = blockIdx.x * tileDim + threadIdx.y;
-   col = blockIdx.y * tileDim + threadIdx.x;
+   row = ( blockIdx.x + gridIdx_x * Backend::getMaxGridXSize() ) * tileDim + threadIdx.y;
+   col = ( blockIdx.y + gridIdx_y * Backend::getMaxGridYSize() ) * tileDim + threadIdx.x;
 
    if( row < matrixColumns && col < matrixRows ) {
       resultMatrix( row, col ) = tile[ threadIdx.x ][ threadIdx.y ];
@@ -198,18 +210,10 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
 {
    using Index = typename ResultMatrix::IndexType;
    using Device = typename ResultMatrix::DeviceType;
+
    resultMatrix.setDimensions( matrix.getColumns(), matrix.getRows() );
 
-   if constexpr( std::is_same_v< Device, Devices::Host > ) {
-      const Index& rows = matrix.getRows();
-      const Index& columns = matrix.getColumns();
-      for( Index i = 0; i < rows; i += tileDim )
-         for( Index j = 0; j < columns; j += tileDim )
-            for( Index k = i; k < i + tileDim && k < rows; k++ )
-               for( Index l = j; l < j + tileDim && l < columns; l++ )
-                  resultMatrix.setElement( l, k, matrixMultiplicator * matrix.getElement( k, l ) );
-   }
-   if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+   if constexpr( std::is_same_v< Device, Devices::GPU > ) {
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = tileDim;
       launch_config.blockSize.y = tileDim;
@@ -235,17 +239,34 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
 
             constexpr auto kernel =
                DenseTranspositionKernel< tileDim, typename ResultMatrix::ViewType, typename Matrix::ConstViewType, Real, Index >;
-            Backend::launchKernelAsync(
-               kernel, launch_config, resultMatrix.getView(), matrix.getConstView(), matrixMultiplicator );
+            Backend::launchKernelAsync( kernel,
+                                        launch_config,
+                                        resultMatrix.getView(),
+                                        matrix.getConstView(),
+                                        matrixMultiplicator,
+                                        gridIdx_x,
+                                        gridIdx_y );
          }
       Backend::streamSynchronize( launch_config.stream );
+   }
+   else {
+      const Index& rows = matrix.getRows();
+      const Index& columns = matrix.getColumns();
+      for( Index i = 0; i < rows; i += tileDim )
+         for( Index j = 0; j < columns; j += tileDim )
+            for( Index k = i; k < i + tileDim && k < rows; k++ )
+               for( Index l = j; l < j + tileDim && l < columns; l++ )
+                  resultMatrix.setElement( l, k, matrixMultiplicator * matrix.getElement( k, l ) );
    }
 }
 
 template< int tileDim, typename Matrix, typename Real, typename Index >
 __global__
 void
-DenseInPlaceTranspositionKernel( Matrix matrix, const Real matrixMultiplicator )
+DenseInPlaceTranspositionKernel( Matrix matrix,
+                                 const Real matrixMultiplicator,
+                                 const typename Matrix::IndexType gridIdx_x,
+                                 const typename Matrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Real tile[ tileDim ][ tileDim + 1 ];
@@ -253,8 +274,9 @@ DenseInPlaceTranspositionKernel( Matrix matrix, const Real matrixMultiplicator )
    const Index matrixColumns = matrix.getColumns();
    const Index matrixRows = matrix.getRows();
 
-   Index xIndex = blockIdx.x * tileDim + threadIdx.x;
-   Index yIndex = blockIdx.y * tileDim + threadIdx.y;
+   // Adjust global block indices using gridIdx_x and gridIdx_y
+   Index xIndex = ( blockIdx.x + gridIdx_x * Backend::getMaxGridXSize() ) * tileDim + threadIdx.x;
+   Index yIndex = ( blockIdx.y + gridIdx_y * Backend::getMaxGridYSize() ) * tileDim + threadIdx.y;
 
    if( xIndex < matrixColumns && yIndex < matrixRows ) {
       tile[ threadIdx.y ][ threadIdx.x ] = matrix( yIndex, xIndex ) * matrixMultiplicator;
@@ -262,8 +284,9 @@ DenseInPlaceTranspositionKernel( Matrix matrix, const Real matrixMultiplicator )
 
    __syncthreads();
 
-   xIndex = blockIdx.y * tileDim + threadIdx.x;
-   yIndex = blockIdx.x * tileDim + threadIdx.y;
+   // Adjust writing based on result matrix organization
+   xIndex = ( blockIdx.y + gridIdx_y * Backend::getMaxGridYSize() ) * tileDim + threadIdx.x;
+   yIndex = ( blockIdx.x + gridIdx_x * Backend::getMaxGridXSize() ) * tileDim + threadIdx.y;
 
    if( xIndex < matrixRows && yIndex < matrixColumns ) {
       matrix( yIndex, xIndex ) = tile[ threadIdx.x ][ threadIdx.y ];
@@ -278,24 +301,10 @@ getInPlaceTransposition( Matrix& matrix, Real matrixMultiplicator )
    using Index = typename Matrix::IndexType;
    using Device = typename Matrix::DeviceType;
 
-   if( matrix.getRows() != matrix.getColumns() ) {
-      throw std::logic_error( "In-place transposition on CPU only supports square matrices." );
-   }
-   if constexpr( std::is_same_v< Device, Devices::Host > ) {
-      const Index rows = matrix.getRows();
-      const Index columns = matrix.getColumns();
+   if( matrix.getRows() != matrix.getColumns() )
+      throw std::invalid_argument( "In-place transposition on CPU only supports square matrices." );
 
-      // Performing in-place transposition for square matrices
-      for( Index i = 0; i < rows; ++i ) {
-         for( Index j = i + 1; j < columns; ++j ) {
-            Real temp = matrix.getElement( i, j );
-            matrix.setElement( i, j, matrix.getElement( j, i ) );
-            matrix.setElement( j, i, temp );
-         }
-      }
-   }
-
-   if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+   if constexpr( std::is_same_v< Device, Devices::GPU > ) {
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = tileDim;
       launch_config.blockSize.y = tileDim;
@@ -316,10 +325,23 @@ getInPlaceTransposition( Matrix& matrix, Real matrixMultiplicator )
                launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
             auto kernel = DenseInPlaceTranspositionKernel< tileDim, decltype( matrix.getView() ), Real, Index >;
-            Backend::launchKernelAsync( kernel, launch_config, matrix.getView(), matrixMultiplicator );
+            Backend::launchKernelAsync( kernel, launch_config, matrix.getView(), matrixMultiplicator, gridIdx_x, gridIdx_y );
          }
 
       Backend::streamSynchronize( launch_config.stream );
+   }
+   else {
+      const Index rows = matrix.getRows();
+      const Index columns = matrix.getColumns();
+
+      // Performing in-place transposition for square matrices
+      for( Index i = 0; i < rows; ++i ) {
+         for( Index j = i + 1; j < columns; ++j ) {
+            Real temp = matrix.getElement( i, j );
+            matrix.setElement( i, j, matrix.getElement( j, i ) );
+            matrix.setElement( j, i, temp );
+         }
+      }
    }
 }
 
