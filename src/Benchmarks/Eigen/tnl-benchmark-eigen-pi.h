@@ -71,7 +71,7 @@ benchmark_pi( Benchmark<>& benchmark, MatrixType& matrix, VectorType& initialVec
       auto testFunction = [ & ]()
       {
          std::tie( eigenvalue, eigenvector, iter ) =
-            Matrices::Eigen::powerIteration< PrecisionType, Device, MatrixType >( matrix, epsilon, initialVec, 100000 );
+            Matrices::Eigen::powerIteration< MatrixType >( matrix, epsilon, initialVec, 100000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testFunction, eigenBenchmarkResult );
@@ -111,8 +111,7 @@ benchmark_spi( Benchmark<>& benchmark, MatrixType& matrix, VectorType& initialVe
       auto testFunction = [ & ]()
       {
          std::tie( eigenvalue, eigenvector, iter ) =
-            Matrices::Eigen::shiftedPowerIteration< PrecisionType, Device, MatrixType >(
-               matrix, epsilon, shiftValue, initialVec, 10000 );
+            Matrices::Eigen::shiftedPowerIteration< MatrixType >( matrix, epsilon, shiftValue, initialVec, 10000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testFunction, eigenBenchmarkResult );

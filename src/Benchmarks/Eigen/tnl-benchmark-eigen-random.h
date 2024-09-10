@@ -113,7 +113,7 @@ benchmark_pi( Benchmark<>& benchmark, MatrixType& matrix, VectorType& initialVec
       auto testfunction = [ & ]()
       {
          std::tie( eigenvalue, eigenvector, iter ) =
-            Matrices::Eigen::powerIteration< PrecisionType, Device, MatrixType >( matrix, epsilon, initialVec, 100000 );
+            Matrices::Eigen::powerIteration< MatrixType >( matrix, epsilon, initialVec, 100000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testfunction, eigenBenchmarkResult );
@@ -158,7 +158,7 @@ benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, Matrices::Factorizatio
       auto testfunction = [ & ]()
       {
          std::tie( eigenvalues, eigenvectors, iter ) =
-            Matrices::Eigen::QRalgorithm< PrecisionType, MatrixType >( matrix, epsilon, factorType, 5000 );
+            Matrices::Eigen::QRalgorithm< MatrixType >( matrix, epsilon, factorType, 5000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testfunction, eigenBenchmarkResult );

@@ -10,6 +10,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/fillRandom.h>
 #include <TNL/Matrices/Eigen/ShiftedPowerIteration.h>
+#include <utility>
 
 namespace TNL::Matrices::Eigen {
 
@@ -21,43 +22,46 @@ namespace TNL::Matrices::Eigen {
  * square matrix. The process involves repeatedly applying the matrix to an initial vector, normalizing the resulting vector,
  * and checking for convergence against a specified precision threshold.
  *
- * \tparam Real Data type of the matrix elements (e.g., float, double).
- * \tparam Device Computational device (e.g., CPU, GPU) where data is stored and operations are executed.
- * \tparam MatrixType Type of the matrix (e.g., dense matrix, sparse matrix) used in the computation.
+ * \tparam MatrixType Type of the matrix, which defines both the data type of the matrix elements (e.g., float, double)
+ * and the computational device (e.g., CPU, GPU). The matrix must define two nested types: `RealType` (the data type of the
+ * elements) and `DeviceType` (the device where data is stored and operations are executed).
  *
- * \param matrix The square matrix for which to calculate the largest eigenvalue and associated eigenvector.
+ * \param matrix The square matrix for which to calculate the largest eigenvalue and associated eigenvector. The matrix type
+ * determines both the element data type and the device used for computation.
  * \param epsilon Precision threshold for convergence. The iterative process halts when the difference between successive
- * iterations falls below this value.
- * \param initialVec (Overload) The initial vector to start the iteration with. This vector
- * must have the same size as the matrix dimensions and should not be the zero vector.
- * \param maxIterations (Optional) Maximum
- * number of iterations to perform. Defaults to 100000. If this limit is reached before convergence, the function returns the
- * last computed values with the iteration count set to 0.
+ * iterations falls below this value. This should be of the same type as `MatrixType::RealType`.
+ * \param initialVec The initial vector to start the iteration with. This vector must have the same size as the matrix
+ * dimensions and should not be the zero vector. It is of type `TNL::Containers::Vector<typename MatrixType::RealType, typename
+ * MatrixType::DeviceType>`.
+ * \param maxIterations (Optional) Maximum number of iterations to perform. Defaults to 100000. If
+ * this limit is reached before convergence, the function returns the last computed values with the iteration count set to 0.
  *
  * \return A tuple containing:
- *         - The largest eigenvalue of the matrix (of type Real).
- *         - The eigenvector associated with the largest eigenvalue (of type `TNL::Containers::Vector<T, Device>`).
- *         - The number of iterations performed to reach convergence (of type int). A value of 0 indicates non-convergence
+ *         - The largest eigenvalue of the matrix (of type `MatrixType::RealType`).
+ *         - The eigenvector associated with the largest eigenvalue (of type `TNL::Containers::Vector<typename
+ * MatrixType::RealType, typename MatrixType::DeviceType>`).
+ *         - The number of iterations performed to reach convergence (of type `int`). A value of 0 indicates non-convergence
  * within the specified maximum number of iterations, and -1 indicates a computational error resulting in NaN.
  *
  * \exception std::invalid_argument Thrown if the input matrix is not square, is zero-sized, or if the initial vector's size
  * does not match the matrix dimensions.
  */
-template< typename Real, typename Device, typename MatrixType >
-std::tuple< Real, TNL::Containers::Vector< Real, Device >, int >
+template< typename MatrixType >
+std::tuple< typename MatrixType::RealType,
+            TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >,
+            int >
 powerIteration( const MatrixType& matrix,
-                const Real& epsilon,
-                TNL::Containers::Vector< Real, Device >& initialVec,
+                const typename MatrixType::RealType& epsilon,
+                TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >& initialVec,
                 const int& maxIterations = 100000 )
 {
-   static_assert( std::is_same_v< Device, typename MatrixType::DeviceType > );
    if( matrix.getRows() != matrix.getColumns() )
       throw std::invalid_argument( "Power iteration is possible only for square matrices" );
    if( matrix.getRows() == 0 )
       throw std::invalid_argument( "Zero-sized matrices are not allowed" );
    if( matrix.getRows() != initialVec.getSize() )
       throw std::invalid_argument( "The initial vector must have the same size as the matrix" );
-   return TNL::Matrices::Eigen::shiftedPowerIteration<Real, Device, MatrixType>(matrix, epsilon, 0, initialVec, maxIterations);
+   return TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( matrix, epsilon, 0, initialVec, maxIterations );
 }
 
 /**
@@ -68,20 +72,22 @@ powerIteration( const MatrixType& matrix,
  * square matrix. The process involves repeatedly applying the matrix to an initial vector, normalizing the resulting vector,
  * and checking for convergence against a specified precision threshold.
  *
- * \tparam Real Data type of the matrix elements (e.g., float, double).
- * \tparam Device Computational device (e.g., CPU, GPU) where data is stored and operations are executed.
- * \tparam MatrixType Type of the matrix (e.g., dense matrix, sparse matrix) used in the computation.
+ * \tparam MatrixType Type of the matrix, which defines both the data type of the matrix elements (e.g., float, double)
+ * and the computational device (e.g., CPU, GPU). The matrix must define two nested types: `RealType` (the data type of the
+ * elements) and `DeviceType` (the device where data is stored and operations are executed).
  *
- * \param matrix The square matrix for which to calculate the largest eigenvalue and associated eigenvector.
+ * \param matrix The square matrix for which to calculate the largest eigenvalue and associated eigenvector. The matrix type
+ * determines both the element data type and the device used for computation.
  * \param epsilon Precision threshold for convergence. The iterative process halts when the difference between successive
- * iterations falls below this value.
+ * iterations falls below this value. This should be of the same type as `MatrixType::RealType`.
  * \param maxIterations (Optional) Maximum number of iterations to perform. Defaults to 100000. If this limit is reached before
  * convergence, the function returns the last computed values with the iteration count set to 0.
  *
  * \return A tuple containing:
- *         - The largest eigenvalue of the matrix (of type Real).
- *         - The eigenvector associated with the largest eigenvalue (of type `TNL::Containers::Vector<T, Device>`).
- *         - The number of iterations performed to reach convergence (of type int). A value of 0 indicates non-convergence
+ *         - The largest eigenvalue of the matrix (of type `MatrixType::RealType`).
+ *         - The eigenvector associated with the largest eigenvalue (of type `TNL::Containers::Vector<typename
+ * MatrixType::RealType, typename MatrixType::DeviceType>`).
+ *         - The number of iterations performed to reach convergence (of type `int`). A value of 0 indicates non-convergence
  * within the specified maximum number of iterations, and -1 indicates a computational error resulting in NaN.
  *
  * \exception std::invalid_argument Thrown if the input matrix is not square, is zero-sized, or if the initial vector size does
@@ -90,23 +96,26 @@ powerIteration( const MatrixType& matrix,
  * \note Without an initial vector argument, the function generates a random initial vector
  * appropriate for the matrix size and type. The nature of the initial vector can affect the convergence speed of the algorithm.
  */
-template< typename Real, typename Device, typename MatrixType >
-std::tuple< Real, TNL::Containers::Vector< Real, Device >, int >
-powerIteration( const MatrixType& matrix, const Real& epsilon, const int& maxIterations = 100000 )
+template< typename MatrixType >
+std::tuple< typename MatrixType::RealType,
+            TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >,
+            int >
+powerIteration( const MatrixType& matrix, const typename MatrixType::RealType& epsilon, const int& maxIterations = 100000 )
 {
-   static_assert( std::is_same_v< Device, typename MatrixType::DeviceType > );
-   using IndexType = typename MatrixType::IndexType;
    if( matrix.getRows() == 0 )
       throw std::invalid_argument( "Zero-sized matrices are not allowed" );
+   using IndexType = typename MatrixType::IndexType;
+   using RealType = typename MatrixType::RealType;
+   using DeviceType = typename MatrixType::DeviceType;
    IndexType vecSize = matrix.getRows();
-   TNL::Containers::Vector< Real, Device > initialVec( vecSize );
+   TNL::Containers::Vector< RealType, DeviceType > initialVec( vecSize );
    initialVec.resize( vecSize );
    do {
-      if constexpr( std::is_integral_v< Real > ) {
-         TNL::Algorithms::fillRandom< Device >( initialVec.getData(), vecSize, (Real) -10000, (Real) 10000 );
+      if constexpr( std::is_integral_v< RealType > ) {
+         TNL::Algorithms::fillRandom< DeviceType >( initialVec.getData(), vecSize, (RealType) -10000, (RealType) 10000 );
       }
       else {
-         TNL::Algorithms::fillRandom< Device >( initialVec.getData(), vecSize, (Real) -1, (Real) 1 );
+         TNL::Algorithms::fillRandom< DeviceType >( initialVec.getData(), vecSize, (RealType) -1, (RealType) 1 );
       }
    } while( TNL::l2Norm( initialVec ) == 0 );
    return powerIteration( matrix, epsilon, initialVec, maxIterations );

@@ -17,33 +17,35 @@ namespace TNL::Matrices::Eigen {
  * \brief Computes the eigenvalues and eigenvectors of a matrix using the QR iteration algorithm with a specified QR
  * factorization method.
  *
- * This function implements the QR algorithm to find the eigenvalues and eigenvectors of a square matrix by repeatedly applying QR factorization
- * and recombining the factorized matrices. The matrix converges to an upper triangular form with eigenvalues on the diagonal, and the
- * product of Q matrices across iterations converges to the eigenvector matrix.
+ * This function implements the QR algorithm to find the eigenvalues and eigenvectors of a square matrix by repeatedly applying
+ * QR factorization and recombining the factorized matrices. The matrix converges to an upper triangular form with eigenvalues
+ * on the diagonal, and the product of Q matrices across iterations converges to the eigenvector matrix.
  *
- * \tparam Real Data type of the matrix elements (e.g., float, double).
- * \tparam MatrixType Type of matrix (e.g., dense, sparse).
+ * \tparam MatrixType Type of matrix, which defines both the data type of the matrix elements (e.g., float, double) and
+ * the computational device (e.g., CPU, GPU). The matrix must define a nested type `RealType`, representing the data type of the
+ * elements.
  *
- * \param matrix The square matrix for which to compute eigenvalues and eigenvectors. Non-square matrices are not supported.
+ * \param matrix The square matrix for which to compute eigenvalues and eigenvectors. Non-square matrices are not supported. The
+ * data type and computational device are determined by the matrix type.
  * \param epsilon The convergence threshold for the algorithm. The iteration process is considered complete when all
- * off-diagonal elements in the current matrix are smaller than this value.
- * \param QRmethod Enumerate class specifying the QR factorization method to use (e.g., Gram-Schmidt, Givens rotations,
- * Householder reflections), impacting the algorithm's efficiency and numerical stability.
- * \param maxIterations (Optional) The maximum number of iterations to perform, defaulting to 10000. If this limit is
- * reached before convergence, the function terminates, returning the last computed matrices and an iteration count of -1.
+ * off-diagonal elements in the current matrix are smaller than this value. This should be of type `MatrixType::RealType`.
+ * \param QRmethod An enum class specifying the QR factorization method to use (e.g., Gram-Schmidt, Givens rotations,
+ * Householder reflections). This choice impacts the algorithm's efficiency and numerical stability.
+ * \param maxIterations (Optional) The maximum number of iterations to perform, defaulting to 10000. If this limit is reached
+ * before convergence, the function terminates, returning the last computed matrices and an iteration count of -1.
  *
  * \return A tuple comprising three elements:
- *         - The matrix converged to an upper triangular form, with eigenvalues on the diagonal (of type MatrixType).
- *         - The matrix of eigenvectors corresponding to the eigenvalues (of type MatrixType).
- *         - The number of iterations conducted (of type int), where -1 indicates that the iteration limit was reached
+ *         - The matrix converged to an upper triangular form, with eigenvalues on the diagonal (of type `MatrixType`).
+ *         - The matrix of eigenvectors corresponding to the eigenvalues (of type `MatrixType`).
+ *         - The number of iterations conducted (of type `int`), where -1 indicates that the iteration limit was reached
  *           without achieving convergence.
  *
  * \exception std::invalid_argument Thrown if the matrix is not square or is zero-sized.
  */
-template< typename Real, typename MatrixType >
+template< typename MatrixType >
 std::tuple< MatrixType, MatrixType, int >
 QRalgorithm( MatrixType matrix,
-             const Real& epsilon,
+             const typename MatrixType::RealType& epsilon,
              const TNL::Matrices::Factorization::QR::FactorizationMethod& QRmethod,
              const int& maxIterations = 10000 )
 {
@@ -85,7 +87,7 @@ QRalgorithm( MatrixType matrix,
          return std::make_tuple( matrix, accQ, 0 );
       }
    }
-   return std::make_tuple( matrix, accQ, iterations );
+   return std::make_tuple( std::move( matrix ), std::move( accQ ), iterations );
 }
 
 }  // namespace TNL::Matrices::Eigen
