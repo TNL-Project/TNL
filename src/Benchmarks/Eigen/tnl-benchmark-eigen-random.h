@@ -16,7 +16,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Matrices/Eigen/PowerIteration.h>
-#include <TNL/Matrices/Eigen/QRalgorithm.h>
+#include <TNL/Matrices/Eigen/QRAlgorithm.h>
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Algorithms/fillRandom.h>
 
@@ -158,7 +158,7 @@ benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, Matrices::Factorizatio
       auto testfunction = [ & ]()
       {
          std::tie( eigenvalues, eigenvectors, iter ) =
-            Matrices::Eigen::QRalgorithm< MatrixType >( matrix, epsilon, factorType, 5000 );
+            Matrices::Eigen::QRAlgorithm< MatrixType >( matrix, epsilon, factorType, 5000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testfunction, eigenBenchmarkResult );

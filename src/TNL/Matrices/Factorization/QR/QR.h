@@ -26,16 +26,16 @@ enum class FactorizationMethod
  * \param A The matrix to be factorized, remains unchanged.
  * \param Q Reference to a matrix where the orthogonal matrix Q will be stored.
  * \param R Reference to a matrix where the upper triangular matrix R will be stored.
- * \param QRmethod The method for QR factorization: GramSchmidt, Givens, or Householder.
+ * \param QRMethod The method for QR factorization: GramSchmidt, Givens, or Householder.
  *
  * \exception std::invalid_argument Thrown if an incorrect QR factorization type is provided.
  */
 template< typename MatrixType >
 void
-QRfactorization( const MatrixType& A, MatrixType& Q, MatrixType& R, const FactorizationMethod& QRmethod )
+QRFactorization( const MatrixType& A, MatrixType& Q, MatrixType& R, const FactorizationMethod& QRMethod )
 {
    if constexpr( MatrixType::getOrganization() == Algorithms::Segments::ColumnMajorOrder ) {
-      switch( QRmethod ) {
+      switch( QRMethod ) {
          case FactorizationMethod::GramSchmidt:
             TNL::Matrices::Factorization::QR::GramSchmidt( A, Q, R );
             break;
@@ -51,7 +51,7 @@ QRfactorization( const MatrixType& A, MatrixType& Q, MatrixType& R, const Factor
       }
    }
    else {
-      switch( QRmethod ) {
+      switch( QRMethod ) {
          case FactorizationMethod::Givens:
             TNL::Matrices::Factorization::QR::Givens( A, Q, R );
             break;
@@ -68,18 +68,18 @@ QRfactorization( const MatrixType& A, MatrixType& Q, MatrixType& R, const Factor
  * \tparam MatrixType The type of the input matrix A.
  *
  * \param A The matrix to be factorized.
- * \param QRmethod The method for QR factorization: GramSchmidt, Givens, or Householder.
+ * \param QRMethod The method for QR factorization: GramSchmidt, Givens, or Householder.
  *
- * \return A std::pair containing the orthogonal matrix Q (of type MatrixType) and the upper triangular matrix R (of type
- * MatrixType).
+ * \return A std::pair containing the orthogonal matrix Q (of type `MatrixType`) and the upper triangular matrix R (of type
+ * `MatrixType`).
  */
 template< typename MatrixType >
 std::pair< MatrixType, MatrixType >
-QRfactorization( const MatrixType& A, const FactorizationMethod& QRtype )
+QRFactorization( const MatrixType& A, const FactorizationMethod& QRMethod )
 {
    MatrixType Q;
    MatrixType R;
-   QRfactorization( A, Q, R, QRtype );
+   QRFactorization( A, Q, R, QRMethod );
    return { Q, R };
 }
 

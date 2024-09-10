@@ -29,7 +29,7 @@ namespace TNL::Matrices::Eigen {
  * data type and computational device are determined by the matrix type.
  * \param epsilon The convergence threshold for the algorithm. The iteration process is considered complete when all
  * off-diagonal elements in the current matrix are smaller than this value. This should be of type `MatrixType::RealType`.
- * \param QRmethod An enum class specifying the QR factorization method to use (e.g., Gram-Schmidt, Givens rotations,
+ * \param QRMethod An enum class specifying the QR factorization method to use (e.g., Gram-Schmidt, Givens rotations,
  * Householder reflections). This choice impacts the algorithm's efficiency and numerical stability.
  * \param maxIterations (Optional) The maximum number of iterations to perform, defaulting to 10000. If this limit is reached
  * before convergence, the function terminates, returning the last computed matrices and an iteration count of -1.
@@ -44,9 +44,9 @@ namespace TNL::Matrices::Eigen {
  */
 template< typename MatrixType >
 std::tuple< MatrixType, MatrixType, int >
-QRalgorithm( MatrixType matrix,
+QRAlgorithm( MatrixType matrix,
              const typename MatrixType::RealType& epsilon,
-             const TNL::Matrices::Factorization::QR::FactorizationMethod& QRmethod,
+             const TNL::Matrices::Factorization::QR::FactorizationMethod& QRMethod,
              const int& maxIterations = 10000 )
 {
    if( matrix.getRows() != matrix.getColumns() )
@@ -64,7 +64,7 @@ QRalgorithm( MatrixType matrix,
    if( size == 1 )
       return std::make_tuple( matrix, accQ, 1 );
    while( true ) {
-      TNL::Matrices::Factorization::QR::QRfactorization( matrix, Q, R, QRmethod );
+      TNL::Matrices::Factorization::QR::QRFactorization( matrix, Q, R, QRMethod );
       matrix.getMatrixProduct( R, Q );
       MatrixType Q_acc_temp( size, size );
       Q_acc_temp.getMatrixProduct( accQ, Q );

@@ -15,7 +15,7 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Matrices/Eigen/PowerIteration.h>
 #include <TNL/Matrices/Eigen/ShiftedPowerIteration.h>
-#include <TNL/Matrices/Eigen/QRalgorithm.h>
+#include <TNL/Matrices/Eigen/QRAlgorithm.h>
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Algorithms/fillRandom.h>
 
