@@ -48,44 +48,45 @@ shiftedPowerIteration( const MatrixType& matrix,
       throw std::invalid_argument( "Shifted power iteration is possible only for square matrices" );
    if( matrix.getRows() == 0 )
       throw std::invalid_argument( "Zero-sized matrices are not allowed" );
+   if( matrix.getRows() != initialVec.getSize() )
+      throw std::invalid_argument( "The initial vector must have the same size as the matrix" );
    using IndexType = typename MatrixType::IndexType;
-   IndexType size = matrix.getColumns();
-   auto rowLengths =
-      [ = ] __cuda_callable__( const IndexType rows, const IndexType columns, const IndexType rowIdx ) -> IndexType
-   {
-      if( shiftValue != 0 && matrix.getElement( rowIdx, rowIdx ) == 0 && size > matrix.getRowCapacity( rowIdx ) ) {
-         return matrix.getRowCapacity( rowIdx ) + 1;
+   IndexType vecSize = matrix.getColumns();
+   TNL::Containers::Vector< Real, Device > eigenVecOut( vecSize );
+   eigenVecOut.setValue( 0 );
+   Real norm = 0;
+   Real normOld = 0;
+   int iterations = 0;
+   TNL::Containers::Vector< Real, Device > eigenVecOld( vecSize );
+   eigenVecOld.setValue( 0 );
+   norm = TNL::l2Norm( initialVec );
+   if( norm == 0 )
+      throw std::invalid_argument( "The initial vector must be nonzero" );
+   if( norm != 1 )
+      initialVec = initialVec / norm;
+   while( true ) {
+      matrix.vectorProduct( initialVec, eigenVecOut );
+      if( shiftValue != 0 ) {
+         eigenVecOut += initialVec * shiftValue;
       }
-      else {
-         return matrix.getRowCapacity( rowIdx );
+      norm = TNL::l2Norm( eigenVecOut );
+      if( std::isnan( norm ) )
+         return std::make_tuple( norm, eigenVecOut, -1 );
+      initialVec = std::move( eigenVecOut / norm );
+      iterations++;
+      if( TNL::abs( normOld - norm ) < epsilon ) {
+         if( TNL::all( TNL::less( TNL::abs( initialVec - eigenVecOld ), epsilon ) ) )
+            return std::make_tuple( norm - shiftValue, initialVec, iterations );
+         if( TNL::all( TNL::less( TNL::abs( initialVec + eigenVecOld ), epsilon ) ) )
+            return std::make_tuple( -norm - shiftValue, initialVec, iterations );
       }
-   };
-   auto matrixElements = [ = ] __cuda_callable__( const IndexType rows,
-                                                  const IndexType columns,
-                                                  const IndexType rowIdx,
-                                                  const IndexType localIdx,
-                                                  IndexType& columnIdx,
-                                                  Real& value )
-   {
-      auto row = matrix.getRow( rowIdx );
-      IndexType size = row.getSize();
-      if( size == localIdx ) {
-         columnIdx = rowIdx;
-         value = shiftValue;
-      }
-      else {
-         columnIdx = row.getColumnIndex( localIdx );
-         if( columnIdx == rowIdx )
-            value = row.getValue( localIdx ) + shiftValue;
-         else
-            value = row.getValue( localIdx );
-      }
-   };
-   using MatrixFactory = TNL::Matrices::LambdaMatrixFactory< Real, Device, IndexType >;
-   auto shiftedMatrix = MatrixFactory::create( size, size, matrixElements, rowLengths );
-   std::tuple< Real, TNL::Containers::Vector< Real, Device >, int > tuple =
-      TNL::Matrices::Eigen::powerIteration< Real, Device >( shiftedMatrix, epsilon, initialVec, maxIterations );
-   return std::make_tuple( std::get< 0 >( tuple ) - shiftValue, std::get< 1 >( tuple ), std::get< 2 >( tuple ) );
+      if( iterations == maxIterations )
+         return std::make_tuple( norm - shiftValue, initialVec, 0 );
+      eigenVecOld = initialVec;
+      normOld = norm;
+   }
+   iterations = -1;
+   return std::make_tuple( norm - shiftValue, initialVec, iterations );
 }
 
 /**

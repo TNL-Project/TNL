@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include <algorithm>
 #include <stdexcept>
 #include <tuple>
-#include <utility>
 
 #include <TNL/Math.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/fillRandom.h>
+#include <TNL/Matrices/Eigen/ShiftedPowerIteration.h>
 
 namespace TNL::Matrices::Eigen {
 
@@ -58,40 +57,7 @@ powerIteration( const MatrixType& matrix,
       throw std::invalid_argument( "Zero-sized matrices are not allowed" );
    if( matrix.getRows() != initialVec.getSize() )
       throw std::invalid_argument( "The initial vector must have the same size as the matrix" );
-   using IndexType = typename MatrixType::IndexType;
-   IndexType vecSize = matrix.getColumns();
-   TNL::Containers::Vector< Real, Device > eigenVecOut( vecSize );
-   eigenVecOut.setValue( 0 );
-   Real norm = 0;
-   Real normOld = 0;
-   int iterations = 0;
-   TNL::Containers::Vector< Real, Device > eigenVecOld( vecSize );
-   eigenVecOld.setValue( 0 );
-   norm = TNL::l2Norm( initialVec );
-   if( norm == 0 )
-      throw std::invalid_argument( "The initial vector must be nonzero" );
-   if( norm != 1 )
-      initialVec = initialVec / norm;
-   while( true ) {
-      matrix.vectorProduct( initialVec, eigenVecOut );
-      norm = TNL::l2Norm( eigenVecOut );
-      if( std::isnan( norm ) )
-         return std::make_tuple( norm, initialVec, -1 );
-      initialVec = std::move( eigenVecOut / norm );
-      iterations++;
-      if( TNL::abs( normOld - norm ) < epsilon ) {
-         if( TNL::all( TNL::less( TNL::abs( initialVec - eigenVecOld ), epsilon ) ) )
-            return std::make_tuple( norm, initialVec, iterations );
-         if( TNL::all( TNL::less( TNL::abs( initialVec + eigenVecOld ), epsilon ) ) )
-            return std::make_tuple( -norm, initialVec, iterations );
-      }
-      if( iterations == maxIterations )
-         return std::make_tuple( norm, initialVec, 0 );
-      eigenVecOld = initialVec;
-      normOld = norm;
-   }
-   iterations = -1;
-   return std::make_tuple( norm, initialVec, iterations );
+   return TNL::Matrices::Eigen::shiftedPowerIteration<Real, Device, MatrixType>(matrix, epsilon, 0, initialVec, maxIterations);
 }
 
 /**
