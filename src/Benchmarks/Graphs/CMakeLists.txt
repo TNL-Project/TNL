@@ -41,17 +41,23 @@ if(TNL_BUILD_CUDA)
 endif()
 
 if(TNL_BUILD_CUDA)
-    add_executable(tnl-benchmark-graphs tnl-benchmark-graphs.cu)
-    target_compile_options(tnl-benchmark-graphs PUBLIC ${GUNROCK_FLAGS})
-    target_link_libraries(tnl-benchmark-graphs PUBLIC TNL::TNL)
+    add_executable(tnl-benchmark-graphs-cuda tnl-benchmark-graphs.cu)
+    target_compile_options(tnl-benchmark-graphs-cuda PUBLIC ${GUNROCK_FLAGS})
+    target_link_libraries(tnl-benchmark-graphs-cuda PUBLIC TNL::TNL)
+
+    if(Boost_GRAPH_FOUND)
+        target_link_libraries(tnl-benchmark-graphs-cuda PUBLIC Boost::graph)
+        target_compile_definitions(tnl-benchmark-graphs-cuda PUBLIC "-DHAVE_BOOST")
+    endif()
+
     # NOTE: the following parameters are just for performance debugging
     # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#printing-code-generation-statistics
-    #target_compile_options( tnl-benchmark-graphs PUBLIC --resource-usage )
-    #set_target_properties( tnl-benchmark-graphs PROPERTIES CUDA_SEPARABLE_COMPILATION OFF )
-else()
-    add_executable(tnl-benchmark-graphs tnl-benchmark-graphs.cpp)
-    target_link_libraries(tnl-benchmark-graphs PUBLIC TNL::TNL)
+    # target_compile_options( tnl-benchmark-graphs PUBLIC --resource-usage )
+    # set_target_properties( tnl-benchmark-graphs PROPERTIES CUDA_SEPARABLE_COMPILATION OFF )
 endif()
+
+add_executable(tnl-benchmark-graphs tnl-benchmark-graphs.cpp)
+target_link_libraries(tnl-benchmark-graphs PUBLIC TNL::TNL)
 
 if(Boost_GRAPH_FOUND)
     target_link_libraries(tnl-benchmark-graphs PUBLIC Boost::graph)
