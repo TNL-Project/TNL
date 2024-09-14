@@ -5,8 +5,9 @@
 
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Benchmarks/Benchmarks.h>
-#include <TNL/Graphs/GraphReader.h>
-#include <TNL/Graphs/GraphWriter.h>
+#include <TNL/Graphs/Readers/EdgeListReader.h>
+#include <TNL/Graphs/Readers/MtxReader.h>
+#include <TNL/Graphs/Writers/EdgeListWriter.h>
 #include <TNL/Graphs/breadthFirstSearch.h>
 #include <TNL/Graphs/singleSourceShortestPath.h>
 #include <TNL/Graphs/minimumSpanningTree.h>
@@ -59,6 +60,9 @@ struct GraphsBenchmark
       config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
       config.addEntryEnum( "append" );
       config.addEntryEnum( "overwrite" );
+      config.addEntry< bool >( "with-bfs", "Run breadth-first search benchmark.", true );
+      config.addEntry< bool >( "with-sssp", "Run single-source shortest paths benchmark.", true );
+      config.addEntry< bool >( "with-mst", "Run minimum spanning tree benchmark.", true );
 
       config.addDelimiter( "Device settings:" );
       config.addEntry< TNL::String >( "device", "Device the computation will run on.", "all" );
@@ -100,128 +104,142 @@ struct GraphsBenchmark
       Digraph digraph( hostDigraph );
       Graph graph( hostGraph );
 
-      // Benchmarking breadth-first search with directed graph
-      IndexVector bfsDistances( digraph.getNodeCount() );
-      benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", device },
-                                                          { "format", segments },
-                                                          { "algorithm", std::string( "BFS TNL dir" ) } } ) );
+      if( this->withBfs ) {
+         // Benchmarking breadth-first search with directed graph
+         IndexVector bfsDistances( digraph.getNodeCount() );
+         benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
+                                                             { "device", device },
+                                                             { "format", segments },
+                                                             { "algorithm", std::string( "BFS TNL dir" ) } } ) );
 
-      auto bfs_tnl_dir = [ & ]() mutable
-      {
-         TNL::Graphs::breadthFirstSearch( digraph, 0, bfsDistances );
-      };
-      benchmark.time< Device >( device, bfs_tnl_dir );
+         auto bfs_tnl_dir = [ & ]() mutable
+         {
+            TNL::Graphs::breadthFirstSearch( digraph, 0, bfsDistances );
+         };
+         benchmark.time< Device >( device, bfs_tnl_dir );
 #ifdef HAVE_BOOST
-      if( bfsDistances != this->boostBfsDistancesDirected ) {
-         std::cout << "BFS distances of directed graph from Boost and TNL are not equal!\n";
-         std::cout << "Boost: " << this->boostBfsDistancesDirected << '\n';
-         std::cout << "TNL:   " << bfsDistances << '\n';
-         this->errors++;
-      }
+         if( bfsDistances != this->boostBfsDistancesDirected ) {
+            std::cout << "BFS distances of directed graph from Boost and TNL are not equal!\n";
+            std::cout << "Boost: " << this->boostBfsDistancesDirected << '\n';
+            std::cout << "TNL:   " << bfsDistances << '\n';
+            this->errors++;
+         }
 #endif
 
-      // Benchmarking breadth-first search with undirected graph
-      benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", device },
-                                                          { "format", segments },
-                                                          { "algorithm", std::string( "BFS TNL undir" ) } } ) );
+         // Benchmarking breadth-first search with undirected graph
+         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
+                                                             { "device", device },
+                                                             { "format", segments },
+                                                             { "algorithm", std::string( "BFS TNL undir" ) } } ) );
 
-      auto bfs_tnl_undir = [ & ]() mutable
-      {
-         TNL::Graphs::breadthFirstSearch( graph, 0, bfsDistances );
-      };
-      benchmark.time< Device >( device, bfs_tnl_undir );
+         auto bfs_tnl_undir = [ & ]() mutable
+         {
+            TNL::Graphs::breadthFirstSearch( graph, 0, bfsDistances );
+         };
+         benchmark.time< Device >( device, bfs_tnl_undir );
 #ifdef HAVE_BOOST
-      if( bfsDistances != this->boostBfsDistancesUndirected ) {
-         std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!\n";
-         std::cout << "Boost: " << this->boostBfsDistancesUndirected << '\n';
-         std::cout << "TNL:   " << bfsDistances << '\n';
-         this->errors++;
-      }
+         if( bfsDistances != this->boostBfsDistancesUndirected ) {
+            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!\n";
+            std::cout << "Boost: " << this->boostBfsDistancesUndirected << '\n';
+            std::cout << "TNL:   " << bfsDistances << '\n';
+            this->errors++;
+         }
 #endif
-
-      // Benchmarking single-source shortest paths with directed graph
-      benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", device },
-                                                          { "format", segments },
-                                                          { "algorithm", std::string( "SSSP TNL dir" ) } } ) );
-
-      RealVector ssspDistances( digraph.getNodeCount(), 0 );
-      auto sssp_tnl_dir = [ & ]() mutable
-      {
-         TNL::Graphs::singleSourceShortestPath( digraph, 0, ssspDistances );
-      };
-      benchmark.time< Device >( device, sssp_tnl_dir );
-
-#ifdef HAVE_BOOST
-      if( ssspDistances != this->boostSSSPDistancesDirected ) {
-         std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!\n";
-         std::cout << "Boost: " << this->boostSSSPDistancesDirected << '\n';
-         std::cout << "TNL:   " << ssspDistances << '\n';
-         this->errors++;
       }
-#endif
 
-      // Benchmarking single-source shortest paths with undirected graph
-      benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", device },
-                                                          { "format", segments },
-                                                          { "algorithm", std::string( "SSSP TNL undir" ) } } ) );
+      if( this->withSssp ) {
+         // Benchmarking single-source shortest paths with directed graph
+         benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount()
+                                   * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
+                                                             { "device", device },
+                                                             { "format", segments },
+                                                             { "algorithm", std::string( "SSSP TNL dir" ) } } ) );
 
-      //RealVector ssspDistances( digraph.getNodeCount(), 0 );
-      auto sssp_tnl_undir = [ & ]() mutable
-      {
-         TNL::Graphs::singleSourceShortestPath( graph, 0, ssspDistances );
-      };
-      benchmark.time< Device >( device, sssp_tnl_undir );
+         RealVector ssspDistances( digraph.getNodeCount(), 0 );
+         auto sssp_tnl_dir = [ & ]() mutable
+         {
+            TNL::Graphs::singleSourceShortestPath( digraph, 0, ssspDistances );
+         };
+         if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
+            std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark." << std::endl;
+            this->errors++;
+         }
+         else
+            benchmark.time< Device >( device, sssp_tnl_dir );
 
 #ifdef HAVE_BOOST
-      if( ssspDistances != this->boostSSSPDistancesUndirected ) {
-         std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!\n";
-         std::cout << "Boost: " << this->boostSSSPDistancesUndirected << '\n';
-         std::cout << "TNL:   " << ssspDistances << '\n';
-         this->errors++;
-      }
+         if( ssspDistances != this->boostSSSPDistancesDirected ) {
+            std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!\n";
+            std::cout << "Boost: " << this->boostSSSPDistancesDirected << '\n';
+            std::cout << "TNL:   " << ssspDistances << '\n';
+            this->errors++;
+         }
 #endif
 
-      // Benchmarking minimum spanning tree
-      Graph mstGraph;
-      IndexVector roots;
-      benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", device },
-                                                          { "format", segments },
-                                                          { "algorithm", std::string( "MST TNL undir" ) } } ) );
-      auto mst_tnl = [ & ]() mutable
-      {
-         TNL::Graphs::minimumSpanningTree( graph, mstGraph, roots );
-      };
-      benchmark.time< Device >( device, mst_tnl );
-      auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
-      TNL::Graphs::GraphWriter< Graph >::writeEdgeList( filename + "-tnl-mst.txt", mstGraph );
-      if( ! TNL::Graphs::isForest( mstGraph ) ) {
-         std::cout << "ERROR: TNL MST is not a forest!\n";
-         this->errors++;
-      }
+         // Benchmarking single-source shortest paths with undirected graph
+         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount()
+                                   * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
+                                                             { "device", device },
+                                                             { "format", segments },
+                                                             { "algorithm", std::string( "SSSP TNL undir" ) } } ) );
+
+         //RealVector ssspDistances( digraph.getNodeCount(), 0 );
+         auto sssp_tnl_undir = [ & ]() mutable
+         {
+            TNL::Graphs::singleSourceShortestPath( graph, 0, ssspDistances );
+         };
+         benchmark.time< Device >( device, sssp_tnl_undir );
+
 #ifdef HAVE_BOOST
-      Real mstTotalWeight = mstGraph.getTotalWeight();
-      if( mstTotalWeight != boostMSTTotalWeight ) {
-         std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!\n";
-         std::cout << "Boost MST total weight: " << boostMSTTotalWeight << '\n';
-         std::cout << "TNL MST total weight: " << mstTotalWeight << '\n';
-         this->errors++;
-      }
+         if( ssspDistances != this->boostSSSPDistancesUndirected ) {
+            std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!\n";
+            std::cout << "Boost: " << this->boostSSSPDistancesUndirected << '\n';
+            std::cout << "TNL:   " << ssspDistances << '\n';
+            this->errors++;
+         }
 #endif
+      }
+
+      if( this->withMst ) {
+         // Benchmarking minimum spanning tree
+         Graph mstGraph;
+         IndexVector roots;
+         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount()
+                                   * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
+                                                             { "device", device },
+                                                             { "format", segments },
+                                                             { "algorithm", std::string( "MST TNL undir" ) } } ) );
+         auto mst_tnl = [ & ]() mutable
+         {
+            TNL::Graphs::minimumSpanningTree( graph, mstGraph, roots );
+         };
+         benchmark.time< Device >( device, mst_tnl );
+         auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
+         TNL::Graphs::Writers::EdgeListWriter< Graph >::write( filename + "-tnl-mst.txt", mstGraph );
+         if( ! TNL::Graphs::isForest( mstGraph ) ) {
+            std::cout << "ERROR: TNL MST is not a forest!" << std::endl;
+            this->errors++;
+         }
+#ifdef HAVE_BOOST
+         Real mstTotalWeight = mstGraph.getTotalWeight();
+         if( mstTotalWeight != boostMSTTotalWeight ) {
+            std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!" << std::endl;
+            std::cout << "Boost MST total weight: " << boostMSTTotalWeight << std::endl;
+            std::cout << "TNL MST total weight: " << mstTotalWeight << std::endl;
+            this->errors++;
+         }
+#endif
+      }
    }
 
    void
@@ -231,106 +249,112 @@ struct GraphsBenchmark
       BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Directed > boostDigraph( digraph );
       BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Undirected > boostGraph( graph );
 
-      // Benchmarking breadth-first search of directed graph
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", "sequential" },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "BFS Boost dir" ) } } ) );
-      std::vector< Index > boostBfsDistances( digraph.getNodeCount() );
-      auto bfs_boost_dir = [ & ]() mutable
-      {
-         boostDigraph.breadthFirstSearch( 0, boostBfsDistances );
-      };
-      benchmark.time< TNL::Devices::Sequential >( "sequential", bfs_boost_dir );
-      HostIndexVector boost_bfs_dist( boostBfsDistances );
-      boost_bfs_dist.forAllElements(
-         [] __cuda_callable__( Index i, Index & x )
+      if( this->withBfs ) {
+         // Benchmarking breadth-first search of directed graph
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
+                                                             { "device", "sequential" },
+                                                             { "format", "N/A" },
+                                                             { "algorithm", std::string( "BFS Boost dir" ) } } ) );
+         std::vector< Index > boostBfsDistances( digraph.getNodeCount() );
+         auto bfs_boost_dir = [ & ]() mutable
          {
-            x = x == std::numeric_limits< Index >::max() ? -1 : x;
-         } );
-      this->boostBfsDistancesDirected = boost_bfs_dist;
+            boostDigraph.breadthFirstSearch( 0, boostBfsDistances );
+         };
+         benchmark.time< TNL::Devices::Sequential >( "sequential", bfs_boost_dir );
+         HostIndexVector boost_bfs_dist( boostBfsDistances );
+         boost_bfs_dist.forAllElements(
+            [] __cuda_callable__( Index i, Index & x )
+            {
+               x = x == std::numeric_limits< Index >::max() ? -1 : x;
+            } );
+         this->boostBfsDistancesDirected = boost_bfs_dist;
 
-      // Benchmarking breadth-first search of undirected graph
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", "sequential" },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "BFS Boost undir" ) } } ) );
-      auto bfs_boost_undir = [ & ]() mutable
-      {
-         boostGraph.breadthFirstSearch( 0, boostBfsDistances );
-      };
-      benchmark.time< TNL::Devices::Sequential >( "sequential", bfs_boost_undir );
-      boost_bfs_dist = boostBfsDistances;
-      boost_bfs_dist.forAllElements(
-         [] __cuda_callable__( Index i, Index & x )
+         // Benchmarking breadth-first search of undirected graph
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
+                                                             { "device", "sequential" },
+                                                             { "format", "N/A" },
+                                                             { "algorithm", std::string( "BFS Boost undir" ) } } ) );
+         auto bfs_boost_undir = [ & ]() mutable
          {
-            x = x == std::numeric_limits< Index >::max() ? -1 : x;
-         } );
-      this->boostBfsDistancesUndirected = boost_bfs_dist;
-
-      // Benchmarking single-source shortest paths of directed graph
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", "sequential" },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "SSSP Boost dir" ) } } ) );
-      std::vector< Real > boostSSSPDistances( digraph.getNodeCount() );
-      auto sssp_boost_dir = [ & ]() mutable
-      {
-         boostDigraph.singleSourceShortestPath( 0, boostSSSPDistances );
-      };
-      benchmark.time< TNL::Devices::Sequential >( "sequential", sssp_boost_dir );
-      HostRealVector boost_sssp_dist( boostSSSPDistances );
-      boost_sssp_dist.forAllElements(
-         [] __cuda_callable__( Index i, Real & x )
-         {
-            x = x == std::numeric_limits< Real >::max() ? -1 : x;
-         } );
-      this->boostSSSPDistancesDirected = boost_sssp_dist;
-
-      // Benchmarking single-source shortest paths of undirected graph
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", "sequential" },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "SSSP Boost undir" ) } } ) );
-      auto sssp_boost_undir = [ & ]() mutable
-      {
-         boostGraph.singleSourceShortestPath( 0, boostSSSPDistances );
-      };
-      benchmark.time< TNL::Devices::Sequential >( "sequential", sssp_boost_undir );
-      boost_sssp_dist = boostSSSPDistances;
-      boost_sssp_dist.forAllElements(
-         [] __cuda_callable__( Index i, Real & x )
-         {
-            x = x == std::numeric_limits< Real >::max() ? -1 : x;
-         } );
-      this->boostSSSPDistancesUndirected = boost_sssp_dist;
-
-      // Benchmarking minimum spanning tree
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", "sequential" },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "MST Boost" ) } } ) );
-      using BoostEdge = typename BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Undirected >::Edge;
-      std::vector< BoostEdge > boostMstEdges;
-      auto mst_boost = [ & ]() mutable
-      {
-         boostGraph.minimumSpanningTree( boostMstEdges );
-      };
-      benchmark.time< TNL::Devices::Sequential >( "sequential", mst_boost );
-      this->boostMSTTotalWeight = 0.0;
-      for( auto& edge : boostMstEdges ) {
-         Real weight = boost::get( boost::edge_weight, boostGraph.getGraph(), edge );
-         this->boostMSTTotalWeight += weight;
+            boostGraph.breadthFirstSearch( 0, boostBfsDistances );
+         };
+         benchmark.time< TNL::Devices::Sequential >( "sequential", bfs_boost_undir );
+         boost_bfs_dist = boostBfsDistances;
+         boost_bfs_dist.forAllElements(
+            [] __cuda_callable__( Index i, Index & x )
+            {
+               x = x == std::numeric_limits< Index >::max() ? -1 : x;
+            } );
+         this->boostBfsDistancesUndirected = boost_bfs_dist;
       }
-      //this->boostMSTTotalWeight = 2.0;
-      auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
-      boostGraph.exportMst( boostMstEdges, filename + "-boost-mst.txt" );
-#endif
+
+      if( this->withSssp ) {
+         // Benchmarking single-source shortest paths of directed graph
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
+                                                             { "device", "sequential" },
+                                                             { "format", "N/A" },
+                                                             { "algorithm", std::string( "SSSP Boost dir" ) } } ) );
+         std::vector< Real > boostSSSPDistances( digraph.getNodeCount() );
+         auto sssp_boost_dir = [ & ]() mutable
+         {
+            boostDigraph.singleSourceShortestPath( 0, boostSSSPDistances );
+         };
+         benchmark.time< TNL::Devices::Sequential >( "sequential", sssp_boost_dir );
+         HostRealVector boost_sssp_dist( boostSSSPDistances );
+         boost_sssp_dist.forAllElements(
+            [] __cuda_callable__( Index i, Real & x )
+            {
+               x = x == std::numeric_limits< Real >::max() ? -1 : x;
+            } );
+         this->boostSSSPDistancesDirected = boost_sssp_dist;
+
+         // Benchmarking single-source shortest paths of undirected graph
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
+                                                             { "device", "sequential" },
+                                                             { "format", "N/A" },
+                                                             { "algorithm", std::string( "SSSP Boost undir" ) } } ) );
+         auto sssp_boost_undir = [ & ]() mutable
+         {
+            boostGraph.singleSourceShortestPath( 0, boostSSSPDistances );
+         };
+         benchmark.time< TNL::Devices::Sequential >( "sequential", sssp_boost_undir );
+         boost_sssp_dist = boostSSSPDistances;
+         boost_sssp_dist.forAllElements(
+            [] __cuda_callable__( Index i, Real & x )
+            {
+               x = x == std::numeric_limits< Real >::max() ? -1 : x;
+            } );
+         this->boostSSSPDistancesUndirected = boost_sssp_dist;
+      }
+
+      if( this->withMst ) {
+         // Benchmarking minimum spanning tree
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
+                                                             { "device", "sequential" },
+                                                             { "format", "N/A" },
+                                                             { "algorithm", std::string( "MST Boost" ) } } ) );
+         using BoostEdge = typename BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Undirected >::Edge;
+         std::vector< BoostEdge > boostMstEdges;
+         auto mst_boost = [ & ]() mutable
+         {
+            boostGraph.minimumSpanningTree( boostMstEdges );
+         };
+         benchmark.time< TNL::Devices::Sequential >( "sequential", mst_boost );
+         this->boostMSTTotalWeight = 0.0;
+         for( auto& edge : boostMstEdges ) {
+            Real weight = boost::get( boost::edge_weight, boostGraph.getGraph(), edge );
+            this->boostMSTTotalWeight += weight;
+         }
+         //this->boostMSTTotalWeight = 2.0;
+         auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
+         boostGraph.exportMst( boostMstEdges, filename + "-boost-mst.txt" );
+      }
+#endif  // HAVE_BOOST
    }
 
    void
@@ -393,100 +417,105 @@ struct GraphsBenchmark
       GunrockBenchmark< Real, Index > gunrockBenchmark;
       Index start = 0;
 
-      // Benchmarking breadth-first search of directed graph
-      benchmark.setDatasetSize( digraphAdjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", std::string( "GPU" ) },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "BFS Gunrock dir" ) } } ) );
-      std::vector< Index > bfsDistances( digraphAdjacencyMatrix.getRows() );
-      gunrockBenchmark.breadthFirstSearch( benchmark, digraph, start, digraphAdjacencyMatrix.getRows(), bfsDistances );
-      HostIndexVector gunrock_bfs_dist( bfsDistances );
-      gunrock_bfs_dist.forAllElements(
-         [] __cuda_callable__( Index i, Index & x )
-         {
-            x = x == std::numeric_limits< Index >::max() ? -1 : x;
-         } );
-      this->gunrockBfsDistancesDirected = gunrock_bfs_dist;
+      if( this->withBfs ) {
+         // Benchmarking breadth-first search of directed graph
+         benchmark.setDatasetSize( digraphAdjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
+                                                             { "device", std::string( "GPU" ) },
+                                                             { "format", "N/A" },
+                                                             { "algorithm", std::string( "BFS Gunrock dir" ) } } ) );
+         std::vector< Index > bfsDistances( digraphAdjacencyMatrix.getRows() );
+         gunrockBenchmark.breadthFirstSearch( benchmark, digraph, start, digraphAdjacencyMatrix.getRows(), bfsDistances );
+         HostIndexVector gunrock_bfs_dist( bfsDistances );
+         gunrock_bfs_dist.forAllElements(
+            [] __cuda_callable__( Index i, Index & x )
+            {
+               x = x == std::numeric_limits< Index >::max() ? -1 : x;
+            } );
+         this->gunrockBfsDistancesDirected = gunrock_bfs_dist;
 
-      if( this->boostBfsDistancesDirected != this->gunrockBfsDistancesDirected ) {
-         std::cout << "BFS distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
-         std::cout << "Boost:   " << this->boostBfsDistancesDirected << std::endl;
-         std::cout << "Gunrock: " << this->gunrockBfsDistancesDirected << std::endl;
-         this->errors++;
+         if( this->boostBfsDistancesDirected != this->gunrockBfsDistancesDirected ) {
+            std::cout << "BFS distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
+            std::cout << "Boost:   " << this->boostBfsDistancesDirected << std::endl;
+            std::cout << "Gunrock: " << this->gunrockBfsDistancesDirected << std::endl;
+            this->errors++;
+         }
+
+         // Benchmarking breadth-first search of undirected graph
+         benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
+                                                             { "device", std::string( "GPU" ) },
+                                                             { "format", "N/A" },
+                                                             { "algorithm", std::string( "BFS Gunrock undir" ) } } ) );
+         gunrockBenchmark.breadthFirstSearch( benchmark, graph, start, graphAdjacencyMatrix.getRows(), bfsDistances );
+         gunrock_bfs_dist = bfsDistances;
+         gunrock_bfs_dist.forAllElements(
+            [] __cuda_callable__( Index i, Index & x )
+            {
+               x = x == std::numeric_limits< Index >::max() ? -1 : x;
+            } );
+         this->gunrockBfsDistancesUndirected = gunrock_bfs_dist;
+
+         if( this->boostBfsDistancesUndirected != this->gunrockBfsDistancesUndirected ) {
+            std::cout << "BFS distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
+            std::cout << "Boost:   " << this->boostBfsDistancesUndirected << std::endl;
+            std::cout << "Gunrock: " << this->gunrockBfsDistancesUndirected << std::endl;
+            this->errors++;
+         }
       }
 
-      // Benchmarking breadth-first search of undirected graph
-      benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", std::string( "GPU" ) },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "BFS Gunrock undir" ) } } ) );
-      gunrockBenchmark.breadthFirstSearch( benchmark, graph, start, graphAdjacencyMatrix.getRows(), bfsDistances );
-      gunrock_bfs_dist = bfsDistances;
-      gunrock_bfs_dist.forAllElements(
-         [] __cuda_callable__( Index i, Index & x )
-         {
-            x = x == std::numeric_limits< Index >::max() ? -1 : x;
-         } );
-      this->gunrockBfsDistancesUndirected = gunrock_bfs_dist;
+      if( this->withSssp ) {
+         // Benchmarking single-source shortest path of directed graph
+         benchmark.setDatasetSize( digraphAdjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
+                                                             { "device", std::string( "GPU" ) },
+                                                             { "format", "N/A" },
+                                                             { "algorithm", std::string( "SSSP Gunrock dir" ) } } ) );
+         std::vector< Real > ssspDistances( digraphAdjacencyMatrix.getRows() );
+         gunrockBenchmark.singleSourceShortestPath(
+            benchmark, digraph, start, digraphAdjacencyMatrix.getRows(), ssspDistances );
+         HostRealVector gunrock_sssp_dist( ssspDistances );
+         gunrock_sssp_dist.forAllElements(
+            [] __cuda_callable__( Index i, Real & x )
+            {
+               x = x == std::numeric_limits< Real >::max() ? -1 : x;
+            } );
+         this->gunrockSSSPDistancesDirected = gunrock_sssp_dist;
 
-      if( this->boostBfsDistancesUndirected != this->gunrockBfsDistancesUndirected ) {
-         std::cout << "BFS distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
-         std::cout << "Boost:   " << this->boostBfsDistancesUndirected << std::endl;
-         std::cout << "Gunrock: " << this->gunrockBfsDistancesUndirected << std::endl;
-         this->errors++;
+         if( this->boostSSSPDistancesDirected != this->gunrockSSSPDistancesDirected ) {
+            std::cout << "SSSP distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
+            std::cout << "Boost:   " << this->boostSSSPDistancesDirected << std::endl;
+            std::cout << "Gunrock: " << this->gunrockSSSPDistancesDirected << std::endl;
+            this->errors++;
+         }
+
+         // Benchmarking single-source shortest path of undirected graph
+         benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataColumns(
+            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
+                                                             { "device", std::string( "GPU" ) },
+                                                             { "format", "N/A" },
+                                                             { "algorithm", std::string( "SSSP Gunrock undir" ) } } ) );
+         gunrockBenchmark.singleSourceShortestPath( benchmark, graph, start, graphAdjacencyMatrix.getRows(), ssspDistances );
+         gunrock_sssp_dist = ssspDistances;
+         gunrock_sssp_dist.forAllElements(
+            [] __cuda_callable__( Index i, Real & x )
+            {
+               x = x == std::numeric_limits< Real >::max() ? -1 : x;
+            } );
+         this->gunrockSSSPDistancesUndirected = gunrock_sssp_dist;
+
+         if( this->boostSSSPDistancesUndirected != this->gunrockSSSPDistancesUndirected ) {
+            std::cout << "SSSP distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
+            std::cout << "Boost:   " << this->boostSSSPDistancesUndirected << std::endl;
+            std::cout << "Gunrock: " << this->gunrockSSSPDistancesUndirected << std::endl;
+            this->errors++;
+         }
       }
-
-      // Benchmarking single-source shortest path of directed graph
-      benchmark.setDatasetSize( digraphAdjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", std::string( "GPU" ) },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "SSSP Gunrock dir" ) } } ) );
-      std::vector< Real > ssspDistances( digraphAdjacencyMatrix.getRows() );
-      gunrockBenchmark.singleSourceShortestPath( benchmark, digraph, start, digraphAdjacencyMatrix.getRows(), ssspDistances );
-      HostRealVector gunrock_sssp_dist( ssspDistances );
-      gunrock_sssp_dist.forAllElements(
-         [] __cuda_callable__( Index i, Real & x )
-         {
-            x = x == std::numeric_limits< Real >::max() ? -1 : x;
-         } );
-      this->gunrockSSSPDistancesDirected = gunrock_sssp_dist;
-
-      if( this->boostSSSPDistancesDirected != this->gunrockSSSPDistancesDirected ) {
-         std::cout << "SSSP distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
-         std::cout << "Boost:   " << this->boostSSSPDistancesDirected << std::endl;
-         std::cout << "Gunrock: " << this->gunrockSSSPDistancesDirected << std::endl;
-         this->errors++;
-      }
-
-      // Benchmarking single-source shortest path of undirected graph
-      benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
-      benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", std::string( "GPU" ) },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "SSSP Gunrock undir" ) } } ) );
-      gunrockBenchmark.singleSourceShortestPath( benchmark, graph, start, graphAdjacencyMatrix.getRows(), ssspDistances );
-      gunrock_sssp_dist = ssspDistances;
-      gunrock_sssp_dist.forAllElements(
-         [] __cuda_callable__( Index i, Real & x )
-         {
-            x = x == std::numeric_limits< Real >::max() ? -1 : x;
-         } );
-      this->gunrockSSSPDistancesUndirected = gunrock_sssp_dist;
-
-      if( this->boostSSSPDistancesUndirected != this->gunrockSSSPDistancesUndirected ) {
-         std::cout << "SSSP distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
-         std::cout << "Boost:   " << this->boostSSSPDistancesUndirected << std::endl;
-         std::cout << "Gunrock: " << this->gunrockSSSPDistancesUndirected << std::endl;
-         this->errors++;
-      }
-#endif
+#endif  // HAVE_GUNROCK
    }
 
    bool
@@ -497,6 +526,14 @@ struct GraphsBenchmark
       const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
       const int loops = parameters.getParameter< int >( "loops" );
       const int verbose = parameters.getParameter< int >( "verbose" );
+      this->withBfs = parameters.getParameter< bool >( "with-bfs" );
+      this->withSssp = parameters.getParameter< bool >( "with-sssp" );
+      this->withMst = parameters.getParameter< bool >( "with-mst" );
+
+      size_t dotPosition = inputFile.find_last_of( '.' );
+      std::string inputFileExtension = "";
+      if( dotPosition != std::string::npos )
+         inputFileExtension = inputFile.substr( dotPosition + 1 );
 
       auto mode = std::ios::out;
       if( outputMode == "append" )
@@ -515,12 +552,17 @@ struct GraphsBenchmark
       std::cout << "Graphs benchmark  with " << TNL::getType< Real >() << " precision and device: " << device << '\n';
 
       HostDigraph digraph;
-      std::cout << "Reading graph from file " << inputFile << '\n';
-      TNL::Graphs::GraphReader< HostDigraph >::readEdgeList( inputFile, digraph );
+      std::cout << "Reading graph from file " << inputFile << std::endl;
+      if( inputFileExtension == "mtx" )
+         TNL::Graphs::Readers::MtxReader< HostDigraph >::read( inputFile, digraph );
+      else
+         TNL::Graphs::Readers::EdgeListReader< HostDigraph >::read( inputFile, digraph );
+      // Make all weights positive because of benchmarking SSSP
+      digraph.getAdjacencyMatrix().getValues() = abs( digraph.getAdjacencyMatrix().getValues() );
 
       auto symmetrizedAdjacencyMatrix = TNL::Matrices::getSymmetricPart< HostMatrix >( digraph.getAdjacencyMatrix() );
       HostGraph graph( symmetrizedAdjacencyMatrix );
-      TNL::Graphs::GraphWriter< HostGraph >::writeEdgeList( inputFile + "-undirected.txt", graph );
+      TNL::Graphs::Writers::EdgeListWriter< HostGraph >::write( inputFile + "-undirected.txt", graph );
 
       boostBenchmarks( digraph, graph, benchmark );
       gunrockBenchmarks( digraph, graph, benchmark );
@@ -569,6 +611,8 @@ protected:
    Real boostMSTTotalWeight;
 
    int errors;
+
+   bool withBfs, withSssp, withMst;
 };
 
 }  // namespace TNL::Benchmarks::Graphs
