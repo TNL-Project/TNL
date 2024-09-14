@@ -3,7 +3,7 @@
 
 #include <TNL/Graphs/minimumSpanningTree.h>
 #include <TNL/Graphs/trees.h>
-#include <TNL/Graphs/GraphWriter.h>
+#include <TNL/Graphs/Writers/EdgeListWriter.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Containers/StaticVector.h>
 
@@ -157,11 +157,11 @@ TYPED_TEST( GraphTest, test_MST_large_2 )
                       { 6, 7, 0.9 }, { 7, 8, 0.3 }, { 8, 9, 0.5 }, { 9, 0, 0.7 }, { 1, 5, 0.5 }, { 2, 6, 0.6 }, { 3, 7, 0.3 },
                       { 4, 8, 0.4 }, { 5, 9, 0.9 }, { 6, 2, 0.8 }, { 7, 3, 0.2 }, { 8, 1, 0.7 }, { 9, 4, 0.1 } } );
 
-   TNL::Graphs::GraphWriter< GraphType >::writeEdgeList( "graph-10-30.lst", graph );
+   TNL::Graphs::Writers::EdgeListWriter< GraphType >::write( "graph-10-30.lst", graph );
    GraphType minimum_tree;
    TNL::Containers::Vector< IndexType > roots;
    TNL::Graphs::minimumSpanningTree( graph, minimum_tree, roots );
-   TNL::Graphs::GraphWriter< GraphType >::writeEdgeList( "graph-10-30-mst.lst", minimum_tree );
+   TNL::Graphs::Writers::EdgeListWriter< GraphType >::write( "graph-10-30-mst.lst", minimum_tree );
    ASSERT_TRUE( TNL::Graphs::isTree( minimum_tree ) );
    ASSERT_NEAR( minimum_tree.getTotalWeight(), 3.1, 0.0001 );
 }
