@@ -5,10 +5,10 @@
 
 #include <TNL/Matrices/MatrixBase.h>
 
-namespace TNL::Graphs {
+namespace TNL::Graphs::Writers {
 
 template< typename Graph >
-struct GraphWriter
+struct EdgeListWriter
 {
    using GraphType = Graph;
    using MatrixType = typename GraphType::MatrixType;
@@ -18,7 +18,7 @@ struct GraphWriter
    using HostMatrixType = typename MatrixType::template Self< ValueType, Devices::Host >;
 
    static void
-   writeEdgeList( std::ostream& str, const Graph& graph )
+   write( std::ostream& str, const Graph& graph )
    {
       if constexpr( ! std::is_same_v< DeviceType, Devices::Host > && ! std::is_same_v< DeviceType, Devices::Host > ) {
          HostMatrixType hostMatrix;
@@ -30,10 +30,10 @@ struct GraphWriter
    }
 
    static void
-   writeEdgeList( const TNL::String& fileName, const Graph& graph )
+   write( const TNL::String& fileName, const Graph& graph )
    {
       std::ofstream file( fileName.getString() );
-      writeEdgeList( file, graph );
+      write( file, graph );
    }
 
 protected:
@@ -53,4 +53,4 @@ protected:
    }
 };
 
-}  // namespace TNL::Graphs
+}  // namespace TNL::Graphs::Writers

@@ -5,17 +5,17 @@
 #include <sstream>
 #include <string>
 
-namespace TNL::Graphs {
+namespace TNL::Graphs::Readers {
 
 template< typename Graph >
-struct GraphReader
+struct EdgeListReader
 {
    using ValueType = typename Graph::ValueType;
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
 
    static void
-   readEdgeList( const std::string& file_name, Graph& graph )
+   read( const std::string& file_name, Graph& graph )
    {
       using Edge = std::pair< IndexType, IndexType >;
       std::ifstream file( file_name );
@@ -49,4 +49,4 @@ struct GraphReader
    }
 };
 
-}  // namespace TNL::Graphs
+}  // namespace TNL::Graphs::Readers
