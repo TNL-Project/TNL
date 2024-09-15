@@ -14,27 +14,7 @@ if(TNL_BUILD_CUDA)
     find_path(GUNROCK_INCLUDE_DIR gunrock/algorithms/bfs.hxx)
     if(GUNROCK_INCLUDE_DIR)
         message(STATUS "Gunrock found ${GUNROCK_INCLUDE_DIR}")
-
-        file(
-            WRITE ${CMAKE_CURRENT_BINARY_DIR}/gunrock-test.cpp
-            "#include <gunrock/algorithms/bfs.hxx>
-            #include <gunrock/algorithms/sssp.hxx>
-            int main() { return 0; }
-            "
-        )
-
-        try_compile(
-            GUNROCK_TEST ${CMAKE_CURRENT_BINARY_DIR}
-            ${CMAKE_CURRENT_BINARY_DIR}/gunrock-test.cpp
-            CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${GUNROCK_INCLUDE_DIR}"
-            OUTPUT_VARIABLE GUNROCK_TEST_OUTPUT
-        )
-        if(GUNROCK_COMPILED)
-            message(STATUS "Gunrock compiled successfully.")
-            set(GUNROCK_FLAGS -DHAVE_GUNROCK ${Gunrock_INCLUDE_DIR} -D SM_TARGET=86)
-        else()
-            message(STATUS "Gunrock failed to compile, will be omitted in the benchmark.")
-        endif()
+        set(GUNROCK_FLAGS -DHAVE_GUNROCK ${Gunrock_INCLUDE_DIR} -D SM_TARGET=${CMAKE_CUDA_ARCHITECTURES})
     else()
         message(STATUS "Gunrock not found.")
     endif()
