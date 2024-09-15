@@ -367,9 +367,9 @@ struct GraphsBenchmark
       std::vector< RealType > digraph_values, graph_values;
 
       const auto& digraphAdjacencyMatrix = hostDigraph.getAdjacencyMatrix();
-      TNL::copy( digraphAdjacencyMatrix.getSegments().getOffsets(), digraph_row_offsets );
-      TNL::copy( digraphAdjacencyMatrix.getColumnIndexes(), digraph_column_indices );
-      TNL::copy( digraphAdjacencyMatrix.getValues(), digraph_values );
+      TNL::Algorithms::copy( digraph_row_offsets, digraphAdjacencyMatrix.getSegments().getOffsets() );
+      TNL::Algorithms::copy( digraph_column_indices, digraphAdjacencyMatrix.getColumnIndexes() );
+      TNL::Algorithms::copy( digraph_values, digraphAdjacencyMatrix.getValues() );
       thrust::device_vector< IndexType > d_digraph_row_offsets( digraphAdjacencyMatrix.getRows() + 1 );
       thrust::device_vector< IndexType > d_digraph_column_indices( digraphAdjacencyMatrix.getNonzeroElementsCount() );
       thrust::device_vector< RealType > d_digraph_values( digraphAdjacencyMatrix.getNonzeroElementsCount() );
@@ -391,9 +391,9 @@ struct GraphsBenchmark
       );
 
       const auto& graphAdjacencyMatrix = hostGraph.getAdjacencyMatrix();
-      TNL::copy( graphAdjacencyMatrix.getSegments().getOffsets(), graph_row_offsets );
-      TNL::copy( graphAdjacencyMatrix.getColumnIndexes(), graph_column_indices );
-      TNL::copy( graphAdjacencyMatrix.getValues(), graph_values );
+      TNL::Algorithms::copy( graph_row_offsets, graphAdjacencyMatrix.getSegments().getOffsets() );
+      TNL::Algorithms::copy( graph_column_indices, graphAdjacencyMatrix.getColumnIndexes() );
+      TNL::Algorithms::copy( graph_values, graphAdjacencyMatrix.getValues() );
       thrust::device_vector< IndexType > d_graph_row_offsets( graphAdjacencyMatrix.getRows() + 1 );
       thrust::device_vector< IndexType > d_graph_column_indices( graphAdjacencyMatrix.getNonzeroElementsCount() );
       thrust::device_vector< RealType > d_graph_values( graphAdjacencyMatrix.getNonzeroElementsCount() );
