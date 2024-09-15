@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# Uncomment if you want to exit as soon as there is an error
+# set -o errexit
+
+# abort when an unset variable is used
+set -o nounset
+# enable recursive globbing
+shopt -s globstar
+
+# get the path of directory where this script is located
+THIS_DIR="$( builtin cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+# project directory
+PROJECT_DIR="$( realpath "$THIS_DIR/..")"
+
+# directory where the binaries are built
+#BIN_DIR="$PROJECT_DIR/build/src"
+BIN_DIR="$HOME/.local/bin"
+
+#benchmark script
+benchmark="$BIN_DIR/run-tnl-benchmark-graphs"
+
+DEBUG="no"
+DELETE_LOG_FILE="yes"
+MAX_OMP_THREADS="auto"
+OMP_ENABLED="yes"
+CONTINUE="no"
+
+#SIZE_LIMIT=-1 # no size limit
+SIZE_LIMIT=10737418240 # 10 GB
+
+# set the path to the directory containing the graphs
+graphs_base_path="./graphs"
+
+$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs"                --log-file "./log-files/graphs-benchmark.log"                --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
+$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-cuda"           --log-file "./log-files/graphs-benchmark-cuda.log"           --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled no
+#$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-legacy"         --log-file "./log-files/graphs-benchmark-legacy.log"         --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
+#$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-legacy-cuda"    --log-file "./log-files/graphs-benchmark-legacy-cuda.log"    --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
+#$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-reference"      --log-file "./log-files/graphs-benchmark-reference.log"      --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
+#$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-reference-cuda" --log-file "./log-files/graphs-benchmark-reference-cuda.log" --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
+
