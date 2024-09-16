@@ -562,7 +562,19 @@ struct GraphsBenchmark
 
       auto symmetrizedAdjacencyMatrix = TNL::Matrices::getSymmetricPart< HostMatrix >( digraph.getAdjacencyMatrix() );
       HostGraph graph( symmetrizedAdjacencyMatrix );
-      TNL::Graphs::Writers::EdgeListWriter< HostGraph >::write( inputFile + "-undirected.txt", graph );
+      //TNL::Graphs::Writers::EdgeListWriter< HostGraph >::write( inputFile + "-undirected.txt", graph );
+
+      benchmark.setMetadataColumns( {
+         { "graph name", inputFile },
+         { "precision", getType< Real >() },
+         { "nodes", convertToString( graph.getAdjacencyMatrix().getRows() ) },
+         { "edges", convertToString( graph.getAdjacencyMatrix().getNonzeroElementsCount() ) },
+      } );
+      benchmark.setMetadataWidths( {
+         { "graph name", 32 },
+         { "format", 46 },
+         { "threads", 5 },
+      } );
 
       boostBenchmarks( digraph, graph, benchmark );
       gunrockBenchmarks( digraph, graph, benchmark );
