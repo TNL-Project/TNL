@@ -520,14 +520,38 @@ suitesparse-collection-website.herokuapp.com/MM/MAWI/mawi_201512020000/mawi_2015
 suitesparse-collection-website.herokuapp.com/MM/MAWI/mawi_201512020030/mawi_201512020030.mtx \
 suitesparse-collection-website.herokuapp.com/MM/MAWI/mawi_201512020130/mawi_201512020130.mtx"
 
+# Large graphs
+genbank_graphs="\
+suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_A2a/kmer_A2a.mtx \
+suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_P1a/kmer_P1a.mtx \
+suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_U1a/kmer_U1a.mtx \
+suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_V2a/kmer_V2a.mtx"
+
+# Small to medium size graphs
+gleich_graphs="\
+suitesparse-collection-website.herokuapp.com/MM/Gleich/flickr/flickr.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/minnesota/minnesota_coord.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/minnesota/minnesota.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads-48/usroads-48_coord.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads-48/usroads-48.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads/usroads_coord.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads/usroads.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/wb-cs-stanford/wb-cs-stanford.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/wb-edu/wb-edu.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20051105/wikipedia-20051105.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20060925/wikipedia-20060925.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20061104/wikipedia-20061104.mtx \
+suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20070206/wikipedia-20070206.mtx"
+
 graphs="\
 $gset_graphs \
 $dimacs_graphs \
 $ml_graph_graphs \
 $belcastro_graphs \
 $newman_graphs \
-"
-#$mawi_graphs \
+$mawi_graphs \
+$genbank_graphs \
+$gleich_graphs"
 
 for graph in $graphs
 do
