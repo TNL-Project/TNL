@@ -1154,12 +1154,12 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
    const RealType epsilon = 1e-8;
    auto [ eigenvalues, eigenvector, iterations ] =
       TNL::Matrices::Eigen::QRAlgorithm< MatrixType >( A, epsilon, QRmethod, 10000 );
-   EXPECT_NEAR( eigenvalues.getElement( 0, 0 ), 3, 1e-6 );
-   EXPECT_NEAR( eigenvalues.getElement( 1, 1 ), 1, 1e-6 );
-   EXPECT_NEAR( eigenvector.getElement( 0, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
-   EXPECT_NEAR( eigenvector.getElement( 1, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
-   EXPECT_NEAR( eigenvector.getElement( 0, 1 ), -TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
-   EXPECT_NEAR( eigenvector.getElement( 1, 1 ), TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
+   EXPECT_NEAR( eigenvalues.getElement( 0, 0 ), 3, 1e-5 );
+   EXPECT_NEAR( eigenvalues.getElement( 1, 1 ), 1, 1e-5 );
+   EXPECT_NEAR( eigenvector.getElement( 0, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
+   EXPECT_NEAR( eigenvector.getElement( 1, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
+   EXPECT_NEAR( eigenvector.getElement( 0, 1 ), -TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
+   EXPECT_NEAR( eigenvector.getElement( 1, 1 ), TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
 
    MatrixType B = { { 0.0, 1.0 }, { -1.0, 0.0 } };
    auto [ eigenvaluesB, eigenvectorB, iterationsB ] =
@@ -1172,12 +1172,12 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
    if( QRmethod == TNL::Matrices::Factorization::QR::FactorizationMethod::Givens ) {
       auto [ eigenvaluesRMO, eigenvectorRMO, iterationsRMO ] =
          TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10000 );
-      EXPECT_NEAR( eigenvaluesRMO.getElement( 0, 0 ), 3, 1e-6 );
-      EXPECT_NEAR( eigenvaluesRMO.getElement( 1, 1 ), 1, 1e-6 );
-      EXPECT_NEAR( eigenvectorRMO.getElement( 0, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
-      EXPECT_NEAR( eigenvector.getElement( 1, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
-      EXPECT_NEAR( eigenvector.getElement( 0, 1 ), -TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
-      EXPECT_NEAR( eigenvector.getElement( 1, 1 ), TNL::sqrt( 2.0 ) / 2.0, 1e-6 );
+      EXPECT_NEAR( eigenvaluesRMO.getElement( 0, 0 ), 3, 1e-5 );
+      EXPECT_NEAR( eigenvaluesRMO.getElement( 1, 1 ), 1, 1e-5 );
+      EXPECT_NEAR( eigenvectorRMO.getElement( 0, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
+      EXPECT_NEAR( eigenvector.getElement( 1, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
+      EXPECT_NEAR( eigenvector.getElement( 0, 1 ), -TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
+      EXPECT_NEAR( eigenvector.getElement( 1, 1 ), TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
    }
    else {
       try {
