@@ -240,7 +240,7 @@ run_benchmarks_file( Benchmark<>& benchmark, const std::string& fileName, Precis
    using VectorTypeCuda = Vector< PrecisionType, Devices::Cuda >;
    VectorTypeCuda initialVecOrigCuda( size );
    initialVecOrigCuda = initialVecOrig;
-   Matrices::SparseMatrix< double, Devices::Cuda, int > matrixCUDACMO( size, size );
+   Matrices::SparseMatrix< PrecisionType, Devices::Cuda, int > matrixCUDACMO( size, size );
    matrixCUDACMO = matrixSM;
    run_benchmarks_SM< Devices::Cuda, PrecisionType >(
       benchmark, matrixName, size, matrixCUDACMO, initialVecOrigCuda, shiftValue );
