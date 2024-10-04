@@ -421,8 +421,8 @@ cmake-format:
     stage: lint
     rules:
         - changes:
-            - ./**/CMakeLists.txt
-            - ./**/*.cmake
+            - "**/CMakeLists.txt"
+            - "**/*.cmake"
             - .cmake-format.yaml
             - .gitlab-ci.yml
     script:
