@@ -203,6 +203,14 @@ DenseMatrixBase< Real, Device, Index, Organization >::getRowCapacities( Vector& 
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+Index
+DenseMatrixBase< Real, Device, Index, Organization >::getRowCapacity( IndexType row ) const
+{
+   return this->segments.getSegmentSize( row );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::setValue( const Real& value )
 {

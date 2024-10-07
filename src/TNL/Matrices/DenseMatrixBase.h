@@ -149,7 +149,15 @@ public:
    void
    getRowCapacities( Vector& rowCapacities ) const;
 
-   // TODO: add getRowCapacity() - for compatibility with SparseMatrixBase
+   /**
+    * \brief Returns capacity of given matrix row.
+    *
+    * \param row index of matrix row.
+    * \return number of matrix elements allocated for the row.
+    */
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getRowCapacity( IndexType row ) const;
 
    /**
     * \brief Constant getter of simple structure for accessing given matrix row.

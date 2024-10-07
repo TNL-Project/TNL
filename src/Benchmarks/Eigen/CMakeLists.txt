@@ -1,0 +1,13 @@
+set(BENCHMARK_NAMES tnl-benchmark-eigen-qr tnl-benchmark-eigen-pi tnl-benchmark-eigen-random)
+
+if(TNL_BUILD_CUDA)
+    foreach(target IN ITEMS ${BENCHMARK_NAMES})
+        add_executable(${target} ${target}.cu)
+        target_link_libraries(${target} PUBLIC TNL::TNL)
+    endforeach()
+else()
+    foreach(target IN ITEMS ${BENCHMARK_NAMES})
+        add_executable(${target} ${target}.cpp)
+        target_link_libraries(${target} PUBLIC TNL::TNL)
+    endforeach()
+endif()
