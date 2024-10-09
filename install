@@ -157,7 +157,8 @@ if build_targets_contain "all"; then
     cmake --install "$BUILD_DIR" $VERBOSE
 else
     cmake --install "$BUILD_DIR" $VERBOSE --component headers
-    for target in "${BUILD_TARGETS[@]}"; do
+    # NOTE: empty array expansion with `set -u` gotcha: https://stackoverflow.com/a/61551944
+    for target in "${BUILD_TARGETS[@]+"${BUILD_TARGETS[@]}"}"; do
         cmake --install "$BUILD_DIR" $VERBOSE --component "$target"
     done
 fi
