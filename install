@@ -141,8 +141,19 @@ if [[ ${#BUILD_TARGETS[@]} != 0 ]]; then
     cmake --build "$BUILD_DIR" $VERBOSE --parallel "$BUILD_JOBS" --target "${BUILD_TARGETS[@]}"
 fi
 
+function build_targets_contain()
+{
+    # NOTE: empty array expansion with `set -u` gotcha: https://stackoverflow.com/a/61551944
+    local targets="${BUILD_TARGETS[@]+"${BUILD_TARGETS[@]}"}"
+    if [[ " $targets " =~ " $1 " ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # install the targets
-if [[ " ${BUILD_TARGETS[*]} " =~ " all " ]]; then
+if build_targets_contain "all"; then
     cmake --install "$BUILD_DIR" $VERBOSE
 else
     cmake --install "$BUILD_DIR" $VERBOSE --component headers
@@ -161,11 +172,11 @@ if [[ ${#BUILD_TARGETS[@]} != 0 ]]; then
     sed 's|"binaryDir": "${sourceDir}/build",|"binaryDir": "${sourceDir}",|' CMakePresets.json > "$BUILD_DIR/CMakePresets.json"
     pushd "$BUILD_DIR"
 
-    if [[ " ${BUILD_TARGETS[*]} " =~ " all " ]] || [[ " ${BUILD_TARGETS[*]} " =~ " tests " ]]; then
+    if build_targets_contain "all" || build_targets_contain "tests"; then
         ctest --preset all-tests #--test-dir "$BUILD_DIR"
-    elif [[ " ${BUILD_TARGETS[*]} " =~ " matrix-tests " ]]; then
+    elif build_targets_contain "matrix-tests"; then
         ctest --preset matrix-tests #--test-dir "$BUILD_DIR"
-    elif [[ " ${BUILD_TARGETS[*]} " =~ " non-matrix-tests " ]]; then
+    elif build_targets_contain "non-matrix-tests"; then
         ctest --preset non-matrix-tests #--test-dir "$BUILD_DIR"
     fi
 
