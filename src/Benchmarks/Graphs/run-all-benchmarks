@@ -28,7 +28,8 @@ OMP_ENABLED="yes"
 CONTINUE="no"
 
 #SIZE_LIMIT=-1 # no size limit
-SIZE_LIMIT=10737418240 # 10 GB
+SIZE_LIMIT="1073741824" # 1 GB
+#SIZE_LIMIT=10737418240 # 10 GB
 
 # set the path to the directory containing the graphs
 graphs_base_path="./graphs"

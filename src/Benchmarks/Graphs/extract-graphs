@@ -558,5 +558,5 @@ do
     echo "ln -s $input_dir/$graph $output_dir/$graph"
     directory=$(dirname "$output_dir/$graph")
     mkdir -p $directory
-    ln -s $input_dir/$graph $output_dir/$graph
+    cp $input_dir/$graph $output_dir/$graph
 done
