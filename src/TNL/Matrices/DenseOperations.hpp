@@ -154,15 +154,47 @@ getMatrixProduct( ResultMatrix& resultMatrix,
             const Index tileColumns = min( tileDim, resultMatrix.getColumns() - j );
             for( Index i1 = i; i1 < i + tileRows; i1++ )
                for( Index j1 = j; j1 < j + tileColumns; j1++ )
-                  resultMatrix.operator()( i1, j1 ) = 0.0;
+                  resultMatrix( i1, j1 ) = 0;
 
-            for( Index k = 0; k < matrix1.getColumns(); k += tileDim ) {
-               const Index lastK = min( k + tileDim, matrix1.getColumns() );
-               for( Index i1 = 0; i1 < tileRows; i1++ )
-                  for( Index j1 = 0; j1 < tileColumns; j1++ )
-                     for( Index k1 = k; k1 < lastK; k1++ )
-                        resultMatrix.operator()( i + i1, j + j1 ) +=
-                           matrixMultiplicator * matrix1( i + i1, k1 ) * matrix2( k1, j + j1 );
+            if( transposeA == TransposeState::None && transposeB == TransposeState::None ) {
+               for( Index k = 0; k < matrix1.getColumns(); k += tileDim ) {
+                  const Index lastK = min( k + tileDim, matrix1.getColumns() );
+                  for( Index i1 = 0; i1 < tileRows; i1++ )
+                     for( Index j1 = 0; j1 < tileColumns; j1++ )
+                        for( Index k1 = k; k1 < lastK; k1++ )
+                           resultMatrix( i + i1, j + j1 ) +=
+                              matrixMultiplicator * matrix1( i + i1, k1 ) * matrix2( k1, j + j1 );
+               }
+            }
+            else if( transposeA == TransposeState::None ) {
+               for( Index k = 0; k < matrix1.getColumns(); k += tileDim ) {
+                  const Index lastK = min( k + tileDim, matrix1.getColumns() );
+                  for( Index i1 = 0; i1 < tileRows; i1++ )
+                     for( Index j1 = 0; j1 < tileColumns; j1++ )
+                        for( Index k1 = k; k1 < lastK; k1++ )
+                           resultMatrix( i + i1, j + j1 ) +=
+                              matrixMultiplicator * matrix1( i + i1, k1 ) * matrix2( j + j1, k1 );
+               }
+            }
+            else if( transposeB == TransposeState::None ) {
+               for( Index k = 0; k < matrix1.getRows(); k += tileDim ) {
+                  const Index lastK = min( k + tileDim, matrix1.getRows() );
+                  for( Index i1 = 0; i1 < tileRows; i1++ )
+                     for( Index j1 = 0; j1 < tileColumns; j1++ )
+                        for( Index k1 = k; k1 < lastK; k1++ )
+                           resultMatrix( i + i1, j + j1 ) +=
+                              matrixMultiplicator * matrix1( k1, i + i1 ) * matrix2( k1, j + j1 );
+               }
+            }
+            else {
+               for( Index k = 0; k < matrix1.getRows(); k += tileDim ) {
+                  const Index lastK = min( k + tileDim, matrix1.getRows() );
+                  for( Index i1 = 0; i1 < tileRows; i1++ )
+                     for( Index j1 = 0; j1 < tileColumns; j1++ )
+                        for( Index k1 = k; k1 < lastK; k1++ )
+                           resultMatrix( i + i1, j + j1 ) +=
+                              matrixMultiplicator * matrix1( k1, i + i1 ) * matrix2( j + j1, k1 );
+               }
             }
          }
    }

@@ -13,7 +13,7 @@ public:
 };
 
 // For transposed multiplications
-using MatrixTypesCuda = ::testing::Types<
+using MatrixTypes = ::testing::Types<
 #if defined( __CUDACC__ )
    TNL::Matrices::
       DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
@@ -21,7 +21,6 @@ using MatrixTypesCuda = ::testing::Types<
    TNL::Matrices::
       DenseMatrix< float, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >
-
 #elif defined( __HIP__ )
    TNL::Matrices::
       DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
@@ -29,10 +28,17 @@ using MatrixTypesCuda = ::testing::Types<
    TNL::Matrices::
       DenseMatrix< float, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >
+#else
+   TNL::Matrices::
+      DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >,
+   TNL::Matrices::
+      DenseMatrix< float, TNL::Devices::Host, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >
 #endif
    >;
 
-TYPED_TEST_SUITE( DenseMatrixMultiplicationTransposedTest, MatrixTypesCuda );
+TYPED_TEST_SUITE( DenseMatrixMultiplicationTransposedTest, MatrixTypes );
 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesNormal1 )
 {
@@ -53,8 +59,7 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesNormal1 )
    resultMatrix.getMatrixProduct(
       matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::None );
 
-   bool check = resultMatrix == checkMatrix;
-   ASSERT_EQ( check, true );
+   ASSERT_EQ( resultMatrix, checkMatrix );
 }
 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesNormalWrong )
@@ -76,8 +81,7 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesNormalWrong 
    resultMatrix.getMatrixProduct(
       matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::None );
 
-   bool check = resultMatrix == checkMatrix;
-   ASSERT_EQ( check, false );
+   ASSERT_NE( resultMatrix, checkMatrix );
 }
 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesNormal2 )
@@ -111,8 +115,7 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesNormal2 )
    resultMatrix.getMatrixProduct(
       matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::None );
 
-   bool check = resultMatrix == checkMatrix;
-   ASSERT_EQ( check, true );
+   ASSERT_EQ( resultMatrix, checkMatrix );
 }
 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, NormalTimesTransposed1 )
@@ -133,8 +136,7 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, NormalTimesTransposed1 )
    resultMatrix.getMatrixProduct(
       matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::Transpose );
 
-   bool check = resultMatrix == checkMatrix;
-   ASSERT_EQ( check, true );
+   ASSERT_EQ( resultMatrix, checkMatrix );
 }
 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, NormalTimesTransposedWrong )
@@ -155,8 +157,7 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, NormalTimesTransposedWrong 
    resultMatrix.getMatrixProduct(
       matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::Transpose );
 
-   bool check = resultMatrix == checkMatrix;
-   ASSERT_EQ( check, false );
+   ASSERT_NE( resultMatrix, checkMatrix );
 }
 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, NormalTimesTransposed2 )
@@ -189,8 +190,7 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, NormalTimesTransposed2 )
    resultMatrix.getMatrixProduct(
       matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::Transpose );
 
-   bool check = resultMatrix == checkMatrix;
-   ASSERT_EQ( check, true );
+   ASSERT_EQ( resultMatrix, checkMatrix );
 }
 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesTransposed1 )
@@ -211,8 +211,7 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesTransposed1 
    resultMatrix.getMatrixProduct(
       matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::Transpose );
 
-   bool check = resultMatrix == checkMatrix;
-   ASSERT_EQ( check, true );
+   ASSERT_EQ( resultMatrix, checkMatrix );
 }
 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesTransposedWrong )
@@ -233,8 +232,7 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesTransposedWr
    resultMatrix.getMatrixProduct(
       matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::Transpose );
 
-   bool check = resultMatrix == checkMatrix;
-   ASSERT_EQ( check, false );
+   ASSERT_NE( resultMatrix, checkMatrix );
 }
 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesTransposed2 )
@@ -267,8 +265,7 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, TransposedTimesTransposed2 
    resultMatrix.getMatrixProduct(
       matrix1, matrix2, 1.0, TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::Transpose );
 
-   bool check = resultMatrix == checkMatrix;
-   ASSERT_EQ( check, true );
+   ASSERT_EQ( resultMatrix, checkMatrix );
 }
 
 TYPED_TEST( DenseMatrixMultiplicationTransposedTest, LargeMatricesProductATrans )
