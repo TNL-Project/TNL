@@ -15,6 +15,9 @@ set(COMMON_EXAMPLES
     DenseMatrixViewExample_forRows
     DenseMatrixViewExample_forAllElements
     DenseMatrixViewExample_wrap
+    DenseMatrixOperationsExample_getProduct
+    DenseMatrixOperationsExample_getTransposition
+    DenseMatrixOperationsExample_getInPlaceTransposition
 )
 
 if(TNL_BUILD_CUDA)
