@@ -413,12 +413,14 @@ struct GraphsBenchmark
             } );
          this->gunrockBfsDistancesDirected = gunrock_bfs_dist;
 
+   #ifdef HAVE_BOOST
          if( this->boostBfsDistancesDirected != this->gunrockBfsDistancesDirected ) {
             std::cout << "BFS distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
             std::cout << "Boost:   " << this->boostBfsDistancesDirected << std::endl;
             std::cout << "Gunrock: " << this->gunrockBfsDistancesDirected << std::endl;
             this->errors++;
          }
+   #endif
 
          // Benchmarking breadth-first search of undirected graph
          benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
@@ -434,12 +436,14 @@ struct GraphsBenchmark
             } );
          this->gunrockBfsDistancesUndirected = gunrock_bfs_dist;
 
+   #ifdef HAVE_BOOST
          if( this->boostBfsDistancesUndirected != this->gunrockBfsDistancesUndirected ) {
             std::cout << "BFS distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
             std::cout << "Boost:   " << this->boostBfsDistancesUndirected << std::endl;
             std::cout << "Gunrock: " << this->gunrockBfsDistancesUndirected << std::endl;
             this->errors++;
          }
+   #endif
       }
 
       if( this->withSssp ) {
@@ -459,12 +463,14 @@ struct GraphsBenchmark
             } );
          this->gunrockSSSPDistancesDirected = gunrock_sssp_dist;
 
+   #ifdef HAVE_BOOST
          if( this->boostSSSPDistancesDirected != this->gunrockSSSPDistancesDirected ) {
             std::cout << "SSSP distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
             std::cout << "Boost:   " << this->boostSSSPDistancesDirected << std::endl;
             std::cout << "Gunrock: " << this->gunrockSSSPDistancesDirected << std::endl;
             this->errors++;
          }
+   #endif
 
          // Benchmarking single-source shortest path of undirected graph
          benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
@@ -480,12 +486,14 @@ struct GraphsBenchmark
             } );
          this->gunrockSSSPDistancesUndirected = gunrock_sssp_dist;
 
+   #ifdef HAVE_BOOST
          if( this->boostSSSPDistancesUndirected != this->gunrockSSSPDistancesUndirected ) {
             std::cout << "SSSP distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
             std::cout << "Boost:   " << this->boostSSSPDistancesUndirected << std::endl;
             std::cout << "Gunrock: " << this->gunrockSSSPDistancesUndirected << std::endl;
             this->errors++;
          }
+   #endif
       }
 #endif  // HAVE_GUNROCK
    }
