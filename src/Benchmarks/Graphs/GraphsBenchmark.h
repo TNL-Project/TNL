@@ -542,6 +542,17 @@ struct GraphsBenchmark
       auto symmetrizedAdjacencyMatrix = TNL::Matrices::getSymmetricPart< HostMatrix >( digraph.getAdjacencyMatrix() );
       HostGraph graph( symmetrizedAdjacencyMatrix );
       //TNL::Graphs::Writers::EdgeListWriter< HostGraph >::write( inputFile + "-undirected.txt", graph );
+      HostIndexVector nodeDegrees( graph.getNodeCount(), 0 );
+      graph.getAdjacencyMatrix().reduceAllRows(
+         [] __cuda_callable__( Index rowIdx, Index columnIdx, const Real& value ) -> Index
+         {
+            return 1;
+         } TNL::Plus<>{},
+         [] __cuda_callable__( Index rowIdx, Index result ) mutable
+         {
+            nodeDegressView[ rowIdx ] = result;
+         } );
+      Index start = argMax( nodeDegrees ).second();
 
       benchmark.setMetadataColumns( {
          { "graph name", inputFile },
