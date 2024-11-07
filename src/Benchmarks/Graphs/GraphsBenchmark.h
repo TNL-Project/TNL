@@ -87,6 +87,8 @@ struct GraphsBenchmark
    void
    TNLBenchmarks( const HostDigraph& hostDigraph,
                   const HostGraph& hostGraph,
+                  IndexType smallestNode,
+                  IndexType largestNode,
                   TNL::Benchmarks::Benchmark<>& benchmark,
                   const TNL::String& device,
                   const TNL::String& segments )
@@ -114,7 +116,7 @@ struct GraphsBenchmark
 
          auto bfs_tnl_dir = [ & ]() mutable
          {
-            TNL::Graphs::breadthFirstSearch( digraph, 0, bfsDistances );
+            TNL::Graphs::breadthFirstSearch( digraph, largestNode, bfsDistances );
          };
          benchmark.time< Device >( device, bfs_tnl_dir );
 #ifdef HAVE_BOOST
@@ -133,7 +135,7 @@ struct GraphsBenchmark
 
          auto bfs_tnl_undir = [ & ]() mutable
          {
-            TNL::Graphs::breadthFirstSearch( graph, 0, bfsDistances );
+            TNL::Graphs::breadthFirstSearch( graph, largestNode, bfsDistances );
          };
          benchmark.time< Device >( device, bfs_tnl_undir );
 #ifdef HAVE_BOOST
@@ -156,7 +158,7 @@ struct GraphsBenchmark
          RealVector ssspDistances( digraph.getNodeCount(), 0 );
          auto sssp_tnl_dir = [ & ]() mutable
          {
-            TNL::Graphs::singleSourceShortestPath( digraph, 0, ssspDistances );
+            TNL::Graphs::singleSourceShortestPath( digraph, largestNode, ssspDistances );
          };
          if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
             std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark." << std::endl;
@@ -183,7 +185,7 @@ struct GraphsBenchmark
          //RealVector ssspDistances( digraph.getNodeCount(), 0 );
          auto sssp_tnl_undir = [ & ]() mutable
          {
-            TNL::Graphs::singleSourceShortestPath( graph, 0, ssspDistances );
+            TNL::Graphs::singleSourceShortestPath( graph, largestNode, ssspDistances );
          };
          benchmark.time< Device >( device, sssp_tnl_undir );
 
@@ -230,7 +232,11 @@ struct GraphsBenchmark
    }
 
    void
-   boostBenchmarks( const HostDigraph& digraph, const HostGraph& graph, TNL::Benchmarks::Benchmark<>& benchmark )
+   boostBenchmarks( const HostDigraph& digraph,
+                    const HostGraph& graph,
+                    IndexType smallestNode,
+                    IndexType largestNode,
+                    TNL::Benchmarks::Benchmark<>& benchmark )
    {
 #ifdef HAVE_BOOST
       BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Directed > boostDigraph( digraph );
@@ -245,7 +251,7 @@ struct GraphsBenchmark
          std::vector< Index > boostBfsDistances( digraph.getNodeCount() );
          auto bfs_boost_dir = [ & ]() mutable
          {
-            boostDigraph.breadthFirstSearch( 0, boostBfsDistances );
+            boostDigraph.breadthFirstSearch( largestNode, boostBfsDistances );
          };
          benchmark.time< TNL::Devices::Sequential >( "sequential", bfs_boost_dir );
          HostIndexVector boost_bfs_dist( boostBfsDistances );
@@ -262,7 +268,7 @@ struct GraphsBenchmark
 
          auto bfs_boost_undir = [ & ]() mutable
          {
-            boostGraph.breadthFirstSearch( 0, boostBfsDistances );
+            boostGraph.breadthFirstSearch( largestNode, boostBfsDistances );
          };
          benchmark.time< TNL::Devices::Sequential >( "sequential", bfs_boost_undir );
          boost_bfs_dist = boostBfsDistances;
@@ -282,7 +288,7 @@ struct GraphsBenchmark
          std::vector< Real > boostSSSPDistances( digraph.getNodeCount() );
          auto sssp_boost_dir = [ & ]() mutable
          {
-            boostDigraph.singleSourceShortestPath( 0, boostSSSPDistances );
+            boostDigraph.singleSourceShortestPath( largestNode, boostSSSPDistances );
          };
          benchmark.time< TNL::Devices::Sequential >( "sequential", sssp_boost_dir );
          HostRealVector boost_sssp_dist( boostSSSPDistances );
@@ -299,7 +305,7 @@ struct GraphsBenchmark
 
          auto sssp_boost_undir = [ & ]() mutable
          {
-            boostGraph.singleSourceShortestPath( 0, boostSSSPDistances );
+            boostGraph.singleSourceShortestPath( largestNode, boostSSSPDistances );
          };
          benchmark.time< TNL::Devices::Sequential >( "sequential", sssp_boost_undir );
          boost_sssp_dist = boostSSSPDistances;
@@ -336,7 +342,11 @@ struct GraphsBenchmark
    }
 
    void
-   gunrockBenchmarks( const HostDigraph& hostDigraph, const HostGraph& hostGraph, TNL::Benchmarks::Benchmark<>& benchmark )
+   gunrockBenchmarks( const HostDigraph& hostDigraph,
+                      const HostGraph& hostGraph,
+                      IndexType smallestNode,
+                      IndexType largestNode,
+                      TNL::Benchmarks::Benchmark<>& benchmark )
    {
 #ifdef HAVE_GUNROCK
       auto filename = this->parameters.getParameter< TNL::String >( "input-file" );
@@ -393,7 +403,6 @@ struct GraphsBenchmark
       );
 
       GunrockBenchmark< Real, Index > gunrockBenchmark;
-      Index start = 0;
       benchmark.setMetadataElement( { "solver", "Gunrock" } );
 
       if( this->withBfs ) {
@@ -403,7 +412,7 @@ struct GraphsBenchmark
          benchmark.setMetadataElement( { "format", "N/A" } );
 
          std::vector< Index > bfsDistances( digraphAdjacencyMatrix.getRows() );
-         gunrockBenchmark.breadthFirstSearch( benchmark, digraph, start, digraphAdjacencyMatrix.getRows(), bfsDistances );
+         gunrockBenchmark.breadthFirstSearch( benchmark, digraph, largestNode, digraphAdjacencyMatrix.getRows(), bfsDistances );
          HostIndexVector gunrock_bfs_dist( bfsDistances );
          gunrock_bfs_dist.forAllElements(
             [] __cuda_callable__( Index i, Index & x )
@@ -426,7 +435,7 @@ struct GraphsBenchmark
          benchmark.setMetadataElement( { "problem", "BFS undir" } );
          benchmark.setMetadataElement( { "format", "N/A" } );
 
-         gunrockBenchmark.breadthFirstSearch( benchmark, graph, start, graphAdjacencyMatrix.getRows(), bfsDistances );
+         gunrockBenchmark.breadthFirstSearch( benchmark, graph, largestNode, graphAdjacencyMatrix.getRows(), bfsDistances );
          gunrock_bfs_dist = bfsDistances;
          gunrock_bfs_dist.forAllElements(
             [] __cuda_callable__( Index i, Index & x )
@@ -453,7 +462,7 @@ struct GraphsBenchmark
 
          std::vector< Real > ssspDistances( digraphAdjacencyMatrix.getRows() );
          gunrockBenchmark.singleSourceShortestPath(
-            benchmark, digraph, start, digraphAdjacencyMatrix.getRows(), ssspDistances );
+            benchmark, digraph, largestNode, digraphAdjacencyMatrix.getRows(), ssspDistances );
          HostRealVector gunrock_sssp_dist( ssspDistances );
          gunrock_sssp_dist.forAllElements(
             [] __cuda_callable__( Index i, Real & x )
@@ -476,7 +485,8 @@ struct GraphsBenchmark
          benchmark.setMetadataElement( { "problem", "SSSP undir" } );
          benchmark.setMetadataElement( { "format", "N/A" } );
 
-         gunrockBenchmark.singleSourceShortestPath( benchmark, graph, start, graphAdjacencyMatrix.getRows(), ssspDistances );
+         gunrockBenchmark.singleSourceShortestPath(
+            benchmark, graph, largestNode, graphAdjacencyMatrix.getRows(), ssspDistances );
          gunrock_sssp_dist = ssspDistances;
          gunrock_sssp_dist.forAllElements(
             [] __cuda_callable__( Index i, Real & x )
@@ -542,17 +552,12 @@ struct GraphsBenchmark
       auto symmetrizedAdjacencyMatrix = TNL::Matrices::getSymmetricPart< HostMatrix >( digraph.getAdjacencyMatrix() );
       HostGraph graph( symmetrizedAdjacencyMatrix );
       //TNL::Graphs::Writers::EdgeListWriter< HostGraph >::write( inputFile + "-undirected.txt", graph );
-      HostIndexVector nodeDegrees( graph.getNodeCount(), 0 );
-      graph.getAdjacencyMatrix().reduceAllRows(
-         [] __cuda_callable__( Index rowIdx, Index columnIdx, const Real& value ) -> Index
-         {
-            return 1;
-         } TNL::Plus<>{},
-         [] __cuda_callable__( Index rowIdx, Index result ) mutable
-         {
-            nodeDegressView[ rowIdx ] = result;
-         } );
-      Index start = argMax( nodeDegrees ).second();
+      HostIndexVector nodeDegrees( digraph.getNodeCount(), 0 );
+      graph.getAdjacencyMatrix().getCompressedRowLengths( nodeDegrees );
+      Index largest = TNL::argMax( nodeDegrees ).second;
+      Index smallest = TNL::argMax( greater( nodeDegrees, 0 ) ).second;
+      std::cout << "Smallest degree is " << nodeDegrees[ smallest ] << " at position " << smallest << std::endl;
+      std::cout << "Largest degree is " << nodeDegrees[ largest ] << " at position " << largest << std::endl;
 
       benchmark.setMetadataColumns( {
          { "graph name", inputFile },
@@ -567,33 +572,33 @@ struct GraphsBenchmark
          { "threads", 5 },
       } );
 
-      boostBenchmarks( digraph, graph, benchmark );
-      gunrockBenchmarks( digraph, graph, benchmark );
+      boostBenchmarks( digraph, graph, smallest, largest, benchmark );
+      gunrockBenchmarks( digraph, graph, smallest, largest, benchmark );
 
       if( device == "sequential" || device == "all" )
          TNLBenchmarks< TNL::Devices::Sequential, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            digraph, graph, benchmark, "sequential", "CSRScalar" );
+            digraph, graph, smallest, largest, benchmark, "sequential", "CSRScalar" );
       if( device == "host" || device == "all" )
          TNLBenchmarks< TNL::Devices::Host, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            digraph, graph, benchmark, "host", "CSRScalar" );
+            digraph, graph, smallest, largest, benchmark, "host", "CSRScalar" );
 #ifdef __CUDACC__
       if( device == "cuda" || device == "all" ) {
          TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            digraph, graph, benchmark, "cuda", "CSRScalar" );
+            digraph, graph, smallest, largest, benchmark, "cuda", "CSRScalar" );
          TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRVectorKernel >(
-            digraph, graph, benchmark, "cuda", "CSRVector" );
+            digraph, graph, smallest, largest, benchmark, "cuda", "CSRVector" );
          TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRLightKernel >(
-            digraph, graph, benchmark, "cuda", "CSRLight" );
+            digraph, graph, smallest, largest, benchmark, "cuda", "CSRLight" );
          TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRAdaptiveKernel >(
-            digraph, graph, benchmark, "cuda", "CSRAdaptive" );
+            digraph, graph, smallest, largest, benchmark, "cuda", "CSRAdaptive" );
          TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments, TNL::Algorithms::SegmentsReductionKernels::EllpackKernel >(
-            digraph, graph, benchmark, "cuda", "Ellpack" );
+            digraph, graph, smallest, largest, benchmark, "cuda", "Ellpack" );
          TNLBenchmarks< TNL::Devices::Cuda,
                         SlicedEllpackSegments,
                         TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >(
-            digraph, graph, benchmark, "cuda", "SlicedEllpack" );
+            digraph, graph, smallest, largest, benchmark, "cuda", "SlicedEllpack" );
          TNLBenchmarks< TNL::Devices::Cuda, BiEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel >(
-            digraph, graph, benchmark, "cuda", "BiEllpack" );
+            digraph, graph, smallest, largest, benchmark, "cuda", "BiEllpack" );
       }
 #endif
       if( errors == 0 )
