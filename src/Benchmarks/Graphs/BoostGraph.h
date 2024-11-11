@@ -17,26 +17,6 @@
 
 namespace TNL::Benchmarks::Graphs {
 
-// Custom visitor to update the distance map
-struct bfs_distance_visitor : public boost::default_bfs_visitor
-{
-   bfs_distance_visitor( std::vector< int >& distances )
-   : distances_( distances )
-   {}
-
-   template< typename Edge, typename Graph >
-   void
-   tree_edge( Edge e, const Graph& g ) const
-   {
-      using vertex_descriptor = typename boost::graph_traits< Graph >::vertex_descriptor;
-      vertex_descriptor u = source( e, g );
-      vertex_descriptor v = target( e, g );
-      distances_[ v ] = distances_[ u ] + 1;
-   }
-
-   std::vector< int >& distances_;
-};
-
 template< typename Value = double, TNL::Graphs::GraphTypes GraphType = TNL::Graphs::GraphTypes::Directed >
 struct BoostAdjacencyList
 {
@@ -98,28 +78,19 @@ struct BoostGraph
    void
    breadthFirstSearch( Index start, std::vector< Index >& distances )
    {
-      // Define a distance map to store distances from the source vertex
       distances.resize( boost::num_vertices( graph ) );
-      std::fill( distances.begin(), distances.end(), -1 );
-
-      // Initialize the distance map for the source vertex
-      distances[ start ] = 0;
-
-      bfs_distance_visitor distance_visitor( distances );
-      boost::breadth_first_search( graph, boost::vertex( 0, graph ), boost::visitor( distance_visitor ) );
+      auto recorder = record_distances( distances.data(), boost::on_tree_edge{} );
+      auto visitor = boost::make_bfs_visitor( recorder );
+      boost::breadth_first_search( graph, boost::vertex( start, graph ), boost::visitor( visitor ) );
    }
 
    void
    singleSourceShortestPath( Index start, std::vector< Real >& distances )
    {
-      // Define a distance map to store distances from the source vertex
       distances.resize( boost::num_vertices( graph ) );
-
-      // Compute the shortest paths from the source vertex (vertex 0) using Dijkstra's algorithm
-      Vertex source_vertex = 0;
       boost::dijkstra_shortest_paths(
          graph,
-         source_vertex,
+         start,
          boost::predecessor_map( boost::dummy_property_map() )
             .distance_map( boost::make_iterator_property_map( distances.begin(), get( boost::vertex_index, graph ) ) ) );
    }
