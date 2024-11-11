@@ -79,158 +79,6 @@ struct GraphsBenchmark
 
    GraphsBenchmark( const TNL::Config::ParameterContainer& parameters_ ) : parameters( parameters_ ) {}
 
-   template< typename Device,
-             template< typename Device_, typename Index_, typename IndexAllocator_ >
-             class Segments,
-             template< typename Index_, typename Device_ >
-             class SegmentsKernel >
-   void
-   TNLBenchmarks( const HostDigraph& hostDigraph,
-                  const HostGraph& hostGraph,
-                  IndexType smallestNode,
-                  IndexType largestNode,
-                  TNL::Benchmarks::Benchmark<>& benchmark,
-                  const TNL::String& device,
-                  const TNL::String& segments )
-   {
-      using Matrix = TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
-      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Undirected >;
-      using Digraph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Directed >;
-      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Undirected >;
-      using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
-      using RealVector = TNL::Containers::Vector< Real, Device, Index >;
-      //using KernelType = SegmentsKernel< Index, Device >;
-
-      // TODO: Find a way how to use various reduction kernels for segments in the algorithms.
-
-      Digraph digraph( hostDigraph );
-      Graph graph( hostGraph );
-      benchmark.setMetadataElement( { "solver", "TNL" } );
-
-      if( this->withBfs ) {
-         // Benchmarking breadth-first search with directed graph
-         IndexVector bfsDistances( digraph.getNodeCount() );
-         benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
-         benchmark.setMetadataElement( { "problem", "BFS dir" } );
-         benchmark.setMetadataElement( { "format", segments } );
-
-         auto bfs_tnl_dir = [ & ]() mutable
-         {
-            TNL::Graphs::breadthFirstSearch( digraph, largestNode, bfsDistances );
-         };
-         benchmark.time< Device >( device, bfs_tnl_dir );
-#ifdef HAVE_BOOST
-         if( bfsDistances != this->boostBfsDistancesDirected ) {
-            std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << std::endl;
-            std::cout << "Boost: " << this->boostBfsDistancesDirected << std::endl;
-            std::cout << "TNL:   " << bfsDistances << std::endl;
-            this->errors++;
-         }
-#endif
-
-         // Benchmarking breadth-first search with undirected graph
-         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
-         benchmark.setMetadataElement( { "problem", "BFS undir" } );
-         benchmark.setMetadataElement( { "format", segments } );
-
-         auto bfs_tnl_undir = [ & ]() mutable
-         {
-            TNL::Graphs::breadthFirstSearch( graph, largestNode, bfsDistances );
-         };
-         benchmark.time< Device >( device, bfs_tnl_undir );
-#ifdef HAVE_BOOST
-         if( bfsDistances != this->boostBfsDistancesUndirected ) {
-            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << std::endl;
-            std::cout << "Boost: " << this->boostBfsDistancesUndirected << std::endl;
-            std::cout << "TNL:   " << bfsDistances << std::endl;
-            this->errors++;
-         }
-#endif
-      }
-
-      if( this->withSssp ) {
-         // Benchmarking single-source shortest paths with directed graph
-         benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount()
-                                   * ( sizeof( Index ) + sizeof( Real ) ) );
-         benchmark.setMetadataElement( { "problem", "SSSP dir" } );
-         benchmark.setMetadataElement( { "format", segments } );
-
-         RealVector ssspDistances( digraph.getNodeCount(), 0 );
-         auto sssp_tnl_dir = [ & ]() mutable
-         {
-            TNL::Graphs::singleSourceShortestPath( digraph, largestNode, ssspDistances );
-         };
-         if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
-            std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark." << std::endl;
-            this->errors++;
-         }
-         else
-            benchmark.time< Device >( device, sssp_tnl_dir );
-
-#ifdef HAVE_BOOST
-         if( ssspDistances != this->boostSSSPDistancesDirected ) {
-            std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!" << std::endl;
-            std::cout << "Boost: " << this->boostSSSPDistancesDirected << std::endl;
-            std::cout << "TNL:   " << ssspDistances << std::endl;
-            this->errors++;
-         }
-#endif
-
-         // Benchmarking single-source shortest paths with undirected graph
-         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount()
-                                   * ( sizeof( Index ) + sizeof( Real ) ) );
-         benchmark.setMetadataElement( { "problem", "SSSP undir" } );
-         benchmark.setMetadataElement( { "format", segments } );
-
-         //RealVector ssspDistances( digraph.getNodeCount(), 0 );
-         auto sssp_tnl_undir = [ & ]() mutable
-         {
-            TNL::Graphs::singleSourceShortestPath( graph, largestNode, ssspDistances );
-         };
-         benchmark.time< Device >( device, sssp_tnl_undir );
-
-#ifdef HAVE_BOOST
-         if( ssspDistances != this->boostSSSPDistancesUndirected ) {
-            std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!" << std::endl;
-            std::cout << "Boost: " << this->boostSSSPDistancesUndirected << std::endl;
-            std::cout << "TNL:   " << ssspDistances << std::endl;
-            this->errors++;
-         }
-#endif
-      }
-
-      if( this->withMst ) {
-         // Benchmarking minimum spanning tree
-         Graph mstGraph;
-         IndexVector roots;
-         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount()
-                                   * ( sizeof( Index ) + sizeof( Real ) ) );
-         benchmark.setMetadataElement( { "problem", "MST undir" } );
-         benchmark.setMetadataElement( { "format", segments } );
-
-         auto mst_tnl = [ & ]() mutable
-         {
-            TNL::Graphs::minimumSpanningTree( graph, mstGraph, roots );
-         };
-         benchmark.time< Device >( device, mst_tnl );
-         auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
-         TNL::Graphs::Writers::EdgeListWriter< Graph >::write( filename + "-tnl-mst.txt", mstGraph );
-         if( ! TNL::Graphs::isForest( mstGraph ) ) {
-            std::cout << "ERROR: TNL MST is not a forest!" << std::endl;
-            this->errors++;
-         }
-#ifdef HAVE_BOOST
-         Real mstTotalWeight = mstGraph.getTotalWeight();
-         if( mstTotalWeight != boostMSTTotalWeight ) {
-            std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!" << std::endl;
-            std::cout << "Boost MST total weight: " << boostMSTTotalWeight << std::endl;
-            std::cout << "TNL MST total weight: " << mstTotalWeight << std::endl;
-            this->errors++;
-         }
-#endif
-      }
-   }
-
    void
    boostBenchmarks( const HostDigraph& digraph,
                     const HostGraph& graph,
@@ -334,7 +182,6 @@ struct GraphsBenchmark
             Real weight = boost::get( boost::edge_weight, boostGraph.getGraph(), edge );
             this->boostMSTTotalWeight += weight;
          }
-         //this->boostMSTTotalWeight = 2.0;
          auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
          boostGraph.exportMst( boostMstEdges, filename + "-boost-mst.txt" );
       }
@@ -424,8 +271,6 @@ struct GraphsBenchmark
    #ifdef HAVE_BOOST
          if( this->boostBfsDistancesDirected != this->gunrockBfsDistancesDirected ) {
             std::cout << "BFS distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
-            std::cout << "Boost:   " << this->boostBfsDistancesDirected << std::endl;
-            std::cout << "Gunrock: " << this->gunrockBfsDistancesDirected << std::endl;
             this->errors++;
          }
    #endif
@@ -447,8 +292,6 @@ struct GraphsBenchmark
    #ifdef HAVE_BOOST
          if( this->boostBfsDistancesUndirected != this->gunrockBfsDistancesUndirected ) {
             std::cout << "BFS distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
-            std::cout << "Boost:   " << this->boostBfsDistancesUndirected << std::endl;
-            std::cout << "Gunrock: " << this->gunrockBfsDistancesUndirected << std::endl;
             this->errors++;
          }
    #endif
@@ -474,9 +317,7 @@ struct GraphsBenchmark
    #ifdef HAVE_BOOST
          if( this->boostSSSPDistancesDirected != this->gunrockSSSPDistancesDirected ) {
             std::cout << "SSSP distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
-            std::cout << "Boost:   " << this->boostSSSPDistancesDirected << std::endl;
-            std::cout << "Gunrock: " << this->gunrockSSSPDistancesDirected << std::endl;
-            this->errors++;
+           this->errors++;
          }
    #endif
 
@@ -498,13 +339,179 @@ struct GraphsBenchmark
    #ifdef HAVE_BOOST
          if( this->boostSSSPDistancesUndirected != this->gunrockSSSPDistancesUndirected ) {
             std::cout << "SSSP distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
-            std::cout << "Boost:   " << this->boostSSSPDistancesUndirected << std::endl;
-            std::cout << "Gunrock: " << this->gunrockSSSPDistancesUndirected << std::endl;
             this->errors++;
          }
    #endif
       }
 #endif  // HAVE_GUNROCK
+   }
+
+   template< typename Device,
+             template< typename Device_, typename Index_, typename IndexAllocator_ >
+             class Segments,
+             template< typename Index_, typename Device_ >
+             class SegmentsKernel >
+   void
+   TNLBenchmarks( const HostDigraph& hostDigraph,
+                  const HostGraph& hostGraph,
+                  IndexType smallestNode,
+                  IndexType largestNode,
+                  TNL::Benchmarks::Benchmark<>& benchmark,
+                  const TNL::String& device,
+                  const TNL::String& segments )
+   {
+      using Matrix = TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
+      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Undirected >;
+      using Digraph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Directed >;
+      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Undirected >;
+      using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
+      using RealVector = TNL::Containers::Vector< Real, Device, Index >;
+      //using KernelType = SegmentsKernel< Index, Device >;
+
+      // TODO: Find a way how to use various reduction kernels for segments in the algorithms.
+
+      Digraph digraph( hostDigraph );
+      Graph graph( hostGraph );
+      benchmark.setMetadataElement( { "solver", "TNL" } );
+
+      if( this->withBfs ) {
+         // Benchmarking breadth-first search with directed graph
+         IndexVector bfsDistances( digraph.getNodeCount() );
+         benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
+         benchmark.setMetadataElement( { "problem", "BFS dir" } );
+         benchmark.setMetadataElement( { "format", segments } );
+
+         auto bfs_tnl_dir = [ & ]() mutable
+         {
+            TNL::Graphs::breadthFirstSearch( digraph, largestNode, bfsDistances );
+         };
+         benchmark.time< Device >( device, bfs_tnl_dir );
+#ifdef HAVE_BOOST
+         if( bfsDistances != this->boostBfsDistancesDirected ) {
+            std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << std::endl;
+            this->errors++;
+         }
+#endif
+#ifdef HAVE_GUNROCK
+         if( bfsDistances != this->gunrockBfsDistancesDirected ) {
+            std::cout << "BFS distances of directed graph from TNL and Gunrock are not equal!" << std::endl;
+            this->errors++;
+         }
+#endif         
+
+         // Benchmarking breadth-first search with undirected graph
+         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
+         benchmark.setMetadataElement( { "problem", "BFS undir" } );
+         benchmark.setMetadataElement( { "format", segments } );
+
+         auto bfs_tnl_undir = [ & ]() mutable
+         {
+            TNL::Graphs::breadthFirstSearch( graph, largestNode, bfsDistances );
+         };
+         benchmark.time< Device >( device, bfs_tnl_undir );
+#ifdef HAVE_BOOST
+         if( bfsDistances != this->boostBfsDistancesUndirected ) {
+            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << std::endl;
+            this->errors++;
+         }
+#endif
+#ifdef HAVE_GUNROCK
+         if( bfsDistances != this->gunrockBfsDistancesUndirected ) {
+            std::cout << "BFS distances of undirected graph from TNL and Gunrock are not equal!" << std::endl;
+            this->errors++;
+         }
+#endif         
+
+      }
+
+      if( this->withSssp ) {
+         // Benchmarking single-source shortest paths with directed graph
+         benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount()
+                                   * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataElement( { "problem", "SSSP dir" } );
+         benchmark.setMetadataElement( { "format", segments } );
+
+         RealVector ssspDistances( digraph.getNodeCount(), 0 );
+         auto sssp_tnl_dir = [ & ]() mutable
+         {
+            TNL::Graphs::singleSourceShortestPath( digraph, largestNode, ssspDistances );
+         };
+         if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
+            std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark." << std::endl;
+            this->errors++;
+         }
+         else
+            benchmark.time< Device >( device, sssp_tnl_dir );
+
+#ifdef HAVE_BOOST
+         if( ssspDistances != this->boostSSSPDistancesDirected ) {
+            std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!" << std::endl;
+            this->errors++;
+         }
+#endif
+#ifdef HAVE_GUNROCK
+         if( ssspDistances != this->gunrockSSSPDistancesDirected ) {
+            std::cout << "SSSP distances of directed graph from TNL and Gunrock are not equal!" << std::endl;
+            this->errors++;
+         }
+#endif         
+
+         // Benchmarking single-source shortest paths with undirected graph
+         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount()
+                                   * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataElement( { "problem", "SSSP undir" } );
+         benchmark.setMetadataElement( { "format", segments } );
+
+         //RealVector ssspDistances( digraph.getNodeCount(), 0 );
+         auto sssp_tnl_undir = [ & ]() mutable
+         {
+            TNL::Graphs::singleSourceShortestPath( graph, largestNode, ssspDistances );
+         };
+         benchmark.time< Device >( device, sssp_tnl_undir );
+#ifdef HAVE_BOOST
+         if( ssspDistances != this->boostSSSPDistancesUndirected ) {
+            std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!" << std::endl;
+            this->errors++;
+         }
+#endif
+#ifdef HAVE_GUNROCK
+         if( ssspDistances != this->gunrockSSSPDistancesUndirected ) {
+            std::cout << "SSSP distances of undirected graph from TNL and Gunrock are not equal!" << std::endl;
+            this->errors++;
+         }
+#endif         
+      }
+
+      if( this->withMst ) {
+         // Benchmarking minimum spanning tree
+         Graph mstGraph;
+         IndexVector roots;
+         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount()
+                                   * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataElement( { "problem", "MST undir" } );
+         benchmark.setMetadataElement( { "format", segments } );
+
+         auto mst_tnl = [ & ]() mutable
+         {
+            TNL::Graphs::minimumSpanningTree( graph, mstGraph, roots );
+         };
+         benchmark.time< Device >( device, mst_tnl );
+         auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
+         TNL::Graphs::Writers::EdgeListWriter< Graph >::write( filename + "-tnl-mst.txt", mstGraph );
+         if( ! TNL::Graphs::isForest( mstGraph ) ) {
+            std::cout << "ERROR: TNL MST is not a forest!" << std::endl;
+            this->errors++;
+         }
+#ifdef HAVE_BOOST
+         Real mstTotalWeight = mstGraph.getTotalWeight();
+         if( mstTotalWeight != boostMSTTotalWeight ) {
+            std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!" << std::endl;
+            std::cout << "Boost MST total weight: " << boostMSTTotalWeight << std::endl;
+            std::cout << "TNL MST total weight: " << mstTotalWeight << std::endl;
+            this->errors++;
+         }
+#endif
+      }
    }
 
    bool
