@@ -5,6 +5,7 @@ add_subdirectory(Graphs)
 add_subdirectory(Matrices)
 add_subdirectory(Meshes)
 add_subdirectory(MPI)
+add_subdirectory(Particles)
 add_subdirectory(Pointers)
 add_subdirectory(Solvers)
 
