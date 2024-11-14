@@ -10,8 +10,65 @@
 #include <TNL/Functional.h>
 #include <TNL/Assert.h>
 #include <TNL/Matrices/MatrixBase.h>
+#include <TNL/Algorithms/contains.h>
 
 namespace TNL::Graphs {
+
+template< bool haveExplorer, typename Matrix, typename Vector, typename Visitor, typename Explorer >
+void
+breadthFirstSearchParallel( const Matrix& adjacencyMatrix,
+                            typename Matrix::IndexType start,
+                            Vector& distances,
+                            Visitor&& visitor,
+                            Explorer&& explorer )
+{
+   TNL_ASSERT_TRUE( adjacencyMatrix.getRows() == adjacencyMatrix.getColumns(),
+                    "Adjacency matrix must be square matrix." );
+   TNL_ASSERT_TRUE( distances.getSize() == adjacencyMatrix.getRows(),
+                    "v must have the same size as the number of rows in adjacencyMatrix" );
+
+   using Real = typename Matrix::RealType;
+   using Device = typename Matrix::DeviceType;
+   using Index = typename Matrix::IndexType;
+   const Index n = adjacencyMatrix.getRows();
+
+   Vector y( distances.getSize() );
+   Containers::Vector< Index, Device, Index > predecesors( n, -1 );
+   distances = -1;
+   distances.setElement( start, 0 );
+   y = distances;
+   auto distances_view = distances.getView();
+   auto y_view = y.getView();
+   auto predecesors_view = predecesors.getView();
+   for( Index i = 0; i <= n; i++ ) {
+      if constexpr( std::is_same_v< Device, Devices::Host > )
+         adjacencyMatrix.forAllElements( [=] __cuda_callable__ ( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+         {
+            if( distances_view[ rowIdx ] == i && columnIdx != Matrices::paddingIndex< Index > && y_view[ columnIdx ] == -1 ) {
+               #pragma omp atomic write
+               y_view[ columnIdx ] = i+1;
+               #pragma omp atomic write
+               predecesors_view[ columnIdx ] = rowIdx;
+            }
+         } );
+      else
+         adjacencyMatrix.forAllElementsIf(
+        [=] __cuda_callable__ ( Index rowIdx ) { return distances_view[ rowIdx ] == i; },
+        [=] __cuda_callable__ ( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+         {
+            TNL_ASSERT_LT( rowIdx, y_view.getSize(), "" );
+            TNL_ASSERT_LT( columnIdx, distances_view.getSize(), "" );
+            if( columnIdx != Matrices::paddingIndex< Index > && y_view[ columnIdx ] == -1 ) {
+               atomicMax( &y_view[ columnIdx ], i+1 );
+               atomicMax( &predecesors_view[ columnIdx ], rowIdx );
+            }
+         } );
+      if( y == distances )
+         break;
+      distances = y;
+   }
+}
+
 
 template< bool haveExplorer, typename Matrix, typename Vector, typename Visitor, typename Explorer >
 void
@@ -100,6 +157,8 @@ breadthFirstSearchTransposed( const Matrix& transposedAdjacencyMatrix,
    breadthFirstSearchTransposed_impl< true >( transposedAdjacencyMatrix, start, distances, visitor, explorer );
 }
 
+
+
 template< bool haveExplorer, typename Matrix, typename Vector, typename Visitor, typename Explorer >
 void
 breadthFirstSearch_impl( const Matrix& adjacencyMatrix,
@@ -146,7 +205,11 @@ breadthFirstSearch_impl( const Matrix& adjacencyMatrix,
    else {
       Matrix transposed;
       transposed.getTransposition( adjacencyMatrix );
-      breadthFirstSearchTransposed( transposed, start, distances, visitor, explorer );
+      //breadthFirstSearchTransposed( transposed, start, distances, visitor, explorer );
+      if constexpr( haveExplorer )
+         breadthFirstSearchParallel< true >( adjacencyMatrix, start, distances, visitor, explorer );
+      else
+         breadthFirstSearchParallel< false >( adjacencyMatrix, start, distances, visitor, [] __cuda_callable__( Index ) {} );
    }
 }
 
