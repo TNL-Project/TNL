@@ -6,7 +6,7 @@
 
 #include <limits> //UINT_MAX
 
-#include "../SPH/shared/thrustExecPolicySelector.h"
+#include "details/thrustExecPolicySelector.h"
 #include <string_view>
 #include <thrust/sort.h>
 #include <thrust/gather.h>

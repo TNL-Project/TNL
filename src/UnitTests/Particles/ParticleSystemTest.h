@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h" //test vectors
 
-#include <Particles/ParticlesLinkedList.h>
+#include <TNL/Particles/ParticlesLinkedList.h>
 
 using namespace TNL;
 using namespace ParticleSystem;

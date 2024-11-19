@@ -8,7 +8,7 @@
 #include <thrust/execution_policy.h>
 #include <thrust/gather.h>
 #include <type_traits>
-#include "../SPH/shared/thrustExecPolicySelector.h"
+#include "details/thrustExecPolicySelector.h"
 
 #include "ParticlesTraits.h"
 

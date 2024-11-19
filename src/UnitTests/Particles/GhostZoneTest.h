@@ -1,8 +1,8 @@
 #pragma once
 
 #include <gtest/gtest.h>
-#include <Particles/ParticlesLinkedList.h>
-#include <Particles/GhostZone.h>
+#include <TNL/Particles/ParticlesLinkedList.h>
+#include <TNL/Particles/GhostZone.h>
 #include "gtest/gtest.h"
 #include "gmock/gmock.h" //test vectors
 
