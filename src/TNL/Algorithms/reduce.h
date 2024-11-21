@@ -26,7 +26,7 @@ namespace TNL::Algorithms {
  * \tparam Index is a type for indexing.
  * \tparam Result is a type of the reduction result.
  * \tparam Fetch is a lambda function for fetching the input data.
- * \tparam Reduction is a function object performing the reduction.
+ * \tparam Reduction is a lambda function or functional performing the reduction.
  *
  * \e Device can be on of the following \ref TNL::Devices::Sequential,
  * \ref TNL::Devices::Host and \ref TNL::Devices::Cuda.
@@ -34,7 +34,7 @@ namespace TNL::Algorithms {
  * \param begin defines range [begin, end) of indexes which will be used for the reduction.
  * \param end defines range [begin, end) of indexes which will be used for the reduction.
  * \param fetch is a lambda function fetching the input data.
- * \param reduction is a function object
+ * \param reduction is an instance of lambda function or [functional](https://en.wikipedia.org/wiki/Functional_(C%2B%2B))
  * defining the reduction operation. One can use TNL functionals like \ref TNL::Plus, \ref TNL::Minus, \ref TNL::Multiplies,
  *  \ref TNL::Divides, \ref TNL::Modulus, \ref TNL::Min, \ref TNL::Max, \ref TNL::LogicalAnd, \ref TNL::LogicalOr,
  *  \ref TNL::BitAnd, \ref TNL::BitOr or \ref TNL::BitXor or their counterparts from
@@ -90,8 +90,12 @@ reduce( Index begin, Index end, Fetch&& fetch, Reduction&& reduction, const Resu
  * \param begin defines range [begin, end) of indexes which will be used for the reduction.
  * \param end defines range [begin, end) of indexes which will be used for the reduction.
  * \param fetch is a lambda function fetching the input data.
- * \param reduction is a functional defining the reduction operation.
- * \return result of the reduction
+ * \param reduction is an instance of lambda function or [functional](https://en.wikipedia.org/wiki/Functional_(C%2B%2B))
+ * defining the reduction operation. One can use TNL functionals like \ref TNL::Plus, \ref TNL::Minus, \ref TNL::Multiplies,
+ *  \ref TNL::Divides, \ref TNL::Modulus, \ref TNL::Min, \ref TNL::Max, \ref TNL::LogicalAnd, \ref TNL::LogicalOr,
+ *  \ref TNL::BitAnd, \ref TNL::BitOr or \ref TNL::BitXor or their counterparts from
+ * [STL](https://en.cppreference.com/w/cpp/header/functional).
+ \return result of the reduction
  *
  * The `fetch` lambda function takes one argument which is index of the element to be fetched:
  *
@@ -190,21 +194,23 @@ reduce( const Array& array, Reduction&& reduction = TNL::Plus{} )
  * \tparam Device is a type of the device where the reduction will be performed.
  * \tparam Index is a type for indexing.
  * \tparam Result is a type of the reduction result.
- * \tparam Reduction is a lambda function performing the reduction.
+ * \tparam Reduction is a [functional](https://en.wikipedia.org/wiki/Functional_(C%2B%2B)) performing the reduction.
  * \tparam Fetch is a lambda function for fetching the input data.
  *
  * \e Device can be on of the following \ref TNL::Devices::Sequential,
  * \ref TNL::Devices::Host and \ref TNL::Devices::Cuda.
  *
+ * \e Reduction can be one of \ref TNL::MinWithArg, \ref TNL::MaxWithArg or  \ref TNL::AnyWithArg.
+ *
  * \param begin defines range [begin, end) of indexes which will be used for the reduction.
  * \param end defines range [begin, end) of indexes which will be used for the reduction.
  * \param fetch is a lambda function fetching the input data.
- * \param reduction is a lambda function defining the reduction operation and managing the elements positions.
- * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
- *                 for the reduction operation, i.e. element which does not
- *                 change the result of the reduction.
- * \return result of the reduction in a form of std::pair< Index, Result> structure. `pair.first`
- *         is the element position and `pair.second` is the reduction result.
+ * \param reduction is an instance of lambda function or [functional](https://en.wikipedia.org/wiki/Functional_(C%2B%2B))
+ * defining the reduction operation. One can use TNL functionals like \ref TNL::MinWithArg, \ref TNL::MaxWithArg, \ref
+ * TNL::AnyWithArg.
+ * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element) for the reduction
+ * operation, i.e. element which does not change the result of the reduction. \return result of the reduction in a form of
+ * std::pair< Index, Result> structure. `pair.first` is the element position and `pair.second` is the reduction result.
  *
  * The `fetch` lambda function takes one argument which is index of the element to be fetched:
  *
@@ -240,20 +246,20 @@ reduceWithArgument( Index begin, Index end, Fetch&& fetch, Reduction&& reduction
  * \tparam Device is a type of the device where the reduction will be performed.
  * \tparam Index is a type for indexing.
  * \tparam Result is a type of the reduction result.
- * \tparam Reduction is a functional performing the reduction.
+ * \tparam Reduction is a [functional](https://en.wikipedia.org/wiki/Functional_(C%2B%2B)) performing the reduction.
  * \tparam Fetch is a lambda function for fetching the input data.
  *
  * \e Device can be on of the following \ref TNL::Devices::Sequential,
  * \ref TNL::Devices::Host and \ref TNL::Devices::Cuda.
  *
- * \e Reduction can be one of \ref TNL::MinWithArg, \ref TNL::MaxWithArg.
+ * \e Reduction can be one of \ref TNL::MinWithArg, \ref TNL::MaxWithArg or  \ref TNL::AnyWithArg.
  *
  * \param begin defines range [begin, end) of indexes which will be used for the reduction.
  * \param end defines range [begin, end) of indexes which will be used for the reduction.
  * \param fetch is a lambda function fetching the input data.
- * \param reduction is a functional defining the reduction operation and managing the elements positions.
- * \return result of the reduction in a form of std::pair< Index, Result> structure. `pair.first`
- *         is the element position and `pair.second` is the reduction result.
+ * \param reduction is an instance of lambda function or functional defining the reduction operation.
+ * \return result of the reduction in a form of std::pair< Index, Result> structure.
+ * `pair.first` is the element position and `pair.second` is the reduction result.
  *
  * The `fetch` lambda function takes one argument which is index of the element to be fetched:
  *

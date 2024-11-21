@@ -12,6 +12,8 @@ set(COMMON_EXAMPLES
     SparseMatrixExample_getElement
     SparseMatrixExample_reduceRows
     SparseMatrixExample_reduceAllRows
+    SparseMatrixExample_reduceRowsWithFunctional
+    SparseMatrixExample_reduceAllRowsWithFunctional
     SparseMatrixExample_forElements
     SparseMatrixExample_forAllElements
     SparseMatrixExample_forRows

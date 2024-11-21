@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Containers/Vector.h>
+#include "isSegmentReductionKernel.h"
 
 #include "detail/CSRAdaptiveKernelBlockDescriptor.h"
 #include "detail/CSRAdaptiveKernelParameters.h"
@@ -79,6 +80,12 @@ struct CSRAdaptiveKernelView
 
 protected:
    BlocksView blocksArray[ MaxValueSizeLog ];
+};
+
+template< typename Index, typename Device >
+struct isSegmentReductionKernel< CSRAdaptiveKernelView< Index, Device > >
+{
+   static constexpr bool value = true;
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Backend.h>
+#include "isSegmentReductionKernel.h"
 
 #include "detail/FetchLambdaAdapter.h"
 
@@ -63,6 +64,12 @@ struct CSRHybridKernel
 
 protected:
    int threadsPerSegment = 0;
+};
+
+template< typename Index, typename Device, int ThreadsInBlock >
+struct isSegmentReductionKernel< CSRHybridKernel< Index, Device, ThreadsInBlock > >
+{
+   static constexpr bool value = true;
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

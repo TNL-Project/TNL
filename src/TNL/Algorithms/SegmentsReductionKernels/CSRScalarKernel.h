@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Backend.h>
+#include "isSegmentReductionKernel.h"
 
 #include "detail/FetchLambdaAdapter.h"
 
@@ -122,6 +123,12 @@ struct CSRScalarKernel
                       const Reduction& reduction,
                       ResultKeeper& keeper,
                       const Value& identity = Reduction::template getIdentity< Value >() );
+};
+
+template< typename Index, typename Device >
+struct isSegmentReductionKernel< CSRScalarKernel< Index, Device > >
+{
+   static constexpr bool value = true;
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

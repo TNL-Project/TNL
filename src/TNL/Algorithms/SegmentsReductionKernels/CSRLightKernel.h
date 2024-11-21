@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Backend.h>
+#include "isSegmentReductionKernel.h"
 
 #include "detail/FetchLambdaAdapter.h"
 
@@ -87,6 +88,12 @@ protected:
    LightCSRSThreadsMapping mapping = CSRLightAutomaticThreads;
 
    int threadsPerSegment = 32;
+};
+
+template< typename Index, typename Device >
+struct isSegmentReductionKernel< CSRLightKernel< Index, Device > >
+{
+   static constexpr bool value = true;
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels
