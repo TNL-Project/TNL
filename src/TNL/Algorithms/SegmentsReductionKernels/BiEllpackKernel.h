@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Backend.h>
+#include "isSegmentReductionKernel.h"
 
 #include "detail/FetchLambdaAdapter.h"
 
@@ -60,6 +61,12 @@ struct BiEllpackKernel
                       const Reduction& reduction,
                       ResultKeeper& keeper,
                       const Value& identity = Reduction::template getIdentity< Value >() );
+};
+
+template< typename Index, typename Device >
+struct isSegmentReductionKernel< BiEllpackKernel< Index, Device > >
+{
+   static constexpr bool value = true;
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

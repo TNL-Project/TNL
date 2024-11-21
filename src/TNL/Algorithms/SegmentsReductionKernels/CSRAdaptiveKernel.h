@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CSRAdaptiveKernelView.h"
+#include "isSegmentReductionKernel.h"
 
 #include "detail/FetchLambdaAdapter.h"
 
@@ -90,6 +91,12 @@ protected:
    BlocksType blocksArray[ MaxValueSizeLog() ];
 
    ViewType view;
+};
+
+template< typename Index, typename Device >
+struct isSegmentReductionKernel< CSRAdaptiveKernel< Index, Device > >
+{
+   static constexpr bool value = true;
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

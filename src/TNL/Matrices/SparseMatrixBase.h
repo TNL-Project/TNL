@@ -373,13 +373,56 @@ public:
              typename Keep,
              typename FetchValue,
              typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
-   void
+   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
    reduceRows( IndexType begin,
                IndexType end,
                Fetch&& fetch,
                const Reduce& reduce,
                Keep&& keep,
                const FetchValue& identity,
+               const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+
+   /**
+    * \brief Method for performing general reduction on matrix rows for constant instances with functional
+    * instead of lamda function for reduction.
+    *
+    * \tparam Fetch is a type of lambda function for data fetch declared as
+    *
+    * ```
+    * auto fetch = [] __cuda_callable__ ( IndexType rowIdx, IndexType& columnIdx, RealType& elementValue ) -> FetchValue
+    * { ... };
+    * ```
+    *
+    * The return type of this lambda can be any non void.
+    * \tparam Reduce is a functional for reduction (some of \ref ReductionFunctionals).
+    * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
+    *
+    * ```
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
+    * ```
+    *
+    * \tparam FetchValue is type returned by the Fetch lambda function.
+    *
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
+    * \param fetch is an instance of lambda function for data fetch.
+    * \param reduce is an instance of functional for reduction.
+    * \param keep in an instance of lambda function for storing results.
+    * \param kernel is an instance of the segments reduction kernel to be used
+    *               for the operation.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_reduceRowsWithFunctional.cpp
+    * \par Output
+    * \include SparseMatrixExample_reduceRows.out
+    */
+   template< typename Fetch, typename Reduce, typename Keep, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
+   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+   reduceRows( IndexType begin,
+               IndexType end,
+               Fetch&& fetch,
+               const Reduce& reduce,
+               Keep&& keep,
                const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
    /**
@@ -426,11 +469,50 @@ public:
              typename Keep,
              typename FetchValue,
              typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
-   void
+   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
    reduceAllRows( Fetch&& fetch,
                   const Reduce& reduce,
                   Keep&& keep,
                   const FetchValue& identity,
+                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+
+   /**
+    * \brief Method for performing general reduction on all matrix rows for constant instances
+    * with functional instead of lambda function for reduction.
+    *
+    * \tparam Fetch is a type of lambda function for data fetch declared as
+    *
+    * ```
+    * auto fetch = [] __cuda_callable__ ( IndexType rowIdx, IndexType& columnIdx, RealType& elementValue ) -> FetchValue
+    * { ... };
+    * ```
+    *
+    * The return type of this lambda can be any non void.
+    * \tparam Reduce is a functional for reduction (some of \ref ReductionFunctionals).
+    * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
+    *
+    * ```
+    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
+    * ```
+    *
+    * \tparam FetchValue is type returned by the Fetch lambda function.
+    *
+    * \param fetch is an instance of lambda function for data fetch.
+    * \param reduce is an instance of functional for reduction.
+    * \param keep in an instance of lambda function for storing results.
+    * \param kernel is an instance of the segments reduction kernel to be used
+    *               for the operation.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_reduceAllRowsWithFunctional.cpp
+    * \par Output
+    * \include SparseMatrixExample_reduceAllRows.out
+    */
+   template< typename Fetch, typename Reduce, typename Keep, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
+   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+   reduceAllRows( Fetch&& fetch,
+                  const Reduce& reduce,
+                  Keep&& keep,
                   const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
    /**

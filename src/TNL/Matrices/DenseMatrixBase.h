@@ -318,7 +318,8 @@ public:
     * ```
     *
     *  The return type of this lambda can be any non void.
-    * \tparam Reduce is a type of lambda function for reduction declared as
+    * \tparam Reduce is a type of lambda function or [functional](https://en.wikipedia.org/wiki/Functional_(C%2B%2B)) for
+    * reduction declared as
     *
     * ```
     * auto reduce = [] __cuda_callable__ ( const FetchValue& v1, const FetchValue& v2 ) -> FetchValue { ... };
@@ -398,7 +399,8 @@ public:
     * ```
     *
     *  The return type of this lambda can be any non void.
-    * \tparam Reduce is a type of lambda function for reduction declared as
+    * \tparam Reduce is a type of lambda function or [functional](https://en.wikipedia.org/wiki/Functional_(C%2B%2B)) for
+    * reduction declared as
     *
     * ```
     * auto reduce = [] __cuda_callable__ ( const FetchValue& v1, const FetchValue& v2 ) -> FetchValue { ... };
