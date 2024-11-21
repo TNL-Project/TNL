@@ -1,0 +1,1 @@
+DenseMatrixViewExample_reduceRowsWithFunctional.cpp

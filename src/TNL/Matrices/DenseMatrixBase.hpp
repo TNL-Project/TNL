@@ -314,6 +314,19 @@ DenseMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begi
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Fetch, typename Reduce, typename Keep >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begin,
+                                                                  IndexType end,
+                                                                  Fetch&& fetch,
+                                                                  const Reduce& reduce,
+                                                                  Keep&& keep ) const
+{
+   using FetchType = decltype( fetch( IndexType(), IndexType(), RealType() ) );
+   this->reduceRows( begin, end, fetch, reduce, keep, reduce.template getIdentity< FetchType >() );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch&& fetch,
@@ -322,6 +335,14 @@ DenseMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch&& fet
                                                                      const FetchReal& identity ) const
 {
    this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Fetch, typename Reduce, typename Keep >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch&& fetch, const Reduce& reduce, Keep&& keep ) const
+{
+   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

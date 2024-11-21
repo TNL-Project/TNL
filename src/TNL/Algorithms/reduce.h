@@ -26,7 +26,7 @@ namespace TNL::Algorithms {
  * \tparam Index is a type for indexing.
  * \tparam Result is a type of the reduction result.
  * \tparam Fetch is a lambda function for fetching the input data.
- * \tparam Reduction is a lambda function performing the reduction.
+ * \tparam Reduction is a function object performing the reduction.
  *
  * \e Device can be on of the following \ref TNL::Devices::Sequential,
  * \ref TNL::Devices::Host and \ref TNL::Devices::Cuda.
@@ -34,7 +34,11 @@ namespace TNL::Algorithms {
  * \param begin defines range [begin, end) of indexes which will be used for the reduction.
  * \param end defines range [begin, end) of indexes which will be used for the reduction.
  * \param fetch is a lambda function fetching the input data.
- * \param reduction is a lambda function defining the reduction operation.
+ * \param reduction is a function object
+ * defining the reduction operation. One can use TNL functionals like \ref TNL::Plus, \ref TNL::Minus, \ref TNL::Multiplies,
+ *  \ref TNL::Divides, \ref TNL::Modulus, \ref TNL::Min, \ref TNL::Max, \ref TNL::LogicalAnd, \ref TNL::LogicalOr,
+ *  \ref TNL::BitAnd, \ref TNL::BitOr or \ref TNL::BitXor or their counterparts from
+ * [STL](https://en.cppreference.com/w/cpp/header/functional).
  * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
  *                 for the reduction operation, i.e. element which does not
  *                 change the result of the reduction.
