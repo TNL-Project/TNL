@@ -132,6 +132,60 @@ test_SetSegmentsSizes_EqualSizes_EllpackOnly()
       EXPECT_EQ( segmentsView.getSegmentSize( i ), segmentSize );
 }
 
+template< typename Segments >
+void
+test_forElements_EqualSizes()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+
+   const IndexType segmentsCount = 50;
+   const IndexType segmentSize = 5;
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   segmentsSizes = segmentSize;
+
+   Segments segments( segmentsSizes );
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
+   auto v_view = v.getView();
+   segments.forAllElements( [=] __cuda_callable__ ( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable {
+      v_view[ globalIdx ] = segmentIdx + localIdx;
+   } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentSize; localIdx++ )
+         EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx+localIdx );
+   }
+}
+
+template< typename Segments >
+void
+test_forElements()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+
+   const IndexType segmentsCount = 260;
+   const IndexType maxSegmentSize = 70;
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   segmentsSizes.forAllElements( [=] __cuda_callable__ ( IndexType idx, IndexType& value ) { value = idx % maxSegmentSize; } );
+
+   Segments segments( segmentsSizes );
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
+   auto v_view = v.getView();
+   segments.forAllElements( [=] __cuda_callable__ ( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable {
+      v_view[ globalIdx ] = segmentIdx + localIdx;
+   } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
+         EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx+localIdx );
+   }
+}
+
 template< typename Segments, typename SegmentsReductionKernel >
 void
 test_reduceAllSegments_MaximumInSegments()
@@ -153,6 +207,7 @@ test_reduceAllSegments_MaximumInSegments()
    auto init =
       [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable -> bool
    {
+      TNL_ASSERT_LT( globalIdx, view.getSize(), "" );
       view[ globalIdx ] = segmentIdx * 5 + localIdx + 1;
       return true;
    };

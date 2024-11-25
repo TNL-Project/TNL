@@ -37,6 +37,13 @@ TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< EllpackSegmentsType >();
 }
 
+TYPED_TEST( EllpackSegmentsTest, forElements )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_forElements< EllpackSegmentsType >();
+}
+
 TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes_EllpackOnly )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
