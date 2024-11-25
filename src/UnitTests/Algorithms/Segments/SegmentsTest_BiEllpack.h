@@ -37,6 +37,13 @@ TYPED_TEST( BiEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< BiEllpackSegmentsType >();
 }
 
+TYPED_TEST( BiEllpackSegmentsTest, forElements )
+{
+   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
+
+   test_forElements< BiEllpackSegmentsType >();
+}
+
 TYPED_TEST( BiEllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
 {
    using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
