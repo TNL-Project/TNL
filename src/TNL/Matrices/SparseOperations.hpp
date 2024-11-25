@@ -134,18 +134,21 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
          const Index lastRow = min( baseRow + bufferRowsCount, rowsCount );
          thisColumnsBuffer = paddingIndex< Index >;
          matrixColumnsBuffer_view = paddingIndex< Index >;
-
-         // Copy matrix elements into buffer
-         auto f1 = [ = ] __cuda_callable__(
-                      RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIndex, const RHSRealType& value ) mutable
+         auto B_view = B.getView();
+         auto f1 = [ = ] __cuda_callable__( RHSIndexType rowIdx ) mutable
          {
-            if( columnIndex != paddingIndex< Index > ) {
-               const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
-               matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
-               matrixValuesBuffer_view[ bufferIdx ] = value;
+            auto row = B_view.getRow( rowIdx );
+            for( RHSIndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+               const RHSIndexType columnIndex = row.getColumnIndex( localIdx );
+               const RHSRealType value = row.getValue( localIdx );
+               if( columnIndex != paddingIndex< Index > ) {
+                  const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
+                  matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
+                  matrixValuesBuffer_view[ bufferIdx ] = value;
+               }
             }
          };
-         B.forElements( baseRow, lastRow, f1 );
+         Algorithms::parallelFor< RHSDeviceType >( baseRow, lastRow, f1 );
 
          // Copy the source matrix buffer to this matrix buffer
          thisValuesBuffer_view = matrixValuesBuffer_view;
@@ -199,17 +202,22 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
 
    if constexpr( std::is_same_v< Device, RHSDeviceType > ) {
       const auto segments_view = A.getSegments().getView();
-      auto f = [ = ] __cuda_callable__(
-                  RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIdx, const RHSRealType& value ) mutable
+      auto B_view = B.getConstView();
+      auto f = [ = ] __cuda_callable__( RHSIndexType rowIdx ) mutable
       {
-         if( value != 0.0 ) {
-            Index thisGlobalIdx = segments_view.getGlobalIndex( rowIdx, rowLocalIndexes_view[ rowIdx ]++ );
-            columns_view[ thisGlobalIdx ] = columnIdx;
-            if( ! Matrix1::isBinary() )
-               values_view[ thisGlobalIdx ] = value;
+         auto row = B_view.getRow( rowIdx );
+         for( RHSIndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+            const RHSIndexType columnIndex = row.getColumnIndex( localIdx );
+            const RHSRealType value = row.getValue( localIdx );
+            if( value != 0.0 ) {
+               Index thisGlobalIdx = segments_view.getGlobalIndex( rowIdx, rowLocalIndexes_view[ rowIdx ]++ );
+               columns_view[ thisGlobalIdx ] = columnIndex;
+               if( ! Matrix1::isBinary() )
+                  values_view[ thisGlobalIdx ] = value;
+            }
          }
       };
-      B.forAllElements( f );
+      Algorithms::parallelFor< RHSDeviceType >( 0, B.getRows(), f );
    }
    else {
       const Index maxRowLength = B.getColumns();
@@ -242,25 +250,31 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
          // Copy matrix elements from the buffer to the matrix and ignoring
          // zero matrix elements.
          const Index matrix_columns = A.getColumns();
-         auto f2 = [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index & columnIndex, Real & value ) mutable
+         auto A_view = A.getView();
+         auto f2 = [ = ] __cuda_callable__( const Index rowIdx ) mutable
          {
-            Real inValue = 0;
-            Index column = rowLocalIndexes_view[ rowIdx ];
-            while( inValue == Real{ 0 } && column < matrix_columns ) {
-               const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + column++;
-               inValue = thisValuesBuffer_view[ bufferIdx ];
-            }
-            rowLocalIndexes_view[ rowIdx ] = column;
-            if( inValue == Real{ 0 } ) {
-               columnIndex = paddingIndex< Index >;
-               value = 0;
-            }
-            else {
-               columnIndex = column - 1;
-               value = inValue;
+            auto row = A_view.getRow( rowIdx );
+            for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+               Real inValue = 0;
+               Index column = rowLocalIndexes_view[ rowIdx ];
+               while( inValue == Real{ 0 } && column < matrix_columns ) {
+                  const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + column++;
+                  inValue = thisValuesBuffer_view[ bufferIdx ];
+               }
+               rowLocalIndexes_view[ rowIdx ] = column;
+               if( inValue == Real{ 0 } ) {
+                  row.setColumnIndex( localIdx, -1 );  //paddingIndex< Index > );
+                  // TODO:: Fix - SparseOperations.hpp(532): error: identifier "TNL::Matrices::paddingIndex<int> " is undefined
+                  // in device code From src/UnitTests/Matrices/SparseMatrixCopyTest.cu
+                  row.setValue( localIdx, 0 );
+               }
+               else {
+                  row.setColumnIndex( localIdx, column - 1 );
+                  row.setValue( localIdx, inValue );
+               }
             }
          };
-         A.forElements( baseRow, lastRow, f2 );
+         Algorithms::parallelFor< Device >( baseRow, lastRow, f2 );
          baseRow += bufferRowsCount;
       }
    }
@@ -312,28 +326,33 @@ copyBuffersToMatrixElements( Matrix& m,
    using Real = typename Matrix::RealType;
 
    auto thisRowLengths_view = thisRowLengths.getView();
-
-   auto f2 = [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index & columnIndex, Real & value ) mutable
+   auto m_view = m.getView();
+   auto f2 = [ = ] __cuda_callable__( Index rowIdx ) mutable
    {
-      Real inValue = 0;
-      std::size_t bufferIdx = 0;
-      Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
-      while( inValue == Real{ 0 } && localIdx < thisRowLengths_view[ rowIdx ] ) {
-         bufferIdx = ( rowIdx - baseRow ) * maxRowLength + bufferLocalIdx++;
-         //TNL_ASSERT_LT( bufferIdx, bufferSize, "" );
-         inValue = thisValuesBuffer_view[ bufferIdx ];
-      }
-      rowLocalIndexes_view[ rowIdx ] = bufferLocalIdx;
-      if( inValue == Real{ 0 } ) {
-         columnIndex = paddingIndex< Index >;
-         value = 0;
-      }
-      else {
-         columnIndex = thisColumnsBuffer_view[ bufferIdx ];  // column - 1;
-         value = inValue;
+      auto row = m_view.getRow( rowIdx );
+      for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+         Index& columnIndex = row.getColumnIndex( localIdx );
+         Real& value = row.getValue( localIdx );
+         Real inValue = 0;
+         std::size_t bufferIdx = 0;
+         Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
+         while( inValue == Real{ 0 } && localIdx < thisRowLengths_view[ rowIdx ] ) {
+            bufferIdx = ( rowIdx - baseRow ) * maxRowLength + bufferLocalIdx++;
+            //TNL_ASSERT_LT( bufferIdx, bufferSize, "" );
+            inValue = thisValuesBuffer_view[ bufferIdx ];
+         }
+         rowLocalIndexes_view[ rowIdx ] = bufferLocalIdx;
+         if( inValue == Real{ 0 } ) {
+            columnIndex = paddingIndex< Index >;
+            value = 0;
+         }
+         else {
+            columnIndex = thisColumnsBuffer_view[ bufferIdx ];  // column - 1;
+            value = inValue;
+         }
       }
    };
-   m.forElements( baseRow, lastRow, f2 );
+   Algorithms::parallelFor< typename Matrix::DeviceType >( baseRow, lastRow, f2 );  // TODO: Rewrite using forRows
 }
 #endif
 
@@ -364,21 +383,29 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
 
    if constexpr( std::is_same_v< Device, RHSDeviceType > ) {
       const auto segments_view = A.getSegments().getView();
-      auto f = [ = ] __cuda_callable__(
-                  RHSIndexType rowIdx, RHSIndexType localIdx_, RHSIndexType columnIndex, const RHSRealType& value ) mutable
+      const auto b_view = B.getConstView();
+
+      auto f = [ = ] __cuda_callable__( RHSIndexType rowIdx ) mutable
       {
-         Index localIdx( rowLocalIndexes_view[ rowIdx ] );
-         if( value != 0.0 && columnIndex != paddingIndex< RHSIndexType > ) {
-            Index thisGlobalIdx = segments_view.getGlobalIndex( rowIdx, localIdx++ );
-            TNL_ASSERT_GE(
-               thisGlobalIdx, 0, "Global index must be non-negative. Negative values may appear due to Index type overflow." );
-            columns_view[ thisGlobalIdx ] = columnIndex;
-            if( ! Matrix1::isBinary() )
-               values_view[ thisGlobalIdx ] = value;
-            rowLocalIndexes_view[ rowIdx ] = localIdx;
+         auto row = b_view.getRow( rowIdx );
+         for( RHSIndexType bLocalIdx = 0; bLocalIdx < row.getSize(); bLocalIdx++ ) {
+            Index aLocalIdx( bLocalIdx );
+            if( row.getValue( bLocalIdx ) != 0.0 && row.getColumnIndex( bLocalIdx ) != paddingIndex< RHSIndexType > ) {
+               const RHSIndexType columnIdx = row.getColumnIndex( bLocalIdx );
+               Index thisGlobalIdx = segments_view.getGlobalIndex( rowIdx, aLocalIdx++ );
+               TNL_ASSERT_GE( thisGlobalIdx,
+                              0,
+                              "Global index must be non-negative. Negative values may appear due to Index type overflow." );
+               //printf( "rowIdx = %d A:localIdx = %d columnIdx = %d B:localIdx = %d value = %d \n", rowIdx, bLocalIdx,
+               //columnIdx, aLocalIdx, row.getValue( bLocalIdx) );
+               columns_view[ thisGlobalIdx ] = columnIdx;
+               if( ! Matrix1::isBinary() )
+                  values_view[ thisGlobalIdx ] = row.getValue( bLocalIdx );
+               rowLocalIndexes_view[ rowIdx ] = aLocalIdx;
+            }
          }
       };
-      B.forAllElements( f );
+      Algorithms::parallelFor< RHSDeviceType >( 0, B.getRows(), f );  // TODO: Rewrite this using forRows
    }
    else {
       const Index maxRowLength = max( rowCapacities );
@@ -409,19 +436,24 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
          copyMatrixElementsToBuffers( B, baseRow, lastRow, maxRowLength, matrixColumnsBuffer, matrixValuesBuffer );
 #else
          // Copy matrix elements into buffer
-         auto f1 = [ = ] __cuda_callable__(
-                      RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIndex, const RHSRealType& value ) mutable
+         auto B_view = B.getConstView();
+         auto f1 = [ = ] __cuda_callable__( const RHSIndexType rowIdx ) mutable
          {
-            if( columnIndex != paddingIndex< RHSIndexType > ) {
-               TNL_ASSERT_LT( rowIdx - baseRow, bufferRowsCount, "" );
-               TNL_ASSERT_LT( localIdx, maxRowLength, "" );
-               const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
-               TNL_ASSERT_LT( bufferIdx, (Index) bufferSize, "" );
-               matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
-               matrixValuesBuffer_view[ bufferIdx ] = value;
+            auto row = B_view.getRow( rowIdx );
+            for( RHSIndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+               const RHSIndexType columnIndex = row.getColumnIndex( localIdx );
+               const RHSRealType& value = row.getValue( localIdx );
+               if( columnIndex != paddingIndex< RHSIndexType > ) {
+                  TNL_ASSERT_LT( rowIdx - baseRow, bufferRowsCount, "" );
+                  TNL_ASSERT_LT( localIdx, maxRowLength, "" );
+                  const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
+                  TNL_ASSERT_LT( bufferIdx, (Index) bufferSize, "" );
+                  matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
+                  matrixValuesBuffer_view[ bufferIdx ] = value;
+               }
             }
          };
-         B.forElements( baseRow, lastRow, f1 );
+         Algorithms::parallelFor< RHSDeviceType >( baseRow, lastRow, f1 );  // TODO: Rewrite this using forRows
 #endif
          // Copy the source matrix buffer to this matrix buffer
          thisValuesBuffer_view = matrixValuesBuffer_view;
@@ -440,28 +472,34 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
          // Copy matrix elements from the buffer to the matrix and ignoring
          // zero matrix elements
          // const IndexType matrix_columns = this->getColumns();
+         auto A_view = A.getView();
          const auto thisRowLengths_view = thisRowLengths.getConstView();
-         auto f2 = [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index & columnIndex, Real & value ) mutable
+         auto f2 = [ = ] __cuda_callable__( const Index rowIdx ) mutable
          {
-            Real inValue = 0;
-            std::size_t bufferIdx;
-            Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
-            while( inValue == Real{ 0 } && localIdx < thisRowLengths_view[ rowIdx ] ) {
-               bufferIdx = ( rowIdx - baseRow ) * maxRowLength + bufferLocalIdx++;
-               TNL_ASSERT_LT( bufferIdx, bufferSize, "" );
-               inValue = thisValuesBuffer_view[ bufferIdx ];
-            }
-            rowLocalIndexes_view[ rowIdx ] = bufferLocalIdx;
-            if( inValue == Real{ 0 } ) {
-               columnIndex = paddingIndex< Index >;
-               value = 0;
-            }
-            else {
-               columnIndex = thisColumnsBuffer_view[ bufferIdx ];  // column - 1;
-               value = inValue;
+            typename Matrix1::RowView row = A_view.getRow( rowIdx );
+            for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
+               Real inValue( 0 );
+               std::size_t bufferIdx( 0 );
+               Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
+               while( inValue == Real{ 0 } && localIdx < thisRowLengths_view[ rowIdx ] ) {
+                  bufferIdx = ( rowIdx - baseRow ) * maxRowLength + bufferLocalIdx++;
+                  TNL_ASSERT_LT( bufferIdx, bufferSize, "" );
+                  inValue = thisValuesBuffer_view[ bufferIdx ];
+               }
+               rowLocalIndexes_view[ rowIdx ] = bufferLocalIdx;
+               if( inValue == Real{ 0 } ) {
+                  row.setColumnIndex( localIdx, -1 );  // paddingIndex< Index > );
+                  // TODO:: Fix - SparseOperations.hpp(532): error: identifier "TNL::Matrices::paddingIndex<int> " is undefined
+                  // in device code From Documentation/Examples/Matrices/MatrixWriterReaderExample.cu
+                  row.setValue( localIdx, 0 );
+               }
+               else {
+                  row.setColumnIndex( localIdx, thisColumnsBuffer_view[ bufferIdx ] );  // column - 1;
+                  row.setValue( localIdx, inValue );
+               }
             }
          };
-         A.forElements( baseRow, lastRow, f2 );
+         Algorithms::parallelFor< Device >( baseRow, lastRow, f2 );  // TODO: Rewrite this using forRows
 #endif
          baseRow += bufferRowsCount;
       }
@@ -546,7 +584,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       typename Matrix1::RowCapacitiesType rowLengths;
       rowLengths.setSize( rows );
 #ifdef HAVE_OPENMP
-      #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < rows; i++ ) {
          const auto row = B.getRow( i );
@@ -561,7 +599,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       A.setRowCapacities( rowLengths );
 
 #ifdef HAVE_OPENMP
-      #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < rows; i++ ) {
          const auto length = rowLengths[ i ];
