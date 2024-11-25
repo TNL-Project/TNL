@@ -41,6 +41,20 @@ TYPED_TEST( CSRSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< CSRSegmentsType >();
 }
 
+TYPED_TEST( CSRSegmentsTest, forElements_EqualSizes )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_forElements_EqualSizes< CSRSegmentsType >();
+}
+
+TYPED_TEST( CSRSegmentsTest, forElements )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_forElements< CSRSegmentsType >();
+}
+
 TYPED_TEST( CSRSegmentsTest, reduceAllSegments_MaximumInSegments_CSRAdaptive )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;

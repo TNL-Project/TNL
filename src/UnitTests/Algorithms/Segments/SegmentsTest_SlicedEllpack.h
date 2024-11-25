@@ -37,6 +37,14 @@ TYPED_TEST( SlicedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< SlicedEllpackSegmentsType >();
 }
 
+TYPED_TEST( SlicedEllpackSegmentsTest, forElements )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_forElements< SlicedEllpackSegmentsType >();
+}
+
+
 TYPED_TEST( SlicedEllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
 {
    using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
