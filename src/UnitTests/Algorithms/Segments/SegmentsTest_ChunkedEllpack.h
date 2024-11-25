@@ -37,6 +37,13 @@ TYPED_TEST( ChunkedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< ChunkedEllpackSegmentsType >();
 }
 
+TYPED_TEST( ChunkedEllpackSegmentsTest, forElements )
+{
+   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
+
+   test_forElements< ChunkedEllpackSegmentsType >();
+}
+
 TYPED_TEST( ChunkedEllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
 {
    using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
