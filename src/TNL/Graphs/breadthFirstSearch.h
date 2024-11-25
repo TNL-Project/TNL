@@ -40,9 +40,7 @@ breadthFirstSearchParallel( const Matrix& adjacencyMatrix,
    auto distances_view = distances.getView();
    auto y_view = y.getView();
    auto predecesors_view = predecesors.getView();
-
    for( Index i = 0; i <= n; i++ ) {
-      
       if constexpr( std::is_same_v< Device, Devices::Host > )
          adjacencyMatrix.forAllElements( [=] __cuda_callable__ ( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
          {
@@ -54,11 +52,15 @@ breadthFirstSearchParallel( const Matrix& adjacencyMatrix,
             }
          } );
       else
-         adjacencyMatrix.forAllElements( [=] __cuda_callable__ ( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+         adjacencyMatrix.forAllElementsIf(
+        [=] __cuda_callable__ ( Index rowIdx ) { return distances_view[ rowIdx ] == i; },
+        [=] __cuda_callable__ ( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
          {
-            if( distances_view[ rowIdx ] == i && columnIdx != Matrices::paddingIndex< Index > && y_view[ columnIdx ] == -1 ) {
-               y_view[ columnIdx ] = i+1;
-               predecesors_view[ columnIdx ] = rowIdx;
+            TNL_ASSERT_LT( rowIdx, y_view.getSize(), "" );
+            TNL_ASSERT_LT( columnIdx, distances_view.getSize(), "" );
+            if( columnIdx != Matrices::paddingIndex< Index > && y_view[ columnIdx ] == -1 ) {
+               atomicMax( &y_view[ columnIdx ], i+1 );
+               atomicMax( &predecesors_view[ columnIdx ], rowIdx );
             }
          } );
       if( y == distances )
@@ -205,9 +207,9 @@ breadthFirstSearch_impl( const Matrix& adjacencyMatrix,
       transposed.getTransposition( adjacencyMatrix );
       //breadthFirstSearchTransposed( transposed, start, distances, visitor, explorer );
       if constexpr( haveExplorer )
-         breadthFirstSearchParallel< true >( transposed, start, distances, visitor, explorer );
+         breadthFirstSearchParallel< true >( adjacencyMatrix, start, distances, visitor, explorer );
       else
-         breadthFirstSearchParallel< false >( transposed, start, distances, visitor, [] __cuda_callable__( Index ) {} );
+         breadthFirstSearchParallel< false >( adjacencyMatrix, start, distances, visitor, [] __cuda_callable__( Index ) {} );
    }
 }
 
