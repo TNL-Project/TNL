@@ -15,7 +15,7 @@ namespace TNL::Algorithms::SegmentsReductionKernels {
 template< typename Offsets, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 __global__
 void
-reduceSegmentsCSRKernelVector( int gridIdx,
+reduceSegmentsCSRKernelVector( Index gridIdx,
                                const Offsets offsets,
                                Index begin,
                                Index end,
@@ -32,7 +32,7 @@ reduceSegmentsCSRKernelVector( int gridIdx,
    if( segmentIdx >= end )
       return;
 
-   const int laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+   const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
    TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
    Index endIdx = offsets[ segmentIdx + 1 ];
 
@@ -118,7 +118,7 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       dim3 blocksCount;
       dim3 gridsCount;
       Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-      for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
+      for( unsigned Index gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
          constexpr auto kernel = reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
          Backend::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
