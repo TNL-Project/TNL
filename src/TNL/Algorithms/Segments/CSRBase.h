@@ -190,7 +190,7 @@ public:
     */
    template< typename Function >
    void
-   forElements( IndexType begin, IndexType end, Function&& function ) const;
+   forElements( IndexType begin, IndexType end, Function function ) const;
 
    /**
     * \brief Call \ref TNL::Algorithms::Segments::CSR::forElements for all
@@ -200,7 +200,23 @@ public:
     */
    template< typename Function >
    void
-   forAllElements( Function&& function ) const;
+   forAllElements( Function function ) const;
+
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& segmentIndexes, Index begin, Index end, Function function ) const;
+
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& segmentIndexes, Function function ) const;
+
+   template< typename Condition, typename Function >
+   void
+   forElementsIf( IndexType begin, IndexType end, Condition condition, Function function ) const;
+
+   template< typename Condition, typename Function >
+   void
+   forAllElementsIf( Condition condition, Function function ) const;
 
    /**
     * \brief Iterate over all segments in parallel and call given lambda function.
