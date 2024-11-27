@@ -316,6 +316,122 @@ ChunkedEllpackBase< Device, Index, Organization >::forAllElements( Function&& fu
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+ChunkedEllpackBase< Device, Index, Organization >::forElements( const Array& segmentIndexes,
+                                                                Index begin,
+                                                                Index end,
+                                                                Function function ) const
+{
+   const IndexType chunksInSlice = this->chunksInSlice;
+   auto segmentToChunkMapping = this->segmentToChunkMapping;
+   auto segmentToSliceMapping = this->segmentToSliceMapping;
+   auto slices = this->slices;
+   auto segmentIndexesView = segmentIndexes.getConstView();
+   auto work = [ = ] __cuda_callable__( IndexType idx ) mutable
+   {
+      const IndexType segmentIdx = segmentIndexesView[ idx ];
+      const IndexType sliceIdx = segmentToSliceMapping[ segmentIdx ];
+
+      IndexType firstChunkOfSegment( 0 );
+      if( segmentIdx != slices[ sliceIdx ].firstSegment ) {
+         firstChunkOfSegment = segmentToChunkMapping[ segmentIdx - 1 ];
+      }
+
+      const IndexType lastChunkOfSegment = segmentToChunkMapping[ segmentIdx ];
+      const IndexType segmentChunksCount = lastChunkOfSegment - firstChunkOfSegment;
+      const IndexType sliceOffset = slices[ sliceIdx ].pointer;
+      const IndexType chunkSize = slices[ sliceIdx ].chunkSize;
+
+      const IndexType segmentSize = segmentChunksCount * chunkSize;
+      if( Organization == RowMajorOrder ) {
+         IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
+         IndexType end = begin + segmentSize;
+         IndexType localIdx = 0;
+         for( IndexType j = begin; j < end; j++ )
+            function( segmentIdx, localIdx++, j );
+      }
+      else {
+         IndexType localIdx = 0;
+         for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
+            IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
+            IndexType end = begin + chunksInSlice * chunkSize;
+            for( IndexType j = begin; j < end; j += chunksInSlice ) {
+               function( segmentIdx, localIdx++, j );
+            }
+         }
+      }
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, work );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+ChunkedEllpackBase< Device, Index, Organization >::forElements( const Array& segmentIndexes, Function function ) const
+{
+   this->forElements( segmentIndexes, 0, segmentIndexes.getSize(), function );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+ChunkedEllpackBase< Device, Index, Organization >::forElementsIf( IndexType begin,
+                                                                  IndexType end,
+                                                                  Condition condition,
+                                                                  Function function ) const
+{
+   const IndexType chunksInSlice = this->chunksInSlice;
+   auto segmentToChunkMapping = this->segmentToChunkMapping;
+   auto segmentToSliceMapping = this->segmentToSliceMapping;
+   auto slices = this->slices;
+   auto work = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
+   {
+      if( ! condition( segmentIdx ) )
+         return;
+      const IndexType sliceIdx = segmentToSliceMapping[ segmentIdx ];
+
+      IndexType firstChunkOfSegment( 0 );
+      if( segmentIdx != slices[ sliceIdx ].firstSegment ) {
+         firstChunkOfSegment = segmentToChunkMapping[ segmentIdx - 1 ];
+      }
+
+      const IndexType lastChunkOfSegment = segmentToChunkMapping[ segmentIdx ];
+      const IndexType segmentChunksCount = lastChunkOfSegment - firstChunkOfSegment;
+      const IndexType sliceOffset = slices[ sliceIdx ].pointer;
+      const IndexType chunkSize = slices[ sliceIdx ].chunkSize;
+
+      const IndexType segmentSize = segmentChunksCount * chunkSize;
+      if( Organization == RowMajorOrder ) {
+         IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
+         IndexType end = begin + segmentSize;
+         IndexType localIdx = 0;
+         for( IndexType j = begin; j < end; j++ )
+            function( segmentIdx, localIdx++, j );
+      }
+      else {
+         IndexType localIdx = 0;
+         for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
+            IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
+            IndexType end = begin + chunksInSlice * chunkSize;
+            for( IndexType j = begin; j < end; j += chunksInSlice ) {
+               function( segmentIdx, localIdx++, j );
+            }
+         }
+      }
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, work );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+ChunkedEllpackBase< Device, Index, Organization >::forAllElementsIf( Condition condition, Function function ) const
+{
+   this->forElementsIf( 0, this->getSegmentsCount(), condition, function );
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
 ChunkedEllpackBase< Device, Index, Organization >::forSegments( IndexType begin, IndexType end, Function&& function ) const
