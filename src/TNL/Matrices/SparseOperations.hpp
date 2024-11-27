@@ -110,6 +110,8 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
       auto f = [ = ] __cuda_callable__(
                   RHSIndexType rowIdx, RHSIndexType localIdx_, RHSIndexType columnIdx, const RHSRealType& value ) mutable
       {
+         TNL_ASSERT_LT( rowIdx, A_view.getRows(), "Row index is larger than number of matrix rows." );
+         TNL_ASSERT_LT( columnIdx, A_view.getColumns(), "Column index is larger than number of matrix columns." );
          if( value != 0.0 && columnIdx != paddingIndex< Index > )
             A_view( rowIdx, columnIdx ) = value;
       };
@@ -134,14 +136,16 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
          const Index lastRow = min( baseRow + bufferRowsCount, rowsCount );
          thisColumnsBuffer = paddingIndex< Index >;
          matrixColumnsBuffer_view = paddingIndex< Index >;
-         auto B_view = B.getView();
+         auto B_view = B.getConstView();
          auto f1 = [ = ] __cuda_callable__( RHSIndexType rowIdx ) mutable
          {
             auto row = B_view.getRow( rowIdx );
             for( RHSIndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
                const RHSIndexType columnIndex = row.getColumnIndex( localIdx );
                const RHSRealType value = row.getValue( localIdx );
-               if( columnIndex != paddingIndex< Index > ) {
+               if( columnIndex != paddingIndex< Index > && columnIndex >= 0 && columnIndex < B_view.getColumns() )
+               {  // columnIndex >= 0 && columnIndex < A_view.getColumns() is necessary because of the tridiagonal and
+                  // multidiagonal matrices
                   const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
                   matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
                   matrixValuesBuffer_view[ bufferIdx ] = value;
@@ -155,7 +159,7 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
          thisColumnsBuffer_view = matrixColumnsBuffer_view;
 
          // Copy matrix elements from the buffer to the matrix
-         auto this_view = A.getView();
+         auto A_view = A.getView();
          using MultiIndex = Containers::StaticArray< 2, Index >;
          auto f2 = [ = ] __cuda_callable__( const MultiIndex& i ) mutable
          {
@@ -163,8 +167,11 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
             const Index& bufferRowIdx = i[ 1 ];
             const Index bufferIdx = bufferRowIdx * maxRowLength + bufferColumnIdx;
             const Index columnIdx = thisColumnsBuffer_view[ bufferIdx ];
-            if( columnIdx != paddingIndex< Index > )
-               this_view( baseRow + bufferRowIdx, columnIdx ) = thisValuesBuffer_view[ bufferIdx ];
+            if( columnIdx != paddingIndex< Index > ) {
+               TNL_ASSERT_LT( baseRow + bufferRowIdx, A_view.getRows(), "Row index is larger than number of matrix rows." );
+               TNL_ASSERT_LT( columnIdx, A_view.getColumns(), "Column index is larger than number of matrix columns." );
+               A_view( baseRow + bufferRowIdx, columnIdx ) = thisValuesBuffer_view[ bufferIdx ];
+            }
          };
          MultiIndex begin = { 0, 0 };
          MultiIndex end = { maxRowLength, min( bufferRowsCount, A.getRows() - baseRow ) };
@@ -331,8 +338,6 @@ copyBuffersToMatrixElements( Matrix& m,
    {
       auto row = m_view.getRow( rowIdx );
       for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
-         Index& columnIndex = row.getColumnIndex( localIdx );
-         Real& value = row.getValue( localIdx );
          Real inValue = 0;
          std::size_t bufferIdx = 0;
          Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
@@ -343,12 +348,14 @@ copyBuffersToMatrixElements( Matrix& m,
          }
          rowLocalIndexes_view[ rowIdx ] = bufferLocalIdx;
          if( inValue == Real{ 0 } ) {
-            columnIndex = paddingIndex< Index >;
-            value = 0;
+            row.setColumnIndex( localIdx, -1 );  //paddingIndex< Index > );
+            // TODO:: Fix - SparseOperations.hpp(532): error: identifier "TNL::Matrices::paddingIndex<int> " is undefined
+            // in device code From Documentation/Examples/Matrices/MatrixWriterReaderExample.cu
+            row.setValue( localIdx, 0 );
          }
          else {
-            columnIndex = thisColumnsBuffer_view[ bufferIdx ];  // column - 1;
-            value = inValue;
+            row.setColumnIndex( localIdx, thisColumnsBuffer_view[ bufferIdx ] );  // column - 1;
+            row.setValue( localIdx, inValue );
          }
       }
    };
