@@ -118,7 +118,7 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       dim3 blocksCount;
       dim3 gridsCount;
       Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-      for( unsigned Index gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
+      for( Index gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
          constexpr auto kernel = reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
          Backend::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
