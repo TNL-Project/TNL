@@ -121,6 +121,22 @@ public:
    void
    forAllElements( Function&& function ) const;
 
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& segmentIndexes, Index begin, Index end, Function function ) const;
+
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& segmentIndexes, Function function ) const;
+
+   template< typename Condition, typename Function >
+   void
+   forElementsIf( IndexType begin, IndexType end, Condition condition, Function function ) const;
+
+   template< typename Condition, typename Function >
+   void
+   forAllElementsIf( Condition condition, Function function ) const;
+
    template< typename Function >
    void
    forSegments( IndexType begin, IndexType end, Function&& function ) const;

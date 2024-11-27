@@ -37,6 +37,20 @@ TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< EllpackSegmentsType >();
 }
 
+TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes_EllpackOnly )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_SetSegmentsSizes_EqualSizes_EllpackOnly< EllpackSegmentsType >();
+}
+
+TYPED_TEST( EllpackSegmentsTest, forElements_EqualSizes )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_forElements_EqualSizes< EllpackSegmentsType >();
+}
+
 TYPED_TEST( EllpackSegmentsTest, forElements )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
@@ -44,11 +58,18 @@ TYPED_TEST( EllpackSegmentsTest, forElements )
    test_forElements< EllpackSegmentsType >();
 }
 
-TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes_EllpackOnly )
+TYPED_TEST( EllpackSegmentsTest, forElementsIf )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
 
-   test_SetSegmentsSizes_EqualSizes_EllpackOnly< EllpackSegmentsType >();
+   test_forElementsIf< EllpackSegmentsType >();
+}
+
+TYPED_TEST( EllpackSegmentsTest, forElementsWithSegmentIndexes )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_forElementsWithSegmentIndexes< EllpackSegmentsType >();
 }
 
 TYPED_TEST( EllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
