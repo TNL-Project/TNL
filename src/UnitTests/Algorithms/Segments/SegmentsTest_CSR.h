@@ -55,6 +55,20 @@ TYPED_TEST( CSRSegmentsTest, forElements )
    test_forElements< CSRSegmentsType >();
 }
 
+TYPED_TEST( CSRSegmentsTest, forElementsIf )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_forElementsIf< CSRSegmentsType >();
+}
+
+TYPED_TEST( CSRSegmentsTest, forElementsWithSegmentIndexes )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_forElementsWithSegmentIndexes< CSRSegmentsType >();
+}
+
 TYPED_TEST( CSRSegmentsTest, reduceAllSegments_MaximumInSegments_CSRAdaptive )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
