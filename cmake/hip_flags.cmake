@@ -10,6 +10,28 @@ set(CMAKE_HIP_FLAGS_RELWITHDEBINFO "${CMAKE_HIP_FLAGS_RELEASE} ${CMAKE_HIP_FLAGS
 if(TNL_USE_CI_FLAGS)
     # enforce (more or less) warning-free builds
     set(CMAKE_HIP_FLAGS "${CMAKE_HIP_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations")
+    # rocm-llvm 6.2.2 prints warnings due to unused variables:
+    #   In file included from /opt/rocm/include/hip/hip_runtime.h:62:
+    #   In file included from /opt/rocm/include/hip/amd_detail/amd_hip_runtime.h:119:
+    #   /opt/rocm/include/hip/amd_detail/texture_indirect_functions.h:44:5: warning: unused variable 's' [-Wunused-variable]
+    #      44 |     TEXTURE_OBJECT_PARAMETERS_INIT
+    #         |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #   /opt/rocm/include/hip/amd_detail/texture_indirect_functions.h:37:42: note: expanded from macro 'TEXTURE_OBJECT_PARAMETERS_INIT'
+    #      37 |     unsigned int ADDRESS_SPACE_CONSTANT* s = i + HIP_SAMPLER_OBJECT_OFFSET_DWORD;
+    #         |                                          ^
+    #   /opt/rocm/include/hip/amd_detail/texture_indirect_functions.h:335:5: warning: unused variable 's' [-Wunused-variable]
+    #     335 |     TEXTURE_OBJECT_PARAMETERS_INIT
+    #         |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #   /opt/rocm/include/hip/amd_detail/texture_indirect_functions.h:37:42: note: expanded from macro 'TEXTURE_OBJECT_PARAMETERS_INIT'
+    #      37 |     unsigned int ADDRESS_SPACE_CONSTANT* s = i + HIP_SAMPLER_OBJECT_OFFSET_DWORD;
+    #         |                                          ^
+    #   /opt/rocm/include/hip/amd_detail/texture_indirect_functions.h:463:5: warning: unused variable 's' [-Wunused-variable]
+    #     463 |     TEXTURE_OBJECT_PARAMETERS_INIT
+    #         |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #   /opt/rocm/include/hip/amd_detail/texture_indirect_functions.h:37:42: note: expanded from macro 'TEXTURE_OBJECT_PARAMETERS_INIT'
+    #      37 |     unsigned int ADDRESS_SPACE_CONSTANT* s = i + HIP_SAMPLER_OBJECT_OFFSET_DWORD;
+    #         |                                          ^
+    set(CMAKE_HIP_FLAGS "${CMAKE_HIP_FLAGS} -isystem /opt/rocm/include")
 endif()
 
 # optimize Release builds for the native CPU arch, unless explicitly disabled
