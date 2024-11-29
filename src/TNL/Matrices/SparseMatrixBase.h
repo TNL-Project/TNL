@@ -474,46 +474,7 @@ public:
                   const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
    /**
-    * \brief Method for performing general reduction on all matrix rows for constant instances
-    * with function object instead of lambda function for reduction.
-    *
-    * \tparam Fetch is a type of lambda function for data fetch declared as
-    *
-    * ```
-    * auto fetch = [] __cuda_callable__ ( IndexType rowIdx, IndexType& columnIdx, RealType& elementValue ) -> FetchValue
-    * { ... };
-    * ```
-    *
-    * The return type of this lambda can be any non void.
-    * \tparam Reduce is a function object for reduction (some of \ref ReductionFunctionObjects).
-    * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
-    *
-    * ```
-    * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) { ... };
-    * ```
-    *
-    * \tparam FetchValue is type returned by the Fetch lambda function.
-    *
-    * \param fetch is an instance of lambda function for data fetch.
-    * \param reduce is an instance of function object for reduction.
-    * \param keep in an instance of lambda function for storing results.
-    * \param kernel is an instance of the segments reduction kernel to be used
-    *               for the operation.
-    *
-    * \par Example
-    * \include Matrices/SparseMatrix/SparseMatrixExample_reduceAllRowsWithFunctional.cpp
-    * \par Output
-    * \include SparseMatrixExample_reduceAllRows.out
-    */
-   template< typename Fetch, typename Reduce, typename Keep, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
-   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
-   reduceAllRows( Fetch&& fetch,
-                  const Reduce& reduce,
-                  Keep&& keep,
-                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
-
-   /**
-    * \brief Method for iteration over all matrix rows for constant instances.
+    * \brief Method for iteration over all matrix elements for (constant instances).
     *
     * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
     *
@@ -527,14 +488,14 @@ public:
     *
     * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
     * \param end defines ending of the range `[begin, end)` of rows to be processed.
-    * \param function is an instance of the lambda function to be called in each row.
+    * \param function is an instance of the lambda function to be called for each matrix element.
     */
    template< typename Function >
    void
    forElements( IndexType begin, IndexType end, Function&& function ) const;
 
    /**
-    * \brief Method for iteration over all matrix rows for non-constant instances.
+    * \brief Method for iteration over all matrix elements (for non-constant instances).
     *
     * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
     *
@@ -547,7 +508,7 @@ public:
     *
     * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
     * \param end defines ending of the range `[begin, end)` of rows to be processed.
-    * \param function is an instance of the lambda function to be called in each row.
+    * \param function is an instance of the lambda function to be called for each matrix element.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_forElements.cpp
@@ -559,7 +520,7 @@ public:
    forElements( IndexType begin, IndexType end, Function&& function );
 
    /**
-    * \brief This method calls \e forElements for all matrix rows (for constant instances).
+    * \brief This method calls \e forElements for all matrix matrix elements (for constant instances).
     *
     * See \ref SparseMatrix::forElements.
     *
@@ -571,7 +532,7 @@ public:
    forAllElements( Function&& function ) const;
 
    /**
-    * \brief This method calls \e forElements for all matrix rows.
+    * \brief This method calls \e forElements for all matrix rows. This is variant for non-constant instances.
     *
     * See \ref SparseMatrix::forElements.
     *
@@ -586,6 +547,202 @@ public:
    template< typename Function >
    void
    forAllElements( Function&& function );
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param begin defines beginning of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param end defines ending of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param function is an instance of the lambda function to be called for each element.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsWithRowIndexes-2.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, IndexType begin, IndexType end, Function&& function ) const;
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * non-constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param begin defines beginning of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param end defines ending of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param function is an instance of the lambda function to be called for each element.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsWithRowIndexes-2.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, IndexType begin, IndexType end, Function&& function );
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param function is an instance of the lambda function to be called for each element.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsWithRowIndexes-1.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, Function&& function ) const;
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * non-constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param function is an instance of the lambda function to be called for each element.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsWithRowIndexes-1.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, Function&& function );
+
+   /**
+    * \brief Method for iterating over all matrix elements that meet a condition based on the row index (for constant
+    * instances).
+    *
+    * \tparam Condition is a type of lambda function that will be used to check if the element meets the condition. It should
+    * have form like
+    *
+    * ```
+    * auto condition = [] __cuda_callable__ ( IndexType rowIdx ) -> bool { ... };
+    * ```
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called for each matrix element.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsIf.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsIf.out
+    */
+   template< typename Condition, typename Function >
+   void
+   forElementsIf( IndexType begin, IndexType end, Condition&& condition, Function&& function ) const;
+
+   /**
+    * \brief Method for iterating over all matrix elements that meet a condition based on the row index (for constant
+    * instances).
+    *
+    * \tparam Condition is a type of lambda function that will be used to check if the element meets the condition. It should
+    * have form like
+    *
+    * ```
+    * auto condition = [] __cuda_callable__ ( IndexType rowIdx ) -> bool { ... };
+    * ```
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called for each matrix element.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsIf.cpp
+    * \par Output
+    * \include SparseMatrixExample_forElementsIf.out
+    */
+   template< typename Condition, typename Function >
+   void
+   forElementsIf( IndexType begin, IndexType end, Condition&& condition, Function&& function );
+
+   /**
+    * \brief This method calls \e forElementsIf for all matrix rows (for constant instances).
+    *
+    * See \ref SparseMatrix::forElementsIf.
+    *
+    * \tparam Condition is a type of lambda function representing the condition based on the row index.
+    * \tparam Function is a type of lambda function that will operate on matrix elements.
+    * \param function is an instance of the lambda function to be called in each row.
+    */
+   template< typename Condition, typename Function >
+   void
+   forAllElementsIf( Condition&& condition, Function&& function ) const;
+
+   /**
+    * \brief This method calls \e forElementsIf for all matrix rows (for non-constant instances).
+    *
+    * See \ref SparseMatrix::forElementsIf.
+    *
+    * \tparam Condition is a type of lambda function representing the condition based on the row index.
+    * \tparam Function is a type of lambda function that will operate on matrix elements.
+    * \param function is an instance of the lambda function to be called in each row.
+    */
+   template< typename Condition, typename Function >
+   void
+   forAllElementsIf( Condition&& condition, Function&& function );
 
    /**
     * \brief Method for parallel iteration over matrix rows from interval `[begin, end)`.
