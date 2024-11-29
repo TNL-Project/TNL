@@ -65,9 +65,9 @@ if(CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
             "${CMAKE_CUDA_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations -Wno-error=unknown-cuda-version"
         )
     endif()
-    # workaround for Clang 15
+    # workaround for Clang 15 (linker from Clang 18 triggers -Wunused-command-line-argument)
     # https://github.com/llvm/llvm-project/issues/58491
-    set(CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0")
+    set(CMAKE_CUDA_FLAGS_DEBUG "-g -Xarch_device -g0 -Wno-error=unused-command-line-argument")
 endif()
 
 # optimize Release builds for the native CPU arch, unless explicitly disabled
