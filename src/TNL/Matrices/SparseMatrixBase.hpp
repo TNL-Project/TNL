@@ -585,6 +585,138 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Array, typename Function >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
+                                                                                             IndexType begin,
+                                                                                             IndexType end,
+                                                                                             Function&& function ) const
+{
+   const auto columns_view = this->columnIndexes.getConstView();
+   const auto values_view = this->values.getConstView();
+   auto columns = this->getColumns();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
+   {
+      if( localIdx < columns ) {
+         if( Base::isBinary() )
+            function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
+         else
+            function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
+      }
+   };
+   this->segments.forElements( rowIndexes, begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Array, typename Function >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
+                                                                                             IndexType begin,
+                                                                                             IndexType end,
+                                                                                             Function&& function )
+{
+   auto columns_view = this->columnIndexes.getView();
+   auto values_view = this->values.getView();
+   auto columns = this->getColumns();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
+   {
+      if( localIdx < columns ) {
+         if( Base::isBinary() ) {
+            RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
+            function( rowIdx, localIdx, columns_view[ globalIdx ], one );
+         }
+         else
+            function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
+      }
+   };
+   this->segments.forElements( rowIndexes, begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Array, typename Function >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
+                                                                                             Function&& function ) const
+{
+   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Array, typename Function >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
+                                                                                             Function&& function )
+{
+   this->forElements( rowIndexes, (IndexType) 0, rowIndexes.getSize(), function );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Condition, typename Function >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElementsIf( IndexType begin,
+                                                                                               IndexType end,
+                                                                                               Condition&& condition,
+                                                                                               Function&& function ) const
+{
+   const auto columns_view = this->columnIndexes.getConstView();
+   const auto values_view = this->values.getConstView();
+   auto columns = this->getColumns();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
+   {
+      if( localIdx < columns ) {
+         if( Base::isBinary() )
+            function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
+         else
+            function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
+      }
+   };
+   this->segments.forElementsIf( begin, end, condition, f );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Condition, typename Function >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElementsIf( IndexType begin,
+                                                                                               IndexType end,
+                                                                                               Condition&& condition,
+                                                                                               Function&& function )
+{
+   auto columns_view = this->columnIndexes.getView();
+   auto values_view = this->values.getView();
+   auto columns = this->getColumns();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
+   {
+      if( localIdx < columns ) {
+         if( Base::isBinary() ) {
+            RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
+            function( rowIdx, localIdx, columns_view[ globalIdx ], one );
+         }
+         else
+            function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
+      }
+   };
+   this->segments.forElementsIf( begin, end, condition, f );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Condition, typename Function >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forAllElementsIf( Condition&& condition,
+                                                                                                  Function&& function ) const
+{
+   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Condition, typename Function >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forAllElementsIf( Condition&& condition,
+                                                                                                  Function&& function )
+{
+   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Function >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forRows( IndexType begin,

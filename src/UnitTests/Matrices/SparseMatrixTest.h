@@ -97,6 +97,20 @@ TYPED_TEST( MatrixTest, forElements )
    test_ForElements< MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, forElementsIf )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ForElementsIf< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, forElementsWithArray )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ForElementsWithArray< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, forRows )
 {
    using MatrixType = typename TestFixture::MatrixType;

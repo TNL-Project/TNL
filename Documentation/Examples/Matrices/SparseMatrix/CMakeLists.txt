@@ -16,6 +16,9 @@ set(COMMON_EXAMPLES
     SparseMatrixExample_reduceAllRowsWithFunctional
     SparseMatrixExample_forElements
     SparseMatrixExample_forAllElements
+    SparseMatrixExample_forElementsIf
+    SparseMatrixExample_forElementsWithRowIndexes-1
+    SparseMatrixExample_forElementsWithRowIndexes-2
     SparseMatrixExample_forRows
     SparseMatrixViewExample_getConstRow
     SparseMatrixViewExample_getRow
