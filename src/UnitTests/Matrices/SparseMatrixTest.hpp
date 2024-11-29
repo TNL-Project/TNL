@@ -1166,6 +1166,103 @@ test_ForElements()
 
 template< typename Matrix >
 void
+test_ForElementsIf()
+{
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+
+   /*
+    * Sets up the following 8x3 sparse matrix:
+    *
+    *    /  1  1  1  \
+    *    |  2  2  2  |
+    *    |  1  1  1  |
+    *    |  4  4  4  |
+    *    |  1  1  1  |
+    *    |  6  6  6  |
+    *    |  1  1  1  |
+    *    \  8  8  8  /
+    */
+
+   const IndexType cols = 3;
+   const IndexType rows = 8;
+
+   Matrix m( { 3, 3, 3, 3, 3, 3, 3, 3, 3 }, cols );
+   m.forAllElements(
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      {
+         value = 1.0;
+         columnIdx = localIdx;
+      } );
+
+   m.forAllElementsIf(
+      [] __cuda_callable__( IndexType rowIdx )
+      {
+         return ( rowIdx % 2 == 1 );
+      },
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      {
+         value = rowIdx + 1.0;
+         columnIdx = localIdx;
+      } );
+
+   for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+      for( IndexType colIdx = 0; colIdx < cols; colIdx++ )
+         if( rowIdx % 2 == 1 )
+            EXPECT_EQ( m.getElement( rowIdx, colIdx ), RealType( rowIdx + 1 ) );
+         else
+            EXPECT_EQ( m.getElement( rowIdx, colIdx ), RealType{ 1 } );
+}
+
+template< typename Matrix >
+void
+test_ForElementsWithArray()
+{
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+
+   /*
+    * Sets up the following 8x3 sparse matrix:
+    *
+    *    /  1  1  1  \
+    *    |  2  2  2  |
+    *    |  1  1  1  |
+    *    |  4  4  4  |
+    *    |  1  1  1  |
+    *    |  6  6  6  |
+    *    |  1  1  1  |
+    *    \  8  8  8  /
+    */
+
+   const IndexType cols = 3;
+   const IndexType rows = 8;
+
+   Matrix m( { 3, 3, 3, 3, 3, 3, 3, 3, 3 }, cols );
+   m.forAllElements(
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      {
+         value = 1.0;
+         columnIdx = localIdx;
+      } );
+
+   TNL::Containers::Vector< IndexType, typename Matrix::DeviceType, IndexType > rowIndices{ 1, 3, 5, 7 };
+   m.forElements( rowIndices,
+                  [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+                  {
+                     value = rowIdx + 1.0;
+                     columnIdx = localIdx;
+                  } );
+
+   for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+      for( IndexType colIdx = 0; colIdx < cols; colIdx++ )
+         if( rowIdx % 2 == 1 )
+            EXPECT_EQ( m.getElement( rowIdx, colIdx ), RealType( rowIdx + 1 ) );
+         else
+            EXPECT_EQ( m.getElement( rowIdx, colIdx ), RealType{ 1 } );
+}
+
+template< typename Matrix >
+void
 test_ForRows()
 {
    using RealType = typename Matrix::RealType;
