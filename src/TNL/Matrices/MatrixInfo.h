@@ -7,7 +7,6 @@
 #include <TNL/Matrices/DenseMatrixView.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/SparseMatrixView.h>
-#include <TNL/Matrices/Sandbox/SparseSandboxMatrix.h>
 #include <TNL/Algorithms/Segments/CSRView.h>
 #include <TNL/Algorithms/Segments/EllpackView.h>
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
@@ -82,31 +81,6 @@ template< typename Real,
 struct MatrixInfo< SparseMatrix< Real, Device, Index, MatrixType, Segments, RealAllocator, IndexAllocator > >
 : public MatrixInfo<
      typename SparseMatrix< Real, Device, Index, MatrixType, Segments, RealAllocator, IndexAllocator >::ViewType >
-{};
-
-template< typename Real, typename Device, typename Index, typename MatrixType >
-struct MatrixInfo< Sandbox::SparseSandboxMatrixView< Real, Device, Index, MatrixType > >
-{
-   [[nodiscard]] static std::string
-   getDensity()
-   {
-      return "sparse";
-   }
-
-   [[nodiscard]] static std::string
-   getFormat()
-   {
-      if( MatrixType::isSymmetric() )
-         return "Symmetric Sandbox";
-      else
-         return "Sandbox";
-   }
-};
-
-template< typename Real, typename Device, typename Index, typename MatrixType, typename RealAllocator, typename IndexAllocator >
-struct MatrixInfo< Sandbox::SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator > >
-: public MatrixInfo<
-     typename Sandbox::SparseSandboxMatrix< Real, Device, Index, MatrixType, RealAllocator, IndexAllocator >::ViewType >
 {};
 
 /// \endcond
