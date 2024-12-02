@@ -11,6 +11,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <new>  // std::hardware_destructive_interference_size
 
 #include <TNL/3rdparty/spy.hpp>
 
@@ -338,11 +339,12 @@ getCPUMaxFrequency( int cpu_id )
 inline CPUCacheSizes
 getCPUCacheSizes( int cpu_id )
 {
+   CPUCacheSizes sizes;
+
 #ifdef SPY_OS_IS_LINUX
    std::string directory( "/sys/devices/system/cpu/cpu" );
    directory += std::to_string( cpu_id ) + "/cache";
 
-   CPUCacheSizes sizes;
    for( int i = 0; i <= 3; i++ ) {
       const std::string cache = directory + "/index" + std::to_string( i );
 
@@ -364,41 +366,20 @@ getCPUCacheSizes( int cpu_id )
       else if( level == 3 )
          sizes.L3 = size;
    }
-   sizes.cacheLineSize = sysconf( _SC_LEVEL1_DCACHE_LINESIZE );
-   return sizes;
 #elif defined( SPY_OS_IS_MACOS )
-   CPUCacheSizes sizes;
    sizes.L1instruction = detail::getCacheSize( "l1icachesize" );
    sizes.L1data = detail::getCacheSize( "l1dcachesize" );
    sizes.L2 = detail::getCacheSize( "l2cachesize" );
    sizes.L3 = detail::getCacheSize( "l3cachesize" );
+#endif
 
-   // Get cache lines size
-   std::string result;
-   std::unique_ptr< FILE, decltype( &pclose ) > pipe( popen( "sysctl hw.cachelinesize", "r" ), pclose );
-
-   if( ! pipe )
-      throw std::runtime_error( "Cannot call sysctl command to detect the cache line size." );
-
-   std::array< char, 1024 > buffer;
-   while( fgets( buffer.data(), buffer.size(), pipe.get() ) != nullptr ) {
-      result += buffer.data();
-   }
-   std::regex re( "hw.cachelinesize: (\\d+)" );
-   std::smatch match;
-   if( std::regex_search( result, match, re ) && match.size() > 1 )
-      sizes.cacheLineSize = std::stoi( match[ 1 ].str() );
-   else
-      throw std::runtime_error( "Failed to parse output of sysctl to detect the cache line size." );
+   // L1 data cache line size
+   // https://en.cppreference.com/w/cpp/thread/hardware_destructive_interference_size
+#if __cpp_lib_hardware_interference_size >= 201703
+   sizes.cacheLineSize = std::hardware_constructive_interference_size;
+#endif
 
    return sizes;
-#elif defined( SPY_OS_IS_WINDOWS )
-   CPUCacheSizes sizes;
-   // The following might work even for WSL - https://stackoverflow.com/a/2795984
-   sizes.cacheLineSize = sysconf( _SC_LEVEL1_DCACHE_LINESIZE );
-#else
-   return {};
-#endif
 }
 
 inline std::size_t
