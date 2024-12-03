@@ -121,8 +121,11 @@ TYPED_TEST( DenseMatrixTranspositionTest, SquareMatrix )
 
    DenseMatrixType checkMatrix{ { 1, 1, 1, 1 }, { 2, 2, 2, 2 }, { 3, 3, 3, 3 }, { 4, 4, 4, 4 } };
 
-   bool check = ( resultMatrix == checkMatrix ) && ( InPlaceMatrix == checkMatrix );
-   ASSERT_EQ( check, true );
+   ASSERT_TRUE( resultMatrix == checkMatrix );
+   ASSERT_TRUE( InPlaceMatrix == checkMatrix );
+   InPlaceMatrix = matrix;
+   InPlaceMatrix.getView().getInPlaceTransposition();
+   ASSERT_TRUE( InPlaceMatrix == checkMatrix );
 }
 
 TYPED_TEST( DenseMatrixTranspositionTest, Transposition1 )

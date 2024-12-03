@@ -9,7 +9,6 @@
 #include <TNL/Allocators/Default.h>
 
 #include "DenseMatrixView.h"
-#include "DenseOperations.h"
 
 namespace TNL::Matrices {
 

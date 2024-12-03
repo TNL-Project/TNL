@@ -9,6 +9,7 @@
 
 #include "DenseMatrix.h"
 #include "SparseOperations.h"
+#include "DenseOperations.h"
 
 namespace TNL::Matrices {
 
