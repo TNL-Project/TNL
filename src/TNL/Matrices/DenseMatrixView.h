@@ -143,6 +143,24 @@ public:
    getConstView() const;
 
    /**
+    * \brief Performs an in-place transposition of this matrix.
+    *
+    * This method transposes this matrix in place, modifying the original matrix.
+    * The operation can optionally scale the matrix by a specified factor.
+    *
+    * \tparam tileDim Tile dimension for GPU computation optimization. Default is 16.
+    * \param matrixMultiplicator A scalar value by which the matrix is scaled during the transposition. Default is 1.0.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixOperationsExample_getInPlaceTransposition.cpp
+    * \par Output
+    * \include DenseMatrixOperationsExample_getInPlaceTransposition.out
+    */
+   template< int tileDim = 16 >
+   void
+   getInPlaceTransposition( Real matrixMultiplicator = 1.0 );
+
+   /**
     * \brief Method for saving the matrix view to a file.
     *
     * The ouput file can be loaded by \ref DenseMatrix.

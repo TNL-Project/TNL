@@ -4,6 +4,7 @@
 #pragma once
 
 #include "DenseMatrixView.h"
+#include "DenseOperations.h"
 
 namespace TNL::Matrices {
 
@@ -45,6 +46,14 @@ auto
 DenseMatrixView< Real, Device, Index, Organization >::getConstView() const -> ConstViewType
 {
    return ConstViewType( this->getRows(), this->getColumns(), this->getValues().getConstView() );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< int tileDim >
+void
+DenseMatrixView< Real, Device, Index, Organization >::getInPlaceTransposition( Real matrixMultiplicator )
+{
+   TNL::Matrices::getInPlaceTransposition( *this, matrixMultiplicator );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
