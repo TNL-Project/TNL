@@ -5,4 +5,5 @@ FetchContent_Declare(
     GIT_TAG 10.0.0
     FIND_PACKAGE_ARGS NAMES tinyxml2 SYSTEM
 )
+set(tinyxml2_BUILD_TESTING OFF)
 FetchContent_MakeAvailable(tinyxml2)
