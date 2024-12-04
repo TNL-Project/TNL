@@ -135,7 +135,7 @@ benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, Matrices::Factorizatio
       MatrixType eigenvectors( matrix.getColumns(), matrix.getColumns() );
       eigenvalues.setValue( 0 );
       eigenvectors.setValue( 0 );
-      uint iter = 0;
+      int iter = 0;
       auto resetFunction = [ & ]()
       {
          MatrixType matrixVector( matrix.getColumns(), matrix.getColumns() );
@@ -172,14 +172,14 @@ void
 run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
 {
    using VectorType = Vector< PrecisionType, Device >;
-   VectorType initialVecOrig = generateVector< VectorType >( matrixCMO.getColumns() );
+   auto initialVecOrig = generateVector< VectorType >( matrixCMO.getColumns() );
    benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
       { "operation", "PI" },
       { "precision", getType< PrecisionType >() },
       { "matrixType", "DM_CMO" },
       { "size", std::to_string( size ) },
    } ) );
-   benchmark_pi< Device, MatrixTypeCMO, VectorType >( benchmark, matrixCMO, initialVecOrig );
+   benchmark_pi< Device >( benchmark, matrixCMO, initialVecOrig );
 
    using MatrixTypeRMO = Matrices::DenseMatrix< PrecisionType, Device, int, TNL::Algorithms::Segments::RowMajorOrder >;
    MatrixTypeRMO matrixRMO( size, size );
@@ -190,7 +190,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
       { "matrixType", "DM_RMO" },
       { "size", std::to_string( size ) },
    } ) );
-   benchmark_pi< Device, MatrixTypeRMO, VectorType >( benchmark, matrixRMO, initialVecOrig );
+   benchmark_pi< Device >( benchmark, matrixRMO, initialVecOrig );
 
    if( ! std::is_same_v< Device, Devices::Cuda > ) {
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "operation", "QR" },
@@ -208,8 +208,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
          { "size", std::to_string( size ) },
          { "facType", "GM" },
       } ) );
-      benchmark_qr< Device, MatrixTypeCMO >(
-         benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
+      benchmark_qr< Device >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
 
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
          { "operation", "QR" },
@@ -218,7 +217,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
          { "size", std::to_string( size ) },
          { "facType", "GV" },
       } ) );
-      benchmark_qr< Device, MatrixTypeCMO >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
+      benchmark_qr< Device >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
 
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
          { "operation", "QR" },
@@ -227,7 +226,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, int size, MatrixTypeCMO& matrixCMO )
          { "size", std::to_string( size ) },
          { "facType", "GV" },
       } ) );
-      benchmark_qr< Device, MatrixTypeRMO >( benchmark, matrixRMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
+      benchmark_qr< Device >( benchmark, matrixRMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
    }
 }
 
@@ -236,14 +235,14 @@ void
 run_benchmarks_SM( Benchmark<>& benchmark, int size, MatrixType& matrixSM )
 {
    using VectorType = Vector< PrecisionType, Device >;
-   VectorType initialVecOrig = generateVector< VectorType >( matrixSM.getColumns() );
+   auto initialVecOrig = generateVector< VectorType >( matrixSM.getColumns() );
    benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
       { "operation", "PI" },
       { "precision", getType< PrecisionType >() },
       { "matrixType", "SM" },
       { "size", std::to_string( size ) },
    } ) );
-   benchmark_pi< Device, MatrixType, VectorType >( benchmark, matrixSM, initialVecOrig );
+   benchmark_pi< Device >( benchmark, matrixSM, initialVecOrig );
 }
 
 void
