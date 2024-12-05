@@ -546,15 +546,57 @@ template< typename Matrix >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::addMatrix( const Matrix& matrix,
                                                                  const RealType& matrixMultiplicator,
-                                                                 const RealType& thisMatrixMultiplicator )
+                                                                 const RealType& thisMatrixMultiplicator,
+                                                                 TransposeState transpose )
 {
-   if( this->getColumns() != matrix.getColumns() || this->getRows() != matrix.getRows() )
+   if( transpose == TransposeState::None
+       && ( this->getColumns() != matrix.getColumns() || this->getRows() != matrix.getRows() ) )
       throw std::invalid_argument( "addMatrix: the matrices must have the same sizes." );
 
-   if( thisMatrixMultiplicator == RealType{ 1 } )
-      this->getValues() += matrixMultiplicator * matrix.getValues();
-   else
-      this->getValues() = thisMatrixMultiplicator * this->getValues() + matrixMultiplicator * matrix.getValues();
+   if( transpose == TransposeState::Transpose
+       && ( this->getColumns() != matrix.getRows() || this->getRows() != matrix.getColumns() ) )
+      throw std::invalid_argument(
+         "addMatrix: the matrices must have the same sizes after transposition of the second matrix." );
+
+   if( ( Base::getOrganization() == Matrix::getOrganization() && transpose == TransposeState::None )
+       || ( Base::getOrganization() != Matrix::getOrganization() && transpose == TransposeState::Transpose ) )
+   {
+      if( thisMatrixMultiplicator == RealType{ 1 } )
+         this->getValues() += matrixMultiplicator * matrix.getValues();
+      else
+         this->getValues() = thisMatrixMultiplicator * this->getValues() + matrixMultiplicator * matrix.getValues();
+   }
+   else {
+      auto matrixView = matrix.getConstView();
+      if( transpose == TransposeState::Transpose ) {
+         if( thisMatrixMultiplicator == RealType{ 1 } )
+            this->forAllElements(
+               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType & value )
+               {
+                  value += matrixMultiplicator * matrixView( column, row );
+               } );
+         else  // thisMatrixMultiplicator != 1
+            this->forAllElements(
+               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType & value )
+               {
+                  value = thisMatrixMultiplicator * value + matrixMultiplicator * matrixView( column, row );
+               } );
+      }
+      else {  // TransposeState::None
+         if( thisMatrixMultiplicator == RealType{ 1 } )
+            this->forAllElements(
+               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType & value )
+               {
+                  value += matrixMultiplicator * matrixView( row, column );
+               } );
+         else  // thisMatrixMultiplicator != 1
+            this->forAllElements(
+               [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType & value )
+               {
+                  value = thisMatrixMultiplicator * value + matrixMultiplicator * matrixView( row, column );
+               } );
+      }
+   }
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

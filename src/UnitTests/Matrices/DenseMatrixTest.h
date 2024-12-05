@@ -1179,6 +1179,97 @@ test_AddMatrix()
    EXPECT_EQ( mResult.getElement( 4, 1 ), RealType{ 54 } );
    EXPECT_EQ( mResult.getElement( 4, 2 ), RealType{ 57 } );
    EXPECT_EQ( mResult.getElement( 4, 3 ), RealType{ 60 } );
+
+   // clang-format off
+   Matrix m3( { {  1,  0, 0,  0 },
+                {  2,  3, 0,  0 },
+                {  4,  5, 6,  0 },
+                {  7,  8, 9, 10 } });
+   Matrix m4( { {  0,  0, 0,  0 },
+                {  2,  0, 0,  0 },
+                {  3,  5, 0,  0 },
+                {  4,  6, 7,  0 } });
+   // clang-format on
+
+   m3.addMatrix( m4, 1, 1, TNL::Matrices::TransposeState::Transpose );
+   EXPECT_EQ( m3.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m3.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( m3.getElement( 0, 2 ), RealType{ 3 } );
+   EXPECT_EQ( m3.getElement( 0, 3 ), RealType{ 4 } );
+
+   EXPECT_EQ( m3.getElement( 1, 0 ), RealType{ 2 } );
+   EXPECT_EQ( m3.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m3.getElement( 1, 2 ), RealType{ 5 } );
+   EXPECT_EQ( m3.getElement( 1, 3 ), RealType{ 6 } );
+
+   EXPECT_EQ( m3.getElement( 2, 0 ), RealType{ 4 } );
+   EXPECT_EQ( m3.getElement( 2, 1 ), RealType{ 5 } );
+   EXPECT_EQ( m3.getElement( 2, 2 ), RealType{ 6 } );
+   EXPECT_EQ( m3.getElement( 2, 3 ), RealType{ 7 } );
+
+   EXPECT_EQ( m3.getElement( 3, 0 ), RealType{ 7 } );
+   EXPECT_EQ( m3.getElement( 3, 1 ), RealType{ 8 } );
+   EXPECT_EQ( m3.getElement( 3, 2 ), RealType{ 9 } );
+   EXPECT_EQ( m3.getElement( 3, 3 ), RealType{ 10 } );
+
+   constexpr TNL::Matrices::ElementsOrganization Organization =
+      Matrix::getOrganization() == TNL::Matrices::ElementsOrganization::RowMajorOrder
+         ? TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder
+         : TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder;
+   using OtherMatrix = TNL::Matrices::DenseMatrix< RealType, typename Matrix::DeviceType, IndexType, Organization >;
+
+   // clang-format off
+   Matrix m5( { { 1, 0, 0,  0 },
+                { 2, 3, 0,  0 },
+                { 4, 5, 6,  0 },
+                { 7, 8, 9, 10 } } );
+   OtherMatrix m6( { { 0, 0, 0, 0 },
+                     { 2, 0, 0, 0 },
+                     { 3, 5, 0, 0 },
+                     { 4, 6, 7, 0 } } );
+   // clang-format on
+
+   m5.addMatrix( m6, 1, 1 );
+   EXPECT_EQ( m5.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m5.getElement( 0, 1 ), RealType{ 0 } );
+   EXPECT_EQ( m5.getElement( 0, 2 ), RealType{ 0 } );
+   EXPECT_EQ( m5.getElement( 0, 3 ), RealType{ 0 } );
+
+   EXPECT_EQ( m5.getElement( 1, 0 ), RealType{ 4 } );
+   EXPECT_EQ( m5.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m5.getElement( 1, 2 ), RealType{ 0 } );
+   EXPECT_EQ( m5.getElement( 1, 3 ), RealType{ 0 } );
+
+   EXPECT_EQ( m5.getElement( 2, 0 ), RealType{ 7 } );
+   EXPECT_EQ( m5.getElement( 2, 1 ), RealType{ 10 } );
+   EXPECT_EQ( m5.getElement( 2, 2 ), RealType{ 6 } );
+   EXPECT_EQ( m5.getElement( 2, 3 ), RealType{ 0 } );
+
+   EXPECT_EQ( m5.getElement( 3, 0 ), RealType{ 11 } );
+   EXPECT_EQ( m5.getElement( 3, 1 ), RealType{ 14 } );
+   EXPECT_EQ( m5.getElement( 3, 2 ), RealType{ 16 } );
+   EXPECT_EQ( m5.getElement( 3, 3 ), RealType{ 10 } );
+
+   m5.addMatrix( m6, 1, 1, TNL::Matrices::TransposeState::Transpose );
+   EXPECT_EQ( m5.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m5.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( m5.getElement( 0, 2 ), RealType{ 3 } );
+   EXPECT_EQ( m5.getElement( 0, 3 ), RealType{ 4 } );
+
+   EXPECT_EQ( m5.getElement( 1, 0 ), RealType{ 4 } );
+   EXPECT_EQ( m5.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m5.getElement( 1, 2 ), RealType{ 5 } );
+   EXPECT_EQ( m5.getElement( 1, 3 ), RealType{ 6 } );
+
+   EXPECT_EQ( m5.getElement( 2, 0 ), RealType{ 7 } );
+   EXPECT_EQ( m5.getElement( 2, 1 ), RealType{ 10 } );
+   EXPECT_EQ( m5.getElement( 2, 2 ), RealType{ 6 } );
+   EXPECT_EQ( m5.getElement( 2, 3 ), RealType{ 7 } );
+
+   EXPECT_EQ( m5.getElement( 3, 0 ), RealType{ 11 } );
+   EXPECT_EQ( m5.getElement( 3, 1 ), RealType{ 14 } );
+   EXPECT_EQ( m5.getElement( 3, 2 ), RealType{ 16 } );
+   EXPECT_EQ( m5.getElement( 3, 3 ), RealType{ 10 } );
 }
 
 template< typename Matrix >
