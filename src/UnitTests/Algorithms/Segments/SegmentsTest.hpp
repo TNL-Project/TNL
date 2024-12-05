@@ -192,6 +192,19 @@ test_forElements()
       for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
          EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx );
    }
+
+   // Test when calling the lambda function without the local index
+   segments.forAllElements(
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType globalIdx ) mutable
+      {
+         v_view[ globalIdx ] = segmentIdx;
+      } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
+         EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx )
+            << "globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+   }
 }
 
 template< typename Segments >

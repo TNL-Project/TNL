@@ -110,11 +110,12 @@ struct GraphsBenchmark
             {
                x = x == std::numeric_limits< Index >::max() ? -1 : x;
             } );
-         this->boostBfsDistancesDirected.setSize(boost_bfs_dist.getSize());
-         for( Index i = 0; i < boost_bfs_dist.getSize(); i++)
+         this->boostBfsDistancesDirected.setSize( boost_bfs_dist.getSize() );
+         for( Index i = 0; i < boost_bfs_dist.getSize(); i++ )
             if( boost_bfs_dist[ i ] == 0 && i != largestNode )
                this->boostBfsDistancesDirected[ i ] = -1;
-            else this->boostBfsDistancesDirected[ i ] = boost_bfs_dist[ i ];
+            else
+               this->boostBfsDistancesDirected[ i ] = boost_bfs_dist[ i ];
 
          // Benchmarking breadth-first search of undirected graph
          benchmark.setMetadataElement( { "problem", "BFS undir" } );
@@ -131,12 +132,12 @@ struct GraphsBenchmark
             {
                x = x == std::numeric_limits< Index >::max() ? -1 : x;
             } );
-         this->boostBfsDistancesUndirected.setSize(boost_bfs_dist.getSize());
-         for( Index i = 0; i < boost_bfs_dist.getSize(); i++)
+         this->boostBfsDistancesUndirected.setSize( boost_bfs_dist.getSize() );
+         for( Index i = 0; i < boost_bfs_dist.getSize(); i++ )
             if( boost_bfs_dist[ i ] == 0 && i != largestNode )
                this->boostBfsDistancesUndirected[ i ] = -1;
-            else this->boostBfsDistancesUndirected[ i ] = boost_bfs_dist[ i ];
-
+            else
+               this->boostBfsDistancesUndirected[ i ] = boost_bfs_dist[ i ];
       }
 
       if( this->withSssp ) {
@@ -399,9 +400,10 @@ struct GraphsBenchmark
          if( bfsDistances != this->boostBfsDistancesDirected ) {
             std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << std::endl;
             this->errors++;
-            for( Index i = 0; i < digraph.getNodeCount();i++)
-               if( bfsDistances[ i ] != this->boostBfsDistancesDirected[ i ])
-                  std::cerr << "i = " << i << " TNL -> " << bfsDistances[ i ] << " Boost -> " << this->boostBfsDistancesDirected[ i ] << std::endl;
+            //for( Index i = 0; i < digraph.getNodeCount(); i++ )
+            //   if( bfsDistances.getElement( i ) != this->boostBfsDistancesDirected[ i ] )
+            //      std::cerr << "i = " << i << " TNL -> " << bfsDistances.getElement( i ) << " Boost -> "
+            //                << this->boostBfsDistancesDirected[ i ] << std::endl;
          }
 #endif
 #ifdef HAVE_GUNROCK
@@ -425,6 +427,10 @@ struct GraphsBenchmark
          if( bfsDistances != this->boostBfsDistancesUndirected ) {
             std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << std::endl;
             this->errors++;
+            //for( Index i = 0; i < digraph.getNodeCount(); i++ )
+            //   if( bfsDistances.getElement( i ) != this->boostBfsDistancesUndirected[ i ] )
+            //      std::cerr << "i = " << i << " TNL -> " << bfsDistances.getElement( i ) << " Boost -> "
+            //                << this->boostBfsDistancesUndirected[ i ] << std::endl;
          }
 #endif
 #ifdef HAVE_GUNROCK
