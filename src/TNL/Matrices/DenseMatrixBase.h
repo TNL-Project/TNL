@@ -11,6 +11,7 @@
 #include "DenseMatrixRowView.h"
 #include "MatrixBase.h"
 #include "TNL/Matrices/MatrixType.h"
+#include "DenseOperations.h"
 
 namespace TNL::Matrices {
 
@@ -667,9 +668,21 @@ public:
                   IndexType begin = 0,
                   IndexType end = 0 ) const;
 
+   /**
+    * \brief Computes matrix addition.
+    *
+    * \tparam Matrix is type of the matrix to be added. It can be DenseMatrix or DenseMatrixView.
+    * \param matrix is the matrix to be added.
+    * \param matrixMultiplicator is a factor by which the matrix is multiplied. It is one by default.
+    * \param thisMatrixMultiplicator is a factor by which this matrix is multiplied. It is one by default.
+    * \param transpose indicates if the matrix is added as transposed. It is None by default.
+    */
    template< typename Matrix >
    void
-   addMatrix( const Matrix& matrix, const RealType& matrixMultiplicator = 1.0, const RealType& thisMatrixMultiplicator = 1.0 );
+   addMatrix( const Matrix& matrix,
+              const RealType& matrixMultiplicator = 1.0,
+              const RealType& thisMatrixMultiplicator = 1.0,
+              TransposeState transpose = TransposeState::None );
 
    /**
     * \brief Comparison operator with another dense matrix view.
