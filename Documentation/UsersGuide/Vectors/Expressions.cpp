@@ -43,7 +43,9 @@ main( int argc, char* argv[] )
    /****
     * Perform test on GPU
     */
+#ifdef __CUDACC__
    std::cout << std::endl;
    std::cout << "Expressions on GPU ..." << std::endl;
    expressions< Devices::Cuda >();
+#endif
 }
