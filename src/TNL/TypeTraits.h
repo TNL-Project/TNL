@@ -6,6 +6,7 @@
 #include <complex>
 #include <type_traits>
 #include <utility>
+#include "detail/LambdaDetails.h"
 
 namespace TNL {
 
@@ -357,5 +358,25 @@ public:
 
 template< typename T >
 using GetValueType_t = typename GetValueType< T >::type;
+
+/**
+ * \brief Returns number of arguments of a lambda function.
+ */
+template< typename Lambda >
+constexpr int
+argumentCount()
+{
+   return detail::LambdaDetails< Lambda >::argumentCount();
+};
+
+/**
+ * \brief Returns true if lambda function is variadic.
+ */
+template< typename Lambda >
+constexpr bool
+isVariadic()
+{
+   return detail::LambdaDetails< Lambda >::isVariadic();
+};
 
 }  // namespace TNL
