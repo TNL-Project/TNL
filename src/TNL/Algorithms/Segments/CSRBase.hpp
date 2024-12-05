@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Backend.h>
+#include <TNL/TypeTraits.h>
 
 #include "CSRBase.h"
 
@@ -129,6 +130,48 @@ CSRBase< Device, Index >::getOffsets() const -> ConstOffsetsView
    return this->offsets.getConstView();
 }
 
+template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
+__global__
+void
+forElementsScanKernel( Index gridIdx, OffsetsView offsets, Index begin, Index end, Function function )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+
+   __shared__ Index shared_offsets[ BlockSize ];
+   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
+   if( segmentIdx < end )
+      shared_offsets[ threadIdx.x ] = offsets[ segmentIdx ];
+   __syncthreads();
+
+   const Index first_segment_in_block = segmentIdx - threadIdx.x;
+   const Index last_segment_in_block = min( end, first_segment_in_block + BlockSize );
+   const Index segments_in_block = last_segment_in_block - first_segment_in_block;
+   const Index first_idx = shared_offsets[ 0 ];
+   const Index last_idx = offsets[ last_segment_in_block ];
+
+   if( threadIdx.x == 0 ) {
+      printf( "First segment: %d, first_idx: %d last_idx: %d\n", first_segment_in_block, first_idx, last_idx );
+      for( Index i = 0; i < segments_in_block; i++ )
+         printf( "shared_offsets[ %d ] = %d\n", i, shared_offsets[ i ] );
+   }
+   __syncthreads();
+
+   Index idx = threadIdx.x;
+   while( idx + first_idx < last_idx ) {
+      Index local_segmentIdx = 0;
+      while( local_segmentIdx < segments_in_block && idx + first_idx >= shared_offsets[ local_segmentIdx ] )
+         local_segmentIdx++;
+      local_segmentIdx--;  //?????
+      printf( "Mapping thread %d with idx %d to segment %d\n", threadIdx.x, idx, local_segmentIdx );
+      TNL_ASSERT_LT( first_idx + idx, last_idx, "" );
+      function( first_segment_in_block + local_segmentIdx, first_idx + idx );
+      idx += BlockSize;
+      __syncthreads();
+   }
+
+#endif
+}
+
 template< typename OffsetsView, typename Index, typename Function >
 __global__
 void
@@ -141,21 +184,18 @@ forElementsKernel( Index gridIdx, OffsetsView offsets, Index begin, Index end, F
    if( segmentIdx >= end )
       return;
 
-   //const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   const Index laneIdx = threadIdx.x % Backend::getWarpSize();  // & is cheaper than %
+   const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+   //const Index laneIdx = threadIdx.x % Backend::getWarpSize();  // & is cheaper than %
    TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
    Index endIdx = offsets[ segmentIdx + 1 ];
 
    Index localIdx = laneIdx;
    for( Index globalIdx = offsets[ segmentIdx ] + laneIdx; globalIdx < endIdx; globalIdx += Backend::getWarpSize() ) {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      /*printf( ">>> threadIdx %d segmentIdx %d laneIdx %d localIdx %d globalIdx %d \n",
-              threadIdx.x,
-              segmentIdx,
-              laneIdx,
-              localIdx,
-              globalIdx );*/
-      function( segmentIdx, localIdx, globalIdx );
+      if constexpr( argumentCount< Function >() == 3 )
+         function( segmentIdx, localIdx, globalIdx );
+      else
+         function( segmentIdx, globalIdx );
       localIdx += Backend::getWarpSize();
    }
 #endif
@@ -170,8 +210,8 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
       return;
 
    if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
-      const Index warpsCount = end - begin;
-      const std::size_t threadsCount = warpsCount * Backend::getWarpSize();
+      const Index segmentsCount = end - begin;
+      const std::size_t threadsCount = segmentsCount;  // * Backend::getWarpSize();
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       dim3 blocksCount;
@@ -179,22 +219,40 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
       Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-         constexpr auto kernel = forElementsKernel< ConstOffsetsView, IndexType, Function >;
-         Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, function );
+         if constexpr( argumentCount< Function >() == 3 ) {
+            constexpr auto kernel = forElementsKernel< ConstOffsetsView, IndexType, Function >;
+            Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, function );
+         }
+         else {
+            constexpr auto kernel = forElementsScanKernel< ConstOffsetsView, IndexType, Function >;
+            Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, function );
+         }
       }
       Backend::streamSynchronize( launch_config.stream );
    }
    else {
       const auto offsetsView = this->offsets;
-      auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
-      {
-         const IndexType begin = offsetsView[ segmentIdx ];
-         const IndexType end = offsetsView[ segmentIdx + 1 ];
-         IndexType localIdx( 0 );
-         for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-            function( segmentIdx, localIdx++, globalIdx );
-      };
-      Algorithms::parallelFor< Device >( begin, end, l );
+      if constexpr( argumentCount< Function >() == 3 ) {
+         auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
+         {
+            const IndexType begin = offsetsView[ segmentIdx ];
+            const IndexType end = offsetsView[ segmentIdx + 1 ];
+            IndexType localIdx( 0 );
+            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+               function( segmentIdx, localIdx++, globalIdx );
+         };
+         Algorithms::parallelFor< Device >( begin, end, l );
+      }
+      else {
+         auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
+         {
+            const IndexType begin = offsetsView[ segmentIdx ];
+            const IndexType end = offsetsView[ segmentIdx + 1 ];
+            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+               function( segmentIdx, globalIdx );
+         };
+         Algorithms::parallelFor< Device >( begin, end, l );
+      }
    }
 }
 
@@ -222,7 +280,7 @@ forElementsWithSegmentIndexesKernel( Index gridIdx,
    const Index idx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize();
    if( idx >= end )
       return;
-   TNL_ASSERT_GE( 0, segmentIndexes.getSize(), "" );
+   TNL_ASSERT_GE( idx, 0, "" );
    TNL_ASSERT_LT( idx, segmentIndexes.getSize(), "" );
    const Index segmentIdx = segmentIndexes[ idx ];
    TNL_ASSERT_GE( segmentIdx, 0, "Wrong index segment index - smaller that 0." );
