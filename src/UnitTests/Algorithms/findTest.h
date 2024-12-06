@@ -62,4 +62,28 @@ TYPED_TEST( FindTest, find )
    EXPECT_EQ( find( u, 10 ).first, false );
 }
 
+TYPED_TEST( FindTest, upperBound )
+{
+   using ArrayType = typename TestFixture::ArrayType;
+   using ValueType = typename ArrayType::ValueType;
+   using DeviceType = typename ArrayType::DeviceType;
+
+   if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
+      ArrayType u{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 0 ).first, true );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 0 ).second, 1 );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 1 ).first, true );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 1 ).second, 2 );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 2 ).first, true );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 2 ).second, 3 );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 3 ).first, true );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 3 ).second, 4 );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 4 ).first, true );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 4 ).second, 5 );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 5 ).first, true );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 5 ).second, 6 );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 9 ).first, false );
+      EXPECT_EQ( findUpperBound( u.getData(), 10, (ValueType) 10 ).first, false );
+   }
+}
 #include "../main.h"
