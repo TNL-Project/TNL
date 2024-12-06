@@ -6,6 +6,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Backend.h>
 #include <TNL/TypeTraits.h>
+#include <TNL/Algorithms/find.h>
 
 #include "CSRBase.h"
 
@@ -137,10 +138,12 @@ forElementsScanKernel( Index gridIdx, OffsetsView offsets, Index begin, Index en
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-   __shared__ Index shared_offsets[ BlockSize ];
+   __shared__ Index shared_offsets[ BlockSize + 1 ];
    const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
-   if( segmentIdx < end )
+   if( segmentIdx <= end )
       shared_offsets[ threadIdx.x ] = offsets[ segmentIdx ];
+   if( threadIdx.x == 0 && end - begin >= BlockSize )
+      shared_offsets[ BlockSize ] = offsets[ end ];
    __syncthreads();
 
    const Index first_segment_in_block = segmentIdx - threadIdx.x;
@@ -149,24 +152,15 @@ forElementsScanKernel( Index gridIdx, OffsetsView offsets, Index begin, Index en
    const Index first_idx = shared_offsets[ 0 ];
    const Index last_idx = offsets[ last_segment_in_block ];
 
-   if( threadIdx.x == 0 ) {
-      printf( "First segment: %d, first_idx: %d last_idx: %d\n", first_segment_in_block, first_idx, last_idx );
-      for( Index i = 0; i < segments_in_block; i++ )
-         printf( "shared_offsets[ %d ] = %d\n", i, shared_offsets[ i ] );
-   }
-   __syncthreads();
-
    Index idx = threadIdx.x;
    while( idx + first_idx < last_idx ) {
-      Index local_segmentIdx = 0;
-      while( local_segmentIdx < segments_in_block && idx + first_idx >= shared_offsets[ local_segmentIdx ] )
-         local_segmentIdx++;
-      local_segmentIdx--;  //?????
-      printf( "Mapping thread %d with idx %d to segment %d\n", threadIdx.x, idx, local_segmentIdx );
-      TNL_ASSERT_LT( first_idx + idx, last_idx, "" );
-      function( first_segment_in_block + local_segmentIdx, first_idx + idx );
+      auto [ found, local_segmentIdx ] = Algorithms::findUpperBound( shared_offsets, segments_in_block + 1, idx + first_idx );
+      if( found ) {
+         local_segmentIdx--;
+         TNL_ASSERT_LT( first_idx + idx, last_idx, "" );
+         function( first_segment_in_block + local_segmentIdx, first_idx + idx );
+      }
       idx += BlockSize;
-      __syncthreads();
    }
 
 #endif
@@ -211,7 +205,11 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
 
    if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
       const Index segmentsCount = end - begin;
-      const std::size_t threadsCount = segmentsCount;  // * Backend::getWarpSize();
+      std::size_t threadsCount;
+      if constexpr( argumentCount< Function >() == 2 )  // we use scan kernel
+         threadsCount = segmentsCount;
+      else
+         threadsCount = segmentsCount * Backend::getWarpSize();
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       dim3 blocksCount;
