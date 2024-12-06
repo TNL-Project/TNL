@@ -51,4 +51,30 @@ find( const Container& container, const ValueType& value )
       (IndexType) 0, view.getSize(), fetch, reduce, false );
 }
 
+/**
+ * \brief Find the first occurrence of a larger element than given value in sorted array.
+ *
+ * \param array is the array where the value is searched.
+ * \param value is the upper bound value.
+ * \return pair `(found, position)` where \e found is a boolean indicating
+ *         if the  upper bound \e value was found and \e position is the
+ *         position in the array.
+ */
+template< typename Value, typename Index >
+constexpr std::pair< bool, Index >
+findUpperBound( const Value* array, Index size, const Value& value )
+{
+   if( array[ size - 1 ] <= value )
+      return { false, size };
+   Index left( 0 ), right( size - 1 );
+   while( left < right ) {
+      Index mid = left + ( right - left ) / 2;
+      if( array[ mid ] <= value )
+         left = mid + 1;
+      else
+         right = mid;
+   }
+   return { true, left };
+}
+
 }  // namespace TNL::Algorithms
