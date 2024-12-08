@@ -338,7 +338,7 @@ public:
     * ```
     *
     * The return type of this lambda can be any non void.
-    * \tparam Reduce is a type of lambda function for reduction declared as
+    * \tparam Reduce is a function object for reduction (some of \ref ReductionFunctionObjects) or a lambda function defined as
     *
     * ```
     * auto reduce = [] __cuda_callable__ ( const FetchValue& v1, const FetchValue& v2 ) -> FetchValue { ... };
@@ -383,7 +383,7 @@ public:
                const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
    /**
-    * \brief Method for performing general reduction on matrix rows for constant instances with functional
+    * \brief Method for performing general reduction on matrix rows for constant instances with function object
     * instead of lamda function for reduction.
     *
     * \tparam Fetch is a type of lambda function for data fetch declared as
@@ -394,7 +394,7 @@ public:
     * ```
     *
     * The return type of this lambda can be any non void.
-    * \tparam Reduce is a functional for reduction (some of \ref ReductionFunctionals).
+    * \tparam Reduce is a function object for reduction (some of \ref ReductionFunctionObjects).
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
@@ -406,7 +406,7 @@ public:
     * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
     * \param end defines ending of the range `[begin, end)` of rows to be processed.
     * \param fetch is an instance of lambda function for data fetch.
-    * \param reduce is an instance of functional for reduction.
+    * \param reduce is an instance of function object for reduction.
     * \param keep in an instance of lambda function for storing results.
     * \param kernel is an instance of the segments reduction kernel to be used
     *               for the operation.
@@ -436,7 +436,7 @@ public:
     * ```
     *
     * The return type of this lambda can be any non void.
-    * \tparam Reduce is a type of lambda function for reduction declared as
+    * \tparam Reduce is a function object for reduction (some of \ref ReductionFunctionObjects) or a lambda function defined as
     *
     * ```
     * auto reduce = [] __cuda_callable__ ( const FetchValue& v1, const FetchValue& v2 ) -> FetchValue { ... };
@@ -478,7 +478,7 @@ public:
 
    /**
     * \brief Method for performing general reduction on all matrix rows for constant instances
-    * with functional instead of lambda function for reduction.
+    * with function object instead of lambda function for reduction.
     *
     * \tparam Fetch is a type of lambda function for data fetch declared as
     *
@@ -488,7 +488,7 @@ public:
     * ```
     *
     * The return type of this lambda can be any non void.
-    * \tparam Reduce is a functional for reduction (some of \ref ReductionFunctionals).
+    * \tparam Reduce is a function object for reduction (some of \ref ReductionFunctionObjects).
     * \tparam Keep is a type of lambda function for storing results of reduction in each row. It is declared as
     *
     * ```
@@ -498,7 +498,7 @@ public:
     * \tparam FetchValue is type returned by the Fetch lambda function.
     *
     * \param fetch is an instance of lambda function for data fetch.
-    * \param reduce is an instance of functional for reduction.
+    * \param reduce is an instance of function object for reduction.
     * \param keep in an instance of lambda function for storing results.
     * \param kernel is an instance of the segments reduction kernel to be used
     *               for the operation.
