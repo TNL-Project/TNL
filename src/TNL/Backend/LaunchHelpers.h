@@ -180,6 +180,27 @@ getGlobalThreadIdx_z( const dim3& gridIdx )
 {
    return ( gridIdx.z * getMaxGridZSize() + blockIdx.z ) * blockDim.z + threadIdx.z;
 }
+
+__device__
+inline int
+getGlobalBlockIdx_x( const dim3& gridIdx )
+{
+   return ( gridIdx.x * getMaxGridXSize() + blockIdx.x );
+}
+
+__device__
+inline int
+getGlobalBlockIdx_y( const dim3& gridIdx )
+{
+   return ( gridIdx.y * getMaxGridYSize() + blockIdx.y );
+}
+
+__device__
+inline int
+getGlobalBlockIdx_z( const dim3& gridIdx )
+{
+   return ( gridIdx.z * getMaxGridZSize() + blockIdx.z );
+}
 #endif
 
 inline int
