@@ -288,9 +288,32 @@ test_forElementsWithSegmentIndexes()
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
       for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
          if( segmentIdx % 2 == 0 )
-            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx );
+            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx )
+               << "Segment index = " << segmentIdx << " gblobalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
          else
-            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), -1 );
+            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), -1 )
+               << "Segment index = " << segmentIdx << " gblobalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+      }
+   }
+
+   // Test when calling the lambda function without the local index
+   v = -1;
+   segments.forElements( segmentIndexes,
+                         0,
+                         segmentsCount / 2,
+                         [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType globalIdx ) mutable
+                         {
+                            v_view[ globalIdx ] = segmentIdx;
+                         } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+         if( segmentIdx % 2 == 0 )
+            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx )
+               << "globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+         else
+            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), -1 )
+               << "globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
       }
    }
 }
