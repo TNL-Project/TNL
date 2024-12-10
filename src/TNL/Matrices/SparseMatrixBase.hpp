@@ -597,6 +597,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    auto columns = this->getColumns();
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
    {
+      TNL_ASSERT_GE( globalIdx, 0, "Global index must be non-negative." );
+      TNL_ASSERT_LT( globalIdx, columns_view.getSize(), "Global index must be smaller than the number of all column indexes." );
       if( localIdx < columns ) {
          if( Base::isBinary() )
             function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
