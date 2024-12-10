@@ -73,7 +73,9 @@ breadthFirstSearchParallel( const Matrix& adjacencyMatrix,
             },*/
             [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
             {
+               TNL_ASSERT_GE( rowIdx, 0, "" );
                TNL_ASSERT_LT( rowIdx, y_view.getSize(), "" );
+               TNL_ASSERT_GE( columnIdx, 0, "" );
                TNL_ASSERT_LT( columnIdx, y_view.getSize(), "" );
                if( columnIdx != Matrices::paddingIndex< Index > && y_view[ columnIdx ] == -1 ) {
                   atomicMax( &y_view[ columnIdx ], i + 1 );
