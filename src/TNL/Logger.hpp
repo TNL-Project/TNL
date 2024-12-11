@@ -17,12 +17,11 @@ Logger::writeHeader( const std::string& title )
 {
    const int fill = stream.fill();
    const int titleLength = title.length();
-   stream << "+" << std::setfill( '-' ) << std::setw( width ) << "+" << std::endl;
-   stream << "|" << std::setfill( ' ' ) << std::setw( width ) << "|" << std::endl;
-   stream << "|" << std::setw( width / 2 + titleLength / 2 ) << title << std::setw( width / 2 - titleLength / 2 ) << "|"
-          << std::endl;
-   stream << "|" << std::setfill( ' ' ) << std::setw( width ) << "|" << std::endl;
-   stream << "+" << std::setfill( '-' ) << std::setw( width ) << "+" << std::endl;
+   stream << "+" << std::setfill( '-' ) << std::setw( width ) << "+\n";
+   stream << "|" << std::setfill( ' ' ) << std::setw( width ) << "|\n";
+   stream << "|" << std::setw( width / 2 + titleLength / 2 ) << title << std::setw( width / 2 - titleLength / 2 ) << "|\n";
+   stream << "|" << std::setfill( ' ' ) << std::setw( width ) << "|\n";
+   stream << "+" << std::setfill( '-' ) << std::setw( width ) << "+\n";
    stream.fill( fill );
 }
 
@@ -30,7 +29,7 @@ inline void
 Logger::writeSeparator()
 {
    const int fill = stream.fill();
-   stream << "+" << std::setfill( '-' ) << std::setw( width ) << "+" << std::endl;
+   stream << "+" << std::setfill( '-' ) << std::setw( width ) << "+\n";
    stream.fill( fill );
 }
 
@@ -104,7 +103,7 @@ Logger::writeParameter( const std::string& label, const T& value, int parameterL
       stream << " ";
    std::stringstream str;
    str << value;
-   stream << label << std::setw( width - label.length() - parameterLevel - 3 ) << str.str() << " |" << std::endl;
+   stream << label << std::setw( width - label.length() - parameterLevel - 3 ) << str.str() << " |\n";
 }
 
 }  // namespace TNL
