@@ -9,6 +9,9 @@
 #include <TNL/Algorithms/find.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 
+#include <cub/cub.cuh>
+#define USE_CUB
+
 #include "CSRBase.h"
 
 namespace TNL::Algorithms::Segments {
@@ -332,6 +335,19 @@ forElementsWithSegmentIndexesBlockMergeKernel( Index gridIdx,
       shared_global_offsets[ threadIdx.x ] = offsets[ shared_segment_indexes[ threadIdx.x ] ];
    }
 
+   #ifdef USE_CUB
+   using BlockScan = cub::BlockScan< Index, 256 >;
+   __shared__ typename BlockScan::TempStorage temp_storage;
+   //__shared__ Index sizes[ BlockSize ];
+   Index value = 0;
+   if( segmentIdx_ptr < end && threadIdx.x <= SegmentsPerBlock ) {
+      const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
+      value = offsets[ seg_idx + 1 ] - offsets[ seg_idx ];
+   }
+   BlockScan( temp_storage ).ExclusiveSum( value, value );
+   if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
+      shared_offsets[ threadIdx.x ] = value;
+   #else  // USE_CUB
    Index value = 0;
    if( segmentIdx_ptr < end && threadIdx.x <= SegmentsPerBlock ) {
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
@@ -342,6 +358,7 @@ forElementsWithSegmentIndexesBlockMergeKernel( Index gridIdx,
    const Index v = CudaScan::scan( Plus{}, (Index) 0, value, threadIdx.x, scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v;
+   #endif
 
    // Compute the last offset in the block - this is necessary only SegmentsPerBlock == BlockSize
    if constexpr( SegmentsPerBlock == BlockSize )
@@ -367,7 +384,8 @@ forElementsWithSegmentIndexesBlockMergeKernel( Index gridIdx,
                  shared_offsets[ i ] );
       }
       printf( "blockIdx %d: shared_offsets[ %d ] = %d\n", blockIdx.x, i, shared_offsets[ i ] );
-      printf( "begin = %d end = %d last_local_segment_idx = %d last_idx = %d\n", begin, end, last_local_segment_idx, last_idx );
+      printf( "begin = %d end = %d last_local_segment_idx = %d last_idx = %d\n", begin, end, last_local_segment_idx, last_idx
+   );
       //printf( "last_local_segment_idx = %d last_idx = %d\n", last_local_segment_idx, last_idx );
    }
    __syncthreads();*/
