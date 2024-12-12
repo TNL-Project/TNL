@@ -39,7 +39,6 @@ breadthFirstSearchParallel( const Matrix& adjacencyMatrix,
    frontier.setElement( 0, start );
    Index frontier_size( 1 );
    y = distances;
-   //auto distances_view = distances.getView();
    auto y_view = y.getView();
    auto predecesors_view = predecesors.getView();
    auto marks_view = marks.getView();
@@ -67,10 +66,6 @@ breadthFirstSearchParallel( const Matrix& adjacencyMatrix,
             frontier,
             0,
             frontier_size,
-            /*[ = ] __cuda_callable__( Index rowIdx )
-            {
-               return distances_view[ rowIdx ] == i;
-            },*/
             [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
             {
                TNL_ASSERT_GE( rowIdx, 0, "" );
@@ -99,103 +94,8 @@ breadthFirstSearchParallel( const Matrix& adjacencyMatrix,
             frontier_view[ marks_scan_view[ idx ] - 1 ] = idx;
       };
       marks_scan.forAllElements( f );
-
-      //if( y == distances )
-      //   break;
-      /*std::cout << "Iteration = " << i << std::endl;
-      std::cout << "Marks = " << marks << std::endl;
-      std::cout << "Marks scan = " << marks_scan << std::endl;
-      std::cout << "Frontier = " << frontier << std::endl;
-      std::cout << "Frontier size = " << frontier_size << std::endl;*/
       distances = y;
    }
-}
-
-template< bool haveExplorer, typename Matrix, typename Vector, typename Visitor, typename Explorer >
-void
-breadthFirstSearchTransposed_impl( const Matrix& transposedAdjacencyMatrix,
-                                   typename Matrix::IndexType start,
-                                   Vector& distances,
-                                   Visitor&& visitor,
-                                   Explorer&& explorer )
-{
-   TNL_ASSERT_TRUE( transposedAdjacencyMatrix.getRows() == transposedAdjacencyMatrix.getColumns(),
-                    "Adjacency matrix must be square matrix." );
-   TNL_ASSERT_TRUE( distances.getSize() == transposedAdjacencyMatrix.getRows(),
-                    "v must have the same size as the number of rows in adjacencyMatrix" );
-
-   using Real = typename Matrix::RealType;
-   using Index = typename Matrix::IndexType;
-   const Index n = transposedAdjacencyMatrix.getRows();
-
-   Vector y( distances.getSize() );
-   distances = 0;
-   distances.setElement( start, 1 );
-   y = distances;
-
-   for( Index i = 2; i <= n; i++ ) {
-      auto x_view = distances.getView();
-      auto y_view = y.getView();
-
-      auto fetch = [ = ] __cuda_callable__( Index rowIdx, Index columnIdx, const Real& value ) -> bool
-      {
-         return x_view[ columnIdx ] && value;
-      };
-      // NVCC does not allow use of if constexpr inside lambda.
-      auto fetch_with_explorer = [ = ] __cuda_callable__( Index rowIdx, Index columnIdx, const Real& value ) -> bool
-      {
-         if( x_view[ columnIdx ] != 0 )
-            explorer( rowIdx );
-         return x_view[ columnIdx ] && value;
-      };
-      auto keep = [ = ] __cuda_callable__( int rowIdx, const double& value ) mutable
-      {
-         if( value && x_view[ rowIdx ] == 0 ) {
-            y_view[ rowIdx ] = i;
-            visitor( rowIdx, i );
-         }
-      };
-      if constexpr( haveExplorer )
-         transposedAdjacencyMatrix.reduceAllRows( fetch_with_explorer, TNL::Plus{}, keep, (Index) 0 );
-      else
-         transposedAdjacencyMatrix.reduceAllRows( fetch, TNL::Plus{}, keep, (Index) 0 );
-      if( distances == y )
-         break;
-      distances = y;
-   }
-   distances -= 1;
-}
-
-template< typename Matrix, typename Vector >
-void
-breadthFirstSearchTransposed( const Matrix& transposedAdjacencyMatrix, typename Matrix::IndexType start, Vector& distances )
-{
-   using Index = typename Matrix::IndexType;
-   breadthFirstSearchTransposed_impl< false >(
-      transposedAdjacencyMatrix, start, distances, [] __cuda_callable__( Index, Index ) {}, [] __cuda_callable__( Index ) {} );
-}
-
-template< typename Matrix, typename Vector, typename Visitor >
-void
-breadthFirstSearchTransposed( const Matrix& transposedAdjacencyMatrix,
-                              typename Matrix::IndexType start,
-                              Vector& distances,
-                              Visitor&& visitor )
-{
-   using Index = typename Matrix::IndexType;
-   breadthFirstSearchTransposed_impl< false >(
-      transposedAdjacencyMatrix, start, distances, visitor, [] __cuda_callable__( Index ) {} );
-}
-
-template< typename Matrix, typename Vector, typename Visitor, typename Explorer >
-void
-breadthFirstSearchTransposed( const Matrix& transposedAdjacencyMatrix,
-                              typename Matrix::IndexType start,
-                              Vector& distances,
-                              Visitor&& visitor,
-                              Explorer&& explorer )
-{
-   breadthFirstSearchTransposed_impl< true >( transposedAdjacencyMatrix, start, distances, visitor, explorer );
 }
 
 template< bool haveExplorer, typename Matrix, typename Vector, typename Visitor, typename Explorer >
@@ -242,9 +142,6 @@ breadthFirstSearch_impl( const Matrix& adjacencyMatrix,
       }
    }
    else {
-      Matrix transposed;
-      transposed.getTransposition( adjacencyMatrix );
-      //breadthFirstSearchTransposed( transposed, start, distances, visitor, explorer );
       if constexpr( haveExplorer )
          breadthFirstSearchParallel< true >( adjacencyMatrix, start, distances, visitor, explorer );
       else
