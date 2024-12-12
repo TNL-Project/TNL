@@ -10,7 +10,7 @@
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 
 #include <cub/cub.cuh>
-#define USE_CUB
+//#define USE_CUB
 
 #include "CSRBase.h"
 
@@ -186,7 +186,6 @@ forElementsKernel( Index gridIdx, OffsetsView offsets, Index begin, Index end, F
       return;
 
    const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   //const Index laneIdx = threadIdx.x % Backend::getWarpSize();  // & is cheaper than %
    TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
    Index endIdx = offsets[ segmentIdx + 1 ];
 
@@ -293,7 +292,6 @@ forElementsWithSegmentIndexesKernel( Index gridIdx,
    TNL_ASSERT_LT( segmentIdx, offsets.getSize() - 1, "Wrong index segment index - larger that the number of indexes." );
 
    const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   //const Index laneIdx = threadIdx.x % Backend::getWarpSize();  // & is cheaper than %
    TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
    Index endIdx = offsets[ segmentIdx + 1 ];
 
@@ -338,7 +336,6 @@ forElementsWithSegmentIndexesBlockMergeKernel( Index gridIdx,
    #ifdef USE_CUB
    using BlockScan = cub::BlockScan< Index, 256 >;
    __shared__ typename BlockScan::TempStorage temp_storage;
-   //__shared__ Index sizes[ BlockSize ];
    Index value = 0;
    if( segmentIdx_ptr < end && threadIdx.x <= SegmentsPerBlock ) {
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
@@ -369,26 +366,6 @@ forElementsWithSegmentIndexesBlockMergeKernel( Index gridIdx,
    __syncthreads();
    const Index last_idx = shared_offsets[ last_local_segment_idx ];
    TNL_ASSERT_LT( last_idx, offsets[ offsets.getSize() - 1 ] - shared_segment_indexes[ 0 ], "" );
-
-   /*if( threadIdx.x == 0 && blockIdx.x == 2 ) {
-      Index i;
-      for( i = 0; i < SegmentsPerBlock && begin + i < end; i++ ) {
-         const Index seg_idx = segmentIndexes[ begin + i ];
-         printf( "blockIdx %d: shared_segment_indexes[ %d] = %d shared_segment_sizes[ %d ] = %d shared_offsets[ %d ] = %d\n",
-                 blockIdx.x,
-                 i,
-                 shared_segment_indexes[ i ],
-                 seg_idx,
-                 offsets[ seg_idx + 1 ] - offsets[ seg_idx ],
-                 i,
-                 shared_offsets[ i ] );
-      }
-      printf( "blockIdx %d: shared_offsets[ %d ] = %d\n", blockIdx.x, i, shared_offsets[ i ] );
-      printf( "begin = %d end = %d last_local_segment_idx = %d last_idx = %d\n", begin, end, last_local_segment_idx, last_idx
-   );
-      //printf( "last_local_segment_idx = %d last_idx = %d\n", last_local_segment_idx, last_idx );
-   }
-   __syncthreads();*/
 
    Index idx = threadIdx.x;
    while( idx < last_idx ) {
@@ -425,15 +402,12 @@ CSRBase< Device, Index >::forElements( const Array& segmentIndexes, Index begin,
       return;
    auto segmentIndexesView = segmentIndexes.getConstView();
    if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
-      //std::cout << "Max offsets:" << this->offsets.getElement( this->offsets.getSize() - 1 ) << std::endl;
       const Index segmentsCount = end - begin;
       std::size_t threadsCount;
-      //if constexpr( argumentCount< Function >() == 2 )  // we use scan kernel
-      constexpr int ThreadsPerSegment = 4;
+      constexpr int ThreadsPerSegment = 16;
       constexpr int SegmentsPerBlock = 256 / ThreadsPerSegment;
-      threadsCount = segmentsCount * ThreadsPerSegment;
-      //else
-      //threadsCount = segmentsCount * Backend::getWarpSize();
+      //threadsCount = segmentsCount * ThreadsPerSegment;  // for block merge kernel
+      threadsCount = segmentsCount * Backend::getWarpSize();  // for vector kernel
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       dim3 blocksCount;
@@ -442,17 +416,17 @@ CSRBase< Device, Index >::forElements( const Array& segmentIndexes, Index begin,
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 
-         /*constexpr auto kernel =
+         constexpr auto kernel =
             forElementsWithSegmentIndexesKernel< ConstOffsetsView, typename Array::ConstViewType, IndexType, Function >;
-         Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, segmentIndexesView, begin, end, function
-         );*/
+         Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, segmentIndexesView, begin, end, function );
 
-         constexpr auto kernel = forElementsWithSegmentIndexesBlockMergeKernel< ConstOffsetsView,
+         /*constexpr auto kernel = forElementsWithSegmentIndexesBlockMergeKernel< ConstOffsetsView,
                                                                                 typename Array::ConstViewType,
                                                                                 IndexType,
                                                                                 Function,
                                                                                 SegmentsPerBlock >;
-         Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, segmentIndexesView, begin, end, function );
+         Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, segmentIndexesView, begin, end, function
+         );*/
       }
       Backend::streamSynchronize( launch_config.stream );
    }
@@ -517,20 +491,13 @@ forElementsIfKernel( Index gridIdx, OffsetsView offsets, Index begin, Index end,
    if( segmentIdx >= end || ! condition( segmentIdx ) )
       return;
 
-   //const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   const Index laneIdx = threadIdx.x % Backend::getWarpSize();  // & is cheaper than %
+   const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
    TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
    Index endIdx = offsets[ segmentIdx + 1 ];
 
    Index localIdx = laneIdx;
    for( Index globalIdx = offsets[ segmentIdx ] + laneIdx; globalIdx < endIdx; globalIdx += Backend::getWarpSize() ) {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      /*printf( ">>> threadIdx %d segmentIdx %d laneIdx %d localIdx %d globalIdx %d \n",
-              threadIdx.x,
-              segmentIdx,
-              laneIdx,
-              localIdx,
-              globalIdx );*/
       function( segmentIdx, localIdx, globalIdx );
       localIdx += Backend::getWarpSize();
    }
