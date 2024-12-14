@@ -65,6 +65,14 @@ EllpackBase< Device, Index, Organization, Alignment >::getSegmentSize( const Ind
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 __cuda_callable__
 auto
+EllpackBase< Device, Index, Organization, Alignment >::getSegmentSize() const -> IndexType
+{
+   return this->segmentSize;
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
+__cuda_callable__
+auto
 EllpackBase< Device, Index, Organization, Alignment >::getSize() const -> IndexType
 {
    return this->segmentsCount * this->segmentSize;
