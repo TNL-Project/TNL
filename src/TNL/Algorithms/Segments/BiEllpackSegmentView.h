@@ -8,7 +8,7 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Index, ElementsOrganization Organization, int WarpSize = 32 >
+template< typename Index, ElementsOrganization Organization, int WarpSize = Backend::getWarpSize() >
 class BiEllpackSegmentView
 {
 public:
