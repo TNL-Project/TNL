@@ -189,6 +189,7 @@ public:
     * \include SegmentsExample_CSR_forElements.out
     */
    template< typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]]
    void
    forElements( IndexType begin, IndexType end, Function function ) const;
 
@@ -199,22 +200,27 @@ public:
     * See \ref TNL::Algorithms::Segments::CSR::forElements for more details.
     */
    template< typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forAllElements instead." )]]
    void
    forAllElements( Function function ) const;
 
    template< typename Array, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]]
    void
    forElements( const Array& segmentIndexes, Index begin, Index end, Function function ) const;
 
    template< typename Array, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]]
    void
    forElements( const Array& segmentIndexes, Function function ) const;
 
    template< typename Condition, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElementsIf instead." )]]
    void
    forElementsIf( IndexType begin, IndexType end, Condition condition, Function function ) const;
 
    template< typename Condition, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElementsIf instead." )]]
    void
    forAllElementsIf( Condition condition, Function function ) const;
 
@@ -242,6 +248,7 @@ public:
     * \include SegmentsExample_CSR_forSegments.out
     */
    template< typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forSegments instead." )]]
    void
    forSegments( IndexType begin, IndexType end, Function&& function ) const;
 
@@ -251,6 +258,7 @@ public:
     * See \ref TNL::Algorithms::Segments::CSR::forSegments for more details.
     */
    template< typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forAllSegments instead." )]]
    void
    forAllSegments( Function&& function ) const;
 
@@ -276,6 +284,7 @@ public:
     * \include SegmentsExample_CSR_sequentialForSegments.out
     */
    template< typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::sequentialForSegments instead." )]]
    void
    sequentialForSegments( IndexType begin, IndexType end, Function&& function ) const;
 
@@ -285,6 +294,7 @@ public:
     * See \ref TNL::Algorithms::Segments::CSR::sequentialForSegments for more details.
     */
    template< typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::sequentialForAllSegments instead." )]]
    void
    sequentialForAllSegments( Function&& function ) const;
 
