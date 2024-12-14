@@ -1,5 +1,6 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
+#include <TNL/Algorithms/Segments/operations.h>
 #include <TNL/Math.h>
 #include <iostream>
 
@@ -149,7 +150,22 @@ test_forElements_EqualSizes()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
    auto v_view = v.getView();
-   segments.forAllElements(
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         v_view[ globalIdx ] = segmentIdx + localIdx;
+      } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentSize; localIdx++ )
+         EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx );
+   }
+
+   // Test with segments view
+   v = 0;
+   TNL::Algorithms::Segments::forAllElements(
+      segments.getView(),
       [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
       {
          v_view[ globalIdx ] = segmentIdx + localIdx;
@@ -182,7 +198,22 @@ test_forElements()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
    auto v_view = v.getView();
-   segments.forAllElements(
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         v_view[ globalIdx ] = segmentIdx + localIdx;
+      } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
+         EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx );
+   }
+
+   // Test with segments view
+   v = 0;
+   TNL::Algorithms::Segments::forAllElements(
+      segments.getView(),
       [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
       {
          v_view[ globalIdx ] = segmentIdx + localIdx;
@@ -194,7 +225,8 @@ test_forElements()
    }
 
    // Test when calling the lambda function without the local index
-   segments.forAllElements(
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
       [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType globalIdx ) mutable
       {
          v_view[ globalIdx ] = segmentIdx;
@@ -228,7 +260,30 @@ test_forElementsIf()
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize(), -1 );
    auto v_view = v.getView();
-   segments.forAllElementsIf(
+   TNL::Algorithms::Segments::forAllElementsIf(
+      segments,
+      [ = ] __cuda_callable__( const IndexType segmentIdx ) -> bool
+      {
+         return segmentIdx % 2 == 0;
+      },
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         v_view[ globalIdx ] = segmentIdx + localIdx;
+      } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+         if( segmentIdx % 2 == 0 )
+            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx );
+         else
+            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), -1 );
+      }
+   }
+
+   // Test with segments view
+   v = -1;
+   TNL::Algorithms::Segments::forAllElementsIf(
+      segments.getView(),
       [ = ] __cuda_callable__( const IndexType segmentIdx ) -> bool
       {
          return segmentIdx % 2 == 0;
@@ -276,7 +331,31 @@ test_forElementsWithSegmentIndexes()
                                   value = 2 * idx;
                                } );
    auto v_view = v.getView();
-   segments.forElements(
+   TNL::Algorithms::Segments::forElements(
+      segments,
+      segmentIndexes,
+      0,
+      segmentsCount / 2,
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         v_view[ globalIdx ] = segmentIdx + localIdx;
+      } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+         if( segmentIdx % 2 == 0 )
+            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx )
+               << "Segment index = " << segmentIdx << " gblobalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+         else
+            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), -1 )
+               << "Segment index = " << segmentIdx << " gblobalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+      }
+   }
+
+   // Test with segments view
+   v = -1;
+   TNL::Algorithms::Segments::forElements(
+      segments.getView(),
       segmentIndexes,
       0,
       segmentsCount / 2,
@@ -298,13 +377,15 @@ test_forElementsWithSegmentIndexes()
 
    // Test when calling the lambda function without the local index
    v = -1;
-   segments.forElements( segmentIndexes,
-                         0,
-                         segmentsCount / 2,
-                         [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType globalIdx ) mutable
-                         {
-                            v_view[ globalIdx ] = segmentIdx;
-                         } );
+   TNL::Algorithms::Segments::forElements(
+      segments,
+      segmentIndexes,
+      0,
+      segmentsCount / 2,
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType globalIdx ) mutable
+      {
+         v_view[ globalIdx ] = segmentIdx;
+      } );
 
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
       for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
@@ -315,6 +396,75 @@ test_forElementsWithSegmentIndexes()
             EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), -1 )
                << "globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
       }
+   }
+}
+
+template< typename Segments >
+void
+test_forSegments()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+   using SegmentView = typename Segments::SegmentViewType;
+
+   const IndexType segmentsCount = 260;
+   const IndexType maxSegmentSize = 70;
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   segmentsSizes.forAllElements(
+      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      {
+         value = idx % maxSegmentSize;
+      } );
+
+   Segments segments( segmentsSizes );
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
+   auto v_view = v.getView();
+   TNL::Algorithms::Segments::forAllSegments( segments,
+                                              [ = ] __cuda_callable__( const SegmentView segment_view ) mutable
+                                              {
+                                                 for( IndexType localIdx = 0; localIdx < segment_view.getSize(); localIdx++ ) {
+                                                    const IndexType globalIdx = segment_view.getGlobalIndex( localIdx );
+                                                    v_view[ globalIdx ] = segment_view.getSegmentIndex() + localIdx;
+                                                 }
+                                              } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
+         EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx );
+   }
+
+   // Test with segments view
+   v = 0;
+   TNL::Algorithms::Segments::forAllSegments( segments.getView(),
+                                              [ = ] __cuda_callable__( const SegmentView segment_view ) mutable
+                                              {
+                                                 for( IndexType localIdx = 0; localIdx < segment_view.getSize(); localIdx++ ) {
+                                                    const IndexType globalIdx = segment_view.getGlobalIndex( localIdx );
+                                                    v_view[ globalIdx ] = segment_view.getSegmentIndex() + localIdx;
+                                                 }
+                                              } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
+         EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx );
+   }
+
+   v = 0;
+   TNL::Algorithms::Segments::sequentialForAllSegments(
+      segments,
+      [ = ] __cuda_callable__( const SegmentView segment_view ) mutable
+      {
+         for( IndexType localIdx = 0; localIdx < segment_view.getSize(); localIdx++ ) {
+            const IndexType globalIdx = segment_view.getGlobalIndex( localIdx );
+            v_view[ globalIdx ] = segment_view.getSegmentIndex() + localIdx;
+         }
+      } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
+         EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx );
    }
 }
 
@@ -343,7 +493,7 @@ test_reduceAllSegments_MaximumInSegments()
       view[ globalIdx ] = segmentIdx * 5 + localIdx + 1;
       return true;
    };
-   segments.forAllElements( init );
+   TNL::Algorithms::Segments::forAllElements( segments, init );
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount );
 
