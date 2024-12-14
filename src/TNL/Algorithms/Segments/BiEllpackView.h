@@ -10,7 +10,7 @@ namespace TNL::Algorithms::Segments {
 template< typename Device,
           typename Index,
           ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int WarpSize = 32 >
+          int WarpSize = Backend::getWarpSize() >
 class BiEllpackView : public BiEllpackBase< Device, Index, Organization, WarpSize >
 {
    using Base = BiEllpackBase< Device, Index, Organization, WarpSize >;

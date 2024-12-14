@@ -15,7 +15,7 @@ template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
           ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int WarpSize = 32 >
+          int WarpSize = Backend::getWarpSize() >
 class BiEllpack : public BiEllpackBase< Device, Index, Organization, WarpSize >
 {
    using Base = BiEllpackBase< Device, Index, Organization, WarpSize >;
