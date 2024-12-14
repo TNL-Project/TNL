@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Algorithms/Segments/CSRView.h>
+#include <TNL/Algorithms/Segments/CSR.h>
 #include "CSRKernels.h"
 
 namespace TNL::Algorithms::Segments::detail {
