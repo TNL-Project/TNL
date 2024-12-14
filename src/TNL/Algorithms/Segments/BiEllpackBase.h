@@ -120,34 +120,41 @@ public:
    getVirtualSegments() const;
 
    template< typename Function >
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead" )]] void
    forElements( IndexType begin, IndexType end, Function&& function ) const;
 
    template< typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forAllElements instead" )]]
    void
    forAllElements( Function&& function ) const;
 
    template< typename Array, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead" )]]
    void
    forElements( const Array& segmentIndexes, Index begin, Index end, Function function ) const;
 
    template< typename Array, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead" )]]
    void
    forElements( const Array& segmentIndexes, Function function ) const;
 
    template< typename Condition, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forElementsIf instead" )]]
    void
    forElementsIf( IndexType begin, IndexType end, Condition condition, Function function ) const;
 
    template< typename Condition, typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forAllElementsIf instead" )]]
    void
    forAllElementsIf( Condition condition, Function function ) const;
 
    template< typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forSegments instead" )]]
    void
    forSegments( IndexType begin, IndexType end, Function&& function ) const;
 
    template< typename Function >
+   [[deprecated( "Use TNL::Algorithms::Segments::forAllSegments instead" )]]
    void
    forAllSegments( Function&& function ) const;
 

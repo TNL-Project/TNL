@@ -215,7 +215,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( IndexT
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
             // The following is a workaround of a bug in nvcc 11.2
 #if CUDART_VERSION == 11020
-            f( segmentIdx, localIdx, globalIdx );
+            function( segmentIdx, localIdx, globalIdx );
             localIdx++;
 #else
             function( segmentIdx, localIdx++, globalIdx );
@@ -258,7 +258,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( const 
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
             // The following is a workaround of a bug in nvcc 11.2
 #if CUDART_VERSION == 11020
-            f( segmentIdx, localIdx, globalIdx );
+            function( segmentIdx, localIdx, globalIdx );
             localIdx++;
 #else
             function( segmentIdx, localIdx++, globalIdx );
@@ -280,7 +280,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( const 
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
             // The following is a workaround of a bug in nvcc 11.2
 #if CUDART_VERSION == 11020
-            f( segmentIdx, localIdx, globalIdx );
+            function( segmentIdx, localIdx, globalIdx );
             localIdx++;
 #else
             function( segmentIdx, localIdx++, globalIdx );
@@ -323,7 +323,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElementsIf( Inde
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
             // The following is a workaround of a bug in nvcc 11.2
 #if CUDART_VERSION == 11020
-            f( segmentIdx, localIdx, globalIdx );
+            function( segmentIdx, localIdx, globalIdx );
             localIdx++;
 #else
             function( segmentIdx, localIdx++, globalIdx );
@@ -346,7 +346,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElementsIf( Inde
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
             // The following is a workaround of a bug in nvcc 11.2
 #if CUDART_VERSION == 11020
-            f( segmentIdx, localIdx, globalIdx );
+            function( segmentIdx, localIdx, globalIdx );
             localIdx++;
 #else
             function( segmentIdx, localIdx++, globalIdx );
