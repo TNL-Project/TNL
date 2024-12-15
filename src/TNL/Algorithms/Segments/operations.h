@@ -3,17 +3,13 @@
 
 #pragma once
 
-#include "LaunchConfig.h"
+#include "LaunchConfiguration.h"
 
 namespace TNL::Algorithms::Segments {
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
 void
-forElements( const Segments&,
-             IndexBegin begin,
-             IndexEnd end,
-             const LaunchConfig< Segments >& launchConfig,
-             Function&& function );
+forElements( const Segments&, IndexBegin begin, IndexEnd end, const LaunchConfiguration& launchConfig, Function&& function );
 
 template< typename Segments, typename Index, typename Function >
 void
@@ -21,7 +17,7 @@ forElements( const Segments&, Index begin, Index end, Function&& function );
 
 template< typename Segments, typename Function >
 void
-forAllElements( const Segments&, const LaunchConfig< Segments >& launchConfig, Function&& function );
+forAllElements( const Segments&, const LaunchConfiguration& launchConfig, Function&& function );
 
 template< typename Segments, typename Function >
 void
@@ -33,7 +29,7 @@ forElements( const Segments&,
              const Array& segmentIndexes,
              IndexBegin begin,
              IndexEnd end,
-             const LaunchConfig< Segments >& launchConfig,
+             const LaunchConfiguration& launchConfig,
              Function function );
 
 template< typename Segments, typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -42,7 +38,7 @@ forElements( const Segments&, const Array& segmentIndexes, IndexBegin begin, Ind
 
 template< typename Segments, typename Array, typename Function >
 void
-forElements( const Segments&, const Array& segmentIndexes, const LaunchConfig< Segments >& launchConfig, Function function );
+forElements( const Segments&, const Array& segmentIndexes, const LaunchConfiguration& launchConfig, Function function );
 
 template< typename Segments, typename Array, typename Function >
 void
@@ -53,7 +49,7 @@ void
 forElementsIf( const Segments&,
                IndexBegin begin,
                IndexEnd end,
-               const LaunchConfig< Segments >& launchConfig,
+               const LaunchConfiguration& launchConfig,
                Condition condition,
                Function function );
 
@@ -63,7 +59,7 @@ forElementsIf( const Segments&, IndexBegin begin, IndexEnd end, Condition condit
 
 template< typename Segments, typename Condition, typename Function >
 void
-forAllElementsIf( const Segments&, const LaunchConfig< Segments >& launchConfig, Condition condition, Function function );
+forAllElementsIf( const Segments&, const LaunchConfiguration& launchConfig, Condition condition, Function function );
 
 template< typename Segments, typename Condition, typename Function >
 void
@@ -71,11 +67,7 @@ forAllElementsIf( const Segments&, Condition condition, Function function );
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
 void
-forSegments( const Segments&,
-             IndexBegin begin,
-             IndexEnd end,
-             const LaunchConfig< Segments >& launchConfig,
-             Function&& function );
+forSegments( const Segments&, IndexBegin begin, IndexEnd end, const LaunchConfiguration& launchConfig, Function&& function );
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
 void
@@ -83,7 +75,7 @@ forSegments( const Segments&, IndexBegin begin, IndexEnd end, Function&& functio
 
 template< typename Segments, typename Function >
 void
-forAllSegments( const Segments&, const LaunchConfig< Segments >& launchConfig, Function&& function );
+forAllSegments( const Segments&, const LaunchConfiguration& launchConfig, Function&& function );
 
 template< typename Segments, typename Function >
 void
@@ -94,7 +86,7 @@ void
 sequentialForSegments( const Segments&,
                        IndexBegin begin,
                        IndexEnd end,
-                       const LaunchConfig< Segments >& launchConfig,
+                       const LaunchConfiguration& launchConfig,
                        Function&& function );
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
@@ -103,7 +95,7 @@ sequentialForSegments( const Segments&, IndexBegin begin, IndexEnd end, Function
 
 template< typename Segments, typename Function >
 void
-sequentialForAllSegments( const Segments&, const LaunchConfig< Segments >& launchConfig, Function&& function );
+sequentialForAllSegments( const Segments&, const LaunchConfiguration& launchConfig, Function&& function );
 
 template< typename Segments, typename Function >
 void
