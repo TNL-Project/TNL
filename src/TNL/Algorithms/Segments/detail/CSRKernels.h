@@ -136,9 +136,20 @@ forElementsWithSegmentIndexesBlockMergeKernel( Index gridIdx,
    const Index segmentIdx_ptr = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
    const Index last_local_segment_idx = min( SegmentsPerBlock, end - begin - blockIdx.x * SegmentsPerBlock );
    if( segmentIdx_ptr < end && threadIdx.x < SegmentsPerBlock ) {
+      TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
       shared_segment_indexes[ threadIdx.x ] = segmentIndexes[ segmentIdx_ptr ];
+      TNL_ASSERT_GE( shared_segment_indexes[ threadIdx.x ], 0, "" );
+      TNL_ASSERT_LT( shared_segment_indexes[ threadIdx.x ], offsets.getSize(), "" );
       shared_global_offsets[ threadIdx.x ] = offsets[ shared_segment_indexes[ threadIdx.x ] ];
    }
+
+   /*__syncthreads();
+   if( threadIdx.x == 0 ) {
+      printf( "blockIdx.x = %d segmentIdx_ptr %d, last_local_segment_idx = %d \n",
+              blockIdx.x,
+              segmentIdx_ptr,
+              last_local_segment_idx );
+   }*/
 
    #ifdef USE_CUB
    using BlockScan = cub::BlockScan< Index, 256 >;
@@ -168,9 +179,12 @@ forElementsWithSegmentIndexesBlockMergeKernel( Index gridIdx,
    if constexpr( SegmentsPerBlock == BlockSize )
       if( threadIdx.x == last_local_segment_idx - 1 ) {
          const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
+         TNL_ASSERT_GE( seg_idx, 0, "Wrong index of segment index - smaller that 0." );
+         TNL_ASSERT_LT( seg_idx, offsets.getSize() - 1, "Wrong index of segment index - larger that the number of indexes." );
          shared_offsets[ threadIdx.x + 1 ] = shared_offsets[ threadIdx.x ] + offsets[ seg_idx + 1 ] - offsets[ seg_idx ];
       }
    __syncthreads();
+
    const Index last_idx = shared_offsets[ last_local_segment_idx ];
    TNL_ASSERT_LT( last_idx, offsets[ offsets.getSize() - 1 ] - shared_segment_indexes[ 0 ], "" );
 
