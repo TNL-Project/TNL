@@ -18,6 +18,13 @@ template< typename Segments >
 struct LaunchConfig
 {
    using IndexType = typename Segments::IndexType;
+   LaunchConfiguration() = default;
+
+   LaunchConfiguration( ThreadsToSegmentsMapping threadsToSegmentsMapping, int threadsPerSegmentCount, int blockSize = 1 )
+   : Backend::LaunchConfiguration( blockSize ), threadsToSegmentsMapping( threadsToSegmentsMapping ),
+     threadsPerSegmentCount( threadsPerSegmentCount )
+   {}
+
    ThreadsToSegmentsMapping
    getThreadsToSegmentsMapping()
    {
