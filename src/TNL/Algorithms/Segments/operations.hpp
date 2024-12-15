@@ -7,50 +7,112 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Segments, typename Index, typename Function >
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
 void
-forElements( const Segments& segments, Index begin, Index end, Function&& function )
+forElements( const Segments& segments,
+             IndexBegin begin,
+             IndexEnd end,
+             const LaunchConfig< Segments >& launchConfig,
+             Function&& function )
 {
-   detail::SegmentsOperations< Segments >::forElements( segments, begin, end, std::forward< Function >( function ) );
+   detail::SegmentsOperations< Segments >::forElements(
+      segments, begin, end, launchConfig, std::forward< Function >( function ) );
+}
+
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
+void
+forElements( const Segments& segments, IndexBegin begin, IndexEnd end, Function&& function )
+{
+   LaunchConfig< Segments > launchConfig;
+   forElements( segments, begin, end, launchConfig, std::forward< Function >( function ) );
 }
 
 template< typename Segments, typename Function >
 void
-forAllElements( const Segments& segments, Function&& function )
+forAllElements( const Segments& segments, const LaunchConfig< Segments >& launchConfig, Function&& function )
 {
    using IndexType = typename Segments::IndexType;
    detail::SegmentsOperations< Segments >::forElements(
       segments, (IndexType) 0, segments.getSegmentsCount(), std::forward< Function >( function ) );
 }
 
+template< typename Segments, typename Function >
+void
+forAllElements( const Segments& segments, Function&& function )
+{
+   LaunchConfig< Segments > launchConfig;
+   forAllElements( segments, launchConfig, std::forward< Function >( function ) );
+}
+
 template< typename Segments, typename Array, typename IndexBegin, typename IndexEnd, typename Function >
 void
-forElements( const Segments& segments, const Array& segmentIndexes, IndexBegin begin, IndexEnd end, Function function )
+forElements( const Segments& segments,
+             const Array& segmentIndexes,
+             IndexBegin begin,
+             IndexEnd end,
+             const LaunchConfig< Segments >& launchConfig,
+             Function function )
 {
    detail::SegmentsOperations< Segments >::forElements(
       segments, segmentIndexes, begin, end, std::forward< Function >( function ) );
 }
 
+template< typename Segments, typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+void
+forElements( const Segments& segments, const Array& segmentIndexes, IndexBegin begin, IndexEnd end, Function function )
+{
+   LaunchConfig< Segments > launchConfig;
+   forElements( segments, segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+}
+
 template< typename Segments, typename Array, typename Function >
 void
-forElements( const Segments& segments, const Array& segmentIndexes, Function function )
+forElements( const Segments& segments,
+             const Array& segmentIndexes,
+             const LaunchConfig< Segments >& launchConfig,
+             Function function )
 {
    using IndexType = typename Segments::IndexType;
    detail::SegmentsOperations< Segments >::forElements(
       segments, segmentIndexes, (IndexType) 0, segments.getSegmentsCount(), std::forward< Function >( function ) );
 }
 
-template< typename Segments, typename Index, typename Condition, typename Function >
+template< typename Segments, typename Array, typename Function >
 void
-forElementsIf( const Segments& segments, Index begin, Index end, Condition condition, Function function )
+forElements( const Segments& segments, const Array& segmentIndexes, Function function )
+{
+   LaunchConfig< Segments > launchConfig;
+   forElements( segments, segmentIndexes, launchConfig, std::forward< Function >( function ) );
+}
+
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+void
+forElementsIf( const Segments& segments,
+               IndexBegin begin,
+               IndexEnd end,
+               const LaunchConfig< Segments >& launchConfig,
+               Condition condition,
+               Function function )
 {
    detail::SegmentsOperations< Segments >::forElementsIf(
       segments, begin, end, std::forward< Condition >( condition ), std::forward< Function >( function ) );
 }
 
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+void
+forElementsIf( const Segments& segments, IndexBegin begin, IndexEnd end, Condition condition, Function function )
+{
+   LaunchConfig< Segments > launchConfig;
+   forElementsIf(
+      segments, begin, end, launchConfig, std::forward< Condition >( condition ), std::forward< Function >( function ) );
+}
+
 template< typename Segments, typename Condition, typename Function >
 void
-forAllElementsIf( const Segments& segments, Condition condition, Function function )
+forAllElementsIf( const Segments& segments,
+                  const LaunchConfig< Segments >& launchConfig,
+                  Condition condition,
+                  Function function )
 {
    using IndexType = typename Segments::IndexType;
    detail::SegmentsOperations< Segments >::forElementsIf( segments,
@@ -58,6 +120,14 @@ forAllElementsIf( const Segments& segments, Condition condition, Function functi
                                                           segments.getSegmentsCount(),
                                                           std::forward< Condition >( condition ),
                                                           std::forward< Function >( function ) );
+}
+
+template< typename Segments, typename Condition, typename Function >
+void
+forAllElementsIf( const Segments& segments, Condition condition, Function function )
+{
+   LaunchConfig< Segments > launchConfig;
+   forAllElementsIf( segments, launchConfig, std::forward< Condition >( condition ), std::forward< Function >( function ) );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
