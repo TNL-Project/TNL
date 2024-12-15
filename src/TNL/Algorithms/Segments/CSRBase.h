@@ -7,7 +7,6 @@
 
 #include <TNL/Containers/VectorView.h>
 
-#include "LaunchConfig.h"
 #include "SegmentView.h"
 #include "printSegments.h"
 
