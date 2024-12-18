@@ -6,7 +6,16 @@ using LaunchConfigurationType = TNL::Algorithms::Segments::LaunchConfiguration;
 
 template< typename Segments >
 struct LaunchConfigurationsSetup
-{};
+{
+   static auto
+   create() -> std::list< std::pair< LaunchConfigurationType, std::string > >
+   {
+      return std::list< std::pair< LaunchConfigurationType, std::string > >{
+         { LaunchConfigurationType( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::ThreadPerSegment, 1 ),
+           "ThreadPerSegment" }
+      };
+   }
+};
 
 template< typename Device, typename Index, typename IndexAllocator >
 struct LaunchConfigurationsSetup< TNL::Algorithms::Segments::CSR< Device, Index, IndexAllocator > >
