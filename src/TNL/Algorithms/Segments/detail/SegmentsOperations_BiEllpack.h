@@ -31,7 +31,11 @@ struct SegmentsOperations< BiEllpackView< Device, Index, Organization, WarpSize 
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstViewType& segments, IndexBegin begin, IndexEnd end, Function&& function )
+   forElements( const ConstViewType& segments,
+                IndexBegin begin,
+                IndexEnd end,
+                const LaunchConfiguration& launchConfig,
+                Function&& function )
    {
       const auto segmentsPermutationView = segments.getSegmentsPermutationView();
       const auto groupPointersView = segments.getGroupPointersView();
@@ -81,6 +85,7 @@ struct SegmentsOperations< BiEllpackView< Device, Index, Organization, WarpSize 
                 const Array& segmentIndexes,
                 IndexBegin begin,
                 IndexEnd end,
+                const LaunchConfiguration& launchConfig,
                 Function&& function )
    {
       const auto segmentsPermutationView = segments.getSegmentsPermutationView();
@@ -130,7 +135,12 @@ struct SegmentsOperations< BiEllpackView< Device, Index, Organization, WarpSize 
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ConstViewType& segments, IndexBegin begin, IndexEnd end, Condition condition, Function function )
+   forElementsIf( const ConstViewType& segments,
+                  IndexBegin begin,
+                  IndexEnd end,
+                  const LaunchConfiguration& launchConfig,
+                  Condition condition,
+                  Function function )
    {
       const auto segmentsPermutationView = segments.getSegmentsPermutationView();
       const auto groupPointersView = segments.getGroupPointersView();

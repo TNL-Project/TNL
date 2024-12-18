@@ -19,7 +19,11 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstViewType& segments, IndexBegin begin, IndexEnd end, Function&& function )
+   forElements( const ConstViewType& segments,
+                IndexBegin begin,
+                IndexEnd end,
+                const LaunchConfiguration& launchConfig,
+                Function&& function )
    {
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
       const auto sliceOffsets_view = segments.getSliceOffsetsView();
@@ -99,9 +103,13 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ViewType& segments, IndexBegin begin, IndexEnd end, Function&& function )
+   forElements( const ViewType& segments,
+                IndexBegin begin,
+                IndexEnd end,
+                const LaunchConfiguration& launchConfig,
+                Function&& function )
    {
-      return forElements( segments.getConstView(), begin, end, std::forward< Function >( function ) );
+      return forElements( segments.getConstView(), begin, end, launchConfig, std::forward< Function >( function ) );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -110,6 +118,7 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
                 const Array& segmentIndexes,
                 IndexBegin begin,
                 IndexEnd end,
+                const LaunchConfiguration& launchConfig,
                 Function&& function )
    {
       auto segmentIndexes_view = segmentIndexes.getConstView();
@@ -195,14 +204,25 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ViewType& segments, const Array& segmentIndexes, IndexBegin begin, IndexEnd end, Function&& function )
+   forElements( const ViewType& segments,
+                const Array& segmentIndexes,
+                IndexBegin begin,
+                IndexEnd end,
+                const LaunchConfiguration& launchConfig,
+                Function&& function )
    {
-      return forElements( segments.getConstView(), segmentIndexes, begin, end, std::forward< Function >( function ) );
+      return forElements(
+         segments.getConstView(), segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ConstViewType& segments, IndexBegin begin, IndexEnd end, Condition condition, Function function )
+   forElementsIf( const ConstViewType& segments,
+                  IndexBegin begin,
+                  IndexEnd end,
+                  const LaunchConfiguration& launchConfig,
+                  Condition condition,
+                  Function function )
    {
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
       const auto sliceOffsets_view = segments.getSliceOffsetsView();
@@ -290,10 +310,19 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ViewType& segments, IndexBegin begin, IndexEnd end, Condition condition, Function function )
+   forElementsIf( const ViewType& segments,
+                  IndexBegin begin,
+                  IndexEnd end,
+                  const LaunchConfiguration& launchConfig,
+                  Condition condition,
+                  Function function )
    {
-      forElementsIf(
-         segments.getConstView(), begin, end, std::forward< Condition >( condition ), std::forward< Function >( function ) );
+      forElementsIf( segments.getConstView(),
+                     begin,
+                     end,
+                     launchConfig,
+                     std::forward< Condition >( condition ),
+                     std::forward< Function >( function ) );
    }
 };
 
@@ -308,25 +337,44 @@ struct SegmentsOperations< SlicedEllpack< Device, Index, IndexAllocator, Organiz
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const SegmentsType& segments, IndexBegin begin, IndexEnd end, Function&& function )
+   forElements( const SegmentsType& segments,
+                IndexBegin begin,
+                IndexEnd end,
+                const LaunchConfiguration& launchConfig,
+                Function&& function )
    {
-      SegmentsOperations< ViewType >::forElements( segments.getConstView(), begin, end, std::forward< Function >( function ) );
+      SegmentsOperations< ViewType >::forElements(
+         segments.getConstView(), begin, end, launchConfig, std::forward< Function >( function ) );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const SegmentsType& segments, const Array& segmentIndexes, IndexBegin begin, IndexEnd end, Function&& function )
+   forElements( const SegmentsType& segments,
+                const Array& segmentIndexes,
+                IndexBegin begin,
+                IndexEnd end,
+                const LaunchConfiguration& launchConfig,
+                Function&& function )
    {
       SegmentsOperations< ViewType >::forElements(
-         segments.getConstView(), segmentIndexes, begin, end, std::forward< Function >( function ) );
+         segments.getConstView(), segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const SegmentsType& segments, IndexBegin begin, IndexEnd end, Condition&& condition, Function&& function )
+   forElementsIf( const SegmentsType& segments,
+                  IndexBegin begin,
+                  IndexEnd end,
+                  const LaunchConfiguration& launchConfig,
+                  Condition&& condition,
+                  Function&& function )
    {
-      SegmentsOperations< ViewType >::forElementsIf(
-         segments.getConstView(), begin, end, std::forward< Condition >( condition ), std::forward< Function >( function ) );
+      SegmentsOperations< ViewType >::forElementsIf( segments.getConstView(),
+                                                     begin,
+                                                     end,
+                                                     launchConfig,
+                                                     std::forward< Condition >( condition ),
+                                                     std::forward< Function >( function ) );
    }
 };
 }  //namespace TNL::Algorithms::Segments::detail
