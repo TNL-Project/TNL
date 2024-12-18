@@ -53,6 +53,64 @@ atomicAdd( long int* address, long int val )
    return old;
 }
 
+__device__
+static double
+atomicMax( double* address, double value )
+{
+   unsigned long long* addr_as_longlong = reinterpret_cast< unsigned long long* >( address );
+   unsigned long long old = *addr_as_longlong;
+   unsigned long long expected;
+   do {
+      expected = old;
+      old =
+         ::atomicCAS( addr_as_longlong, expected, __double_as_longlong( ::fmax( value, __longlong_as_double( expected ) ) ) );
+   } while( expected != old );
+   return __longlong_as_double( old );
+}
+
+__device__
+static double
+atomicMin( double* address, double value )
+{
+   unsigned long long* addr_as_longlong = reinterpret_cast< unsigned long long* >( address );
+   unsigned long long old = *addr_as_longlong;
+   unsigned long long expected;
+   do {
+      expected = old;
+      old =
+         ::atomicCAS( addr_as_longlong, expected, __double_as_longlong( ::fmin( value, __longlong_as_double( expected ) ) ) );
+   } while( expected != old );
+   return __longlong_as_double( old );
+}
+
+__device__
+static float
+atomicMax( float* address, float value )
+{
+   int* addr_as_int = reinterpret_cast< int* >( address );
+   int old = *addr_as_int;
+   int expected;
+   do {
+      expected = old;
+      old = ::atomicCAS( addr_as_int, expected, __float_as_int( ::fmaxf( value, __int_as_float( expected ) ) ) );
+   } while( expected != old );
+   return __int_as_float( old );
+}
+
+__device__
+static float
+atomicMin( float* address, float value )
+{
+   int* addr_as_int = reinterpret_cast< int* >( address );
+   int old = *addr_as_int;
+   int expected;
+   do {
+      expected = old;
+      old = ::atomicCAS( addr_as_int, expected, __float_as_int( ::fminf( value, __int_as_float( expected ) ) ) );
+   } while( expected != old );
+   return __int_as_float( old );
+}
+
 }  // namespace
 #endif
 
