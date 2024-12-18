@@ -27,5 +27,5 @@ main( int argc, char* argv[] )
    std::cout << " another_view = " << another_view << std::endl;
    std::cout << " const_view = " << const_view << std::endl;
 
-   //const_view = 3; this would not compile
+   //const_view = 3; this would not compile, because constant views provide read-only access
 }
