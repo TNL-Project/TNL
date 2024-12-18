@@ -12,14 +12,18 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment > >
 {
    using ViewType = EllpackView< Device, Index, Organization, Alignment >;
-   // ViewType is the same as ConstViewType for Ellpack
+   // ViewType is the same as ConstViewType for Ellpack !!!!!
    //using ConstViewType = typename ViewType::ConstViewType;
    using DeviceType = Device;
    using IndexType = Index;
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ViewType& segments, IndexBegin begin, IndexEnd end, Function&& function )
+   forElements( const ViewType& segments,
+                IndexBegin begin,
+                IndexEnd end,
+                const LaunchConfiguration& launchConfig,
+                Function&& function )
    {
       if constexpr( Organization == RowMajorOrder ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
          const IndexType segmentSize = segments.getSegmentSize();
@@ -74,7 +78,12 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ViewType& segments, const Array& segmentIndexes, IndexBegin begin, IndexEnd end, Function&& function )
+   forElements( const ViewType& segments,
+                const Array& segmentIndexes,
+                IndexBegin begin,
+                IndexEnd end,
+                const LaunchConfiguration& launchConfig,
+                Function&& function )
    {
       auto segmentIndexesView = segmentIndexes.getConstView();
       if constexpr( Organization == RowMajorOrder ) {
@@ -134,7 +143,12 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ViewType& segments, IndexBegin begin, IndexEnd end, Condition condition, Function function )
+   forElementsIf( const ViewType& segments,
+                  IndexBegin begin,
+                  IndexEnd end,
+                  const LaunchConfiguration& launchConfig,
+                  Condition condition,
+                  Function function )
    {
       if constexpr( Organization == RowMajorOrder ) {
          const IndexType segmentSize = segments.getSegmentSize();
@@ -207,25 +221,44 @@ struct SegmentsOperations< Ellpack< Device, Index, IndexAllocator, Organization,
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const SegmentsType& segments, IndexBegin begin, IndexEnd end, Function&& function )
+   forElements( const SegmentsType& segments,
+                IndexBegin begin,
+                IndexEnd end,
+                const LaunchConfiguration& launchConfig,
+                Function&& function )
    {
-      SegmentsOperations< ViewType >::forElements( segments.getConstView(), begin, end, std::forward< Function >( function ) );
+      SegmentsOperations< ViewType >::forElements(
+         segments.getConstView(), begin, end, launchConfig, std::forward< Function >( function ) );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const SegmentsType& segments, const Array& segmentIndexes, IndexBegin begin, IndexEnd end, Function&& function )
+   forElements( const SegmentsType& segments,
+                const Array& segmentIndexes,
+                IndexBegin begin,
+                IndexEnd end,
+                const LaunchConfiguration& launchConfig,
+                Function&& function )
    {
       SegmentsOperations< ViewType >::forElements(
-         segments.getConstView(), segmentIndexes, begin, end, std::forward< Function >( function ) );
+         segments.getConstView(), segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const SegmentsType& segments, IndexBegin begin, IndexEnd end, Condition&& condition, Function&& function )
+   forElementsIf( const SegmentsType& segments,
+                  IndexBegin begin,
+                  IndexEnd end,
+                  const LaunchConfiguration& launchConfig,
+                  Condition&& condition,
+                  Function&& function )
    {
-      SegmentsOperations< ViewType >::forElementsIf(
-         segments.getConstView(), begin, end, std::forward< Condition >( condition ), std::forward< Function >( function ) );
+      SegmentsOperations< ViewType >::forElementsIf( segments.getConstView(),
+                                                     begin,
+                                                     end,
+                                                     launchConfig,
+                                                     std::forward< Condition >( condition ),
+                                                     std::forward< Function >( function ) );
    }
 };
 }  //namespace TNL::Algorithms::Segments::detail
