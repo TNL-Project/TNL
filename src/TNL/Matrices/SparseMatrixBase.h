@@ -5,6 +5,7 @@
 
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/DefaultKernel.h>
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "MatrixBase.h"
 #include "SparseMatrixRowView.h"
 
@@ -601,6 +602,14 @@ public:
    template< typename Array, typename Function >
    void
    forElements( const Array& rowIndexes, IndexType begin, IndexType end, Function&& function );
+
+   template< typename Array, typename Function >
+   void
+   forElements( const Algorithms::Segments::LaunchConfiguration& launchConfig,
+                const Array& rowIndexes,
+                IndexType begin,
+                IndexType end,
+                Function&& function );
 
    /**
     * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
