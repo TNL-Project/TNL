@@ -10,40 +10,93 @@
 #include <TNL/Backend/Macros.h>
 #include <TNL/Functional.h>
 #include <TNL/Assert.h>
+#include <TNL/Atomic.h>
 #include <TNL/Matrices/MatrixBase.h>
+#include <TNL/Algorithms/scan.h>
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
 namespace TNL::Graphs {
 
 template< typename Matrix, typename Vector, typename Index = typename Matrix::IndexType >
 void
-singleSourceShortestPathTransposed( const Matrix& transposedAdjacencyMatrix, Index start, Vector& distances )
+parallelSingleSourceShortestPath( const Matrix& adjacencyMatrix, Index start, Vector& distances )
 {
-   TNL_ASSERT_TRUE( transposedAdjacencyMatrix.getRows() == transposedAdjacencyMatrix.getColumns(),
-                    "Adjacency matrix must be square matrix." );
-   TNL_ASSERT_TRUE( distances.getSize() == transposedAdjacencyMatrix.getRows(),
+   TNL_ASSERT_TRUE( adjacencyMatrix.getRows() == adjacencyMatrix.getColumns(), "Adjacency matrix must be square matrix." );
+   TNL_ASSERT_TRUE( distances.getSize() == adjacencyMatrix.getRows(),
                     "v must have the same size as the number of rows in adjacencyMatrix" );
 
    using Real = typename Matrix::RealType;
-   const Index n = transposedAdjacencyMatrix.getRows();
+   using Device = typename Matrix::DeviceType;
+   const Index n = adjacencyMatrix.getRows();
 
    Vector y( distances.getSize() );
+   Containers::Vector< Index, Device, Index > predecesors( n, -1 ), marks( n ), marks_scan( n, 0 ), frontier( n, 0 );
+   distances = std::numeric_limits< Real >::max();
+   distances.setElement( start, 0 );
+   frontier.setElement( 0, start );
+   Index frontier_size( 1 );
    y = distances;
-
-   for( Index i = 1; i <= n; i++ ) {
-      auto x_view = distances.getView();
-      auto y_view = y.getView();
-
-      auto fetch = [ = ] __cuda_callable__( int rowIdx, int columnIdx, const Real& value ) -> Real
-      {
-         return x_view[ columnIdx ] + value;
-      };
-      auto keep = [ = ] __cuda_callable__( int rowIdx, const double& value ) mutable
-      {
-         y_view[ rowIdx ] = min( x_view[ rowIdx ], value );
-      };
-      transposedAdjacencyMatrix.reduceAllRows( fetch, TNL::Min{}, keep, std::numeric_limits< Real >::max() );
-      if( distances == y )
+   auto y_view = y.getView();
+   auto predecesors_view = predecesors.getView();
+   auto marks_view = marks.getView();
+   auto marks_scan_view = marks_scan.getView();
+   for( Index i = 0; i <= n; i++ ) {
+      marks = 0;
+      if constexpr( std::is_same_v< Device, Devices::Host > )
+         adjacencyMatrix.forElements(
+            frontier,
+            0,
+            frontier_size,
+            [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+            {
+               if( columnIdx != Matrices::paddingIndex< Index > ) {
+                  Real new_distance = y_view[ rowIdx ] + value;
+                  if( new_distance < y_view[ columnIdx ] ) {
+#pragma omp atomic write
+                     y_view[ columnIdx ] = new_distance;
+#pragma omp atomic write
+                     predecesors_view[ columnIdx ] = rowIdx;
+#pragma omp atomic write
+                     marks_view[ columnIdx ] = 1;
+                  }
+               }
+            } );
+      else
+         adjacencyMatrix.forElements(
+            frontier,
+            0,
+            frontier_size,
+            [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+            {
+               TNL_ASSERT_GE( rowIdx, 0, "" );
+               TNL_ASSERT_LT( rowIdx, y_view.getSize(), "" );
+               TNL_ASSERT_GE( columnIdx, 0, "" );
+               TNL_ASSERT_LT( columnIdx, y_view.getSize(), "" );
+               if( columnIdx != Matrices::paddingIndex< Index > ) {
+                  Real new_distance = y_view[ rowIdx ] + value;
+                  if( new_distance < y_view[ columnIdx ] ) {
+                     atomicMin( &y_view[ columnIdx ], new_distance );
+                     atomicMin( &predecesors_view[ columnIdx ], rowIdx );
+                     atomicMax( &marks_view[ columnIdx ], 1 );
+                  }
+               }
+            } );
+      Algorithms::inclusiveScan( marks, marks_scan );
+      frontier_size = marks_scan.getElement( n - 1 );
+      if( frontier_size == 0 )
          break;
+      frontier = 0;
+      auto frontier_view = frontier.getView();
+      auto f = [ = ] __cuda_callable__( const Index idx, const Index value ) mutable
+      {
+         if( idx == 0 ) {
+            if( marks_scan_view[ 0 ] == 1 )
+               frontier_view[ 0 ] = idx;
+         }
+         else if( marks_scan_view[ idx ] - marks_scan_view[ idx - 1 ] == 1 )
+            frontier_view[ marks_scan_view[ idx ] - 1 ] = idx;
+      };
+      marks_scan.forAllElements( f );
       distances = y;
    }
 }
@@ -62,7 +115,10 @@ singleSourceShortestPath( const Graph& graph, Index start, Vector& distances )
    // In the sequential version, we use the Dijkstra algorithm.
    if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
       // The priority queue stores pairs of (distance, vertex)
-      std::priority_queue< std::pair< Real, Index >, std::vector< std::pair< Real, Index > >, std::greater<> > pq;
+      std::priority_queue< std::pair< Real, Index >,
+                           std::vector< std::pair< Real, Index > >,
+                           std::greater< std::pair< Real, Index > > >
+         pq;
       pq.emplace( 0, start );
 
       while( ! pq.empty() ) {
@@ -91,9 +147,7 @@ singleSourceShortestPath( const Graph& graph, Index start, Vector& distances )
       }
    }
    else {
-      typename Graph::MatrixType transposed;
-      transposed.getTransposition( graph.getAdjacencyMatrix() );
-      singleSourceShortestPathTransposed( transposed, start, distances );
+      parallelSingleSourceShortestPath( graph.getAdjacencyMatrix(), start, distances );
    }
    distances.forAllElements(
       [] __cuda_callable__( Index i, Real & x )
