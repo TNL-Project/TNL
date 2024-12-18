@@ -28,6 +28,7 @@
 #include <TNL/Matrices/MatrixOperations.h>
 #include "BoostGraph.h"
 #include "GunrockBenchmark.h"
+#include "LaunchConfigurationsSetup.h"
 
 namespace TNL::Benchmarks::Graphs {
 
@@ -376,6 +377,7 @@ struct GraphsBenchmark
       using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Undirected >;
       using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
       using RealVector = TNL::Containers::Vector< Real, Device, Index >;
+      using SegmentsType = typename Matrix::SegmentsType;
       //using KernelType = SegmentsKernel< Index, Device >;
 
       // TODO: Find a way how to use various reduction kernels for segments in the algorithms.
@@ -391,54 +393,60 @@ struct GraphsBenchmark
          benchmark.setMetadataElement( { "problem", "BFS dir" } );
          benchmark.setMetadataElement( { "format", segments } );
 
-         auto bfs_tnl_dir = [ & ]() mutable
-         {
-            TNL::Graphs::breadthFirstSearch( digraph, largestNode, bfsDistances );
-         };
-         benchmark.time< Device >( device, bfs_tnl_dir );
+         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+            benchmark.setMetadataElement( { "threads mapping", tag } );
+            auto bfs_tnl_dir = [ & ]() mutable
+            {
+               TNL::Graphs::breadthFirstSearch( launchConfig, digraph, largestNode, bfsDistances );
+            };
+            benchmark.time< Device >( device, bfs_tnl_dir );
 #ifdef HAVE_BOOST
-         if( bfsDistances != this->boostBfsDistancesDirected ) {
-            std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << std::endl;
-            this->errors++;
-            //for( Index i = 0; i < digraph.getNodeCount(); i++ )
-            //   if( bfsDistances.getElement( i ) != this->boostBfsDistancesDirected[ i ] )
-            //      std::cerr << "i = " << i << " TNL -> " << bfsDistances.getElement( i ) << " Boost -> "
-            //                << this->boostBfsDistancesDirected[ i ] << std::endl;
-         }
+            if( bfsDistances != this->boostBfsDistancesDirected ) {
+               std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << std::endl;
+               this->errors++;
+               //for( Index i = 0; i < digraph.getNodeCount(); i++ )
+               //   if( bfsDistances.getElement( i ) != this->boostBfsDistancesDirected[ i ] )
+               //      std::cerr << "i = " << i << " TNL -> " << bfsDistances.getElement( i ) << " Boost -> "
+               //                << this->boostBfsDistancesDirected[ i ] << std::endl;
+            }
 #endif
 #ifdef HAVE_GUNROCK
-         if( bfsDistances != this->gunrockBfsDistancesDirected ) {
-            std::cout << "BFS distances of directed graph from TNL and Gunrock are not equal!" << std::endl;
-            this->errors++;
-         }
+            if( bfsDistances != this->gunrockBfsDistancesDirected ) {
+               std::cout << "BFS distances of directed graph from TNL and Gunrock are not equal!" << std::endl;
+               this->errors++;
+            }
 #endif
-
+         }
          // Benchmarking breadth-first search with undirected graph
          benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
          benchmark.setMetadataElement( { "problem", "BFS undir" } );
          benchmark.setMetadataElement( { "format", segments } );
 
-         auto bfs_tnl_undir = [ & ]() mutable
-         {
-            TNL::Graphs::breadthFirstSearch( graph, largestNode, bfsDistances );
-         };
-         benchmark.time< Device >( device, bfs_tnl_undir );
+         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+            benchmark.setMetadataElement( { "threads mapping", tag } );
+
+            auto bfs_tnl_undir = [ & ]() mutable
+            {
+               TNL::Graphs::breadthFirstSearch( launchConfig, graph, largestNode, bfsDistances );
+            };
+            benchmark.time< Device >( device, bfs_tnl_undir );
 #ifdef HAVE_BOOST
-         if( bfsDistances != this->boostBfsDistancesUndirected ) {
-            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << std::endl;
-            this->errors++;
-            //for( Index i = 0; i < digraph.getNodeCount(); i++ )
-            //   if( bfsDistances.getElement( i ) != this->boostBfsDistancesUndirected[ i ] )
-            //      std::cerr << "i = " << i << " TNL -> " << bfsDistances.getElement( i ) << " Boost -> "
-            //                << this->boostBfsDistancesUndirected[ i ] << std::endl;
-         }
+            if( bfsDistances != this->boostBfsDistancesUndirected ) {
+               std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << std::endl;
+               this->errors++;
+               //for( Index i = 0; i < digraph.getNodeCount(); i++ )
+               //   if( bfsDistances.getElement( i ) != this->boostBfsDistancesUndirected[ i ] )
+               //      std::cerr << "i = " << i << " TNL -> " << bfsDistances.getElement( i ) << " Boost -> "
+               //                << this->boostBfsDistancesUndirected[ i ] << std::endl;
+            }
 #endif
 #ifdef HAVE_GUNROCK
-         if( bfsDistances != this->gunrockBfsDistancesUndirected ) {
-            std::cout << "BFS distances of undirected graph from TNL and Gunrock are not equal!" << std::endl;
-            this->errors++;
-         }
+            if( bfsDistances != this->gunrockBfsDistancesUndirected ) {
+               std::cout << "BFS distances of undirected graph from TNL and Gunrock are not equal!" << std::endl;
+               this->errors++;
+            }
 #endif
+         }
       }
 
       if( this->withSssp ) {
@@ -601,20 +609,14 @@ struct GraphsBenchmark
 
       if( device == "sequential" || device == "all" )
          TNLBenchmarks< TNL::Devices::Sequential, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            digraph, graph, smallest, largest, benchmark, "sequential", "CSRScalar" );
+            digraph, graph, smallest, largest, benchmark, "sequential", "CSR" );
       if( device == "host" || device == "all" )
          TNLBenchmarks< TNL::Devices::Host, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            digraph, graph, smallest, largest, benchmark, "host", "CSRScalar" );
+            digraph, graph, smallest, largest, benchmark, "host", "CSR" );
 #ifdef __CUDACC__
       if( device == "cuda" || device == "all" ) {
          TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            digraph, graph, smallest, largest, benchmark, "cuda", "CSRScalar" );
-         TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRVectorKernel >(
-            digraph, graph, smallest, largest, benchmark, "cuda", "CSRVector" );
-         TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRLightKernel >(
-            digraph, graph, smallest, largest, benchmark, "cuda", "CSRLight" );
-         TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRAdaptiveKernel >(
-            digraph, graph, smallest, largest, benchmark, "cuda", "CSRAdaptive" );
+            digraph, graph, smallest, largest, benchmark, "cuda", "CSR" );
          TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments, TNL::Algorithms::SegmentsReductionKernels::EllpackKernel >(
             digraph, graph, smallest, largest, benchmark, "cuda", "Ellpack" );
          TNLBenchmarks< TNL::Devices::Cuda,
