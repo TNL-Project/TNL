@@ -8,6 +8,7 @@
 
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/AtomicOperations.h>
+#include <TNL/Algorithms/Segments/operations.h>
 #include "SparseMatrixBase.h"
 #include "details/SparseMatrix.h"
 
@@ -612,10 +613,12 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Array, typename Function >
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
-                                                                                             IndexType begin,
-                                                                                             IndexType end,
-                                                                                             Function&& function )
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements(
+   const Algorithms::Segments::LaunchConfiguration& launchConfig,
+   const Array& rowIndexes,
+   IndexType begin,
+   IndexType end,
+   Function&& function )
 {
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();
@@ -631,7 +634,19 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
       }
    };
-   this->segments.forElements( rowIndexes, begin, end, f );
+   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, launchConfig, f );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Array, typename Function >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
+                                                                                             IndexType begin,
+                                                                                             IndexType end,
+                                                                                             Function&& function )
+{
+   Algorithms::Segments::LaunchConfiguration launchConfig;
+   this->forElements( launchConfig, rowIndexes, begin, end, function );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
