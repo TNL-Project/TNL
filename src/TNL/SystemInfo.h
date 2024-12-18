@@ -105,7 +105,7 @@ parseCPUInfo()
    CPUInfo info;
    std::ifstream file( "/proc/cpuinfo" );
    if( ! file ) {
-      std::cerr << "Unable to read information from /proc/cpuinfo." << std::endl;
+      std::cerr << "Unable to read information from /proc/cpuinfo.\n";
       return info;
    }
 
@@ -189,7 +189,7 @@ readFile( const std::string& fileName )
 {
    std::ifstream file( fileName );
    if( ! file ) {
-      std::cerr << "Unable to read information from " << fileName << "." << std::endl;
+      std::cerr << "Unable to read information from " << fileName << ".\n";
       return 0;  // NOLINT(modernize-use-nullptr)
    }
    ResultType result;
