@@ -11,16 +11,35 @@ import argparse
 from TNL.BenchmarkLogs import *
 import MultiindexCreator as mic
 
-problems = ["BFS dir", "BFS undir", "SSSP dir", "SSSP undir", "MST undir"]
+problems = ["BFS dir", "BFS undir", "SSSP dir", "SSSP undir"]  # , "MST undir"]
 all_formats = [
+    "CSR",
     "Ellpack",
     "SlicedEllpack",
     "BiEllpack",
-    "CSRAdaptive",
-    "CSRScalar",
-    "CSRVector",
-    "CSRLight",
+    "ChunkedEllpack",
 ]
+
+threads_mappings = [
+    "Single",
+    "Warp",
+    "Block Merge 1",
+    "Block Merge 2",
+    "Block Merge 4",
+    "Block Merge 8",
+]
+
+threads_mappings_translation = {
+    "": "",
+    "Single": "Single",
+    "N/A": "N/A",
+    "ThreadPerSegment": "Single",
+    "WarpPerSegment": "Warp",
+    "BlockMergedSegments 1 thread per segment": "Block Merge 1",
+    "BlockMergedSegments 2 thread per segment": "Block Merge 2",
+    "BlockMergedSegments 4 thread per segment": "Block Merge 4",
+    "BlockMergedSegments 8 thread per segment": "Block Merge 8",
+}
 
 
 def get_benchmark_dataframe(logFile):
@@ -44,7 +63,7 @@ def get_multiindex():
     """
     Create index for the table.
     """
-    mc = mic.MultiindexCreator(6)
+    mc = mic.MultiindexCreator(7)
     mc.add_entries([["Graph name"], ["nodes"], ["edges"], ["edges per node"]])
 
     for problem in problems:
@@ -59,24 +78,55 @@ def get_multiindex():
                 if solver == "TNL":
                     if device == "sequential" or device == "host":
                         formats = [
-                            "CSRScalar",
+                            "CSR",
                         ]
                     else:
                         formats = all_formats
                 for format in formats:
-                    mc.add_entry([problem, solver, device, format, "time"])
-                    if solver == "TNL":
-                        if device == "cuda":
-                            mc.add_entry(
-                                [problem, solver, device, format, "speedup", "boost"]
-                            )
-                            mc.add_entry(
-                                [problem, solver, device, format, "speedup", "gunrock"]
-                            )
-                        if device == "host" or device == "sequential":
-                            mc.add_entry(
-                                [problem, solver, device, format, "speedup", "boost"]
-                            )
+                    mappings = ["Single"]
+                    if solver == "Gunrock":
+                        mappings = ["N/A"]
+                    if device == "cuda":
+                        if format == "CSR":
+                            mappings = threads_mappings
+                    for mapping in mappings:
+                        mc.add_entry([problem, solver, device, format, mapping, "time"])
+                        if solver == "TNL":
+                            if device == "cuda":
+                                mc.add_entry(
+                                    [
+                                        problem,
+                                        solver,
+                                        device,
+                                        format,
+                                        mapping,
+                                        "speedup",
+                                        "boost",
+                                    ]
+                                )
+                                mc.add_entry(
+                                    [
+                                        problem,
+                                        solver,
+                                        device,
+                                        format,
+                                        mapping,
+                                        "speedup",
+                                        "gunrock",
+                                    ]
+                                )
+                            if device == "host" or device == "sequential":
+                                mc.add_entry(
+                                    [
+                                        problem,
+                                        solver,
+                                        device,
+                                        format,
+                                        mapping,
+                                        "speedup",
+                                        "boost",
+                                    ]
+                                )
 
     return mc.get_multiindex()
 
@@ -111,7 +161,17 @@ def convert_data_frame(input_df, multicolumns, df_data, begin_idx=0, end_idx=-1)
             current_solver = row["solver"]
             current_device = row["performer"]
             current_format = row["format"]
+            current_mapping = row["threads mapping"]
+            if current_solver == "Boost":
+                current_mapping = "Single"
+            if current_solver == "Gunrock":
+                current_mapping = "N/A"
+            # print(f"current_mapping = {current_mapping}")
             time = pd.to_numeric(row["time"], errors="coerce")
+            if current_problem == "SSSP dir" or current_problem == "SSSP undir":
+                print(
+                    f"format = {current_format} mapping = {current_mapping} time = {time}"
+                )
             aux_df.loc[
                 out_idx,
                 (
@@ -119,6 +179,7 @@ def convert_data_frame(input_df, multicolumns, df_data, begin_idx=0, end_idx=-1)
                     current_solver,
                     current_device,
                     current_format,
+                    threads_mappings_translation[current_mapping],
                     "time",
                     "",
                 ),
@@ -127,6 +188,7 @@ def convert_data_frame(input_df, multicolumns, df_data, begin_idx=0, end_idx=-1)
             frames.append(aux_df)
         out_idx = out_idx + 1
         in_idx = in_idx + len(df_graph.index)
+        # print(aux_df)
         print(f"out_idx: {out_idx} in_idx: {in_idx}")
     result = pd.concat(frames)
     result.replace("", float("nan"), inplace=True)
@@ -158,31 +220,52 @@ def compute_speedup(df):
     for problem in problems:
         divide_columns(
             df,
-            (problem, "Boost", "sequential", "N/A", "time", ""),
-            (problem, "TNL", "sequential", "CSRScalar", "time", ""),
-            (problem, "TNL", "sequential", "CSRScalar", "speedup", "boost"),
+            (problem, "Boost", "sequential", "N/A", "Single", "time", ""),
+            (problem, "TNL", "sequential", "CSR", "Single", "time", ""),
+            (problem, "TNL", "sequential", "CSR", "Single", "speedup", "boost"),
         )
 
         divide_columns(
             df,
-            (problem, "Boost", "sequential", "N/A", "time", ""),
-            (problem, "TNL", "host", "CSRScalar", "time", ""),
-            (problem, "TNL", "host", "CSRScalar", "speedup", "boost"),
+            (problem, "Boost", "sequential", "N/A", "Single", "time", ""),
+            (problem, "TNL", "host", "CSR", "Single", "time", ""),
+            (problem, "TNL", "host", "CSR", "Single", "speedup", "boost"),
         )
 
         for format in all_formats:
-            divide_columns(
-                df,
-                (problem, "Gunrock", "cuda", "N/A", "time", ""),
-                (problem, "TNL", "cuda", format, "time", ""),
-                (problem, "TNL", "cuda", format, "speedup", "gunrock"),
-            )
-            divide_columns(
-                df,
-                (problem, "Boost", "sequential", "N/A", "time", ""),
-                (problem, "TNL", "cuda", format, "time", ""),
-                (problem, "TNL", "cuda", format, "speedup", "boost"),
-            )
+            if format == "CSR":
+                mappings = threads_mappings
+            else:
+                mappings = ["Single"]
+            for threads_mapping in mappings:
+                divide_columns(
+                    df,
+                    (problem, "Gunrock", "cuda", "N/A", "N/A", "time", ""),
+                    (problem, "TNL", "cuda", format, threads_mapping, "time", ""),
+                    (
+                        problem,
+                        "TNL",
+                        "cuda",
+                        format,
+                        threads_mapping,
+                        "speedup",
+                        "gunrock",
+                    ),
+                )
+                divide_columns(
+                    df,
+                    (problem, "Boost", "sequential", "N/A", "Single", "time", ""),
+                    (problem, "TNL", "cuda", format, threads_mapping, "time", ""),
+                    (
+                        problem,
+                        "TNL",
+                        "cuda",
+                        format,
+                        threads_mapping,
+                        "speedup",
+                        "boost",
+                    ),
+                )
 
 
 ###
@@ -210,6 +293,7 @@ for file in args.input:
     input_df = pd.concat([input_df, df])
 
 multicolumns, df_data = get_multiindex()
+input_df.to_html("graphs-benchmark-input.html")
 df = convert_data_frame(input_df, multicolumns, df_data={})
 compute_speedup(df)
 df.to_html("graphs-benchmark.html")
