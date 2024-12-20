@@ -588,10 +588,12 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Array, typename Function >
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
-                                                                                             IndexType begin,
-                                                                                             IndexType end,
-                                                                                             Function&& function ) const
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements(
+   const Algorithms::Segments::LaunchConfiguration& launchConfig,
+   const Array& rowIndexes,
+   IndexType begin,
+   IndexType end,
+   Function&& function ) const
 {
    const auto columns_view = this->columnIndexes.getConstView();
    const auto values_view = this->values.getConstView();
@@ -607,7 +609,19 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
       }
    };
-   this->segments.forElements( rowIndexes, begin, end, f );
+   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, launchConfig, f );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Array, typename Function >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
+                                                                                             IndexType begin,
+                                                                                             IndexType end,
+                                                                                             Function&& function ) const
+{
+   Algorithms::Segments::LaunchConfiguration launchConfig;
+   this->forElements( launchConfig, rowIndexes, begin, end, function );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
