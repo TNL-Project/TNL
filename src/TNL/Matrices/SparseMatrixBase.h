@@ -611,6 +611,14 @@ public:
                 IndexType end,
                 Function&& function );
 
+   template< typename Array, typename Function >
+   void
+   forElements( const Algorithms::Segments::LaunchConfiguration& launchConfig,
+                const Array& rowIndexes,
+                IndexType begin,
+                IndexType end,
+                Function&& function ) const;
+
    /**
     * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
     * constant instances.
