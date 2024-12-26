@@ -47,6 +47,8 @@ if(TNL_BUILD_HIP)
     endforeach()
 endif()
 
+find_package(UMFPACK)
+
 if(UMFPACK_FOUND)
     target_compile_definitions( UmfpackWrapperTest PUBLIC "-DHAVE_UMFPACK")
     target_include_directories( UmfpackWrapperTest PUBLIC ${UMFPACK_INCLUDE_DIR})

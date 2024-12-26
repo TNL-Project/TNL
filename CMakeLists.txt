@@ -197,8 +197,6 @@ if(JPEG_FOUND)
     include_directories(${JPEG_INCLUDE_DIRS})
 endif()
 
-find_package(UMFPACK)
-
 ####
 # Test for GMP
 #

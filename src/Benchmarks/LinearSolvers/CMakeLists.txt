@@ -1,6 +1,7 @@
 find_package(STRUMPACK)
 find_package(Trilinos)
 find_package(Kokkos)
+find_package(UMFPACK)
 
 if(TNL_BUILD_CUDA)
     add_executable(tnl-benchmark-linear-solvers-cuda tnl-benchmark-linear-solvers.cu)
