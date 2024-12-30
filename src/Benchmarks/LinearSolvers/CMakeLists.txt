@@ -1,5 +1,5 @@
 find_package(STRUMPACK)
-find_package(Trilinos)
+#find_package(Trilinos) # This leads to wrong parameters for linker https://github.com/trilinos/Trilinos/issues/13396
 find_package(Kokkos)
 find_package(UMFPACK)
 
@@ -58,7 +58,7 @@ if(TNL_BUILD_CPP_TARGETS)
         target_link_libraries(tnl-benchmark-linear-solvers PUBLIC MPI::MPI_CXX)
         if(Ginkgo_FOUND)
             target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_GINKGO")
-            target_link_libraries(tnl-benchmark-linear-solvers PUBLIC TNL::TNL_CXX Ginkgo::ginkgo)
+            target_link_libraries(tnl-benchmark-linear-solvers PUBLIC TNL::TNL Ginkgo::ginkgo)
         endif()
     endif()
 
