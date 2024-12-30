@@ -12,6 +12,7 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
 {
    using HeaderElements = BenchmarkResult::HeaderElements;
    using RowElements = BenchmarkResult::RowElements;
+   using SolverType = Solver< Matrix >;
 
    Solver< Matrix >& solver;
    const std::shared_ptr< Matrix >& matrix;
@@ -26,7 +27,7 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
    getTableHeader() const override
    {
       return HeaderElements(
-         { "time", "speedup", "stddev", "stddev/time", "converged", "iterations", "residue_precond", "residue_true" } );
+         { "time", "speedup", "stddev", "stddev/time", "solved", "iterations", "residue_precond", "residue_true" } );
    }
 
    [[nodiscard]] virtual std::vector< int >
@@ -36,7 +37,7 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
                                    8,       // speedup
                                    16,      // time_stddev
                                    18,      // time_stddev/time
-                                   8,       // converged
+                                   8,       // solved
                                    14,      // iterations
                                    14,      // residue precond
                                    14 } );  // residue true
@@ -45,24 +46,37 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
    virtual RowElements
    getRowElements() const override
    {
-      const bool converged = ! std::isnan( solver.getResidue() ) && solver.getResidue() < solver.getConvergenceResidue();
-      const long iterations = solver.getIterations();
-      const double residue_precond = solver.getResidue();
-
-      Vector r;
-      r.setLike( x );
-      matrix->vectorProduct( x, r );
-      r = b - r;
-      const double residue_true = lpNorm( r, 2.0 ) / lpNorm( b, 2.0 );
-
       RowElements elements;
-      elements << time;
-      if( speedup != 0 )
-         elements << speedup;
-      else
-         elements << "N/A";
-      elements << time_stddev << time_stddev / time;
-      elements << ( converged ? "yes" : "no" ) << iterations << residue_precond << residue_true;
+      if constexpr( SolverType::isIterativeSolver() ) {
+         const bool converged = ! std::isnan( solver.getResidue() ) && solver.getResidue() < solver.getConvergenceResidue();
+         const long iterations = solver.getIterations();
+         const double residue_precond = solver.getResidue();
+
+         Vector r;
+         r.setLike( x );
+         matrix->vectorProduct( x, r );
+         r = b - r;
+         const double residue_true = lpNorm( r, 2.0 ) / lpNorm( b, 2.0 );
+
+         elements << time;
+         if( speedup != 0 )
+            elements << speedup;
+         else
+            elements << "N/A";
+         elements << time_stddev << time_stddev / time;
+         elements << ( converged ? "yes" : "no" ) << iterations << residue_precond << residue_true;
+      }
+      else {  // direct solver
+         const bool solved = solver.solved();
+         RowElements elements;
+         elements << time;
+         if( speedup != 0 )
+            elements << speedup;
+         else
+            elements << "N/A";
+         elements << time_stddev << time_stddev / time;
+         elements << ( solved ? "yes" : "no" ) << "N/A" << "N/A" << "N/A";
+      }
       return elements;
    }
 };

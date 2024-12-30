@@ -26,6 +26,18 @@ public:
    using SolverMonitorType = SolverMonitor;
 
    /**
+    * \brief Returns \e true if the solver is an iterative solver.
+    */
+   static constexpr bool
+   isIterativeSolver();
+
+   /**
+    * \brief Returns \e true if the solver is a direct solver.
+    */
+   static constexpr bool
+   isDirectSolver();
+
+   /**
     * \brief Default constructor.
     */
    IterativeSolver() = default;
@@ -237,6 +249,25 @@ protected:
    std::string residualHistoryFileName;
 
    std::ofstream residualHistoryFile;
+};
+
+template< typename Solver >
+struct is_iterative_solver
+{
+   static constexpr bool value = false;
+};
+
+template< typename Real, typename Index, typename SolverMonitor >
+struct is_iterative_solver< IterativeSolver< Real, Index, SolverMonitor > >
+{
+   static constexpr bool value = true;
+};
+
+template< typename Solver >
+inline constexpr bool
+isIterativeSolver()
+{
+   return is_iterative_solver< Solver >::value;
 };
 
 }  // namespace TNL::Solvers

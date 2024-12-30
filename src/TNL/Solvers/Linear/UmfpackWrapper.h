@@ -7,7 +7,7 @@
 
    #include <umfpack.h>
 
-   #include "LinearSolver.h"
+   #include <TNL/Solvers/DirectSolver.h>
    #include <TNL/Matrices/SparseMatrix.h>
    #include <TNL/Algorithms/Segments/CSR.h>
 
@@ -35,54 +35,109 @@ struct is_csr_matrix< Matrices::SparseMatrix< Real,
 template< typename Real, typename Device, typename Index >
 using CSRMatrix = Matrices::SparseMatrix< Real, Device, Index, Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
 
-template< typename Matrix >
-class UmfpackWrapper : public LinearSolver< Matrix >
+template< typename Matrix, typename SolverMonitor = DirectSolverMonitor< double, int > >
+class UmfpackWrapper : public DirectSolver< typename Matrix::RealType, typename Matrix::IndexType, SolverMonitor >
 {
-   using Base = LinearSolver< Matrix >;
+   using Base = DirectSolver< typename Matrix::RealType, typename Matrix::IndexType, SolverMonitor >;
 
 public:
-   using RealType = typename Base::RealType;
-   using DeviceType = typename Base::DeviceType;
-   using IndexType = typename Base::IndexType;
-   using VectorViewType = typename Base::VectorViewType;
-   using ConstVectorViewType = typename Base::ConstVectorViewType;
+   /**
+    * \brief Type for floating point numbers.
+    */
+   using RealType = typename Matrix::RealType;
 
-   UmfpackWrapper()
-   {
-      if( ! is_csr_matrix< Matrix >::value )
-         std::cerr << "The UmfpackWrapper solver is available only for CSR matrices." << std::endl;
-      if( std::is_same_v< typename Matrix::DeviceType, Devices::Cuda > )
-         std::cerr << "The UmfpackWrapper solver is not available on CUDA." << std::endl;
-      if( ! std::is_same_v< RealType, double > )
-         std::cerr << "The UmfpackWrapper solver is available only for double precision." << std::endl;
-      if( ! std::is_same_v< IndexType, int > )
-         std::cerr << "The UmfpackWrapper solver is available only for 'int' index type." << std::endl;
-   }
+   /**
+    * \brief Device where the solver will run on and auxillary data will alloacted on.
+    */
+   using DeviceType = typename Matrix::DeviceType;
 
-   bool
-   solve( ConstVectorViewType b, VectorViewType x ) override
-   {
-      return false;
-   }
-};
+   /**
+    * \brief Indexing type.
+    */
+   using IndexType = typename Matrix::IndexType;
 
-template<>
-class UmfpackWrapper< CSRMatrix< double, Devices::Host, int > > : public LinearSolver< CSRMatrix< double, Devices::Host, int > >
-{
-   using Base = LinearSolver< CSRMatrix< double, Devices::Host, int > >;
+   /**
+    * \brief Type of the matrix representing the linear system.
+    */
+   using MatrixType = Matrix;
 
-public:
-   using RealType = typename Base::RealType;
-   using DeviceType = typename Base::DeviceType;
-   using IndexType = typename Base::IndexType;
-   using VectorViewType = typename Base::VectorViewType;
-   using ConstVectorViewType = typename Base::ConstVectorViewType;
+   /**
+    * \brief Type of shared pointer to the matrix.
+    */
+   using MatrixPointer = std::shared_ptr< std::add_const_t< MatrixType > >;
+
+   /**
+    * \brief Type for vector view.
+    */
+   using VectorViewType = Containers::VectorView< RealType, DeviceType, IndexType >;
+
+   /**
+    * \brief Type for constant vector view.
+    */
+   using ConstVectorViewType = typename VectorViewType::ConstViewType;
+
+   UmfpackWrapper();
 
    void
-   setMatrix( const MatrixPointer& matrix ) override;
+   setMatrix( const MatrixPointer& matrix );
 
    bool
-   solve( ConstVectorViewType b, VectorViewType x ) override;
+   solve( ConstVectorViewType b, VectorViewType x );
+
+   bool
+   solved() const;
+};
+
+template< typename SolverMonitor >
+class UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >
+: public DirectSolver< double, int, SolverMonitor >
+{
+   using Base = DirectSolver< double, int, SolverMonitor >;
+
+public:
+   /**
+    * \brief Type for floating point numbers.
+    */
+   using RealType = double;
+
+   /**
+    * \brief Device where the solver will run on and auxillary data will alloacted on.
+    */
+   using DeviceType = Devices::Host;
+
+   /**
+    * \brief Indexing type.
+    */
+   using IndexType = int;
+
+   /**
+    * \brief Type of the matrix representing the linear system.
+    */
+   using MatrixType = CSRMatrix< double, Devices::Host, int >;
+
+   /**
+    * \brief Type of shared pointer to the matrix.
+    */
+   using MatrixPointer = std::shared_ptr< std::add_const_t< MatrixType > >;
+
+   /**
+    * \brief Type for vector view.
+    */
+   using VectorViewType = Containers::VectorView< RealType, DeviceType, IndexType >;
+
+   /**
+    * \brief Type for constant vector view.
+    */
+   using ConstVectorViewType = typename VectorViewType::ConstViewType;
+
+   void
+   setMatrix( const MatrixPointer& matrix );
+
+   bool
+   solve( ConstVectorViewType b, VectorViewType x );
+
+   bool
+   solved() const;
 
    ~UmfpackWrapper();
 
@@ -93,7 +148,10 @@ protected:
    double Control[ UMFPACK_CONTROL ];
    double Info[ UMFPACK_INFO ];
 
+   MatrixPointer matrix;
+
    bool factorized = false;
+   bool solver_success = false;
 };
 
 }  // namespace TNL::Solvers::Linear
