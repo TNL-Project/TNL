@@ -11,8 +11,41 @@
 
 namespace TNL::Solvers::Linear {
 
+template< typename Matrix, typename SolverMonitor >
+UmfpackWrapper< Matrix, SolverMonitor >::UmfpackWrapper()
+{
+   if( ! is_csr_matrix< Matrix >::value )
+      std::cerr << "The UmfpackWrapper solver is available only for CSR matrices." << std::endl;
+   if( std::is_same_v< typename Matrix::DeviceType, Devices::Cuda > )
+      std::cerr << "The UmfpackWrapper solver is not available on CUDA." << std::endl;
+   if( ! std::is_same_v< RealType, double > )
+      std::cerr << "The UmfpackWrapper solver is available only for double precision." << std::endl;
+   if( ! std::is_same_v< IndexType, int > )
+      std::cerr << "The UmfpackWrapper solver is available only for 'int' index type." << std::endl;
+}
+
+template< typename Matrix, typename SolverMonitor >
 void
-UmfpackWrapper< CSRMatrix< double, Devices::Host, int > >::setMatrix( const MatrixPointer& matrix )
+UmfpackWrapper< Matrix, SolverMonitor >::setMatrix( const MatrixPointer& matrix )
+{}
+
+template< typename Matrix, typename SolverMonitor >
+bool
+UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorViewType x )
+{
+   return false;
+}
+
+template< typename Matrix, typename SolverMonitor >
+bool
+UmfpackWrapper< Matrix, SolverMonitor >::solved() const
+{
+   return false;
+}
+
+template< typename SolverMonitor >
+void
+UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::setMatrix( const MatrixPointer& matrix )
 {
    if( matrix->getRows() != matrix->getColumns() )
       throw std::invalid_argument( "UmfpackWrapper::solve: matrix must be square" );
@@ -74,8 +107,9 @@ UmfpackWrapper< CSRMatrix< double, Devices::Host, int > >::setMatrix( const Matr
    this->factorized = true;
 }
 
+template< typename SolverMonitor >
 bool
-UmfpackWrapper< CSRMatrix< double, Devices::Host, int > >::solve( ConstVectorViewType b, VectorViewType x )
+UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::solve( ConstVectorViewType b, VectorViewType x )
 {
    if( this->matrix->getColumns() != x.getSize() )
       throw std::invalid_argument( "UmfpackWrapper::solve: wrong size of the solution vector" );
@@ -89,8 +123,7 @@ UmfpackWrapper< CSRMatrix< double, Devices::Host, int > >::solve( ConstVectorVie
 
    int status = UMFPACK_OK;
 
-   this->resetIterations();
-   this->setResidue( this->getConvergenceResidue() + 1.0 );
+   this->setResidue( std::numeric_limits< RealType >::max() );
 
    RealType bNorm = lpNorm( b, (RealType) 2.0 );
 
@@ -112,13 +145,21 @@ UmfpackWrapper< CSRMatrix< double, Devices::Host, int > >::solve( ConstVectorVie
       std::cerr << "Umfpack solver failed." << std::endl;
       return false;
    }
+   this->solver_success = true;
 
    this->setResidue( LinearResidueGetter::getResidue( *this->matrix, x, b, bNorm ) );
-   this->refreshSolverMonitor( true );
    return true;
 }
 
-UmfpackWrapper< CSRMatrix< double, Devices::Host, int > >::~UmfpackWrapper()
+template< typename SolverMonitor >
+bool
+UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::solved() const
+{
+   return this->solver_success;
+}
+
+template< typename SolverMonitor >
+UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::~UmfpackWrapper()
 {
    if( this->Symbolic )
       umfpack_di_free_symbolic( &Symbolic );

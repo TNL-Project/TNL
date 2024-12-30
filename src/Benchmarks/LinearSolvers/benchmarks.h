@@ -164,10 +164,9 @@ benchmarkDirectSolver( const TNL::String& solverName,
    };
    benchmark.setOperation( solverName + " setup" );
    benchmark.time< typename Matrix::DeviceType >( set_matrix, performer, set_matrix, benchmarkResult );
-   //solver.setMatrix( matrix );
 
    // FIXME: getMonitor returns solver monitor specialized for double and int
-   solver.setSolverMonitor( benchmark.getMonitor() );
+   //solver.setSolverMonitor( benchmark.getMonitor() ); // benchmark returns only IterativeSolverMonitor
 
    // reset function
    auto reset = [ & ]()
@@ -178,10 +177,10 @@ benchmarkDirectSolver( const TNL::String& solverName,
    // benchmark function
    auto compute = [ & ]()
    {
-      const bool converged = solver.solve( b, x );
+      const bool solved = solver.solve( b, x );
       barrier( matrix );
-      if( ! converged )
-         throw std::runtime_error( "solver did not converge" );
+      if( ! solved )
+         throw std::runtime_error( "solver failed" );
    };
    benchmark.setOperation( solverName + " solve" );
    benchmark.time< typename Matrix::DeviceType >( reset, performer, compute, benchmarkResult );
