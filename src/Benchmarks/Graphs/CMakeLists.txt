@@ -18,9 +18,7 @@ if(TNL_BUILD_CUDA)
     else()
         message(STATUS "Gunrock not found.")
     endif()
-endif()
 
-if(TNL_BUILD_CUDA)
     add_executable(tnl-benchmark-graphs-cuda tnl-benchmark-graphs.cu)
     target_compile_options(tnl-benchmark-graphs-cuda PUBLIC ${GUNROCK_FLAGS})
     target_link_libraries(tnl-benchmark-graphs-cuda PUBLIC TNL::TNL)
@@ -34,6 +32,8 @@ if(TNL_BUILD_CUDA)
     # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#printing-code-generation-statistics
     # target_compile_options( tnl-benchmark-graphs PUBLIC --resource-usage )
     # set_target_properties( tnl-benchmark-graphs PROPERTIES CUDA_SEPARABLE_COMPILATION OFF )
+
+    install(TARGETS tnl-benchmark-graphs-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
 endif()
 
 add_executable(tnl-benchmark-graphs tnl-benchmark-graphs.cpp)
