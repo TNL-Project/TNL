@@ -23,27 +23,27 @@ binarySparseMatrixExample()
          // clang-format on
       } );
 
-   std::cout << "Binary sparse matrix: " << std::endl << binaryMatrix << std::endl;
+   std::cout << "Binary sparse matrix: \n" << binaryMatrix << '\n';
 
    TNL::Containers::Vector< double, Device > inVector( 5, 1.1 ), outVector( 5, 0.0 );
    binaryMatrix.vectorProduct( inVector, outVector );
-   std::cout << "Product with vector " << inVector << " is " << outVector << std::endl << std::endl;
+   std::cout << "Product with vector " << inVector << " is " << outVector << "\n\n";
 
    TNL::Matrices::SparseMatrix< bool, Device, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR, double >
       binaryMatrix2;
    binaryMatrix2 = binaryMatrix;
    binaryMatrix2.vectorProduct( inVector, outVector );
-   std::cout << "Product with vector in double precision " << inVector << " is " << outVector << std::endl << std::endl;
+   std::cout << "Product with vector in double precision " << inVector << " is " << outVector << "\n\n";
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrix on CPU ... " << std::endl;
+   std::cout << "Creating matrix on CPU ... \n";
    binarySparseMatrixExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrix on CUDA GPU ... " << std::endl;
+   std::cout << "Creating matrix on CUDA GPU ... \n";
    binarySparseMatrixExample< TNL::Devices::Cuda >();
 #endif
 }
