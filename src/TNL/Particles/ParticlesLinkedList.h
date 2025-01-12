@@ -33,7 +33,6 @@ public:
    using IndexVectorType = typename ParticleSystem::IndexVectorType;
    using PairIndexType = typename ParticleSystem::PairIndexType;
    using PairIndexArrayView = typename Containers::ArrayView< PairIndexType, DeviceType >;
-   //using ParticlesPointerType = typename Pointers::SharedPointer< ParticleSystem, DeviceType >;
 
    using CellIndexer = typename ParticleSystem::CellIndexer;
 
@@ -200,6 +199,18 @@ public:
     */
    void
    searchForNeighbors();
+
+   /**
+    * Wrapper which allots to call neighbor loop directly from particle pointer.
+    */
+   template< typename Function, typename... FunctionArgs >
+   __cuda_callable__
+   void
+   neighborsLoop( const GlobalIndexType& i,
+                  const PointType& r_i,
+                  NeighborsLoopParams params,
+                  Function f,
+                  FunctionArgs... args );
 
    void
    writeProlog( TNL::Logger& logge ) const noexcept;

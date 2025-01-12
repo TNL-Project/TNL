@@ -5,7 +5,7 @@ namespace ParticleSystem {
 
 template< typename ParticleConfig, typename DeviceType >
 constexpr int
-Particles< ParticleConfig, DeviceType>::getParticlesDimension()
+Particles< ParticleConfig, DeviceType >::getParticlesDimension()
 {
    return spaceDimension;
 }
@@ -17,13 +17,13 @@ Particles< ParticleConfig, DeviceType >::setSize( const GlobalIndexType& size )
    numberOfAllocatedParticles = size;
    this->points.setSize( size );
    this->points_swap.setSize( size );
-   this->sortPermutations->setSize( size ); //TODO: sort permulation should not be pointer.
+   this->sortPermutations->setSize( size );  //TODO: sort permulation should not be pointer.
 }
 
 template< typename ParticleConfig, typename DeviceType >
 __cuda_callable__
 const typename Particles< ParticleConfig, DeviceType >::GlobalIndexType
-Particles< ParticleConfig, DeviceType>::getNumberOfParticles() const
+Particles< ParticleConfig, DeviceType >::getNumberOfParticles() const
 {
    return numberOfParticles;
 }
@@ -31,7 +31,7 @@ Particles< ParticleConfig, DeviceType>::getNumberOfParticles() const
 template< typename ParticleConfig, typename DeviceType >
 __cuda_callable__
 const typename Particles< ParticleConfig, DeviceType >::GlobalIndexType
-Particles< ParticleConfig, DeviceType>::getNumberOfAllocatedParticles() const
+Particles< ParticleConfig, DeviceType >::getNumberOfAllocatedParticles() const
 {
    return numberOfAllocatedParticles;
 }
@@ -46,26 +46,26 @@ Particles< ParticleConfig, DeviceType >::setNumberOfParticles( const GlobalIndex
 template< typename ParticleConfig, typename DeviceType >
 __cuda_callable__
 const typename Particles< ParticleConfig, DeviceType >::RealType
-Particles< ParticleConfig, DeviceType>::getSearchRadius() const
+Particles< ParticleConfig, DeviceType >::getSearchRadius() const
 {
    return radius;
 }
 
 template< typename ParticleConfig, typename DeviceType >
 void
-Particles< ParticleConfig, DeviceType>::setSearchRadius( const RealType& searchRadius )
+Particles< ParticleConfig, DeviceType >::setSearchRadius( const RealType& searchRadius )
 {
    this->radius = searchRadius;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::PointType
 Particles< ParticleConfig, DeviceType >::getGridReferentialOrigin() const
 {
    return gridReferentialOrigin;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 void
 Particles< ParticleConfig, DeviceType >::setGridReferentialOrigin( const PointType& origin )
 {
@@ -73,21 +73,21 @@ Particles< ParticleConfig, DeviceType >::setGridReferentialOrigin( const PointTy
    gridReferentialOriginSet = true;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::IndexVectorType
 Particles< ParticleConfig, DeviceType >::getGridOriginGlobalCoords() const
 {
    return gridOriginGlobalCoords;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 void
 Particles< ParticleConfig, DeviceType >::setGridOriginGlobalCoords( const IndexVectorType& origin )
 {
    this->gridOriginGlobalCoords = origin;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::IndexVectorType
 Particles< ParticleConfig, DeviceType >::getGridOriginGlobalCoordsWithOverlap() const
 {
@@ -96,14 +96,14 @@ Particles< ParticleConfig, DeviceType >::getGridOriginGlobalCoordsWithOverlap() 
    return shiftedGridOriginGlobalCoords;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::PointType
 Particles< ParticleConfig, DeviceType >::getGridOrigin() const
 {
    return gridOrigin;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 void
 Particles< ParticleConfig, DeviceType >::setGridOrigin( const PointType& origin )
 {
@@ -112,31 +112,30 @@ Particles< ParticleConfig, DeviceType >::setGridOrigin( const PointType& origin 
       gridReferentialOrigin = origin;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::PointType
 Particles< ParticleConfig, DeviceType >::getGridOriginWithOverlap() const
 {
    const PointType originShift = this->overlapWidth * this->radius;
-   const PointType shiftedGridOrigin = gridOrigin - originShift ;
+   const PointType shiftedGridOrigin = gridOrigin - originShift;
    return shiftedGridOrigin;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::IndexVectorType
 Particles< ParticleConfig, DeviceType >::getGridDimensions() const
 {
    return gridDimension;
 }
 
-
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 void
 Particles< ParticleConfig, DeviceType >::setGridDimensions( const IndexVectorType& dimensions )
 {
    gridDimension = dimensions;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::IndexVectorType
 Particles< ParticleConfig, DeviceType >::getGridDimensionsWithOverlap() const
 {
@@ -145,35 +144,35 @@ Particles< ParticleConfig, DeviceType >::getGridDimensionsWithOverlap() const
    return resizedGridDimensions;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 void
 Particles< ParticleConfig, DeviceType >::setOverlapWidth( const GlobalIndexType width )
 {
    overlapWidth = width;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::GlobalIndexType
 Particles< ParticleConfig, DeviceType >::getOverlapWidth() const
 {
    return overlapWidth;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::ParticleTraitsType::PointArrayType&
 Particles< ParticleConfig, DeviceType >::getPoints() const
 {
    return points;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 typename Particles< ParticleConfig, DeviceType >::ParticleTraitsType::PointArrayType&
 Particles< ParticleConfig, DeviceType >::getPoints()
 {
    return points;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::ParticleTraitsType::PointType&
 Particles< ParticleConfig, DeviceType >::getPoint( GlobalIndexType particleIndex ) const
 {
@@ -182,7 +181,7 @@ Particles< ParticleConfig, DeviceType >::getPoint( GlobalIndexType particleIndex
    return this->points[ particleIndex ];
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 typename Particles< ParticleConfig, DeviceType >::ParticleTraitsType::PointType&
 Particles< ParticleConfig, DeviceType >::getPoint( GlobalIndexType particleIndex )
 {
@@ -191,71 +190,49 @@ Particles< ParticleConfig, DeviceType >::getPoint( GlobalIndexType particleIndex
    return this->points[ particleIndex ];
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
+void
+Particles< ParticleConfig, DeviceType >::setPoint( GlobalIndexType particleIndex, PointType point )
+{
+   this->points[ particleIndex ] = point;
+}
+
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::ParticleTraitsType::PointArrayType&
 Particles< ParticleConfig, DeviceType >::getPointsSwap() const
 {
    return points_swap;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 typename Particles< ParticleConfig, DeviceType >::ParticleTraitsType::PointArrayType&
 Particles< ParticleConfig, DeviceType >::getPointsSwap()
 {
    return points_swap;
 }
 
-//FIXME: I don't like this getPoint part, it is used only in VTK writer. Get this out.
-//template < typename ParticleConfig, typename DeviceType >
-//__cuda_callable__
-//const typename Particles< ParticleConfig, DeviceType >::PointType&
-//Particles< ParticleConfig, DeviceType >::getPoint(GlobalIndexType particleIndex) const
-//{
-//   TNL_ASSERT_GE( particleIndex, 0, "invalid particle index" );
-//   TNL_ASSERT_LT( particleIndex, numberOfParticles, "invalid particle index" );
-//   return this->points[ particleIndex ];
-//}
-//
-//template < typename ParticleConfig, typename DeviceType >
-//__cuda_callable__
-//typename Particles< ParticleConfig, DeviceType >::PointType&
-//Particles< ParticleConfig, DeviceType >::getPoint(GlobalIndexType particleIndex)
-//{
-//   TNL_ASSERT_GE( particleIndex, 0, "invalid particle index" );
-//   TNL_ASSERT_LT( particleIndex, numberOfParticles, "invalid particle index" );
-//   return this->points[ particleIndex ];
-//}
-//
-//template < typename ParticleConfig, typename DeviceType >
-//__cuda_callable__
-//void
-//Particles<ParticleConfig, DeviceType>::setPoint(GlobalIndexType particleIndex, PointType point)
-//{
-//   this->points[ particleIndex ] = point;
-//}
-
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 const typename Particles< ParticleConfig, DeviceType >::IndexArrayTypePointer&
 Particles< ParticleConfig, DeviceType >::getSortPermutations() const
 {
    return this->sortPermutations;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 typename Particles< ParticleConfig, DeviceType >::IndexArrayTypePointer&
 Particles< ParticleConfig, DeviceType >::getSortPermutations()
 {
    return this->sortPermutations;
 }
 
-template < typename ParticleConfig, typename Device >
+template< typename ParticleConfig, typename Device >
 const typename Particles< ParticleConfig, Device >::GlobalIndexType
 Particles< ParticleConfig, Device >::getNumberOfParticlesToRemove() const
 {
    return numberOfParticlesToRemove;
 }
 
-template < typename ParticleConfig, typename Device >
+template< typename ParticleConfig, typename Device >
 void
 Particles< ParticleConfig, Device >::setNumberOfParticlesToRemove( const GlobalIndexType& removeCount )
 {
@@ -266,11 +243,11 @@ template< typename ParticleConfig, typename Device >
 template< typename Device2,
           typename Func,
           typename UseWithDomainDecomposition,
-          std::enable_if_t< !UseWithDomainDecomposition::value, bool > Enabled >
+          std::enable_if_t< ! UseWithDomainDecomposition::value, bool > Enabled >
 void
 Particles< ParticleConfig, Device >::forAll( Func f ) const
 {
-   auto wrapper = [=] __cuda_callable__( GlobalIndexType i ) mutable
+   auto wrapper = [ = ] __cuda_callable__( GlobalIndexType i ) mutable
    {
       f( i );
    };
@@ -285,36 +262,26 @@ template< typename Device2,
 void
 Particles< ParticleConfig, Device >::forAll( Func f ) const
 {
-   //compare by position
-
-   //const PointType domainOrigin = this->gridOrigin;
-   //const PointType domainSize = this->gridDimension * this->radius;
-   //const auto view_points = this->points.getConstView();
-
-   //compare by cell index
-
+   //FIXME: Global grid origin should be shifted aswell with search radius. Or it should not?
    const PointType gridRefOrigin = this->getGridReferentialOrigin();
    const RealType searchRadius = this->getSearchRadius();
-   //const IndexVectorType gridRefOriginCoords = this->getGridOriginGlobalCoords();
    const IndexVectorType gridOriginGlobalCoordsWithOverlap = this->getGridOriginGlobalCoordsWithOverlap();
    const IndexVectorType gridDimensionsWithOverlap = this->getGridDimensionsWithOverlap();
    const auto view_points = this->points.getConstView();
 
-   auto wrapper = [=] __cuda_callable__( GlobalIndexType i ) mutable
+   auto wrapper = [ = ] __cuda_callable__( GlobalIndexType i ) mutable
    {
       const PointType point = view_points[ i ];
       const IndexVectorType cellGlobalCoords = TNL::floor( ( point - gridRefOrigin ) / searchRadius );
-      //const IndexVectorType cellCoords = cellGlobalCoords - gridRefOriginCoords;
       const IndexVectorType cellCoords = cellGlobalCoords - gridOriginGlobalCoordsWithOverlap;
 
-      //if( this->isInsideDomain( view_points[ i ], domainOrigin, domainSize ) )
       if( this->isInsideDomain( cellCoords, gridDimensionsWithOverlap ) )
          f( i );
    };
    Algorithms::parallelFor< Device2 >( 0, numberOfParticles, wrapper );
 }
 
-template < typename ParticleConfig, typename Device >
+template< typename ParticleConfig, typename Device >
 __cuda_callable__
 bool
 Particles< ParticleConfig, Device >::isInsideDomain( const PointType& point,
@@ -323,23 +290,23 @@ Particles< ParticleConfig, Device >::isInsideDomain( const PointType& point,
 {
    //FIXME: These two lines produces different results
    //if( ( point > domainOrigin ) && ( point < ( domainOrigin + domainSize ) ) )
-   if( ( point[ 0 ] >= domainOrigin[ 0 ] ) && ( point[ 0 ] < ( domainOrigin[ 0 ] + domainSize[ 0 ] ) ) ) // >=, <= vs >, <
+   if( ( point[ 0 ] >= domainOrigin[ 0 ] ) && ( point[ 0 ] < ( domainOrigin[ 0 ] + domainSize[ 0 ] ) ) )  // >=, <= vs >, <
       return true;
    return false;
 }
 
-template < typename ParticleConfig, typename Device >
+template< typename ParticleConfig, typename Device >
 __cuda_callable__
 bool
 Particles< ParticleConfig, Device >::isInsideDomain( const IndexVectorType& particleCell,
                                                      const IndexVectorType& gridDimensionsWithOverlap ) const
 {
-   if( ( particleCell[ 0 ] >  0  ) && ( particleCell[ 0 ] < ( gridDimensionsWithOverlap[ 0 ] - 1 ) ) ) // >=, <= vs >, <
+   if( ( particleCell[ 0 ] > 0 ) && ( particleCell[ 0 ] < ( gridDimensionsWithOverlap[ 0 ] - 1 ) ) )  // >=, <= vs >, <
       return true;
    return false;
 }
 
-template < typename ParticleConfig, typename Device >
+template< typename ParticleConfig, typename Device >
 void
 Particles< ParticleConfig, Device >::reorderParticles()
 {
@@ -358,7 +325,7 @@ Particles< ParticleConfig, Device >::reorderParticles()
    //std::cout << "@@@@@@@@@@@@@@@@@@@@@ particles reordered." << std::endl;
 }
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 void
 Particles< ParticleConfig, DeviceType >::writeProlog( TNL::Logger& logger ) const noexcept
 {
@@ -375,5 +342,5 @@ Particles< ParticleConfig, DeviceType >::writeProlog( TNL::Logger& logger ) cons
    logger.writeParameter( "Grid dimension with overlap:", this->getGridDimensionsWithOverlap() );
 }
 
-} //namespace TNL
-} //namespace Particles
+}  //namespace ParticleSystem
+}  //namespace TNL

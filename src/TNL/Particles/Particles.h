@@ -15,7 +15,7 @@
 namespace TNL {
 namespace ParticleSystem {
 
-template < typename ParticleConfig, typename DeviceType >
+template< typename ParticleConfig, typename DeviceType >
 class Particles
 {
 public:
@@ -31,7 +31,7 @@ public:
 
    using IndexArrayType = typename ParticleTraitsType::CellIndexArrayType;
    using PointArrayType = typename ParticleTraitsType::PointArrayType;
-   using IndexArrayTypePointer = typename Pointers::SharedPointer< IndexArrayType, Device >; //TODO: Do I need this?
+   using IndexArrayTypePointer = typename Pointers::SharedPointer< IndexArrayType, Device >;  //TODO: Do I need this?
 
    static constexpr int spaceDimension = Config::spaceDimension;
 
@@ -47,16 +47,13 @@ public:
    Particles() : points( 0 ), points_swap( 0 ), sortPermutations( 0 ) {}
 
    Particles( GlobalIndexType size, GlobalIndexType sizeAllocated )
-   : numberOfParticles( size ), numberOfAllocatedParticles( sizeAllocated ), points( sizeAllocated ) { }
+   : numberOfParticles( size ), numberOfAllocatedParticles( sizeAllocated ), points( sizeAllocated )
+   {}
 
    Particles( GlobalIndexType size, GlobalIndexType sizeAllocated, RealType radius )
-   : numberOfParticles( size ),
-     numberOfAllocatedParticles( sizeAllocated ),
-     points( sizeAllocated ),
-     points_swap( sizeAllocated ),
-     sortPermutations( sizeAllocated ),
-     mark( sizeAllocated ),
-     radius( radius ) { }
+   : numberOfParticles( size ), numberOfAllocatedParticles( sizeAllocated ), points( sizeAllocated ),
+     points_swap( sizeAllocated ), sortPermutations( sizeAllocated ), mark( sizeAllocated ), radius( radius )
+   {}
 
    /**
     * Get dimension of particle system.
@@ -216,6 +213,12 @@ public:
    getPoint( GlobalIndexType particleIndex );
 
    /**
+    * \brief Set coordinates of point by index and coordinates.
+    */
+   void
+   setPoint( GlobalIndexType particleIndex, PointType point );
+
+   /**
     * \brief Return const-qualified array of spatial coordinates of particles used as swap field.
     * Points are defined in two duplicit arrays to avoid some inplace operations.
     */
@@ -276,7 +279,7 @@ public:
    template< typename Device2 = DeviceType,
              typename Func,
              typename UseWithDomainDecomposition = typename Config::UseWithDomainDecomposition,
-             std::enable_if_t< !UseWithDomainDecomposition::value, bool > Enabled = true >
+             std::enable_if_t< ! UseWithDomainDecomposition::value, bool > Enabled = true >
    void
    forAll( Func f ) const;
 
@@ -324,7 +327,6 @@ public:
    writeProlog( TNL::Logger& logger ) const noexcept;
 
 protected:
-
    /**
     * Number of active paticles inside the domain.
     */
@@ -400,8 +402,8 @@ protected:
    IndexArrayType mark;
 };
 
-} //namespace Particles
-} //namespace TNL
+}  //namespace ParticleSystem
+}  //namespace TNL
 
 #include "Particles.hpp"
 
