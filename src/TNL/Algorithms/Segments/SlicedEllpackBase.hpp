@@ -68,6 +68,7 @@ auto
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentSize( const IndexType segmentIdx ) const -> IndexType
 {
    const Index sliceIdx = segmentIdx / SliceSize;
+   TNL_ASSERT_LT( sliceIdx, this->sliceSegmentSizes.getSize(), "" );
    if constexpr( std::is_same_v< DeviceType, Devices::Host > )
       return this->sliceSegmentSizes[ sliceIdx ];
    else {
@@ -105,6 +106,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::getGlobalIndex( con
    const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
    IndexType sliceOffset;
    IndexType segmentSize;
+   TNL_ASSERT_LT( sliceIdx, this->sliceOffsets.getSize(), "" );
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       sliceOffset = this->sliceOffsets[ sliceIdx ];
       segmentSize = this->sliceSegmentSizes[ sliceIdx ];

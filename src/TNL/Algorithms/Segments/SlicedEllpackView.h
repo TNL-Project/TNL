@@ -64,6 +64,54 @@ public:
    load( File& file );
 };
 
+template< typename Device, typename Index, int SliceSize = 32 >
+struct RowMajorSlicedEllpackView : public SlicedEllpackView< Device, Index, RowMajorOrder, SliceSize >
+{
+   using BaseType = SlicedEllpackView< Device, Index, RowMajorOrder, SliceSize >;
+
+   __cuda_callable__
+   RowMajorSlicedEllpackView() = default;
+
+   __cuda_callable__
+   RowMajorSlicedEllpackView( Index size,
+                              Index alignedSize,
+                              Index segmentsCount,
+                              typename BaseType::OffsetsView sliceOffsets,
+                              typename BaseType::OffsetsView sliceSegmentSizes )
+   : BaseType( size, alignedSize, segmentsCount, sliceOffsets, sliceSegmentSizes )
+   {}
+
+   __cuda_callable__
+   RowMajorSlicedEllpackView( const RowMajorSlicedEllpackView& ) = default;
+
+   __cuda_callable__
+   RowMajorSlicedEllpackView( RowMajorSlicedEllpackView&& ) noexcept = default;
+};
+
+template< typename Device, typename Index, int SliceSize = 32 >
+struct ColumnMajorSlicedEllpackView : public SlicedEllpackView< Device, Index, ColumnMajorOrder, SliceSize >
+{
+   using BaseType = SlicedEllpackView< Device, Index, ColumnMajorOrder, SliceSize >;
+
+   __cuda_callable__
+   ColumnMajorSlicedEllpackView() = default;
+
+   __cuda_callable__
+   ColumnMajorSlicedEllpackView( Index size,
+                                 Index alignedSize,
+                                 Index segmentsCount,
+                                 typename BaseType::OffsetsView sliceOffsets,
+                                 typename BaseType::OffsetsView sliceSegmentSizes )
+   : BaseType( size, alignedSize, segmentsCount, sliceOffsets, sliceSegmentSizes )
+   {}
+
+   __cuda_callable__
+   ColumnMajorSlicedEllpackView( const ColumnMajorSlicedEllpackView& ) = default;
+
+   __cuda_callable__
+   ColumnMajorSlicedEllpackView( ColumnMajorSlicedEllpackView&& ) noexcept = default;
+};
+
 }  // namespace TNL::Algorithms::Segments
 
 #include "SlicedEllpackView.hpp"

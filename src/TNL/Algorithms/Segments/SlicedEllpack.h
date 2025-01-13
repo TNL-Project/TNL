@@ -32,8 +32,8 @@ public:
 
    SlicedEllpack() = default;
 
-   template< typename SizesContainer >
-   SlicedEllpack( const SizesContainer& segmentsSizes );
+   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
+   explicit SlicedEllpack( const SizesContainer& segmentsSizes );
 
    template< typename ListIndex >
    SlicedEllpack( const std::initializer_list< ListIndex >& segmentsSizes );
@@ -79,6 +79,52 @@ public:
 protected:
    OffsetsContainer sliceOffsets;
    OffsetsContainer sliceSegmentSizes;
+};
+
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          int SliceSize = 32 >
+struct RowMajorSlicedEllpack : public SlicedEllpack< Device, Index, IndexAllocator, RowMajorOrder, SliceSize >
+{
+   using BaseType = SlicedEllpack< Device, Index, IndexAllocator, RowMajorOrder, SliceSize >;
+
+   RowMajorSlicedEllpack() = default;
+
+   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
+   explicit RowMajorSlicedEllpack( const SizesContainer& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   template< typename ListIndex >
+   RowMajorSlicedEllpack( const std::initializer_list< ListIndex >& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   RowMajorSlicedEllpack( const RowMajorSlicedEllpack& );
+
+   RowMajorSlicedEllpack( RowMajorSlicedEllpack&& ) noexcept = default;
+};
+
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          int SliceSize = 32 >
+struct ColumnMajorSlicedEllpack : public SlicedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder, SliceSize >
+{
+   using BaseType = SlicedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder, SliceSize >;
+
+   ColumnMajorSlicedEllpack() = default;
+
+   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
+   explicit ColumnMajorSlicedEllpack( const SizesContainer& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   template< typename ListIndex >
+   ColumnMajorSlicedEllpack( const std::initializer_list< ListIndex >& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   ColumnMajorSlicedEllpack( const ColumnMajorSlicedEllpack& );
+
+   ColumnMajorSlicedEllpack( ColumnMajorSlicedEllpack&& ) noexcept = default;
 };
 
 }  // namespace TNL::Algorithms::Segments
