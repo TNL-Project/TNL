@@ -36,6 +36,12 @@ TYPED_TEST( ChunkedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 
    test_SetSegmentsSizes_EqualSizes< ChunkedEllpackSegmentsType >();
 }
+TYPED_TEST( ChunkedEllpackSegmentsTest, forElements_EmptySegments )
+{
+   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
+
+   test_forElements_EmptySegments< ChunkedEllpackSegmentsType >();
+}
 
 TYPED_TEST( ChunkedEllpackSegmentsTest, forElements_EqualSizes )
 {
@@ -56,6 +62,13 @@ TYPED_TEST( ChunkedEllpackSegmentsTest, forElementsIf )
    using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
 
    test_forElementsIf< ChunkedEllpackSegmentsType >();
+}
+
+TYPED_TEST( ChunkedEllpackSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
+{
+   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
+
+   test_forElementsWithSegmentIndexes_EmptySegments< ChunkedEllpackSegmentsType >();
 }
 
 TYPED_TEST( ChunkedEllpackSegmentsTest, forElementsWithSegmentIndexes )

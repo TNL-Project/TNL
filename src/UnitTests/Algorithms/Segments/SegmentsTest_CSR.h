@@ -41,6 +41,13 @@ TYPED_TEST( CSRSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< CSRSegmentsType >();
 }
 
+TYPED_TEST( CSRSegmentsTest, forElements_EmptySegments )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_forElements_EmptySegments< CSRSegmentsType >();
+}
+
 TYPED_TEST( CSRSegmentsTest, forElements_EqualSizes )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
@@ -60,6 +67,13 @@ TYPED_TEST( CSRSegmentsTest, forElementsIf )
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
 
    test_forElementsIf< CSRSegmentsType >();
+}
+
+TYPED_TEST( CSRSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_forElementsWithSegmentIndexes_EmptySegments< CSRSegmentsType >();
 }
 
 TYPED_TEST( CSRSegmentsTest, forElementsWithSegmentIndexes )
