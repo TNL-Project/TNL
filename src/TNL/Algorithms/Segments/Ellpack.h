@@ -82,6 +82,54 @@ public:
    load( File& file );
 };
 
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          int Alignment = 32 >
+struct RowMajorEllpack : public Ellpack< Device, Index, IndexAllocator, RowMajorOrder, Alignment >
+{
+   using BaseType = Ellpack< Device, Index, IndexAllocator, RowMajorOrder, Alignment >;
+
+   RowMajorEllpack() = default;
+
+   template< typename SizesContainer >
+   RowMajorEllpack( const SizesContainer& sizes ) : BaseType( sizes ){};
+
+   template< typename ListIndex >
+   RowMajorEllpack( const std::initializer_list< ListIndex >& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   RowMajorEllpack( Index segmentsCount, Index segmentSize ) : BaseType( segmentsCount, segmentSize ) {}
+
+   RowMajorEllpack( const RowMajorEllpack& segments ) = default;
+
+   RowMajorEllpack( RowMajorEllpack&& segments ) noexcept = default;
+};
+
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          int Alignment = 32 >
+struct ColumnMajorEllpack : public Ellpack< Device, Index, IndexAllocator, ColumnMajorOrder, Alignment >
+{
+   using BaseType = Ellpack< Device, Index, IndexAllocator, ColumnMajorOrder, Alignment >;
+
+   ColumnMajorEllpack() = default;
+
+   template< typename SizesContainer >
+   ColumnMajorEllpack( const SizesContainer& sizes ) : BaseType( sizes ){};
+
+   template< typename ListIndex >
+   ColumnMajorEllpack( const std::initializer_list< ListIndex >& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   ColumnMajorEllpack( Index segmentsCount, Index segmentSize ) : BaseType( segmentsCount, segmentSize ) {}
+
+   ColumnMajorEllpack( const ColumnMajorEllpack& segments ) = default;
+
+   ColumnMajorEllpack( ColumnMajorEllpack&& segments ) noexcept = default;
+};
+
 }  // namespace TNL::Algorithms::Segments
 
 #include "Ellpack.hpp"
