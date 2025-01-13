@@ -5,6 +5,8 @@
 
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "SlicedEllpackKernels.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
@@ -14,16 +16,16 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
    using ViewType = SlicedEllpackView< Device, Index, Organization, SliceSize >;
    using ConstViewType = typename ViewType::ConstViewType;
    using DeviceType = Device;
-   using IndexType = Index;
+   using IndexType = typename std::remove_const< Index >::type;
    using ConstOffsetsView = typename ViewType::ConstOffsetsView;
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstViewType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
+   forElementsSequential( const ConstViewType& segments,
+                          IndexBegin begin,
+                          IndexEnd end,
+                          const LaunchConfiguration& launchConfig,
+                          Function&& function )
    {
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
       const auto sliceOffsets_view = segments.getSliceOffsetsView();
@@ -63,7 +65,7 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
             Algorithms::parallelFor< Device >( begin, end, l );
          }
       }
-      else {
+      else {                                                 // ColumnMajorOrder
          if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
             auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
             {
@@ -103,23 +105,77 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ViewType& segments,
+   forElements( const ConstViewType& segments,
                 IndexBegin begin,
                 IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
+                LaunchConfiguration launchConfig,
+                Function function )  // TODO: Function&& does not work here - why???
    {
-      return forElements( segments.getConstView(), begin, end, launchConfig, std::forward< Function >( function ) );
+      if( end <= begin )
+         return;
+
+      if( launchConfig.blockSize.x == 1 )
+         launchConfig.blockSize.x = 256;
+
+      if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+            forElementsSequential( segments, begin, end, launchConfig, std::forward< Function >( function ) );
+         else {
+            std::size_t threadsCount;
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               const Index segmentsCount = end - begin;
+               const IndexType slicesCount = roundUpDivision( segmentsCount, SliceSize );
+               threadsCount = slicesCount * SliceSize * Backend::getWarpSize();
+            }
+            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMergedSegments
+            {
+               const IndexType firstSegmentIdx = ( begin / SliceSize ) * SliceSize;
+               const IndexType lastSegmentIdx = roundUpDivision( end, SliceSize ) * SliceSize;
+               const IndexType segmentsCount = lastSegmentIdx - firstSegmentIdx;
+               threadsCount = segmentsCount / launchConfig.getThreadsPerSegmentCount();
+               launchConfig.blockSize.x = 256;
+            }
+
+            dim3 blocksCount;
+            dim3 gridsCount;
+            Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
+            for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
+               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+                  constexpr auto kernel =
+                     forElementsKernel_SlicedEllpack< ConstViewType, IndexType, Function, Organization, SliceSize >;
+                  Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
+               }
+               else {  // This mapping is currently the default one
+                  switch( launchConfig.getThreadsPerSegmentCount() ) {
+                     case 1:
+                        constexpr auto kernel = forElementsBlockMergeKernel_SlicedEllpack< ConstViewType,
+                                                                                           IndexType,
+                                                                                           Function,
+                                                                                           Organization,
+                                                                                           SliceSize,
+                                                                                           256 >;
+                        Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
+                        break;
+                  }
+               }
+            }
+            Backend::streamSynchronize( launchConfig.stream );
+         }
+      }
+      else {
+         forElementsSequential( segments, begin, end, launchConfig, std::forward< Function >( function ) );
+      }
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstViewType& segments,
-                const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
+   forElementsSequential( const ConstViewType& segments,
+                          const Array& segmentIndexes,
+                          IndexBegin begin,
+                          IndexEnd end,
+                          const LaunchConfiguration& launchConfig,
+                          Function&& function )
    {
       auto segmentIndexes_view = segmentIndexes.getConstView();
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
@@ -204,25 +260,82 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ViewType& segments,
+   forElements( const ConstViewType& segments,
                 const Array& segmentIndexes,
                 IndexBegin begin,
                 IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
+                LaunchConfiguration launchConfig,
+                Function function )  // TODO: Function&& does not work here - why???
    {
-      return forElements(
-         segments.getConstView(), segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+      if( launchConfig.blockSize.x == 1 )
+         launchConfig.blockSize.x = 256;
+
+      if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+            forElementsSequential( segments, segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+         else {
+            auto segmentIndexesView = segmentIndexes.getConstView();
+            std::size_t threadsCount;
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               const Index segmentsCount = end - begin;
+               threadsCount = segmentsCount * Backend::getWarpSize();
+            }
+            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMergedSegments
+            {
+               const Index segmentsCount = end - begin;
+               threadsCount = segmentsCount;  // * Backend::getWarpSize();
+               launchConfig.blockSize.x = 256;
+            }
+
+            dim3 blocksCount;
+            dim3 gridsCount;
+            Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
+            for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
+               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+                  constexpr auto kernel = forElementsWithSegmentIndexesKernel_SlicedEllpack< ConstViewType,
+                                                                                             typename Array::ConstViewType,
+                                                                                             IndexType,
+                                                                                             Function,
+                                                                                             Organization,
+                                                                                             SliceSize >;
+                  Backend::launchKernelAsync(
+                     kernel, launchConfig, gridIdx, segments, segmentIndexesView, begin, end, function );
+               }
+               else {  // This mapping is currently the default one
+                  switch( launchConfig.getThreadsPerSegmentCount() ) {
+                     case 1:
+                        constexpr auto kernel =
+                           forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack< ConstViewType,
+                                                                                        typename Array::ConstViewType,
+                                                                                        IndexType,
+                                                                                        Function,
+                                                                                        Organization,
+                                                                                        SliceSize,
+                                                                                        256,    // SegmentsPerBlock
+                                                                                        256 >;  // BlockSize
+                        Backend::launchKernelAsync(
+                           kernel, launchConfig, gridIdx, segments, segmentIndexesView, begin, end, function );
+                        break;
+                  }
+               }
+            }
+            Backend::streamSynchronize( launchConfig.stream );
+         }
+      }
+      else {
+         forElementsSequential( segments, segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+      }
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ConstViewType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  const LaunchConfiguration& launchConfig,
-                  Condition condition,
-                  Function function )
+   forElementsIfSequential( const ConstViewType& segments,
+                            IndexBegin begin,
+                            IndexEnd end,
+                            const LaunchConfiguration& launchConfig,
+                            Condition condition,
+                            Function function )
    {
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
       const auto sliceOffsets_view = segments.getSliceOffsetsView();
@@ -310,71 +423,56 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ViewType& segments,
+   forElementsIf( const ConstViewType& segments,
                   IndexBegin begin,
                   IndexEnd end,
-                  const LaunchConfiguration& launchConfig,
+                  LaunchConfiguration launchConfig,
                   Condition condition,
                   Function function )
    {
-      forElementsIf( segments.getConstView(),
-                     begin,
-                     end,
-                     launchConfig,
-                     std::forward< Condition >( condition ),
-                     std::forward< Function >( function ) );
+      if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+         if( end <= begin )
+            return;
+
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+            forElementsIfSequential( segments, begin, end, launchConfig, std::forward< Condition >( condition ), function );
+         else {
+            const Index warpsCount = end - begin;
+            std::size_t threadsCount = warpsCount;
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+               threadsCount = warpsCount * Backend::getWarpSize();
+            Backend::LaunchConfiguration launch_config;
+            launch_config.blockSize.x = 256;
+            dim3 blocksCount;
+            dim3 gridsCount;
+            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+            for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
+               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+                  constexpr auto kernel =
+                     forElementsIfKernel_SlicedEllpack< ConstViewType, IndexType, Condition, Function, Organization, SliceSize >;
+                  Backend::launchKernelAsync( kernel, launch_config, gridIdx, segments, begin, end, condition, function );
+               }
+               else {  // BlockMerge mapping - this mapping is currently the default one
+                  constexpr auto kernel = forElementsIfBlockMergeKernel_SlicedEllpack< ConstViewType,
+                                                                                       IndexType,
+                                                                                       Condition,
+                                                                                       Function,
+                                                                                       Organization,
+                                                                                       SliceSize,
+                                                                                       256,
+                                                                                       256 >;
+                  Backend::launchKernelAsync( kernel, launch_config, gridIdx, segments, begin, end, condition, function );
+               }
+            }
+            Backend::streamSynchronize( launch_config.stream );
+         }
+      }
+      else {
+         forElementsIfSequential( segments, begin, end, launchConfig, std::forward< Condition >( condition ), function );
+      }
    }
 };
 
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
-struct SegmentsOperations< SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize > >
-{
-   using SegmentsType = SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >;
-   using ViewType = typename SegmentsType::ViewType;
-   using ConstViewType = typename SegmentsType::ViewType;
-   using DeviceType = Device;
-   using IndexType = Index;
-
-   template< typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements( const SegmentsType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
-   {
-      SegmentsOperations< ViewType >::forElements(
-         segments.getConstView(), begin, end, launchConfig, std::forward< Function >( function ) );
-   }
-
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements( const SegmentsType& segments,
-                const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
-   {
-      SegmentsOperations< ViewType >::forElements(
-         segments.getConstView(), segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
-   }
-
-   template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
-   static void
-   forElementsIf( const SegmentsType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  const LaunchConfiguration& launchConfig,
-                  Condition&& condition,
-                  Function&& function )
-   {
-      SegmentsOperations< ViewType >::forElementsIf( segments.getConstView(),
-                                                     begin,
-                                                     end,
-                                                     launchConfig,
-                                                     std::forward< Condition >( condition ),
-                                                     std::forward< Function >( function ) );
-   }
-};
 }  //namespace TNL::Algorithms::Segments::detail
