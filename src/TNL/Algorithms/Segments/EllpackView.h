@@ -63,6 +63,52 @@ public:
    load( File& file );
 };
 
+template< typename Device, typename Index, int Alignment = 32 >
+struct RowMajorEllpackView : public EllpackView< Device, Index, RowMajorOrder, Alignment >
+{
+   using Base = EllpackView< Device, Index, RowMajorOrder, Alignment >;
+
+   __cuda_callable__
+   RowMajorEllpackView() = default;
+
+   __cuda_callable__
+   RowMajorEllpackView( Index segmentsCount, Index segmentSize, Index alignedSize )
+   : Base( segmentsCount, segmentSize, alignedSize )
+   {}
+
+   __cuda_callable__
+   RowMajorEllpackView( Index segmentsCount, Index segmentSize ) : Base( segmentsCount, segmentSize ) {}
+
+   __cuda_callable__
+   RowMajorEllpackView( const RowMajorEllpackView& ) = default;
+
+   __cuda_callable__
+   RowMajorEllpackView( RowMajorEllpackView&& ) noexcept = default;
+};
+
+template< typename Device, typename Index, int Alignment = 32 >
+struct ColumnMajorEllpackView : public EllpackView< Device, Index, ColumnMajorOrder, Alignment >
+{
+   using Base = EllpackView< Device, Index, ColumnMajorOrder, Alignment >;
+
+   __cuda_callable__
+   ColumnMajorEllpackView() = default;
+
+   __cuda_callable__
+   ColumnMajorEllpackView( Index segmentsCount, Index segmentSize, Index alignedSize )
+   : Base( segmentsCount, segmentSize, alignedSize )
+   {}
+
+   __cuda_callable__
+   ColumnMajorEllpackView( Index segmentsCount, Index segmentSize ) : Base( segmentsCount, segmentSize ) {}
+
+   __cuda_callable__
+   ColumnMajorEllpackView( const ColumnMajorEllpackView& ) = default;
+
+   __cuda_callable__
+   ColumnMajorEllpackView( ColumnMajorEllpackView&& ) noexcept = default;
+};
+
 }  // namespace TNL::Algorithms::Segments
 
 #include "EllpackView.hpp"
