@@ -37,6 +37,13 @@ TYPED_TEST( BiEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< BiEllpackSegmentsType >();
 }
 
+TYPED_TEST( BiEllpackSegmentsTest, forElements_EmptySegments )
+{
+   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
+
+   test_forElements_EmptySegments< BiEllpackSegmentsType >();
+}
+
 TYPED_TEST( BiEllpackSegmentsTest, forElements_EqualSizes )
 {
    using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
@@ -56,6 +63,13 @@ TYPED_TEST( BiEllpackSegmentsTest, forElementsIf )
    using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
 
    test_forElementsIf< BiEllpackSegmentsType >();
+}
+
+TYPED_TEST( BiEllpackSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
+{
+   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
+
+   test_forElementsWithSegmentIndexes_EmptySegments< BiEllpackSegmentsType >();
 }
 
 TYPED_TEST( BiEllpackSegmentsTest, forElementsWithSegmentIndexes )
