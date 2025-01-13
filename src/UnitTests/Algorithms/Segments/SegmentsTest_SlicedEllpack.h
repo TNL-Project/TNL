@@ -15,18 +15,25 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using SlicedEllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Host, int >,
-                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Host, long >
+using SlicedEllpackSegmentsTypes =
+   ::testing::Types< typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, int >::BaseType,
+                     typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, long >::BaseType,
+                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Host, int >::BaseType,
+                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Host, long >::BaseType
 #if defined( __CUDACC__ )
-                                                     ,
-                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Cuda, int >,
-                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Cuda, long >
+                     ,
+                     typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Cuda, int >::BaseType,
+                     typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Cuda, long >::BaseType,
+                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Cuda, int >::BaseType,
+                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Cuda, long >::BaseType
 #elif defined( __HIP__ )
-                                                     ,
-                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Hip, int >,
-                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Hip, long >
+                     ,
+                     typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Hip, int >::BaseType,
+                     typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Hip, long >::BaseType,
+                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Hip, int >::BaseType,
+                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Hip, long >::BaseType
 #endif
-                                                     >;
+                     >;
 
 TYPED_TEST_SUITE( SlicedEllpackSegmentsTest, SlicedEllpackSegmentsTypes );
 
@@ -35,6 +42,13 @@ TYPED_TEST( SlicedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
    using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
 
    test_SetSegmentsSizes_EqualSizes< SlicedEllpackSegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackSegmentsTest, forElements_EmptySegments )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_forElements_EmptySegments< SlicedEllpackSegmentsType >();
 }
 
 TYPED_TEST( SlicedEllpackSegmentsTest, forElements_EqualSizes )
@@ -56,6 +70,13 @@ TYPED_TEST( SlicedEllpackSegmentsTest, forElementsIf )
    using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
 
    test_forElementsIf< SlicedEllpackSegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_forElementsWithSegmentIndexes_EmptySegments< SlicedEllpackSegmentsType >();
 }
 
 TYPED_TEST( SlicedEllpackSegmentsTest, forElementsWithSegmentIndexes )
