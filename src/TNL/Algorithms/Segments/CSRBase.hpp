@@ -157,11 +157,11 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
          if constexpr( argumentCount< Function >() == 3 ) {
-            constexpr auto kernel = detail::forElementsKernel< ConstOffsetsView, IndexType, Function >;
+            constexpr auto kernel = detail::forElementsKernel_CSR< ConstOffsetsView, IndexType, Function >;
             Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, function );
          }
          else {
-            constexpr auto kernel = detail::forElementsBlockMergeKernel< ConstOffsetsView, IndexType, Function >;
+            constexpr auto kernel = detail::forElementsBlockMergeKernel_CSR< ConstOffsetsView, IndexType, Function >;
             Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, function );
          }
       }
@@ -215,7 +215,6 @@ CSRBase< Device, Index >::forElements( const Array& segmentIndexes, Index begin,
       std::size_t threadsCount;
       constexpr int ThreadsPerSegment = 16;
       constexpr int SegmentsPerBlock = 256 / ThreadsPerSegment;
-      //threadsCount = segmentsCount * ThreadsPerSegment;  // for block merge kernel
       threadsCount = segmentsCount * Backend::getWarpSize();  // for vector kernel
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
@@ -225,17 +224,9 @@ CSRBase< Device, Index >::forElements( const Array& segmentIndexes, Index begin,
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 
-         constexpr auto kernel =
-            detail::forElementsWithSegmentIndexesKernel< ConstOffsetsView, typename Array::ConstViewType, IndexType, Function >;
+         constexpr auto kernel = detail::
+            forElementsWithSegmentIndexesKernel_CSR< ConstOffsetsView, typename Array::ConstViewType, IndexType, Function >;
          Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, segmentIndexesView, begin, end, function );
-
-         /*constexpr auto kernel = detail::forElementsWithSegmentIndexesBlockMergeKernel< ConstOffsetsView,
-                                                                                typename Array::ConstViewType,
-                                                                                IndexType,
-                                                                                Function,
-                                                                                SegmentsPerBlock >;
-         Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, segmentIndexesView, begin, end, function
-         );*/
       }
       Backend::streamSynchronize( launch_config.stream );
    }
@@ -306,7 +297,7 @@ CSRBase< Device, Index >::forElementsIf( IndexType begin, IndexType end, Conditi
       Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-         constexpr auto kernel = detail::forElementsIfKernel< ConstOffsetsView, IndexType, Condition, Function >;
+         constexpr auto kernel = detail::forElementsIfKernel_CSR< ConstOffsetsView, IndexType, Condition, Function >;
          Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, condition, function );
       }
       Backend::streamSynchronize( launch_config.stream );
