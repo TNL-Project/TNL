@@ -16,7 +16,7 @@ struct SegmentsOperations< CSRView< Device, Index > >
    using ViewType = CSRView< Device, Index >;
    using ConstViewType = typename ViewType::ConstViewType;
    using DeviceType = Device;
-   using IndexType = Index;
+   using IndexType = typename std::remove_const< Index >::type;
    using ConstOffsetsView = typename ViewType::ConstOffsetsView;
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
@@ -86,13 +86,13 @@ struct SegmentsOperations< CSRView< Device, Index > >
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
-                  constexpr auto kernel = forElementsKernel< ConstOffsetsView, IndexType, Function >;
+                  constexpr auto kernel = forElementsKernel_CSR< ConstOffsetsView, IndexType, Function >;
                   Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
                }
                else {  // This mapping is currently the default one
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 1:
-                        constexpr auto kernel = forElementsBlockMergeKernel< ConstOffsetsView, IndexType, Function >;
+                        constexpr auto kernel = forElementsBlockMergeKernel_CSR< ConstOffsetsView, IndexType, Function >;
                         Backend::launchKernelAsync(
                            kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
                         break;
@@ -105,17 +105,6 @@ struct SegmentsOperations< CSRView< Device, Index > >
       else {
          forElementsSequential( segments, begin, end, launchConfig, std::forward< Function >( function ) );
       }
-   }
-
-   template< typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements( const ViewType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                LaunchConfiguration launchConfig,
-                Function&& function )
-   {
-      return forElements( segments.getConstView(), begin, end, launchConfig, std::forward< Function >( function ) );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -174,7 +163,7 @@ struct SegmentsOperations< CSRView< Device, Index > >
                 IndexBegin begin,
                 IndexEnd end,
                 LaunchConfiguration launchConfig,
-                Function&& function )
+                Function function )  // TODO: Function&& function does not work here
    {
       if( end <= begin )
          return;
@@ -200,10 +189,10 @@ struct SegmentsOperations< CSRView< Device, Index > >
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
-                  constexpr auto kernel = detail::forElementsWithSegmentIndexesKernel< ConstOffsetsView,
-                                                                                       typename Array::ConstViewType,
-                                                                                       IndexType,
-                                                                                       Function >;
+                  constexpr auto kernel = detail::forElementsWithSegmentIndexesKernel_CSR< ConstOffsetsView,
+                                                                                           typename Array::ConstViewType,
+                                                                                           IndexType,
+                                                                                           Function >;
                   Backend::launchKernelAsync(
                      kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, begin, end, function );
                }
@@ -213,11 +202,11 @@ struct SegmentsOperations< CSRView< Device, Index > >
                         {
                            constexpr int SegmentsPerBlock = 256;
                            constexpr auto kernel =
-                              detail::forElementsWithSegmentIndexesBlockMergeKernel< ConstOffsetsView,
-                                                                                     typename Array::ConstViewType,
-                                                                                     IndexType,
-                                                                                     Function,
-                                                                                     SegmentsPerBlock >;
+                              detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR< ConstOffsetsView,
+                                                                                         typename Array::ConstViewType,
+                                                                                         IndexType,
+                                                                                         Function,
+                                                                                         SegmentsPerBlock >;
                            Backend::launchKernelAsync(
                               kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, begin, end, function );
                            break;
@@ -226,11 +215,11 @@ struct SegmentsOperations< CSRView< Device, Index > >
                         {
                            constexpr int SegmentsPerBlock = 128;
                            constexpr auto kernel =
-                              detail::forElementsWithSegmentIndexesBlockMergeKernel< ConstOffsetsView,
-                                                                                     typename Array::ConstViewType,
-                                                                                     IndexType,
-                                                                                     Function,
-                                                                                     SegmentsPerBlock >;
+                              detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR< ConstOffsetsView,
+                                                                                         typename Array::ConstViewType,
+                                                                                         IndexType,
+                                                                                         Function,
+                                                                                         SegmentsPerBlock >;
                            Backend::launchKernelAsync(
                               kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, begin, end, function );
                            break;
@@ -239,11 +228,11 @@ struct SegmentsOperations< CSRView< Device, Index > >
                         {
                            constexpr int SegmentsPerBlock = 64;
                            constexpr auto kernel =
-                              detail::forElementsWithSegmentIndexesBlockMergeKernel< ConstOffsetsView,
-                                                                                     typename Array::ConstViewType,
-                                                                                     IndexType,
-                                                                                     Function,
-                                                                                     SegmentsPerBlock >;
+                              detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR< ConstOffsetsView,
+                                                                                         typename Array::ConstViewType,
+                                                                                         IndexType,
+                                                                                         Function,
+                                                                                         SegmentsPerBlock >;
                            Backend::launchKernelAsync(
                               kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, begin, end, function );
                            break;
@@ -252,11 +241,11 @@ struct SegmentsOperations< CSRView< Device, Index > >
                         {
                            constexpr int SegmentsPerBlock = 32;
                            constexpr auto kernel =
-                              detail::forElementsWithSegmentIndexesBlockMergeKernel< ConstOffsetsView,
-                                                                                     typename Array::ConstViewType,
-                                                                                     IndexType,
-                                                                                     Function,
-                                                                                     SegmentsPerBlock >;
+                              detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR< ConstOffsetsView,
+                                                                                         typename Array::ConstViewType,
+                                                                                         IndexType,
+                                                                                         Function,
+                                                                                         SegmentsPerBlock >;
                            Backend::launchKernelAsync(
                               kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, begin, end, function );
                            break;
@@ -271,17 +260,26 @@ struct SegmentsOperations< CSRView< Device, Index > >
          forElementsSequential( segments, segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
    }
 
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElements( const ViewType& segments,
-                const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                LaunchConfiguration launchConfig,
-                Function&& function )
+   forElementsIfSequential( const ConstViewType& segments,
+                            IndexBegin begin,
+                            IndexEnd end,
+                            LaunchConfiguration launchConfig,
+                            Condition condition,
+                            Function function )
    {
-      return forElements(
-         segments.getConstView(), segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+      const auto offsetsView = segments.getOffsets();
+      auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
+      {
+         const IndexType begin = offsetsView[ segmentIdx ];
+         const IndexType end = offsetsView[ segmentIdx + 1 ];
+         IndexType localIdx( 0 );
+         if( condition( segmentIdx ) )
+            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+               function( segmentIdx, localIdx++, globalIdx );
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -297,103 +295,39 @@ struct SegmentsOperations< CSRView< Device, Index > >
          if( end <= begin )
             return;
 
-         const Index warpsCount = end - begin;
-         const std::size_t threadsCount = warpsCount * Backend::getWarpSize();
-         Backend::LaunchConfiguration launch_config;
-         launch_config.blockSize.x = 256;
-         dim3 blocksCount;
-         dim3 gridsCount;
-         Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
-         for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
-            Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-            constexpr auto kernel = forElementsIfKernel< ConstOffsetsView, IndexType, Condition, Function >;
-            Backend::launchKernelAsync(
-               kernel, launch_config, gridIdx, segments.getOffsets(), begin, end, condition, function );
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+            forElementsIfSequential( segments, begin, end, launchConfig, std::forward< Condition >( condition ), function );
+         else {
+            const Index warpsCount = end - begin;
+            std::size_t threadsCount = warpsCount;
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+               threadsCount = warpsCount * Backend::getWarpSize();
+            Backend::LaunchConfiguration launch_config;
+            launch_config.blockSize.x = 256;
+            dim3 blocksCount;
+            dim3 gridsCount;
+            Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
+            for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
+               Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+                  constexpr auto kernel = forElementsIfKernel_CSR< ConstOffsetsView, IndexType, Condition, Function >;
+                  Backend::launchKernelAsync(
+                     kernel, launch_config, gridIdx, segments.getOffsets(), begin, end, condition, function );
+               }
+               else {  // BlockMerge mapping - this mapping is currently the default one
+                  constexpr auto kernel =
+                     forElementsIfBlockMergeKernel_CSR< ConstOffsetsView, IndexType, Condition, Function, 256, 256 >;
+                  Backend::launchKernelAsync(
+                     kernel, launch_config, gridIdx, segments.getOffsets(), begin, end, condition, function );
+               }
+            }
+            Backend::streamSynchronize( launch_config.stream );
          }
-         Backend::streamSynchronize( launch_config.stream );
       }
       else {
-         const auto offsetsView = segments.getOffsets();
-         auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
-         {
-            const IndexType begin = offsetsView[ segmentIdx ];
-            const IndexType end = offsetsView[ segmentIdx + 1 ];
-            IndexType localIdx( 0 );
-            if( condition( segmentIdx ) )
-               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-                  function( segmentIdx, localIdx++, globalIdx );
-         };
-         Algorithms::parallelFor< Device >( begin, end, l );
+         forElementsIfSequential( segments, begin, end, launchConfig, std::forward< Condition >( condition ), function );
       }
    }
-
-   template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
-   static void
-   forElementsIf( const ViewType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  LaunchConfiguration launchConfig,
-                  Condition condition,
-                  Function function )
-   {
-      forElementsIf( segments.getConstView(),
-                     begin,
-                     end,
-                     launchConfig,
-                     std::forward< Condition >( condition ),
-                     std::forward< Function >( function ) );
-   }
 };
 
-template< typename Device, typename Index, typename IndexAllocator >
-struct SegmentsOperations< CSR< Device, Index, IndexAllocator > >
-{
-   using SegmentsType = CSR< Device, Index, IndexAllocator >;
-   using ViewType = typename SegmentsType::ViewType;
-   using ConstViewType = typename SegmentsType::ViewType;
-   using DeviceType = Device;
-   using IndexType = Index;
-
-   template< typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements( const SegmentsType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
-   {
-      SegmentsOperations< ViewType >::forElements(
-         segments.getConstView(), begin, end, launchConfig, std::forward< Function >( function ) );
-   }
-
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements( const SegmentsType& segments,
-                const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
-   {
-      SegmentsOperations< ViewType >::forElements(
-         segments.getConstView(), segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
-   }
-
-   template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
-   static void
-   forElementsIf( const SegmentsType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  const LaunchConfiguration& launchConfig,
-                  Condition&& condition,
-                  Function&& function )
-   {
-      SegmentsOperations< ViewType >::forElementsIf( segments.getConstView(),
-                                                     begin,
-                                                     end,
-                                                     launchConfig,
-                                                     std::forward< Condition >( condition ),
-                                                     std::forward< Function >( function ) );
-   }
-};
 }  //namespace TNL::Algorithms::Segments::detail
