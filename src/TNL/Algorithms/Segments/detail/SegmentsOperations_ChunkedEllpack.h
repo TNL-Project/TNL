@@ -14,7 +14,7 @@ struct SegmentsOperations< ChunkedEllpackView< Device, Index, Organization > >
    using ViewType = Segments::ChunkedEllpackView< Device, Index, Organization >;
    using ConstViewType = typename ViewType::ConstViewType;
    using DeviceType = Device;
-   using IndexType = Index;
+   using IndexType = typename std::remove_const< Index >::type;
    using ConstOffsetsView = typename ViewType::ConstOffsetsView;
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
@@ -99,17 +99,6 @@ struct SegmentsOperations< ChunkedEllpackView< Device, Index, Organization > >
          };
          Algorithms::parallelFor< DeviceType >( begin, end, work );
       }
-   }
-
-   template< typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements( const ViewType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
-   {
-      return forElements( segments.getConstView(), begin, end, launchConfig, std::forward< Function >( function ) );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -198,19 +187,6 @@ struct SegmentsOperations< ChunkedEllpackView< Device, Index, Organization > >
          };
          Algorithms::parallelFor< DeviceType >( begin, end, work );
       }
-   }
-
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements( const ViewType& segments,
-                const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
-   {
-      return forElements(
-         segments.getConstView(), segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -302,75 +278,6 @@ struct SegmentsOperations< ChunkedEllpackView< Device, Index, Organization > >
          Algorithms::parallelFor< DeviceType >( begin, end, work );
       }
    }
-
-   template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
-   static void
-   forElementsIf( const ViewType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  const LaunchConfiguration& launchConfig,
-                  Condition condition,
-                  Function function )
-   {
-      forElementsIf( segments.getConstView(),
-                     begin,
-                     end,
-                     launchConfig,
-                     std::forward< Condition >( condition ),
-                     std::forward< Function >( function ) );
-   }
 };
 
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
-struct SegmentsOperations< Segments::ChunkedEllpack< Device, Index, IndexAllocator, Organization > >
-{
-   // TODO: Rename detail::ChunkedEllpack and fix this
-   using SegmentsType = Segments::ChunkedEllpack< Device, Index, IndexAllocator, Organization >;
-   using ViewType = typename SegmentsType::ViewType;
-   using ConstViewType = typename SegmentsType::ViewType;
-   using DeviceType = Device;
-   using IndexType = Index;
-
-   template< typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements( const SegmentsType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
-   {
-      SegmentsOperations< ViewType >::forElements(
-         segments.getConstView(), begin, end, launchConfig, std::forward< Function >( function ) );
-   }
-
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
-   static void
-   forElements( const SegmentsType& segments,
-                const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
-   {
-      SegmentsOperations< ViewType >::forElements(
-         segments.getConstView(), segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
-   }
-
-   template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
-   static void
-   forElementsIf( const SegmentsType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  const LaunchConfiguration& launchConfig,
-                  Condition&& condition,
-                  Function&& function )
-   {
-      SegmentsOperations< ViewType >::forElementsIf( segments.getConstView(),
-                                                     begin,
-                                                     end,
-                                                     launchConfig,
-                                                     std::forward< Condition >( condition ),
-                                                     std::forward< Function >( function ) );
-   }
-};
 }  //namespace TNL::Algorithms::Segments::detail
