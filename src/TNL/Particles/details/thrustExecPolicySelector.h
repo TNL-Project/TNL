@@ -1,11 +1,16 @@
 #pragma once
 
-#include <thrust/execution_policy.h>
-#include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Host.h>
+#include <TNL/Devices/Cuda.h>
+
+//#if defined( __CUDACC__ ) || defined( __HIP__ )
+#include <thrust/execution_policy.h>
+//#endif
 
 namespace TNL {
 namespace Thrust {
+
+//#ifdef __CUDACC__
 
 template< typename DeviceType >
 struct ThrustExecutionPolicySelector;
@@ -24,6 +29,8 @@ struct ThrustExecutionPolicySelector< TNL::Devices::Cuda >
 
 template< typename DeviceType >
 using ThrustExecutionPolicy = typename ThrustExecutionPolicySelector< DeviceType >::type;
+
+//#endif
 
 } // Thrust
 } // TNL

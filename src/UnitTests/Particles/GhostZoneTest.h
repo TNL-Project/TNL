@@ -3,9 +3,6 @@
 #include <gtest/gtest.h>
 #include <TNL/Particles/ParticlesLinkedList.h>
 #include <TNL/Particles/GhostZone.h>
-#include "gtest/gtest.h"
-#include "gmock/gmock.h" //test vectors
-
 
 using namespace TNL;
 using namespace ParticleSystem;

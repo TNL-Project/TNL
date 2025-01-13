@@ -1,9 +1,6 @@
 #pragma once
 
 #include <gtest/gtest.h>
-#include "gtest/gtest.h"
-#include "gmock/gmock.h" //test vectors
-
 #include <TNL/Particles/ParticlesLinkedList.h>
 
 using namespace TNL;
