@@ -244,11 +244,9 @@ forElementsIfBlockMergeKernel_CSR( Index gridIdx,
       Algorithms::detail::CudaBlockScanShfl< Algorithms::detail::ScanType::Inclusive, BlockSize, Plus, Index >;
    using ExclusiveCudaScan =
       Algorithms::detail::CudaBlockScanShfl< Algorithms::detail::ScanType::Exclusive, BlockSize, Plus, Index >;
-   using InclusiveScanStorage = typename InclusiveCudaScan::Storage;  // TODO: Storage should not depend on the scan type
-   using ExclusiveScanStorage = typename ExclusiveCudaScan::Storage;
+   using ScanStorage = typename InclusiveCudaScan::Storage;  // TODO: Storage should not depend on the scan type
 
-   __shared__ InclusiveScanStorage inclusive_scan_storage;
-   __shared__ ExclusiveScanStorage exclusive_scan_storage;
+   __shared__ ScanStorage scan_storage;
    __shared__ Index conditions[ SegmentsPerBlock ];
    __shared__ Index shared_offsets[ SegmentsPerBlock + 1 ];
    __shared__ Index shared_global_offsets[ SegmentsPerBlock ];
@@ -270,7 +268,7 @@ forElementsIfBlockMergeKernel_CSR( Index gridIdx,
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       conditions[ threadIdx.x ] = conditionValue;
    #else  // USE_CUB
-   const Index v1 = InclusiveCudaScan::scan( Plus{}, (Index) 0, conditionValue, threadIdx.x, inclusive_scan_storage );
+   const Index v1 = InclusiveCudaScan::scan( Plus{}, (Index) 0, conditionValue, threadIdx.x, scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       conditions[ threadIdx.x ] = v1;
    #endif
@@ -294,7 +292,7 @@ forElementsIfBlockMergeKernel_CSR( Index gridIdx,
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = segmentSize;
    #else  // USE_CUB
-   const Index v2 = ExclusiveCudaScan::scan( Plus{}, (Index) 0, segmentSize, threadIdx.x, exclusive_scan_storage );
+   const Index v2 = ExclusiveCudaScan::scan( Plus{}, (Index) 0, segmentSize, threadIdx.x, scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v2;
    #endif
