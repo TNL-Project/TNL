@@ -30,7 +30,7 @@ forElements( const Segments&,
              IndexBegin begin,
              IndexEnd end,
              const LaunchConfiguration& launchConfig,
-             Function function );
+             Function&& function );
 
 template< typename Segments, typename Array, typename IndexBegin, typename IndexEnd, typename Function >
 void
