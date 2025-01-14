@@ -11,6 +11,31 @@
 namespace TNL::Algorithms::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
+
+// Keeping the following storage structures outside of CudaScan objects make
+// them independent of the scan operation type. This allows to reuse the same
+// storage for both inclusive and exclusive scan.
+template< typename ValueType, int BlockSize >
+struct CudaScanStorage
+{
+   // accessed via Backend::getInterleaving()
+   ValueType chunkResults[ BlockSize + BlockSize / Backend::getNumberOfSharedMemoryBanks() ];
+   ValueType warpResults[ Backend::getWarpSize() ];
+};
+
+template< typename ValueType >
+struct CudaScanShflStorage
+{
+   ValueType warpResults[ Backend::getWarpSize() ];
+};
+
+template< typename ValueType, typename BlockStorage, int BlockSize, int ValuesPerThread >
+struct CudaTileScanStorage
+{
+   ValueType data[ BlockSize * ValuesPerThread ];
+   BlockStorage blockScanStorage;
+};
+
 /* Template for cooperative scan across the CUDA block of threads.
  * It is a *cooperative* operation - all threads must call the operation,
  * otherwise it will deadlock!
@@ -24,12 +49,7 @@ template< ScanType scanType, int blockSize, typename Reduction, typename ValueTy
 struct CudaBlockScan
 {
    // storage to be allocated in shared memory
-   struct Storage
-   {
-      // accessed via Backend::getInterleaving()
-      ValueType chunkResults[ blockSize + blockSize / Backend::getNumberOfSharedMemoryBanks() ];
-      ValueType warpResults[ Backend::getWarpSize() ];
-   };
+   using Storage = CudaScanStorage< ValueType, blockSize >;
 
    /* Cooperative scan across the CUDA block - each thread will get the
     * result of the scan according to its ID.
@@ -60,7 +80,7 @@ struct CudaBlockScan
       // perform the parallel scan on chunkResults inside warps
       const int lane_id = tid % Backend::getWarpSize();
       const int warp_id = tid / Backend::getWarpSize();
-      #pragma unroll
+   #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
          if( lane_id >= stride ) {
             storage.chunkResults[ chunkResultIdx ] = reduction(
@@ -77,7 +97,7 @@ struct CudaBlockScan
 
       // perform the scan of warpResults using one warp
       if( warp_id == 0 )
-         #pragma unroll
+   #pragma unroll
          for( int stride = 1; stride < blockSize / Backend::getWarpSize(); stride *= 2 ) {
             if( lane_id >= stride )
                storage.warpResults[ tid ] = reduction( storage.warpResults[ tid ], storage.warpResults[ tid - stride ] );
@@ -112,10 +132,7 @@ template< ScanType scanType,
 struct CudaBlockScanShfl
 {
    // storage to be allocated in shared memory
-   struct Storage
-   {
-      ValueType warpResults[ Backend::getWarpSize() ];
-   };
+   using Storage = CudaScanShflStorage< ValueType >;
 
    /* Cooperative scan across the CUDA block - each thread will get the
     * result of the scan according to its ID.
@@ -175,8 +192,8 @@ struct CudaBlockScanShfl
    static ValueType
    warpScan( const Reduction& reduction, ValueType identity, ValueType threadValue, int lane_id, ValueType& total )
    {
-      // perform an inclusive scan
-      #pragma unroll
+   // perform an inclusive scan
+   #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
    // TODO: HIP does not have __shfl_up_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
    #ifdef __HIP__
@@ -257,11 +274,7 @@ struct CudaTileScan
    using BlockScan = CudaBlockScan< ScanType::Exclusive, blockSize, Reduction, ValueType >;
 
    // storage to be allocated in shared memory
-   struct Storage
-   {
-      ValueType data[ blockSize * valuesPerThread ];
-      typename BlockScan::Storage blockScanStorage;
-   };
+   using Storage = CudaTileScanStorage< ValueType, typename BlockScan::Storage, blockSize, valuesPerThread >;
 
    /* Cooperative scan of a data tile in the global memory - each thread will
     * get the result of its chunk (i.e. the last value of the (inclusive) scan
@@ -331,7 +344,7 @@ struct CudaTileScan
       // Perform sequential reduction of the thread's chunk in shared memory.
       const int chunkOffset = threadIdx.x * valuesPerThread;
       ValueType value = storage.data[ chunkOffset ];
-      #pragma unroll
+   #pragma unroll
       for( int i = 1; i < valuesPerThread; i++ )
          value = reduction( value, storage.data[ chunkOffset + i ] );
 
@@ -341,8 +354,8 @@ struct CudaTileScan
       // Apply the global shift.
       value = reduction( value, shift );
 
-      // Downsweep step: scan the chunks and use the result of spine scan as the initial value.
-      #pragma unroll
+   // Downsweep step: scan the chunks and use the result of spine scan as the initial value.
+   #pragma unroll
       for( int i = 0; i < valuesPerThread; i++ ) {
          const ValueType inputValue = storage.data[ chunkOffset + i ];
          if( scanType == ScanType::Exclusive )
