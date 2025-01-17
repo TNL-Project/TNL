@@ -1305,7 +1305,7 @@ TODO: Write documentation on distributed matrices.
 
 ## Flexible reduction in matrix rows
 
-Flexible reduction in matrix rows is a powerful tool for many different matrix operations. It is represented by the method `reduceRows` (\ref TNL::Matrices::DenseMatrix::reduceRows,
+Flexible reduction in matrix rows is a powerful tool for many different matrix operations. It is represented by the method `reduceRows` (\ref TNL::Matrices::DenseMatrixBase::reduceRows,
 \ref TNL::Matrices::SparseMatrix::reduceRows, \ref TNL::Matrices::TridiagonalMatrix::reduceRows, \ref TNL::Matrices::MultidiagonalMatrix::reduceRows, \ref TNL::Matrices::LambdaMatrix::reduceRows) and similar to the method `forElements` it iterates over particular matrix rows. However, it performs *flexible parallel reduction* in addition. For example, the matrix-vector product can be seen as a reduction of products of matrix elements with the input vector in particular matrix rows. The first element of the result vector ios obtained as:
 
 \f[
@@ -1360,7 +1360,7 @@ The meaning of the particular parameters is as follows:
 1. `rowIdx` is an index of the matrix row related to given result of flexible reduction.
 2. `value`is the result of the flexible reduction in given matrix row.
 
-The method `reduceRows` (\ref TNL::Matrices::DenseMatrix::reduceRows, \ref TNL::Matrices::SparseMatrix::reduceRows, \ref TNL::Matrices::TridiagonalMatrix::reduceRows, \ref TNL::Matrices::MultidiagonalMatrix::reduceRows, \ref TNL::Matrices::LambdaMatrix::reduceRows) accepts the following arguments:
+The method `reduceRows` (\ref TNL::Matrices::DenseMatrixBase::reduceRows, \ref TNL::Matrices::SparseMatrix::reduceRows, \ref TNL::Matrices::TridiagonalMatrix::reduceRows, \ref TNL::Matrices::MultidiagonalMatrix::reduceRows, \ref TNL::Matrices::LambdaMatrix::reduceRows) accepts the following arguments:
 
 1. `begin` is the beginning of the matrix rows range on which the reduction will be performed.
 2. `end` is the end of the matrix rows range on which the reduction will be performed. The last matrix row which is going to be processed has index `end-1`.
