@@ -16,7 +16,6 @@ namespace TNL::Solvers {
  *
  * \tparam Real is a floating point type used for computations.
  * \tparam Index is an indexing type.
- * \tparam IterativeSolverMonitor< Real, Index > is type of an object used for monitoring of the convergence.
  */
 template< typename Real, typename Index >
 class StaticIterativeSolver
@@ -40,10 +39,6 @@ public:
     * \e convergence-residue - convergence occurs when the residue drops \b bellow this limit.
     *
     * \e divergence-residue - divergence occurs when the residue \b exceeds given limit.
-    *
-    * \e refresh-rate - number of milliseconds between solver monitor refreshes.
-    *
-    * \e residual-history-file - path to the file where the residual history will be saved.
     *
     * \param config contains description of configuration parameters.
     * \param prefix is a prefix of particular configuration entries.
