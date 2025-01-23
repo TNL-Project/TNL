@@ -65,6 +65,27 @@ template< typename Segments, typename Condition, typename Function >
 void
 forAllElementsIf( const Segments&, Condition condition, Function function );
 
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+void
+forElementsIfSparse( const Segments&,
+                     IndexBegin begin,
+                     IndexEnd end,
+                     const LaunchConfiguration& launchConfig,
+                     Condition condition,
+                     Function function );
+
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+void
+forElementsIfSparse( const Segments&, IndexBegin begin, IndexEnd end, Condition condition, Function function );
+
+template< typename Segments, typename Condition, typename Function >
+void
+forAllElementsIfSparse( const Segments&, const LaunchConfiguration& launchConfig, Condition condition, Function function );
+
+template< typename Segments, typename Condition, typename Function >
+void
+forAllElementsIfSparse( const Segments&, Condition condition, Function function );
+
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
 void
 forSegments( const Segments&, IndexBegin begin, IndexEnd end, const LaunchConfiguration& launchConfig, Function&& function );
