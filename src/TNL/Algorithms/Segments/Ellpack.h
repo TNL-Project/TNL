@@ -93,7 +93,8 @@ struct RowMajorEllpack : public Ellpack< Device, Index, IndexAllocator, RowMajor
    RowMajorEllpack() = default;
 
    template< typename SizesContainer >
-   RowMajorEllpack( const SizesContainer& sizes ) : BaseType( sizes ){};
+   RowMajorEllpack( const SizesContainer& sizes ) : BaseType( sizes )
+   {}
 
    template< typename ListIndex >
    RowMajorEllpack( const std::initializer_list< ListIndex >& segmentsSizes ) : BaseType( segmentsSizes )
@@ -117,7 +118,8 @@ struct ColumnMajorEllpack : public Ellpack< Device, Index, IndexAllocator, Colum
    ColumnMajorEllpack() = default;
 
    template< typename SizesContainer >
-   ColumnMajorEllpack( const SizesContainer& sizes ) : BaseType( sizes ){};
+   ColumnMajorEllpack( const SizesContainer& sizes ) : BaseType( sizes )
+   {}
 
    template< typename ListIndex >
    ColumnMajorEllpack( const std::initializer_list< ListIndex >& segmentsSizes ) : BaseType( segmentsSizes )
