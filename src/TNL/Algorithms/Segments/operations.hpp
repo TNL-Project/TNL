@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Algorithms/compress.h>
 #include "detail/SegmentsOperations.h"
 
 namespace TNL::Algorithms::Segments {
@@ -130,6 +131,64 @@ forAllElementsIf( const Segments& segments, Condition condition, Function functi
 {
    LaunchConfiguration launchConfig;
    forAllElementsIf( segments, launchConfig, std::forward< Condition >( condition ), std::forward< Function >( function ) );
+}
+
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+void
+forElementsIfSparse( const Segments& segments,
+                     IndexBegin begin,
+                     IndexEnd end,
+                     const LaunchConfiguration& launchConfig,
+                     Condition condition,
+                     Function function )
+{
+   using IndexType = typename Segments::IndexType;
+   using DeviceType = typename Segments::DeviceType;
+   using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   VectorType conditions( end - begin );
+   conditions.forAllElements(
+      [ = ] __cuda_callable__( IndexType i, IndexType & value )
+      {
+         value = condition( i + begin );
+      } );
+
+   auto indexes = compressFast< VectorType >( conditions );
+   forElements( segments, indexes, launchConfig, function );
+}
+
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
+void
+forElementsIfSparse( const Segments& segments, IndexBegin begin, IndexEnd end, Condition condition, Function function )
+{
+   LaunchConfiguration launchConfig;
+   forElementsIfSparse(
+      segments, begin, end, launchConfig, std::forward< Condition >( condition ), std::forward< Function >( function ) );
+}
+
+template< typename Segments, typename Condition, typename Function >
+void
+forAllElementsIfSparse( const Segments& segments,
+                        const LaunchConfiguration& launchConfig,
+                        Condition condition,
+                        Function function )
+{
+   using IndexType = typename Segments::IndexType;
+   forElementsIfSparse( segments.getConstView(),
+                        (IndexType) 0,
+                        segments.getSegmentsCount(),
+                        launchConfig,
+                        std::forward< Condition >( condition ),
+                        std::forward< Function >( function ) );
+}
+
+template< typename Segments, typename Condition, typename Function >
+void
+forAllElementsIfSparse( const Segments& segments, Condition condition, Function function )
+{
+   LaunchConfiguration launchConfig;
+   forAllElementsIfSparse(
+      segments, launchConfig, std::forward< Condition >( condition ), std::forward< Function >( function ) );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >

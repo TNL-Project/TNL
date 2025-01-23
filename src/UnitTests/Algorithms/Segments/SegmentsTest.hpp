@@ -391,6 +391,36 @@ test_forElementsIf()
                   << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
          }
       }
+
+   // Test with forElementsIfSparse
+   v = -1;
+   TNL::Algorithms::Segments::forAllElementsIfSparse(
+      segments.getView(),
+      launch_config,
+      [ = ] __cuda_callable__( const IndexType segmentIdx ) -> bool
+      {
+         return segmentIdx % 2 == 0;
+      },
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         v_view[ globalIdx ] = segmentIdx + localIdx;
+      } );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+         if( segmentIdx % 2 == 0 )
+            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx )
+               << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
+               << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+
+         else
+            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), -1 )
+               << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
+               << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+      }
+   }
+
+
    }
 }
 
