@@ -15,7 +15,9 @@ class NetgenReader : public MeshReader
 public:
    NetgenReader() = default;
 
-   NetgenReader( const std::string& fileName ) : MeshReader( fileName ) {}
+   NetgenReader( const std::string& fileName )
+   : MeshReader( fileName )
+   {}
 
    void
    detectMesh() override

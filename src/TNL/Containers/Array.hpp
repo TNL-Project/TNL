@@ -18,18 +18,22 @@ namespace TNL::Containers {
 
 template< typename Value, typename Device, typename Index, typename Allocator >
 Array< Value, Device, Index, Allocator >::Array( Array&& array ) noexcept
-: data( std::move( array.data ) ), size( std::move( array.size ) ), allocator( std::move( array.allocator ) )
+: data( std::move( array.data ) ),
+  size( std::move( array.size ) ),
+  allocator( std::move( array.allocator ) )
 {
    array.size = 0;
    array.data = nullptr;
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-Array< Value, Device, Index, Allocator >::Array( const Allocator& allocator ) : allocator( allocator )
+Array< Value, Device, Index, Allocator >::Array( const Allocator& allocator )
+: allocator( allocator )
 {}
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-Array< Value, Device, Index, Allocator >::Array( IndexType size, const AllocatorType& allocator ) : allocator( allocator )
+Array< Value, Device, Index, Allocator >::Array( IndexType size, const AllocatorType& allocator )
+: allocator( allocator )
 {
    this->setSize( size );
 }

@@ -138,7 +138,8 @@ public:
     * \param solverMonitor is a reference to an instance of a solver monitor.
     */
    SolverMonitorThread( SolverMonitor& solverMonitor )
-   : solverMonitor( solverMonitor ), t( &SolverMonitor::runMainLoop, &solverMonitor )
+   : solverMonitor( solverMonitor ),
+     t( &SolverMonitor::runMainLoop, &solverMonitor )
    {}
 
    /**

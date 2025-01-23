@@ -14,7 +14,9 @@ namespace TNL::Meshes {
 
 struct MeshBuilderError : public std::runtime_error
 {
-   MeshBuilderError( const std::string& msg ) : std::runtime_error( msg ) {}
+   MeshBuilderError( const std::string& msg )
+   : std::runtime_error( msg )
+   {}
 };
 
 template< typename Mesh >

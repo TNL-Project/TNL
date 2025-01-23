@@ -42,7 +42,9 @@ public:
    inline explicit GridEntity( const Index& vertexIndex,
                                const Container< Dimension, Index >& coordinates,
                                const Container< Dimension, bool >& direction )
-   : vertexIndex( vertexIndex ), coordinates( coordinates ), direction( direction )
+   : vertexIndex( vertexIndex ),
+     coordinates( coordinates ),
+     direction( direction )
    {}
 
    __cuda_callable__

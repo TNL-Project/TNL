@@ -29,7 +29,9 @@ public:
 
    FPMAWriter() = delete;
 
-   FPMAWriter( std::ostream& str ) : str( str.rdbuf() ) {}
+   FPMAWriter( std::ostream& str )
+   : str( str.rdbuf() )
+   {}
 
    void
    writeEntities( const Mesh& mesh );

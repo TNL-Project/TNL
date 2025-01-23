@@ -13,7 +13,11 @@ struct Edge
 
    Edge() = default;
 
-   Edge( Index source, Index target, Real weight ) : source( source ), target( target ), weight( weight ) {}
+   Edge( Index source, Index target, Real weight )
+   : source( source ),
+     target( target ),
+     weight( weight )
+   {}
 
    Edge( const Edge& ) = default;
 

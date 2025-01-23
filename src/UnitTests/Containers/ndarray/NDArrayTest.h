@@ -675,11 +675,11 @@ TEST( NDArrayTest, forInterior_dynamic_5D )
                for( int j = 0; j < J; j++ ) {
                   if( i == 0 || i == I - 1 || j == 0 || j == J - 1 || k == 0 || k == K - 1 || l == 0 || l == L - 1 || m == 0
                       || m == M - 1 )
-                     EXPECT_EQ( a( i, j, k, l, m ), 0 )
-                        << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m;
+                     EXPECT_EQ( a( i, j, k, l, m ), 0 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                        << ", m = " << m;
                   else
-                     EXPECT_EQ( a( i, j, k, l, m ), 1 )
-                        << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m;
+                     EXPECT_EQ( a( i, j, k, l, m ), 1 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                        << ", m = " << m;
                }
 }
 
@@ -705,11 +705,11 @@ TEST( NDArrayTest, forInterior_dynamic_6D )
                   for( int j = 0; j < J; j++ ) {
                      if( i == 0 || i == I - 1 || j == 0 || j == J - 1 || k == 0 || k == K - 1 || l == 0 || l == L - 1 || m == 0
                          || m == M - 1 || n == 0 || n == N - 1 )
-                        EXPECT_EQ( a( i, j, k, l, m, n ), 0 )
-                           << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m << ", n = " << n;
+                        EXPECT_EQ( a( i, j, k, l, m, n ), 0 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                           << ", m = " << m << ", n = " << n;
                      else
-                        EXPECT_EQ( a( i, j, k, l, m, n ), 1 )
-                           << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m << ", n = " << n;
+                        EXPECT_EQ( a( i, j, k, l, m, n ), 1 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                           << ", m = " << m << ", n = " << n;
                   }
 }
 
@@ -828,11 +828,11 @@ TEST( NDArrayTest, forInterior_static_5D )
                for( int j = 0; j < J; j++ ) {
                   if( i == 0 || i == I - 1 || j == 0 || j == J - 1 || k == 0 || k == K - 1 || l == 0 || l == L - 1 || m == 0
                       || m == M - 1 )
-                     EXPECT_EQ( a( i, j, k, l, m ), 0 )
-                        << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m;
+                     EXPECT_EQ( a( i, j, k, l, m ), 0 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                        << ", m = " << m;
                   else
-                     EXPECT_EQ( a( i, j, k, l, m ), 1 )
-                        << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m;
+                     EXPECT_EQ( a( i, j, k, l, m ), 1 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                        << ", m = " << m;
                }
 }
 
@@ -858,11 +858,11 @@ TEST( NDArrayTest, forInterior_static_6D )
                   for( int j = 0; j < J; j++ ) {
                      if( i == 0 || i == I - 1 || j == 0 || j == J - 1 || k == 0 || k == K - 1 || l == 0 || l == L - 1 || m == 0
                          || m == M - 1 || n == 0 || n == N - 1 )
-                        EXPECT_EQ( a( i, j, k, l, m, n ), 0 )
-                           << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m << ", n = " << n;
+                        EXPECT_EQ( a( i, j, k, l, m, n ), 0 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                           << ", m = " << m << ", n = " << n;
                      else
-                        EXPECT_EQ( a( i, j, k, l, m, n ), 1 )
-                           << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m << ", n = " << n;
+                        EXPECT_EQ( a( i, j, k, l, m, n ), 1 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                           << ", m = " << m << ", n = " << n;
                   }
 }
 
@@ -1156,11 +1156,11 @@ TEST( NDArrayTest, forBoundary_static_5D )
                for( int j = 0; j < J; j++ ) {
                   if( i == 0 || i == I - 1 || j == 0 || j == J - 1 || k == 0 || k == K - 1 || l == 0 || l == L - 1 || m == 0
                       || m == M - 1 )
-                     EXPECT_EQ( a( i, j, k, l, m ), 1 )
-                        << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m;
+                     EXPECT_EQ( a( i, j, k, l, m ), 1 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                        << ", m = " << m;
                   else
-                     EXPECT_EQ( a( i, j, k, l, m ), 0 )
-                        << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m;
+                     EXPECT_EQ( a( i, j, k, l, m ), 0 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                        << ", m = " << m;
                }
 }
 
@@ -1186,11 +1186,11 @@ TEST( NDArrayTest, forBoundary_static_6D )
                   for( int j = 0; j < J; j++ ) {
                      if( i == 0 || i == I - 1 || j == 0 || j == J - 1 || k == 0 || k == K - 1 || l == 0 || l == L - 1 || m == 0
                          || m == M - 1 || n == 0 || n == N - 1 )
-                        EXPECT_EQ( a( i, j, k, l, m, n ), 1 )
-                           << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m << ", n = " << n;
+                        EXPECT_EQ( a( i, j, k, l, m, n ), 1 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                           << ", m = " << m << ", n = " << n;
                      else
-                        EXPECT_EQ( a( i, j, k, l, m, n ), 0 )
-                           << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l << ", m = " << m << ", n = " << n;
+                        EXPECT_EQ( a( i, j, k, l, m, n ), 0 ) << "i = " << i << ", j = " << j << ", k = " << k << ", l = " << l
+                           << ", m = " << m << ", n = " << n;
                   }
 }
 

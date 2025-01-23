@@ -72,13 +72,17 @@ public:
                 SizesHolderType sizes,
                 StridesHolderType strides = StridesHolderType{},
                 OverlapsType overlaps = OverlapsType{} )
-   : IndexerType( std::move( sizes ), std::move( strides ), std::move( overlaps ) ), array( data )
+   : IndexerType( std::move( sizes ), std::move( strides ), std::move( overlaps ) ),
+     array( data )
    {}
 
    //! \brief Constructs an array view initialized by a raw data pointer and an
    //! indexer.
    __cuda_callable__
-   NDArrayView( Value* data, IndexerType indexer ) : IndexerType( std::move( indexer ) ), array( data ) {}
+   NDArrayView( Value* data, IndexerType indexer )
+   : IndexerType( std::move( indexer ) ),
+     array( data )
+   {}
 
    /**
     * \brief A shallow-copy copy-constructor.

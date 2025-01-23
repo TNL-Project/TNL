@@ -61,7 +61,8 @@ HyprePCG::HyprePCG( MPI_Comm comm )
    HYPRE_ParCSRPCGCreate( comm, &solver );
 }
 
-HyprePCG::HyprePCG( const Matrices::HypreParCSRMatrix& A ) : HypreSolver( A )
+HyprePCG::HyprePCG( const Matrices::HypreParCSRMatrix& A )
+: HypreSolver( A )
 {
    const MPI_Comm comm = A.getCommunicator();
    HYPRE_ParCSRPCGCreate( comm, &solver );
@@ -123,7 +124,8 @@ HypreBiCGSTAB::HypreBiCGSTAB( MPI_Comm comm )
    HYPRE_ParCSRBiCGSTABCreate( comm, &solver );
 }
 
-HypreBiCGSTAB::HypreBiCGSTAB( const Matrices::HypreParCSRMatrix& A_ ) : HypreSolver( A_ )
+HypreBiCGSTAB::HypreBiCGSTAB( const Matrices::HypreParCSRMatrix& A_ )
+: HypreSolver( A_ )
 {
    const MPI_Comm comm = A->getCommunicator();
    HYPRE_ParCSRBiCGSTABCreate( comm, &solver );
@@ -173,7 +175,8 @@ HypreGMRES::HypreGMRES( MPI_Comm comm )
    HYPRE_ParCSRGMRESCreate( comm, &solver );
 }
 
-HypreGMRES::HypreGMRES( const Matrices::HypreParCSRMatrix& A_ ) : HypreSolver( A_ )
+HypreGMRES::HypreGMRES( const Matrices::HypreParCSRMatrix& A_ )
+: HypreSolver( A_ )
 {
    const MPI_Comm comm = A->getCommunicator();
    HYPRE_ParCSRGMRESCreate( comm, &solver );
@@ -225,7 +228,8 @@ HypreFlexGMRES::HypreFlexGMRES( MPI_Comm comm )
    HYPRE_ParCSRFlexGMRESCreate( comm, &solver );
 }
 
-HypreFlexGMRES::HypreFlexGMRES( const Matrices::HypreParCSRMatrix& A_ ) : HypreSolver( A_ )
+HypreFlexGMRES::HypreFlexGMRES( const Matrices::HypreParCSRMatrix& A_ )
+: HypreSolver( A_ )
 {
    const MPI_Comm comm = A->getCommunicator();
    HYPRE_ParCSRFlexGMRESCreate( comm, &solver );
@@ -277,7 +281,8 @@ HypreParaSails::HypreParaSails( MPI_Comm comm )
    HYPRE_ParaSailsCreate( comm, &solver );
 }
 
-HypreParaSails::HypreParaSails( const Matrices::HypreParCSRMatrix& A ) : HypreSolver( A )
+HypreParaSails::HypreParaSails( const Matrices::HypreParCSRMatrix& A )
+: HypreSolver( A )
 {
    HYPRE_ParaSailsCreate( A.getCommunicator(), &solver );
 }
@@ -292,7 +297,8 @@ HypreEuclid::HypreEuclid( MPI_Comm comm )
    HYPRE_EuclidCreate( comm, &solver );
 }
 
-HypreEuclid::HypreEuclid( const Matrices::HypreParCSRMatrix& A ) : HypreSolver( A )
+HypreEuclid::HypreEuclid( const Matrices::HypreParCSRMatrix& A )
+: HypreSolver( A )
 {
    HYPRE_EuclidCreate( A.getCommunicator(), &solver );
 }
@@ -308,7 +314,8 @@ HypreILU::HypreILU()
    setDefaultOptions();
 }
 
-HypreILU::HypreILU( const Matrices::HypreParCSRMatrix& A ) : HypreSolver( A )
+HypreILU::HypreILU( const Matrices::HypreParCSRMatrix& A )
+: HypreSolver( A )
 {
    HYPRE_ILUCreate( &solver );
    setDefaultOptions();
@@ -344,7 +351,8 @@ HypreBoomerAMG::HypreBoomerAMG()
    setDefaultOptions();
 }
 
-HypreBoomerAMG::HypreBoomerAMG( const Matrices::HypreParCSRMatrix& A ) : HypreSolver( A )
+HypreBoomerAMG::HypreBoomerAMG( const Matrices::HypreParCSRMatrix& A )
+: HypreSolver( A )
 {
    HYPRE_BoomerAMGCreate( &solver );
    setDefaultOptions();

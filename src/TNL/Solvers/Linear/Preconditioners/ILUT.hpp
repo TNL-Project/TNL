@@ -82,7 +82,10 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
       IndexType column;
       RealType value;
       RealType abs_value;
-      Triplet( IndexType column, RealType value, RealType abs_value ) : column( column ), value( value ), abs_value( abs_value )
+      Triplet( IndexType column, RealType value, RealType abs_value )
+      : column( column ),
+        value( value ),
+        abs_value( abs_value )
       {}
    };
    auto cmp_abs_value = []( const Triplet& a, const Triplet& b )

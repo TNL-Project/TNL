@@ -11,7 +11,8 @@ template< typename SegmentView, typename ValuesView >
 __cuda_callable__
 DenseMatrixRowView< SegmentView, ValuesView >::DenseMatrixRowView( const SegmentViewType& segmentView,
                                                                    const ValuesViewType& values )
-: segmentView( segmentView ), values( values )
+: segmentView( segmentView ),
+  values( values )
 {}
 
 template< typename SegmentView, typename ValuesView >

@@ -49,7 +49,10 @@ public:
     */
    __cuda_callable__
    SegmentView( IndexType segmentIdx, IndexType offset, IndexType size, IndexType step )
-   : segmentIdx( segmentIdx ), segmentOffset( offset ), segmentSize( size ), step( step )
+   : segmentIdx( segmentIdx ),
+     segmentOffset( offset ),
+     segmentSize( size ),
+     step( step )
    {}
 
    /**
@@ -194,7 +197,9 @@ public:
     */
    __cuda_callable__
    SegmentView( IndexType segmentIdx, IndexType offset, IndexType size )
-   : segmentIdx( segmentIdx ), segmentOffset( offset ), segmentSize( size )
+   : segmentIdx( segmentIdx ),
+     segmentOffset( offset ),
+     segmentSize( size )
    {}
 
    /**

@@ -72,7 +72,10 @@ public:
                            LocalBeginsType localBegins,
                            SizesHolderType localEnds,
                            MPI::Comm communicator )
-   : localView( localView ), communicator( std::move( communicator ) ), globalSizes( globalSizes ), localBegins( localBegins ),
+   : localView( localView ),
+     communicator( std::move( communicator ) ),
+     globalSizes( globalSizes ),
+     localBegins( localBegins ),
      localEnds( localEnds )
    {}
 

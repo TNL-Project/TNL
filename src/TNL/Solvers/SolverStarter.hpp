@@ -39,7 +39,8 @@ class SolverStarterExplicitSolverSetter
 {};
 
 template< typename ConfigTag >
-SolverStarter< ConfigTag >::SolverStarter() : logWidth( 80 )
+SolverStarter< ConfigTag >::SolverStarter()
+: logWidth( 80 )
 {}
 
 template< typename ConfigTag >

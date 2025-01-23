@@ -26,7 +26,8 @@ public:
    }
 
    ExactOperatorFunction( const OperatorType& operator_, const FunctionType& function )
-   : operator_( operator_ ), function( function )
+   : operator_( operator_ ),
+     function( function )
    {}
 
    [[nodiscard]] __cuda_callable__

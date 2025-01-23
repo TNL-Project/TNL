@@ -8,7 +8,8 @@
 namespace TNL::Images {
 
 template< typename Index >
-PNGImage< Index >::PNGImage() : fileOpen( false )
+PNGImage< Index >::PNGImage()
+: fileOpen( false )
 {}
 
 template< typename Index >

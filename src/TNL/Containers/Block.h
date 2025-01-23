@@ -36,7 +36,10 @@ struct Block
    Block() = default;
 
    //! \brief Constructs a block from the given \e begin and \e end.
-   Block( const CoordinatesType& begin, const CoordinatesType& end ) : begin( begin ), end( end ) {}
+   Block( const CoordinatesType& begin, const CoordinatesType& end )
+   : begin( begin ),
+     end( end )
+   {}
 };
 
 /**

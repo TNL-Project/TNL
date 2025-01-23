@@ -12,8 +12,8 @@ compare( const TNL::Containers::StaticVector< GridDimension, int >& expectation 
    auto normals = TNL::Meshes::NormalsGetter< int, EntityDimension, GridDimension >::template getNormals< EntityOrientation >();
 
    EXPECT_EQ( normals, expectation ) << "Grid Dimension: [" << GridDimension << "], "
-                                     << "Entity Orientation: [" << EntityOrientation << "], "
-                                     << "Entity Dimension: [" << EntityDimension << "]";
+      << "Entity Orientation: [" << EntityOrientation << "], "
+      << "Entity Dimension: [" << EntityDimension << "]";
 }
 
 TEST( NormalsTestSuite, Normals1DTest )

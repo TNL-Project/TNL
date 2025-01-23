@@ -23,9 +23,13 @@ DistributedArrayView< Value, Device, Index >::~DistributedArrayView()
 template< typename Value, typename Device, typename Index >
 template< typename Value_ >
 DistributedArrayView< Value, Device, Index >::DistributedArrayView( const DistributedArrayView< Value_, Device, Index >& view )
-: localRange( view.getLocalRange() ), ghosts( view.getGhosts() ), globalSize( view.getSize() ),
-  communicator( view.getCommunicator() ), localData( view.getConstLocalViewWithGhosts() ),
-  synchronizer( view.getSynchronizer() ), valuesPerElement( view.getValuesPerElement() )
+: localRange( view.getLocalRange() ),
+  ghosts( view.getGhosts() ),
+  globalSize( view.getSize() ),
+  communicator( view.getCommunicator() ),
+  localData( view.getConstLocalViewWithGhosts() ),
+  synchronizer( view.getSynchronizer() ),
+  valuesPerElement( view.getValuesPerElement() )
 {}
 
 template< typename Value, typename Device, typename Index >

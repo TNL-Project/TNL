@@ -39,7 +39,9 @@ public:
 
    MeshReader() = default;
 
-   MeshReader( std::string fileName ) : fileName( std::move( fileName ) ) {}
+   MeshReader( std::string fileName )
+   : fileName( std::move( fileName ) )
+   {}
 
    virtual ~MeshReader() = default;
 

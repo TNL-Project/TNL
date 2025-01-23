@@ -23,8 +23,14 @@ struct TASK
 
    __cuda_callable__
    TASK( int begin, int end, int iteration )
-   : partitionBegin( begin ), partitionEnd( end ), iteration( iteration ), pivotIdx( -1 ), dstBegin( -151561 ),
-     dstEnd( -151561 ), firstBlock( -100 ), blockCount( -100 )
+   : partitionBegin( begin ),
+     partitionEnd( end ),
+     iteration( iteration ),
+     pivotIdx( -1 ),
+     dstBegin( -151561 ),
+     dstEnd( -151561 ),
+     firstBlock( -100 ),
+     blockCount( -100 )
    {}
 
    __cuda_callable__

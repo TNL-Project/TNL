@@ -30,13 +30,13 @@ struct Graph
    static constexpr bool
    isDirected()
    {
-      return ( GraphType == GraphTypes::Directed );
+      return GraphType == GraphTypes::Directed;
    }  // TODO: Use getGraphType() instead
 
    static constexpr bool
    isUndirected()
    {
-      return ( GraphType == GraphTypes::Undirected );
+      return GraphType == GraphTypes::Undirected;
    }  // TODO: Use getGraphType() instead
 
    static constexpr GraphTypes
@@ -52,7 +52,9 @@ struct Graph
       this->adjacencyMatrix = matrix;
    }
 
-   Graph( MatrixType&& matrix ) : MatrixType( std::move( matrix ) ) {}
+   Graph( MatrixType&& matrix )
+   : MatrixType( std::move( matrix ) )
+   {}
 
    Graph( const Graph& ) = default;
 

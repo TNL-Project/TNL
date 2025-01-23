@@ -14,7 +14,8 @@
 
 namespace TNL::Images {
 
-inline DicomPatientInfo::DicomPatientInfo( DicomHeader& dicomHeader ) : dicomHeader( dicomHeader )
+inline DicomPatientInfo::DicomPatientInfo( DicomHeader& dicomHeader )
+: dicomHeader( dicomHeader )
 {
    isObjectRetrieved = false;
 }

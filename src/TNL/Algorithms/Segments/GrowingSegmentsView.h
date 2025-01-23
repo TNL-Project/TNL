@@ -22,7 +22,8 @@ struct GrowingSegmentsView : public SegmentsView_
    using FillingVectorView = typename FillingVector::ViewType;
 
    GrowingSegmentsView( SegmentsView&& segmentsView, FillingVectorView&& fillingView )
-   : SegmentsView_( segmentsView ), segmentsFilling( fillingView )
+   : SegmentsView_( segmentsView ),
+     segmentsFilling( fillingView )
    {}
 
    __cuda_callable__

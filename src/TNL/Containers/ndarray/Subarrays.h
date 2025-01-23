@@ -215,7 +215,7 @@ class SubarrayGetter< NDArrayBase< SliceInfo >, Permutation, Dimensions... >
 #ifndef __NVCC__
       for( auto v : std::initializer_list< std::size_t >{ vals... } )
 #else
-      for( auto v : ( std::size_t[ sizeof...( vals ) ] ){ vals... } )
+      for( auto v : (std::size_t[ sizeof...( vals ) ]) { vals... } )
 #endif
       {
          if( i++ <= index_in_pack( dim, vals... ) )

@@ -211,8 +211,7 @@ TYPED_TEST( DistributedMatrixTest, vectorProduct_globalInput )
    DistributedVector outVector( this->matrix.getLocalRowRange(), 0, this->globalSize, this->matrix.getCommunicator() );
    this->matrix.vectorProduct( inVector, outVector );
 
-   EXPECT_EQ( outVector, this->rowCapacities )
-      << "outVector.getLocalView() = " << outVector.getLocalView()
+   EXPECT_EQ( outVector, this->rowCapacities ) << "outVector.getLocalView() = " << outVector.getLocalView()
       << ",\nthis->rowCapacities.getLocalView() = " << this->rowCapacities.getLocalView();
 }
 

@@ -32,7 +32,10 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::SlicedEllpackBase( 
                                                                                 IndexType segmentsCount,
                                                                                 OffsetsView&& sliceOffsets,
                                                                                 OffsetsView&& sliceSegmentSizes )
-: size( size ), storageSize( storageSize ), segmentsCount( segmentsCount ), sliceOffsets( std::move( sliceOffsets ) ),
+: size( size ),
+  storageSize( storageSize ),
+  segmentsCount( segmentsCount ),
+  sliceOffsets( std::move( sliceOffsets ) ),
   sliceSegmentSizes( std::move( sliceSegmentSizes ) )
 {}
 

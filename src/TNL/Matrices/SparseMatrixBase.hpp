@@ -35,7 +35,9 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    typename Base::ValuesViewType values,
    ColumnIndexesViewType columnIndexes,
    SegmentsViewType segments )
-: Base( rows, columns, values ), columnIndexes( std::move( columnIndexes ) ), segments( std::move( segments ) )
+: Base( rows, columns, values ),
+  columnIndexes( std::move( columnIndexes ) ),
+  segments( std::move( segments ) )
 {}
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >

@@ -76,7 +76,8 @@ public:
    explicit DistributedNDArray( const DistributedNDArray& ) = default;
 
    //! \brief Copy constructor with a specific allocator (makes a deep copy).
-   explicit DistributedNDArray( const DistributedNDArray& other, const AllocatorType& allocator ) : localArray( allocator )
+   explicit DistributedNDArray( const DistributedNDArray& other, const AllocatorType& allocator )
+   : localArray( allocator )
    {
       *this = other;
    }

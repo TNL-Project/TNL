@@ -18,7 +18,11 @@ struct Aux
 {
    Aux( int ) {}
 
-   Aux( const Real& weight, Index source, Index target ) : first( weight ), second( source ), third( target ) {}
+   Aux( const Real& weight, Index source, Index target )
+   : first( weight ),
+     second( source ),
+     third( target )
+   {}
 
    Real first;
    Index second, third;

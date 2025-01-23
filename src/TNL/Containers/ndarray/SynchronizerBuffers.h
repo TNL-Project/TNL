@@ -30,7 +30,9 @@ struct SynchronizerBuffers
 
    SynchronizerBuffers() = delete;
 
-   SynchronizerBuffers( SyncDirection direction ) : direction( direction ) {}
+   SynchronizerBuffers( SyncDirection direction )
+   : direction( direction )
+   {}
 
    SynchronizerBuffers( const SynchronizerBuffers& ) = delete;
 

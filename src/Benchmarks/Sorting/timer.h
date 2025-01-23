@@ -19,7 +19,8 @@ struct TIMER
           {
              std::cout << res << std::endl;
           } )
-   : f( std::move( func ) ), begin( std::chrono::high_resolution_clock::now() )
+   : f( std::move( func ) ),
+     begin( std::chrono::high_resolution_clock::now() )
    {}
 
    ~TIMER()

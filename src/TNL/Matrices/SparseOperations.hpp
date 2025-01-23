@@ -781,7 +781,7 @@ compressSparseMatrix( Matrix& A )
    A.reduceAllRows(
       [ = ] __cuda_callable__( Index rowIdx, Index columnIdx, const Real& value ) -> Index
       {
-         return ( columnIdx != paddingIndex< Index > && ( value != Real{ 0 } ) );
+         return columnIdx != paddingIndex< Index > && ( value != Real{ 0 } );
       },
       std::plus<>{},
       [ = ] __cuda_callable__( Index rowIdx, Index value ) mutable

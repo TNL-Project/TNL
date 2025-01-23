@@ -9,7 +9,9 @@ namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index >
 __cuda_callable__
-CSRView< Device, Index >::CSRView( typename Base::OffsetsView offsets ) : Base( std::move( offsets ) ) {}
+CSRView< Device, Index >::CSRView( typename Base::OffsetsView offsets )
+: Base( std::move( offsets ) )
+{}
 
 template< typename Device, typename Index >
 __cuda_callable__

@@ -39,7 +39,10 @@ public:
     */
    __cuda_callable__
    LambdaMatrixElement( const RealType& value, const IndexType& rowIdx, const IndexType& columnIdx, const IndexType& localIdx )
-   : value_( value ), rowIdx( rowIdx ), columnIdx( columnIdx ), localIdx( localIdx )
+   : value_( value ),
+     rowIdx( rowIdx ),
+     columnIdx( columnIdx ),
+     localIdx( localIdx )
    {}
 
    /**

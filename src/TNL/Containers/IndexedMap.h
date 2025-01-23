@@ -48,11 +48,19 @@ protected:
       // http://stackoverflow.com/questions/22357887/comparing-two-mapiterators-why-does-it-need-the-copy-constructor-of-stdpair
       DataWithIndex() {}
 
-      DataWithIndex( const DataWithIndex& d ) : data( d.data ), index( d.index ) {}
+      DataWithIndex( const DataWithIndex& d )
+      : data( d.data ),
+        index( d.index )
+      {}
 
-      explicit DataWithIndex( const Value data ) : data( data ) {}
+      explicit DataWithIndex( const Value data )
+      : data( data )
+      {}
 
-      DataWithIndex( const Value data, const Index index ) : data( data ), index( index ) {}
+      DataWithIndex( const Value data, const Index index )
+      : data( data ),
+        index( index )
+      {}
 
       Value data;
       Index index;

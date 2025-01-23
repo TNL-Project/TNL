@@ -47,10 +47,16 @@ ChunkedEllpackBase< Device, Index, Organization >::ChunkedEllpackBase( IndexType
                                                                        OffsetsView chunksToSegmentsMapping,
                                                                        OffsetsView segmentPointers,
                                                                        SliceInfoContainerView slices )
-: size( size ), storageSize( storageSize ), numberOfSlices( numberOfSlices ), chunksInSlice( chunksInSlice ),
-  desiredChunkSize( desiredChunkSize ), segmentToChunkMapping( std::move( segmentToChunkMapping ) ),
-  segmentToSliceMapping( std::move( segmentToSliceMapping ) ), chunksToSegmentsMapping( std::move( chunksToSegmentsMapping ) ),
-  segmentPointers( std::move( segmentPointers ) ), slices( std::move( slices ) )
+: size( size ),
+  storageSize( storageSize ),
+  numberOfSlices( numberOfSlices ),
+  chunksInSlice( chunksInSlice ),
+  desiredChunkSize( desiredChunkSize ),
+  segmentToChunkMapping( std::move( segmentToChunkMapping ) ),
+  segmentToSliceMapping( std::move( segmentToSliceMapping ) ),
+  chunksToSegmentsMapping( std::move( chunksToSegmentsMapping ) ),
+  segmentPointers( std::move( segmentPointers ) ),
+  slices( std::move( slices ) )
 {}
 
 template< typename Device, typename Index, ElementsOrganization Organization >

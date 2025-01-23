@@ -10,7 +10,9 @@ namespace TNL::Config {
 class ConfigDelimiter : public ConfigEntryBase
 {
 public:
-   ConfigDelimiter( const std::string& delimiter ) : ConfigEntryBase( "", delimiter, false ) {}
+   ConfigDelimiter( const std::string& delimiter )
+   : ConfigEntryBase( "", delimiter, false )
+   {}
 
    [[nodiscard]] bool
    isDelimiter() const override

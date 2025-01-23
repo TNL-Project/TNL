@@ -74,7 +74,9 @@ private:
       Wrapper&
       operator=( Wrapper&& other ) = default;
 
-      Wrapper( MPI_Comm comm ) : comm( comm ) {}
+      Wrapper( MPI_Comm comm )
+      : comm( comm )
+      {}
 
       ~Wrapper()  // NOLINT(modernize-use-equals-default)
       {
@@ -89,7 +91,9 @@ private:
    std::shared_ptr< Wrapper > wrapper;
 
    //! \brief Internal constructor for the factory methods - initialization by the wrapper.
-   Comm( std::shared_ptr< Wrapper >&& wrapper ) : wrapper( std::move( wrapper ) ) {}
+   Comm( std::shared_ptr< Wrapper >&& wrapper )
+   : wrapper( std::move( wrapper ) )
+   {}
 
 public:
    //! \brief Constructs an empty communicator with a null handle (`MPI_COMM_NULL`).

@@ -22,7 +22,9 @@ class OutputRedirection
 public:
    OutputRedirection() = delete;
 
-   OutputRedirection( int targetFd ) : targetFd( targetFd ) {}
+   OutputRedirection( int targetFd )
+   : targetFd( targetFd )
+   {}
 
    bool
    redirect( const std::string& fname )

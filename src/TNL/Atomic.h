@@ -74,7 +74,8 @@ public:
    // an explanation), but we need copyability for TNL::Containers::Array. Note that
    // this copy-constructor and copy-assignment operator are not atomic as they
    // synchronize only with respect to one or the other object.
-   Atomic( const Atomic& desired ) noexcept : std::atomic< T >()
+   Atomic( const Atomic& desired ) noexcept
+   : std::atomic< T >()
    {
       this->store( desired.load() );
    }
@@ -132,7 +133,9 @@ public:
    Atomic() noexcept = default;
 
    __cuda_callable__
-   constexpr Atomic( T desired ) noexcept : value( desired ) {}
+   constexpr Atomic( T desired ) noexcept
+   : value( desired )
+   {}
 
    __cuda_callable__
    T

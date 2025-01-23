@@ -47,7 +47,7 @@ roundToMultiple( int number, int multiple )
 constexpr bool
 isPow2( int x )
 {
-   return ( ( x & ( x - 1 ) ) == 0 );
+   return ( x & ( x - 1 ) ) == 0;
 }
 
 /**
@@ -59,7 +59,7 @@ isPow2( int x )
 constexpr bool
 isPow2( long int x )
 {
-   return ( ( x & ( x - 1 ) ) == 0 );
+   return ( x & ( x - 1 ) ) == 0;
 }
 
 /**

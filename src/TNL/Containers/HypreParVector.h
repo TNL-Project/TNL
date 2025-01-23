@@ -46,8 +46,12 @@ public:
    HypreParVector( const HypreParVector& other ) = delete;
 
    HypreParVector( HypreParVector&& other ) noexcept
-   : v( other.v ), owns_handle( other.owns_handle ), localData( std::move( other.localData ) ), ghosts( other.ghosts ),
-     synchronizer( std::move( other.synchronizer ) ), valuesPerElement( other.valuesPerElement )
+   : v( other.v ),
+     owns_handle( other.owns_handle ),
+     localData( std::move( other.localData ) ),
+     ghosts( other.ghosts ),
+     synchronizer( std::move( other.synchronizer ) ),
+     valuesPerElement( other.valuesPerElement )
    {
       other.v = nullptr;
    }

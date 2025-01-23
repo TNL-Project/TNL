@@ -43,7 +43,10 @@ public:
     */
    __cuda_callable__
    BiEllpackSegmentView( IndexType segmentIdx, IndexType offset, IndexType inStripIdx, const GroupsWidthType& groupsWidth )
-   : segmentIdx( segmentIdx ), groupOffset( offset ), inStripIdx( inStripIdx ), segmentSize( TNL::sum( groupsWidth ) ),
+   : segmentIdx( segmentIdx ),
+     groupOffset( offset ),
+     inStripIdx( inStripIdx ),
+     segmentSize( TNL::sum( groupsWidth ) ),
      groupsWidth( groupsWidth )
    {}
 

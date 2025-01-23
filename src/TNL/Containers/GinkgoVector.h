@@ -58,7 +58,8 @@ public:
                                       gko::dim< 2 >{ static_cast< std::size_t >( vector.getSize() ), 1 },
                                       gko::make_array_view( exec, vector.getSize(), vector.getData() ),
                                       1 ),  // stride
-     wrapped_view( ViewType{ vector.getData(), static_cast< IndexType >( vector.getSize() ) } ), ownership( ownership )
+     wrapped_view( ViewType{ vector.getData(), static_cast< IndexType >( vector.getSize() ) } ),
+     ownership( ownership )
    {
       static_assert( std::is_same< typename std::decay_t< Vector >::DeviceType, DeviceType >::value,
                      "the DeviceType passed to the constructor does not match the GinkgoVector type" );

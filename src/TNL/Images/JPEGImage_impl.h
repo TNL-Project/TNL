@@ -26,7 +26,8 @@ my_error_exit( j_common_ptr cinfo )
 #endif
 
 template< typename Index >
-JPEGImage< Index >::JPEGImage() : fileOpen( false )
+JPEGImage< Index >::JPEGImage()
+: fileOpen( false )
 {}
 
 template< typename Index >

@@ -376,7 +376,7 @@ __cuda_callable__
 bool
 Complex< Value >::operator==( const Value& v ) const
 {
-   return ( this->real() == v && this->imag_ == (ValueType) 0.0 );
+   return this->real() == v && this->imag_ == (ValueType) 0.0;
 }
 
 template< typename Value >
@@ -384,7 +384,7 @@ __cuda_callable__
 bool
 Complex< Value >::operator==( const Complex< Value >& c ) const
 {
-   return ( this->real() == c.real() && this->imag() == c.imag() );
+   return this->real() == c.real() && this->imag() == c.imag();
 }
 
 template< typename Value >
@@ -393,7 +393,7 @@ __cuda_callable__
 bool
 Complex< Value >::operator==( const Value_& v ) const
 {
-   return ( this->real() == v && this->imag() == (ValueType) 0.0 );
+   return this->real() == v && this->imag() == (ValueType) 0.0;
 }
 
 template< typename Value >
@@ -402,14 +402,14 @@ __cuda_callable__
 bool
 Complex< Value >::operator==( const Complex< Value_ >& c ) const
 {
-   return ( this->real() == c.real() && this->imag() == c.imag() );
+   return this->real() == c.real() && this->imag() == c.imag();
 }
 
 template< typename Value >
 bool
 Complex< Value >::operator==( const std::complex< Value >& c ) const
 {
-   return ( this->real() == c.real() && this->imag() == c.imag() );
+   return this->real() == c.real() && this->imag() == c.imag();
 }
 
 template< typename Value >
@@ -417,7 +417,7 @@ template< typename Value_ >
 bool
 Complex< Value >::operator==( const std::complex< Value_ >& c ) const
 {
-   return ( this->real() == c.real() && this->imag() == c.imag() );
+   return this->real() == c.real() && this->imag() == c.imag();
 }
 
 template< typename Value >

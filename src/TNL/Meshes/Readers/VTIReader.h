@@ -114,7 +114,9 @@ class VTIReader : public XMLVTK
 public:
    VTIReader() = default;
 
-   VTIReader( const std::string& fileName ) : XMLVTK( fileName ) {}
+   VTIReader( const std::string& fileName )
+   : XMLVTK( fileName )
+   {}
 
    void
    detectMesh() override

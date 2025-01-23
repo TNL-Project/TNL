@@ -143,7 +143,10 @@ benchmarkSolver( Benchmark<>& benchmark,
       const Vector& b;
 
       MyBenchmarkResult( Solver< Matrix >& solver, const std::shared_ptr< Matrix >& matrix, const Vector& x, const Vector& b )
-      : solver( solver ), matrix( matrix ), x( x ), b( b )
+      : solver( solver ),
+        matrix( matrix ),
+        x( x ),
+        b( b )
       {}
 
       virtual HeaderElements

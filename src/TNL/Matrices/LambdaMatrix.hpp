@@ -17,7 +17,10 @@ template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, ty
 LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::LambdaMatrix(
    MatrixElementsLambda& matrixElements,
    CompressedRowLengthsLambda& compressedRowLengths )
-: rows( 0 ), columns( 0 ), matrixElementsLambda( matrixElements ), compressedRowLengthsLambda( compressedRowLengths )
+: rows( 0 ),
+  columns( 0 ),
+  matrixElementsLambda( matrixElements ),
+  compressedRowLengthsLambda( compressedRowLengths )
 {}
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
@@ -26,7 +29,10 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    IndexType columns,
    MatrixElementsLambda& matrixElements,
    CompressedRowLengthsLambda& compressedRowLengths )
-: rows( rows ), columns( columns ), matrixElementsLambda( matrixElements ), compressedRowLengthsLambda( compressedRowLengths )
+: rows( rows ),
+  columns( columns ),
+  matrixElementsLambda( matrixElements ),
+  compressedRowLengthsLambda( compressedRowLengths )
 {}
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
@@ -90,7 +96,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
    auto rowLengths_view = rowLengths.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType
    {
-      return ( value != 0.0 );
+      return value != 0.0;
    };
    auto keep = [ = ] __cuda_callable__( IndexType rowIdx, IndexType value ) mutable
    {

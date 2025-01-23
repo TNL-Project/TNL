@@ -20,7 +20,10 @@ public:
     * \param width Integer that defines the width of the log.
     * \param stream Defines output stream where the log will be printed out.
     */
-   Logger( int width, std::ostream& stream ) : width( width ), stream( stream ) {}
+   Logger( int width, std::ostream& stream )
+   : width( width ),
+     stream( stream )
+   {}
 
    /**
     * \brief Creates header in given log.

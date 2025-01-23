@@ -38,8 +38,7 @@ protected:
                                                                     { 1, 100 }
 #if defined( __CUDACC__ ) || defined( __HIP__ ) || defined( HAVE_OPENMP )
                                                                     ,
-                                                                    { 100,
-                                                                      100 }
+                                                                    { 100, 100 }
 #endif
    };
 

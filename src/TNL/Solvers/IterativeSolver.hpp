@@ -126,7 +126,7 @@ IterativeSolver< Real, Index, SolverMonitor >::checkConvergence()
       std::cerr << std::endl << "The residue is NaN." << std::endl;
       return false;
    }
-   if( ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() > this->minIterations ) ) {
+   if( this->getResidue() > this->getDivergenceResidue() && this->getIterations() > this->minIterations ) {
       std::cerr << std::endl
                 << "The residue has exceeded allowed tolerance " << this->getDivergenceResidue() << "." << std::endl;
       return false;

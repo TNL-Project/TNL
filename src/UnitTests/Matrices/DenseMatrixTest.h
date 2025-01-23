@@ -438,7 +438,7 @@ test_SetElement()
       EXPECT_EQ( v.getElement( i ), m.getElement( i, i ) );
    auto fetch = [ = ] __cuda_callable__( IndexType i ) -> bool
    {
-      return ( v_view[ i ] == m_view.getElement( i, i ) );
+      return v_view[ i ] == m_view.getElement( i, i );
    };
    EXPECT_TRUE( TNL::Algorithms::reduce< DeviceType >( (IndexType) 0, m.getRows(), fetch, std::logical_and<>{}, true ) );
 }
@@ -909,7 +909,7 @@ test_reduceRows()
    auto rowLengths_view = rowLengths.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType
    {
-      return ( value != 0.0 );
+      return value != 0.0;
    };
    auto keep = [ = ] __cuda_callable__( const IndexType rowIdx, const IndexType value ) mutable
    {
