@@ -160,12 +160,14 @@ struct TMPSTRUCT_xyz
 {
    double x, y, z;
    __cuda_callable__
-   TMPSTRUCT_xyz() : x( 0 ) {}
+   TMPSTRUCT_xyz()
+   : x( 0 )
+   {}
    __cuda_callable__
    TMPSTRUCT_xyz( int first )
    {
       x = first;
-   };
+   }
    __cuda_callable__
    bool
    operator<( const TMPSTRUCT_xyz& other ) const
@@ -216,7 +218,7 @@ struct TMPSTRUCT_64b
    TMPSTRUCT_64b( int first )
    {
       m_Data[ 0 ] = first;
-   };
+   }
    __cuda_callable__
    bool
    operator<( const TMPSTRUCT_64b& other ) const

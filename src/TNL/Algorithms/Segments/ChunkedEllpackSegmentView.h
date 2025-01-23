@@ -18,7 +18,9 @@ public:
 
    __cuda_callable__
    ChunkedEllpackSegmentView( IndexType segmentIdx, IndexType offset, IndexType size )
-   : segmentIdx( segmentIdx ), segmentOffset( offset ), segmentSize( size )
+   : segmentIdx( segmentIdx ),
+     segmentOffset( offset ),
+     segmentSize( size )
    {}
 
    __cuda_callable__
@@ -75,7 +77,10 @@ public:
                               IndexType size,
                               IndexType chunkSize,
                               IndexType chunksInSlice )
-   : segmentIdx( segmentIdx ), segmentOffset( offset ), segmentSize( size ), chunkSize( chunkSize ),
+   : segmentIdx( segmentIdx ),
+     segmentOffset( offset ),
+     segmentSize( size ),
+     chunkSize( chunkSize ),
      chunksInSlice( chunksInSlice )
    {}
 

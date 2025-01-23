@@ -50,7 +50,8 @@ public:
    // TODO: behavior should depend on "owns_data" (shallow vs deep copy)
    HypreParCSRMatrix( const HypreParCSRMatrix& other ) = delete;
 
-   HypreParCSRMatrix( HypreParCSRMatrix&& other ) noexcept : m( other.m )
+   HypreParCSRMatrix( HypreParCSRMatrix&& other ) noexcept
+   : m( other.m )
    {
       other.m = nullptr;
    }

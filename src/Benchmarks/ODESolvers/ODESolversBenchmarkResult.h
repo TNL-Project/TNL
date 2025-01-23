@@ -38,7 +38,9 @@ struct ODESolversBenchmarkResult : public BenchmarkResult
    using typename BenchmarkResult::RowElements;
 
    ODESolversBenchmarkResult( const RealType& exactSolution, const SolverType& solver, const BenchmarkVector& benchmarkResult )
-   : exactSolution( exactSolution ), solver( solver ), benchmarkResult( benchmarkResult )
+   : exactSolution( exactSolution ),
+     solver( solver ),
+     benchmarkResult( benchmarkResult )
    {}
 
    virtual HeaderElements

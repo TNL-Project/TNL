@@ -19,7 +19,7 @@ comparison( const Vector< double, Device >& u, const Vector< double, Device >& v
     */
    auto fetch = [ = ] __cuda_callable__( int i ) -> bool
    {
-      return ( u_view[ i ] == v_view[ i ] );
+      return u_view[ i ] == v_view[ i ];
    };
 
    /***

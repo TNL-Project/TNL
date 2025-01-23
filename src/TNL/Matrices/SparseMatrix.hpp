@@ -12,29 +12,30 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::SparseMatrix(
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: values( realAllocator ), columnIndexes( indexAllocator )
+: values( realAllocator ),
+  columnIndexes( indexAllocator )
 {}
 
 template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::SparseMatrix(
    const SparseMatrix& matrix )
-: values( matrix.values ), columnIndexes( matrix.columnIndexes ), segments( matrix.segments )
+: values( matrix.values ),
+  columnIndexes( matrix.columnIndexes ),
+  segments( matrix.segments )
 {
    // update the base
    Base::bind( matrix.getRows(), matrix.getColumns(), values.getView(), columnIndexes.getView(), segments.getView() );
@@ -44,8 +45,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -55,7 +55,9 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Index_t columns,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: values( realAllocator ), columnIndexes( indexAllocator ), segments( Containers::Vector< Index, Device, Index >( rows, 0 ) )
+: values( realAllocator ),
+  columnIndexes( indexAllocator ),
+  segments( Containers::Vector< Index, Device, Index >( rows, 0 ) )
 {
    // update the base
    Base::bind( rows, columns, values.getView(), columnIndexes.getView(), segments.getView() );
@@ -65,8 +67,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -76,7 +77,8 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Index columns,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: values( realAllocator ), columnIndexes( indexAllocator )
+: values( realAllocator ),
+  columnIndexes( indexAllocator )
 {
    // update the base
    Base::bind( rowCapacities.size(), columns, values.getView(), columnIndexes.getView(), segments.getView() );
@@ -87,8 +89,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -98,7 +99,8 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Index columns,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: values( realAllocator ), columnIndexes( indexAllocator )
+: values( realAllocator ),
+  columnIndexes( indexAllocator )
 {
    // update the base
    Base::bind( rowCapacities.getSize(), columns, values.getView(), columnIndexes.getView(), segments.getView() );
@@ -109,8 +111,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -121,7 +122,8 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    SymmetricMatrixEncoding encoding,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: values( realAllocator ), columnIndexes( indexAllocator )
+: values( realAllocator ),
+  columnIndexes( indexAllocator )
 {
    // update the base
    Base::bind( rows, columns, values.getView(), columnIndexes.getView(), segments.getView() );
@@ -132,8 +134,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -145,7 +146,8 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    SymmetricMatrixEncoding encoding,
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
-: values( realAllocator ), columnIndexes( indexAllocator )
+: values( realAllocator ),
+  columnIndexes( indexAllocator )
 {
    // update the base
    Base::bind( rows, columns, values.getView(), columnIndexes.getView(), segments.getView() );
@@ -156,8 +158,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -175,8 +176,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -195,8 +195,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -216,8 +215,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -233,8 +231,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -253,8 +250,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -290,8 +286,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -310,8 +305,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -395,8 +389,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -414,8 +407,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -480,8 +472,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -501,8 +492,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -522,8 +512,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -540,8 +529,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -558,8 +546,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -576,8 +563,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -598,8 +584,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
@@ -614,8 +599,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename, typename >
-          class Segments,
+          template< typename, typename, typename > class Segments,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >

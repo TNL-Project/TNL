@@ -14,7 +14,7 @@ reduceAllRows()
       { 1, 2, 0, 0, 0 },
       { 0, 1, 8, 0, 0 },
       { 0, 0, 1, 9, 0 },
-      { 0, 0, 0, 0, 1 }
+      { 0, 0, 0, 0, 1 },
       // clang-format on
    };
    auto matrixView = matrix.getView();

@@ -17,8 +17,11 @@ LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Ind
    const IndexType& rows,
    const IndexType& columns,
    const IndexType& rowIdx )
-: matrixElementsLambda( matrixElementsLambda ), compressedRowLengthsLambda( compressedRowLengthsLambda ), rows( rows ),
-  columns( columns ), rowIdx( rowIdx )
+: matrixElementsLambda( matrixElementsLambda ),
+  compressedRowLengthsLambda( compressedRowLengthsLambda ),
+  rows( rows ),
+  columns( columns ),
+  rowIdx( rowIdx )
 {}
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Index >

@@ -9,7 +9,9 @@ template< typename PrecisionType >
 struct EigenBenchmarkResult : TNL::Benchmarks::BenchmarkResult
 {
    EigenBenchmarkResult( const PrecisionType& epsilon, const int& iterations, const double& error )
-   : epsilon( epsilon ), iterations( iterations ), error( error )
+   : epsilon( epsilon ),
+     iterations( iterations ),
+     error( error )
    {}
 
    [[nodiscard]] HeaderElements

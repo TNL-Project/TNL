@@ -30,7 +30,9 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::BiEllpackBase( IndexType
                                                                        IndexType storageSize,
                                                                        OffsetsView segmentsPermutation,
                                                                        OffsetsView groupPointers )
-: size( size ), storageSize( storageSize ), segmentsPermutation( std::move( segmentsPermutation ) ),
+: size( size ),
+  storageSize( storageSize ),
+  segmentsPermutation( std::move( segmentsPermutation ) ),
   groupPointers( std::move( groupPointers ) )
 {}
 

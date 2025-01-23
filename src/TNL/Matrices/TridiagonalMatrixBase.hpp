@@ -23,7 +23,8 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 __cuda_callable__
 TridiagonalMatrixBase< Real, Device, Index, Organization >::TridiagonalMatrixBase( typename Base::ValuesViewType values,
                                                                                    IndexerType indexer )
-: Base( indexer.getRows(), indexer.getColumns(), std::move( values ) ), indexer( std::move( indexer ) )
+: Base( indexer.getRows(), indexer.getColumns(), std::move( values ) ),
+  indexer( std::move( indexer ) )
 {}
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -44,7 +45,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::getCompressedRowLeng
    auto rowLengths_view = rowLengths.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType
    {
-      return ( value != 0.0 );
+      return value != 0.0;
    };
    auto reduce = [] __cuda_callable__( IndexType aux, IndexType a ) -> IndexType
    {
@@ -73,7 +74,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::getNonzeroElementsCo
    const auto values_view = this->values.getConstView();
    auto fetch = [ = ] __cuda_callable__( IndexType i ) -> IndexType
    {
-      return ( values_view[ i ] != 0.0 );
+      return values_view[ i ] != 0.0;
    };
    return Algorithms::reduce< DeviceType >( (IndexType) 0, this->values.getSize(), fetch, std::plus<>{}, 0 );
 }

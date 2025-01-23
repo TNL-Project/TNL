@@ -12,7 +12,9 @@
 namespace TNL::Benchmarks {
 
 template< typename Logger >
-Benchmark< Logger >::Benchmark( std::ostream& output, int loops, int verbose ) : logger( output, verbose ), loops( loops )
+Benchmark< Logger >::Benchmark( std::ostream& output, int loops, int verbose )
+: logger( output, verbose ),
+  loops( loops )
 {}
 
 template< typename Logger >

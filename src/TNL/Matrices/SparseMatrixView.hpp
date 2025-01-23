@@ -11,8 +11,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename >
-          class SegmentsView,
+          template< typename, typename > class SegmentsView,
           typename ComputeReal >
 __cuda_callable__
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::SparseMatrixView(
@@ -28,8 +27,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename >
-          class SegmentsView,
+          template< typename, typename > class SegmentsView,
           typename ComputeReal >
 __cuda_callable__
 void
@@ -42,8 +40,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename >
-          class SegmentsView,
+          template< typename, typename > class SegmentsView,
           typename ComputeReal >
 __cuda_callable__
 void
@@ -56,8 +53,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename >
-          class SegmentsView,
+          template< typename, typename > class SegmentsView,
           typename ComputeReal >
 __cuda_callable__
 auto
@@ -74,8 +70,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename >
-          class SegmentsView,
+          template< typename, typename > class SegmentsView,
           typename ComputeReal >
 __cuda_callable__
 auto
@@ -92,8 +87,7 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename, typename >
-          class SegmentsView,
+          template< typename, typename > class SegmentsView,
           typename ComputeReal >
 void
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::save( File& file ) const

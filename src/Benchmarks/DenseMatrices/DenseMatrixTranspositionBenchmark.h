@@ -70,7 +70,9 @@ struct DenseMatrixTranspositionBenchmark
    }
 
    TNL::Config::ParameterContainer parameters;
-   DenseMatrixTranspositionBenchmark( const TNL::Config::ParameterContainer& parameters_ ) : parameters( parameters_ ) {}
+   DenseMatrixTranspositionBenchmark( const TNL::Config::ParameterContainer& parameters_ )
+   : parameters( parameters_ )
+   {}
 
    bool
    runBenchmark()

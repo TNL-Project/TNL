@@ -50,7 +50,10 @@ public:
     */
    __cuda_callable__
    SparseMatrixElement( RealType& value, IndexType rowIdx, IndexType& columnIdx, IndexType localIdx )
-   : value_( value ), rowIdx( rowIdx ), columnIdx( columnIdx ), localIdx( localIdx )
+   : value_( value ),
+     rowIdx( rowIdx ),
+     columnIdx( columnIdx ),
+     localIdx( localIdx )
    {}
 
    /**

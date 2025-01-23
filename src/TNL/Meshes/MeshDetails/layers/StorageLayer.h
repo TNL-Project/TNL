@@ -66,7 +66,7 @@ public:
    bool
    operator==( const StorageLayerFamily& layer ) const
    {
-      return ( BaseType::operator==( layer ) && DualGraphLayer< MeshConfig, Device >::operator==( layer ) );
+      return BaseType::operator==( layer ) && DualGraphLayer< MeshConfig, Device >::operator==( layer );
    }
 
    template< int Dimension, int Subdimension >
@@ -239,8 +239,8 @@ public:
    bool
    operator==( const StorageLayer& meshLayer ) const
    {
-      return ( entitiesCount == meshLayer.entitiesCount && SubentityStorageBaseType::operator==( meshLayer )
-               && SuperentityStorageBaseType::operator==( meshLayer ) && BaseType::operator==( meshLayer ) );
+      return entitiesCount == meshLayer.entitiesCount && SubentityStorageBaseType::operator==( meshLayer )
+          && SuperentityStorageBaseType::operator==( meshLayer ) && BaseType::operator==( meshLayer );
    }
 
    using BaseType::getEntitiesCount;

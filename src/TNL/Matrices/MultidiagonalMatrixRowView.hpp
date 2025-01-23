@@ -14,7 +14,10 @@ MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::Multidi
    const DiagonalsOffsetsView& diagonalsOffsets,
    const ValuesViewType& values,
    const IndexerType& indexer )
-: rowIdx( rowIdx ), diagonalsOffsets( diagonalsOffsets ), values( values ), indexer( indexer )
+: rowIdx( rowIdx ),
+  diagonalsOffsets( diagonalsOffsets ),
+  values( values ),
+  indexer( indexer )
 {}
 
 template< typename ValuesView, typename Indexer, typename DiagonalsOffsetsView >

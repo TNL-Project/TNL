@@ -25,10 +25,14 @@ struct MyData
    double data;
 
    __cuda_callable__
-   MyData() : data( 0 ) {}
+   MyData()
+   : data( 0 )
+   {}
 
    __cuda_callable__
-   MyData( double v ) : data( v ) {}
+   MyData( double v )
+   : data( v )
+   {}
 
    __cuda_callable__
    bool

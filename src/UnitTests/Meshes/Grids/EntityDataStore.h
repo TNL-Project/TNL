@@ -19,8 +19,14 @@ public:
                     const bool isBoundary,
                     const Point& center,
                     const Real& measure )
-   : coordinate( coordinate ), normals( normals ), index( index ), calls( calls ), orientation( orientation ),
-     isBoundary( isBoundary ), center( center ), measure( measure )
+   : coordinate( coordinate ),
+     normals( normals ),
+     index( index ),
+     calls( calls ),
+     orientation( orientation ),
+     isBoundary( isBoundary ),
+     center( center ),
+     measure( measure )
    {}
 
    const Coordinate coordinate;
@@ -73,8 +79,14 @@ public:
             typename Container< Index >::ViewType isBoundary,
             typename Container< Real >::ViewType center,
             typename Container< Real >::ViewType measure )
-      : calls( calls ), indices( indices ), coordinates( coordinates ), normals( normals ), orientations( orientations ),
-        isBoundary( isBoundary ), center( center ), measure( measure )
+      : calls( calls ),
+        indices( indices ),
+        coordinates( coordinates ),
+        normals( normals ),
+        orientations( orientations ),
+        isBoundary( isBoundary ),
+        center( center ),
+        measure( measure )
       {}
 
       template< typename Entity >
@@ -163,7 +175,8 @@ public:
       typename Container< Real >::ViewType center, measure;
    };
 
-   EntityDataStore( const Index& entitiesCount ) : entitiesCount( entitiesCount )
+   EntityDataStore( const Index& entitiesCount )
+   : entitiesCount( entitiesCount )
    {
       calls.resize( entitiesCount );
       indices.resize( entitiesCount );
@@ -195,8 +208,15 @@ public:
                     const Container< Index >& isBoundary,
                     const Container< Real >& center,
                     const Container< Real >& measure )
-   : entitiesCount( entitiesCount ), calls( calls ), indices( indices ), coordinates( coordinates ),
-     orientations( orientations ), normals( normals ), isBoundary( isBoundary ), center( center ), measure( measure )
+   : entitiesCount( entitiesCount ),
+     calls( calls ),
+     indices( indices ),
+     coordinates( coordinates ),
+     orientations( orientations ),
+     normals( normals ),
+     isBoundary( isBoundary ),
+     center( center ),
+     measure( measure )
    {}
 
    View

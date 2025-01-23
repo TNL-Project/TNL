@@ -13,7 +13,8 @@ void
 updateUEulerNonET( const Index size, const RealType tau, const RealType* k1, RealType* u, RealType* cudaBlockResidue );
 
 template< typename Vector, typename SolverMonitor >
-EulerNonET< Vector, SolverMonitor >::EulerNonET() : cflCondition( 0.0 )
+EulerNonET< Vector, SolverMonitor >::EulerNonET()
+: cflCondition( 0.0 )
 {
    this->setConvergenceResidue( 0.0 );
 }

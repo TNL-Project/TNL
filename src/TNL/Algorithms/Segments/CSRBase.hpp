@@ -19,11 +19,15 @@ CSRBase< Device, Index >::bind( OffsetsView offsets )
 
 template< typename Device, typename Index >
 __cuda_callable__
-CSRBase< Device, Index >::CSRBase( const OffsetsView& offsets ) : offsets( offsets ) {}
+CSRBase< Device, Index >::CSRBase( const OffsetsView& offsets )
+: offsets( offsets )
+{}
 
 template< typename Device, typename Index >
 __cuda_callable__
-CSRBase< Device, Index >::CSRBase( OffsetsView&& offsets ) : offsets( std::move( offsets ) ) {}
+CSRBase< Device, Index >::CSRBase( OffsetsView&& offsets )
+: offsets( std::move( offsets ) )
+{}
 
 template< typename Device, typename Index >
 std::string

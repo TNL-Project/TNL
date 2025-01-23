@@ -21,16 +21,24 @@ public:
    }
 
    __cuda_callable__
-   TridiagonalMatrixIndexer() : rows( 0 ), columns( 0 ), nonemptyRows( 0 ) {}
+   TridiagonalMatrixIndexer()
+   : rows( 0 ),
+     columns( 0 ),
+     nonemptyRows( 0 )
+   {}
 
    __cuda_callable__
    TridiagonalMatrixIndexer( const IndexType& rows, const IndexType& columns )
-   : rows( rows ), columns( columns ), nonemptyRows( TNL::min( rows, columns ) + ( rows > columns ) )
+   : rows( rows ),
+     columns( columns ),
+     nonemptyRows( TNL::min( rows, columns ) + ( rows > columns ) )
    {}
 
    __cuda_callable__
    TridiagonalMatrixIndexer( const TridiagonalMatrixIndexer& indexer )
-   : rows( indexer.rows ), columns( indexer.columns ), nonemptyRows( indexer.nonemptyRows )
+   : rows( indexer.rows ),
+     columns( indexer.columns ),
+     nonemptyRows( indexer.nonemptyRows )
    {}
 
    void

@@ -16,10 +16,13 @@ struct CustomScalar
 public:
    constexpr CustomScalar() = default;
 
-   constexpr CustomScalar( T value ) : value( std::move( value ) ) {}
+   constexpr CustomScalar( T value )
+   : value( std::move( value ) )
+   {}
 
    template< typename S >
-   constexpr CustomScalar( const CustomScalar< S >& v ) : value( v.value )
+   constexpr CustomScalar( const CustomScalar< S >& v )
+   : value( v.value )
    {}
 
    constexpr CustomScalar( const CustomScalar& ) = default;
@@ -211,8 +214,8 @@ operator<<( std::ostream& str, const CustomScalar< T >& v )
 
 #define MAKE_BINARY_FUNC( fname )                                                                                         \
    template< class T, class S >                                                                                           \
-   constexpr auto fname( const CustomScalar< T >& v,                                                                      \
-                         const CustomScalar< S >& w ) -> CustomScalar< decltype( TNL::fname( v.value, w.value ) ) >       \
+   constexpr auto fname( const CustomScalar< T >& v, const CustomScalar< S >& w )                                         \
+      -> CustomScalar< decltype( TNL::fname( v.value, w.value ) ) >                                                       \
    {                                                                                                                      \
       return TNL::fname( v.value, w.value );                                                                              \
    }                                                                                                                      \

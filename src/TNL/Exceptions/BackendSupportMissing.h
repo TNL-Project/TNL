@@ -13,7 +13,9 @@ namespace TNL::Exceptions {
 
 struct BackendSupportMissing : public std::runtime_error
 {
-   BackendSupportMissing() : std::runtime_error( message.data() ) {}
+   BackendSupportMissing()
+   : std::runtime_error( message.data() )
+   {}
 
 private:
    static constexpr std::string_view message =  //

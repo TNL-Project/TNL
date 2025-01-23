@@ -45,7 +45,10 @@ public:
                          IndexType globalSize,
                          MPI::Comm communicator,
                          LocalViewType localData )
-   : localRange( localRange ), ghosts( ghosts ), globalSize( globalSize ), communicator( std::move( communicator ) ),
+   : localRange( localRange ),
+     ghosts( ghosts ),
+     globalSize( globalSize ),
+     communicator( std::move( communicator ) ),
      localData( localData )
    {
       if( localData.getSize() != localRange.getSize() + ghosts )

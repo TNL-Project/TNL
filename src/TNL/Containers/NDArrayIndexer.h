@@ -88,7 +88,9 @@ public:
    //! \brief Creates the indexer with given sizes and strides.
    __cuda_callable__
    NDArrayIndexer( SizesHolderType sizes, StridesHolderType strides, OverlapsType overlaps )
-   : StridesHolder( std::move( strides ) ), Overlaps( std::move( overlaps ) ), sizes( std::move( sizes ) )
+   : StridesHolder( std::move( strides ) ),
+     Overlaps( std::move( overlaps ) ),
+     sizes( std::move( sizes ) )
    {}
 
    //! \brief Returns the dimension of the \e N-dimensional array, i.e. \e N.

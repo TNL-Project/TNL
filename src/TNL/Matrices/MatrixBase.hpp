@@ -24,7 +24,9 @@ __cuda_callable__
 MatrixBase< Real, Device, Index, MatrixType, Organization >::MatrixBase( IndexType rows,
                                                                          IndexType columns,
                                                                          ValuesViewType values )
-: rows( rows ), columns( columns ), values( std::move( values ) )
+: rows( rows ),
+  columns( columns ),
+  values( std::move( values ) )
 {}
 
 template< typename Real, typename Device, typename Index, typename MatrixType, ElementsOrganization Organization >

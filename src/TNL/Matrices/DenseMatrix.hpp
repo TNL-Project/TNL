@@ -20,7 +20,8 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::DenseMatrix( co
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::DenseMatrix( const DenseMatrix& matrix )
-: values( matrix.values ), segments( matrix.segments )
+: values( matrix.values ),
+  segments( matrix.segments )
 {
    // update the base
    Base::bind( matrix.getRows(), matrix.getColumns(), values.getView(), segments.getView() );

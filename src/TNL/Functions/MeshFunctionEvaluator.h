@@ -18,7 +18,10 @@ public:
                                            OutMeshFunction* meshFunction,
                                            const Real& outFunctionMultiplicator,
                                            const Real& inFunctionMultiplicator )
-   : meshFunction( meshFunction ), function( function ), time( time ), outFunctionMultiplicator( outFunctionMultiplicator ),
+   : meshFunction( meshFunction ),
+     function( function ),
+     time( time ),
+     outFunctionMultiplicator( outFunctionMultiplicator ),
      inFunctionMultiplicator( inFunctionMultiplicator )
    {}
 

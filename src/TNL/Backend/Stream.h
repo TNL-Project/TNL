@@ -24,7 +24,9 @@ private:
       Wrapper&
       operator=( Wrapper&& other ) noexcept = default;
 
-      Wrapper( stream_t handle ) : handle( handle ) {}
+      Wrapper( stream_t handle )
+      : handle( handle )
+      {}
 
       ~Wrapper()
       {
@@ -35,7 +37,9 @@ private:
    std::shared_ptr< Wrapper > wrapper;
 
    //! \brief Internal constructor for the factory methods - initialization by the wrapper.
-   Stream( std::shared_ptr< Wrapper >&& wrapper ) : wrapper( std::move( wrapper ) ) {}
+   Stream( std::shared_ptr< Wrapper >&& wrapper )
+   : wrapper( std::move( wrapper ) )
+   {}
 
 public:
    //! \brief Constructs a stream wrapping the CUDA 0 (`NULL`) stream.

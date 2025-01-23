@@ -47,7 +47,9 @@ public:
    // TODO: behavior should depend on "owns_data" (shallow vs deep copy)
    HypreCSRMatrix( const HypreCSRMatrix& other ) = delete;
 
-   HypreCSRMatrix( HypreCSRMatrix&& other ) noexcept : m( other.m ), owns_handle( other.owns_handle )
+   HypreCSRMatrix( HypreCSRMatrix&& other ) noexcept
+   : m( other.m ),
+     owns_handle( other.owns_handle )
    {
       other.m = nullptr;
    }

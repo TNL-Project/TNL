@@ -75,7 +75,9 @@ struct DenseMatrixMultiplicationBenchmark
    }
 
    TNL::Config::ParameterContainer parameters;
-   DenseMatrixMultiplicationBenchmark( const TNL::Config::ParameterContainer& parameters_ ) : parameters( parameters_ ) {}
+   DenseMatrixMultiplicationBenchmark( const TNL::Config::ParameterContainer& parameters_ )
+   : parameters( parameters_ )
+   {}
 
    bool
    runBenchmark()

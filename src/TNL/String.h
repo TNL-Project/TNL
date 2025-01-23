@@ -58,7 +58,9 @@ public:
    /**
     * \brief Initialization by \e std::string.
     */
-   String( const std::string& str ) : std::string( str ) {}
+   String( const std::string& str )
+   : std::string( str )
+   {}
 
    /**
     * \brief Default copy assignment operator.

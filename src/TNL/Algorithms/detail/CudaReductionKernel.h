@@ -493,7 +493,9 @@ struct CudaReductionKernelLauncher
    // However, it seems to be better to map only one CUDA block per multiprocessor,
    // or maybe just slightly more.
    CudaReductionKernelLauncher( const Index begin, const Index end )
-   : activeDevice( Backend::getDevice() ), desGridSize( Backend::getDeviceMultiprocessors( activeDevice ) ), begin( begin ),
+   : activeDevice( Backend::getDevice() ),
+     desGridSize( Backend::getDeviceMultiprocessors( activeDevice ) ),
+     begin( begin ),
      end( end )
    {}
 

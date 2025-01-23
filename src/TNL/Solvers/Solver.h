@@ -14,12 +14,14 @@
 
 namespace TNL::Solvers {
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   template< typename ConfigTag >
-   class ProblemConfig,
-   typename ConfigTag = DefaultBuildConfigTag >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          template< typename ConfigTag > class ProblemConfig,
+          typename ConfigTag = DefaultBuildConfigTag >
 struct Solver
 {
    static bool

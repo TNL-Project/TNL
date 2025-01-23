@@ -19,7 +19,7 @@ laplaceOperatorMatrix()
       { -1.0, 2.0, -1.0 },
       { -1.0, 2.0, -1.0 },
       { -1.0, 2.0, -1.0 },
-      {  0.0, 1.0 }
+      {  0.0, 1.0 },
       // clang-format on
    } );
    auto view = matrix.getView();

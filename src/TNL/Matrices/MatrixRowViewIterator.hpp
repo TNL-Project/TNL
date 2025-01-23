@@ -11,7 +11,8 @@ namespace TNL::Matrices {
 template< typename RowView >
 __cuda_callable__
 MatrixRowViewIterator< RowView >::MatrixRowViewIterator( RowViewType& rowView, IndexType localIdx )
-: rowView( rowView ), localIdx( localIdx )
+: rowView( rowView ),
+  localIdx( localIdx )
 {}
 
 template< typename RowView >

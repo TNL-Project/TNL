@@ -29,7 +29,8 @@ public:
    {}
 
    ConfigEntry( const std::string& name, const std::string& description, bool required, DefaultValueType defaultValue )
-   : ConfigEntryBase( name, description, required ), defaultValue( std::move( defaultValue ) )
+   : ConfigEntryBase( name, description, required ),
+     defaultValue( std::move( defaultValue ) )
    {}
 
    [[nodiscard]] bool

@@ -10,7 +10,8 @@ namespace TNL::Meshes {
 template< typename MeshConfig, typename Device, typename EntityTopology >
 __cuda_callable__
 MeshEntity< MeshConfig, Device, EntityTopology >::MeshEntity( const MeshType& mesh, GlobalIndexType index )
-: meshPointer( &mesh ), index( index )
+: meshPointer( &mesh ),
+  index( index )
 {}
 
 template< typename MeshConfig, typename Device, typename EntityTopology >

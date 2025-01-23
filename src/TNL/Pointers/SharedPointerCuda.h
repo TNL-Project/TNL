@@ -62,7 +62,10 @@ public:
    /**
     * \brief Constructor of empty pointer.
     */
-   SharedPointer( std::nullptr_t ) : pd( nullptr ), cuda_pointer( nullptr ) {}
+   SharedPointer( std::nullptr_t )
+   : pd( nullptr ),
+     cuda_pointer( nullptr )
+   {}
 
    /**
     * \brief Constructor with parameters of the Object constructor.
@@ -71,7 +74,9 @@ public:
     * \tparam args are arguments passed to the Object constructor.
     */
    template< typename... Args >
-   explicit SharedPointer( Args... args ) : pd( nullptr ), cuda_pointer( nullptr )
+   explicit SharedPointer( Args... args )
+   : pd( nullptr ),
+     cuda_pointer( nullptr )
    {
       this->allocate( args... );
    }
@@ -83,7 +88,9 @@ public:
     * \param list is the instance of the initializer list..
     */
    template< typename Value >
-   explicit SharedPointer( std::initializer_list< Value > list ) : pd( nullptr ), cuda_pointer( nullptr )
+   explicit SharedPointer( std::initializer_list< Value > list )
+   : pd( nullptr ),
+     cuda_pointer( nullptr )
    {
       this->allocate( list );
    }
@@ -96,7 +103,8 @@ public:
     */
    template< typename Value >
    explicit SharedPointer( std::initializer_list< std::initializer_list< Value > > list )
-   : pd( nullptr ), cuda_pointer( nullptr )
+   : pd( nullptr ),
+     cuda_pointer( nullptr )
    {
       this->allocate( list );
    }
@@ -107,7 +115,8 @@ public:
     * \param pointer is the source shared pointer.
     */
    SharedPointer( const SharedPointer& pointer )  // this is needed only to avoid the default compiler-generated constructor
-   : pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
+   : pd( (PointerData*) pointer.pd ),
+     cuda_pointer( pointer.cuda_pointer )
    {
       this->pd->counter += 1;
    }
@@ -121,7 +130,8 @@ public:
     */
    template< typename Object_, typename = Enabler< Object_ > >
    SharedPointer( const SharedPointer< Object_, DeviceType >& pointer )  // conditional constructor for non-const -> const data
-   : pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
+   : pd( (PointerData*) pointer.pd ),
+     cuda_pointer( pointer.cuda_pointer )
    {
       this->pd->counter += 1;
    }
@@ -132,7 +142,8 @@ public:
     * \param pointer is the source shared pointer.
     */
    SharedPointer( SharedPointer&& pointer ) noexcept  // this is needed only to avoid the default compiler-generated constructor
-   : pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
+   : pd( (PointerData*) pointer.pd ),
+     cuda_pointer( pointer.cuda_pointer )
    {
       pointer.pd = nullptr;
       pointer.cuda_pointer = nullptr;
@@ -147,7 +158,8 @@ public:
     */
    template< typename Object_, typename = Enabler< Object_ > >
    SharedPointer( SharedPointer< Object_, DeviceType >&& pointer )  // conditional constructor for non-const -> const data
-   : pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
+   : pd( (PointerData*) pointer.pd ),
+     cuda_pointer( pointer.cuda_pointer )
    {
       pointer.pd = nullptr;
       pointer.cuda_pointer = nullptr;
@@ -503,7 +515,8 @@ protected:
       bool maybe_modified = true;
 
       template< typename... Args >
-      explicit PointerData( Args... args ) : data( args... )
+      explicit PointerData( Args... args )
+      : data( args... )
       {}
    };
 

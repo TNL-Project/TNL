@@ -628,10 +628,10 @@ check_Inner_3D( int rank, const GridType& grid, const DofType& dof, typename Dof
    int maxy = grid.getDimensions().y();
    int maxz = grid.getDimensions().z();
    for( int k = 1; k < maxz - 1; k++ )
-      for( int j = 1; j < maxy - 1; j++ )     //prvni a posledni jsou buď hranice, nebo overlap
+      for( int j = 1; j < maxy - 1; j++ )  //prvni a posledni jsou buď hranice, nebo overlap
          for( int i = 1; i < maxx - 1; i++ )  //buď je vlevo hranice, nebo overlap
-            EXPECT_EQ( dof[ k * maxx * maxy + j * maxx + i ], expectedValue )
-               << " " << k << " " << j << " " << i << " " << maxx << " " << maxy << " " << maxz;
+            EXPECT_EQ( dof[ k * maxx * maxy + j * maxx + i ], expectedValue ) << " " << k << " " << j << " " << i << " " << maxx
+               << " " << maxy << " " << maxz;
 }
 
 /*

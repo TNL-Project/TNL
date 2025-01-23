@@ -73,13 +73,13 @@ struct GraphsBenchmark
       config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    }
 
-   GraphsBenchmark( const TNL::Config::ParameterContainer& parameters_ ) : parameters( parameters_ ) {}
+   GraphsBenchmark( const TNL::Config::ParameterContainer& parameters_ )
+   : parameters( parameters_ )
+   {}
 
    template< typename Device,
-             template< typename Device_, typename Index_, typename IndexAllocator_ >
-             class Segments,
-             template< typename Index_, typename Device_ >
-             class SegmentsKernel >
+             template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
+             template< typename Index_, typename Device_ > class SegmentsKernel >
    void
    TNLBenchmarks( const HostDigraph& hostDigraph,
                   const HostGraph& hostGraph,

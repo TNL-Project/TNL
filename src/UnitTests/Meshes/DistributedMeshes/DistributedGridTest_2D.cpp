@@ -67,8 +67,7 @@ checkRightEdge( const GridType& grid,
       end--;
 
    for( int i = begin; i < end; i++ )
-      EXPECT_EQ( dof[ maxx * i + ( maxx - 1 ) ], expectedValue )
-         << "Right Edge test failed " << i << " " << maxx << " " << maxy;
+      EXPECT_EQ( dof[ maxx * i + ( maxx - 1 ) ], expectedValue ) << "Right Edge test failed " << i << " " << maxx << " " << maxy;
 }
 
 template< typename DofType, typename GridType >
@@ -152,8 +151,7 @@ checkRightBoundary( const GridType& grid,
       end--;
 
    for( int i = begin; i < end; i++ )
-      EXPECT_EQ( dof[ maxx * i + ( maxx - 2 ) ], expectedValue )
-         << "Right Edge test failed " << i << " " << maxx << " " << maxy;
+      EXPECT_EQ( dof[ maxx * i + ( maxx - 2 ) ], expectedValue ) << "Right Edge test failed " << i << " " << maxx << " " << maxy;
 }
 
 template< typename DofType, typename GridType >
@@ -349,7 +347,7 @@ check_Inner_2D( int rank, const GridType& grid, const DofType& dof, typename Dof
 {
    int maxx = grid.getDimensions().x();
    int maxy = grid.getDimensions().y();
-   for( int j = 1; j < maxy - 1; j++ )     //prvni a posledni jsou buď hranice, nebo overlap
+   for( int j = 1; j < maxy - 1; j++ )  //prvni a posledni jsou buď hranice, nebo overlap
       for( int i = 1; i < maxx - 1; i++ )  //buď je vlevo hranice, nebo overlap
          EXPECT_EQ( dof[ j * maxx + i ], expectedValue ) << " " << j << " " << i << " " << maxx << " " << maxy;
 }

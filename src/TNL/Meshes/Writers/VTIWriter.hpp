@@ -18,7 +18,9 @@
 namespace TNL::Meshes::Writers {
 
 template< typename Mesh >
-VTIWriter< Mesh >::VTIWriter( std::ostream& str, VTK::FileFormat format ) : str( str.rdbuf() ), format( format )
+VTIWriter< Mesh >::VTIWriter( std::ostream& str, VTK::FileFormat format )
+: str( str.rdbuf() ),
+  format( format )
 {}
 
 template< typename Mesh >

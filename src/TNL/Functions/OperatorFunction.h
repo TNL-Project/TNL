@@ -68,10 +68,14 @@ public:
       return OperatorType::getImageEntitiesDimension();
    }
 
-   OperatorFunction( const OperatorType& operator_ ) : operator_( operator_ ), preimageFunction( 0 ) {}
+   OperatorFunction( const OperatorType& operator_ )
+   : operator_( operator_ ),
+     preimageFunction( 0 )
+   {}
 
    OperatorFunction( const OperatorType& operator_, const FunctionType& preimageFunction )
-   : operator_( operator_ ), preimageFunction( &preimageFunction )
+   : operator_( operator_ ),
+     preimageFunction( &preimageFunction )
    {}
 
    const MeshType&
@@ -168,10 +172,15 @@ public:
       return OperatorType::getImageEntitiesDimension();
    }
 
-   OperatorFunction( OperatorType& operator_, const MeshPointer& mesh ) : operator_( operator_ ), imageFunction( mesh ) {}
+   OperatorFunction( OperatorType& operator_, const MeshPointer& mesh )
+   : operator_( operator_ ),
+     imageFunction( mesh )
+   {}
 
    OperatorFunction( OperatorType& operator_, PreimageFunctionType& preimageFunction )
-   : operator_( operator_ ), imageFunction( preimageFunction.getMeshPointer() ), preimageFunction( &preimageFunction )
+   : operator_( operator_ ),
+     imageFunction( preimageFunction.getMeshPointer() ),
+     preimageFunction( &preimageFunction )
    {}
 
    const MeshType&
@@ -304,7 +313,9 @@ public:
    }
 
    OperatorFunction( OperatorType& operator_, const BoundaryConditionsType& boundaryConditions, const MeshPointer& meshPointer )
-   : operator_( operator_ ), boundaryConditions( boundaryConditions ), imageFunction( meshPointer )  //,
+   : operator_( operator_ ),
+     boundaryConditions( boundaryConditions ),
+     imageFunction( meshPointer )  //,
    // preimageFunction( 0 )
    {
       this->preimageFunction = NULL;
@@ -313,7 +324,9 @@ public:
    OperatorFunction( OperatorType& operator_,
                      const BoundaryConditionsType& boundaryConditions,
                      const PreimageFunctionType& preimageFunction )
-   : operator_( operator_ ), boundaryConditions( boundaryConditions ), imageFunction( preimageFunction.getMeshPointer() ),
+   : operator_( operator_ ),
+     boundaryConditions( boundaryConditions ),
+     imageFunction( preimageFunction.getMeshPointer() ),
      preimageFunction( &preimageFunction )
    {}
 
@@ -436,7 +449,7 @@ public:
    bool
    setup( const Config::ParameterContainer& parameters, const String& prefix = "" )
    {
-      return ( this->function.setup( parameters, prefix ) && this->operator_.setup( parameters, prefix ) );
+      return this->function.setup( parameters, prefix ) && this->operator_.setup( parameters, prefix );
    }
 
    __cuda_callable__

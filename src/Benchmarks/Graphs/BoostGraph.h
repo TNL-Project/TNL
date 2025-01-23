@@ -20,7 +20,9 @@ namespace TNL::Benchmarks::Graphs {
 // Custom visitor to update the distance map
 struct bfs_distance_visitor : public boost::default_bfs_visitor
 {
-   bfs_distance_visitor( std::vector< int >& distances ) : distances_( distances ) {}
+   bfs_distance_visitor( std::vector< int >& distances )
+   : distances_( distances )
+   {}
 
    template< typename Edge, typename Graph >
    void
@@ -65,12 +67,12 @@ struct BoostGraph
    static constexpr bool
    isDirected()
    {
-      return ( GraphType == TNL::Graphs::GraphTypes::Directed );
+      return GraphType == TNL::Graphs::GraphTypes::Directed;
    }
    static constexpr bool
    isUndirected()
    {
-      return ( GraphType == TNL::Graphs::GraphTypes::Undirected );
+      return GraphType == TNL::Graphs::GraphTypes::Undirected;
    }
 
    BoostGraph() {}

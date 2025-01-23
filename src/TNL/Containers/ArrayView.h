@@ -130,7 +130,10 @@ public:
     */
    template< typename Value_ >
    __cuda_callable__
-   ArrayView( const ArrayView< Value_, Device, Index >& view ) : data( view.getData() ), size( view.getSize() ) {}
+   ArrayView( const ArrayView< Value_, Device, Index >& view )
+   : data( view.getData() ),
+     size( view.getSize() )
+   {}
 
    /**
     * \brief Move constructor for initialization from \e rvalues.

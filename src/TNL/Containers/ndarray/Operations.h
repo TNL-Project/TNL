@@ -40,7 +40,10 @@ struct nvcc_map_helper_0
    Output output;
    Func f;
 
-   nvcc_map_helper_0( Output o, Func f ) : output( o ), f( f ) {}
+   nvcc_map_helper_0( Output o, Func f )
+   : output( o ),
+     f( f )
+   {}
 
    template< typename... Ts >
    __cuda_callable__
@@ -60,7 +63,11 @@ struct nvcc_map_helper_1
    Func f;
    Input1 input1;
 
-   nvcc_map_helper_1( Output o, Func f, Input1 i1 ) : output( o ), f( f ), input1( i1 ) {}
+   nvcc_map_helper_1( Output o, Func f, Input1 i1 )
+   : output( o ),
+     f( f ),
+     input1( i1 )
+   {}
 
    template< typename... Ts >
    __cuda_callable__
@@ -81,7 +88,12 @@ struct nvcc_map_helper_2
    Input1 input1;
    Input2 input2;
 
-   nvcc_map_helper_2( Output o, Func f, Input1 i1, Input2 i2 ) : output( o ), f( f ), input1( i1 ), input2( i2 ) {}
+   nvcc_map_helper_2( Output o, Func f, Input1 i1, Input2 i2 )
+   : output( o ),
+     f( f ),
+     input1( i1 ),
+     input2( i2 )
+   {}
 
    template< typename... Ts >
    __cuda_callable__
@@ -104,7 +116,11 @@ struct nvcc_map_helper_3
    Input3 input3;
 
    nvcc_map_helper_3( Output o, Func f, Input1 i1, Input2 i2, Input3 i3 )
-   : output( o ), f( f ), input1( i1 ), input2( i2 ), input3( i3 )
+   : output( o ),
+     f( f ),
+     input1( i1 ),
+     input2( i2 ),
+     input3( i3 )
    {}
 
    template< typename... Ts >

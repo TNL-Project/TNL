@@ -38,7 +38,9 @@ public:
    // TODO: behavior should depend on "owns_data" (shallow vs deep copy)
    HypreVector( const HypreVector& other ) = delete;
 
-   HypreVector( HypreVector&& other ) noexcept : v( other.v ), owns_handle( other.owns_handle )
+   HypreVector( HypreVector&& other ) noexcept
+   : v( other.v ),
+     owns_handle( other.owns_handle )
    {
       other.v = nullptr;
    }

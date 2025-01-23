@@ -27,7 +27,9 @@ public:
 
    DistributedMesh() = default;
 
-   DistributedMesh( MeshType&& localMesh ) : localMesh( std::move( localMesh ) ) {}
+   DistributedMesh( MeshType&& localMesh )
+   : localMesh( std::move( localMesh ) )
+   {}
 
    DistributedMesh( const DistributedMesh& ) = default;
 
@@ -55,10 +57,9 @@ public:
    [[nodiscard]] bool
    operator==( const DistributedMesh& other ) const
    {
-      return ( GlobalIndexStorageFamily< Mesh, DeviceType >::operator==( other ) && localMesh == other.getLocalMesh()
-               && communicator == other.getCommunicator() && ghostLevels == other.getGhostLevels()
-               && vtkPointGhostTypesArray == other.vtkPointGhostTypes()
-               && vtkCellGhostTypesArray == other.vtkCellGhostTypes() );
+      return GlobalIndexStorageFamily< Mesh, DeviceType >::operator==( other ) && localMesh == other.getLocalMesh()
+          && communicator == other.getCommunicator() && ghostLevels == other.getGhostLevels()
+          && vtkPointGhostTypesArray == other.vtkPointGhostTypes() && vtkCellGhostTypesArray == other.vtkCellGhostTypes();
    }
 
    [[nodiscard]] bool

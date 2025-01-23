@@ -9,7 +9,11 @@ class CoordinateIterator
 public:
    using Coordinate = TNL::Containers::StaticVector< Size, Index >;
 
-   CoordinateIterator( const Coordinate& start, const Coordinate& end ) : start( start ), current( start ), end( end ) {}
+   CoordinateIterator( const Coordinate& start, const Coordinate& end )
+   : start( start ),
+     current( start ),
+     end( end )
+   {}
 
    Coordinate
    getCoordinate() const

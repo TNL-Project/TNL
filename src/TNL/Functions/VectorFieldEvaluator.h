@@ -20,8 +20,11 @@ public:
                                           OutVectorField* outVectorField,
                                           const Real& outVectorFieldMultiplicator,
                                           const Real& inVectorFieldMultiplicator )
-   : outVectorField( outVectorField ), inVectorField( inVectorField ), time( time ),
-     outVectorFieldMultiplicator( outVectorFieldMultiplicator ), inVectorFieldMultiplicator( inVectorFieldMultiplicator )
+   : outVectorField( outVectorField ),
+     inVectorField( inVectorField ),
+     time( time ),
+     outVectorFieldMultiplicator( outVectorFieldMultiplicator ),
+     inVectorFieldMultiplicator( inVectorFieldMultiplicator )
    {}
 
    OutVectorField* outVectorField;

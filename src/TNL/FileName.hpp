@@ -15,10 +15,13 @@
 
 namespace TNL {
 
-inline FileName::FileName( String fileNameBase ) : fileNameBase( std::move( fileNameBase ) ) {}
+inline FileName::FileName( String fileNameBase )
+: fileNameBase( std::move( fileNameBase ) )
+{}
 
 inline FileName::FileName( String fileNameBase, String extension )
-: fileNameBase( std::move( fileNameBase ) ), extension( std::move( extension ) )
+: fileNameBase( std::move( fileNameBase ) ),
+  extension( std::move( extension ) )
 {}
 
 inline void

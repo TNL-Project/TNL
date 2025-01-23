@@ -8,10 +8,13 @@
 
 namespace TNL::Solvers {
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename ConfigTag >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename ConfigTag >
 class SolverInitiator
 {
 public:

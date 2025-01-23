@@ -13,51 +13,66 @@
 
 namespace TNL::Solvers {
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename ConfigTag,
-   bool enabled = ConfigTagReal< ConfigTag, Real >::enabled >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename ConfigTag,
+          bool enabled = ConfigTagReal< ConfigTag, Real >::enabled >
 class SolverInitiatorRealResolver
 {};
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename Device,
-   typename ConfigTag,
-   bool enabled = ConfigTagDevice< ConfigTag, Device >::enabled >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename Device,
+          typename ConfigTag,
+          bool enabled = ConfigTagDevice< ConfigTag, Device >::enabled >
 class SolverInitiatorDeviceResolver
 {};
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename Device,
-   typename Index,
-   typename ConfigTag,
-   bool enabled = ConfigTagIndex< ConfigTag, Index >::enabled >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename ConfigTag,
+          bool enabled = ConfigTagIndex< ConfigTag, Index >::enabled >
 class SolverInitiatorIndexResolver
 {};
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename Device,
-   typename Index,
-   typename ConfigTag,
-   bool enabled = ConfigTagMeshResolve< ConfigTag >::enabled >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename ConfigTag,
+          bool enabled = ConfigTagMeshResolve< ConfigTag >::enabled >
 class SolverInitiatorMeshResolver
 {};
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename ConfigTag >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename ConfigTag >
 bool
 SolverInitiator< ProblemSetter, ConfigTag >::run( const Config::ParameterContainer& parameters )
 {
@@ -70,13 +85,16 @@ SolverInitiator< ProblemSetter, ConfigTag >::run( const Config::ParameterContain
       return SolverInitiatorRealResolver< ProblemSetter, long double, ConfigTag >::run( parameters );
    std::cerr << "The real type '" << realType << "' is not defined. " << std::endl;
    return false;
-};
+}
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename ConfigTag >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename ConfigTag >
 class SolverInitiatorRealResolver< ProblemSetter, Real, ConfigTag, true >
 {
 public:
@@ -93,11 +111,14 @@ public:
    }
 };
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename ConfigTag >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename ConfigTag >
 class SolverInitiatorRealResolver< ProblemSetter, Real, ConfigTag, false >
 {
 public:
@@ -109,12 +130,15 @@ public:
    }
 };
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename Device,
-   typename ConfigTag >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename Device,
+          typename ConfigTag >
 class SolverInitiatorDeviceResolver< ProblemSetter, Real, Device, ConfigTag, true >
 {
 public:
@@ -133,12 +157,15 @@ public:
    }
 };
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename Device,
-   typename ConfigTag >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename Device,
+          typename ConfigTag >
 class SolverInitiatorDeviceResolver< ProblemSetter, Real, Device, ConfigTag, false >
 {
 public:
@@ -150,13 +177,16 @@ public:
    }
 };
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename Device,
-   typename Index,
-   typename ConfigTag >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename ConfigTag >
 class SolverInitiatorIndexResolver< ProblemSetter, Real, Device, Index, ConfigTag, false >
 {
 public:
@@ -168,13 +198,16 @@ public:
    }
 };
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename Device,
-   typename Index,
-   typename ConfigTag >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename ConfigTag >
 class SolverInitiatorIndexResolver< ProblemSetter, Real, Device, Index, ConfigTag, true >
 {
 public:
@@ -185,13 +218,16 @@ public:
    }
 };
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename Device,
-   typename Index,
-   typename ConfigTag >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename ConfigTag >
 class SolverInitiatorMeshResolver< ProblemSetter, Real, Device, Index, ConfigTag, false >
 {
 public:
@@ -207,13 +243,16 @@ public:
    }
 };
 
-template<
-   template< typename Real, typename Device, typename Index, typename MeshType, typename ConfigTag, typename SolverStarter >
-   class ProblemSetter,
-   typename Real,
-   typename Device,
-   typename Index,
-   typename ConfigTag >
+template< template< typename Real,
+                    typename Device,
+                    typename Index,
+                    typename MeshType,
+                    typename ConfigTag,
+                    typename SolverStarter > class ProblemSetter,
+          typename Real,
+          typename Device,
+          typename Index,
+          typename ConfigTag >
 class SolverInitiatorMeshResolver< ProblemSetter, Real, Device, Index, ConfigTag, true >
 {
    // wrapper for MeshTypeResolver

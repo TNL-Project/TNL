@@ -341,7 +341,9 @@ protected:
 public:
    XMLVTK() = default;
 
-   XMLVTK( const std::string& fileName ) : MeshReader( fileName ) {}
+   XMLVTK( const std::string& fileName )
+   : MeshReader( fileName )
+   {}
 
    void
    openVTKFile()
