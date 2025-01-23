@@ -366,7 +366,7 @@ constexpr int
 argumentCount()
 {
    return detail::LambdaDetails< Lambda >::argumentCount();
-};
+}
 
 /**
  * \brief Returns true if lambda function is variadic.
@@ -376,6 +376,6 @@ constexpr bool
 isVariadic()
 {
    return detail::LambdaDetails< Lambda >::isVariadic();
-};
+}
 
 }  // namespace TNL
