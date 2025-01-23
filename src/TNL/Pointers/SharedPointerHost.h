@@ -170,7 +170,7 @@ public:
 #ifdef TNL_DEBUG_SHARED_POINTERS
       std::cerr << "Recreating shared pointer to " << getType< ObjectType >() << std::endl;
 #endif
-      if( ! this->counter )
+      if( ! this->pd->counter )
          return this->allocate( args... );
 
       if( *this->pd->counter == 1 ) {

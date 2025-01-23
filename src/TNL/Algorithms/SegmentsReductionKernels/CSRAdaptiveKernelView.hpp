@@ -253,7 +253,7 @@ void
 CSRAdaptiveKernelView< Index, Device >::printBlocks( int idx ) const
 {
    auto& blocks = this->blocksArray[ idx ];
-   for( Index i = 0; i < this->blocks.getSize(); i++ ) {
+   for( Index i = 0; i < blocks.getSize(); i++ ) {
       auto block = blocks.getElement( i );
       std::cout << "Block " << i << " : " << block << std::endl;
    }
