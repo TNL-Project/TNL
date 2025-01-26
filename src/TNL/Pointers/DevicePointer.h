@@ -84,14 +84,17 @@ public:
    /**
     * \brief Constructor of an empty pointer.
     */
-   DevicePointer( std::nullptr_t ) : pointer( nullptr ) {}
+   DevicePointer( std::nullptr_t )
+   : pointer( nullptr )
+   {}
 
    /**
     * \brief Constructor with an object reference.
     *
     * \param obj reference to an object to be managed by the pointer.
     */
-   explicit DevicePointer( ObjectType& obj ) : pointer( nullptr )
+   explicit DevicePointer( ObjectType& obj )
+   : pointer( nullptr )
    {
       this->pointer = &obj;
    }
@@ -386,14 +389,21 @@ public:
    /**
     * \brief Constructor of empty pointer.
     */
-   DevicePointer( std::nullptr_t ) : pointer( nullptr ), pd( nullptr ), cuda_pointer( nullptr ) {}
+   DevicePointer( std::nullptr_t )
+   : pointer( nullptr ),
+     pd( nullptr ),
+     cuda_pointer( nullptr )
+   {}
 
    /**
     * \brief Constructor with an object reference.
     *
     * \param obj is a reference on an object to be managed by the pointer.
     */
-   explicit DevicePointer( ObjectType& obj ) : pointer( nullptr ), pd( nullptr ), cuda_pointer( nullptr )
+   explicit DevicePointer( ObjectType& obj )
+   : pointer( nullptr ),
+     pd( nullptr ),
+     cuda_pointer( nullptr )
    {
       this->allocate( obj );
    }
@@ -404,7 +414,9 @@ public:
     * \param pointer is the source device pointer.
     */
    DevicePointer( const DevicePointer& pointer )  // this is needed only to avoid the default compiler-generated constructor
-   : pointer( pointer.pointer ), pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
+   : pointer( pointer.pointer ),
+     pd( (PointerData*) pointer.pd ),
+     cuda_pointer( pointer.cuda_pointer )
    {
       this->pd->counter += 1;
    }
@@ -418,7 +430,9 @@ public:
     */
    template< typename Object_, typename = Enabler< Object_ > >
    DevicePointer( const DevicePointer< Object_, DeviceType >& pointer )  // conditional constructor for non-const -> const data
-   : pointer( pointer.pointer ), pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
+   : pointer( pointer.pointer ),
+     pd( (PointerData*) pointer.pd ),
+     cuda_pointer( pointer.cuda_pointer )
    {
       this->pd->counter += 1;
    }
@@ -429,7 +443,9 @@ public:
     * \param pointer is the source device pointer.
     */
    DevicePointer( DevicePointer&& pointer ) noexcept  // this is needed only to avoid the default compiler-generated constructor
-   : pointer( pointer.pointer ), pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
+   : pointer( pointer.pointer ),
+     pd( (PointerData*) pointer.pd ),
+     cuda_pointer( pointer.cuda_pointer )
    {
       pointer.pointer = nullptr;
       pointer.pd = nullptr;
@@ -445,7 +461,9 @@ public:
     */
    template< typename Object_, typename = Enabler< Object_ > >
    DevicePointer( DevicePointer< Object_, DeviceType >&& pointer )  // conditional constructor for non-const -> const data
-   : pointer( pointer.pointer ), pd( (PointerData*) pointer.pd ), cuda_pointer( pointer.cuda_pointer )
+   : pointer( pointer.pointer ),
+     pd( (PointerData*) pointer.pd ),
+     cuda_pointer( pointer.cuda_pointer )
    {
       pointer.pointer = nullptr;
       pointer.pd = nullptr;

@@ -377,7 +377,7 @@ TEST( MeshOrderingTest, OrderingOnCuda )
       meshHost = mesh;
       testMesh( meshHost, vertexInversePermutation, edgeInversePermutation, cellInversePermutation );
    }
-};
+}
 #endif
 
 }  // namespace MeshOrderingTest

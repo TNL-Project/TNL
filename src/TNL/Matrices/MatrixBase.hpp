@@ -24,7 +24,9 @@ __cuda_callable__
 MatrixBase< Real, Device, Index, MatrixType, Organization >::MatrixBase( IndexType rows,
                                                                          IndexType columns,
                                                                          ValuesViewType values )
-: rows( rows ), columns( columns ), values( std::move( values ) )
+: rows( rows ),
+  columns( columns ),
+  values( std::move( values ) )
 {}
 
 template< typename Real, typename Device, typename Index, typename MatrixType, ElementsOrganization Organization >
@@ -76,28 +78,6 @@ typename MatrixBase< Real, Device, Index, MatrixType, Organization >::ValuesView
 MatrixBase< Real, Device, Index, MatrixType, Organization >::getValues()
 {
    return this->values;
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType, ElementsOrganization Organization >
-template< typename MatrixT >
-bool
-MatrixBase< Real, Device, Index, MatrixType, Organization >::operator==( const MatrixT& matrix ) const
-{
-   if( this->getRows() != matrix.getRows() || this->getColumns() != matrix.getColumns() )
-      return false;
-   for( IndexType row = 0; row < this->getRows(); row++ )
-      for( IndexType column = 0; column < this->getColumns(); column++ )
-         if( this->getElement( row, column ) != matrix.getElement( row, column ) )
-            return false;
-   return true;
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType, ElementsOrganization Organization >
-template< typename MatrixT >
-bool
-MatrixBase< Real, Device, Index, MatrixType, Organization >::operator!=( const MatrixT& matrix ) const
-{
-   return ! operator==( matrix );
 }
 
 }  // namespace TNL::Matrices

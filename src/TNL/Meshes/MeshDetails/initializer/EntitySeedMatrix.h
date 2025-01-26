@@ -46,7 +46,9 @@ public:
       using RowView = typename SubentityMatrixType::RowView;
 
    public:
-      EntitySeedMatrixSeed( RowView matrixRow ) : row( std::move( matrixRow ) ) {}
+      EntitySeedMatrixSeed( RowView matrixRow )
+      : row( std::move( matrixRow ) )
+      {}
 
       [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
@@ -103,7 +105,9 @@ public:
       using ConstRowView = typename SubentityMatrixType::ConstRowView;
 
    public:
-      ConstEntitySeedMatrixSeed( ConstRowView matrixRow ) : row( std::move( matrixRow ) ) {}
+      ConstEntitySeedMatrixSeed( ConstRowView matrixRow )
+      : row( std::move( matrixRow ) )
+      {}
 
       [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
@@ -223,7 +227,9 @@ public:
       using RowView = typename SubentityMatrixType::RowView;
 
    public:
-      EntitySeedMatrixSeed( RowView matrixRow ) : row( std::move( matrixRow ) ) {}
+      EntitySeedMatrixSeed( RowView matrixRow )
+      : row( std::move( matrixRow ) )
+      {}
 
       [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
@@ -257,7 +263,9 @@ public:
       using ConstRowView = typename SubentityMatrixType::ConstRowView;
 
    public:
-      ConstEntitySeedMatrixSeed( ConstRowView matrixRow ) : row( std::move( matrixRow ) ) {}
+      ConstEntitySeedMatrixSeed( ConstRowView matrixRow )
+      : row( std::move( matrixRow ) )
+      {}
 
       [[nodiscard]] static constexpr LocalIndexType
       getCornersCount()
@@ -378,7 +386,8 @@ public:
 
    public:
       EntitySeedMatrixSeed( RowView matrixRow, LocalIndexType corners )
-      : row( std::move( matrixRow ) ), cornersCount( std::move( corners ) )
+      : row( std::move( matrixRow ) ),
+        cornersCount( std::move( corners ) )
       {}
 
       [[nodiscard]] LocalIndexType
@@ -415,7 +424,8 @@ public:
 
    public:
       ConstEntitySeedMatrixSeed( ConstRowView matrixRow, LocalIndexType corners )
-      : row( std::move( matrixRow ) ), cornersCount( std::move( corners ) )
+      : row( std::move( matrixRow ) ),
+        cornersCount( std::move( corners ) )
       {}
 
       [[nodiscard]] LocalIndexType

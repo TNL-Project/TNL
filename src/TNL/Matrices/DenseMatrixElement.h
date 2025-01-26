@@ -42,7 +42,9 @@ public:
                        IndexType rowIdx,
                        IndexType columnIdx,
                        IndexType localIdx )  // localIdx is here only for compatibility with SparseMatrixElement
-   : value_( value ), rowIdx( rowIdx ), columnIdx( columnIdx )
+   : value_( value ),
+     rowIdx( rowIdx ),
+     columnIdx( columnIdx )
    {}
 
    /**

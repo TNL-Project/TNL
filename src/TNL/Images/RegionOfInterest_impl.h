@@ -8,7 +8,11 @@
 namespace TNL::Images {
 
 template< typename Index >
-RegionOfInterest< Index >::RegionOfInterest() : top( -1 ), bottom( -1 ), left( -1 ), right( -1 )
+RegionOfInterest< Index >::RegionOfInterest()
+: top( -1 ),
+  bottom( -1 ),
+  left( -1 ),
+  right( -1 )
 {}
 
 template< typename Index >

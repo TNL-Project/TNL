@@ -33,8 +33,13 @@ public:
    Grid() = default;
 
    Grid( const TNL::Containers::StaticVector< Size, Index >& dim )
-   : dimensions( dim ), entitiesCountAlongNormals( 0 ), cumulativeEntitiesCountAlongNormals( 0 ), origin( 0 ), proportions( 0 ),
-     spaceSteps( 0 ), spaceProducts( 0 )
+   : dimensions( dim ),
+     entitiesCountAlongNormals( 0 ),
+     cumulativeEntitiesCountAlongNormals( 0 ),
+     origin( 0 ),
+     proportions( 0 ),
+     spaceSteps( 0 ),
+     spaceProducts( 0 )
    {}
 
    [[nodiscard]] __cuda_callable__
@@ -64,7 +69,9 @@ class Entity
 {
 public:
    __cuda_callable__
-   inline Entity( const Grid< Size, Index, Real >& grid ) : grid( grid ) {}
+   inline Entity( const Grid< Size, Index, Real >& grid )
+   : grid( grid )
+   {}
 
    const Grid< Size, Index, Real >& grid;
 

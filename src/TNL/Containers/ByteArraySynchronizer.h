@@ -33,7 +33,9 @@ public:
       async,
    };
 
-   ByteArraySynchronizer() : tp( 1 ) {}
+   ByteArraySynchronizer()
+   : tp( 1 )
+   {}
 
    /**
     * \brief Main synchronization function.

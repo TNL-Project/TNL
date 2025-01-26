@@ -23,7 +23,9 @@ namespace TNL::Containers {
 // explicit initialization by raw data pointer and size
 template< typename Value, typename Device, typename Index >
 __cuda_callable__
-ArrayView< Value, Device, Index >::ArrayView( ValueType* data, IndexType size ) : data( data ), size( size )
+ArrayView< Value, Device, Index >::ArrayView( ValueType* data, IndexType size )
+: data( data ),
+  size( size )
 {
    TNL_ASSERT_GE( size, (Index) 0, "ArrayView size was initialized with a negative size." );
    TNL_ASSERT_TRUE( ( data == nullptr && size == 0 ) || ( data != nullptr && size > 0 ),

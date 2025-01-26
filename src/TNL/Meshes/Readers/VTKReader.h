@@ -19,7 +19,9 @@ class VTKReader : public MeshReader
 public:
    VTKReader() = default;
 
-   VTKReader( const std::string& fileName ) : MeshReader( fileName ) {}
+   VTKReader( const std::string& fileName )
+   : MeshReader( fileName )
+   {}
 
    void
    detectMesh() override

@@ -24,7 +24,9 @@ namespace TNL::Assert {
 //! \brief Exception that represents an assertion error and its diagnostics.
 struct AssertionError : public std::runtime_error
 {
-   AssertionError( const std::string& msg ) : std::runtime_error( msg ) {}
+   AssertionError( const std::string& msg )
+   : std::runtime_error( msg )
+   {}
 };
 
 }  // namespace TNL::Assert

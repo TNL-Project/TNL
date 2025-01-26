@@ -46,7 +46,8 @@ public:
 
    // initialization by base class is not a copy constructor so it has to be explicit
    template< typename Real_ >  // template catches both const and non-const qualified Element
-   DistributedVectorView( const Containers::DistributedArrayView< Real_, Device, Index >& view ) : BaseType( view )
+   DistributedVectorView( const Containers::DistributedArrayView< Real_, Device, Index >& view )
+   : BaseType( view )
    {}
 
    /**

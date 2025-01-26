@@ -134,7 +134,11 @@ struct FivePointStencilCapacitiesFunctor
    Index N;
    Index ilower;
 
-   FivePointStencilCapacitiesFunctor( Index n, Index N, Index ilower ) : n( n ), N( N ), ilower( ilower ) {}
+   FivePointStencilCapacitiesFunctor( Index n, Index N, Index ilower )
+   : n( n ),
+     N( N ),
+     ilower( ilower )
+   {}
 
    __cuda_callable__
    int
@@ -179,7 +183,11 @@ struct FivePointStencilElementsFunctor
    Index N;
    Index ilower;
 
-   FivePointStencilElementsFunctor( Index n, Index N, Index ilower ) : n( n ), N( N ), ilower( ilower ) {}
+   FivePointStencilElementsFunctor( Index n, Index N, Index ilower )
+   : n( n ),
+     N( N ),
+     ilower( ilower )
+   {}
 
    __cuda_callable__
    void

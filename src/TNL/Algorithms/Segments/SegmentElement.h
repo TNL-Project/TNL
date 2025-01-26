@@ -32,7 +32,9 @@ public:
     */
    __cuda_callable__
    SegmentElement( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx )
-   : segmentIdx( segmentIdx ), localIdx( localIdx ), globalIdx( globalIdx )
+   : segmentIdx( segmentIdx ),
+     localIdx( localIdx ),
+     globalIdx( globalIdx )
    {}
 
    /**

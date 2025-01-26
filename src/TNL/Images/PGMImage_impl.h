@@ -10,7 +10,10 @@
 namespace TNL::Images {
 
 template< typename Index >
-PGMImage< Index >::PGMImage() : binary( false ), maxColors( 0 ), fileOpen( false )
+PGMImage< Index >::PGMImage()
+: binary( false ),
+  maxColors( 0 ),
+  fileOpen( false )
 {}
 
 template< typename Index >

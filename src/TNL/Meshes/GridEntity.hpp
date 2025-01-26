@@ -27,7 +27,9 @@ GridEntity< Grid, EntityDimension >::getEntityDimension()
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid ) : grid( grid ), coordinates( 0 )
+GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid )
+: grid( grid ),
+  coordinates( 0 )
 {
    this->normals = grid.template getNormals< EntityDimension >( 0 );
    this->orientation = 0;
@@ -37,7 +39,8 @@ GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid ) : grid( grid
 template< class Grid, int EntityDimension >
 __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, const CoordinatesType& coordinates )
-: grid( grid ), coordinates( coordinates )
+: grid( grid ),
+  coordinates( coordinates )
 {
    normals = grid.template getNormals< EntityDimension >( 0 );
    orientation = 0;
@@ -49,7 +52,9 @@ __cuda_callable__
 GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
                                                  const CoordinatesType& coordinates,
                                                  const CoordinatesType& normals )
-: grid( grid ), coordinates( coordinates ), normals( normals ),
+: grid( grid ),
+  coordinates( coordinates ),
+  normals( normals ),
   orientation( grid.template getOrientation< EntityDimension >( normals ) )
 {
    this->refresh();
@@ -57,7 +62,9 @@ GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, IndexType entityIdx ) : grid( grid ), index( entityIdx )
+GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, IndexType entityIdx )
+: grid( grid ),
+  index( entityIdx )
 {
    this->coordinates = grid.template getEntityCoordinates< EntityDimension >( entityIdx, this->normals, this->orientation );
 }
@@ -68,7 +75,10 @@ GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
                                                  const CoordinatesType& coordinates,
                                                  const CoordinatesType& normals,
                                                  const IndexType orientation )
-: grid( grid ), coordinates( coordinates ), normals( normals ), orientation( orientation )
+: grid( grid ),
+  coordinates( coordinates ),
+  normals( normals ),
+  orientation( orientation )
 {
    this->refresh();
 }

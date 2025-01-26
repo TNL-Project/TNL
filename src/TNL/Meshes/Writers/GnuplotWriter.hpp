@@ -9,7 +9,8 @@
 namespace TNL::Meshes::Writers {
 
 template< typename Mesh >
-GnuplotWriter< Mesh >::GnuplotWriter( std::ostream& str ) : str( str )
+GnuplotWriter< Mesh >::GnuplotWriter( std::ostream& str )
+: str( str )
 {}
 
 template< typename Mesh >

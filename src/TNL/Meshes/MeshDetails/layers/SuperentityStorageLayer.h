@@ -128,7 +128,7 @@ protected:
    bool
    operator==( const SuperentityStorageLayer& layer ) const
    {
-      return ( BaseType::operator==( layer ) && superentitiesCounts == layer.superentitiesCounts && matrix == layer.matrix );
+      return BaseType::operator==( layer ) && superentitiesCounts == layer.superentitiesCounts && matrix == layer.matrix;
    }
 
    using BaseType::getSuperentitiesCountsArray;

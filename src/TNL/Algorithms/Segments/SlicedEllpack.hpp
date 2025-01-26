@@ -13,7 +13,8 @@ namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::SlicedEllpack( const SlicedEllpack& segments )
-: sliceOffsets( segments.sliceOffsets ), sliceSegmentSizes( segments.sliceSegmentSizes )
+: sliceOffsets( segments.sliceOffsets ),
+  sliceSegmentSizes( segments.sliceSegmentSizes )
 {
    // update the base
    Base::bind( segments.getSize(),

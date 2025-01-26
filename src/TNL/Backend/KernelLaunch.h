@@ -41,7 +41,10 @@ struct LaunchConfiguration
                                   std::size_t dynamicSharedMemorySize = 0U,
                                   Backend::stream_t stream = 0,
                                   bool blockHostUntilFinished = true )
-   : gridSize( gridSize ), blockSize( blockSize ), dynamicSharedMemorySize( dynamicSharedMemorySize ), stream( stream ),
+   : gridSize( gridSize ),
+     blockSize( blockSize ),
+     dynamicSharedMemorySize( dynamicSharedMemorySize ),
+     stream( stream ),
      blockHostUntilFinished( blockHostUntilFinished )
    {}
 };
@@ -58,7 +61,7 @@ launchKernel( RawKernel kernel_function, LaunchConfiguration launch_configuratio
    if( kernel_function == nullptr )
       throw std::logic_error( "cannot call a function via nullptr" );
 
-      // TODO: basic verification of the configuration
+   // TODO: basic verification of the configuration
 
 #ifdef TNL_DEBUG_KERNEL_LAUNCHES
    // clang-format off

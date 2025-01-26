@@ -49,7 +49,9 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
    GridDistributor() = delete;
 
    GridDistributor( CoordinatesType rank_sizes, MPI_Comm communicator )
-   : rank( TNL::MPI::GetRank( communicator ) ), nproc( TNL::MPI::GetSize( communicator ) ), rank_sizes( rank_sizes ),
+   : rank( TNL::MPI::GetRank( communicator ) ),
+     nproc( TNL::MPI::GetSize( communicator ) ),
+     rank_sizes( rank_sizes ),
      communicator( communicator )
    {}
 
@@ -430,16 +432,14 @@ validateMesh( const Mesh& mesh, const Distributor& distributor, int ghostLevels 
       }
       for( Index i = distributor.localVerticesCount; i < distributor.verticesCount; i++ ) {
          EXPECT_TRUE( mesh.template getGlobalIndices< 0 >()[ i ] < vert_offsets[ distributor.rank ]
-                      || mesh.template getGlobalIndices< 0 >()[ i ] >= vert_offsets[ distributor.rank + 1 ] )
-            << "vertex idx = " << i;
+                      || mesh.template getGlobalIndices< 0 >()[ i ] >= vert_offsets[ distributor.rank + 1 ] ) << "vertex idx = " << i;
       }
       for( Index i = 0; i < distributor.localCellsCount; i++ ) {
          EXPECT_EQ( mesh.template getGlobalIndices< 2 >()[ i ], cell_offsets[ distributor.rank ] + i ) << "cell idx = " << i;
       }
       for( Index i = distributor.localCellsCount; i < distributor.cellsCount; i++ ) {
          EXPECT_TRUE( mesh.template getGlobalIndices< 2 >()[ i ] < cell_offsets[ distributor.rank ]
-                      || mesh.template getGlobalIndices< 2 >()[ i ] >= cell_offsets[ distributor.rank + 1 ] )
-            << "cell idx = " << i;
+                      || mesh.template getGlobalIndices< 2 >()[ i ] >= cell_offsets[ distributor.rank + 1 ] ) << "cell idx = " << i;
       }
    }
 }

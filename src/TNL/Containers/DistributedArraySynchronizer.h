@@ -37,7 +37,9 @@ public:
    DistributedArraySynchronizer() = delete;
 
    DistributedArraySynchronizer( SubrangeType localRange, int overlaps, MPI::Comm communicator )
-   : localRange( localRange ), overlaps( overlaps ), communicator( std::move( communicator ) )
+   : localRange( localRange ),
+     overlaps( overlaps ),
+     communicator( std::move( communicator ) )
    {}
 
    void

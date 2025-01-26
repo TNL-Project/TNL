@@ -10,7 +10,8 @@
 
 namespace TNL::Images {
 
-inline DicomSeriesInfo::DicomSeriesInfo( DicomHeader& dicomHeader ) : dicomHeader( dicomHeader )
+inline DicomSeriesInfo::DicomSeriesInfo( DicomHeader& dicomHeader )
+: dicomHeader( dicomHeader )
 {
    isObjectRetrieved = false;
 }

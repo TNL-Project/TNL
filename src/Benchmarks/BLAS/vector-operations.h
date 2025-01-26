@@ -140,7 +140,9 @@ class VectorOperationsBenchmark
 
 public:
    VectorOperationsBenchmark( Benchmark<>& benchmark, const long& size )
-   : benchmark( benchmark ), size( size ), datasetSize( (double) size * sizeof( Real ) / oneGB )
+   : benchmark( benchmark ),
+     size( size ),
+     datasetSize( (double) size * sizeof( Real ) / oneGB )
    {
       hostVector.setSize( size );
       hostVector2.setSize( size );

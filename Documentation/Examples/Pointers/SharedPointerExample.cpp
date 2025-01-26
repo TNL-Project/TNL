@@ -9,7 +9,10 @@ using ArrayCuda = Containers::Array< int, Devices::Cuda >;
 
 struct Tuple
 {
-   Tuple( const int size ) : a1( size ), a2( size ) {}
+   Tuple( const int size )
+   : a1( size ),
+     a2( size )
+   {}
 
    void
    setSize( const int size )

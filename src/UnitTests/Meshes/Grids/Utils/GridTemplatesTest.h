@@ -30,8 +30,8 @@ testIndexCollapse( const int base )
    int index = 0;
 
    do {
-      EXPECT_EQ( TNL::Meshes::Templates::makeCollapsedIndex( base, iterator.getCoordinate() ), index )
-         << base << " " << index << " " << iterator.getCoordinate();
+      EXPECT_EQ( TNL::Meshes::Templates::makeCollapsedIndex( base, iterator.getCoordinate() ), index ) << base << " " << index
+         << " " << iterator.getCoordinate();
       index++;
    } while( ! iterator.next() );
 }

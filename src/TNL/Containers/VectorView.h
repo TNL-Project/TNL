@@ -75,7 +75,9 @@ public:
     * \param size The number of elements in the vector view.
     */
    __cuda_callable__
-   VectorView( RealType* data, IndexType size ) : ArrayView< Real, Device, Index >::ArrayView( data, size ) {}
+   VectorView( RealType* data, IndexType size )
+   : ArrayView< Real, Device, Index >::ArrayView( data, size )
+   {}
 
    /**
     * \brief Constructs an empty vector view.
@@ -111,7 +113,9 @@ public:
    // initialization by base class is not a copy constructor so it has to be explicit
    template< typename Real_ >  // template catches both const and non-const qualified Element
    __cuda_callable__
-   VectorView( const ArrayView< Real_, Device, Index >& view ) : BaseType( view ) {}
+   VectorView( const ArrayView< Real_, Device, Index >& view )
+   : BaseType( view )
+   {}
 
    /**
     * \brief Returns a modifiable view of the vector view.

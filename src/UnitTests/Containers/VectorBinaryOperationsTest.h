@@ -262,14 +262,14 @@ TYPED_TEST( VectorBinaryOperationsTest, EQ )
 {
    SETUP_BINARY_TEST_ALIASES;
 
-   EXPECT_EQ( L1, R1 );              // vector or vector view
-   EXPECT_EQ( L1, 1 );               // right scalar
-   EXPECT_EQ( 1, R1 );               // left scalar
+   EXPECT_EQ( L1, R1 );  // vector or vector view
+   EXPECT_EQ( L1, 1 );  // right scalar
+   EXPECT_EQ( 1, R1 );  // left scalar
    EXPECT_EQ( L1, RightReal( 1 ) );  // right scalar
-   EXPECT_EQ( LeftReal( 1 ), R1 );   // left scalar
-   EXPECT_EQ( L2, R1 + R1 );         // right expression
-   EXPECT_EQ( L1 + L1, R2 );         // left expression
-   EXPECT_EQ( L1 + L1, R1 + R1 );    // two expressions
+   EXPECT_EQ( LeftReal( 1 ), R1 );  // left scalar
+   EXPECT_EQ( L2, R1 + R1 );  // right expression
+   EXPECT_EQ( L1 + L1, R2 );  // left expression
+   EXPECT_EQ( L1 + L1, R1 + R1 );  // two expressions
 
 #ifndef STATIC_VECTOR
    // with different sizes
@@ -284,14 +284,14 @@ TYPED_TEST( VectorBinaryOperationsTest, EQ )
    all_true = cast< bool >( L1 );
 
    // equalTo
-   EXPECT_EQ( equalTo( L1, R1 ), all_true );              // vector or vector view
-   EXPECT_EQ( equalTo( L1, 1 ), all_true );               // right scalar
-   EXPECT_EQ( equalTo( 1, R1 ), all_true );               // left scalar
+   EXPECT_EQ( equalTo( L1, R1 ), all_true );  // vector or vector view
+   EXPECT_EQ( equalTo( L1, 1 ), all_true );  // right scalar
+   EXPECT_EQ( equalTo( 1, R1 ), all_true );  // left scalar
    EXPECT_EQ( equalTo( L1, RightReal( 1 ) ), all_true );  // right scalar
-   EXPECT_EQ( equalTo( LeftReal( 1 ), R1 ), all_true );   // left scalar
-   EXPECT_EQ( equalTo( L2, R1 + R1 ), all_true );         // right expression
-   EXPECT_EQ( equalTo( L1 + L1, R2 ), all_true );         // left expression
-   EXPECT_EQ( equalTo( L1 + L1, R1 + R1 ), all_true );    // two expressions
+   EXPECT_EQ( equalTo( LeftReal( 1 ), R1 ), all_true );  // left scalar
+   EXPECT_EQ( equalTo( L2, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( equalTo( L1 + L1, R2 ), all_true );  // left expression
+   EXPECT_EQ( equalTo( L1 + L1, R1 + R1 ), all_true );  // two expressions
 #endif
 }
 
@@ -299,14 +299,14 @@ TYPED_TEST( VectorBinaryOperationsTest, NE )
 {
    SETUP_BINARY_TEST_ALIASES;
 
-   EXPECT_NE( L1, R2 );              // vector or vector view
-   EXPECT_NE( L1, 2 );               // right scalar
-   EXPECT_NE( 2, R1 );               // left scalar
+   EXPECT_NE( L1, R2 );  // vector or vector view
+   EXPECT_NE( L1, 2 );  // right scalar
+   EXPECT_NE( 2, R1 );  // left scalar
    EXPECT_NE( L1, RightReal( 2 ) );  // right scalar
-   EXPECT_NE( LeftReal( 2 ), R1 );   // left scalar
-   EXPECT_NE( L1, R1 + R1 );         // right expression
-   EXPECT_NE( L1 + L1, R1 );         // left expression
-   EXPECT_NE( L1 + L1, R2 + R2 );    // two expressions
+   EXPECT_NE( LeftReal( 2 ), R1 );  // left scalar
+   EXPECT_NE( L1, R1 + R1 );  // right expression
+   EXPECT_NE( L1 + L1, R1 );  // left expression
+   EXPECT_NE( L1 + L1, R2 + R2 );  // two expressions
 
 #ifndef STATIC_VECTOR
    // with different sizes
@@ -321,14 +321,14 @@ TYPED_TEST( VectorBinaryOperationsTest, NE )
    all_true = cast< bool >( L1 );
 
    // notEqualTo
-   EXPECT_EQ( notEqualTo( L1, R2 ), all_true );              // vector or vector view
-   EXPECT_EQ( notEqualTo( L1, 2 ), all_true );               // right scalar
-   EXPECT_EQ( notEqualTo( 2, R1 ), all_true );               // left scalar
+   EXPECT_EQ( notEqualTo( L1, R2 ), all_true );  // vector or vector view
+   EXPECT_EQ( notEqualTo( L1, 2 ), all_true );  // right scalar
+   EXPECT_EQ( notEqualTo( 2, R1 ), all_true );  // left scalar
    EXPECT_EQ( notEqualTo( L1, RightReal( 2 ) ), all_true );  // right scalar
-   EXPECT_EQ( notEqualTo( LeftReal( 2 ), R1 ), all_true );   // left scalar
-   EXPECT_EQ( notEqualTo( L1, R1 + R1 ), all_true );         // right expression
-   EXPECT_EQ( notEqualTo( L1 + L1, R1 ), all_true );         // left expression
-   EXPECT_EQ( notEqualTo( L1 + L1, R2 + R2 ), all_true );    // two expressions
+   EXPECT_EQ( notEqualTo( LeftReal( 2 ), R1 ), all_true );  // left scalar
+   EXPECT_EQ( notEqualTo( L1, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( notEqualTo( L1 + L1, R1 ), all_true );  // left expression
+   EXPECT_EQ( notEqualTo( L1 + L1, R2 + R2 ), all_true );  // two expressions
 #endif
 }
 
@@ -341,14 +341,14 @@ TYPED_TEST( VectorBinaryOperationsTest, less )
    typename TestFixture::LeftVector all_true;
    all_true = cast< bool >( L1 );
 
-   EXPECT_EQ( less( L1, R2 ), all_true );              // vector or vector view
-   EXPECT_EQ( less( L1, 2 ), all_true );               // right scalar
-   EXPECT_EQ( less( 1, R2 ), all_true );               // left scalar
+   EXPECT_EQ( less( L1, R2 ), all_true );  // vector or vector view
+   EXPECT_EQ( less( L1, 2 ), all_true );  // right scalar
+   EXPECT_EQ( less( 1, R2 ), all_true );  // left scalar
    EXPECT_EQ( less( L1, RightReal( 2 ) ), all_true );  // right scalar
-   EXPECT_EQ( less( LeftReal( 1 ), R2 ), all_true );   // left scalar
-   EXPECT_EQ( less( L1, R1 + R1 ), all_true );         // right expression
-   EXPECT_EQ( less( L1 - L1, R1 ), all_true );         // left expression
-   EXPECT_EQ( less( L1 - L1, R1 + R1 ), all_true );    // two expressions
+   EXPECT_EQ( less( LeftReal( 1 ), R2 ), all_true );  // left scalar
+   EXPECT_EQ( less( L1, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( less( L1 - L1, R1 ), all_true );  // left expression
+   EXPECT_EQ( less( L1 - L1, R1 + R1 ), all_true );  // two expressions
 }
 #endif
 
@@ -361,14 +361,14 @@ TYPED_TEST( VectorBinaryOperationsTest, greater )
    typename TestFixture::LeftVector all_true;
    all_true = cast< bool >( L1 );
 
-   EXPECT_EQ( greater( L2, R1 ), all_true );              // vector or vector view
-   EXPECT_EQ( greater( L2, 1 ), all_true );               // right scalar
-   EXPECT_EQ( greater( 2, R1 ), all_true );               // left scalar
+   EXPECT_EQ( greater( L2, R1 ), all_true );  // vector or vector view
+   EXPECT_EQ( greater( L2, 1 ), all_true );  // right scalar
+   EXPECT_EQ( greater( 2, R1 ), all_true );  // left scalar
    EXPECT_EQ( greater( L2, RightReal( 1 ) ), all_true );  // right scalar
-   EXPECT_EQ( greater( LeftReal( 2 ), R1 ), all_true );   // left scalar
-   EXPECT_EQ( greater( L1, R1 - R1 ), all_true );         // right expression
-   EXPECT_EQ( greater( L1 + L1, R1 ), all_true );         // left expression
-   EXPECT_EQ( greater( L1 + L1, R1 - R1 ), all_true );    // two expressions
+   EXPECT_EQ( greater( LeftReal( 2 ), R1 ), all_true );  // left scalar
+   EXPECT_EQ( greater( L1, R1 - R1 ), all_true );  // right expression
+   EXPECT_EQ( greater( L1 + L1, R1 ), all_true );  // left expression
+   EXPECT_EQ( greater( L1 + L1, R1 - R1 ), all_true );  // two expressions
 }
 #endif
 
@@ -382,24 +382,24 @@ TYPED_TEST( VectorBinaryOperationsTest, lessEqual )
    all_true = cast< bool >( L1 );
 
    // same as less
-   EXPECT_EQ( lessEqual( L1, R2 ), all_true );              // vector or vector view
-   EXPECT_EQ( lessEqual( L1, 2 ), all_true );               // right scalar
-   EXPECT_EQ( lessEqual( 1, R2 ), all_true );               // left scalar
+   EXPECT_EQ( lessEqual( L1, R2 ), all_true );  // vector or vector view
+   EXPECT_EQ( lessEqual( L1, 2 ), all_true );  // right scalar
+   EXPECT_EQ( lessEqual( 1, R2 ), all_true );  // left scalar
    EXPECT_EQ( lessEqual( L1, RightReal( 2 ) ), all_true );  // right scalar
-   EXPECT_EQ( lessEqual( LeftReal( 1 ), R2 ), all_true );   // left scalar
-   EXPECT_EQ( lessEqual( L1, R1 + R1 ), all_true );         // right expression
-   EXPECT_EQ( lessEqual( L1 - L1, R1 ), all_true );         // left expression
-   EXPECT_EQ( lessEqual( L1 - L1, R1 + R1 ), all_true );    // two expressions
+   EXPECT_EQ( lessEqual( LeftReal( 1 ), R2 ), all_true );  // left scalar
+   EXPECT_EQ( lessEqual( L1, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( lessEqual( L1 - L1, R1 ), all_true );  // left expression
+   EXPECT_EQ( lessEqual( L1 - L1, R1 + R1 ), all_true );  // two expressions
 
    // same as equalTo
-   EXPECT_EQ( lessEqual( L1, R1 ), all_true );              // vector or vector view
-   EXPECT_EQ( lessEqual( L1, 1 ), all_true );               // right scalar
-   EXPECT_EQ( lessEqual( 1, R1 ), all_true );               // left scalar
+   EXPECT_EQ( lessEqual( L1, R1 ), all_true );  // vector or vector view
+   EXPECT_EQ( lessEqual( L1, 1 ), all_true );  // right scalar
+   EXPECT_EQ( lessEqual( 1, R1 ), all_true );  // left scalar
    EXPECT_EQ( lessEqual( L1, RightReal( 1 ) ), all_true );  // right scalar
-   EXPECT_EQ( lessEqual( LeftReal( 1 ), R1 ), all_true );   // left scalar
-   EXPECT_EQ( lessEqual( L2, R1 + R1 ), all_true );         // right expression
-   EXPECT_EQ( lessEqual( L1 + L1, R2 ), all_true );         // left expression
-   EXPECT_EQ( lessEqual( L1 + L1, R1 + R1 ), all_true );    // two expressions
+   EXPECT_EQ( lessEqual( LeftReal( 1 ), R1 ), all_true );  // left scalar
+   EXPECT_EQ( lessEqual( L2, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( lessEqual( L1 + L1, R2 ), all_true );  // left expression
+   EXPECT_EQ( lessEqual( L1 + L1, R1 + R1 ), all_true );  // two expressions
 }
 #endif
 
@@ -413,24 +413,24 @@ TYPED_TEST( VectorBinaryOperationsTest, greaterEqual )
    all_true = cast< bool >( L1 );
 
    // same as greater
-   EXPECT_EQ( greaterEqual( L2, R1 ), all_true );              // vector or vector view
-   EXPECT_EQ( greaterEqual( L2, 1 ), all_true );               // right scalar
-   EXPECT_EQ( greaterEqual( 2, R1 ), all_true );               // left scalar
+   EXPECT_EQ( greaterEqual( L2, R1 ), all_true );  // vector or vector view
+   EXPECT_EQ( greaterEqual( L2, 1 ), all_true );  // right scalar
+   EXPECT_EQ( greaterEqual( 2, R1 ), all_true );  // left scalar
    EXPECT_EQ( greaterEqual( L2, RightReal( 1 ) ), all_true );  // right scalar
-   EXPECT_EQ( greaterEqual( LeftReal( 2 ), R1 ), all_true );   // left scalar
-   EXPECT_EQ( greaterEqual( L1, R1 - R1 ), all_true );         // right expression
-   EXPECT_EQ( greaterEqual( L1 + L1, R1 ), all_true );         // left expression
-   EXPECT_EQ( greaterEqual( L1 + L1, R1 - R1 ), all_true );    // two expressions
+   EXPECT_EQ( greaterEqual( LeftReal( 2 ), R1 ), all_true );  // left scalar
+   EXPECT_EQ( greaterEqual( L1, R1 - R1 ), all_true );  // right expression
+   EXPECT_EQ( greaterEqual( L1 + L1, R1 ), all_true );  // left expression
+   EXPECT_EQ( greaterEqual( L1 + L1, R1 - R1 ), all_true );  // two expressions
 
    // same as equalTo
-   EXPECT_EQ( greaterEqual( L1, R1 ), all_true );              // vector or vector view
-   EXPECT_EQ( greaterEqual( L1, 1 ), all_true );               // right scalar
-   EXPECT_EQ( greaterEqual( 1, R1 ), all_true );               // left scalar
+   EXPECT_EQ( greaterEqual( L1, R1 ), all_true );  // vector or vector view
+   EXPECT_EQ( greaterEqual( L1, 1 ), all_true );  // right scalar
+   EXPECT_EQ( greaterEqual( 1, R1 ), all_true );  // left scalar
    EXPECT_EQ( greaterEqual( L1, RightReal( 1 ) ), all_true );  // right scalar
-   EXPECT_EQ( greaterEqual( LeftReal( 1 ), R1 ), all_true );   // left scalar
-   EXPECT_EQ( greaterEqual( L2, R1 + R1 ), all_true );         // right expression
-   EXPECT_EQ( greaterEqual( L1 + L1, R2 ), all_true );         // left expression
-   EXPECT_EQ( greaterEqual( L1 + L1, R1 + R1 ), all_true );    // two expressions
+   EXPECT_EQ( greaterEqual( LeftReal( 1 ), R1 ), all_true );  // left scalar
+   EXPECT_EQ( greaterEqual( L2, R1 + R1 ), all_true );  // right expression
+   EXPECT_EQ( greaterEqual( L1 + L1, R2 ), all_true );  // left expression
+   EXPECT_EQ( greaterEqual( L1 + L1, R1 + R1 ), all_true );  // two expressions
 }
 #endif
 
@@ -834,7 +834,7 @@ TYPED_TEST( VectorBinaryOperationsTest, lexicographicComparison )
    EXPECT_LE( R, L );
 }
 
-#if( defined( __CUDACC__ ) || defined( __HIP__ ) ) && ! defined( STATIC_VECTOR )
+#if ( defined( __CUDACC__ ) || defined( __HIP__ ) ) && ! defined( STATIC_VECTOR )
 TYPED_TEST( VectorBinaryOperationsTest, comparisonOnDifferentDevices )
 {
    SETUP_BINARY_TEST_ALIASES;

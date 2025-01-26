@@ -69,7 +69,9 @@ public:
    /**
     * \brief Constructor of empty pointer.
     */
-   UniquePointer( std::nullptr_t ) : pointer( nullptr ) {}
+   UniquePointer( std::nullptr_t )
+   : pointer( nullptr )
+   {}
 
    /**
     * \brief Constructor with parameters of the Object constructor.
@@ -303,7 +305,10 @@ public:
    /**
     * \brief Constructor of empty pointer.
     */
-   UniquePointer( std::nullptr_t ) : pd( nullptr ), cuda_pointer( nullptr ) {}
+   UniquePointer( std::nullptr_t )
+   : pd( nullptr ),
+     cuda_pointer( nullptr )
+   {}
 
    /**
     * \brief Constructor with parameters of the Object constructor.
@@ -312,7 +317,9 @@ public:
     * \tparam args are arguments passed to the Object constructor.
     */
    template< typename... Args >
-   explicit UniquePointer( const Args... args ) : pd( nullptr ), cuda_pointer( nullptr )
+   explicit UniquePointer( const Args... args )
+   : pd( nullptr ),
+     cuda_pointer( nullptr )
    {
       this->allocate( args... );
    }
@@ -324,7 +331,9 @@ public:
     * \param list is the instance of the initializer list..
     */
    template< typename Value >
-   explicit UniquePointer( std::initializer_list< Value > list ) : pd( nullptr ), cuda_pointer( nullptr )
+   explicit UniquePointer( std::initializer_list< Value > list )
+   : pd( nullptr ),
+     cuda_pointer( nullptr )
    {
       this->allocate( list );
    }
@@ -337,7 +346,8 @@ public:
     */
    template< typename Value >
    explicit UniquePointer( std::initializer_list< std::initializer_list< Value > > list )
-   : pd( nullptr ), cuda_pointer( nullptr )
+   : pd( nullptr ),
+     cuda_pointer( nullptr )
    {
       this->allocate( list );
    }
@@ -540,7 +550,8 @@ protected:
       bool maybe_modified = true;
 
       template< typename... Args >
-      explicit PointerData( Args... args ) : data( args... )
+      explicit PointerData( Args... args )
+      : data( args... )
       {}
    };
 

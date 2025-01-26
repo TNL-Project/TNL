@@ -13,7 +13,8 @@ namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::BiEllpack( const BiEllpack& segments )
-: segmentsPermutation( segments.segmentsPermutation ), groupPointers( segments.groupPointers )
+: segmentsPermutation( segments.segmentsPermutation ),
+  groupPointers( segments.groupPointers )
 {
    // update the base
    Base::bind(

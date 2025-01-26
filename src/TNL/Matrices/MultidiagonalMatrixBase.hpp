@@ -31,8 +31,10 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::MultidiagonalMatri
    DiagonalOffsetsView diagonalOffsets,
    HostDiagonalOffsetsView hostDiagonalOffsets,
    IndexerType indexer )
-: Base( indexer.getRows(), indexer.getColumns(), std::move( values ) ), diagonalOffsets( std::move( diagonalOffsets ) ),
-  hostDiagonalOffsets( std::move( hostDiagonalOffsets ) ), indexer( std::move( indexer ) )
+: Base( indexer.getRows(), indexer.getColumns(), std::move( values ) ),
+  diagonalOffsets( std::move( diagonalOffsets ) ),
+  hostDiagonalOffsets( std::move( hostDiagonalOffsets ) ),
+  indexer( std::move( indexer ) )
 {}
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -71,7 +73,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::getCompressedRowLe
    auto rowLengths_view = rowLengths.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType
    {
-      return ( value != 0.0 );
+      return value != 0.0;
    };
    auto reduce = [] __cuda_callable__( IndexType & aux, IndexType a )
    {
@@ -91,7 +93,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::getNonzeroElements
    const auto values_view = this->values.getConstView();
    auto fetch = [ = ] __cuda_callable__( IndexType i ) -> IndexType
    {
-      return ( values_view[ i ] != 0.0 );
+      return values_view[ i ] != 0.0;
    };
    return Algorithms::reduce< DeviceType >( (IndexType) 0, this->values.getSize(), fetch, std::plus<>{}, 0 );
 }

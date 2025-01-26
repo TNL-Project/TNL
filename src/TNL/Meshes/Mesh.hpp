@@ -27,7 +27,8 @@ MeshInitializableBase< MeshConfig, Device, MeshType >::init( typename MeshTraits
 template< typename MeshConfig, typename Device >
 template< typename Device_ >
 Mesh< MeshConfig, Device >::Mesh( const Mesh< MeshConfig, Device_ >& mesh )
-: StorageBaseType( mesh ), EntityTagsLayerFamily( mesh )
+: StorageBaseType( mesh ),
+  EntityTagsLayerFamily( mesh )
 {
    points = mesh.getPoints();
 }

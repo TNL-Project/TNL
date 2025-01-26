@@ -43,7 +43,7 @@ createMultidiagonalMatrix()
       {  0, -1,  4, -1, -1 },
       { -1, -1,  4, -1,  0 },
       { -1, -1,  4, -1,  0 },
-      { -1, -1,  4,  0,  0 }
+      { -1, -1,  4,  0,  0 },
       // clang-format on
    } );
    std::cout << "The matrix reads as: " << std::endl << matrix << std::endl;

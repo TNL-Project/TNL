@@ -16,7 +16,8 @@ DistributedArray< Value, Device, Index, Allocator >::~DistributedArray()
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-DistributedArray< Value, Device, Index, Allocator >::DistributedArray( const Allocator& allocator ) : localData( allocator )
+DistributedArray< Value, Device, Index, Allocator >::DistributedArray( const Allocator& allocator )
+: localData( allocator )
 {}
 
 template< typename Value, typename Device, typename Index, typename Allocator >

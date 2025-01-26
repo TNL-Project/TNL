@@ -635,8 +635,8 @@ TEST( CutDistributedMeshFunction, 3D_2_Save )
             fromEntity.refresh();
             outEntity.refresh();
 
-            EXPECT_EQ( loadMeshFunctionptr.getValue( outEntity ), ( *linearFunctionPtr )( fromEntity ) )
-               << "Error at " << i << " " << j;
+            EXPECT_EQ( loadMeshFunctionptr.getValue( outEntity ), ( *linearFunctionPtr )( fromEntity ) ) << "Error at " << i << " "
+               << j;
          }
 
       EXPECT_EQ( std::remove( TEST_FILE_NAME ), 0 );

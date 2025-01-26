@@ -11,8 +11,10 @@ namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::ChunkedEllpack( const ChunkedEllpack& segments )
-: segmentToChunkMapping( segments.segmentToChunkMapping ), segmentToSliceMapping( segments.segmentToSliceMapping ),
-  chunksToSegmentsMapping( segments.chunksToSegmentsMapping ), segmentPointers( segments.segmentPointers ),
+: segmentToChunkMapping( segments.segmentToChunkMapping ),
+  segmentToSliceMapping( segments.segmentToSliceMapping ),
+  chunksToSegmentsMapping( segments.chunksToSegmentsMapping ),
+  segmentPointers( segments.segmentPointers ),
   slices( segments.slices )
 {
    // update the base

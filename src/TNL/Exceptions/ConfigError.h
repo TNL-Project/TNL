@@ -9,7 +9,9 @@ namespace TNL::Exceptions {
 
 struct ConfigError : public std::runtime_error
 {
-   ConfigError( const std::string& msg ) : std::runtime_error( msg ) {}
+   ConfigError( const std::string& msg )
+   : std::runtime_error( msg )
+   {}
 };
 
 }  // namespace TNL::Exceptions

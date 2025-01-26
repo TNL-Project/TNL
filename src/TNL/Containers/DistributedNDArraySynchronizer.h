@@ -71,8 +71,12 @@ public:
    // BS::thread_pool_light is not move-constructible (due to std::atomic), so we need
    // custom move-constructor that skips moving tp
    DistributedNDArraySynchronizer( DistributedNDArraySynchronizer&& other ) noexcept
-   : tp( other.tp.get_thread_count() ), gpu_id( std::move( other.gpu_id ) ), tag_offset( std::move( other.tag_offset ) ),
-     array_view( std::move( other.array_view ) ), mask( std::move( other.mask ) ), buffers( std::move( other.buffers ) ),
+   : tp( other.tp.get_thread_count() ),
+     gpu_id( std::move( other.gpu_id ) ),
+     tag_offset( std::move( other.tag_offset ) ),
+     array_view( std::move( other.array_view ) ),
+     mask( std::move( other.mask ) ),
+     buffers( std::move( other.buffers ) ),
      requests( std::move( other.requests ) )
    {}
 

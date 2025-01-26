@@ -528,7 +528,7 @@ template< typename Real >
 constexpr bool
 isSmall( const Real& v, const Real& tolerance = 1.0e-5 )
 {
-   return ( -tolerance <= v && v <= tolerance );
+   return -tolerance <= v && v <= tolerance;
 }
 
 }  // namespace TNL

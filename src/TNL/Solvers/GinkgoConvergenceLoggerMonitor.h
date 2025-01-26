@@ -24,12 +24,14 @@ public:
    GinkgoConvergenceLoggerMonitor( std::shared_ptr< const gko::Executor > exec,
                                    const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
                                    IterativeSolverMonitor< ValueType, IndexType >* solver_monitor = nullptr )
-   : gko::log::Convergence< ValueType >( exec, enabled_events ), solver_monitor( solver_monitor )
+   : gko::log::Convergence< ValueType >( exec, enabled_events ),
+     solver_monitor( solver_monitor )
    {}
 
    GinkgoConvergenceLoggerMonitor( const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
                                    IterativeSolverMonitor< ValueType, IndexType >* solver_monitor = nullptr )
-   : gko::log::Convergence< ValueType >( enabled_events ), solver_monitor( solver_monitor )
+   : gko::log::Convergence< ValueType >( enabled_events ),
+     solver_monitor( solver_monitor )
    {}
 
    static std::unique_ptr< GinkgoConvergenceLoggerMonitor >

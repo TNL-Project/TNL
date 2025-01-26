@@ -24,19 +24,29 @@ public:
    }
 
    __cuda_callable__
-   MultidiagonalMatrixIndexer() : rows( 0 ), columns( 0 ), nonemptyRows( 0 ) {}
+   MultidiagonalMatrixIndexer()
+   : rows( 0 ),
+     columns( 0 ),
+     nonemptyRows( 0 )
+   {}
 
    __cuda_callable__
    MultidiagonalMatrixIndexer( const IndexType& rows,
                                const IndexType& columns,
                                const IndexType& diagonals,
                                const IndexType& nonemptyRows )
-   : rows( rows ), columns( columns ), diagonals( diagonals ), nonemptyRows( nonemptyRows )
+   : rows( rows ),
+     columns( columns ),
+     diagonals( diagonals ),
+     nonemptyRows( nonemptyRows )
    {}
 
    __cuda_callable__
    MultidiagonalMatrixIndexer( const MultidiagonalMatrixIndexer& indexer )
-   : rows( indexer.rows ), columns( indexer.columns ), diagonals( indexer.diagonals ), nonemptyRows( indexer.nonemptyRows )
+   : rows( indexer.rows ),
+     columns( indexer.columns ),
+     diagonals( indexer.diagonals ),
+     nonemptyRows( indexer.nonemptyRows )
    {}
 
    void

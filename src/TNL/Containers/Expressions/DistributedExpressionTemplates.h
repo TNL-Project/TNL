@@ -59,7 +59,9 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
    static_assert( std::is_same_v< typename T1::DeviceType, typename T2::DeviceType >,
                   "Attempt to mix operands which have different DeviceType." );
 
-   DistributedBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b )
+   DistributedBinaryExpressionTemplate( const T1& a, const T2& b )
+   : op1( a ),
+     op2( b )
    {
       if( op1.getSize() != op2.getSize() )
          throw std::logic_error( "Attempt to mix operands with different sizes." );
@@ -161,7 +163,10 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
                   "Invalid operand in distributed binary expression templates - distributed expression templates are not "
                   "enabled for the left operand." );
 
-   DistributedBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b ) {}
+   DistributedBinaryExpressionTemplate( const T1& a, const T2& b )
+   : op1( a ),
+     op2( b )
+   {}
 
    [[nodiscard]] RealType
    getElement( const IndexType i ) const
@@ -252,7 +257,10 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, ArithmeticVariabl
                   "Invalid operand in distributed binary expression templates - distributed expression templates are not "
                   "enabled for the right operand." );
 
-   DistributedBinaryExpressionTemplate( const T1& a, const T2& b ) : op1( a ), op2( b ) {}
+   DistributedBinaryExpressionTemplate( const T1& a, const T2& b )
+   : op1( a ),
+     op2( b )
+   {}
 
    [[nodiscard]] RealType
    getElement( const IndexType i ) const
@@ -347,7 +355,9 @@ struct DistributedUnaryExpressionTemplate
 
    // the constructor is explicit to prevent issues with the ternary operator,
    // see https://gitlab.com/tnl-project/tnl/-/issues/140
-   explicit DistributedUnaryExpressionTemplate( const T1& a ) : operand( a ) {}
+   explicit DistributedUnaryExpressionTemplate( const T1& a )
+   : operand( a )
+   {}
 
    [[nodiscard]] RealType
    getElement( const IndexType i ) const
@@ -523,7 +533,7 @@ template< typename ET1, typename ET2, typename..., EnableIfDistributedBinaryExpr
 auto
 dot( const ET1& a, const ET2& b )
 {
-   return ( a, b );
+   return a, b;
 }
 
 ////
@@ -929,7 +939,7 @@ evaluateAndReduce( Vector& lhs,
    RealType* lhs_data = lhs.getData();
    auto fetch = [ = ] __cuda_callable__( IndexType i ) -> RealType
    {
-      return ( lhs_data[ i ] = expression[ i ] );
+      return lhs_data[ i ] = expression[ i ];
    };
    return Algorithms::reduce< DeviceType >( lhs.getSize(), fetch, reduction, zero );
 }
@@ -948,7 +958,7 @@ evaluateAndReduce( Vector& lhs,
    RealType* lhs_data = lhs.getData();
    auto fetch = [ = ] __cuda_callable__( IndexType i ) -> RealType
    {
-      return ( lhs_data[ i ] = expression[ i ] );
+      return lhs_data[ i ] = expression[ i ];
    };
    return Algorithms::reduce< DeviceType >( lhs.getSize(), fetch, reduction, zero );
 }

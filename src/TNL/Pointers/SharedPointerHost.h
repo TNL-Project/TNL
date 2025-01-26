@@ -53,7 +53,9 @@ public:
    /**
     * \brief Constructor of an empty pointer.
     */
-   SharedPointer( std::nullptr_t ) : pd( nullptr ) {}
+   SharedPointer( std::nullptr_t )
+   : pd( nullptr )
+   {}
 
    /**
     * \brief Constructor with parameters of the Object constructor.
@@ -62,7 +64,8 @@ public:
     * \param args are arguments passed to the Object constructor.
     */
    template< typename... Args >
-   explicit SharedPointer( Args... args ) : pd( nullptr )
+   explicit SharedPointer( Args... args )
+   : pd( nullptr )
    {
 #ifdef TNL_DEBUG_SHARED_POINTERS
       std::cerr << "Creating shared pointer to " << getType< ObjectType >() << std::endl;
@@ -77,7 +80,8 @@ public:
     * \param list is the instance of the initializer list..
     */
    template< typename Value >
-   explicit SharedPointer( std::initializer_list< Value > list ) : pd( nullptr )
+   explicit SharedPointer( std::initializer_list< Value > list )
+   : pd( nullptr )
    {
 #ifdef TNL_DEBUG_SHARED_POINTERS
       std::cerr << "Creating shared pointer to " << getType< ObjectType >() << std::endl;
@@ -92,7 +96,8 @@ public:
     * \param list is the instance of the nested initializer list..
     */
    template< typename Value >
-   explicit SharedPointer( std::initializer_list< std::initializer_list< Value > > list ) : pd( nullptr )
+   explicit SharedPointer( std::initializer_list< std::initializer_list< Value > > list )
+   : pd( nullptr )
    {
 #ifdef TNL_DEBUG_SHARED_POINTERS
       std::cerr << "Creating shared pointer to " << getType< ObjectType >() << std::endl;
@@ -165,7 +170,7 @@ public:
 #ifdef TNL_DEBUG_SHARED_POINTERS
       std::cerr << "Recreating shared pointer to " << getType< ObjectType >() << std::endl;
 #endif
-      if( ! this->counter )
+      if( ! this->pd->counter )
          return this->allocate( args... );
 
       if( *this->pd->counter == 1 ) {
@@ -410,7 +415,8 @@ protected:
       int counter = 1;
 
       template< typename... Args >
-      explicit PointerData( Args... args ) : data( args... )
+      explicit PointerData( Args... args )
+      : data( args... )
       {}
    };
 

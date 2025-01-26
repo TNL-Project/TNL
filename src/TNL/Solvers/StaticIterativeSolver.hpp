@@ -28,10 +28,6 @@ StaticIterativeSolver< Real, Index >::configSetup( Config::ConfigDescription& co
    // TODO: setting refresh rate should be done in SolverStarter::setup (it's not a parameter of the IterativeSolver)
    if( config.getEntry( prefix + "refresh-rate" ) == nullptr )
       config.addEntry< int >( prefix + "refresh-rate", "Number of milliseconds between solver monitor refreshes.", 500 );
-
-   if( config.getEntry( prefix + "residual-history-file" ) == nullptr )
-      config.addEntry< std::string >(
-         prefix + "residual-history-file", "Path to the file where the residual history will be saved.", "" );
 }
 
 template< typename Real, typename Index >
@@ -46,14 +42,6 @@ StaticIterativeSolver< Real, Index >::setup( const Config::ParameterContainer& p
       this->setConvergenceResidue( parameters.getParameter< double >( prefix + "convergence-residue" ) );
    if( parameters.checkParameter( prefix + "divergence-residue" ) )
       this->setDivergenceResidue( parameters.getParameter< double >( prefix + "divergence-residue" ) );
-   // TODO: setting refresh rate should be done in SolverStarter::setup (it's not a parameter of the IterativeSolver)
-   if( parameters.checkParameter( prefix + "refresh-rate" ) )
-      this->setRefreshRate( parameters.getParameter< int >( prefix + "refresh-rate" ) );
-   if( parameters.checkParameter( prefix + "residual-history-file" ) ) {
-      this->residualHistoryFileName = parameters.getParameter< std::string >( prefix + "residual-history-file" );
-      if( this->residualHistoryFileName )
-         this->residualHistoryFile.open( this->residualHistoryFileName.getString() );
-   }
    return true;
 }
 
@@ -129,7 +117,7 @@ StaticIterativeSolver< Real, Index >::checkConvergence()
       // std::cerr << std::endl << "The residue is NaN." << std::endl;
       return false;
    }
-   if( ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() > this->minIterations ) ) {
+   if( this->getResidue() > this->getDivergenceResidue() && this->getIterations() > this->minIterations ) {
       // std::cerr << std::endl  << "The residue has exceeded allowed tolerance " << this->getDivergenceResidue() << "." <<
       // std::endl;
       return false;

@@ -136,7 +136,7 @@ protected:
    bool
    operator==( const SubentityStorageLayer& layer ) const
    {
-      return ( BaseType::operator==( layer ) && matrix == layer.matrix );
+      return BaseType::operator==( layer ) && matrix == layer.matrix;
    }
 
    using BaseType::setSubentitiesCounts;
@@ -259,7 +259,7 @@ protected:
    bool
    operator==( const SubentityStorageLayer& layer ) const
    {
-      return ( BaseType::operator==( layer ) && subentitiesCounts == layer.subentitiesCounts && matrix == layer.matrix );
+      return BaseType::operator==( layer ) && subentitiesCounts == layer.subentitiesCounts && matrix == layer.matrix;
    }
 
    using BaseType::setSubentitiesCounts;
@@ -373,7 +373,7 @@ protected:
    bool
    operator==( const SubentityStorageLayer& layer ) const
    {
-      return ( BaseType::operator==( layer ) && subentitiesCounts == layer.subentitiesCounts && matrix == layer.matrix );
+      return BaseType::operator==( layer ) && subentitiesCounts == layer.subentitiesCounts && matrix == layer.matrix;
    }
 
    using BaseType::setSubentitiesCounts;
@@ -494,7 +494,7 @@ protected:
    bool
    operator==( const SubentityStorageLayer& layer ) const
    {
-      return ( BaseType::operator==( layer ) && matrix == layer.matrix );
+      return BaseType::operator==( layer ) && matrix == layer.matrix;
    }
 
    using BaseType::setSubentitiesCounts;

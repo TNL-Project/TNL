@@ -16,7 +16,9 @@ class FPMAReader : public MeshReader
 public:
    FPMAReader() = default;
 
-   FPMAReader( const std::string& fileName ) : MeshReader( fileName ) {}
+   FPMAReader( const std::string& fileName )
+   : MeshReader( fileName )
+   {}
 
    void
    detectMesh() override

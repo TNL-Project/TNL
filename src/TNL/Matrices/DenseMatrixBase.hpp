@@ -163,7 +163,8 @@ __cuda_callable__
 DenseMatrixBase< Real, Device, Index, Organization >::DenseMatrixBase( IndexType rows,
                                                                        IndexType columns,
                                                                        typename Base::ValuesViewType values )
-: Base( rows, columns, std::move( values ) ), segments( rows, columns )
+: Base( rows, columns, std::move( values ) ),
+  segments( rows, columns )
 {}
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -184,7 +185,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::getCompressedRowLengths( V
    auto rowLengths_view = rowLengths.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType
    {
-      return ( value != 0.0 );
+      return value != 0.0;
    };
    auto keep = [ = ] __cuda_callable__( IndexType rowIdx, IndexType value ) mutable
    {
@@ -605,8 +606,8 @@ bool
 DenseMatrixBase< Real, Device, Index, Organization >::operator==(
    const DenseMatrixBase< Real_, Device_, Index_, Organization >& matrix ) const
 {
-   return ( this->getRows() == matrix.getRows() && this->getColumns() == matrix.getColumns()
-            && this->getValues() == matrix.getValues() );
+   return this->getRows() == matrix.getRows() && this->getColumns() == matrix.getColumns()
+       && this->getValues() == matrix.getValues();
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

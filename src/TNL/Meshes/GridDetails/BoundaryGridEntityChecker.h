@@ -29,7 +29,7 @@ public:
    static bool
    isBoundaryEntity( const Entity& entity )
    {
-      return ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1 );
+      return entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1;
    }
 };
 
@@ -43,7 +43,7 @@ public:
    static bool
    isBoundaryEntity( const Entity& entity )
    {
-      return ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() );
+      return entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x();
    }
 };
 
@@ -60,9 +60,9 @@ public:
    static bool
    isBoundaryEntity( const Entity& entity )
    {
-      return ( entity.getCoordinates().x() == 0 || entity.getCoordinates().y() == 0
-               || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1
-               || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1 );
+      return entity.getCoordinates().x() == 0 || entity.getCoordinates().y() == 0
+          || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1
+          || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1;
    }
 };
 
@@ -76,12 +76,10 @@ public:
    static bool
    isBoundaryEntity( const Entity& entity )
    {
-      return (
-         ( entity.getNormals().x()
-           && ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() ) )
-         || ( entity.getNormals().y()
-              && ( entity.getCoordinates().y() == 0
-                   || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() ) ) );
+      return ( entity.getNormals().x()
+               && ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() ) )
+          || ( entity.getNormals().y()
+               && ( entity.getCoordinates().y() == 0 || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() ) );
    }
 };
 
@@ -113,10 +111,10 @@ public:
    static bool
    isBoundaryEntity( const Entity& entity )
    {
-      return ( entity.getCoordinates().x() == 0 || entity.getCoordinates().y() == 0 || entity.getCoordinates().z() == 0
-               || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1
-               || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1
-               || entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1 );
+      return entity.getCoordinates().x() == 0 || entity.getCoordinates().y() == 0 || entity.getCoordinates().z() == 0
+          || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() - 1
+          || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() - 1
+          || entity.getCoordinates().z() == entity.getMesh().getDimensions().z() - 1;
    }
 };
 
@@ -130,14 +128,12 @@ public:
    static bool
    isBoundaryEntity( const Entity& entity )
    {
-      return (
-         ( entity.getNormals().x()
-           && ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() ) )
-         || ( entity.getNormals().y()
-              && ( entity.getCoordinates().y() == 0 || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() ) )
-         || ( entity.getNormals().z()
-              && ( entity.getCoordinates().z() == 0
-                   || entity.getCoordinates().z() == entity.getMesh().getDimensions().z() ) ) );
+      return ( entity.getNormals().x()
+               && ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() ) )
+          || ( entity.getNormals().y()
+               && ( entity.getCoordinates().y() == 0 || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() ) )
+          || ( entity.getNormals().z()
+               && ( entity.getCoordinates().z() == 0 || entity.getCoordinates().z() == entity.getMesh().getDimensions().z() ) );
    }
 };
 
@@ -151,14 +147,12 @@ public:
    static bool
    isBoundaryEntity( const Entity& entity )
    {
-      return (
-         ( entity.getNormals().x()
-           && ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() ) )
-         || ( entity.getNormals().y()
-              && ( entity.getCoordinates().y() == 0 || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() ) )
-         || ( entity.getNormals().z()
-              && ( entity.getCoordinates().z() == 0
-                   || entity.getCoordinates().z() == entity.getMesh().getDimensions().z() ) ) );
+      return ( entity.getNormals().x()
+               && ( entity.getCoordinates().x() == 0 || entity.getCoordinates().x() == entity.getMesh().getDimensions().x() ) )
+          || ( entity.getNormals().y()
+               && ( entity.getCoordinates().y() == 0 || entity.getCoordinates().y() == entity.getMesh().getDimensions().y() ) )
+          || ( entity.getNormals().z()
+               && ( entity.getCoordinates().z() == 0 || entity.getCoordinates().z() == entity.getMesh().getDimensions().z() ) );
    }
 };
 

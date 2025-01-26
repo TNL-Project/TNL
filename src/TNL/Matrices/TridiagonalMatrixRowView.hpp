@@ -12,7 +12,9 @@ __cuda_callable__
 TridiagonalMatrixRowView< ValuesView, Indexer >::TridiagonalMatrixRowView( const IndexType rowIdx,
                                                                            const ValuesViewType& values,
                                                                            const IndexerType& indexer )
-: rowIdx( rowIdx ), values( values ), indexer( indexer )
+: rowIdx( rowIdx ),
+  values( values ),
+  indexer( indexer )
 {}
 
 template< typename ValuesView, typename Indexer >

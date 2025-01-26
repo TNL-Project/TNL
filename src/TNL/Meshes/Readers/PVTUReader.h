@@ -97,7 +97,8 @@ public:
    PVTUReader() = default;
 
    PVTUReader( const std::string& fileName, MPI::Comm communicator = MPI_COMM_WORLD )
-   : XMLVTK( fileName ), communicator( std::move( communicator ) )
+   : XMLVTK( fileName ),
+     communicator( std::move( communicator ) )
    {}
 
    void

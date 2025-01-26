@@ -217,27 +217,6 @@ public:
    ValuesViewType&
    getValues();
 
-   /**
-    * \brief Comparison operator with another arbitrary matrix view type.
-    *
-    * \param matrix is the right-hand side matrix.
-    * \return \e true if the RHS matrix is equal, \e false otherwise.
-    */
-   template< typename Matrix >
-   [[nodiscard]] bool
-   operator==( const Matrix& matrix ) const;
-
-   /**
-    * \brief Comparison operator with another arbitrary matrix view type.
-    *
-    * \param matrix is the right-hand side matrix.
-    * \return \e true if the RHS matrix is equal, \e false otherwise.
-    */
-
-   template< typename Matrix >
-   [[nodiscard]] bool
-   operator!=( const Matrix& matrix ) const;
-
 protected:
    IndexType rows = 0;
    IndexType columns = 0;

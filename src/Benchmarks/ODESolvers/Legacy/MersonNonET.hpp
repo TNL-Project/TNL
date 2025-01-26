@@ -62,7 +62,8 @@ updateUMersonNonET( const Index size,
                     Real* blockResidue );
 
 template< typename Vector, typename SolverMonitor >
-MersonNonET< Vector, SolverMonitor >::MersonNonET() : adaptivity( 0.00001 )
+MersonNonET< Vector, SolverMonitor >::MersonNonET()
+: adaptivity( 0.00001 )
 {
    if( std::is_same< DeviceType, Devices::Host >::value ) {
       this->openMPErrorEstimateBuffer.setSize( std::max( 1, Devices::Host::getMaxThreadsCount() ) );

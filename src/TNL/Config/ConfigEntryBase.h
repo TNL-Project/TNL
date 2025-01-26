@@ -19,7 +19,9 @@ protected:
 
 public:
    ConfigEntryBase( std::string name, std::string description, bool required )
-   : name( std::move( name ) ), description( std::move( description ) ), required( required )
+   : name( std::move( name ) ),
+     description( std::move( description ) ),
+     required( required )
    {}
 
    [[nodiscard]] const std::string&

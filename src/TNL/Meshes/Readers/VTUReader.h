@@ -240,7 +240,9 @@ class VTUReader : public XMLVTK
 public:
    VTUReader() = default;
 
-   VTUReader( const std::string& fileName ) : XMLVTK( fileName ) {}
+   VTUReader( const std::string& fileName )
+   : XMLVTK( fileName )
+   {}
 
    void
    detectMesh() override

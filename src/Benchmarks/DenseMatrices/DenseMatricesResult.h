@@ -26,7 +26,8 @@ struct DenseMatricesResult : public BenchmarkResult
    using typename BenchmarkResult::RowElements;
 
    DenseMatricesResult( const HostMatrix& referenceResult, const std::vector< BenchmarkMatrix >& benchmarkResults )
-   : referenceResult( referenceResult ), benchmarkResults( benchmarkResults )
+   : referenceResult( referenceResult ),
+     benchmarkResults( benchmarkResults )
    {}
 
    virtual HeaderElements

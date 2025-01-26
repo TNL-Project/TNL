@@ -15,7 +15,9 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::SparseMatrix
    const SegmentViewType& segmentView,
    const ValuesViewType& values,
    const ColumnsIndexesViewType& columnIndexes )
-: segmentView( segmentView ), values( values ), columnIndexes( columnIndexes )
+: segmentView( segmentView ),
+  values( values ),
+  columnIndexes( columnIndexes )
 {}
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
