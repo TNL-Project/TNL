@@ -24,8 +24,8 @@ struct SegmentsOperations< CSRView< Device, Index > >
    forElementsSequential( const ConstViewType& segments,
                           IndexBegin begin,
                           IndexEnd end,
-                          const LaunchConfiguration& launchConfig,
-                          Function&& function )
+                          Function&& function,
+                          const LaunchConfiguration& launchConfig )
    {
       const auto offsetsView = segments.getOffsets();
       // TODO: if constexpr could be just inside the lambda function l when nvcc allolws it
@@ -59,8 +59,8 @@ struct SegmentsOperations< CSRView< Device, Index > >
    forElements( const ConstViewType& segments,
                 IndexBegin begin,
                 IndexEnd end,
-                LaunchConfiguration launchConfig,
-                Function&& function )
+                Function&& function,
+                LaunchConfiguration launchConfig )
    {
       if( end <= begin )
          return;
@@ -69,7 +69,7 @@ struct SegmentsOperations< CSRView< Device, Index > >
 
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() != ThreadsToSegmentsMapping::ThreadPerSegment )
-            forElementsSequential( segments, begin, end, launchConfig, std::forward< Function >( function ) );
+            forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             const Index segmentsCount = end - begin;
             std::size_t threadsCount = segmentsCount;
@@ -103,7 +103,7 @@ struct SegmentsOperations< CSRView< Device, Index > >
          }
       }
       else {
-         forElementsSequential( segments, begin, end, launchConfig, std::forward< Function >( function ) );
+         forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
       }
    }
 
@@ -113,8 +113,8 @@ struct SegmentsOperations< CSRView< Device, Index > >
                           const Array& segmentIndexes,
                           IndexBegin begin,
                           IndexEnd end,
-                          LaunchConfiguration launchConfig,
-                          Function&& function )
+                          Function&& function,
+                          LaunchConfiguration launchConfig )
    {
       const auto offsetsView = segments.getOffsets();
       auto segmentIndexesView = segmentIndexes.getConstView();
@@ -162,8 +162,8 @@ struct SegmentsOperations< CSRView< Device, Index > >
                 const Array& segmentIndexes,
                 IndexBegin begin,
                 IndexEnd end,
-                LaunchConfiguration launchConfig,
-                Function function )  // TODO: Function&& function does not work here
+                Function function,  // TODO: Function&& function does not work here
+                LaunchConfiguration launchConfig )
    {
       if( end <= begin )
          return;
@@ -171,7 +171,7 @@ struct SegmentsOperations< CSRView< Device, Index > >
          launchConfig.blockSize.x = 256;
       if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
-            forElementsSequential( segments, segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+            forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
             const Index segmentsCount = end - begin;
@@ -257,7 +257,7 @@ struct SegmentsOperations< CSRView< Device, Index > >
          }
       }
       else
-         forElementsSequential( segments, segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+         forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -265,9 +265,9 @@ struct SegmentsOperations< CSRView< Device, Index > >
    forElementsIfSequential( const ConstViewType& segments,
                             IndexBegin begin,
                             IndexEnd end,
-                            LaunchConfiguration launchConfig,
                             Condition condition,
-                            Function function )
+                            Function function,
+                            LaunchConfiguration launchConfig )
    {
       const auto offsetsView = segments.getOffsets();
       auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
@@ -287,16 +287,16 @@ struct SegmentsOperations< CSRView< Device, Index > >
    forElementsIf( const ConstViewType& segments,
                   IndexBegin begin,
                   IndexEnd end,
-                  LaunchConfiguration launchConfig,
                   Condition condition,
-                  Function function )
+                  Function function,
+                  LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
          if( end <= begin )
             return;
 
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
-            forElementsIfSequential( segments, begin, end, launchConfig, std::forward< Condition >( condition ), function );
+            forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
          else {
             const Index warpsCount = end - begin;
             std::size_t threadsCount = warpsCount;
@@ -325,7 +325,7 @@ struct SegmentsOperations< CSRView< Device, Index > >
          }
       }
       else {
-         forElementsIfSequential( segments, begin, end, launchConfig, std::forward< Condition >( condition ), function );
+         forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
       }
    }
 };

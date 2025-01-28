@@ -168,14 +168,17 @@ forElementsWithSegmentIndexesBlockMergeKernel_CSR( Index gridIdx,
    #endif
 
    // Compute the last offset in the block - this is necessary only SegmentsPerBlock == BlockSize
-   if constexpr( SegmentsPerBlock == BlockSize )
+   if constexpr( SegmentsPerBlock == BlockSize ) {
+      __syncthreads();
       if( threadIdx.x == last_local_segment_idx - 1 ) {
          const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
          TNL_ASSERT_GE( seg_idx, 0, "Wrong index of segment index - smaller that 0." );
          TNL_ASSERT_LT( seg_idx, offsets.getSize() - 1, "Wrong index of segment index - larger that the number of indexes." );
          shared_offsets[ threadIdx.x + 1 ] = shared_offsets[ threadIdx.x ] + offsets[ seg_idx + 1 ] - offsets[ seg_idx ];
       }
+   }
 
+   __syncthreads();
    const Index last_idx = shared_offsets[ last_local_segment_idx ];
    TNL_ASSERT_LE( last_idx, offsets[ offsets.getSize() - 1 ] - shared_segment_indexes[ 0 ], "" );
 
@@ -298,13 +301,15 @@ forElementsIfBlockMergeKernel_CSR( Index gridIdx,
    #endif
 
    // Compute the last offset in the block - this is necessary only SegmentsPerBlock == BlockSize
-   if constexpr( SegmentsPerBlock == BlockSize )
+   if constexpr( SegmentsPerBlock == BlockSize ) {
+      __syncthreads();
       if( threadIdx.x == last_local_segment_idx - 1 && activeSegmentsCount == BlockSize ) {
          const Index seg_idx = shared_segment_indexes[ threadIdx.x ];
          TNL_ASSERT_GE( seg_idx, 0, "Wrong index of segment index - smaller that 0." );
          TNL_ASSERT_LT( seg_idx, offsets.getSize() - 1, "Wrong index of segment index - larger that the number of indexes." );
          shared_offsets[ threadIdx.x + 1 ] = shared_offsets[ threadIdx.x ] + offsets[ seg_idx + 1 ] - offsets[ seg_idx ];
       }
+   }
    __syncthreads();
 
    const Index last_idx = shared_offsets[ activeSegmentsCount ];

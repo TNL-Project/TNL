@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Algorithms/Segments/CSR.h>
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
 namespace TNL::Benchmarks::Graphs {
 
