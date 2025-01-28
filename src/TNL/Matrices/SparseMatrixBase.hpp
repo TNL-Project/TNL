@@ -8,7 +8,7 @@
 
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/AtomicOperations.h>
-#include <TNL/Algorithms/Segments/operations.h>
+#include <TNL/Algorithms/Segments/traverse.h>
 #include "SparseMatrixBase.h"
 #include "details/SparseMatrix.h"
 

@@ -6,17 +6,17 @@
 #include <TNL/Algorithms/Segments/CSRView.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
-#include "CSRKernels.h"
+#include "TraversingKernels_CSR.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index >
-struct SegmentsOperations< CSRView< Device, Index > >
+struct TraversingOperations< CSRView< Device, Index > >
 {
    using ViewType = CSRView< Device, Index >;
    using ConstViewType = typename ViewType::ConstViewType;
    using DeviceType = Device;
-   using IndexType = typename std::remove_const< Index >::type;
+   using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename ViewType::ConstOffsetsView;
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
@@ -167,6 +167,7 @@ struct SegmentsOperations< CSRView< Device, Index > >
    {
       if( end <= begin )
          return;
+
       if( launchConfig.blockSize.x == 1 )
          launchConfig.blockSize.x = 256;
       if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
@@ -274,10 +275,18 @@ struct SegmentsOperations< CSRView< Device, Index > >
       {
          const IndexType begin = offsetsView[ segmentIdx ];
          const IndexType end = offsetsView[ segmentIdx + 1 ];
-         IndexType localIdx( 0 );
-         if( condition( segmentIdx ) )
-            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-               function( segmentIdx, localIdx++, globalIdx );
+
+         if( condition( segmentIdx ) ) {
+            if constexpr( argumentCount< Function >() == 3 ) {
+               IndexType localIdx( 0 );
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  function( segmentIdx, localIdx++, globalIdx );
+            }
+            else {  // argumentCount< Function >() == 2
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  function( segmentIdx, globalIdx );
+            }
+         }
       };
       Algorithms::parallelFor< Device >( begin, end, l );
    }

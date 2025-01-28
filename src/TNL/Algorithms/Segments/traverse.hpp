@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Algorithms/compress.h>
-#include "detail/SegmentsOperations.h"
+#include "detail/TraversingOperations.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -12,7 +12,7 @@ template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fu
 void
 forElements( const Segments& segments, IndexBegin begin, IndexEnd end, Function&& function, LaunchConfiguration launchConfig )
 {
-   detail::SegmentsOperations< typename Segments::ConstViewType >::forElements(
+   detail::TraversingOperations< typename Segments::ConstViewType >::forElements(
       segments.getConstView(), begin, end, std::forward< Function >( function ), launchConfig );
 }
 
@@ -33,7 +33,7 @@ forElements( const Segments& segments,
              Function&& function,
              LaunchConfiguration launchConfig )
 {
-   detail::SegmentsOperations< typename Segments::ConstViewType >::forElements(
+   detail::TraversingOperations< typename Segments::ConstViewType >::forElements(
       segments.getConstView(), segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
 }
 
@@ -42,12 +42,12 @@ void
 forElements( const Segments& segments, const Array& segmentIndexes, Function function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
-   detail::SegmentsOperations< typename Segments::ConstViewType >::forElements( segments.getConstView(),
-                                                                                segmentIndexes,
-                                                                                (IndexType) 0,
-                                                                                segmentIndexes.getSize(),
-                                                                                std::forward< Function >( function ),
-                                                                                launchConfig );
+   detail::TraversingOperations< typename Segments::ConstViewType >::forElements( segments.getConstView(),
+                                                                                  segmentIndexes,
+                                                                                  (IndexType) 0,
+                                                                                  segmentIndexes.getSize(),
+                                                                                  std::forward< Function >( function ),
+                                                                                  launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -59,12 +59,12 @@ forElementsIf( const Segments& segments,
                Function function,
                LaunchConfiguration launchConfig )
 {
-   detail::SegmentsOperations< typename Segments::ConstViewType >::forElementsIf( segments.getConstView(),
-                                                                                  begin,
-                                                                                  end,
-                                                                                  std::forward< Condition >( condition ),
-                                                                                  std::forward< Function >( function ),
-                                                                                  launchConfig );
+   detail::TraversingOperations< typename Segments::ConstViewType >::forElementsIf( segments.getConstView(),
+                                                                                    begin,
+                                                                                    end,
+                                                                                    std::forward< Condition >( condition ),
+                                                                                    std::forward< Function >( function ),
+                                                                                    launchConfig );
 }
 
 template< typename Segments, typename Condition, typename Function >
@@ -72,12 +72,12 @@ void
 forAllElementsIf( const Segments& segments, Condition condition, Function function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
-   detail::SegmentsOperations< typename Segments::ConstViewType >::forElementsIf( segments.getConstView(),
-                                                                                  (IndexType) 0,
-                                                                                  segments.getSegmentsCount(),
-                                                                                  std::forward< Condition >( condition ),
-                                                                                  std::forward< Function >( function ),
-                                                                                  launchConfig );
+   detail::TraversingOperations< typename Segments::ConstViewType >::forElementsIf( segments.getConstView(),
+                                                                                    (IndexType) 0,
+                                                                                    segments.getSegmentsCount(),
+                                                                                    std::forward< Condition >( condition ),
+                                                                                    std::forward< Function >( function ),
+                                                                                    launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -137,7 +137,7 @@ void
 forAllSegments( const Segments& segments, Function&& function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
-   detail::SegmentsOperations< typename Segments::ConstViewType >::forSegments(
+   detail::TraversingOperations< typename Segments::ConstViewType >::forSegments(
       segments.getConstView(), (IndexType) 0, segments.getSegmentsCount(), std::forward< Function >( function ), launchConfig );
 }
 
@@ -155,7 +155,7 @@ void
 sequentialForAllSegments( const Segments& segments, Function&& function )
 {
    using IndexType = typename Segments::IndexType;
-   detail::SegmentsOperations< typename Segments::ConstViewType >::sequentialForSegments(
+   detail::TraversingOperations< typename Segments::ConstViewType >::sequentialForSegments(
       segments.getConstView(), (IndexType) 0, segments.getSegmentsCount(), std::forward< Function >( function ) );
 }
 

@@ -227,7 +227,10 @@ forElementsIfKernel_CSR( Index gridIdx, OffsetsView offsets, Index begin, Index 
    Index localIdx = laneIdx;
    for( Index globalIdx = offsets[ segmentIdx ] + laneIdx; globalIdx < endIdx; globalIdx += Backend::getWarpSize() ) {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      function( segmentIdx, localIdx, globalIdx );
+      if constexpr( argumentCount< Function >() == 3 )
+         function( segmentIdx, localIdx, globalIdx );
+      else
+         function( segmentIdx, globalIdx );
       localIdx += Backend::getWarpSize();
    }
 #endif

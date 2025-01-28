@@ -1,6 +1,6 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
-#include <TNL/Algorithms/Segments/operations.h>
+#include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Math.h>
 #include <iostream>
 
