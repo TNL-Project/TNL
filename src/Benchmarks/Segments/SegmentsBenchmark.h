@@ -58,7 +58,7 @@ struct SegmentsBenchmark
       config.addEntry< int >( "min-segment-size", "Minimum segment size.", 1 );
       config.addEntry< int >( "max-segment-size", "Maximum segment size.", 128 );
       config.addEntry< int >( "min-segments-count", "Minimum number of segments.", 1 << 8 );
-      config.addEntry< int >( "max-segments-count", "Maximum number of segments.", 1 << 24 );
+      config.addEntry< int >( "max-segments-count", "Maximum number of segments.", 1 << 20 );
       //config.addEntry< bool >( "with-bfs", "Run breadth-first search benchmark.", true );
 
       config.addDelimiter( "Device settings:" );
@@ -79,10 +79,8 @@ struct SegmentsBenchmark
    {}
 
    template< typename Device,
-             template< typename Device_, typename Index_, typename IndexAllocator_ >
-             class Segments,
-             template< typename Index_, typename Device_ >
-             class SegmentsKernel >
+             template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
+             template< typename Index_, typename Device_ > class SegmentsKernel >
    void
    TNLBenchmarks( const HostVector& hostSegmentsSizes,
                   TNL::Benchmarks::Benchmark<>& benchmark,
@@ -110,14 +108,14 @@ struct SegmentsBenchmark
          auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
          auto f = [ & ]() mutable
          {
-            TNL::Algorithms::Segments::forAllElements( segmentsView,
-                                                       launchConfig,
-                                                       [ = ] __cuda_callable__( const IndexType segmentIdx,
-                                                                                const IndexType localIdx,
-                                                                                const IndexType globalIdx ) mutable
-                                                       {
-                                                          dataView[ globalIdx ] = segmentIdx + localIdx;
-                                                       } );
+            TNL::Algorithms::Segments::forAllElements(
+               segmentsView,
+               [ = ] __cuda_callable__(
+                  const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+               {
+                  dataView[ globalIdx ] = segmentIdx + localIdx;
+               },
+               launchConfig_ );
          };
          benchmark.time< Device >( device, f );
          HostVector dataHost( data );
@@ -151,15 +149,15 @@ struct SegmentsBenchmark
          auto segmentIndexesView = segmentIndexes.getView();
          auto f = [ & ]() mutable
          {
-            TNL::Algorithms::Segments::forElements( segmentsView,
-                                                    segmentIndexesView,
-                                                    launchConfig,
-                                                    [ = ] __cuda_callable__( const IndexType segmentIdx,
-                                                                             const IndexType localIdx,
-                                                                             const IndexType globalIdx ) mutable
-                                                    {
-                                                       dataView[ globalIdx ] = 1;
-                                                    } );
+            TNL::Algorithms::Segments::forElements(
+               segmentsView,
+               segmentIndexesView,
+               [ = ] __cuda_callable__(
+                  const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+               {
+                  dataView[ globalIdx ] = 1;
+               },
+               launchConfig );
          };
          benchmark.time< Device >( device, f );
       }
@@ -183,7 +181,6 @@ struct SegmentsBenchmark
          {
             TNL::Algorithms::Segments::forAllElementsIf(
                segmentsView,
-               launchConfig,
                [ = ] __cuda_callable__( const IndexType segmentIdx ) -> bool
                {
                   return segmentIdx % 2 == 0;
@@ -192,7 +189,8 @@ struct SegmentsBenchmark
                   const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
                {
                   dataView[ globalIdx ] = 1;
-               } );
+               },
+               launchConfig_ );
          };
          benchmark.time< Device >( device, f );
       }

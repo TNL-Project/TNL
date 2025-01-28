@@ -24,8 +24,8 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
    forElementsSequential( const ConstViewType& segments,
                           IndexBegin begin,
                           IndexEnd end,
-                          const LaunchConfiguration& launchConfig,
-                          Function&& function )
+                          Function&& function,
+                          const LaunchConfiguration& launchConfig )
    {
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
       const auto sliceOffsets_view = segments.getSliceOffsetsView();
@@ -108,8 +108,8 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
    forElements( const ConstViewType& segments,
                 IndexBegin begin,
                 IndexEnd end,
-                LaunchConfiguration launchConfig,
-                Function function )  // TODO: Function&& does not work here - why???
+                Function function,  // TODO: Function&& does not work here - why???
+                LaunchConfiguration launchConfig )
    {
       if( end <= begin )
          return;
@@ -119,7 +119,7 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
 
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
-            forElementsSequential( segments, begin, end, launchConfig, std::forward< Function >( function ) );
+            forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             std::size_t threadsCount;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
@@ -164,7 +164,7 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
          }
       }
       else {
-         forElementsSequential( segments, begin, end, launchConfig, std::forward< Function >( function ) );
+         forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
       }
    }
 
@@ -174,8 +174,8 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
                           const Array& segmentIndexes,
                           IndexBegin begin,
                           IndexEnd end,
-                          const LaunchConfiguration& launchConfig,
-                          Function&& function )
+                          Function&& function,
+                          const LaunchConfiguration& launchConfig )
    {
       auto segmentIndexes_view = segmentIndexes.getConstView();
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
@@ -264,15 +264,15 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
                 const Array& segmentIndexes,
                 IndexBegin begin,
                 IndexEnd end,
-                LaunchConfiguration launchConfig,
-                Function function )  // TODO: Function&& does not work here - why???
+                Function function,  // TODO: Function&& does not work here - why???
+                LaunchConfiguration launchConfig )
    {
       if( launchConfig.blockSize.x == 1 )
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
-            forElementsSequential( segments, segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+            forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
             std::size_t threadsCount;
@@ -324,7 +324,7 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
          }
       }
       else {
-         forElementsSequential( segments, segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+         forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
       }
    }
 
@@ -333,9 +333,9 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
    forElementsIfSequential( const ConstViewType& segments,
                             IndexBegin begin,
                             IndexEnd end,
-                            const LaunchConfiguration& launchConfig,
                             Condition condition,
-                            Function function )
+                            Function function,
+                            const LaunchConfiguration& launchConfig )
    {
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
       const auto sliceOffsets_view = segments.getSliceOffsetsView();
@@ -426,16 +426,16 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
    forElementsIf( const ConstViewType& segments,
                   IndexBegin begin,
                   IndexEnd end,
-                  LaunchConfiguration launchConfig,
                   Condition condition,
-                  Function function )
+                  Function function,
+                  LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
          if( end <= begin )
             return;
 
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
-            forElementsIfSequential( segments, begin, end, launchConfig, std::forward< Condition >( condition ), function );
+            forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
          else {
             const Index warpsCount = end - begin;
             std::size_t threadsCount = warpsCount;
@@ -470,7 +470,7 @@ struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, Slice
          }
       }
       else {
-         forElementsIfSequential( segments, begin, end, launchConfig, std::forward< Condition >( condition ), function );
+         forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
       }
    }
 };

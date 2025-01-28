@@ -19,10 +19,11 @@ namespace TNL::Graphs {
 
 template< typename Matrix, typename Vector, typename Index = typename Matrix::IndexType >
 void
-parallelSingleSourceShortestPath( Algorithms::Segments::LaunchConfiguration launchConfig,
-                                  const Matrix& adjacencyMatrix,
-                                  Index start,
-                                  Vector& distances )
+parallelSingleSourceShortestPath(
+   const Matrix& adjacencyMatrix,
+   Index start,
+   Vector& distances,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
 {
    TNL_ASSERT_TRUE( adjacencyMatrix.getRows() == adjacencyMatrix.getColumns(), "Adjacency matrix must be square matrix." );
    TNL_ASSERT_TRUE( distances.getSize() == adjacencyMatrix.getRows(),
@@ -47,7 +48,6 @@ parallelSingleSourceShortestPath( Algorithms::Segments::LaunchConfiguration laun
       marks = 0;
       if constexpr( std::is_same_v< Device, Devices::Host > )
          adjacencyMatrix.forElements(
-            launchConfig,
             frontier,
             0,
             frontier_size,
@@ -64,10 +64,10 @@ parallelSingleSourceShortestPath( Algorithms::Segments::LaunchConfiguration laun
                      marks_view[ columnIdx ] = 1;
                   }
                }
-            } );
+            },
+            launchConfig );
       else
          adjacencyMatrix.forElements(
-            launchConfig,
             frontier,
             0,
             frontier_size,
@@ -85,7 +85,8 @@ parallelSingleSourceShortestPath( Algorithms::Segments::LaunchConfiguration laun
                      atomicMax( &marks_view[ columnIdx ], 1 );
                   }
                }
-            } );
+            },
+            launchConfig );
       Algorithms::inclusiveScan( marks, marks_scan );
       frontier_size = marks_scan.getElement( n - 1 );
       if( frontier_size == 0 )
@@ -108,10 +109,10 @@ parallelSingleSourceShortestPath( Algorithms::Segments::LaunchConfiguration laun
 
 template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
 void
-singleSourceShortestPath( Algorithms::Segments::LaunchConfiguration launchConfig,
-                          const Graph& graph,
+singleSourceShortestPath( const Graph& graph,
                           Index start,
-                          Vector& distances )
+                          Vector& distances,
+                          Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
 {
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
@@ -155,7 +156,7 @@ singleSourceShortestPath( Algorithms::Segments::LaunchConfiguration launchConfig
       }
    }
    else {
-      parallelSingleSourceShortestPath( launchConfig, graph.getAdjacencyMatrix(), start, distances );
+      parallelSingleSourceShortestPath( graph.getAdjacencyMatrix(), start, distances, launchConfig );
    }
    distances.forAllElements(
       [] __cuda_callable__( Index i, Real & x )
@@ -164,11 +165,4 @@ singleSourceShortestPath( Algorithms::Segments::LaunchConfiguration launchConfig
       } );
 }
 
-template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
-void
-singleSourceShortestPath( const Graph& graph, Index start, Vector& distances )
-{
-   Algorithms::Segments::LaunchConfiguration launchConfig;
-   singleSourceShortestPath( launchConfig, graph, start, distances );
-}
 }  // namespace TNL::Graphs

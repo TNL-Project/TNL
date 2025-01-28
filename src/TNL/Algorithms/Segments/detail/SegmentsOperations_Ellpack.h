@@ -23,8 +23,8 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
    forElementsSequential( const ViewType& segments,
                           IndexBegin begin,
                           IndexEnd end,
-                          const LaunchConfiguration& launchConfig,
-                          Function&& function )
+                          Function&& function,
+                          const LaunchConfiguration& launchConfig )
    {
       if constexpr( Organization == RowMajorOrder ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
          const IndexType segmentSize = segments.getSegmentSize();
@@ -82,8 +82,8 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
    forElements( const ViewType& segments,
                 IndexBegin begin,
                 IndexEnd end,
-                LaunchConfiguration launchConfig,
-                Function function )  // TODO: Function&& does not work here - why???
+                Function function,
+                LaunchConfiguration launchConfig )  // TODO: Function&& does not work here - why???
    {
       if( end <= begin )
          return;
@@ -93,7 +93,7 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
 
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
-            forElementsSequential( segments, begin, end, launchConfig, std::forward< Function >( function ) );
+            forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             std::size_t threadsCount;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
@@ -126,7 +126,7 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
          }
       }
       else {
-         forElementsSequential( segments, begin, end, launchConfig, std::forward< Function >( function ) );
+         forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
       }
    }
 
@@ -136,8 +136,8 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
                           const Array& segmentIndexes,
                           IndexBegin begin,
                           IndexEnd end,
-                          const LaunchConfiguration& launchConfig,
-                          Function&& function )
+                          Function&& function,
+                          const LaunchConfiguration& launchConfig )
    {
       auto segmentIndexesView = segmentIndexes.getConstView();
       if constexpr( Organization == RowMajorOrder ) {
@@ -201,15 +201,15 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
                 const Array& segmentIndexes,
                 IndexBegin begin,
                 IndexEnd end,
-                LaunchConfiguration launchConfig,
-                Function function )  // TODO: Function&& does not work here - why???
+                Function function,  // TODO: Function&& does not work here - why???
+                LaunchConfiguration launchConfig )
    {
       if( launchConfig.blockSize.x == 1 )
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
-            forElementsSequential( segments, segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+            forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
             std::size_t threadsCount;
@@ -254,7 +254,7 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
          }
       }
       else {
-         forElementsSequential( segments, segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+         forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
       }
    }
 
@@ -263,9 +263,9 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
    forElementsIfSequential( const ViewType& segments,
                             IndexBegin begin,
                             IndexEnd end,
-                            const LaunchConfiguration& launchConfig,
                             Condition condition,
-                            Function function )
+                            Function function,
+                            const LaunchConfiguration& launchConfig )
    {
       if constexpr( Organization == RowMajorOrder ) {
          const IndexType segmentSize = segments.getSegmentSize();
@@ -331,16 +331,16 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
    forElementsIf( const ViewType& segments,
                   IndexBegin begin,
                   IndexEnd end,
-                  LaunchConfiguration launchConfig,
                   Condition condition,
-                  Function function )
+                  Function function,
+                  LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
          if( end <= begin )
             return;
 
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
-            forElementsIfSequential( segments, begin, end, launchConfig, std::forward< Condition >( condition ), function );
+            forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
          else {
             const Index warpsCount = end - begin;
             std::size_t threadsCount = warpsCount;
@@ -370,7 +370,7 @@ struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment >
          }
       }
       else {
-         forElementsIfSequential( segments, begin, end, launchConfig, std::forward< Condition >( condition ), function );
+         forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
       }
    }
 };

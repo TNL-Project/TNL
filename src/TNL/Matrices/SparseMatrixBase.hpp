@@ -589,11 +589,11 @@ template< typename Real, typename Device, typename Index, typename MatrixType, t
 template< typename Array, typename Function >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements(
-   const Algorithms::Segments::LaunchConfiguration& launchConfig,
    const Array& rowIndexes,
    IndexType begin,
    IndexType end,
-   Function&& function ) const
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig ) const
 {
    const auto columns_view = this->columnIndexes.getConstView();
    const auto values_view = this->values.getConstView();
@@ -609,30 +609,18 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
       }
    };
-   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, launchConfig, f );
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-template< typename Array, typename Function >
-void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
-                                                                                             IndexType begin,
-                                                                                             IndexType end,
-                                                                                             Function&& function ) const
-{
-   Algorithms::Segments::LaunchConfiguration launchConfig;
-   this->forElements( launchConfig, rowIndexes, begin, end, function );
+   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, f, launchConfig );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Array, typename Function >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements(
-   const Algorithms::Segments::LaunchConfiguration& launchConfig,
    const Array& rowIndexes,
    IndexType begin,
    IndexType end,
-   Function&& function )
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();
@@ -648,37 +636,29 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
       }
    };
-   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, launchConfig, f );
+   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, f, launchConfig );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Array, typename Function >
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
-                                                                                             IndexType begin,
-                                                                                             IndexType end,
-                                                                                             Function&& function )
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements(
+   const Array& rowIndexes,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig ) const
 {
-   Algorithms::Segments::LaunchConfiguration launchConfig;
-   this->forElements( launchConfig, rowIndexes, begin, end, function );
+   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function, launchConfig );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Array, typename Function >
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
-                                                                                             Function&& function ) const
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements(
+   const Array& rowIndexes,
+   Function&& function,
+   Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function );
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-template< typename Array, typename Function >
-void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( const Array& rowIndexes,
-                                                                                             Function&& function )
-{
-   this->forElements( rowIndexes, (IndexType) 0, rowIndexes.getSize(), function );
+   this->forElements( rowIndexes, (IndexType) 0, rowIndexes.getSize(), function, launchConfig );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
