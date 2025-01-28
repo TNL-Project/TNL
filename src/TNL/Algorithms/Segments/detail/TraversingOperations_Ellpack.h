@@ -5,12 +5,12 @@
 
 #include <TNL/Algorithms/Segments/EllpackView.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
-#include "EllpackKernels.h"
+#include "TraversingKernels_Ellpack.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
-struct SegmentsOperations< EllpackView< Device, Index, Organization, Alignment > >
+struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment > >
 {
    using ViewType = EllpackView< Device, Index, Organization, Alignment >;
    // ViewType is the same as ConstViewType for Ellpack !!!!!

@@ -9,7 +9,7 @@
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index, ElementsOrganization Organization >
-struct SegmentsOperations< ChunkedEllpackView< Device, Index, Organization > >
+struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
 {
    using ViewType = Segments::ChunkedEllpackView< Device, Index, Organization >;
    using ConstViewType = typename ViewType::ConstViewType;

@@ -6,12 +6,12 @@
 #include <TNL/Algorithms/Segments/CSRView.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
-#include "CSRKernels.h"
+#include "TraversingKernels_CSR.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index >
-struct SegmentsOperations< CSRView< Device, Index > >
+struct TraversingOperations< CSRView< Device, Index > >
 {
    using ViewType = CSRView< Device, Index >;
    using ConstViewType = typename ViewType::ConstViewType;

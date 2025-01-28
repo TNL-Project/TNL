@@ -6,12 +6,12 @@
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Segments >
-struct SegmentsOperations;
+struct TraversingOperations;
 
 }  //namespace TNL::Algorithms::Segments::detail
 
-#include "SegmentsOperations_CSR.h"
-#include "SegmentsOperations_BiEllpack.h"
-#include "SegmentsOperations_ChunkedEllpack.h"
-#include "SegmentsOperations_Ellpack.h"
-#include "SegmentsOperations_SlicedEllpack.h"
+#include "TraversingOperations_CSR.h"
+#include "TraversingOperations_BiEllpack.h"
+#include "TraversingOperations_ChunkedEllpack.h"
+#include "TraversingOperations_Ellpack.h"
+#include "TraversingOperations_SlicedEllpack.h"
