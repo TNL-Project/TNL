@@ -57,7 +57,7 @@ public:
 
       return true;
 #else
-      std::cerr << "Output redirection is not supported with the MSVC compiler." << std::endl;
+      std::cerr << "Output redirection is supported only on POSIX systems." << std::endl;
       return false;
 #endif
    }
@@ -82,7 +82,7 @@ public:
       }
       return true;
 #else
-      std::cerr << "Output redirection is not supported with the MSVC compiler." << std::endl;
+      std::cerr << "Output redirection is supported only on POSIX systems." << std::endl;
       return false;
 #endif
    }
@@ -113,7 +113,7 @@ redirect_stdout_stderr( const std::string& stdout_fname, const std::string& stde
 
    return true;
 #else
-   std::cerr << "Output redirection is not supported with the MSVC compiler." << std::endl;
+   std::cerr << "Output redirection is supported only on POSIX systems." << std::endl;
    return false;
 #endif
 }

@@ -8,7 +8,7 @@
 
 #include <TNL/3rdparty/spy.hpp>
 
-#ifndef SPY_OS_IS_WINDOWS
+#ifdef SPY_LIBC_IS_GNU
    #include <execinfo.h>
 #endif
 
@@ -27,7 +27,7 @@ namespace TNL::Debugging {
 static void
 printStackBacktrace( std::ostream& out = std::cout, unsigned int max_frames = 64 )
 {
-#ifndef SPY_OS_IS_WINDOWS
+#ifdef SPY_LIBC_IS_GNU
    out << "stack trace:\n";
 
    // storage array for stack trace address data
@@ -81,7 +81,7 @@ printStackBacktrace( std::ostream& out = std::cout, unsigned int max_frames = 64
       }
    }
 #else
-   out << "stack trace: [not supported on Windows]\n";
+   out << "stack trace: [not supported; the program was not built with glibc]\n";
 #endif
 }
 

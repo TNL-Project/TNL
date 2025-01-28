@@ -93,7 +93,7 @@ trackFloatingPointExceptions()
    signal( SIGSEGV, printStackBacktraceAndAbort );
    signal( SIGFPE, printStackBacktraceAndAbort );
    // TODO: find a workaround for Windows, e.g. https://stackoverflow.com/a/30175525
-   #ifdef SPY_OS_IS_LINUX
+   #ifdef SPY_LIBC_IS_GNU
    feenableexcept( FE_ALL_EXCEPT & ~FE_INEXACT );
    #endif
 #endif

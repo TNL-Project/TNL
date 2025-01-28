@@ -322,6 +322,30 @@ icpx:
 
 
 
+alpine:
+    stage: build:host
+    # NOTE: library/alpine does not have bash, so the .build_template script fails
+    #image: "docker.io/library/alpine:latest"
+    image: "docker.io/library/bash:latest"
+    before_script:
+        - apk add build-base git cmake ninja openmpi-dev zlib-dev
+        # instruct mpirun to not use ssh
+        - export OMPI_MCA_plm_rsh_agent=sh
+    extends:
+        - .build_template
+        - .matrix_template
+        #- .gcc
+    variables:
+        <<: *default_cmake_flags
+        CXX: g++
+        CC: gcc
+        # avoid spurious error due to Alpine's GCC
+        CMAKE_CXX_FLAGS: "-Wno-error=array-bounds"
+
+
+
+
+
 documentation:
     extends: .build_template
     stage: build:cuda
