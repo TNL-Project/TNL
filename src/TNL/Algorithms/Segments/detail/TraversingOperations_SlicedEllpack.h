@@ -6,17 +6,17 @@
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
-#include "SlicedEllpackKernels.h"
+#include "TraversingKernels_SlicedEllpack.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
-struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, SliceSize > >
+struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, SliceSize > >
 {
    using ViewType = SlicedEllpackView< Device, Index, Organization, SliceSize >;
    using ConstViewType = typename ViewType::ConstViewType;
    using DeviceType = Device;
-   using IndexType = typename std::remove_const< Index >::type;
+   using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename ViewType::ConstOffsetsView;
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
