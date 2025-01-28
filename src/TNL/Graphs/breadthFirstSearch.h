@@ -18,12 +18,12 @@ namespace TNL::Graphs {
 
 template< bool haveExplorer, typename Matrix, typename Vector, typename Visitor, typename Explorer >
 void
-breadthFirstSearchParallel( Algorithms::Segments::LaunchConfiguration launchConfig,
-                            const Matrix& adjacencyMatrix,
+breadthFirstSearchParallel( const Matrix& adjacencyMatrix,
                             typename Matrix::IndexType start,
                             Vector& distances,
                             Visitor&& visitor,
-                            Explorer&& explorer )
+                            Explorer&& explorer,
+                            Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    TNL_ASSERT_TRUE( adjacencyMatrix.getRows() == adjacencyMatrix.getColumns(), "Adjacency matrix must be square matrix." );
    TNL_ASSERT_TRUE( distances.getSize() == adjacencyMatrix.getRows(),
@@ -49,7 +49,6 @@ breadthFirstSearchParallel( Algorithms::Segments::LaunchConfiguration launchConf
       marks = 0;
       if constexpr( std::is_same_v< Device, Devices::Host > )
          adjacencyMatrix.forElements(
-            launchConfig,
             frontier,
             0,
             frontier_size,
@@ -63,10 +62,10 @@ breadthFirstSearchParallel( Algorithms::Segments::LaunchConfiguration launchConf
 #pragma omp atomic write
                   marks_view[ columnIdx ] = 1;
                }
-            } );
+            },
+            launchConfig );
       else
          adjacencyMatrix.forElements(
-            launchConfig,
             frontier,
             0,
             frontier_size,
@@ -81,7 +80,8 @@ breadthFirstSearchParallel( Algorithms::Segments::LaunchConfiguration launchConf
                   atomicMax( &predecesors_view[ columnIdx ], rowIdx );
                   atomicMax( &marks_view[ columnIdx ], 1 );
                }
-            } );
+            },
+            launchConfig );
       Algorithms::inclusiveScan( marks, marks_scan );
       frontier_size = marks_scan.getElement( n - 1 );
       if( frontier_size == 0 )
@@ -104,12 +104,12 @@ breadthFirstSearchParallel( Algorithms::Segments::LaunchConfiguration launchConf
 
 template< bool haveExplorer, typename Matrix, typename Vector, typename Visitor, typename Explorer >
 void
-breadthFirstSearch_impl( const Algorithms::Segments::LaunchConfiguration& launchConfig,
-                         const Matrix& adjacencyMatrix,
+breadthFirstSearch_impl( const Matrix& adjacencyMatrix,
                          typename Matrix::IndexType start,
                          Vector& distances,
                          Visitor&& visitor,
-                         Explorer&& explorer )
+                         Explorer&& explorer,
+                         const Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
    TNL_ASSERT_TRUE( adjacencyMatrix.getRows() == adjacencyMatrix.getColumns(), "Adjacency matrix must be square matrix." );
    TNL_ASSERT_TRUE( distances.getSize() == adjacencyMatrix.getRows(),
@@ -148,36 +148,41 @@ breadthFirstSearch_impl( const Algorithms::Segments::LaunchConfiguration& launch
    }
    else {
       if constexpr( haveExplorer )
-         breadthFirstSearchParallel< true >( launchConfig, adjacencyMatrix, start, distances, visitor, explorer );
+         breadthFirstSearchParallel< true >( adjacencyMatrix, start, distances, visitor, explorer, launchConfig );
       else
          breadthFirstSearchParallel< false >(
-            launchConfig, adjacencyMatrix, start, distances, visitor, [] __cuda_callable__( Index ) {} );
+            adjacencyMatrix, start, distances, visitor, [] __cuda_callable__( Index ) {}, launchConfig );
    }
 }
 
 template< typename Graph, typename Vector >
 void
-breadthFirstSearch( const Graph& graph, typename Graph::IndexType start, Vector& distances )
+breadthFirstSearch( const Graph& graph,
+                    typename Graph::IndexType start,
+                    Vector& distances,
+                    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
 {
    using Index = typename Graph::IndexType;
-   Algorithms::Segments::LaunchConfiguration launchConfig;
    breadthFirstSearch_impl< false >(
-      launchConfig,
       graph.getAdjacencyMatrix(),
       start,
       distances,
       [] __cuda_callable__( Index, Index ) {},
-      [] __cuda_callable__( Index ) {} );
+      [] __cuda_callable__( Index ) {},
+      launchConfig );
 }
 
 template< typename Graph, typename Vector, typename Visitor >
 void
-breadthFirstSearch( const Graph& graph, typename Graph::IndexType start, Vector& distances, Visitor&& visitor )
+breadthFirstSearch( const Graph& graph,
+                    typename Graph::IndexType start,
+                    Vector& distances,
+                    Visitor&& visitor,
+                    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
 {
    using Index = typename Graph::IndexType;
-   Algorithms::Segments::LaunchConfiguration launchConfig;
    breadthFirstSearch_impl< false >(
-      launchConfig, graph.getAdjacencyMatrix(), start, distances, visitor, [] __cuda_callable__( Index ) {} );
+      graph.getAdjacencyMatrix(), start, distances, visitor, [] __cuda_callable__( Index ) {}, launchConfig );
 }
 
 template< typename Graph, typename Vector, typename Visitor, typename Explorer >
@@ -186,52 +191,10 @@ breadthFirstSearch( const Graph& graph,
                     typename Graph::IndexType start,
                     Vector& distances,
                     Visitor&& visitor,
-                    Explorer&& explorer )
+                    Explorer&& explorer,
+                    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
 {
-   Algorithms::Segments::LaunchConfiguration launchConfig;
-   breadthFirstSearch_impl< true >( launchConfig, graph.getAdjacencyMatrix(), start, distances, visitor, explorer );
-}
-
-template< typename Graph, typename Vector >
-void
-breadthFirstSearch( const Algorithms::Segments::LaunchConfiguration& launchConfig,
-                    const Graph& graph,
-                    typename Graph::IndexType start,
-                    Vector& distances )
-{
-   using Index = typename Graph::IndexType;
-   breadthFirstSearch_impl< false >(
-      launchConfig,
-      graph.getAdjacencyMatrix(),
-      start,
-      distances,
-      [] __cuda_callable__( Index, Index ) {},
-      [] __cuda_callable__( Index ) {} );
-}
-
-template< typename Graph, typename Vector, typename Visitor >
-void
-breadthFirstSearch( const Algorithms::Segments::LaunchConfiguration& launchConfig,
-                    const Graph& graph,
-                    typename Graph::IndexType start,
-                    Vector& distances,
-                    Visitor&& visitor )
-{
-   using Index = typename Graph::IndexType;
-   breadthFirstSearch_impl< false >(
-      launchConfig, graph.getAdjacencyMatrix(), start, distances, visitor, [] __cuda_callable__( Index ) {} );
-}
-
-template< typename Graph, typename Vector, typename Visitor, typename Explorer >
-void
-breadthFirstSearch( const Algorithms::Segments::LaunchConfiguration& launchConfig,
-                    const Graph& graph,
-                    typename Graph::IndexType start,
-                    Vector& distances,
-                    Visitor&& visitor,
-                    Explorer&& explorer )
-{
-   breadthFirstSearch_impl< true >( launchConfig, graph.getAdjacencyMatrix(), start, distances, visitor, explorer );
+   breadthFirstSearch_impl< true >( graph.getAdjacencyMatrix(), start, distances, visitor, explorer, launchConfig );
 }
 
 }  // namespace TNL::Graphs

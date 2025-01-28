@@ -574,7 +574,11 @@ public:
     */
    template< typename Array, typename Function >
    void
-   forElements( const Array& rowIndexes, IndexType begin, IndexType end, Function&& function ) const;
+   forElements( const Array& rowIndexes,
+                IndexType begin,
+                IndexType end,
+                Function&& function,
+                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() ) const;
 
    /**
     * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
@@ -601,27 +605,15 @@ public:
     */
    template< typename Array, typename Function >
    void
-   forElements( const Array& rowIndexes, IndexType begin, IndexType end, Function&& function );
-
-   template< typename Array, typename Function >
-   void
-   forElements( const Algorithms::Segments::LaunchConfiguration& launchConfig,
-                const Array& rowIndexes,
+   forElements( const Array& rowIndexes,
                 IndexType begin,
                 IndexType end,
-                Function&& function );
-
-   template< typename Array, typename Function >
-   void
-   forElements( const Algorithms::Segments::LaunchConfiguration& launchConfig,
-                const Array& rowIndexes,
-                IndexType begin,
-                IndexType end,
-                Function&& function ) const;
+                Function&& function,
+                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
    /**
-    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
-    * constant instances.
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant
+    * for constant instances.
     *
     * \tparam Array is a type of the array (or vector) with row indexes.
     * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
@@ -642,7 +634,9 @@ public:
     */
    template< typename Array, typename Function >
    void
-   forElements( const Array& rowIndexes, Function&& function ) const;
+   forElements( const Array& rowIndexes,
+                Function&& function,
+                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() ) const;
 
    /**
     * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
@@ -667,7 +661,9 @@ public:
     */
    template< typename Array, typename Function >
    void
-   forElements( const Array& rowIndexes, Function&& function );
+   forElements( const Array& rowIndexes,
+                Function&& function,
+                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
    /**
     * \brief Method for iterating over all matrix elements that meet a condition based on the row index (for constant
