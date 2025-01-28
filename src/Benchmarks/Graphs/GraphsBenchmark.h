@@ -408,7 +408,7 @@ struct GraphsBenchmark
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto bfs_tnl_dir = [ & ]() mutable
             {
-               TNL::Graphs::breadthFirstSearch( launchConfig, digraph, largestNode, bfsDistances );
+               TNL::Graphs::breadthFirstSearch( digraph, largestNode, bfsDistances, launchConfig );
             };
             benchmark.time< Device >( device, bfs_tnl_dir );
 #ifdef HAVE_BOOST
@@ -438,7 +438,7 @@ struct GraphsBenchmark
 
             auto bfs_tnl_undir = [ & ]() mutable
             {
-               TNL::Graphs::breadthFirstSearch( launchConfig, graph, largestNode, bfsDistances );
+               TNL::Graphs::breadthFirstSearch( graph, largestNode, bfsDistances, launchConfig );
             };
             benchmark.time< Device >( device, bfs_tnl_undir );
 #ifdef HAVE_BOOST
@@ -473,7 +473,7 @@ struct GraphsBenchmark
             RealVector ssspDistances( digraph.getNodeCount(), 0 );
             auto sssp_tnl_dir = [ & ]() mutable
             {
-               TNL::Graphs::singleSourceShortestPath( launchConfig, digraph, largestNode, ssspDistances );
+               TNL::Graphs::singleSourceShortestPath( digraph, largestNode, ssspDistances, launchConfig );
             };
             if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
                std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark." << std::endl;
@@ -508,7 +508,7 @@ struct GraphsBenchmark
             RealVector ssspDistances( digraph.getNodeCount(), 0 );
             auto sssp_tnl_undir = [ & ]() mutable
             {
-               TNL::Graphs::singleSourceShortestPath( launchConfig, graph, largestNode, ssspDistances );
+               TNL::Graphs::singleSourceShortestPath( graph, largestNode, ssspDistances, launchConfig );
             };
             benchmark.time< Device >( device, sssp_tnl_undir );
 #ifdef HAVE_BOOST
