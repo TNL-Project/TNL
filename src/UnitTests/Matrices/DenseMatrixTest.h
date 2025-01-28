@@ -917,6 +917,10 @@ test_reduceRows()
    };
    m.reduceAllRows( fetch, std::plus<>{}, keep, 0 );
    EXPECT_EQ( rowCapacities, rowLengths );
+   rowLengths = 0;
+   m.reduceAllRows( fetch, TNL::Plus{}, keep );
+   EXPECT_EQ( rowCapacities, rowLengths );
+   rowLengths = 0;
    m.getCompressedRowLengths( rowLengths );
    EXPECT_EQ( rowCapacities, rowLengths );
 
@@ -936,7 +940,11 @@ test_reduceRows()
       rowSums_view[ rowIdx ] = value;
    };
    m.reduceAllRows( max_fetch, std::plus<>{}, max_keep, 0 );
-   const Real maxNorm = TNL::max( rowSums );
+   Real maxNorm = TNL::max( rowSums );
+   EXPECT_EQ( maxNorm, 260 );  // 29+30+31+32+33+34+35+36
+   rowSums = 0;
+   m.reduceAllRows( max_fetch, TNL::Plus{}, max_keep );
+   maxNorm = TNL::max( rowSums );
    EXPECT_EQ( maxNorm, 260 );  // 29+30+31+32+33+34+35+36
 }
 

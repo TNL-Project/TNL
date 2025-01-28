@@ -11,7 +11,24 @@
 namespace TNL {
 
 /**
+ * \defgroup ReductionFunctionObjects Function objects for reduction operations
+ *
+ * Reduction function objects are used in reduction operations in TNL, such as
+ * \ref TNL::Algorithms::reduce but also in reduction in \ref TNL::Algorithms::Segments and
+ * \ref TNL::Matrices.
+ *
+ * In general, each reduction operation is implemented as a generic `operator()` of the form
+ * `auto operator()( T1 x, T2 y ) const -> T3`, which computes an appropriate *associative* and
+ * *commutative* binary operation. Furthermore, the reduction function objects in TNL *extend* the corresponding
+ * [STL function objects](https://en.cppreference.com/w/cpp/utility/functional#Operator_function_objects)
+ * with a `getIdentity()` method, which returns the [identity element](https://en.wikipedia.org/wiki/Identity_element)
+ * for the operation. The identity element is a value that does not change the result of the operation when combined with any
+ * other value.
+ */
+
+/**
  * \brief Function object implementing `x + y`.
+ * \ingroup ReductionFunctionObjects
  */
 struct Plus : public std::plus< void >
 {
@@ -35,6 +52,7 @@ using Minus = std::minus< void >;
 
 /**
  * \brief Function object implementing `x * y`.
+ * \ingroup ReductionFunctionObjects
  */
 struct Multiplies : public std::multiplies< void >
 {
@@ -81,6 +99,7 @@ using UnaryMinus = std::negate< void >;
 
 /**
  * \brief Function object implementing `x && y`.
+ * \ingroup ReductionFunctionObjects
  */
 struct LogicalAnd : public std::logical_and< void >
 {
@@ -101,6 +120,7 @@ struct LogicalAnd : public std::logical_and< void >
 
 /**
  * \brief Function object implementing `x || y`.
+ * \ingroup ReductionFunctionObjects
  */
 struct LogicalOr : public std::logical_or< void >
 {
@@ -124,6 +144,7 @@ using LogicalNot = std::logical_not< void >;
 
 /**
  * \brief Extension of \ref std::bit_and<void> for use with \ref TNL::Algorithms::reduce.
+ * \ingroup ReductionFunctionObjects
  */
 struct BitAnd : public std::bit_and< void >
 {
@@ -142,6 +163,7 @@ struct BitAnd : public std::bit_and< void >
 
 /**
  * \brief Extension of \ref std::bit_or<void> for use with \ref TNL::Algorithms::reduce.
+ * \ingroup ReductionFunctionObjects
  */
 struct BitOr : public std::bit_or< void >
 {
@@ -160,6 +182,7 @@ struct BitOr : public std::bit_or< void >
 
 /**
  * \brief Extension of \ref std::bit_xor<void> for use with \ref TNL::Algorithms::reduce.
+ * \ingroup ReductionFunctionObjects
  */
 struct BitXor : public std::bit_xor< void >
 {
@@ -213,6 +236,7 @@ using LessEqual = std::less_equal< void >;
 
 /**
  * \brief Function object implementing `min(x, y)`.
+ * \ingroup ReductionFunctionObjects
  */
 struct Min
 {
@@ -242,6 +266,7 @@ struct Min
 
 /**
  * \brief Function object implementing `max(x, y)`.
+ * \ingroup ReductionFunctionObjects
  */
 struct Max
 {
@@ -270,7 +295,27 @@ struct Max
 };
 
 /**
- * \brief Function object implementing `argmin(x, y, i, j)` for use with \ref TNL::Algorithms::reduceWithArgument.
+ * \defgroup ReductionFunctionObjectsWithArgument Function objects for reduction operations with argument
+ *
+ * Function objects in this group implement a similar concept as the function objects in the
+ * \ref ReductionFunctionObjects group. They are intended for *reductions with argument*,
+ * such as the \ref TNL::Algorithms::reduceWithArgument function. Here the reduction operation
+ * works not only with *values*, but also *indexes* of the values, which can be used to compute
+ * e.g. the position of a minimum or maximum in a sequence of values.
+ *
+ * In general, each reduction operation with argument is implemented as a generic `operator()`
+ * of the form `auto operator()( Value& x, Value y, Index& i, Index j ) const -> void`, which
+ * computes an appropriate *associative* and *commutative* binary operation on the `x` and `y`
+ * values, updates the result into the `x`, and also updates the index `i` as appropriate.
+ *
+ * The function objects in this group also implement the `getIdentity()` method, which returns the
+ * [identity element](https://en.wikipedia.org/wiki/Identity_element) for the operation in the same
+ * way as function objects in the \ref ReductionFunctionObjects group.
+ */
+
+/**
+ * \brief Function object implementing `argmin(x, y, i, j)`, i.e. returning the minimum value and its index.
+ * \ingroup ReductionFunctionObjectsWithArgument
  */
 struct MinWithArg
 {
@@ -303,7 +348,8 @@ struct MinWithArg
 };
 
 /**
- * \brief Function object implementing `argmax(x, y, i, j)` for use with \ref TNL::Algorithms::reduceWithArgument.
+ * \brief Function object implementing `argmax(x, y, i, j)`, i.e. returning the maximum value and its index.
+ * \ingroup ReductionFunctionObjectsWithArgument
  */
 struct MaxWithArg
 {
@@ -336,7 +382,8 @@ struct MaxWithArg
 };
 
 /**
- * \brief Function object implementing `argany(x, y, i, j)` for use with \ref TNL::Algorithms::reduceWithArgument.
+ * \brief Function object implementing `argany(x, y, i, j)`, i.e. returning the first `true` value and its index.
+ * \ingroup ReductionFunctionObjectsWithArgument
  */
 struct AnyWithArg
 {
