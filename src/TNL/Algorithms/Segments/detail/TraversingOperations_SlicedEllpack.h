@@ -6,12 +6,12 @@
 #include <TNL/Algorithms/Segments/SlicedEllpackView.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
-#include "SlicedEllpackKernels.h"
+#include "TraversingKernels_SlicedEllpack.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
-struct SegmentsOperations< SlicedEllpackView< Device, Index, Organization, SliceSize > >
+struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, SliceSize > >
 {
    using ViewType = SlicedEllpackView< Device, Index, Organization, SliceSize >;
    using ConstViewType = typename ViewType::ConstViewType;

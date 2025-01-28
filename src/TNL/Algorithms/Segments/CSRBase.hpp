@@ -9,7 +9,7 @@
 #include <TNL/Algorithms/find.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 
-#include "detail/CSRKernels.h"
+#include "detail/TraversingKernels_CSR.h"
 
 #include "CSRBase.h"
 
