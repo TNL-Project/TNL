@@ -101,4 +101,4 @@ sequentialForAllSegments( const Segments&, Function&& function );
 
 }  // namespace TNL::Algorithms::Segments
 
-#include "operations.hpp"
+#include "traverse.hpp"

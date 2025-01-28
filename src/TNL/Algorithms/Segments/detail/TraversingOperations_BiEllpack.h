@@ -9,7 +9,7 @@
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
-struct SegmentsOperations< BiEllpackView< Device, Index, Organization, WarpSize > >
+struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSize > >
 {
    using ViewType = BiEllpackView< Device, Index, Organization, WarpSize >;
    using ConstViewType = typename ViewType::ConstViewType;
