@@ -22,8 +22,8 @@ struct SegmentsOperations< ChunkedEllpackView< Device, Index, Organization > >
    forElements( const ConstViewType& segments,
                 IndexBegin begin,
                 IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
+                Function&& function,
+                const LaunchConfiguration& launchConfig )
    {
       const IndexType chunksInSlice = segments.getChunksInSlice();
       auto segmentToChunkMapping = segments.getSegmentToChunkMappingView();
@@ -107,8 +107,8 @@ struct SegmentsOperations< ChunkedEllpackView< Device, Index, Organization > >
                 const Array& segmentIndexes,
                 IndexBegin begin,
                 IndexEnd end,
-                const LaunchConfiguration& launchConfig,
-                Function&& function )
+                Function&& function,
+                const LaunchConfiguration& launchConfig )
    {
       const IndexType chunksInSlice = segments.getChunksInSlice();
       auto segmentToChunkMapping = segments.getSegmentToChunkMappingView();
@@ -194,9 +194,9 @@ struct SegmentsOperations< ChunkedEllpackView< Device, Index, Organization > >
    forElementsIf( const ConstViewType& segments,
                   IndexBegin begin,
                   IndexEnd end,
-                  const LaunchConfiguration& launchConfig,
                   Condition condition,
-                  Function function )
+                  Function function,
+                  const LaunchConfiguration& launchConfig )
    {
       const IndexType chunksInSlice = segments.getChunksInSlice();
       auto segmentToChunkMapping = segments.getSegmentToChunkMappingView();
