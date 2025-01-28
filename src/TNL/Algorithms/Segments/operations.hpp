@@ -10,38 +10,18 @@ namespace TNL::Algorithms::Segments {
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
 void
-forElements( const Segments& segments,
-             IndexBegin begin,
-             IndexEnd end,
-             const LaunchConfiguration& launchConfig,
-             Function&& function )
+forElements( const Segments& segments, IndexBegin begin, IndexEnd end, Function&& function, LaunchConfiguration launchConfig )
 {
    detail::SegmentsOperations< typename Segments::ConstViewType >::forElements(
-      segments.getConstView(), begin, end, launchConfig, std::forward< Function >( function ) );
-}
-
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
-void
-forElements( const Segments& segments, IndexBegin begin, IndexEnd end, Function&& function )
-{
-   LaunchConfiguration launchConfig;
-   forElements( segments, begin, end, launchConfig, std::forward< Function >( function ) );
+      segments.getConstView(), begin, end, std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Segments, typename Function >
 void
-forAllElements( const Segments& segments, const LaunchConfiguration& launchConfig, Function&& function )
+forAllElements( const Segments& segments, Function&& function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
-   forElements( segments, (IndexType) 0, segments.getSegmentsCount(), launchConfig, std::forward< Function >( function ) );
-}
-
-template< typename Segments, typename Function >
-void
-forAllElements( const Segments& segments, Function&& function )
-{
-   LaunchConfiguration launchConfig;
-   forAllElements( segments, launchConfig, std::forward< Function >( function ) );
+   forElements( segments, (IndexType) 0, segments.getSegmentsCount(), std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Segments, typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -50,40 +30,24 @@ forElements( const Segments& segments,
              const Array& segmentIndexes,
              IndexBegin begin,
              IndexEnd end,
-             const LaunchConfiguration& launchConfig,
-             Function&& function )
+             Function&& function,
+             LaunchConfiguration launchConfig )
 {
    detail::SegmentsOperations< typename Segments::ConstViewType >::forElements(
-      segments.getConstView(), segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
-}
-
-template< typename Segments, typename Array, typename IndexBegin, typename IndexEnd, typename Function >
-void
-forElements( const Segments& segments, const Array& segmentIndexes, IndexBegin begin, IndexEnd end, Function function )
-{
-   LaunchConfiguration launchConfig;
-   forElements( segments, segmentIndexes, begin, end, launchConfig, std::forward< Function >( function ) );
+      segments.getConstView(), segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Segments, typename Array, typename Function >
 void
-forElements( const Segments& segments, const Array& segmentIndexes, const LaunchConfiguration& launchConfig, Function function )
+forElements( const Segments& segments, const Array& segmentIndexes, Function function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
    detail::SegmentsOperations< typename Segments::ConstViewType >::forElements( segments.getConstView(),
                                                                                 segmentIndexes,
                                                                                 (IndexType) 0,
                                                                                 segmentIndexes.getSize(),
-                                                                                launchConfig,
-                                                                                std::forward< Function >( function ) );
-}
-
-template< typename Segments, typename Array, typename Function >
-void
-forElements( const Segments& segments, const Array& segmentIndexes, Function function )
-{
-   LaunchConfiguration launchConfig;
-   forElements( segments, segmentIndexes, launchConfig, std::forward< Function >( function ) );
+                                                                                std::forward< Function >( function ),
+                                                                                launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -91,46 +55,29 @@ void
 forElementsIf( const Segments& segments,
                IndexBegin begin,
                IndexEnd end,
-               const LaunchConfiguration& launchConfig,
                Condition condition,
-               Function function )
+               Function function,
+               LaunchConfiguration launchConfig )
 {
    detail::SegmentsOperations< typename Segments::ConstViewType >::forElementsIf( segments.getConstView(),
                                                                                   begin,
                                                                                   end,
-                                                                                  launchConfig,
                                                                                   std::forward< Condition >( condition ),
-                                                                                  std::forward< Function >( function ) );
-}
-
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
-void
-forElementsIf( const Segments& segments, IndexBegin begin, IndexEnd end, Condition condition, Function function )
-{
-   LaunchConfiguration launchConfig;
-   forElementsIf(
-      segments, begin, end, launchConfig, std::forward< Condition >( condition ), std::forward< Function >( function ) );
+                                                                                  std::forward< Function >( function ),
+                                                                                  launchConfig );
 }
 
 template< typename Segments, typename Condition, typename Function >
 void
-forAllElementsIf( const Segments& segments, const LaunchConfiguration& launchConfig, Condition condition, Function function )
+forAllElementsIf( const Segments& segments, Condition condition, Function function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
    detail::SegmentsOperations< typename Segments::ConstViewType >::forElementsIf( segments.getConstView(),
                                                                                   (IndexType) 0,
                                                                                   segments.getSegmentsCount(),
-                                                                                  launchConfig,
                                                                                   std::forward< Condition >( condition ),
-                                                                                  std::forward< Function >( function ) );
-}
-
-template< typename Segments, typename Condition, typename Function >
-void
-forAllElementsIf( const Segments& segments, Condition condition, Function function )
-{
-   LaunchConfiguration launchConfig;
-   forAllElementsIf( segments, launchConfig, std::forward< Condition >( condition ), std::forward< Function >( function ) );
+                                                                                  std::forward< Function >( function ),
+                                                                                  launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -138,9 +85,9 @@ void
 forElementsIfSparse( const Segments& segments,
                      IndexBegin begin,
                      IndexEnd end,
-                     const LaunchConfiguration& launchConfig,
                      Condition condition,
-                     Function function )
+                     Function function,
+                     LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
    using DeviceType = typename Segments::DeviceType;
@@ -154,46 +101,25 @@ forElementsIfSparse( const Segments& segments,
       } );
 
    auto indexes = compressFast< VectorType >( conditions );
-   forElements( segments, indexes, launchConfig, function );
-}
-
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
-void
-forElementsIfSparse( const Segments& segments, IndexBegin begin, IndexEnd end, Condition condition, Function function )
-{
-   LaunchConfiguration launchConfig;
-   forElementsIfSparse(
-      segments, begin, end, launchConfig, std::forward< Condition >( condition ), std::forward< Function >( function ) );
+   forElements( segments, indexes, function, launchConfig );
 }
 
 template< typename Segments, typename Condition, typename Function >
 void
-forAllElementsIfSparse( const Segments& segments,
-                        const LaunchConfiguration& launchConfig,
-                        Condition condition,
-                        Function function )
+forAllElementsIfSparse( const Segments& segments, Condition condition, Function function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
    forElementsIfSparse( segments.getConstView(),
                         (IndexType) 0,
                         segments.getSegmentsCount(),
-                        launchConfig,
                         std::forward< Condition >( condition ),
-                        std::forward< Function >( function ) );
-}
-
-template< typename Segments, typename Condition, typename Function >
-void
-forAllElementsIfSparse( const Segments& segments, Condition condition, Function function )
-{
-   LaunchConfiguration launchConfig;
-   forAllElementsIfSparse(
-      segments, launchConfig, std::forward< Condition >( condition ), std::forward< Function >( function ) );
+                        std::forward< Function >( function ),
+                        launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
 void
-forSegments( const Segments& segments, IndexBegin begin, IndexEnd end, Function&& function )
+forSegments( const Segments& segments, IndexBegin begin, IndexEnd end, Function&& function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
    using DeviceType = typename Segments::DeviceType;
@@ -203,16 +129,16 @@ forSegments( const Segments& segments, IndexBegin begin, IndexEnd end, Function&
       auto segment = segments_view.getSegmentView( segmentIdx );
       function( segment );
    };
-   Algorithms::parallelFor< DeviceType >( begin, end, f );
+   Algorithms::parallelFor< DeviceType >( begin, end, launchConfig, f );
 }
 
 template< typename Segments, typename Function >
 void
-forAllSegments( const Segments& segments, Function&& function )
+forAllSegments( const Segments& segments, Function&& function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
    detail::SegmentsOperations< typename Segments::ConstViewType >::forSegments(
-      segments.getConstView(), (IndexType) 0, segments.getSegmentsCount(), std::forward< Function >( function ) );
+      segments.getConstView(), (IndexType) 0, segments.getSegmentsCount(), std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
