@@ -180,7 +180,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_CSR( Index gridIdx,
 
    __syncthreads();
    const Index last_idx = shared_offsets[ last_local_segment_idx ];
-   TNL_ASSERT_LE( last_idx, offsets[ offsets.getSize() - 1 ] - shared_segment_indexes[ 0 ], "" );
+   TNL_ASSERT_LE( last_idx, offsets[ offsets.getSize() - 1 ] - offsets[ shared_segment_indexes[ 0 ] ], "" );
 
    Index idx = threadIdx.x;
    while( idx < last_idx ) {
@@ -313,7 +313,7 @@ forElementsIfBlockMergeKernel_CSR( Index gridIdx,
    __syncthreads();
 
    const Index last_idx = shared_offsets[ activeSegmentsCount ];
-   TNL_ASSERT_LE( last_idx, offsets[ offsets.getSize() - 1 ] - shared_segment_indexes[ 0 ], "" );
+   TNL_ASSERT_LE( last_idx, offsets[ offsets.getSize() - 1 ] - offsets[ shared_segment_indexes[ 0 ] ], "" );
 
    Index idx = threadIdx.x;
    while( idx < last_idx ) {
