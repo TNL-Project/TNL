@@ -82,10 +82,8 @@ TYPED_TEST( BiEllpackSegmentsTest, forElementsWithSegmentIndexes )
 TYPED_TEST( BiEllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
 {
    using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-   using Kernel = TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel< typename BiEllpackSegmentsType::IndexType,
-                                                                              typename BiEllpackSegmentsType::DeviceType >;
 
-   test_reduceAllSegments_MaximumInSegments< BiEllpackSegmentsType, Kernel >();
+   test_reduceAllSegments_MaximumInSegments< BiEllpackSegmentsType >();
 }
 
 #include "../../main.h"

@@ -96,6 +96,21 @@ protected:
    getStripLength( Index strip ) const;
 };
 
+template< typename Segments >
+struct isBiEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
+struct isBiEllpackSegments< BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize > > : std::true_type
+{};
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+struct isBiEllpackSegments< BiEllpackView< Device, Index, Organization, WarpSize > > : std::true_type
+{};
+
+template< typename Segments >
+inline constexpr bool isBiEllpackSegments_v = isBiEllpackSegments< Segments >::value;
+
 }  // namespace TNL::Algorithms::Segments
 
 #include "BiEllpack.hpp"
