@@ -9,6 +9,7 @@
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Algorithms/Segments/traverse.h>
+#include <TNL/Algorithms/Segments/reduce.h>
 #include "SparseMatrixBase.h"
 #include "details/SparseMatrix.h"
 
@@ -121,8 +122,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       {
          row_sums_view[ row ] = value;
       };
-      DefaultSegmentsReductionKernel::reduceSegments(
-         this->segments, 0, this->getRows(), fetch, std::plus<>{}, keeper, (IndexType) 0 );
+      Algorithms::Segments::reduceSegments( this->segments, 0, this->getRows(), fetch, std::plus<>{}, keeper, (IndexType) 0 );
       return sum( row_sums );
    }
 }
@@ -257,6 +257,130 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       }
    }
    return 0;
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename InVector, typename OutVector >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::vectorProduct(
+   const InVector& inVector,
+   OutVector& outVector,
+   ComputeRealType matrixMultiplicator,
+   ComputeRealType outVectorMultiplicator,
+   IndexType begin,
+   IndexType end,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig ) const
+{
+   if( this->getColumns() != inVector.getSize() )
+      throw std::invalid_argument( "vectorProduct: size of the input vector does not match the number of matrix columns" );
+   if( this->getRows() != outVector.getSize() )
+      throw std::invalid_argument( "vectorProduct: size of the output vector does not match the number of matrix rows" );
+
+   using OutVectorReal = typename OutVector::RealType;
+   static_assert(
+      ! MatrixType::isSymmetric() || ! std::is_same_v< Device, Devices::Cuda >
+         || (std::is_same_v< OutVectorReal, float > || std::is_same_v< OutVectorReal, double >
+             || std::is_same_v< OutVectorReal, int > || std::is_same_v< OutVectorReal, long long int >),
+      "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
+
+   const auto inVectorView = inVector.getConstView();
+   auto outVectorView = outVector.getView();
+   const auto valuesView = this->values.getConstView();
+   const auto columnIndexesView = this->columnIndexes.getConstView();
+
+   if( end == 0 )
+      end = this->getRows();
+
+   if constexpr( Base::isSymmetric() ) {
+      if( outVectorMultiplicator != ComputeRealType{ 1 } )
+         outVector *= outVectorMultiplicator;
+      auto fetch = [ valuesView, columnIndexesView, inVectorView, outVectorView, matrixMultiplicator ] __cuda_callable__(
+                      IndexType row, IndexType localIdx, IndexType globalIdx ) mutable -> ComputeRealType
+      {
+         TNL_ASSERT_GE( globalIdx, 0, "Global index must be non-negative." );
+         TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "Global index must be smaller than the number of elements." );
+         const IndexType column = columnIndexesView[ globalIdx ];
+         if( column == paddingIndex< IndexType > )
+            return 0;
+         if( column < row ) {
+            if constexpr( Base::isBinary() )
+               Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ column ],
+                                                                (OutVectorReal) matrixMultiplicator * inVectorView[ row ] );
+            else
+               Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ column ],
+                                                                (OutVectorReal) matrixMultiplicator * valuesView[ globalIdx ]
+                                                                   * inVectorView[ row ] );
+         }
+         if constexpr( Base::isBinary() )
+            return inVectorView[ column ];
+         return valuesView[ globalIdx ] * inVectorView[ column ];
+      };
+      auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
+      {
+         typename OutVector::RealType aux = matrixMultiplicator * value;
+         Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ row ], aux );
+      };
+      Algorithms::Segments::reduceSegments(
+         this->segments, begin, end, fetch, Plus{}, keep, (ComputeRealType) 0.0, launchConfig );
+   }
+   else {
+      auto fetch =
+         [ inVectorView, valuesView, columnIndexesView ] __cuda_callable__( IndexType globalIdx ) mutable -> ComputeRealType
+      {
+         TNL_ASSERT_GE( globalIdx, 0, "Global index must be non-negative." );
+         TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "Global index must be smaller than the number of elements." );
+         const IndexType column = columnIndexesView[ globalIdx ];
+         TNL_ASSERT_TRUE( (column >= 0 || column == paddingIndex< Index >), "Wrong column index." );
+         TNL_ASSERT_LT( column, inVectorView.getSize(), "Wrong column index." );
+         if( column == paddingIndex< Index > )
+            return 0;
+         TNL_ASSERT_TRUE( column >= 0, "Wrong column index." );
+         if constexpr( Base::isBinary() )
+            return inVectorView[ column ];
+         return valuesView[ globalIdx ] * inVectorView[ column ];
+      };
+      if( outVectorMultiplicator == ComputeRealType{ 0 } ) {
+         if( matrixMultiplicator == ComputeRealType{ 1 } ) {
+            auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
+            {
+               TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+               TNL_ASSERT_LT( row, outVectorView.getSize(), "Row index must be smaller than the number of elements." );
+               outVectorView[ row ] = value;
+            };
+            Algorithms::Segments::reduceSegments(
+               this->segments, begin, end, fetch, Plus{}, keep, (ComputeRealType) 0.0, launchConfig );
+         }
+         else {
+            auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
+            {
+               TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+               outVectorView[ row ] = matrixMultiplicator * value;
+            };
+            Algorithms::Segments::reduceSegments(
+               this->segments, begin, end, fetch, Plus{}, keep, (ComputeRealType) 0.0, launchConfig );
+         }
+      }
+      else {
+         if( matrixMultiplicator == ComputeRealType{ 1 } ) {
+            auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
+            {
+               TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+               outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
+            };
+            Algorithms::Segments::reduceSegments(
+               this->segments, begin, end, fetch, Plus{}, keep, (ComputeRealType) 0.0, launchConfig );
+         }
+         else {
+            auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
+            {
+               TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+               outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
+            };
+            Algorithms::Segments::reduceSegments(
+               this->segments, begin, end, fetch, Plus{}, keep, (ComputeRealType) 0.0, launchConfig );
+         }
+      }
+   }
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -447,6 +571,36 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows(
+   IndexType begin,
+   IndexType end,
+   Fetch&& fetch,
+   const Reduce& reduce,
+   Keep&& keep,
+   const FetchValue& identity,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig ) const
+{
+   const auto columns_view = this->columnIndexes.getConstView();
+   const auto values_view = this->values.getConstView();
+   auto fetch_ = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      -> decltype( fetch( IndexType(), IndexType(), RealType() ) )
+   {
+      TNL_ASSERT_LT( globalIdx, (IndexType) columns_view.getSize(), "" );
+      IndexType columnIdx = columns_view[ globalIdx ];
+      if( columnIdx != paddingIndex< IndexType > ) {
+         if( Base::isBinary() )
+            return fetch( rowIdx, columnIdx, 1 );
+         else
+            return fetch( rowIdx, columnIdx, values_view[ globalIdx ] );
+      }
+      return identity;
+   };
+   Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity, launchConfig );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
 std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows(
@@ -511,16 +665,16 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-template< typename Fetch, typename Reduce, typename Keep, typename SegmentsReductionKernel >
-std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
+void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceAllRows(
    Fetch&& fetch,
    const Reduce& reduce,
    Keep&& keep,
-   const SegmentsReductionKernel& kernel ) const
+   const FetchValue& identity,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig ) const
 {
-   using FetchValue = decltype( fetch( IndexType(), IndexType(), RealType() ) );
-   this->reduceAllRows( fetch, reduce, keep, reduce.template getIdentity< FetchValue >(), kernel );
+   this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity, launchConfig );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
