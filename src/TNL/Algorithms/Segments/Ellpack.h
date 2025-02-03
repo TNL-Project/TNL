@@ -132,6 +132,36 @@ struct ColumnMajorEllpack : public Ellpack< Device, Index, IndexAllocator, Colum
    ColumnMajorEllpack( ColumnMajorEllpack&& segments ) noexcept = default;
 };
 
+template< typename Segments >
+struct isEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
+struct isEllpackSegments< Ellpack< Device, Index, IndexAllocator, Organization, Alignment > > : std::true_type
+{};
+
+template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
+struct isEllpackSegments< EllpackView< Device, Index, Organization, Alignment > > : std::true_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int Alignment >
+struct isEllpackSegments< ColumnMajorEllpack< Device, Index, IndexAllocator, Alignment > > : std::true_type
+{};
+
+template< typename Device, typename Index, int Alignment >
+struct isEllpackSegments< ColumnMajorEllpackView< Device, Index, Alignment > > : std::true_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int Alignment >
+struct isEllpackSegments< RowMajorEllpack< Device, Index, IndexAllocator, Alignment > > : std::true_type
+{};
+template< typename Device, typename Index, int Alignment >
+struct isEllpackSegments< RowMajorEllpackView< Device, Index, Alignment > > : std::true_type
+{};
+
+template< typename Segments >
+inline constexpr bool isEllpackSegments_v = isEllpackSegments< Segments >::value;
+
 }  // namespace TNL::Algorithms::Segments
 
 #include "Ellpack.hpp"

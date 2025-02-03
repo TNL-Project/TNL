@@ -55,6 +55,7 @@ struct CSRAdaptiveKernel
              typename Reduction,
              typename ResultKeeper,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceSegments instead" )]]
    void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
@@ -69,6 +70,7 @@ struct CSRAdaptiveKernel
              typename Reduction,
              typename ResultKeeper,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceAllSegments instead" )]]
    void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,

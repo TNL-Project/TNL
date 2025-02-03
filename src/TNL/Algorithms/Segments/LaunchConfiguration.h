@@ -24,19 +24,31 @@ struct LaunchConfiguration : public Backend::LaunchConfiguration
      threadsPerSegmentCount( threadsPerSegmentCount )
    {}
 
-   ThreadsToSegmentsMapping
-   getThreadsToSegmentsMapping()
+   [[nodiscard]] ThreadsToSegmentsMapping
+   getThreadsToSegmentsMapping() const
    {
       return threadsToSegmentsMapping;
    }
 
-   int
-   getThreadsPerSegmentCount()
+   void
+   setThreadsPerSegmentCount( int threadsPerSegmentCount )
+   {
+      this->threadsPerSegmentCount = threadsPerSegmentCount;
+   }
+
+   [[nodiscard]] int
+   getThreadsPerSegmentCount() const
    {
       return threadsPerSegmentCount;
    }
 
-   const Backend::LaunchConfiguration&
+   void
+   setThreadsToSegmentsMapping( ThreadsToSegmentsMapping threadsToSegmentsMapping )
+   {
+      this->threadsToSegmentsMapping = threadsToSegmentsMapping;
+   }
+
+   [[nodiscard]] const Backend::LaunchConfiguration&
    getBackendLaunchConfiguration() const
    {
       return *this;

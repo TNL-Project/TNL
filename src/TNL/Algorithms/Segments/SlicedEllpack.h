@@ -127,6 +127,36 @@ struct ColumnMajorSlicedEllpack : public SlicedEllpack< Device, Index, IndexAllo
    ColumnMajorSlicedEllpack( ColumnMajorSlicedEllpack&& ) noexcept = default;
 };
 
+template< typename Segments >
+struct isSlicedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
+struct isSlicedEllpackSegments< SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize > > : std::true_type
+{};
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+struct isSlicedEllpackSegments< SlicedEllpackView< Device, Index, Organization, SliceSize > > : std::true_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int SliceSize >
+struct isSlicedEllpackSegments< ColumnMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > > : std::true_type
+{};
+
+template< typename Device, typename Index, int SliceSize >
+struct isSlicedEllpackSegments< ColumnMajorSlicedEllpackView< Device, Index, SliceSize > > : std::true_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int SliceSize >
+struct isSlicedEllpackSegments< RowMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > > : std::true_type
+{};
+template< typename Device, typename Index, int SliceSize >
+struct isSlicedEllpackSegments< RowMajorSlicedEllpackView< Device, Index, SliceSize > > : std::true_type
+{};
+
+template< typename Segments >
+inline constexpr bool isSlicedEllpackSegments_v = isSlicedEllpackSegments< Segments >::value;
+
 }  // namespace TNL::Algorithms::Segments
 
 #include "SlicedEllpack.hpp"

@@ -102,6 +102,21 @@ protected:
    SliceInfoContainer slices;
 };
 
+template< typename Segments >
+struct isChunkedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
+struct isChunkedEllpackSegments< ChunkedEllpack< Device, Index, IndexAllocator, Organization > > : std::true_type
+{};
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+struct isChunkedEllpackSegments< ChunkedEllpackView< Device, Index, Organization > > : std::true_type
+{};
+
+template< typename Segments >
+inline constexpr bool isChunkedEllpackSegments_v = isChunkedEllpackSegments< Segments >::value;
+
 }  // namespace TNL::Algorithms::Segments
 
 #include "ChunkedEllpack.hpp"
