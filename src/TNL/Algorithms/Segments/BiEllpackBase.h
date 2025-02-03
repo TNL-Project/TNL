@@ -120,7 +120,8 @@ public:
    getVirtualSegments() const;
 
    template< typename Function >
-   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead" )]] void
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead" )]]
+   void
    forElements( IndexType begin, IndexType end, Function&& function ) const;
 
    template< typename Function >
