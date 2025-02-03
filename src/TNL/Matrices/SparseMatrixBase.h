@@ -358,27 +358,33 @@ public:
     * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
     *                 for the reduction operation, i.e. element which does not
     *                 change the result of the reduction.
-    * \param kernel is an instance of the segments reduction kernel to be used
-    *               for the operation.
-    *
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.    *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_reduceRows.cpp
     * \par Output
     * \include SparseMatrixExample_reduceRows.out
     */
-   template< typename Fetch,
-             typename Reduce,
-             typename Keep,
-             typename FetchValue,
-             typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
-   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+   template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
+   void
+   reduceRows(
+      IndexType begin,
+      IndexType end,
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const FetchValue& identity,
+      const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
+
+   template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
+   [[deprecated( "Use reduceRows without segments reduction kernel instead" )]]
+   void
    reduceRows( IndexType begin,
                IndexType end,
                Fetch&& fetch,
                const Reduce& reduce,
                Keep&& keep,
                const FetchValue& identity,
-               const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+               const SegmentsReductionKernel& kernel ) const;
 
    /**
     * \brief Method for performing general reduction on matrix rows for constant instances with function object
@@ -454,25 +460,30 @@ public:
     * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
     *                 for the reduction operation, i.e. element which does not
     *                 change the result of the reduction.
-    * \param kernel is an instance of the segments reduction kernel to be used
-    *               for the operation.
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_reduceAllRows.cpp
     * \par Output
     * \include SparseMatrixExample_reduceAllRows.out
     */
-   template< typename Fetch,
-             typename Reduce,
-             typename Keep,
-             typename FetchValue,
-             typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
-   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+   template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
+   void
+   reduceAllRows(
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const FetchValue& identity,
+      const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
+
+   template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
+   [[deprecated( "Use reduceAllRows without segments reduction kernel instead" )]]
+   void
    reduceAllRows( Fetch&& fetch,
                   const Reduce& reduce,
                   Keep&& keep,
                   const FetchValue& identity,
-                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+                  const SegmentsReductionKernel& kernel ) const;
 
    /**
     * \brief Method for iteration over all matrix elements for (constant instances).
@@ -941,24 +952,36 @@ public:
     *    is computed. It is zero by default.
     * \param end is the end of the rows range for which the vector product
     *    is computed. It is number if the matrix rows by default.
-    * \param kernel is an instance of the segments reduction kernel to be used
-    *               for the operation.
+    * \param launchConfig is an instance of the launch configurations allowing to control the threads mapping.
     */
-   template< typename InVector, typename OutVector, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
+   template< typename InVector, typename OutVector >
+   void
+   vectorProduct(
+      const InVector& inVector,
+      OutVector& outVector,
+      ComputeRealType matrixMultiplicator = 1.0,
+      ComputeRealType outVectorMultiplicator = 0.0,
+      IndexType begin = 0,
+      IndexType end = 0,
+      const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
+
+   template< typename InVector, typename OutVector, typename SegmentsReductionKernel >
+   [[deprecated( "Use vectorProduct without segments reduction kernel instead" )]]
    void
    vectorProduct( const InVector& inVector,
                   OutVector& outVector,
-                  ComputeRealType matrixMultiplicator = 1.0,
-                  ComputeRealType outVectorMultiplicator = 0.0,
-                  IndexType begin = 0,
-                  IndexType end = 0,
-                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+                  ComputeRealType matrixMultiplicator,
+                  ComputeRealType outVectorMultiplicator,
+                  IndexType begin,
+                  IndexType end,
+                  const SegmentsReductionKernel& kernel ) const;
 
    template< typename InVector,
              typename OutVector,
              typename SegmentsReductionKernel,
              typename...,
              std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeRealType >, bool > = true >
+   [[deprecated( "Use vectorProduct without segments retuction kernel instead" )]]
    void
    vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
 
