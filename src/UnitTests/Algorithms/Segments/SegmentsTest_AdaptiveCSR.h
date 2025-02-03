@@ -1,0 +1,97 @@
+#include <TNL/Algorithms/Segments/AdaptiveCSR.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/CSRAdaptiveKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/CSRHybridKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/CSRLightKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/CSRScalarKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/CSRVectorKernel.h>
+
+#include "SegmentsTest.hpp"
+#include <iostream>
+
+#include <gtest/gtest.h>
+
+// test fixture for typed tests
+template< typename Segments >
+class AdaptiveCSRSegmentsTest : public ::testing::Test
+{
+protected:
+   using AdaptiveCSRSegmentsType = Segments;
+};
+
+// types for which MatrixTest is instantiated
+using AdaptiveCSRSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::AdaptiveCSR< TNL::Devices::Host, int >,
+                                                   TNL::Algorithms::Segments::AdaptiveCSR< TNL::Devices::Host, long >
+#if defined( __CUDACC__ )
+                                                   ,
+                                                   TNL::Algorithms::Segments::AdaptiveCSR< TNL::Devices::Cuda, int >,
+                                                   TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, long >
+#elif defined( __HIP__ )
+                                                   ,
+                                                   TNL::Algorithms::Segments::AdaptiveCSR< TNL::Devices::Hip, int >,
+                                                   TNL::Algorithms::Segments::AdaptiveCSR< TNL::Devices::Hip, long >
+#endif
+                                                   >;
+
+TYPED_TEST_SUITE( AdaptiveCSRSegmentsTest, AdaptiveCSRSegmentsTypes );
+TYPED_TEST( AdaptiveCSRSegmentsTest, setSegmentsSizes_EqualSizes )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_SetSegmentsSizes_EqualSizes< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, forElements_EmptySegments )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_forElements_EmptySegments< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, forElements_EqualSizes )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_forElements_EqualSizes< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, forElements )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_forElements< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, forElementsIf )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_forElementsIf< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_forElementsWithSegmentIndexes_EmptySegments< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, forElementsWithSegmentIndexes )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_forElementsWithSegmentIndexes< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, reduceAllSegments_MaximumInSegments )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+   test_reduceAllSegments_MaximumInSegments< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, reduceAllSegments_MaximumInSegments_short_fetch )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+   test_reduceAllSegments_MaximumInSegments_short_fetch< AdaptiveCSRSegmentsType >();
+}
+
+#include "../../main.h"
