@@ -97,10 +97,8 @@ TYPED_TEST( EllpackSegmentsTest, forElementsWithSegmentIndexes )
 TYPED_TEST( EllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-   using Kernel = TNL::Algorithms::SegmentsReductionKernels::EllpackKernel< typename EllpackSegmentsType::IndexType,
-                                                                            typename EllpackSegmentsType::DeviceType >;
 
-   test_reduceAllSegments_MaximumInSegments< EllpackSegmentsType, Kernel >();
+   test_reduceAllSegments_MaximumInSegments< EllpackSegmentsType >();
 }
 
 #include "../../main.h"

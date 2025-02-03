@@ -89,11 +89,8 @@ TYPED_TEST( SlicedEllpackSegmentsTest, forElementsWithSegmentIndexes )
 TYPED_TEST( SlicedEllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
 {
    using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
-   using Kernel =
-      TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel< typename SlicedEllpackSegmentsType::IndexType,
-                                                                      typename SlicedEllpackSegmentsType::DeviceType >;
 
-   test_reduceAllSegments_MaximumInSegments< SlicedEllpackSegmentsType, Kernel >();
+   test_reduceAllSegments_MaximumInSegments< SlicedEllpackSegmentsType >();
 }
 
 #include "../../main.h"

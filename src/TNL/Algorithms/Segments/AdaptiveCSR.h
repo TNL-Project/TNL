@@ -3,17 +3,13 @@
 
 #pragma once
 
-#include <type_traits>
-
-#include <TNL/Containers/Vector.h>
-#include <TNL/TypeTraits.h>
-
-#include "CSRView.h"
+#include "CSR.h"
+#include "AdaptiveCSRView.h"
 
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief Data structure for CSR segments format.
+ * \brief Data structure for Adaptive CSR segments format.
  *
  * See \ref TNL::Algorithms::Segments for more details about segments.
  *
@@ -24,45 +20,46 @@ namespace TNL::Algorithms::Segments {
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-class CSR : public CSRBase< Device, Index >
+class AdaptiveCSR : public CSR< Device, Index, IndexAllocator >
 {
-   using Base = CSRBase< Device, Index >;
+   using Base = CSR< Device, Index, IndexAllocator >;
 
 public:
    //! \brief Type of segments view.
-   using ViewType = CSRView< Device, Index >;
+   using ViewType = AdaptiveCSRView< Device, Index >;
 
    //! \brief Type of constant segments view.
-   using ConstViewType = CSRView< Device, std::add_const_t< Index > >;
+   using ConstViewType = AdaptiveCSRView< Device, std::add_const_t< Index > >;
 
-   /**
-    * \brief Templated view type.
-    *
-    * \tparam Device_ is alternative device type for the view.
-    * \tparam Index_ is alternative index type for the view.
-    */
-   template< typename Device_, typename Index_ >
-   using ViewTemplate = CSRView< Device_, Index_ >;
+   using BlocksType = typename ViewType::BlocksType;
+   using BlocksView = typename BlocksType::ViewType;
 
-   /**
-    * \brief Type of container storing offsets of particular rows.
-    */
-   using OffsetsContainer = Containers::Vector< Index, Device, typename Base::IndexType, IndexAllocator >;
+   [[nodiscard]] static constexpr int
+   MaxValueSizeLog()
+   {
+      return ViewType::MaxValueSizeLog();
+   }
+
+   [[nodiscard]] static int
+   getSizeValueLog( const int& i )
+   {
+      return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
+   }
 
    /**
     * \brief Constructor with no parameters to create empty segments.
     */
-   CSR();
+   AdaptiveCSR() = default;
 
    /**
     * \brief Copy constructor (makes deep copy).
     */
-   CSR( const CSR& segments );
+   AdaptiveCSR( const AdaptiveCSR& segments );
 
    /**
     * \brief Move constructor.
     */
-   CSR( CSR&& ) noexcept = default;
+   AdaptiveCSR( AdaptiveCSR&& ) noexcept = default;
 
    /**
     * \brief Construct with segments sizes.
@@ -84,8 +81,8 @@ public:
     *
     * \include SegmentsExample_CSR_constructor_1.out
     */
-   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
-   CSR( const SizesContainer& segmentsSizes );
+   template< typename SizesContainer >
+   AdaptiveCSR( const SizesContainer& segmentsSizes );
 
    /**
     * \brief Construct with segments sizes in initializer list..
@@ -106,15 +103,15 @@ public:
     * \include SegmentsExample_CSR_constructor_2.out
     */
    template< typename ListIndex >
-   CSR( const std::initializer_list< ListIndex >& segmentsSizes );
+   AdaptiveCSR( const std::initializer_list< ListIndex >& segmentsSizes );
 
    //! \brief Copy-assignment operator (makes a deep copy).
-   CSR&
-   operator=( const CSR& segments );
+   AdaptiveCSR&
+   operator=( const AdaptiveCSR& segments );
 
    //! \brief Move-assignment operator.
-   CSR&
-   operator=( CSR&& ) noexcept( false );
+   AdaptiveCSR&
+   operator=( AdaptiveCSR&& ) noexcept( false );
 
    /**
     * \brief Assignment operator with CSR segments with different template parameters.
@@ -128,8 +125,8 @@ public:
     * \return reference to this instance.
     */
    template< typename Device_, typename Index_, typename IndexAllocator_ >
-   CSR&
-   operator=( const CSR< Device_, Index_, IndexAllocator_ >& segments );
+   AdaptiveCSR&
+   operator=( const AdaptiveCSR< Device_, Index_, IndexAllocator_ >& segments );
 
    /**
     * \brief Returns a view for this instance of CSR segments which can by used
@@ -165,6 +162,10 @@ public:
    void
    reset();
 
+   [[nodiscard]]
+   const BlocksView*
+   getBlocks() const;
+
    /**
     * \brief Method for saving the segments to a file in a binary form.
     *
@@ -182,24 +183,22 @@ public:
    load( File& file );
 
 protected:
-   OffsetsContainer offsets;
+   template< int SizeOfValue, typename Offsets >
+   Index
+   findLimit( Index start, const Offsets& offsets, Index size, detail::Type& type );
+
+   template< int SizeOfValue, typename Offsets >
+   void
+   initValueSize( const Offsets& offsets );
+
+   /**
+    * \brief  blocksArray[ i ] stores blocks for sizeof( Value ) == 2^i.
+    */
+   BlocksType blocksArray[ MaxValueSizeLog() ];
+
+   ViewType view;
 };
-
-template< typename Segments >
-struct isCSRSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator >
-struct isCSRSegments< CSR< Device, Index, IndexAllocator > > : std::true_type
-{};
-
-template< typename Device, typename Index >
-struct isCSRSegments< CSRView< Device, Index > > : std::true_type
-{};
-
-template< typename Segments >
-inline constexpr bool isCSRSegments_v = isCSRSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 
-#include "CSR.hpp"
+#include "AdaptiveCSR.hpp"

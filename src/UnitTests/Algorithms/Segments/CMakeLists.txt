@@ -1,4 +1,5 @@
 set(COMMON_TESTS
+    SegmentsTest_AdaptiveCSR
     SegmentsTest_BiEllpack
     SegmentsTest_ChunkedEllpack
     SegmentsTest_CSR

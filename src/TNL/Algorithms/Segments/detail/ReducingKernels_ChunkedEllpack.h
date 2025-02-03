@@ -1,0 +1,93 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
+#pragma once
+
+namespace TNL::Algorithms::Segments::detail {
+
+template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+__global__
+void
+ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
+                                    Index gridIdx,
+                                    Index begin,
+                                    Index end,
+                                    Fetch fetch,
+                                    Reduction reduction,
+                                    ResultKeeper keeper,
+                                    Value identity )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
+   const Index firstSlice = segments.getSegmentToSliceMappingView()[ begin ];
+   const Index lastSlice = segments.getSegmentToSliceMappingView()[ end - 1 ];
+
+   const Index sliceIdx = firstSlice + gridIdx * Backend::getMaxGridXSize() + blockIdx.x;
+   if( sliceIdx > lastSlice )
+      return;
+
+   ReturnType* chunksResults = Backend::getSharedMemory< ReturnType >();
+   __shared__ Segments::detail::ChunkedEllpackSliceInfo< Index > sliceInfo;
+
+   if( threadIdx.x == 0 )
+      sliceInfo = segments.getSlicesView()[ sliceIdx ];
+   chunksResults[ threadIdx.x ] = identity;
+   __syncthreads();
+
+   const Index sliceOffset = sliceInfo.pointer;
+   const Index chunkSize = sliceInfo.chunkSize;
+
+   if constexpr( argumentCount< Fetch >() == 3 ) {
+      const Index chunkIdx = sliceIdx * segments.getChunksInSlice() + threadIdx.x;
+      const Index segmentIdx = segments.getChunksToSegmentsMappingView()[ chunkIdx ];
+      Index firstChunkOfSegment = 0;
+      if( segmentIdx != sliceInfo.firstSegment )
+         firstChunkOfSegment = segments.getSegmentToChunkMappingView()[ segmentIdx - 1 ];
+      Index localIdx = ( threadIdx.x - firstChunkOfSegment ) * chunkSize;
+
+      if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
+         Index begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
+         Index end = begin + chunkSize;
+         for( Index j = begin; j < end; j++ )
+            chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( segmentIdx, localIdx++, j ) );
+      }
+      else {
+         const Index begin = sliceOffset + threadIdx.x;  // threadIdx.x = chunkIdx within the slice
+         const Index end = begin + segments.getChunksInSlice() * chunkSize;
+         for( Index j = begin; j < end; j += segments.getChunksInSlice() )
+            chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( segmentIdx, localIdx++, j ) );
+      }
+   }
+   else {
+      if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
+         Index begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
+         Index end = begin + chunkSize;
+         for( Index j = begin; j < end; j++ )
+            chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( j ) );
+      }
+      else {
+         const Index begin = sliceOffset + threadIdx.x;  // threadIdx.x = chunkIdx within the slice
+         const Index end = begin + segments.getChunksInSlice() * chunkSize;
+         for( Index j = begin; j < end; j += segments.getChunksInSlice() )
+            chunksResults[ threadIdx.x ] = reduction( chunksResults[ threadIdx.x ], fetch( j ) );
+      }
+   }
+
+   __syncthreads();
+
+   if( threadIdx.x < sliceInfo.size ) {
+      const Index segment = sliceInfo.firstSegment + threadIdx.x;
+      Index chunkIndex = 0;
+      if( threadIdx.x != 0 )
+         chunkIndex = segments.getSegmentToChunkMappingView()[ segment - 1 ];
+      const Index lastChunk = segments.getSegmentToChunkMappingView()[ segment ];
+      ReturnType result = identity;
+      while( chunkIndex < lastChunk )
+         result = reduction( result, chunksResults[ chunkIndex++ ] );
+      if( segment >= begin && segment < end )
+         keeper( segment, result );
+   }
+#endif
+}
+}  // namespace TNL::Algorithms::Segments::detail
