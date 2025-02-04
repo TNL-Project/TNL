@@ -130,7 +130,8 @@ void
 AdaptiveCSR< Device, Index, IndexAllocator >::save( File& file ) const
 {
    Base::save( file );
-   file << this->blocksArray;
+   for( int i = 0; i < MaxValueSizeLog(); i++ )
+      file << this->blocksArray[ i ];
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
@@ -138,7 +139,8 @@ void
 AdaptiveCSR< Device, Index, IndexAllocator >::load( File& file )
 {
    Base::load( file );
-   file >> this->blocksArray;
+   for( int i = 0; i < MaxValueSizeLog(); i++ )
+      file >> this->blocksArray[ i ];
    this->view.bind( Base::getOffsets(), this->blocksArray );
 }
 

@@ -11,8 +11,7 @@
 #include <gtest/gtest.h>
 
 template< typename Device_, typename Index_, typename IndexAllocator_ >
-using RowMajorEllpack =
-   TNL::Algorithms::Segments::Ellpack< Device_, Index_, IndexAllocator_, TNL::Algorithms::Segments::RowMajorOrder, 1 >;
+using RowMajorEllpackType = TNL::Algorithms::Segments::RowMajorEllpack< Device_, Index_, IndexAllocator_ >;
 
 // test fixture for typed tests
 template< typename Matrix >
@@ -78,7 +77,7 @@ TYPED_TEST( MatrixTest, WrapMatrix )
    using CSRMatrix = TNL::Matrices::
       SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
    using EllpackMatrix =
-      TNL::Matrices::SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, RowMajorEllpack >;
+      TNL::Matrices::SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, RowMajorEllpackType >;
 
    DenseMatrix denseMatrix{ { 1, 2, 0, 0 }, { 0, 6, 0, 0 }, { 9, 0, 0, 0 }, { 0, 0, 15, 16 } };
    IndexType rows( 4 );

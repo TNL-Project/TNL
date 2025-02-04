@@ -95,7 +95,8 @@ void
 AdaptiveCSRView< Device, Index >::save( File& file ) const
 {
    Base::save( file );
-   file << this->blocksArray;
+   for( int i = 0; i < MaxValueSizeLog(); i++ )
+      file << this->blocksArray[ i ];
 }
 
 template< typename Device, typename Index >
@@ -103,7 +104,8 @@ void
 AdaptiveCSRView< Device, Index >::load( File& file )
 {
    Base::load( file );
-   file >> this->blocksArray;
+   for( int i = 0; i < MaxValueSizeLog(); i++ )
+      file >> this->blocksArray[ i ];
 }
 
 template< typename Device, typename Index >
