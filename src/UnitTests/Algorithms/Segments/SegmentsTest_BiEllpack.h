@@ -1,5 +1,4 @@
 #include <TNL/Algorithms/Segments/BiEllpack.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/BiEllpackKernel.h>
 
 #include "SegmentsTest.hpp"
 #include <iostream>
