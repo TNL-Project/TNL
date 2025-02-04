@@ -7,6 +7,7 @@
 #include "isSegmentReductionKernel.h"
 
 #include "detail/FetchLambdaAdapter.h"
+#include "isSegmentsReductionKernel.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
@@ -68,11 +69,9 @@ protected:
    int threadsPerSegment = 0;
 };
 
-template< typename Index, typename Device, int ThreadsInBlock >
-struct isSegmentReductionKernel< CSRHybridKernel< Index, Device, ThreadsInBlock > >
-{
-   static constexpr bool value = true;
-};
+template< typename Index, typename Device >
+struct isSegmentsReductionKernel< CSRHybridKernel< Index, Device > > : std::true_type
+{};
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels
 
