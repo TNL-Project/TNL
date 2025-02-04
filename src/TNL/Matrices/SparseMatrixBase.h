@@ -66,7 +66,7 @@ public:
     * initialized by the user and the object must be passed to the
     * vectorProduct or reduceRows method.
     */
-   using DefaultSegmentsReductionKernel = typename Algorithms::SegmentsReductionKernels::DefaultKernel< SegmentsView >::type;
+   //using DefaultSegmentsReductionKernel = typename Algorithms::SegmentsReductionKernels::DefaultKernel< SegmentsView >::type;
 
    /**
     * \brief The type of matrix elements.
@@ -965,7 +965,17 @@ public:
       IndexType end = 0,
       const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
 
-   template< typename InVector, typename OutVector, typename SegmentsReductionKernel >
+   template< typename InVector, typename OutVector >
+   void
+   vectorProduct( const InVector& inVector,
+                  OutVector& outVector,
+                  const Algorithms::Segments::LaunchConfiguration& launchConfig ) const;
+
+   template< typename InVector,
+             typename OutVector,
+             typename SegmentsReductionKernel,
+             typename T = std::enable_if_t<
+                Algorithms::SegmentsReductionKernels::isSegmentsReductionKernel_v< SegmentsReductionKernel > > >
    [[deprecated( "Use vectorProduct without segments reduction kernel instead" )]]
    void
    vectorProduct( const InVector& inVector,
@@ -980,8 +990,10 @@ public:
              typename OutVector,
              typename SegmentsReductionKernel,
              typename...,
+             typename T = std::enable_if_t<
+                Algorithms::SegmentsReductionKernels::isSegmentsReductionKernel_v< SegmentsReductionKernel > >,
              std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeRealType >, bool > = true >
-   [[deprecated( "Use vectorProduct without segments retuction kernel instead" )]]
+   [[deprecated( "Use vectorProduct without segments reduction kernel instead" )]]
    void
    vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
 

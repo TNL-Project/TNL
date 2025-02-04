@@ -129,7 +129,8 @@ forSegments( const Segments& segments, IndexBegin begin, IndexEnd end, Function&
       auto segment = segments_view.getSegmentView( segmentIdx );
       function( segment );
    };
-   Algorithms::parallelFor< DeviceType >( begin, end, launchConfig, f );
+   Algorithms::parallelFor< DeviceType >( begin, end, f );  // TODO: Add launchConfig - it seems it does not work with current
+                                                            // implementation of parallelFor
 }
 
 template< typename Segments, typename Function >

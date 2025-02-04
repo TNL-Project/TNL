@@ -6,7 +6,8 @@
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Segments >
-struct ReducingOperations;
+struct ReducingOperations
+{};
 
 }  //namespace TNL::Algorithms::Segments::detail
 

@@ -8,21 +8,20 @@ set(COMMON_TESTS
     MultidiagonalMatrixTest
     SparseMatrixOperationsTest_CSR
     SparseMatrixTest_CSR
+    SparseMatrixTest_AdaptiveCSR
     SparseMatrixTest_Ellpack
     SparseMatrixTest_SlicedEllpack
     SparseMatrixTest_ChunkedEllpack
     SparseMatrixTest_BiEllpack
-    SparseMatrixVectorProductTest_CSRScalar
-    SparseMatrixVectorProductTest_CSRVector
-    SparseMatrixVectorProductTest_CSRHybrid
-    SparseMatrixVectorProductTest_CSRLight
-    SparseMatrixVectorProductTest_CSRAdaptive
+    SparseMatrixVectorProductTest_CSR
+    SparseMatrixVectorProductTest_AdaptiveCSR
     SparseMatrixVectorProductTest_Ellpack
     SparseMatrixVectorProductTest_SlicedEllpack
     SparseMatrixVectorProductTest_ChunkedEllpack
     SparseMatrixVectorProductTest_BiEllpack
     SparseMatrixCopyTest
     BinarySparseMatrixTest_CSR
+    BinarySparseMatrixTest_AdaptiveCSR
     BinarySparseMatrixTest_Ellpack
     BinarySparseMatrixTest_SlicedEllpack
     BinarySparseMatrixCopyTest

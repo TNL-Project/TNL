@@ -1,12 +1,17 @@
 #pragma once
 
+#include <functional>
+#include <iostream>
+#include <sstream>
+
+#include <TNL/Algorithms/Segments/ReductionLaunchConfigurations.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Math.h>
 
 #include <gtest/gtest.h>
 
-template< typename Matrix, typename Kernel >
+template< typename Matrix >
 void
 test_VectorProduct_zeroMatrix()
 {
@@ -29,38 +34,46 @@ test_VectorProduct_zeroMatrix()
    typename Matrix::RowCapacitiesType rowLengths_1{ 1, 2, 1, 1 };
    m_1.setRowCapacities( rowLengths_1 );
 
-   VectorType inVector_1;
-   inVector_1.setSize( m_cols_1 );
-   inVector_1.setValue( 1 );
+   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_1.getSegments() ) ) {
+      SCOPED_TRACE( tag );
 
-   VectorType outVector_1;
-   outVector_1.setSize( m_rows_1 );
-   outVector_1.setValue( -1 );
+      VectorType inVector_1;
+      inVector_1.setSize( m_cols_1 );
+      inVector_1.setValue( 1 );
 
-   Kernel kernel;
-   kernel.init( m_1.getSegments() );
-   m_1.vectorProduct( inVector_1, outVector_1, kernel );
+      VectorType outVector_1;
+      outVector_1.setSize( m_rows_1 );
+      outVector_1.setValue( -1 );
 
-   EXPECT_EQ( outVector_1.getElement( 0 ), RealType{ 0 } );
-   EXPECT_EQ( outVector_1.getElement( 1 ), RealType{ 0 } );
-   EXPECT_EQ( outVector_1.getElement( 2 ), RealType{ 0 } );
-   EXPECT_EQ( outVector_1.getElement( 3 ), RealType{ 0 } );
+      m_1.vectorProduct( inVector_1, outVector_1, launch_config );
+
+      EXPECT_EQ( outVector_1.getElement( 0 ), RealType{ 0 } );
+      EXPECT_EQ( outVector_1.getElement( 1 ), RealType{ 0 } );
+      EXPECT_EQ( outVector_1.getElement( 2 ), RealType{ 0 } );
+      EXPECT_EQ( outVector_1.getElement( 3 ), RealType{ 0 } );
+   }
 
    // Test transposedVectorProduct
    // TODO: implement it for complex types
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_1_transposed;
       m_1_transposed.getTransposition( m_1 );
-      VectorType inVector_1_transposed( m_rows_1, 1 );
-      VectorType outVector_1_transposed( m_cols_1, -1 );
-      VectorType outVector_2_transposed( m_cols_1, -1 );
-      m_1_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
-      m_1.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
-      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      for( auto [ launch_config, tag ] :
+           TNL::Algorithms::Segments::reductionLaunchConfigurations( m_1_transposed.getSegments() ) )
+      {
+         SCOPED_TRACE( tag );
+
+         VectorType inVector_1_transposed( m_rows_1, 1 );
+         VectorType outVector_1_transposed( m_cols_1, -1 );
+         VectorType outVector_2_transposed( m_cols_1, -1 );
+         m_1_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed, launch_config );
+         m_1.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+         EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      }
    }
 }
 
-template< typename Matrix, typename Kernel >
+template< typename Matrix >
 void
 test_VectorProduct_smallMatrix1()
 {
@@ -89,34 +102,41 @@ test_VectorProduct_smallMatrix1()
                        {3,2,5} } );
    // clang-format on
 
-   VectorType inVector_1( m_cols_1, 2 );
+   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_1.getSegments() ) ) {
+      SCOPED_TRACE( tag );
 
-   VectorType outVector_1( m_rows_1, 0 );
+      VectorType inVector_1( m_cols_1, 2 );
+      VectorType outVector_1( m_rows_1, 0 );
 
-   Kernel kernel;
-   kernel.init( m_1.getSegments() );
-   m_1.vectorProduct( inVector_1, outVector_1, kernel );
+      m_1.vectorProduct( inVector_1, outVector_1, launch_config );
 
-   EXPECT_EQ( outVector_1.getElement( 0 ), RealType{ 2 } );
-   EXPECT_EQ( outVector_1.getElement( 1 ), RealType{ 10 } );
-   EXPECT_EQ( outVector_1.getElement( 2 ), RealType{ 8 } );
-   EXPECT_EQ( outVector_1.getElement( 3 ), RealType{ 10 } );
+      EXPECT_EQ( outVector_1.getElement( 0 ), RealType{ 2 } );
+      EXPECT_EQ( outVector_1.getElement( 1 ), RealType{ 10 } );
+      EXPECT_EQ( outVector_1.getElement( 2 ), RealType{ 8 } );
+      EXPECT_EQ( outVector_1.getElement( 3 ), RealType{ 10 } );
+   }
 
    // Test transposedVectorProduct
    // TODO: implement it for complex types
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_1_transposed;
       m_1_transposed.getTransposition( m_1 );
-      VectorType inVector_1_transposed( m_rows_1, 1.0 );
-      VectorType outVector_1_transposed( m_cols_1, 0.0 );
-      VectorType outVector_2_transposed( m_cols_1, 0.0 );
-      m_1_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
-      m_1.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
-      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      for( auto [ launch_config, tag ] :
+           TNL::Algorithms::Segments::reductionLaunchConfigurations( m_1_transposed.getSegments() ) )
+      {
+         SCOPED_TRACE( tag );
+
+         VectorType inVector_1_transposed( m_rows_1, 1.0 );
+         VectorType outVector_1_transposed( m_cols_1, 0.0 );
+         VectorType outVector_2_transposed( m_cols_1, 0.0 );
+         m_1_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed, launch_config );
+         m_1.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+         EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      }
    }
 }
 
-template< typename Matrix, typename Kernel >
+template< typename Matrix >
 void
 test_VectorProduct_smallMatrix2()
 {
@@ -145,33 +165,40 @@ test_VectorProduct_smallMatrix2()
               {3,1,8} } );
    // clang-format on
 
-   VectorType inVector_2( m_cols_2, 2 );
-   VectorType outVector_2( m_rows_2, 0 );
+   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_2.getSegments() ) ) {
+      SCOPED_TRACE( tag );
+      VectorType inVector_2( m_cols_2, 2 );
+      VectorType outVector_2( m_rows_2, 0 );
 
-   Kernel kernel;
-   kernel.init( m_2.getSegments() );
-   m_2.vectorProduct( inVector_2, outVector_2, kernel );
+      m_2.vectorProduct( inVector_2, outVector_2, launch_config );
 
-   EXPECT_EQ( outVector_2.getElement( 0 ), RealType{ 12 } );
-   EXPECT_EQ( outVector_2.getElement( 1 ), RealType{ 8 } );
-   EXPECT_EQ( outVector_2.getElement( 2 ), RealType{ 36 } );
-   EXPECT_EQ( outVector_2.getElement( 3 ), RealType{ 16 } );
+      EXPECT_EQ( outVector_2.getElement( 0 ), RealType{ 12 } );
+      EXPECT_EQ( outVector_2.getElement( 1 ), RealType{ 8 } );
+      EXPECT_EQ( outVector_2.getElement( 2 ), RealType{ 36 } );
+      EXPECT_EQ( outVector_2.getElement( 3 ), RealType{ 16 } );
+   }
 
    // Test transposedVectorProduct
    // TODO: implement it for complex types
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_2_transposed;
       m_2_transposed.getTransposition( m_2 );
-      VectorType inVector_1_transposed( m_rows_2, 1.0 );
-      VectorType outVector_1_transposed( m_cols_2, 0.0 );
-      VectorType outVector_2_transposed( m_cols_2, 0.0 );
-      m_2_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
-      m_2.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
-      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      for( auto [ launch_config, tag ] :
+           TNL::Algorithms::Segments::reductionLaunchConfigurations( m_2_transposed.getSegments() ) )
+      {
+         SCOPED_TRACE( tag );
+
+         VectorType inVector_1_transposed( m_rows_2, 1.0 );
+         VectorType outVector_1_transposed( m_cols_2, 0.0 );
+         VectorType outVector_2_transposed( m_cols_2, 0.0 );
+         m_2_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed, launch_config );
+         m_2.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+         EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      }
    }
 }
 
-template< typename Matrix, typename Kernel >
+template< typename Matrix >
 void
 test_VectorProduct_smallMatrix3()
 {
@@ -203,33 +230,41 @@ test_VectorProduct_smallMatrix3()
               {3,1,10}, {3,2,11}, {3,3,12} } );
    // clang-format on
 
-   VectorType inVector_3( m_cols_3, 2 );
-   VectorType outVector_3( m_rows_3, 0 );
+   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_3.getSegments() ) ) {
+      SCOPED_TRACE( tag );
 
-   Kernel kernel;
-   kernel.init( m_3.getSegments() );
-   m_3.vectorProduct( inVector_3, outVector_3, kernel );
+      VectorType inVector_3( m_cols_3, 2 );
+      VectorType outVector_3( m_rows_3, 0 );
 
-   EXPECT_EQ( outVector_3.getElement( 0 ), RealType{ 12 } );
-   EXPECT_EQ( outVector_3.getElement( 1 ), RealType{ 30 } );
-   EXPECT_EQ( outVector_3.getElement( 2 ), RealType{ 48 } );
-   EXPECT_EQ( outVector_3.getElement( 3 ), RealType{ 66 } );
+      m_3.vectorProduct( inVector_3, outVector_3, launch_config );
+
+      EXPECT_EQ( outVector_3.getElement( 0 ), RealType{ 12 } );
+      EXPECT_EQ( outVector_3.getElement( 1 ), RealType{ 30 } );
+      EXPECT_EQ( outVector_3.getElement( 2 ), RealType{ 48 } );
+      EXPECT_EQ( outVector_3.getElement( 3 ), RealType{ 66 } );
+   }
 
    // Test transposedVectorProduct
    // TODO: implement it for complex types
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_3_transposed;
       m_3_transposed.getTransposition( m_3 );
-      VectorType inVector_1_transposed( m_rows_3, 1.0 );
-      VectorType outVector_1_transposed( m_cols_3, 0.0 );
-      VectorType outVector_2_transposed( m_cols_3, 0.0 );
-      m_3_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
-      m_3.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
-      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      for( auto [ launch_config, tag ] :
+           TNL::Algorithms::Segments::reductionLaunchConfigurations( m_3_transposed.getSegments() ) )
+      {
+         SCOPED_TRACE( tag );
+
+         VectorType inVector_1_transposed( m_rows_3, 1.0 );
+         VectorType outVector_1_transposed( m_cols_3, 0.0 );
+         VectorType outVector_2_transposed( m_cols_3, 0.0 );
+         m_3_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed, launch_config );
+         m_3.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+         EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      }
    }
 }
 
-template< typename Matrix, typename Kernel >
+template< typename Matrix >
 void
 test_VectorProduct_mediumSizeMatrix1()
 {
@@ -269,37 +304,45 @@ test_VectorProduct_mediumSizeMatrix1()
      {7,0,31}, {7,1,32}, {7,2,33}, {7,3,34}, {7,4 ,35} } );
    // clang-format on
 
-   VectorType inVector_4( m_cols_4, 2 );
-   VectorType outVector_4( m_rows_4, 0 );
+   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_4.getSegments() ) ) {
+      SCOPED_TRACE( tag );
 
-   Kernel kernel;
-   kernel.init( m_4.getSegments() );
-   m_4.vectorProduct( inVector_4, outVector_4, kernel );
+      VectorType inVector_4( m_cols_4, 2 );
+      VectorType outVector_4( m_rows_4, 0 );
 
-   EXPECT_EQ( outVector_4.getElement( 0 ), RealType{ 20 } );
-   EXPECT_EQ( outVector_4.getElement( 1 ), RealType{ 52 } );
-   EXPECT_EQ( outVector_4.getElement( 2 ), RealType{ 110 } );
-   EXPECT_EQ( outVector_4.getElement( 3 ), RealType{ 124 } );
-   EXPECT_EQ( outVector_4.getElement( 4 ), RealType{ 156 } );
-   EXPECT_EQ( outVector_4.getElement( 5 ), RealType{ 188 } );
-   EXPECT_EQ( outVector_4.getElement( 6 ), RealType{ 280 } );
-   EXPECT_EQ( outVector_4.getElement( 7 ), RealType{ 330 } );
+      m_4.vectorProduct( inVector_4, outVector_4, launch_config );
+
+      EXPECT_EQ( outVector_4.getElement( 0 ), RealType{ 20 } );
+      EXPECT_EQ( outVector_4.getElement( 1 ), RealType{ 52 } );
+      EXPECT_EQ( outVector_4.getElement( 2 ), RealType{ 110 } );
+      EXPECT_EQ( outVector_4.getElement( 3 ), RealType{ 124 } );
+      EXPECT_EQ( outVector_4.getElement( 4 ), RealType{ 156 } );
+      EXPECT_EQ( outVector_4.getElement( 5 ), RealType{ 188 } );
+      EXPECT_EQ( outVector_4.getElement( 6 ), RealType{ 280 } );
+      EXPECT_EQ( outVector_4.getElement( 7 ), RealType{ 330 } );
+   }
 
    // Test transposedVectorProduct
    // TODO: implement it for complex types
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_4_transposed;
       m_4_transposed.getTransposition( m_4 );
-      VectorType inVector_1_transposed( m_rows_4, 1.0 );
-      VectorType outVector_1_transposed( m_cols_4, 0.0 );
-      VectorType outVector_2_transposed( m_cols_4, 0.0 );
-      m_4_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
-      m_4.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
-      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      for( auto [ launch_config, tag ] :
+           TNL::Algorithms::Segments::reductionLaunchConfigurations( m_4_transposed.getSegments() ) )
+      {
+         SCOPED_TRACE( tag );
+
+         VectorType inVector_1_transposed( m_rows_4, 1.0 );
+         VectorType outVector_1_transposed( m_cols_4, 0.0 );
+         VectorType outVector_2_transposed( m_cols_4, 0.0 );
+         m_4_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed, launch_config );
+         m_4.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+         EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      }
    }
 }
 
-template< typename Matrix, typename Kernel >
+template< typename Matrix >
 void
 test_VectorProduct_mediumSizeMatrix2()
 {
@@ -336,37 +379,45 @@ test_VectorProduct_mediumSizeMatrix2()
      {7,0,29}, {7,1,30}, {7,2,31}, {7,3,32}, {7,4,33}, {7,5,34}, {7,6,35}, {7,7,36} } );
    // clang-format on
 
-   VectorType inVector_5( m_cols_5, 2 );
-   VectorType outVector_5( m_rows_5, 0 );
+   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_5.getSegments() ) ) {
+      SCOPED_TRACE( tag );
 
-   Kernel kernel;
-   kernel.init( m_5.getSegments() );
-   m_5.vectorProduct( inVector_5, outVector_5, kernel );
+      VectorType inVector_5( m_cols_5, 2 );
+      VectorType outVector_5( m_rows_5, 0 );
 
-   EXPECT_EQ( outVector_5.getElement( 0 ), RealType{ 32 } );
-   EXPECT_EQ( outVector_5.getElement( 1 ), RealType{ 28 } );
-   EXPECT_EQ( outVector_5.getElement( 2 ), RealType{ 56 } );
-   EXPECT_EQ( outVector_5.getElement( 3 ), RealType{ 102 } );
-   EXPECT_EQ( outVector_5.getElement( 4 ), RealType{ 32 } );
-   EXPECT_EQ( outVector_5.getElement( 5 ), RealType{ 224 } );
-   EXPECT_EQ( outVector_5.getElement( 6 ), RealType{ 352 } );
-   EXPECT_EQ( outVector_5.getElement( 7 ), RealType{ 520 } );
+      m_5.vectorProduct( inVector_5, outVector_5, launch_config );
+
+      EXPECT_EQ( outVector_5.getElement( 0 ), RealType{ 32 } );
+      EXPECT_EQ( outVector_5.getElement( 1 ), RealType{ 28 } );
+      EXPECT_EQ( outVector_5.getElement( 2 ), RealType{ 56 } );
+      EXPECT_EQ( outVector_5.getElement( 3 ), RealType{ 102 } );
+      EXPECT_EQ( outVector_5.getElement( 4 ), RealType{ 32 } );
+      EXPECT_EQ( outVector_5.getElement( 5 ), RealType{ 224 } );
+      EXPECT_EQ( outVector_5.getElement( 6 ), RealType{ 352 } );
+      EXPECT_EQ( outVector_5.getElement( 7 ), RealType{ 520 } );
+   }
 
    // Test transposedVectorProduct
    // TODO: implement it for complex types
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_5_transposed;
       m_5_transposed.getTransposition( m_5 );
-      VectorType inVector_1_transposed( m_rows_5, 1.0 );
-      VectorType outVector_1_transposed( m_cols_5, 0.0 );
-      VectorType outVector_2_transposed( m_cols_5, 0.0 );
-      m_5_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed );
-      m_5.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
-      EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      for( auto [ launch_config, tag ] :
+           TNL::Algorithms::Segments::reductionLaunchConfigurations( m_5_transposed.getSegments() ) )
+      {
+         SCOPED_TRACE( tag );
+
+         VectorType inVector_1_transposed( m_rows_5, 1.0 );
+         VectorType outVector_1_transposed( m_cols_5, 0.0 );
+         VectorType outVector_2_transposed( m_cols_5, 0.0 );
+         m_5_transposed.vectorProduct( inVector_1_transposed, outVector_1_transposed, launch_config );
+         m_5.transposedVectorProduct( inVector_1_transposed, outVector_2_transposed );
+         EXPECT_EQ( outVector_1_transposed, outVector_2_transposed );
+      }
    }
 }
 
-template< typename Matrix, typename Kernel >
+template< typename Matrix >
 void
 test_VectorProduct_largeMatrix()
 {
@@ -398,17 +449,17 @@ test_VectorProduct_largeMatrix()
    m1.getCompressedRowLengths( rowCapacities );
    EXPECT_EQ( rowCapacities, 1 );
 
-   TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 );
-   TNL::Containers::Vector< OutRealType, DeviceType, IndexType > out( size, 0.0 );
-   Kernel kernel;
-   kernel.init( m1.getSegments() );
-   m1.vectorProduct( in, out, kernel );
-   for( IndexType i = 0; i < size; i++ )
-      EXPECT_EQ( out.getElement( i ), OutRealType( i + 1 ) );
+   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m1.getSegments() ) ) {
+      SCOPED_TRACE( tag );
+
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 ), out( size, 0.0 );
+      m1.vectorProduct( in, out, launch_config );
+      for( IndexType i = 0; i < size; i++ )
+         EXPECT_EQ( out.getElement( i ), OutRealType( i + 1 ) );
+   }
 
    // Test with large triangular matrix
-   const int rows( size );
-   const int columns( size );
+   const int rows( size ), columns( size );
    Matrix m2( rows, columns );
    rowCapacities.setSize( rows );
    rowCapacities.forAllElements(
@@ -430,15 +481,17 @@ test_VectorProduct_largeMatrix()
    m2.getCompressedRowLengths( rowLengths );
    EXPECT_EQ( rowLengths, rowCapacities );
 
-   out.setSize( rows );
-   out = 0.0;
-   kernel.init( m2.getSegments() );
-   m2.vectorProduct( in, out, kernel );
-   for( IndexType i = 0; i < rows; i++ )
-      EXPECT_EQ( out.getElement( i ), OutRealType( ( i + 1 ) * ( i + 2 ) / 2 ) );
+   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m2.getSegments() ) ) {
+      SCOPED_TRACE( tag );
+
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 ), out( size, 0.0 );
+      m2.vectorProduct( in, out, launch_config );
+      for( IndexType i = 0; i < rows; i++ )
+         EXPECT_EQ( out.getElement( i ), OutRealType( ( i + 1 ) * ( i + 2 ) / 2 ) );
+   }
 }
 
-template< typename Matrix, typename Kernel >
+template< typename Matrix >
 void
 test_VectorProduct_longRowsMatrix()
 {
@@ -462,12 +515,13 @@ test_VectorProduct_longRowsMatrix()
          value = localIdx + row;
       };
       m3.forAllElements( f );
-      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( columns, 1.0 );
-      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > out( rows, 0.0 );
-      Kernel kernel;
-      kernel.init( m3.getSegments() );
-      m3.vectorProduct( in, out, kernel );
-      for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
-         EXPECT_EQ( out.getElement( rowIdx ), OutRealType( columns * ( columns - 1 ) / 2.0 + columns * rowIdx ) );
+      for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m3.getSegments() ) ) {
+         SCOPED_TRACE( tag );
+
+         TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( columns, 1.0 ), out( rows, 0.0 );
+         m3.vectorProduct( in, out, launch_config );
+         for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
+            EXPECT_EQ( out.getElement( rowIdx ), OutRealType( columns * ( columns - 1 ) / 2.0 + columns * rowIdx ) );
+      }
    }
 }
