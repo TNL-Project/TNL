@@ -384,7 +384,18 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-template< typename InVector, typename OutVector, typename SegmentsReductionKernel >
+template< typename InVector, typename OutVector >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::vectorProduct(
+   const InVector& inVector,
+   OutVector& outVector,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig ) const
+{
+   vectorProduct( inVector, outVector, 1.0, 0.0, 0, 0, launchConfig );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename InVector, typename OutVector, typename SegmentsReductionKernel, typename T >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::vectorProduct(
    const InVector& inVector,
@@ -509,6 +520,7 @@ template< typename InVector,
           typename OutVector,
           typename SegmentsReductionKernel,
           typename...,
+          typename T,
           std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeReal >, bool > >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::vectorProduct(
@@ -696,7 +708,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
       }
    };
-   this->segments.forElements( begin, end, f );
+   Algorithms::Segments::forElements( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -720,7 +732,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
       }
    };
-   this->segments.forElements( begin, end, f );
+   Algorithms::Segments::forElements( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -835,7 +847,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
       }
    };
-   this->segments.forElementsIf( begin, end, condition, f );
+   Algorithms::Segments::forElementsIf( this->segments, begin, end, condition, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -860,7 +872,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
       }
    };
-   this->segments.forElementsIf( begin, end, condition, f );
+   Algorithms::Segments::forElementsIf( this->segments, begin, end, condition, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -896,7 +908,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       auto rowView = RowView( segmentView, values_view, columns_view );
       function( rowView );
    };
-   this->segments.forSegments( begin, end, f );
+   Algorithms::Segments::forSegments( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -914,7 +926,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       const auto rowView = ConstRowView( segmentView, values_view, columns_view );
       function( rowView );
    };
-   this->segments.forSegments( begin, end, f );
+   Algorithms::Segments::forSegments( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >

@@ -7,6 +7,7 @@
 #include "isSegmentReductionKernel.h"
 
 #include "detail/FetchLambdaAdapter.h"
+#include "isSegmentsReductionKernel.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
@@ -96,10 +97,8 @@ protected:
 };
 
 template< typename Index, typename Device >
-struct isSegmentReductionKernel< CSRAdaptiveKernel< Index, Device > >
-{
-   static constexpr bool value = true;
-};
+struct isSegmentsReductionKernel< CSRAdaptiveKernel< Index, Device > > : std::true_type
+{};
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels
 
