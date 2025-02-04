@@ -1,9 +1,4 @@
 #include <TNL/Algorithms/Segments/AdaptiveCSR.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRAdaptiveKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRHybridKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRLightKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRScalarKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRVectorKernel.h>
 
 #include "SegmentsTest.hpp"
 #include <iostream>

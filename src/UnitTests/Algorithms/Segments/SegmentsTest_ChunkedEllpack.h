@@ -1,5 +1,4 @@
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/ChunkedEllpackKernel.h>
 
 #include "SegmentsTest.hpp"
 #include <iostream>
