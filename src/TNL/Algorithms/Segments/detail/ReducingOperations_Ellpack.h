@@ -11,10 +11,10 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< typename Device, typename Index, ElementsOrganization Organization >
-struct ReducingOperations< EllpackView< Device, Index, Organization > >
+template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
+struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment > >
 {
-   using SegmentsViewType = EllpackView< Device, Index, Organization >;
+   using SegmentsViewType = EllpackView< Device, Index, Organization, Alignment >;
    using ConstViewType = typename SegmentsViewType::ConstViewType;
    using DeviceType = Device;
    using IndexType = typename std::remove_const< Index >::type;
