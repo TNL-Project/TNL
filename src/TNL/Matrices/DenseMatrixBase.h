@@ -5,7 +5,6 @@
 
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
 #include "DenseMatrixRowView.h"
 #include "MatrixBase.h"
 #include "MatrixType.h"
@@ -37,7 +36,6 @@ protected:
       Ellpack< Device, Index, typename Allocators::Default< Device >::template Allocator< Index >, Organization, 1 >;
    using SegmentsViewType = typename SegmentsType::ViewType;
    using SegmentViewType = typename SegmentsType::SegmentViewType;
-   using SegmentsReductionKernel = Algorithms::SegmentsReductionKernels::EllpackKernel< Index, Device >;
 
 public:
    /**
