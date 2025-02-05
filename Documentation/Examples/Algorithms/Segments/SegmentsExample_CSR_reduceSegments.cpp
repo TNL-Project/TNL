@@ -2,7 +2,8 @@
 #include <TNL/Functional.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/DefaultKernel.h>
+#include <TNL/Algorithms/Segments/traverse.h>
+#include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -11,8 +12,6 @@ void
 SegmentsExample()
 {
    using SegmentsType = typename TNL::Algorithms::Segments::CSR< Device, int >;
-   using SegmentsReductionKernel =
-      typename TNL::Algorithms::SegmentsReductionKernels::DefaultKernel< typename SegmentsType::ViewType >::type;
 
    /***
     * Create segments with given segments sizes.
@@ -29,13 +28,14 @@ SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   segments.forElements( 0,
-                         size,
-                         [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-                         {
-                            if( localIdx <= segmentIdx )
-                               data_view[ globalIdx ] = segmentIdx;
-                         } );
+   TNL::Algorithms::Segments::forElements( segments,
+                                           0,
+                                           size,
+                                           [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+                                           {
+                                              if( localIdx <= segmentIdx )
+                                                 data_view[ globalIdx ] = segmentIdx;
+                                           } );
 
    /***
     * Compute sums of elements in each segment.
@@ -58,12 +58,10 @@ SegmentsExample()
       sums_view[ globalIdx ] = value;
    };
 
-   SegmentsReductionKernel kernel;
-   kernel.init( segments );
-   kernel.reduceAllSegments( segments, fetch_full, TNL::Plus{}, keep );
-   std::cout << "The sums with full fetch form are: " << sums << '\n';
-   kernel.reduceAllSegments( segments, fetch_brief, TNL::Plus{}, keep );
-   std::cout << "The sums with brief fetch form are: " << sums << '\n';
+   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_full, TNL::Plus{}, keep );
+   std::cout << "The sums with full fetch form are: " << sums << std::endl;
+   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_brief, TNL::Plus{}, keep );
+   std::cout << "The sums with brief fetch form are: " << sums << std::endl;
 }
 
 int
