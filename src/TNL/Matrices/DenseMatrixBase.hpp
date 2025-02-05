@@ -7,6 +7,8 @@
 #include <functional>
 
 #include <TNL/Algorithms/reduce.h>
+#include <TNL/Algorithms/Segments/traverse.h>
+#include <TNL/Algorithms/Segments/reduce.h>
 #include "DenseMatrixBase.h"
 
 namespace TNL::Matrices {
@@ -322,7 +324,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begi
    {
       return fetch( rowIdx, columnIdx, values[ globalIdx ] );
    };
-   SegmentsReductionKernel::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
+   Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch_, reduce, keep, identity );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -367,7 +369,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::forElements( IndexType beg
    {
       function( rowIdx, columnIdx, columnIdx, values[ globalIdx ] );
    };
-   this->segments.forElements( begin, end, f );
+   Algorithms::Segments::forElements( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -380,7 +382,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::forElements( IndexType beg
    {
       function( rowIdx, columnIdx, globalIdx, values[ globalIdx ] );
    };
-   this->segments.forElements( begin, end, f );
+   Algorithms::Segments::forElements( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -411,7 +413,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::forRows( IndexType begin, 
       auto rowView = RowView( segmentView, values );
       function( rowView );
    };
-   this->segments.forSegments( begin, end, f );
+   Algorithms::Segments::forSegments( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -426,7 +428,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::forRows( IndexType begin, 
       const auto rowView = ConstRowView( segmentView, values );
       function( rowView );
    };
-   this->segments.forSegments( begin, end, f );
+   Algorithms::Segments::forSegments( this->segments, begin, end, f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -559,19 +561,15 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
 
    if( outVectorMultiplicator == RealType{ 0 } ) {
       if( matrixMultiplicator == RealType{ 1 } )
-         SegmentsReductionKernel::reduceSegments(
-            this->segments, begin, end, fetch, std::plus<>{}, keeperDirect, (RealType) 0.0 );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperDirect );
       else
-         SegmentsReductionKernel::reduceSegments(
-            this->segments, begin, end, fetch, std::plus<>{}, keeperMatrixMult, (RealType) 0.0 );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperMatrixMult );
    }
    else {
       if( matrixMultiplicator == RealType{ 1 } )
-         SegmentsReductionKernel::reduceSegments(
-            this->segments, begin, end, fetch, std::plus<>{}, keeperVectorMult, (RealType) 0.0 );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperVectorMult );
       else
-         SegmentsReductionKernel::reduceSegments(
-            this->segments, begin, end, fetch, std::plus<>{}, keeperGeneral, (RealType) 0.0 );
+         Algorithms::Segments::reduceSegments( this->segments, begin, end, fetch, Plus{}, keeperGeneral );
    }
 }
 
