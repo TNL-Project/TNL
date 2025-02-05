@@ -2,6 +2,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/SequentialFor.h>
+#include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -30,7 +31,7 @@ SegmentsExample()
          printf( "%d -> %d \t", element.localIndex(), element.globalIndex() );
       printf( "\n" );
    };
-   segments.sequentialForSegments( 0, size, f );
+   TNL::Algorithms::Segments::sequentialForSegments( segments, 0, size, f );
 }
 
 int

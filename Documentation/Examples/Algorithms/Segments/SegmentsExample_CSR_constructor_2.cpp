@@ -1,6 +1,7 @@
 #include <iostream>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
+#include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
@@ -25,12 +26,12 @@ SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   segments.forAllElements(
-      [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-      {
-         if( localIdx <= segmentIdx )
-            data_view[ globalIdx ] = segmentIdx;
-      } );
+   TNL::Algorithms::Segments::forAllElements( segments,
+                                              [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+                                              {
+                                                 if( localIdx <= segmentIdx )
+                                                    data_view[ globalIdx ] = segmentIdx;
+                                              } );
 
    /***
     * Print the data managed by the segments.
