@@ -19,7 +19,7 @@ using AdaptiveCSRSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::Ad
 #if defined( __CUDACC__ )
                                                    ,
                                                    TNL::Algorithms::Segments::AdaptiveCSR< TNL::Devices::Cuda, int >,
-                                                   TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, long >
+                                                   TNL::Algorithms::Segments::AdaptiveCSR< TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
                                                    ,
                                                    TNL::Algorithms::Segments::AdaptiveCSR< TNL::Devices::Hip, int >,
@@ -28,6 +28,7 @@ using AdaptiveCSRSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::Ad
                                                    >;
 
 TYPED_TEST_SUITE( AdaptiveCSRSegmentsTest, AdaptiveCSRSegmentsTypes );
+
 TYPED_TEST( AdaptiveCSRSegmentsTest, setSegmentsSizes_EqualSizes )
 {
    using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
@@ -87,6 +88,12 @@ TYPED_TEST( AdaptiveCSRSegmentsTest, reduceAllSegments_MaximumInSegments_short_f
 {
    using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
    test_reduceAllSegments_MaximumInSegments_short_fetch< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, reduceAllSegments_MaximumInSegmentsWithArgument )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+   test_reduceAllSegments_MaximumInSegmentsWithArgument< AdaptiveCSRSegmentsType >();
 }
 
 #include "../../main.h"

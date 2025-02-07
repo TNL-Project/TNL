@@ -28,6 +28,7 @@ using CSRSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::CSR< TNL::
                                            >;
 
 TYPED_TEST_SUITE( CSRSegmentsTest, CSRSegmentsTypes );
+
 TYPED_TEST( CSRSegmentsTest, setSegmentsSizes_EqualSizes )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
@@ -87,6 +88,12 @@ TYPED_TEST( CSRSegmentsTest, reduceAllSegments_MaximumInSegments_short_fetch )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
    test_reduceAllSegments_MaximumInSegments_short_fetch< CSRSegmentsType >();
+}
+
+TYPED_TEST( CSRSegmentsTest, reduceAllSegments_MaximumInSegmentsWithArgument )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+   test_reduceAllSegments_MaximumInSegmentsWithArgument< CSRSegmentsType >();
 }
 
 #include "../../main.h"

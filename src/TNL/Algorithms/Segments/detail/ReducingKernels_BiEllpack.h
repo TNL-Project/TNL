@@ -183,7 +183,7 @@ template< typename SegmentsView,
           int BlockDim >
 __global__
 void
-BiEllpackreduceSegmentsKernel( SegmentsView segments,
+BiEllpackReduceSegmentsKernel( SegmentsView segments,
                                Index gridIdx,
                                Index begin,
                                Index end,
@@ -196,6 +196,90 @@ BiEllpackreduceSegmentsKernel( SegmentsView segments,
       reduceSegmentsKernelWithAllParameters< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
    else
       reduceSegmentsKernel< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
+}
+
+template< int BlockDim,
+          typename SegmentsView,
+          typename Index,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value >
+__device__
+void
+reduceSegmentsKernelWithAllParametersWithArgument( SegmentsView segments,
+                                                   Index gridIdx,
+                                                   Index begin,
+                                                   Index end,
+                                                   Fetch fetch,
+                                                   Reduction reduction,
+                                                   ResultKeeper keeper,
+                                                   Value identity )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   const Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
+   if( segmentIdx >= end )
+      return;
+
+   const Index strip = segmentIdx / SegmentsView::getWarpSize();
+   const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
+   const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
+   const Index groupsCount =
+      Segments::detail::BiEllpack< Index, Devices::Cuda, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
+         getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
+   Index groupHeight = SegmentsView::getWarpSize();
+   Index localIdx = 0;
+   Index argument = 0;
+   ReturnType result = identity;
+   for( Index groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
+      Index groupOffset = segments.getGroupPointersView()[ groupIdx ];
+      const Index groupSize = segments.getGroupPointersView()[ groupIdx + 1 ] - groupOffset;
+      if( groupSize ) {
+         const Index groupWidth = groupSize / groupHeight;
+         for( Index i = 0; i < groupWidth; i++ ) {
+            if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
+               reduction( result,
+                          detail::FetchLambdaAdapter< Index, Fetch >::call(
+                             fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ),
+                          argument,
+                          localIdx );
+            else
+               reduction( result,
+                          detail::FetchLambdaAdapter< Index, Fetch >::call(
+                             fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ),
+                          argument,
+                          localIdx );
+            localIdx++;
+         }
+      }
+      groupHeight /= 2;
+   }
+   keeper( segmentIdx, result, argument );
+#endif
+}
+
+template< typename SegmentsView,
+          typename Index,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value,
+          int BlockDim >
+__global__
+void
+BiEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
+                                           Index gridIdx,
+                                           Index begin,
+                                           Index end,
+                                           Fetch fetch,
+                                           Reduction reduction,
+                                           ResultKeeper keeper,
+                                           Value identity )
+{
+   //Currently we do not have specialized kernel for short fetch with argument
+   reduceSegmentsKernelWithAllParametersWithArgument< BlockDim >(
+      segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
 }
 
 }  // namespace TNL::Algorithms::Segments::detail

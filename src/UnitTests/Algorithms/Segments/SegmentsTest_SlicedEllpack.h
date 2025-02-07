@@ -92,4 +92,18 @@ TYPED_TEST( SlicedEllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
    test_reduceAllSegments_MaximumInSegments< SlicedEllpackSegmentsType >();
 }
 
+TYPED_TEST( SlicedEllpackSegmentsTest, reduceAllSegments_MaximumInSegments_short_fetch )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_reduceAllSegments_MaximumInSegments_short_fetch< SlicedEllpackSegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackSegmentsTest, reduceAllSegments_MaximumInSegmentsWithArgument )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_reduceAllSegments_MaximumInSegmentsWithArgument< SlicedEllpackSegmentsType >();
+}
+
 #include "../../main.h"

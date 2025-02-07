@@ -22,7 +22,23 @@ reduceSegments( const Segments& segments,
                 Fetch&& fetch,
                 Reduction&& reduction,
                 ResultKeeper&& keeper,
-                const Value& identity = Reduction::template getIdentity< Value >(),
+                const Value& identity,
+                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+static void
+reduceSegments( const Segments& segments,
+                IndexBegin begin,
+                IndexEnd end,
+                Fetch&& fetch,
+                Reduction&& reduction,
+                ResultKeeper&& keeper,
                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 template< typename Segments,
@@ -35,8 +51,78 @@ reduceAllSegments( const Segments& segments,
                    Fetch&& fetch,
                    Reduction&& reduction,
                    ResultKeeper&& keeper,
-                   const Value& identity = Reduction::template getIdentity< Value >(),
+                   const Value& identity,
                    LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+static void
+reduceAllSegments( const Segments& segments,
+                   Fetch&& fetch,
+                   Reduction&& reduction,
+                   ResultKeeper&& keeper,
+                   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+static void
+reduceSegmentsWithArg( const Segments& segments,
+                       IndexBegin begin,
+                       IndexEnd end,
+                       Fetch&& fetch,
+                       Reduction&& reduction,
+                       ResultKeeper&& keeper,
+                       const Value& identity,
+                       LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+static void
+reduceSegmentsWithArgument( const Segments& segments,
+                            IndexBegin begin,
+                            IndexEnd end,
+                            Fetch&& fetch,
+                            Reduction&& reduction,
+                            ResultKeeper&& keeper,
+                            LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+static void
+reduceAllSegmentsWithArgument( const Segments& segments,
+                               Fetch&& fetch,
+                               Reduction&& reduction,
+                               ResultKeeper&& keeper,
+                               const Value& identity,
+                               LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+static void
+reduceAllSegmentsWithArgument( const Segments& segments,
+                               Fetch&& fetch,
+                               Reduction&& reduction,
+                               ResultKeeper&& keeper,
+                               LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 }  // namespace TNL::Algorithms::Segments
 

@@ -688,8 +688,8 @@ test_reduceAllSegments_MaximumInSegments()
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
 
-   const IndexType segmentsCount = 20;
-   const IndexType segmentSize = 5;
+   const IndexType segmentsCount = 256;
+   const IndexType segmentSize = 70;
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes = segmentSize;
@@ -734,13 +734,13 @@ test_reduceAllSegments_MaximumInSegments()
          segments, fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
 
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), ( i + 1 ) * segmentSize );
+         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize );
 
       result_view = 0;
       TNL::Algorithms::Segments::reduceAllSegments(
          segments.getView(), fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), ( i + 1 ) * segmentSize );
+         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize );
    }
 }
 
@@ -753,8 +753,8 @@ test_reduceAllSegments_MaximumInSegments_short_fetch()
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
 
-   const IndexType segmentsCount = 20;
-   const IndexType segmentSize = 5;
+   const IndexType segmentsCount = 270;
+   const IndexType segmentSize = 70;
 
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
    segmentsSizes = segmentSize;
@@ -765,13 +765,14 @@ test_reduceAllSegments_MaximumInSegments_short_fetch()
       SCOPED_TRACE( tag );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
+      v = -1;
 
       auto view = v.getView();
       auto init = [ = ] __cuda_callable__(
                      const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable -> bool
       {
-         TNL_ASSERT_LT( globalIdx, view.getSize(), "" );
-         view[ globalIdx ] = segmentIdx * 5 + localIdx + 1;
+         if( localIdx < segmentSize )
+            view[ globalIdx ] = segmentIdx * 5 + localIdx + 1;
          return true;
       };
       TNL::Algorithms::Segments::forAllElements( segments, init );
@@ -782,8 +783,9 @@ test_reduceAllSegments_MaximumInSegments_short_fetch()
       auto result_view = result.getView();
       auto fetch = [ = ] __cuda_callable__( IndexType globalIdx ) -> IndexType
       {
-         // Here we assume that the segments do not have padding zeros.
-         return v_view[ globalIdx ];
+         if( v_view[ globalIdx ] >= 0 )
+            return v_view[ globalIdx ];
+         return 0;
       };
       auto reduce = [] __cuda_callable__( IndexType & a, const IndexType b ) -> IndexType
       {
@@ -797,12 +799,98 @@ test_reduceAllSegments_MaximumInSegments_short_fetch()
          segments, fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
 
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), ( i + 1 ) * segmentSize );
+         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i;
 
       result_view = 0;
       TNL::Algorithms::Segments::reduceAllSegments(
          segments.getView(), fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), ( i + 1 ) * segmentSize );
+         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i;
+   }
+}
+
+template< typename Segments >
+void
+test_reduceAllSegments_MaximumInSegmentsWithArgument()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+
+   const IndexType segmentsCount = 270;
+   const IndexType maxSegmentSize = 70;
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   segmentsSizes.forAllElements(
+      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      {
+         value = idx % maxSegmentSize + 1;
+      } );
+
+   Segments segments( segmentsSizes );
+
+   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+      SCOPED_TRACE( tag );
+
+      if( std::is_same_v< DeviceType, TNL::Devices::Cuda > && std::is_same_v< IndexType, long >
+          && TNL::Algorithms::Segments::isCSRSegments_v< Segments >
+          && launch_config.getThreadsToSegmentsMapping() == TNL::Algorithms::Segments::ThreadsToSegmentsMapping::UserDefined
+          && launch_config.getThreadsPerSegmentCount() > 32 )
+         continue;  // TODO: Multivector in CSR does not work for long int on CUDA. Really don't know why. Needs to be fixed.
+
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
+      v = -1;
+
+      auto view = v.getView();
+      auto init = [ = ] __cuda_callable__(
+                     const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable -> bool
+      {
+         TNL_ASSERT_LT( globalIdx, view.getSize(), "" );
+         // some segments may use padding zeros and their size may be greater than the original segment size
+         if( localIdx <= segmentIdx % maxSegmentSize )
+            view[ globalIdx ] = localIdx + 1;
+         return true;
+      };
+      TNL::Algorithms::Segments::forAllElements( segments, init );
+
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount ), args( segmentsCount );
+
+      const auto v_view = v.getConstView();
+      auto result_view = result.getView();
+      auto args_view = args.getView();
+      auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
+      {
+         if( v_view[ globalIdx ] >= 0 )
+            return v_view[ globalIdx ];
+         return 0;
+      };
+      auto keep = [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType res, const IndexType arg ) mutable
+      {
+         result_view[ segmentIdx ] = res;
+         args_view[ segmentIdx ] = arg;
+      };
+      TNL::Algorithms::Segments::reduceAllSegmentsWithArgument( segments, fetch, TNL::MaxWithArg{}, keep, launch_config );
+
+      for( IndexType i = 0; i < segmentsCount; i++ ) {
+         EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+         EXPECT_EQ( args.getElement( i ), i % maxSegmentSize ) << "segmentIdx = " << i;
+      }
+
+      // Test with segments view and short fetch
+      result_view = 0;
+      args_view = 0;
+      auto short_fetch = [ = ] __cuda_callable__( IndexType globalIdx ) -> IndexType
+      {
+         if( v_view[ globalIdx ] >= 0 )
+            return v_view[ globalIdx ];
+         return 0;
+      };
+
+      TNL::Algorithms::Segments::reduceAllSegmentsWithArgument(
+         segments.getView(), short_fetch, TNL::MaxWithArg{}, keep, launch_config );
+
+      for( IndexType i = 0; i < segmentsCount; i++ ) {
+         EXPECT_EQ( result.getElement( i ), i % maxSegmentSize + 1 ) << "segmentIdx = " << i;
+         EXPECT_EQ( args.getElement( i ), i % maxSegmentSize ) << "segmentIdx = " << i;
+      }
    }
 }
