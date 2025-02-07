@@ -112,10 +112,15 @@ template< typename Device, typename Index >
 void
 AdaptiveCSRView< Device, Index >::printBlocks( int idx ) const
 {
-   auto& blocks = this->blocksArray[ idx ];
-   for( Index i = 0; i < this->blocks.getSize(); i++ ) {
-      auto block = blocks.getElement( i );
-      std::cout << "Block " << i << " : " << block << std::endl;
+   if( idx == -1 ) {
+      for( int i = 0; i < MaxValueSizeLog(); i++ )
+         printBlocks( i );
+      return;
+   }
+   std::cout << "Blocks for sizeof( Value ) == 2^" << idx << std::endl;
+   auto blocks = this->getBlocks()[ idx ];
+   for( int i = 0; i < blocks.getSize(); i++ ) {
+      std::cout << "Block " << i << " : " << blocks.getElement( i ) << std::endl;
    }
 }
 

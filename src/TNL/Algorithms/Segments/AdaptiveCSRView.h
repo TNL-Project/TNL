@@ -134,7 +134,7 @@ public:
    load( File& file );
 
    void
-   printBlocks( int idx ) const;
+   printBlocks( int idx = 1 ) const;
 
 protected:
    BlocksView blocksArray[ MaxValueSizeLog() ];

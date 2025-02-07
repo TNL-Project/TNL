@@ -71,6 +71,64 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
 
       Algorithms::parallelFor< Device >( begin, end, l );
    }
+
+   template< typename IndexBegin,
+             typename IndexEnd,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   static void
+   reduceSegmentsWithArgument( const ConstViewType& segments,
+                               IndexBegin begin,
+                               IndexEnd end,
+                               Fetch&& fetch,
+                               Reduction&& reduction,
+                               ResultKeeper&& keeper,
+                               const Value& identity,
+                               const LaunchConfiguration& launchConfig )
+   {
+      using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
+      const auto sliceSegmentSizes = segments.getSliceSegmentSizesView();
+      const auto sliceOffsets = segments.getSliceOffsetsView();
+
+      auto l = [ sliceOffsets, sliceSegmentSizes, fetch, reduction, keeper, identity ] __cuda_callable__(
+                  const IndexType segmentIdx ) mutable
+      {
+         const IndexType sliceIdx = segmentIdx / SegmentsViewType::getSliceSize();
+         const IndexType segmentInSliceIdx = segmentIdx % SegmentsViewType::getSliceSize();
+         ReturnType result = identity;
+         IndexType argument = 0;
+         IndexType localIdx = 0;
+
+         if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
+            const IndexType segmentSize = sliceSegmentSizes[ sliceIdx ];
+            const IndexType begin = sliceOffsets[ sliceIdx ] + segmentInSliceIdx * segmentSize;
+            const IndexType end = begin + segmentSize;
+
+            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++, localIdx++ )
+               reduction( result,
+                          detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                          argument,
+                          localIdx );
+         }
+         else {
+            (void) sliceSegmentSizes;  // ignore warning due to unused capture - let the compiler optimize it out...
+            const IndexType begin = sliceOffsets[ sliceIdx ] + segmentInSliceIdx;
+            const IndexType end = sliceOffsets[ sliceIdx + 1 ];
+
+            for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SegmentsViewType::getSliceSize(), localIdx++ )
+               reduction( result,
+                          detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                          argument,
+                          localIdx );
+         }
+         keeper( segmentIdx, result, argument );
+      };
+
+      Algorithms::parallelFor< Device >( begin, end, l );
+   }
 };
 
 }  //namespace TNL::Algorithms::Segments::detail
