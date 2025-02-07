@@ -90,4 +90,85 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
    }
 #endif
 }
+
+template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+__global__
+void
+ChunkedEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
+                                                Index gridIdx,
+                                                Index begin,
+                                                Index end,
+                                                Fetch fetch,
+                                                Reduction reduction,
+                                                ResultKeeper keeper,
+                                                Value identity )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
+   const Index firstSlice = segments.getSegmentToSliceMappingView()[ begin ];
+   const Index lastSlice = segments.getSegmentToSliceMappingView()[ end - 1 ];
+
+   const Index sliceIdx = firstSlice + gridIdx * Backend::getMaxGridXSize() + blockIdx.x;
+   if( sliceIdx > lastSlice )
+      return;
+
+   ReturnType* chunksResults = Backend::getSharedMemory< ReturnType >();
+   Index* chunksArguments = &chunksResults[ blockDim.x ];
+   __shared__ Segments::detail::ChunkedEllpackSliceInfo< Index > sliceInfo;
+
+   if( threadIdx.x == 0 )
+      sliceInfo = segments.getSlicesView()[ sliceIdx ];
+   chunksResults[ threadIdx.x ] = identity;
+   __syncthreads();
+
+   const Index sliceOffset = sliceInfo.pointer;
+   const Index chunkSize = sliceInfo.chunkSize;
+
+   const Index chunkIdx = sliceIdx * segments.getChunksInSlice() + threadIdx.x;
+   const Index segmentIdx = segments.getChunksToSegmentsMappingView()[ chunkIdx ];
+   Index firstChunkOfSegment = 0;
+   if( segmentIdx != sliceInfo.firstSegment )
+      firstChunkOfSegment = segments.getSegmentToChunkMappingView()[ segmentIdx - 1 ];
+   Index localIdx = ( threadIdx.x - firstChunkOfSegment ) * chunkSize;
+
+   if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
+      Index begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
+      Index end = begin + chunkSize;
+      for( Index j = begin; j < end; j++, localIdx++ )
+         reduction( chunksResults[ threadIdx.x ],
+                    detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, j ),
+                    chunksArguments[ threadIdx.x ],
+                    localIdx );
+   }
+   else {
+      const Index begin = sliceOffset + threadIdx.x;  // threadIdx.x = chunkIdx within the slice
+      const Index end = begin + segments.getChunksInSlice() * chunkSize;
+      for( Index j = begin; j < end; j += segments.getChunksInSlice(), localIdx++ )
+         reduction( chunksResults[ threadIdx.x ],
+                    detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, j ),
+                    chunksArguments[ threadIdx.x ],
+                    localIdx );
+   }
+
+   __syncthreads();
+
+   if( threadIdx.x < sliceInfo.size ) {
+      const Index segment = sliceInfo.firstSegment + threadIdx.x;
+      Index chunkIndex = 0;
+      if( threadIdx.x != 0 )
+         chunkIndex = segments.getSegmentToChunkMappingView()[ segment - 1 ];
+      const Index lastChunk = segments.getSegmentToChunkMappingView()[ segment ];
+      ReturnType result = identity;
+      Index argument = 0;
+      while( chunkIndex < lastChunk ) {
+         reduction( result, chunksResults[ chunkIndex ], argument, chunksArguments[ chunkIndex ] );
+         chunkIndex++;
+      }
+      if( segment >= begin && segment < end )
+         keeper( segment, result, argument );
+   }
+#endif
+}
+
 }  // namespace TNL::Algorithms::Segments::detail

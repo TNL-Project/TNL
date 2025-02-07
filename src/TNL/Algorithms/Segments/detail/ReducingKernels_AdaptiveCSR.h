@@ -35,7 +35,6 @@ reduceSegmentsCSRAdaptiveKernel( int gridIdx,
 
    __shared__ ReturnType streamShared[ WarpsCount ][ StreamedSharedElementsPerWarp ];
    __shared__ ReturnType multivectorShared[ CudaBlockSize / WarpSize ];
-   //__shared__ BlockType sharedBlocks[ WarpsCount ];
 
    const Index index = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x ) + threadIdx.x;
    const Index blockIdx = index / WarpSize;
@@ -47,10 +46,6 @@ reduceSegmentsCSRAdaptiveKernel( int gridIdx,
    __syncthreads();
    ReturnType result = identity;
    const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   /*if( laneIdx == 0 )
-      sharedBlocks[ warpIdx ] = blocks[ blockIdx ];
-   __syncthreads();
-   const auto& block = sharedBlocks[ warpIdx ];*/
    const auto& block = blocks[ blockIdx ];
    const Index firstSegmentIdx = block.getFirstSegment();
    const Index begin = offsets[ firstSegmentIdx ];
@@ -136,8 +131,161 @@ reduceSegmentsCSRAdaptiveKernel( int gridIdx,
             __syncwarp();
          }
          if( laneIdx == 0 ) {
-            // printf( "Long: segmentIdx %d -> %d \n", segmentIdx, multivectorShared[ 0 ] );
+            //printf( "Long: segmentIdx %d -> %d \n", segmentIdx, multivectorShared[ 0 ] );
             keep( segmentIdx, multivectorShared[ 0 ] );
+         }
+      }
+   }
+#endif
+}
+
+template< typename BlocksView,
+          typename Offsets,
+          typename Index,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value >
+__global__
+void
+reduceSegmentsCSRAdaptiveKernelWithArgument( int gridIdx,
+                                             BlocksView blocks,
+                                             Offsets offsets,
+                                             Fetch fetch,
+                                             Reduction reduction,
+                                             ResultKeeper keep,
+                                             Value identity )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using BlockType = detail::CSRAdaptiveKernelBlockDescriptor< Index >;
+   constexpr int CudaBlockSize = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+   constexpr int WarpSize = Backend::getWarpSize();
+   constexpr int WarpsCount = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::WarpsCount();
+   constexpr std::size_t StreamedSharedElementsPerWarp =
+      detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::StreamedSharedElementsPerWarp();
+
+   __shared__ ReturnType streamShared_result[ WarpsCount ][ StreamedSharedElementsPerWarp ];
+   __shared__ ReturnType multivectorShared_result[ CudaBlockSize / WarpSize ];
+   __shared__ Index multivectorShared_argument[ CudaBlockSize / WarpSize ];
+
+   const Index index = ( ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x ) + threadIdx.x;
+   const Index blockIdx = index / WarpSize;
+   if( blockIdx >= blocks.getSize() - 1 )
+      return;
+
+   if( threadIdx.x < CudaBlockSize / WarpSize )
+      multivectorShared_result[ threadIdx.x ] = identity;
+   __syncthreads();
+   ReturnType result = identity;
+   Index argument = 0;
+   const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+   const auto& block = blocks[ blockIdx ];
+   const Index firstSegmentIdx = block.getFirstSegment();
+   const Index begin = offsets[ firstSegmentIdx ];
+
+   if( block.getType() == detail::Type::STREAM )  // Stream kernel - many short segments per warp
+   {
+      const Index warpIdx = threadIdx.x / Backend::getWarpSize();
+      const Index end = begin + block.getSize();
+
+      // Stream data to shared memory
+      for( Index globalIdx = laneIdx + begin; globalIdx < end; globalIdx += WarpSize )
+         streamShared_result[ warpIdx ][ globalIdx - begin ] = fetch( globalIdx );
+
+      __syncwarp();
+      const Index lastSegmentIdx = firstSegmentIdx + block.getSegmentsInBlock();
+
+      for( Index i = firstSegmentIdx + laneIdx; i < lastSegmentIdx; i += WarpSize ) {
+         const Index sharedEnd = offsets[ i + 1 ] - begin;  // end of preprocessed data
+         result = identity;
+         // Scalar reduction
+         Index localIdx = 0;
+         for( Index sharedIdx = offsets[ i ] - begin; sharedIdx < sharedEnd; sharedIdx++, localIdx++ )
+            reduction( result, streamShared_result[ warpIdx ][ sharedIdx ], argument, localIdx );
+         keep( i, result, argument );
+      }
+   }
+   else if( block.getType() == detail::Type::VECTOR )  // Vector kernel - one segment per warp
+   {
+      const Index end = begin + block.getSize();
+      const Index segmentIdx = block.getFirstSegment();
+
+      for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += WarpSize )
+         reduction( result, fetch( globalIdx ), argument, globalIdx - begin );
+
+      // Parallel reduction
+      using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduction, ReturnType, Index >;
+      auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduction, result, argument );
+
+      if( laneIdx == 0 )
+         keep( segmentIdx, result_, argument_ );
+   }
+   else  // block.getType() == Type::LONG - several warps per segment
+   {
+      const Index segmentIdx = block.getFirstSegment();  // block.index[0];
+      const Index end = offsets[ segmentIdx + 1 ];
+
+      TNL_ASSERT_GT( block.getWarpsCount(), 0, "" );
+      result = identity;
+      for( Index globalIdx = begin + laneIdx + Backend::getWarpSize() * block.getWarpIdx(); globalIdx < end;
+           globalIdx += Backend::getWarpSize() * block.getWarpsCount() )
+      {
+         reduction( result, fetch( globalIdx ), argument, globalIdx - begin );
+      }
+
+      // Parallel reduction
+      using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduction, ReturnType, Index >;
+      auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduction, result, argument );
+
+      const Index warpIdx = threadIdx.x / Backend::getWarpSize();
+      if( laneIdx == 0 ) {
+         multivectorShared_result[ warpIdx ] = result_;
+         multivectorShared_argument[ warpIdx ] = argument_;
+      }
+
+      __syncthreads();
+      // Reduction in multivectorShared
+      if( block.getWarpIdx() == 0 && laneIdx < 16 ) {
+         constexpr int totalWarps = CudaBlockSize / WarpSize;
+         if( totalWarps >= 32 ) {
+            reduction( multivectorShared_result[ laneIdx ],
+                       multivectorShared_result[ laneIdx + 16 ],
+                       multivectorShared_argument[ laneIdx ],
+                       multivectorShared_argument[ laneIdx + 16 ] );
+            __syncwarp();
+         }
+         if( totalWarps >= 16 ) {
+            reduction( multivectorShared_result[ laneIdx ],
+                       multivectorShared_result[ laneIdx + 8 ],
+                       multivectorShared_argument[ laneIdx ],
+                       multivectorShared_argument[ laneIdx + 8 ] );
+            __syncwarp();
+         }
+         if( totalWarps >= 8 ) {
+            reduction( multivectorShared_result[ laneIdx ],
+                       multivectorShared_result[ laneIdx + 4 ],
+                       multivectorShared_argument[ laneIdx ],
+                       multivectorShared_argument[ laneIdx + 4 ] );
+            __syncwarp();
+         }
+         if( totalWarps >= 4 ) {
+            reduction( multivectorShared_result[ laneIdx ],
+                       multivectorShared_result[ laneIdx + 2 ],
+                       multivectorShared_argument[ laneIdx ],
+                       multivectorShared_argument[ laneIdx + 2 ] );
+            __syncwarp();
+         }
+         if( totalWarps >= 2 ) {
+            reduction( multivectorShared_result[ laneIdx ],
+                       multivectorShared_result[ laneIdx + 1 ],
+                       multivectorShared_argument[ laneIdx ],
+                       multivectorShared_argument[ laneIdx + 1 ] );
+            __syncwarp();
+         }
+         if( laneIdx == 0 ) {
+            //printf( "Long: segmentIdx %d -> %d \n", segmentIdx, multivectorShared_result[ 0 ] );
+            keep( segmentIdx, multivectorShared_result[ 0 ], multivectorShared_argument[ 0 ] );
          }
       }
    }
