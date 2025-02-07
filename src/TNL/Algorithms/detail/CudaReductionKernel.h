@@ -170,7 +170,7 @@ struct CudaBlockReduceShfl
    static ValueType
    warpReduce( const Reduction& reduction, ValueType threadValue )
    {
-      #pragma unroll
+   #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
          // TODO: HIP does not have __shfl_xor_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
    #ifdef __HIP__
@@ -314,6 +314,30 @@ struct CudaBlockReduceWithArgument
 
       __syncthreads();
       return std::make_pair( storage.data[ 0 ], storage.idx[ 0 ] );
+   }
+
+   /* Helper function.
+    * Cooperative reduction across the warp - each thread will get the result
+    * of the reduction
+    */
+   __device__
+   static std::pair< ValueType, IndexType >
+   warpReduceWithArgument( const Reduction& reduction, ValueType threadValue, IndexType threadArgument )
+   {
+   #pragma unroll
+      for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
+         // TODO: HIP does not have __shfl_xor_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
+   #ifdef __HIP__
+         const ValueType otherValue = __shfl_xor( threadValue, i );
+         const IndexType otherArgument = __shfl_xor( threadArgument, i );
+   #else
+         constexpr unsigned mask = 0xffffffff;
+         const ValueType otherValue = __shfl_xor_sync( mask, threadValue, i );
+         const IndexType otherArgument = __shfl_xor_sync( mask, threadArgument, i );
+   #endif
+         reduction( threadValue, otherValue, threadArgument, otherArgument );
+      }
+      return std::make_pair( threadValue, threadArgument );
    }
 };
 #endif

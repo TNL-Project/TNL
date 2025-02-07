@@ -109,6 +109,122 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > >
             constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
 
             // Fill blocks
+            const auto blocks = segments.getBlocks()[ valueSizeLog ];
+            std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize();  // one warp per block
+
+            // Execute kernels on device
+            for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
+               if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
+                  launch_config.gridSize.x = roundUpDivision( neededThreads, launch_config.blockSize.x );
+                  neededThreads = 0;
+               }
+               else {
+                  launch_config.gridSize.x = maxGridSize;
+                  neededThreads -= maxGridSize * launch_config.blockSize.x;
+               }
+
+               using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
+               using BlocksView = typename SegmentsViewType::BlocksView;
+
+               constexpr auto kernel =
+                  reduceSegmentsCSRAdaptiveKernel< BlocksView, OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
+               Backend::launchKernelAsync(
+                  kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, keeper, identity );
+            }
+            Backend::streamSynchronize( launch_config.stream );
+         }
+      }
+      else
+         reduceSegmentsSequential( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+   }
+
+   template< typename IndexBegin,
+             typename IndexEnd,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   static void
+   reduceSegmentsSequentialWithArgument( const ConstViewType& segments,
+                                         IndexBegin begin,
+                                         IndexEnd end,
+                                         Fetch fetch,          // TODO Fetch&& fetch does not work here with CUDA
+                                         Reduction reduction,  // TODO Reduction&& reduction does not work here with CUDA
+                                         ResultKeeper keeper,  // TODO ResultKeeper&& keeper does not work here with CUDA
+                                         const Value& identity,
+                                         const LaunchConfiguration& launchConfig )
+   {
+      using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
+      OffsetsView offsets = segments.getOffsets();
+
+      auto l = [ offsets, fetch, reduction, keeper, identity ] __cuda_callable__( const Index segmentIdx ) mutable
+      {
+         const IndexType begin = offsets[ segmentIdx ];
+         const IndexType end = offsets[ segmentIdx + 1 ];
+         using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
+         ReturnType result = identity;
+         IndexType argument = 0;
+         {
+            IndexType localIdx = 0;
+            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++, localIdx++ )
+               if constexpr( argumentCount< Fetch >() == 3 )
+                  reduction( result, fetch( segmentIdx, localIdx, globalIdx ), argument, localIdx );
+               else
+                  reduction( result, fetch( globalIdx ), argument, localIdx );
+         }
+         keeper( segmentIdx, result, argument );
+      };
+
+      if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
+         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+            l( segmentIdx );
+      }
+      else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
+#ifdef HAVE_OPENMP
+   #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
+#endif
+         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+            l( segmentIdx );
+      }
+      else
+         Algorithms::parallelFor< Device >( begin, end, l );
+   }
+
+   template< typename IndexBegin,
+             typename IndexEnd,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
+   static void
+   reduceSegmentsWithArgument( const ConstViewType& segments,
+                               IndexBegin begin,
+                               IndexEnd end,
+                               Fetch fetch,          // TODO Fetch&& fetch does not work here with CUDA
+                               Reduction reduction,  // TODO Reduction&& reduction does not work here with CUDA
+                               ResultKeeper keeper,  // TODO ResultKeeper&& keeper does not work here with CUDA
+                               const Value& identity,
+                               const LaunchConfiguration& launchConfig )
+   {
+      if( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
+         int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
+         if( valueSizeLog >= segments.MaxValueSizeLog() ) {
+            ReducingOperationsCSR::reduceSegmentsWithArgument(
+               segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+            return;
+         }
+
+         if constexpr( argumentCount< Fetch >() == 3 ) {
+            ReducingOperationsCSR::reduceSegmentsWithArgument(
+               segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+         }
+         else {
+            using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+            Backend::LaunchConfiguration launch_config;
+            launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+            constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
+
+            // Fill blocks
             const auto& blocks = segments.getBlocks()[ valueSizeLog ];
             std::size_t neededThreads = blocks.getSize() * Backend::getWarpSize();  // one warp per block
 
@@ -127,8 +243,13 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > >
                using BlocksView = typename SegmentsViewType::BlocksView;
                //OffsetsView offsets = segments.getOffsets();
 
-               constexpr auto kernel =
-                  reduceSegmentsCSRAdaptiveKernel< BlocksView, OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
+               constexpr auto kernel = reduceSegmentsCSRAdaptiveKernelWithArgument< BlocksView,
+                                                                                    OffsetsView,
+                                                                                    IndexType,
+                                                                                    Fetch,
+                                                                                    Reduction,
+                                                                                    ResultKeeper,
+                                                                                    Value >;
                Backend::launchKernelAsync(
                   kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, keeper, identity );
             }
@@ -136,7 +257,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > >
          }
       }
       else
-         reduceSegmentsSequential( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+         reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
    }
 };
 
