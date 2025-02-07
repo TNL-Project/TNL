@@ -202,7 +202,7 @@ reduce( const Array& array, Reduction&& reduction = TNL::Plus{} )
  * The `reduction` lambda function takes two variables which are supposed to be reduced:
  *
  * ```
- * auto reduction = [] __cuda_callable__ ( const Result& a, const Result& b, Index& aIdx, const Index& bIdx ) { return ... };
+ * auto reduction = [] __cuda_callable__ ( Result& a, const Result& b, Index& aIdx, const Index& bIdx ) { return ... };
  * ```
  *
  * \par Example
