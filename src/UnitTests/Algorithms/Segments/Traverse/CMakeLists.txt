@@ -1,8 +1,5 @@
-add_subdirectory(Reduce)
-add_subdirectory(Traverse)
-
-set(COMMON_TESTS SegmentsTest_AdaptiveCSR SegmentsTest_BiEllpack SegmentsTest_ChunkedEllpack SegmentsTest_CSR SegmentsTest_Ellpack
-                 SegmentsTest_SlicedEllpack GrowingSegmentsTest
+set(COMMON_TESTS TraverseSegmentsTest_AdaptiveCSR TraverseSegmentsTest_BiEllpack TraverseSegmentsTest_ChunkedEllpack TraverseSegmentsTest_CSR TraverseSegmentsTest_Ellpack
+    TraverseSegmentsTest_SlicedEllpack
 )
 
 set(CPP_TESTS)
