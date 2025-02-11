@@ -121,4 +121,11 @@ TYPED_TEST( EllpackSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentI
    test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes< EllpackSegmentsType >();
 }
 
+TYPED_TEST( EllpackSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument< EllpackSegmentsType >();
+}
+
 #include "../../main.h"
