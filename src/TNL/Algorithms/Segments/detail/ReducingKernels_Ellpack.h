@@ -187,4 +187,65 @@ EllpackCudaReductionKernelWithArgument( Segments segments,
 #endif
 }
 
+template< typename Segments,
+          typename ArrayView,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value >
+__global__
+void
+EllpackCudaReductionKernelWithSegmentIndexesAndArgument( Segments segments,
+                                                         const ArrayView segmentIndexes,
+                                                         IndexBegin begin,
+                                                         IndexEnd end,
+                                                         Fetch fetch,
+                                                         Reduction reduction,
+                                                         ResultKeeper keep,
+                                                         const Value identity )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using Index = typename Segments::IndexType;
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
+   constexpr int warpSize = Backend::getWarpSize();
+   const int gridIdx = 0;
+   const Index segmentIdx_idx =
+      begin + ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / warpSize;
+   if( segmentIdx_idx >= end )
+      return;
+
+   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+   const Index segmentSize = segments.getSegmentSize();
+   ReturnType result = identity;
+   Index argument = 0;
+   const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+
+   begin = segmentIdx * segmentSize;  // reusing begin and end variables - now they define
+   end = begin + segmentSize;         // the range of the global indices
+
+   // Calculate the result
+   Index localIdx = laneIdx;
+   for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += warpSize, localIdx += warpSize ) {
+      TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
+      if constexpr( argumentCount< Fetch >() == 3 )
+         reduction( result, fetch( segmentIdx, localIdx, globalIdx ), argument, localIdx );
+      else
+         reduction( result, fetch( globalIdx ), argument, localIdx );
+   }
+
+   // Reduction
+   using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduction, ReturnType, Index >;
+   auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduction, result, argument );
+
+   // Write the result
+   if( laneIdx == 0 )
+      keep( segmentIdx_idx, segmentIdx, result_, argument_ );
+
+#endif
+}
+
 }  // namespace TNL::Algorithms::Segments::detail

@@ -113,4 +113,11 @@ TYPED_TEST( SlicedEllpackSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSe
    test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes< SlicedEllpackSegmentsType >();
 }
 
+TYPED_TEST( SlicedEllpackSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument< SlicedEllpackSegmentsType >();
+}
+
 #include "../../main.h"
