@@ -178,6 +178,28 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > >
          ReducingOperationsCSR::reduceSegmentsWithArgument(
             segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
    }
+
+   template< typename Array,
+             typename IndexBegin,
+             typename IndexEnd,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
+   static void
+   reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
+                                                const Array& segmentIndexes,
+                                                IndexBegin begin,
+                                                IndexEnd end,
+                                                Fetch fetch,          // TODO Fetch&& fetch does not work here with CUDA
+                                                Reduction reduction,  // TODO Reduction&& reduction does not work here with CUDA
+                                                ResultKeeper keeper,  // TODO ResultKeeper&& keeper does not work here with CUDA
+                                                const Value& identity,
+                                                const LaunchConfiguration& launchConfig )
+   {
+      ReducingOperationsCSR::reduceSegmentsWithSegmentIndexesAndArgument(
+         segments, segmentIndexes, begin, end, fetch, reduction, keeper, identity, launchConfig );
+   }
 };
 
 }  //namespace TNL::Algorithms::Segments::detail

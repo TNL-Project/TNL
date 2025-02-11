@@ -343,4 +343,69 @@ BiEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
       segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
 }
 
+template< typename SegmentsView,
+          typename ArrayView,
+          typename Index,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value,
+          int BlockDim >
+__global__
+void
+BiEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
+                                                     ArrayView segmentIndexes,
+                                                     Index gridIdx,
+                                                     Index begin,
+                                                     Index end,
+                                                     Fetch fetch,
+                                                     Reduction reduction,
+                                                     ResultKeeper keeper,
+                                                     Value identity )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
+   if( segmentIdx_idx >= end )
+      return;
+
+   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+   const Index strip = segmentIdx / SegmentsView::getWarpSize();
+   const Index firstGroupInStrip = strip * ( SegmentsView::getLogWarpSize() + 1 );
+   const Index segmentStripPerm = segments.getSegmentsPermutationView()[ segmentIdx ] - strip * SegmentsView::getWarpSize();
+   const Index groupsCount =
+      Segments::detail::BiEllpack< Index, Devices::Cuda, SegmentsView::getOrganization(), SegmentsView::getWarpSize() >::
+         getActiveGroupsCountDirect( segments.getSegmentsPermutationView(), segmentIdx );
+   Index groupHeight = SegmentsView::getWarpSize();
+   Index localIdx = 0;
+   ReturnType result = identity;
+   Index argument = 0;
+   for( Index groupIdx = firstGroupInStrip; groupIdx < firstGroupInStrip + groupsCount; groupIdx++ ) {
+      Index groupOffset = segments.getGroupPointersView()[ groupIdx ];
+      const Index groupSize = segments.getGroupPointersView()[ groupIdx + 1 ] - groupOffset;
+      if( groupSize ) {
+         const Index groupWidth = groupSize / groupHeight;
+         for( Index i = 0; i < groupWidth; i++ ) {
+            if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
+               reduction( result,
+                          FetchLambdaAdapter< Index, Fetch >::call(
+                             fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ),
+                          argument,
+                          localIdx );
+            else
+               reduction( result,
+                          FetchLambdaAdapter< Index, Fetch >::call(
+                             fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ),
+                          argument,
+                          localIdx );
+            localIdx++;
+         }
+      }
+      groupHeight /= 2;
+   }
+   keeper( segmentIdx_idx, segmentIdx, result, argument );
+#endif
+}
+
 }  // namespace TNL::Algorithms::Segments::detail
