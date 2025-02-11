@@ -1,13 +1,13 @@
 #include <TNL/Algorithms/Segments/Ellpack.h>
 
-#include "SegmentsTest.hpp"
+#include "TraverseSegmentsTest.hpp"
 #include <iostream>
 
 #include <gtest/gtest.h>
 
 // test fixture for typed tests
 template< typename Segments >
-class EllpackSegmentsTest : public ::testing::Test
+class EllpackTraverseSegmentsTest : public ::testing::Test
 {
 protected:
    using EllpackSegmentsType = Segments;
@@ -35,20 +35,48 @@ using EllpackSegmentsTypes =
 #endif
                      >;
 
-TYPED_TEST_SUITE( EllpackSegmentsTest, EllpackSegmentsTypes );
+TYPED_TEST_SUITE( EllpackTraverseSegmentsTest, EllpackSegmentsTypes );
 
-TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes )
+TYPED_TEST( EllpackTraverseSegmentsTest, forElements_EmptySegments )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
 
-   test_SetSegmentsSizes_EqualSizes< EllpackSegmentsType >();
+   test_forElements_EmptySegments< EllpackSegmentsType >();
 }
 
-TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes_EllpackOnly )
+TYPED_TEST( EllpackTraverseSegmentsTest, forElements_EqualSizes )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
 
-   test_SetSegmentsSizes_EqualSizes_EllpackOnly< EllpackSegmentsType >();
+   test_forElements_EqualSizes< EllpackSegmentsType >();
 }
 
-#include "../../main.h"
+TYPED_TEST( EllpackTraverseSegmentsTest, forElements )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_forElements< EllpackSegmentsType >();
+}
+
+TYPED_TEST( EllpackTraverseSegmentsTest, forElementsIf )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_forElementsIf< EllpackSegmentsType >();
+}
+
+TYPED_TEST( EllpackTraverseSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_forElementsWithSegmentIndexes_EmptySegments< EllpackSegmentsType >();
+}
+
+TYPED_TEST( EllpackTraverseSegmentsTest, forElementsWithSegmentIndexes )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_forElementsWithSegmentIndexes< EllpackSegmentsType >();
+}
+
+#include "../../../main.h"
