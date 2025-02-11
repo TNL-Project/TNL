@@ -8,11 +8,13 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "FetchLambdaAdapter.h"
 #include "ReducingKernels_Ellpack.h"
+#include "ReducingOperationsBaseline.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment > >
+: public ReducingOperationsBaseline< EllpackView< Device, Index, Organization, Alignment > >
 {
    using SegmentsViewType = EllpackView< Device, Index, Organization, Alignment >;
    using ConstViewType = typename SegmentsViewType::ConstViewType;
@@ -24,7 +26,8 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType,
+             typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
    static void
    reduceSegments( const ConstViewType& segments,
                    IndexBegin begin,
@@ -56,12 +59,12 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             {
                const IndexType begin = segmentIdx * segmentSize;
                const IndexType end = begin + segmentSize;
-               ReturnType aux = identity;
+               ReturnType result = identity;
                IndexType localIdx = 0;
                for( IndexType j = begin; j < end; j++ )
-                  aux =
-                     reduction( aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
-               keeper( segmentIdx, aux );
+                  result = reduction(
+                     result, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
+               keeper( segmentIdx, result );
             };
             Algorithms::parallelFor< Device >( begin, end, l );
          }

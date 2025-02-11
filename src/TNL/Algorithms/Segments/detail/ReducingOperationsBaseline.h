@@ -1,0 +1,91 @@
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
+#pragma once
+
+namespace TNL::Algorithms::Segments::detail {
+
+template< typename Segments >
+struct ReducingOperationsBaseline
+{
+   using ViewType = typename Segments::ViewType;
+   using ConstViewType = typename ViewType::ConstViewType;
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+
+   template< typename IndexBegin,
+             typename IndexEnd,
+             typename Condition,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value >
+   static void
+   reduceSegmentsIf( const Segments& segments,
+                     IndexBegin begin,
+                     IndexEnd end,
+                     Condition&& condition,
+                     Fetch&& fetch,
+                     Reduction&& reduction,
+                     ResultKeeper&& keeper,
+                     const Value& identity,
+                     LaunchConfiguration launchConfig )
+   {
+      using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+      VectorType conditions( end - begin );
+      conditions.forAllElements(
+         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         {
+            value = condition( i + begin );
+         } );
+
+      auto indexes = compressFast< VectorType >( conditions );
+      reduceSegments( segments,
+                      indexes,
+                      std::forward< Fetch >( fetch ),
+                      std::forward< Reduction >( reduction ),
+                      std::forward< ResultKeeper >( keeper ),
+                      identity,
+                      launchConfig );
+   }
+
+   template< typename IndexBegin,
+             typename IndexEnd,
+             typename Condition,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value >
+   static void
+   reduceSegmentsIfWithArgument( const Segments& segments,
+                                 IndexBegin begin,
+                                 IndexEnd end,
+                                 Condition&& condition,
+                                 Fetch&& fetch,
+                                 Reduction&& reduction,
+                                 ResultKeeper&& keeper,
+                                 const Value& identity,
+                                 LaunchConfiguration launchConfig )
+   {
+      using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
+
+      VectorType conditions( end - begin );
+      conditions.forAllElements(
+         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         {
+            value = condition( i + begin );
+         } );
+
+      auto indexes = compressFast< VectorType >( conditions );
+      reduceSegmentsWithArgument( segments,
+                                  indexes,
+                                  std::forward< Fetch >( fetch ),
+                                  std::forward< Reduction >( reduction ),
+                                  std::forward< ResultKeeper >( keeper ),
+                                  identity,
+                                  launchConfig );
+   }
+};
+
+}  //namespace TNL::Algorithms::Segments::detail
