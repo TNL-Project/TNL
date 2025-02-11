@@ -91,6 +91,68 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
 #endif
 }
 
+template< typename SegmentsView,
+          typename ArrayView,
+          typename Index,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value >
+__global__
+void
+ChunkedEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
+                                               ArrayView segmentIndexes,
+                                               Index gridIdx,
+                                               Index begin,
+                                               Index end,
+                                               Fetch fetch,
+                                               Reduction reduction,
+                                               ResultKeeper keeper,
+                                               Value identity )
+{
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+
+   const Index segmentIdx_idx = begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+   if( segmentIdx_idx >= end )
+      return;
+   TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+   const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+   const Index sliceIdx = segments.getSegmentToSliceMappingView()[ segmentIdx ];
+
+   Index firstChunkOfSegment( 0 );
+   if( segmentIdx != segments.getSlicesView()[ sliceIdx ].firstSegment ) {
+      firstChunkOfSegment = segments.getSegmentToChunkMappingView()[ segmentIdx - 1 ];
+   }
+
+   const Index lastChunkOfSegment = segments.getSegmentToChunkMappingView()[ segmentIdx ];
+   const Index segmentChunksCount = lastChunkOfSegment - firstChunkOfSegment;
+   const Index sliceOffset = segments.getSlicesView()[ sliceIdx ].pointer;
+   const Index chunkSize = segments.getSlicesView()[ sliceIdx ].chunkSize;
+
+   const Index segmentSize = segmentChunksCount * chunkSize;
+   Value result = identity;
+   if( SegmentsView::getOrganization() == RowMajorOrder ) {
+      Index begin = sliceOffset + firstChunkOfSegment * chunkSize;
+      Index end = begin + segmentSize;
+      Index localIdx = 0;
+      for( Index j = begin; j < end; j++ )
+         result = reduction( result, FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
+   }
+   else {
+      Index localIdx = 0;
+      for( Index chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
+         Index begin = sliceOffset + firstChunkOfSegment + chunkIdx;
+         Index end = begin + segments.getChunksInSlice() * chunkSize;
+         for( Index j = begin; j < end; j += segments.getChunksInSlice() ) {
+            result = reduction( result, FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
+         }
+      }
+   }
+   keeper( segmentIdx_idx, segmentIdx, result );
+#endif
+}
+
 template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 __global__
 void
