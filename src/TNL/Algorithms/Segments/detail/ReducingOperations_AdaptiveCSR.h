@@ -29,58 +29,6 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > >
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
-   static void
-   reduceSegmentsSequential( const ConstViewType& segments,
-                             IndexBegin begin,
-                             IndexEnd end,
-                             Fetch fetch,          // TODO Fetch&& fetch does not work here with CUDA
-                             Reduction reduction,  // TODO Reduction&& reduction does not work here with CUDA
-                             ResultKeeper keeper,  // TODO ResultKeeper&& keeper does not work here with CUDA
-                             const Value& identity,
-                             const LaunchConfiguration& launchConfig )
-   {
-      using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
-      OffsetsView offsets = segments.getOffsets();
-
-      auto l = [ offsets, fetch, reduction, keeper, identity ] __cuda_callable__( const Index segmentIdx ) mutable
-      {
-         const IndexType begin = offsets[ segmentIdx ];
-         const IndexType end = offsets[ segmentIdx + 1 ];
-         using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
-         ReturnType aux = identity;
-         if constexpr( argumentCount< Fetch >() == 3 ) {
-            IndexType localIdx = 0;
-            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-               aux = reduction( aux, fetch( segmentIdx, localIdx++, globalIdx ) );
-         }
-         else {
-            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-               aux = reduction( aux, fetch( globalIdx ) );
-         }
-         keeper( segmentIdx, aux );
-      };
-
-      if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
-      }
-      else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
-#ifdef HAVE_OPENMP
-   #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
-#endif
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
-      }
-      else
-         Algorithms::parallelFor< Device >( begin, end, l );
-   }
-
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
              typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
    reduceSegments( const ConstViewType& segments,
@@ -135,59 +83,29 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > >
          }
       }
       else
-         reduceSegmentsSequential( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+         ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
    }
 
-   template< typename IndexBegin,
+   template< typename Array,
+             typename IndexBegin,
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+             typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
-   reduceSegmentsSequentialWithArgument( const ConstViewType& segments,
-                                         IndexBegin begin,
-                                         IndexEnd end,
-                                         Fetch fetch,          // TODO Fetch&& fetch does not work here with CUDA
-                                         Reduction reduction,  // TODO Reduction&& reduction does not work here with CUDA
-                                         ResultKeeper keeper,  // TODO ResultKeeper&& keeper does not work here with CUDA
-                                         const Value& identity,
-                                         const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
+                                     const Array& segmentIndexes,
+                                     IndexBegin begin,
+                                     IndexEnd end,
+                                     Fetch fetch,          // TODO Fetch&& fetch does not work here with CUDA
+                                     Reduction reduction,  // TODO Reduction&& reduction does not work here with CUDA
+                                     ResultKeeper keeper,  // TODO ResultKeeper&& keeper does not work here with CUDA
+                                     const Value& identity,
+                                     const LaunchConfiguration& launchConfig )
    {
-      using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
-      OffsetsView offsets = segments.getOffsets();
-
-      auto l = [ offsets, fetch, reduction, keeper, identity ] __cuda_callable__( const Index segmentIdx ) mutable
-      {
-         const IndexType begin = offsets[ segmentIdx ];
-         const IndexType end = offsets[ segmentIdx + 1 ];
-         using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
-         ReturnType result = identity;
-         IndexType argument = 0;
-         {
-            IndexType localIdx = 0;
-            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++, localIdx++ )
-               if constexpr( argumentCount< Fetch >() == 3 )
-                  reduction( result, fetch( segmentIdx, localIdx, globalIdx ), argument, localIdx );
-               else
-                  reduction( result, fetch( globalIdx ), argument, localIdx );
-         }
-         keeper( segmentIdx, result, argument );
-      };
-
-      if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
-      }
-      else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
-#ifdef HAVE_OPENMP
-   #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
-#endif
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
-            l( segmentIdx );
-      }
-      else
-         Algorithms::parallelFor< Device >( begin, end, l );
+      ReducingOperationsCSR::reduceSegmentsWithSegmentIndexes(
+         segments, segmentIndexes, begin, end, fetch, reduction, keeper, identity, launchConfig );
    }
 
    template< typename IndexBegin,
@@ -257,7 +175,8 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > >
          }
       }
       else
-         reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+         ReducingOperationsCSR::reduceSegmentsWithArgument(
+            segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
    }
 };
 

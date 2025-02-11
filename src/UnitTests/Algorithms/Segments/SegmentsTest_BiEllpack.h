@@ -99,4 +99,11 @@ TYPED_TEST( BiEllpackSegmentsTest, reduceAllSegments_MaximumInSegmentsWithArgume
    test_reduceAllSegments_MaximumInSegmentsWithArgument< BiEllpackSegmentsType >();
 }
 
+TYPED_TEST( BiEllpackSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexes )
+{
+   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
+
+   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes< BiEllpackSegmentsType >();
+}
+
 #include "../../main.h"
