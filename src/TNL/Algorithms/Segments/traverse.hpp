@@ -90,18 +90,13 @@ forElementsIfSparse( const Segments& segments,
                      LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
-   using DeviceType = typename Segments::DeviceType;
-   using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
-
-   VectorType conditions( end - begin );
-   conditions.forAllElements(
-      [ = ] __cuda_callable__( IndexType i, IndexType & value )
-      {
-         value = condition( i + begin );
-      } );
-
-   auto indexes = compressFast< VectorType >( conditions );
-   forElements( segments, indexes, function, launchConfig );
+   detail::TraversingOperations< typename Segments::ConstViewType >::forElementsIfSparse(
+      segments.getConstView(),
+      (IndexType) 0,
+      segments.getSegmentsCount(),
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Segments, typename Condition, typename Function >

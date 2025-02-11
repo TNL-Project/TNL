@@ -5,11 +5,13 @@
 
 #include <TNL/Algorithms/Segments/BiEllpackView.h>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
+#include "TraversingOperationsBaseline.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSize > >
+: public TraversingOperationsBaseline< BiEllpackView< Device, Index, Organization, WarpSize > >
 {
    using ViewType = BiEllpackView< Device, Index, Organization, WarpSize >;
    using ConstViewType = typename ViewType::ConstViewType;
