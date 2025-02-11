@@ -96,4 +96,10 @@ TYPED_TEST( AdaptiveCSRSegmentsTest, reduceAllSegments_MaximumInSegmentsWithArgu
    test_reduceAllSegments_MaximumInSegmentsWithArgument< AdaptiveCSRSegmentsType >();
 }
 
+TYPED_TEST( AdaptiveCSRSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexes )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes< AdaptiveCSRSegmentsType >();
+}
+
 #include "../../main.h"

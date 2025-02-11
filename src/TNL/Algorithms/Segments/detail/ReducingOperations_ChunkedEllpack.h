@@ -95,6 +95,100 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
       }
    }
 
+   template< typename Array,
+             typename IndexBegin,
+             typename IndexEnd,
+             typename Fetch,
+             typename Reduction,
+             typename ResultKeeper,
+             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   static void
+   reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
+                                     const Array& segmentIndexes,
+                                     IndexBegin begin,
+                                     IndexEnd end,
+                                     Fetch fetch,          // TODO Fetch&& does not work with nvcc
+                                     Reduction reduction,  // TODO Reduction&& does not work with nvcc
+                                     ResultKeeper keeper,  // TODO ResultKeeper&& does not work with nvcc
+                                     const Value& identity,
+                                     const LaunchConfiguration& launchConfig )
+   {
+      using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+      using ArrayView = typename Array::ConstViewType;
+      if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
+         for( IndexType segmentIdx_idx = begin; segmentIdx_idx < end; segmentIdx_idx++ ) {
+            TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
+            const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
+            const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
+            TNL_ASSERT_LE( sliceIndex, segments.getSegmentsCount(), "" );
+            IndexType firstChunkOfSegment = 0;
+            if( segmentIdx != segments.getSlicesView()[ sliceIndex ].firstSegment )
+               firstChunkOfSegment = segments.getSegmentToChunkMappingView()[ segmentIdx - 1 ];
+
+            const IndexType lastChunkOfSegment = segments.getSegmentToChunkMappingView()[ segmentIdx ];
+            const IndexType segmentChunksCount = lastChunkOfSegment - firstChunkOfSegment;
+            const IndexType sliceOffset = segments.getSlicesView()[ sliceIndex ].pointer;
+            const IndexType chunkSize = segments.getSlicesView()[ sliceIndex ].chunkSize;
+
+            ReturnType aux = identity;
+            IndexType localIdx = 0;
+            if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
+               const IndexType segmentSize = segmentChunksCount * chunkSize;
+               IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
+               IndexType end = begin + segmentSize;
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  aux = reduction(
+                     aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
+            }
+            else {
+               for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
+                  IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
+                  IndexType end = begin + segments.getChunksInSlice() * chunkSize;
+                  for( IndexType globalIdx = begin; globalIdx < end; globalIdx += segments.getChunksInSlice() )
+                     aux = reduction(
+                        aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
+               }
+            }
+            keeper( segmentIdx_idx, segmentIdx, aux );
+         }
+      }
+      else {
+         Backend::LaunchConfiguration launch_config;
+         // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
+         //  TODO: This ignores parameters begin and end
+         const IndexType cudaBlocks = segments.getNumberOfSlices();
+         const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
+         launch_config.blockSize.x = segments.getChunksInSlice();
+         launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
+
+         for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
+            launch_config.gridSize.x = Backend::getMaxGridXSize();
+            if( gridIdx == cudaGrids - 1 )
+               launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
+            using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
+            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithIndexes< ConstSegmentsView,
+                                                                                   ArrayView,
+                                                                                   IndexType,
+                                                                                   Fetch,
+                                                                                   Reduction,
+                                                                                   ResultKeeper,
+                                                                                   Value >;
+            Backend::launchKernelAsync( kernel,
+                                        launch_config,
+                                        segments.getConstView(),
+                                        segmentIndexes.getConstView(),
+                                        gridIdx,
+                                        begin,
+                                        end,
+                                        fetch,
+                                        reduction,
+                                        keeper,
+                                        identity );
+         }
+         Backend::streamSynchronize( launch_config.stream );
+      }
+   }
+
    template< typename IndexBegin,
              typename IndexEnd,
              typename Fetch,
@@ -112,7 +206,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-      if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
+      if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
             const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
             TNL_ASSERT_LE( sliceIndex, segments.getSegmentsCount(), "" );
@@ -152,7 +246,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             keeper( segmentIdx, result, argument );
          }
       }
-      if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
+      else {
          Backend::LaunchConfiguration launch_config;
          // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
          //  TODO: This ignores parameters begin and end

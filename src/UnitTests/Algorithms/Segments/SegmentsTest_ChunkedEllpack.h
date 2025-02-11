@@ -98,4 +98,11 @@ TYPED_TEST( ChunkedEllpackSegmentsTest, reduceAllSegments_MaximumInSegmentsWithA
    test_reduceAllSegments_MaximumInSegmentsWithArgument< ChunkedEllpackSegmentsType >();
 }
 
+TYPED_TEST( ChunkedEllpackSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexes )
+{
+   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
+
+   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes< ChunkedEllpackSegmentsType >();
+}
+
 #include "../../main.h"
