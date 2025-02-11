@@ -102,4 +102,10 @@ TYPED_TEST( CSRSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndex
    test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes< CSRSegmentsType >();
 }
 
+TYPED_TEST( CSRSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument< CSRSegmentsType >();
+}
+
 #include "../../main.h"
