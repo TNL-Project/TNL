@@ -8,11 +8,13 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "FetchLambdaAdapter.h"
 #include "ReducingKernels_BiEllpack.h"
+#include "ReducingOperationsBaseline.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
+: public ReducingOperationsBaseline< BiEllpackView< Device, Index, Organization > >
 {
    using SegmentsViewType = BiEllpackView< Device, Index, Organization >;
    using ConstViewType = typename SegmentsViewType::ConstViewType;

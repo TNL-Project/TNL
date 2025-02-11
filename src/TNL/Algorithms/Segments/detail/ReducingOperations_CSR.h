@@ -9,11 +9,12 @@
 #include <TNL/TypeTraits.h>
 #include "FetchLambdaAdapter.h"
 #include "ReducingKernels_CSR.h"
+#include "ReducingOperationsBaseline.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index >
-struct ReducingOperations< CSRView< Device, Index > >
+struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperationsBaseline< CSRView< Device, Index > >
 {
    using SegmentsViewType = CSRView< Device, Index >;
    using ConstViewType = typename SegmentsViewType::ConstViewType;

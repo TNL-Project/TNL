@@ -176,7 +176,7 @@ ChunkedEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
       return;
 
    ReturnType* chunksResults = Backend::getSharedMemory< ReturnType >();
-   Index* chunksArguments = &chunksResults[ blockDim.x ];
+   Index* chunksArguments = (Index*) &chunksResults[ blockDim.x ];
    __shared__ Segments::detail::ChunkedEllpackSliceInfo< Index > sliceInfo;
 
    if( threadIdx.x == 0 )
