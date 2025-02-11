@@ -252,6 +252,130 @@ reduceSegmentsWithArgument( const Segments& segments,
                             ResultKeeper&& keeper,
                             LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
+template< typename Segments,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Condition,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
+          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+static void
+reduceSegmentsIf( const Segments& segments,
+                  IndexBegin begin,
+                  IndexEnd end,
+                  Condition&& condition,
+                  Fetch&& fetch,
+                  Reduction&& reduction,
+                  ResultKeeper&& keeper,
+                  const Value& identity,
+                  LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Condition,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+static void
+reduceSegmentsIf( const Segments& segments,
+                  IndexBegin begin,
+                  IndexEnd end,
+                  Condition&& condition,
+                  Fetch&& fetch,
+                  Reduction&& reduction,
+                  ResultKeeper&& keeper,
+                  LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments,
+          typename Condition,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+static void
+reduceAllSegmentsIf( const Segments& segments,
+                     Condition&& condition,
+                     Fetch&& fetch,
+                     Reduction&& reduction,
+                     ResultKeeper&& keeper,
+                     const Value& identity,
+                     LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper >
+static void
+reduceAllSegmentsIf( const Segments& segments,
+                     Condition&& condition,
+                     Fetch&& fetch,
+                     Reduction&& reduction,
+                     ResultKeeper&& keeper,
+                     LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Condition,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
+          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+static void
+reduceSegmentsIfWithArgument( const Segments& segments,
+                              IndexBegin begin,
+                              IndexEnd end,
+                              Condition&& condition,
+                              Fetch&& fetch,
+                              Reduction&& reduction,
+                              ResultKeeper&& keeper,
+                              const Value& identity,
+                              LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Condition,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+static void
+reduceSegmentsIfWithArgument( const Segments& segments,
+                              IndexBegin begin,
+                              IndexEnd end,
+                              Condition&& condition,
+                              Fetch&& fetch,
+                              Reduction&& reduction,
+                              ResultKeeper&& keeper,
+                              LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments,
+          typename Condition,
+          typename Fetch,
+          typename Reduction,
+          typename ResultKeeper,
+          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+static void
+reduceAllSegmentsIfWithArgument( const Segments& segments,
+                                 Condition&& condition,
+                                 Fetch&& fetch,
+                                 Reduction&& reduction,
+                                 ResultKeeper&& keeper,
+                                 const Value& identity,
+                                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper >
+static void
+reduceAllSegmentsIfWithArgument( const Segments& segments,
+                                 Condition&& condition,
+                                 Fetch&& fetch,
+                                 Reduction&& reduction,
+                                 ResultKeeper&& keeper,
+                                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
 }  // namespace TNL::Algorithms::Segments
 
 #include "reduce.hpp"
