@@ -1,13 +1,13 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 
-#include "SegmentsTest.hpp"
+#include "TraverseSegmentsTest.hpp"
 #include <iostream>
 
 #include <gtest/gtest.h>
 
 // test fixture for typed tests
 template< typename Segments >
-class SlicedEllpackSegmentsTest : public ::testing::Test
+class SlicedEllpackTraverseSegmentsTest : public ::testing::Test
 {
 protected:
    using SlicedEllpackSegmentsType = Segments;
@@ -34,13 +34,48 @@ using SlicedEllpackSegmentsTypes =
 #endif
                      >;
 
-TYPED_TEST_SUITE( SlicedEllpackSegmentsTest, SlicedEllpackSegmentsTypes );
+TYPED_TEST_SUITE( SlicedEllpackTraverseSegmentsTest, SlicedEllpackSegmentsTypes );
 
-TYPED_TEST( SlicedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
+TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElements_EmptySegments )
 {
    using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
 
-   test_SetSegmentsSizes_EqualSizes< SlicedEllpackSegmentsType >();
+   test_forElements_EmptySegments< SlicedEllpackSegmentsType >();
 }
 
-#include "../../main.h"
+TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElements_EqualSizes )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_forElements_EqualSizes< SlicedEllpackSegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElements )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_forElements< SlicedEllpackSegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElementsIf )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_forElementsIf< SlicedEllpackSegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_forElementsWithSegmentIndexes_EmptySegments< SlicedEllpackSegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_forElementsWithSegmentIndexes< SlicedEllpackSegmentsType >();
+}
+
+#include "../../../main.h"

@@ -1,15 +1,6 @@
-set(COMMON_TESTS
-    SegmentsTest_AdaptiveCSR
-    SegmentsTest_BiEllpack
-    SegmentsTest_ChunkedEllpack
-    SegmentsTest_CSR
-    SegmentsTest_Ellpack
-    SegmentsTest_SlicedEllpack
-    GrowingSegmentsTest
+set(COMMON_TESTS ReduceSegmentsTest_AdaptiveCSR ReduceSegmentsTest_BiEllpack ReduceSegmentsTest_ChunkedEllpack ReduceSegmentsTest_CSR ReduceSegmentsTest_Ellpack
+    ReduceSegmentsTest_SlicedEllpack
 )
-
-add_subdirectory(Reduce)
-add_subdirectory(Traverse)
 
 set(CPP_TESTS)
 set(CUDA_TESTS)
