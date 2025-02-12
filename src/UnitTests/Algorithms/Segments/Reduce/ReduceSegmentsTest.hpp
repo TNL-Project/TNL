@@ -11,7 +11,7 @@
 
 template< typename Segments >
 void
-test_reduceAllSegments_MaximumInSegments()
+test_reduceSegments_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
@@ -74,7 +74,7 @@ test_reduceAllSegments_MaximumInSegments()
 
 template< typename Segments >
 void
-test_reduceAllSegments_MaximumInSegments_short_fetch()
+test_reduceSegments_MaximumInSegments_short_fetch()
 {
    // This test calls the fetch function only with the globalIdx parameter.
    // It can be used only for segments without padding zeros.
@@ -139,7 +139,7 @@ test_reduceAllSegments_MaximumInSegments_short_fetch()
 
 template< typename Segments >
 void
-test_reduceAllSegments_MaximumInSegmentsWithArgument()
+test_reduceSegmentsWithArgument_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
@@ -226,7 +226,7 @@ test_reduceAllSegments_MaximumInSegmentsWithArgument()
 
 template< typename Segments >
 void
-test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes()
+test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
@@ -321,7 +321,7 @@ test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes()
 
 template< typename Segments >
 void
-test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument()
+test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
@@ -430,7 +430,7 @@ test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument()
 
 template< typename Segments >
 void
-test_reduceAllSegmentsIf_MaximumInSegments()
+test_reduceSegmentsIf_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
@@ -523,7 +523,7 @@ test_reduceAllSegmentsIf_MaximumInSegments()
 
 template< typename Segments >
 void
-test_reduceAllSegmentsIfWithArgument_MaximumInSegments()
+test_reduceSegmentsIfWithArgument_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;

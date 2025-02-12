@@ -29,53 +29,53 @@ using BiEllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::BiEl
 
 TYPED_TEST_SUITE( BiEllpackReduceSegmentsTest, BiEllpackSegmentsTypes );
 
-TYPED_TEST( BiEllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegments )
+TYPED_TEST( BiEllpackReduceSegmentsTest, reduceSegments_MaximumInSegments )
 {
    using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegments< BiEllpackSegmentsType >();
+   test_reduceSegments_MaximumInSegments< BiEllpackSegmentsType >();
 }
 
-TYPED_TEST( BiEllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegments_short_fetch )
+TYPED_TEST( BiEllpackReduceSegmentsTest, reduceSegments_MaximumInSegments_short_fetch )
 {
    using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegments_short_fetch< BiEllpackSegmentsType >();
+   test_reduceSegments_MaximumInSegments_short_fetch< BiEllpackSegmentsType >();
 }
 
-TYPED_TEST( BiEllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithArgument )
+TYPED_TEST( BiEllpackReduceSegmentsTest, reduceSegmentsWithArgument_MaximumInSegments )
 {
    using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegmentsWithArgument< BiEllpackSegmentsType >();
+   test_reduceSegmentsWithArgument_MaximumInSegments< BiEllpackSegmentsType >();
 }
 
-TYPED_TEST( BiEllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexes )
+TYPED_TEST( BiEllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexes_MaximumInSegments )
 {
    using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes< BiEllpackSegmentsType >();
+   test_reduceSegmentsWithSegmentIndexes_MaximumInSegments< BiEllpackSegmentsType >();
 }
 
-TYPED_TEST( BiEllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument )
+TYPED_TEST( BiEllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments )
 {
    using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument< BiEllpackSegmentsType >();
+   test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments< BiEllpackSegmentsType >();
 }
 
 TYPED_TEST( BiEllpackReduceSegmentsTest, reduceSegmentsIf_MaximumInSegments )
 {
    using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
 
-   test_reduceAllSegmentsIf_MaximumInSegments< BiEllpackSegmentsType >();
+   test_reduceSegmentsIf_MaximumInSegments< BiEllpackSegmentsType >();
 }
 
 TYPED_TEST( BiEllpackReduceSegmentsTest, reduceSegmentsIfWithArgument_MaximumInSegments )
 {
    using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
 
-   test_reduceAllSegmentsIfWithArgument_MaximumInSegments< BiEllpackSegmentsType >();
+   test_reduceSegmentsIfWithArgument_MaximumInSegments< BiEllpackSegmentsType >();
 }
 
 #include "../../../main.h"
