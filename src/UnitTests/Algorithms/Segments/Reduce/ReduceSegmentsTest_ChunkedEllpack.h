@@ -29,53 +29,53 @@ using ChunkedEllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments:
 
 TYPED_TEST_SUITE( ChunkedEllpackReduceSegmentsTest, ChunkedEllpackSegmentsTypes );
 
-TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegments )
+TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceSegments_MaximumInSegments )
 {
    using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegments< ChunkedEllpackSegmentsType >();
+   test_reduceSegments_MaximumInSegments< ChunkedEllpackSegmentsType >();
 }
 
-TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegments_short_fetch )
+TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceSegments_MaximumInSegments_short_fetch )
 {
    using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegments_short_fetch< ChunkedEllpackSegmentsType >();
+   test_reduceSegments_MaximumInSegments_short_fetch< ChunkedEllpackSegmentsType >();
 }
 
-TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithArgument )
+TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceSegmentsWithArgument_MaximumInSegments )
 {
    using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegmentsWithArgument< ChunkedEllpackSegmentsType >();
+   test_reduceSegmentsWithArgument_MaximumInSegments< ChunkedEllpackSegmentsType >();
 }
 
-TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexes )
+TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexes_MaximumInSegments )
 {
    using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes< ChunkedEllpackSegmentsType >();
+   test_reduceSegmentsWithSegmentIndexes_MaximumInSegments< ChunkedEllpackSegmentsType >();
 }
 
-TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument )
+TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments )
 {
    using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument< ChunkedEllpackSegmentsType >();
+   test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments< ChunkedEllpackSegmentsType >();
 }
 
-TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceAllSegmentsIf_MaximumInSegments )
+TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceSegmentsIf_MaximumInSegments )
 {
    using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
 
-   test_reduceAllSegmentsIf_MaximumInSegments< ChunkedEllpackSegmentsType >();
+   test_reduceSegmentsIf_MaximumInSegments< ChunkedEllpackSegmentsType >();
 }
 
-TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceAllSegmentsIfWithArgument_MaximumInSegments )
+TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceSegmentsIfWithArgument_MaximumInSegments )
 {
    using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
 
-   test_reduceAllSegmentsIfWithArgument_MaximumInSegments< ChunkedEllpackSegmentsType >();
+   test_reduceSegmentsIfWithArgument_MaximumInSegments< ChunkedEllpackSegmentsType >();
 }
 
 #include "../../../main.h"

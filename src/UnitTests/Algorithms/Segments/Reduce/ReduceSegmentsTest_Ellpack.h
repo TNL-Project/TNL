@@ -37,53 +37,53 @@ using EllpackSegmentsTypes =
 
 TYPED_TEST_SUITE( EllpackReduceSegmentsTest, EllpackSegmentsTypes );
 
-TYPED_TEST( EllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegments )
+TYPED_TEST( EllpackReduceSegmentsTest, reduceSegments_MaximumInSegments )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegments< EllpackSegmentsType >();
+   test_reduceSegments_MaximumInSegments< EllpackSegmentsType >();
 }
 
-TYPED_TEST( EllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegments_short_fetch )
+TYPED_TEST( EllpackReduceSegmentsTest, reduceSegments_MaximumInSegments_short_fetch )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegments_short_fetch< EllpackSegmentsType >();
+   test_reduceSegments_MaximumInSegments_short_fetch< EllpackSegmentsType >();
 }
 
-TYPED_TEST( EllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithArgument )
+TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsWithArgument_MaximumInSegments )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegmentsWithArgument< EllpackSegmentsType >();
+   test_reduceSegmentsWithArgument_MaximumInSegments< EllpackSegmentsType >();
 }
 
-TYPED_TEST( EllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexes )
+TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexes_MaximumInSegments )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes< EllpackSegmentsType >();
+   test_reduceSegmentsWithSegmentIndexes_MaximumInSegments< EllpackSegmentsType >();
 }
 
-TYPED_TEST( EllpackReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument )
+TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
 
-   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument< EllpackSegmentsType >();
+   test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments< EllpackSegmentsType >();
 }
 
-TYPED_TEST( EllpackReduceSegmentsTest, reduceAllSegmentsIf_MaximumInSegments )
+TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsIf_MaximumInSegments )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
 
-   test_reduceAllSegmentsIf_MaximumInSegments< EllpackSegmentsType >();
+   test_reduceSegmentsIf_MaximumInSegments< EllpackSegmentsType >();
 }
 
-TYPED_TEST( EllpackReduceSegmentsTest, reduceAllSegmentsIfWithArg_MaximumInSegments )
+TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsIfWithArg_MaximumInSegments )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
 
-   test_reduceAllSegmentsIfWithArgument_MaximumInSegments< EllpackSegmentsType >();
+   test_reduceSegmentsIfWithArgument_MaximumInSegments< EllpackSegmentsType >();
 }
 
 #include "../../../main.h"
