@@ -29,46 +29,46 @@ using CSRSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::CSR< TNL::
 
 TYPED_TEST_SUITE( CSRReduceSegmentsTest, CSRSegmentsTypes );
 
-TYPED_TEST( CSRReduceSegmentsTest, reduceAllSegments_MaximumInSegments )
+TYPED_TEST( CSRReduceSegmentsTest, reduceSegments_MaximumInSegments )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   test_reduceAllSegments_MaximumInSegments< CSRSegmentsType >();
+   test_reduceSegments_MaximumInSegments< CSRSegmentsType >();
 }
 
-TYPED_TEST( CSRReduceSegmentsTest, reduceAllSegments_MaximumInSegments_short_fetch )
+TYPED_TEST( CSRReduceSegmentsTest, reduceSegments_MaximumInSegments_short_fetch )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   test_reduceAllSegments_MaximumInSegments_short_fetch< CSRSegmentsType >();
+   test_reduceSegments_MaximumInSegments_short_fetch< CSRSegmentsType >();
 }
 
-TYPED_TEST( CSRReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithArgument )
+TYPED_TEST( CSRReduceSegmentsTest, reduceSegmentsWithArgument_MaximumInSegments )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   test_reduceAllSegments_MaximumInSegmentsWithArgument< CSRSegmentsType >();
+   test_reduceSegmentsWithArgument_MaximumInSegments< CSRSegmentsType >();
 }
 
-TYPED_TEST( CSRReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexes )
+TYPED_TEST( CSRReduceSegmentsTest, reduceSegmentsWithSegmentIndexes_MaximumInSegments )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexes< CSRSegmentsType >();
+   test_reduceSegmentsWithSegmentIndexes_MaximumInSegments< CSRSegmentsType >();
 }
 
-TYPED_TEST( CSRReduceSegmentsTest, reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument )
+TYPED_TEST( CSRReduceSegmentsTest, reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   test_reduceAllSegments_MaximumInSegmentsWithSegmentIndexesAndArgument< CSRSegmentsType >();
+   test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments< CSRSegmentsType >();
 }
 
-TYPED_TEST( CSRReduceSegmentsTest, reduceAllSegmentsIf_MaximumInSegments )
+TYPED_TEST( CSRReduceSegmentsTest, reduceSegmentsIf_MaximumInSegments )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   test_reduceAllSegmentsIf_MaximumInSegments< CSRSegmentsType >();
+   test_reduceSegmentsIf_MaximumInSegments< CSRSegmentsType >();
 }
 
-TYPED_TEST( CSRReduceSegmentsTest, reduceAllSegmentsIfWithArgument_MaximumInSegments )
+TYPED_TEST( CSRReduceSegmentsTest, reduceSegmentsIfWithArgument_MaximumInSegments )
 {
    using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-   test_reduceAllSegmentsIfWithArgument_MaximumInSegments< CSRSegmentsType >();
+   test_reduceSegmentsIfWithArgument_MaximumInSegments< CSRSegmentsType >();
 }
 
 #include "../../../main.h"
