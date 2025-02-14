@@ -36,4 +36,25 @@ TYPED_TEST( ChunkedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< ChunkedEllpackSegmentsType >();
 }
 
+TYPED_TEST( ChunkedEllpackSegmentsTest, findInSegments )
+{
+   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
+
+   test_findInSegments< ChunkedEllpackSegmentsType >();
+}
+
+TYPED_TEST( ChunkedEllpackSegmentsTest, findInSegmentsWithIndexes )
+{
+   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
+
+   test_findInSegmentsWithIndexes< ChunkedEllpackSegmentsType >();
+}
+
+TYPED_TEST( ChunkedEllpackSegmentsTest, findInSegmentsIf )
+{
+   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
+
+   test_findInSegmentsIf< ChunkedEllpackSegmentsType >();
+}
+
 #include "../../main.h"
