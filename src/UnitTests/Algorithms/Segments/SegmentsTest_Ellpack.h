@@ -51,4 +51,25 @@ TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes_EllpackOnly )
    test_SetSegmentsSizes_EqualSizes_EllpackOnly< EllpackSegmentsType >();
 }
 
+TYPED_TEST( EllpackSegmentsTest, findInSegments )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_findInSegments< EllpackSegmentsType >();
+}
+
+TYPED_TEST( EllpackSegmentsTest, findInSegmentsWithIndexes )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_findInSegmentsWithIndexes< EllpackSegmentsType >();
+}
+
+TYPED_TEST( EllpackSegmentsTest, findInSegmentsIf )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_findInSegmentsIf< EllpackSegmentsType >();
+}
+
 #include "../../main.h"

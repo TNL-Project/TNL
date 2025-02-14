@@ -43,4 +43,25 @@ TYPED_TEST( SlicedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< SlicedEllpackSegmentsType >();
 }
 
+TYPED_TEST( SlicedEllpackSegmentsTest, findInSegments )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_findInSegments< SlicedEllpackSegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackSegmentsTest, findInSegmentsWithIndexes )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_findInSegmentsWithIndexes< SlicedEllpackSegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackSegmentsTest, findInSegmentsIf )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_findInSegmentsIf< SlicedEllpackSegmentsType >();
+}
+
 #include "../../main.h"
