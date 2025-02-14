@@ -36,4 +36,25 @@ TYPED_TEST( AdaptiveCSRSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< AdaptiveCSRSegmentsType >();
 }
 
+TYPED_TEST( AdaptiveCSRSegmentsTest, findInSegments )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_findInSegments< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, findInSegmentsWithIndexes )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_findInSegmentsWithIndexes< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, findInSegmentsIf )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_findInSegmentsIf< AdaptiveCSRSegmentsType >();
+}
+
 #include "../../main.h"

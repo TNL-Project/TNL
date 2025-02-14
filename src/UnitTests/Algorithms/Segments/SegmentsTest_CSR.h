@@ -36,4 +36,25 @@ TYPED_TEST( CSRSegmentsTest, setSegmentsSizes_EqualSizes )
    test_SetSegmentsSizes_EqualSizes< CSRSegmentsType >();
 }
 
+TYPED_TEST( CSRSegmentsTest, findInSegments )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_findInSegments< CSRSegmentsType >();
+}
+
+TYPED_TEST( CSRSegmentsTest, findInSegmentsWithIndexes )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_findInSegmentsWithIndexes< CSRSegmentsType >();
+}
+
+TYPED_TEST( CSRSegmentsTest, findInSegmentsIf )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_findInSegmentsIf< CSRSegmentsType >();
+}
+
 #include "../../main.h"
