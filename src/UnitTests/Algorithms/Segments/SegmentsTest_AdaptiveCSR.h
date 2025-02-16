@@ -57,4 +57,25 @@ TYPED_TEST( AdaptiveCSRSegmentsTest, findInSegmentsIf )
    test_findInSegmentsIf< AdaptiveCSRSegmentsType >();
 }
 
+TYPED_TEST( AdaptiveCSRSegmentsTest, sortSegments )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_sortSegments< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, sortSegmentsWithSegmentIndexes )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_sortSegmentsWithSegmentIndexes< AdaptiveCSRSegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, sortSegmentsIf )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_sortSegmentsIf< AdaptiveCSRSegmentsType >();
+}
+
 #include "../../main.h"
