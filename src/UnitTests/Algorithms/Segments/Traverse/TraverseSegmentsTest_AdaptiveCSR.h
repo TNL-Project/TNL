@@ -71,4 +71,11 @@ TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forElementsWithSegmentIndexes )
    test_forElementsWithSegmentIndexes< AdaptiveCSRSegmentsType >();
 }
 
+TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forSegments )
+{
+   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+
+   test_forSegments< AdaptiveCSRSegmentsType >();
+}
+
 #include "../../../main.h"

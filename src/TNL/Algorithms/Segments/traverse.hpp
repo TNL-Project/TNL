@@ -112,7 +112,7 @@ forAllElementsIfSparse( const Segments& segments, Condition condition, Function 
                         launchConfig );
 }
 
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function, typename T >
 void
 forSegments( const Segments& segments, IndexBegin begin, IndexEnd end, Function&& function, LaunchConfiguration launchConfig )
 {
@@ -137,6 +137,75 @@ forAllSegments( const Segments& segments, Function&& function, LaunchConfigurati
       segments.getConstView(), (IndexType) 0, segments.getSegmentsCount(), std::forward< Function >( function ), launchConfig );
 }
 
+template< typename Segments, typename Array, typename IndexBegin, typename IndexEnd, typename Function, typename T >
+void
+forSegments( const Segments& segments,
+             const Array& segmentIndexes,
+             IndexBegin begin,
+             IndexEnd end,
+             Function&& function,
+             LaunchConfiguration launchConfig )
+{
+   using IndexType = typename Segments::IndexType;
+   using DeviceType = typename Segments::DeviceType;
+   auto segments_view = segments.getConstView();
+   auto segmentIndexes_view = segmentIndexes.getConstView();
+   auto f = [ = ] __cuda_callable__( IndexType segmentIdx_idx ) mutable
+   {
+      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes_view.getSize(), "" );
+      TNL_ASSERT_LT( segmentIndexes_view[ segmentIdx_idx ], segments_view.getSegmentsCount(), "" );
+      auto segment = segments_view.getSegmentView( segmentIndexes_view[ segmentIdx_idx ] );
+      function( segment );
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, f );  // TODO: Add launchConfig - it seems it does not work with current
+                                                            // implementation of parallelFor
+}
+
+template< typename Segments, typename Array, typename Function, typename T >
+void
+forSegments( const Segments& segments, const Array& segmentIndexes, Function&& function, LaunchConfiguration launchConfig )
+{
+   using IndexType = typename Segments::IndexType;
+   forSegments(
+      segments, segmentIndexes, (IndexType) 0, segmentIndexes.getSize(), std::forward< Function >( function ), launchConfig );
+}
+
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename SegmentCondition, typename Function, typename T >
+void
+forSegmentsIf( const Segments& segments,
+               IndexBegin begin,
+               IndexEnd end,
+               SegmentCondition&& segmentCondition,
+               Function&& function,
+               LaunchConfiguration launchConfig )
+{
+   using IndexType = typename Segments::IndexType;
+   using DeviceType = typename Segments::DeviceType;
+   auto segments_view = segments.getConstView();
+   auto f = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
+   {
+      if( segmentCondition( segmentIdx ) )
+         function( segments_view.getSegmentView( segmentIdx ) );
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, f );  // TODO: Add launchConfig - it seems it does not work with current
+                                                            // implementation of parallelFor
+}
+
+template< typename Segments, typename SegmentCondition, typename Function >
+void
+forAllSegmentsIf( const Segments& segments,
+                  SegmentCondition&& segmentCondition,
+                  Function&& function,
+                  LaunchConfiguration launchConfig )
+{
+   forSegmentsIf( segments.getConstView(),
+                  (typename Segments::IndexType) 0,
+                  segments.getSegmentsCount(),
+                  std::forward< SegmentCondition >( segmentCondition ),
+                  std::forward< Function >( function ),
+                  launchConfig );
+}
+
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
 void
 sequentialForSegments( const Segments& segments, IndexBegin begin, IndexEnd end, Function&& function )
@@ -150,9 +219,7 @@ template< typename Segments, typename Function >
 void
 sequentialForAllSegments( const Segments& segments, Function&& function )
 {
-   using IndexType = typename Segments::IndexType;
-   detail::TraversingOperations< typename Segments::ConstViewType >::sequentialForSegments(
-      segments.getConstView(), (IndexType) 0, segments.getSegmentsCount(), std::forward< Function >( function ) );
+   sequentialForSegments( segments.getConstView(), 0, segments.getSegmentsCount(), std::forward< Function >( function ) );
 }
 
 }  // namespace TNL::Algorithms::Segments
