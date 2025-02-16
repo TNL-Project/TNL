@@ -3,6 +3,7 @@
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Algorithms/Segments/find.h>
+#include <TNL/Algorithms/Segments/sort.h>
 #include <TNL/Math.h>
 
 #include <iostream>
@@ -190,7 +191,7 @@ test_findInSegments()
    TNL::Algorithms::Segments::findInAllSegments( segments, condition, keep );
 
    for( IndexType i = 0; i < segmentsCount; i++ ) {
-      if( i % 7 >= 4 ) {
+      if( i % maxSegmentSize >= 4 ) {
          EXPECT_EQ( found.getElement( i ), true ) << "segmentIdx = " << i;
          EXPECT_EQ( positions.getElement( i ), 4 ) << "segmentIdx = " << i;
       }
@@ -211,7 +212,7 @@ test_findInSegments()
    TNL::Algorithms::Segments::findInAllSegments( segments.getView(), short_condition, keep );
 
    for( IndexType i = 0; i < segmentsCount; i++ ) {
-      if( i % 7 >= 4 ) {
+      if( i % maxSegmentSize >= 4 ) {
          EXPECT_EQ( found.getElement( i ), true ) << "segmentIdx = " << i;
          EXPECT_EQ( positions.getElement( i ), 4 ) << "segmentIdx = " << i;
       }
@@ -284,7 +285,7 @@ test_findInSegmentsWithIndexes()
    TNL::Algorithms::Segments::findInSegments( segments, segmentIndexes, condition, keep );
 
    for( IndexType i = 0; i < segmentsCount; i++ ) {
-      if( i % 7 >= 4 && i % 2 == 0 ) {
+      if( i % maxSegmentSize >= 4 && i % 2 == 0 ) {
          EXPECT_EQ( found.getElement( i ), true ) << "segmentIdx = " << i;
          EXPECT_EQ( positions.getElement( i ), 4 ) << "segmentIdx = " << i;
       }
@@ -305,7 +306,7 @@ test_findInSegmentsWithIndexes()
    TNL::Algorithms::Segments::findInSegments( segments.getView(), segmentIndexes, short_condition, keep );
 
    for( IndexType i = 0; i < segmentsCount; i++ ) {
-      if( i % 7 >= 4 && i % 2 == 0 ) {
+      if( i % maxSegmentSize >= 4 && i % 2 == 0 ) {
          EXPECT_EQ( found.getElement( i ), true ) << "segmentIdx = " << i;
          EXPECT_EQ( positions.getElement( i ), 4 ) << "segmentIdx = " << i;
       }
@@ -375,7 +376,7 @@ test_findInSegmentsIf()
    TNL::Algorithms::Segments::findInSegmentsIf( segments, segmentCondition, condition, keep );
 
    for( IndexType i = 0; i < segmentsCount; i++ ) {
-      if( i % 7 >= 4 && i % 2 == 0 ) {
+      if( i % maxSegmentSize >= 4 && i % 2 == 0 ) {
          EXPECT_EQ( found.getElement( i ), true ) << "segmentIdx = " << i;
          EXPECT_EQ( positions.getElement( i ), 4 ) << "segmentIdx = " << i;
       }
@@ -396,13 +397,294 @@ test_findInSegmentsIf()
    TNL::Algorithms::Segments::findInSegmentsIf( segments.getView(), segmentCondition, short_condition, keep );
 
    for( IndexType i = 0; i < segmentsCount; i++ ) {
-      if( i % 7 >= 4 && i % 2 == 0 ) {
+      if( i % maxSegmentSize >= 4 && i % 2 == 0 ) {
          EXPECT_EQ( found.getElement( i ), true ) << "segmentIdx = " << i;
          EXPECT_EQ( positions.getElement( i ), 4 ) << "segmentIdx = " << i;
       }
       else {
          EXPECT_EQ( found.getElement( i ), false ) << "segmentIdx = " << i;
          EXPECT_EQ( positions.getElement( i ), -1 ) << "segmentIdx = " << i;
+      }
+   }
+}
+
+template< typename Segments >
+void
+test_sortSegments()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+
+   const IndexType segmentsCount = 10;
+   const IndexType maxSegmentSize = 7;
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   segmentsSizes.forAllElements(
+      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      {
+         value = idx % maxSegmentSize + 1;
+      } );
+
+   Segments segments( segmentsSizes );
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
+   v = -1;
+
+   auto v_view = v.getView();
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         TNL_ASSERT_LT( globalIdx, v_view.getSize(), "" );
+         // some segments may use padding zeros and their size may be greater than the original segment size
+         if( localIdx <= segmentIdx % maxSegmentSize )
+            v_view[ globalIdx ] = localIdx + 1;
+         else
+            v_view[ globalIdx ] = std::numeric_limits< IndexType >::lowest();
+      } );
+
+   auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
+   {
+      return v_view[ globalIdx ];
+   };
+   auto descending_compare = [ = ] __cuda_callable__( const IndexType a, const IndexType b ) -> bool
+   {
+      return a >= b;
+   };
+   auto ascending_compare = [ = ] __cuda_callable__( const IndexType a, const IndexType b ) -> bool
+   {
+      return a <= b;
+   };
+   auto swap_lambda = [ = ] __cuda_callable__( const IndexType globalIdx1, const IndexType globalIdx2 ) mutable
+   {
+      TNL::swap( v_view[ globalIdx1 ], v_view[ globalIdx2 ] );
+   };
+   TNL::Algorithms::Segments::sortAllSegments( segments, fetch, descending_compare, swap_lambda );
+
+   for( IndexType i = 0; i < segmentsCount; i++ ) {
+      for( IndexType j = 0; j < i % maxSegmentSize; j++ ) {
+         EXPECT_GE( v.getElement( segments.getGlobalIndex( i, j ) ), v.getElement( segments.getGlobalIndex( i, j + 1 ) ) )
+            << "segmentIdx = " << i << " localIdx = " << j;
+      }
+   }
+
+   // Test with segments view and short fetch
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         TNL_ASSERT_LT( globalIdx, v_view.getSize(), "" );
+         // some segments may use padding zeros and their size may be greater than the original segment size
+         if( localIdx > segmentIdx % maxSegmentSize )
+            v_view[ globalIdx ] = std::numeric_limits< IndexType >::max();
+      } );
+   auto short_fetch = [ = ] __cuda_callable__( IndexType globalIdx ) -> IndexType
+   {
+      return v_view[ globalIdx ];
+   };
+
+   TNL::Algorithms::Segments::sortAllSegments( segments.getView(), short_fetch, ascending_compare, swap_lambda );
+
+   for( IndexType i = 0; i < segmentsCount; i++ ) {
+      for( IndexType j = 0; j < i % maxSegmentSize; j++ ) {
+         EXPECT_LE( v.getElement( segments.getGlobalIndex( i, j ) ), v.getElement( segments.getGlobalIndex( i, j + 1 ) ) )
+            << "segmentIdx = " << i << " localIdx = " << j;
+      }
+   }
+}
+
+template< typename Segments >
+void
+test_sortSegmentsWithSegmentIndexes()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+
+   const IndexType segmentsCount = 10;
+   const IndexType maxSegmentSize = 7;
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   segmentsSizes.forAllElements(
+      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      {
+         value = idx % maxSegmentSize + 1;
+      } );
+
+   Segments segments( segmentsSizes );
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() ),
+      segmentIndexes( segmentsCount / 2 );
+   v = -1;
+   segmentIndexes.forAllElements(
+      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      {
+         value = idx * 2;
+      } );
+
+   auto v_view = v.getView();
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         TNL_ASSERT_LT( globalIdx, v_view.getSize(), "" );
+         // some segments may use padding zeros and their size may be greater than the original segment size
+         if( localIdx <= segmentIdx % maxSegmentSize )
+            v_view[ globalIdx ] = localIdx + 1;
+         else
+            v_view[ globalIdx ] = std::numeric_limits< IndexType >::lowest();
+      } );
+
+   auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
+   {
+      return v_view[ globalIdx ];
+   };
+   auto descending_compare = [ = ] __cuda_callable__( const IndexType a, const IndexType b ) -> bool
+   {
+      return a >= b;
+   };
+   auto ascending_compare = [ = ] __cuda_callable__( const IndexType a, const IndexType b ) -> bool
+   {
+      return a <= b;
+   };
+   auto swap_lambda = [ = ] __cuda_callable__( const IndexType globalIdx1, const IndexType globalIdx2 ) mutable
+   {
+      TNL::swap( v_view[ globalIdx1 ], v_view[ globalIdx2 ] );
+   };
+   TNL::Algorithms::Segments::sortSegments( segments, segmentIndexes, fetch, descending_compare, swap_lambda );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentIdx % maxSegmentSize; localIdx++ ) {
+         if( segmentIdx % 2 == 0 )
+            EXPECT_GE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+                       v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+               << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
+         else
+            EXPECT_LE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+                       v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+               << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
+      }
+   }
+
+   // Test with segments view and short fetch
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         TNL_ASSERT_LT( globalIdx, v_view.getSize(), "" );
+         // some segments may use padding zeros and their size may be greater than the original segment size
+         if( localIdx > segmentIdx % maxSegmentSize )
+            v_view[ globalIdx ] = std::numeric_limits< IndexType >::max();
+      } );
+   auto short_fetch = [ = ] __cuda_callable__( IndexType globalIdx ) -> IndexType
+   {
+      return v_view[ globalIdx ];
+   };
+
+   TNL::Algorithms::Segments::sortSegments( segments.getView(), segmentIndexes, short_fetch, ascending_compare, swap_lambda );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentIdx % maxSegmentSize; localIdx++ ) {
+         // All segments with are now sorted in descending order
+         EXPECT_LE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+                    v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+            << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
+      }
+   }
+}
+
+template< typename Segments >
+void
+test_sortSegmentsIf()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+
+   const IndexType segmentsCount = 10;
+   const IndexType maxSegmentSize = 7;
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   segmentsSizes.forAllElements(
+      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      {
+         value = idx % maxSegmentSize + 1;
+      } );
+
+   Segments segments( segmentsSizes );
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
+   v = -1;
+
+   auto v_view = v.getView();
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         TNL_ASSERT_LT( globalIdx, v_view.getSize(), "" );
+         // some segments may use padding zeros and their size may be greater than the original segment size
+         if( localIdx <= segmentIdx % maxSegmentSize )
+            v_view[ globalIdx ] = localIdx + 1;
+         else
+            v_view[ globalIdx ] = std::numeric_limits< IndexType >::lowest();
+      } );
+
+   auto condition = [ = ] __cuda_callable__( IndexType segmentIdx ) -> bool
+   {
+      return segmentIdx % 2 == 0;
+   };
+   auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
+   {
+      return v_view[ globalIdx ];
+   };
+   auto descending_compare = [ = ] __cuda_callable__( const IndexType a, const IndexType b ) -> bool
+   {
+      return a >= b;
+   };
+   auto ascending_compare = [ = ] __cuda_callable__( const IndexType a, const IndexType b ) -> bool
+   {
+      return a <= b;
+   };
+   auto swap_lambda = [ = ] __cuda_callable__( const IndexType globalIdx1, const IndexType globalIdx2 ) mutable
+   {
+      TNL::swap( v_view[ globalIdx1 ], v_view[ globalIdx2 ] );
+   };
+   TNL::Algorithms::Segments::sortAllSegmentsIf( segments, condition, fetch, descending_compare, swap_lambda );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentIdx % maxSegmentSize; localIdx++ ) {
+         if( segmentIdx % 2 == 0 )
+            EXPECT_GE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+                       v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+               << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
+         else
+            EXPECT_LE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+                       v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+               << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
+      }
+   }
+
+   // Test with segments view and short fetch
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+      {
+         TNL_ASSERT_LT( globalIdx, v_view.getSize(), "" );
+         // some segments may use padding zeros and their size may be greater than the original segment size
+         if( localIdx > segmentIdx % maxSegmentSize )
+            v_view[ globalIdx ] = std::numeric_limits< IndexType >::max();
+      } );
+   auto short_fetch = [ = ] __cuda_callable__( IndexType globalIdx ) -> IndexType
+   {
+      return v_view[ globalIdx ];
+   };
+
+   TNL::Algorithms::Segments::sortAllSegmentsIf( segments.getView(), condition, short_fetch, ascending_compare, swap_lambda );
+
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
+      for( IndexType localIdx = 0; localIdx < segmentIdx % maxSegmentSize; localIdx++ ) {
+         // All segments with are now sorted in descending order
+         EXPECT_LE( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ),
+                    v.getElement( segments.getGlobalIndex( segmentIdx, localIdx + 1 ) ) )
+            << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
       }
    }
 }
