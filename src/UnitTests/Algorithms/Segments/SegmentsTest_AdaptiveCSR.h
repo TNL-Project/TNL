@@ -10,7 +10,7 @@ template< typename Segments >
 class AdaptiveCSRSegmentsTest : public ::testing::Test
 {
 protected:
-   using AdaptiveCSRSegmentsType = Segments;
+   using SegmentsType = Segments;
 };
 
 // types for which MatrixTest is instantiated
@@ -31,51 +31,37 @@ TYPED_TEST_SUITE( AdaptiveCSRSegmentsTest, AdaptiveCSRSegmentsTypes );
 
 TYPED_TEST( AdaptiveCSRSegmentsTest, setSegmentsSizes_EqualSizes )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_SetSegmentsSizes_EqualSizes< AdaptiveCSRSegmentsType >();
+   test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRSegmentsTest, findInSegments )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_findInSegments< AdaptiveCSRSegmentsType >();
+   test_findInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRSegmentsTest, findInSegmentsWithIndexes )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_findInSegmentsWithIndexes< AdaptiveCSRSegmentsType >();
+   test_findInSegmentsWithIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRSegmentsTest, findInSegmentsIf )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_findInSegmentsIf< AdaptiveCSRSegmentsType >();
+   test_findInSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRSegmentsTest, sortSegments )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_sortSegments< AdaptiveCSRSegmentsType >();
+   test_sortSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRSegmentsTest, sortSegmentsWithSegmentIndexes )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_sortSegmentsWithSegmentIndexes< AdaptiveCSRSegmentsType >();
+   test_sortSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRSegmentsTest, sortSegmentsIf )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_sortSegmentsIf< AdaptiveCSRSegmentsType >();
+   test_sortSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
 #include "../../main.h"

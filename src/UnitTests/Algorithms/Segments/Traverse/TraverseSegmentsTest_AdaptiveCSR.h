@@ -10,7 +10,7 @@ template< typename Segments >
 class AdaptiveCSRTraverseSegmentsTest : public ::testing::Test
 {
 protected:
-   using AdaptiveCSRSegmentsType = Segments;
+   using SegmentsType = Segments;
 };
 
 // types for which MatrixTest is instantiated
@@ -31,51 +31,52 @@ TYPED_TEST_SUITE( AdaptiveCSRTraverseSegmentsTest, AdaptiveCSRSegmentsTypes );
 
 TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forElements_EmptySegments )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_forElements_EmptySegments< AdaptiveCSRSegmentsType >();
+   test_forElements_EmptySegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forElements_EqualSizes )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_forElements_EqualSizes< AdaptiveCSRSegmentsType >();
+   test_forElements_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forElements )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_forElements< AdaptiveCSRSegmentsType >();
+   test_forElements< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forElementsIf )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_forElementsIf< AdaptiveCSRSegmentsType >();
+   test_forElementsIf< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_forElementsWithSegmentIndexes_EmptySegments< AdaptiveCSRSegmentsType >();
+   test_forElementsWithSegmentIndexes_EmptySegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forElementsWithSegmentIndexes )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
-
-   test_forElementsWithSegmentIndexes< AdaptiveCSRSegmentsType >();
+   test_forElementsWithSegmentIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forSegments )
 {
-   using AdaptiveCSRSegmentsType = typename TestFixture::AdaptiveCSRSegmentsType;
+   test_forSegments< typename TestFixture::SegmentsType >();
+}
 
-   test_forSegments< AdaptiveCSRSegmentsType >();
+TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forSegmentsWithIndexes )
+{
+   test_forSegmentsWithIndexes< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forSegmentsIf )
+{
+   test_forSegmentsIf< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRTraverseSegmentsTest, forSegmentsSequential )
+{
+   test_forSegmentsSequential< typename TestFixture::SegmentsType >();
 }
 
 #include "../../../main.h"
