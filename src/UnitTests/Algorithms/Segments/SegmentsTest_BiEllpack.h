@@ -57,4 +57,25 @@ TYPED_TEST( BiEllpackSegmentsTest, findInSegmentsIf )
    test_findInSegmentsIf< BiEllpackSegmentsType >();
 }
 
+TYPED_TEST( BiEllpackSegmentsTest, sortSegments )
+{
+   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
+
+   test_sortSegments< BiEllpackSegmentsType >();
+}
+
+TYPED_TEST( BiEllpackSegmentsTest, sortSegmentsWithSegmentIndexes )
+{
+   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
+
+   test_sortSegmentsWithSegmentIndexes< BiEllpackSegmentsType >();
+}
+
+TYPED_TEST( BiEllpackSegmentsTest, sortSegmentsIf )
+{
+   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
+
+   test_sortSegmentsIf< BiEllpackSegmentsType >();
+}
+
 #include "../../main.h"
