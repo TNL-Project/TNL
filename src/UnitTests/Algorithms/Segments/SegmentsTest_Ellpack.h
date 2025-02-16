@@ -10,7 +10,7 @@ template< typename Segments >
 class EllpackSegmentsTest : public ::testing::Test
 {
 protected:
-   using EllpackSegmentsType = Segments;
+   using SegmentsType = Segments;
 };
 
 // types for which MatrixTest is instantiated
@@ -39,58 +39,42 @@ TYPED_TEST_SUITE( EllpackSegmentsTest, EllpackSegmentsTypes );
 
 TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_SetSegmentsSizes_EqualSizes< EllpackSegmentsType >();
+   test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes_EllpackOnly )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_SetSegmentsSizes_EqualSizes_EllpackOnly< EllpackSegmentsType >();
+   test_SetSegmentsSizes_EqualSizes_EllpackOnly< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackSegmentsTest, findInSegments )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_findInSegments< EllpackSegmentsType >();
+   test_findInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackSegmentsTest, findInSegmentsWithIndexes )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_findInSegmentsWithIndexes< EllpackSegmentsType >();
+   test_findInSegmentsWithIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackSegmentsTest, findInSegmentsIf )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_findInSegmentsIf< EllpackSegmentsType >();
+   test_findInSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackSegmentsTest, sortSegments )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_sortSegments< EllpackSegmentsType >();
+   test_sortSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackSegmentsTest, sortSegmentsWithSegmentIndexes )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_sortSegmentsWithSegmentIndexes< EllpackSegmentsType >();
+   test_sortSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackSegmentsTest, sortSegmentsIf )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_sortSegmentsIf< EllpackSegmentsType >();
+   test_sortSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
 #include "../../main.h"
