@@ -57,4 +57,25 @@ TYPED_TEST( ChunkedEllpackSegmentsTest, findInSegmentsIf )
    test_findInSegmentsIf< ChunkedEllpackSegmentsType >();
 }
 
+TYPED_TEST( ChunkedEllpackSegmentsTest, sortSegments )
+{
+   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
+
+   test_sortSegments< ChunkedEllpackSegmentsType >();
+}
+
+TYPED_TEST( ChunkedEllpackSegmentsTest, sortSegmentsWithSegmentIndexes )
+{
+   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
+
+   test_sortSegmentsWithSegmentIndexes< ChunkedEllpackSegmentsType >();
+}
+
+TYPED_TEST( ChunkedEllpackSegmentsTest, sortSegmentsIf )
+{
+   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
+
+   test_sortSegmentsIf< ChunkedEllpackSegmentsType >();
+}
+
 #include "../../main.h"

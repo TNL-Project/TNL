@@ -57,4 +57,25 @@ TYPED_TEST( CSRSegmentsTest, findInSegmentsIf )
    test_findInSegmentsIf< CSRSegmentsType >();
 }
 
+TYPED_TEST( CSRSegmentsTest, sortSegments )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_sortSegments< CSRSegmentsType >();
+}
+
+TYPED_TEST( CSRSegmentsTest, sortSegmentsWithIndexes )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_sortSegmentsWithSegmentIndexes< CSRSegmentsType >();
+}
+
+TYPED_TEST( CSRSegmentsTest, sortSegmentsIf )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_sortSegmentsIf< CSRSegmentsType >();
+}
+
 #include "../../main.h"

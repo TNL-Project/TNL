@@ -64,4 +64,25 @@ TYPED_TEST( SlicedEllpackSegmentsTest, findInSegmentsIf )
    test_findInSegmentsIf< SlicedEllpackSegmentsType >();
 }
 
+TYPED_TEST( SlicedEllpackSegmentsTest, sortSegments )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_sortSegments< SlicedEllpackSegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackSegmentsTest, sortSegmentsWithSegmentIndexes )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_sortSegmentsWithSegmentIndexes< SlicedEllpackSegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackSegmentsTest, sortSegmentsIf )
+{
+   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+
+   test_sortSegmentsIf< SlicedEllpackSegmentsType >();
+}
+
 #include "../../main.h"
