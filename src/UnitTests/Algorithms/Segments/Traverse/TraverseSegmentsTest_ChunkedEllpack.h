@@ -71,4 +71,11 @@ TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes )
    test_forElementsWithSegmentIndexes< ChunkedEllpackSegmentsType >();
 }
 
+TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forSegments )
+{
+   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
+
+   test_forSegments< ChunkedEllpackSegmentsType >();
+}
+
 #include "../../../main.h"

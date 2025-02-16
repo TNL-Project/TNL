@@ -79,4 +79,11 @@ TYPED_TEST( EllpackTraverseSegmentsTest, forElementsWithSegmentIndexes )
    test_forElementsWithSegmentIndexes< EllpackSegmentsType >();
 }
 
+TYPED_TEST( EllpackTraverseSegmentsTest, forSegments )
+{
+   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
+
+   test_forSegments< EllpackSegmentsType >();
+}
+
 #include "../../../main.h"
