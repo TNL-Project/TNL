@@ -10,7 +10,7 @@ template< typename Segments >
 class BiEllpackTraverseSegmentsTest : public ::testing::Test
 {
 protected:
-   using BiEllpackSegmentsType = Segments;
+   using SegmentsType = Segments;
 };
 
 // types for which MatrixTest is instantiated
@@ -30,51 +30,52 @@ TYPED_TEST_SUITE( BiEllpackTraverseSegmentsTest, BiEllpackSegmentsTypes );
 
 TYPED_TEST( BiEllpackTraverseSegmentsTest, forElements_EmptySegments )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_forElements_EmptySegments< BiEllpackSegmentsType >();
+   test_forElements_EmptySegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackTraverseSegmentsTest, forElements_EqualSizes )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_forElements_EqualSizes< BiEllpackSegmentsType >();
+   test_forElements_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackTraverseSegmentsTest, forElements )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_forElements< BiEllpackSegmentsType >();
+   test_forElements< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackTraverseSegmentsTest, forElementsIf )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_forElementsIf< BiEllpackSegmentsType >();
+   test_forElementsIf< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_forElementsWithSegmentIndexes_EmptySegments< BiEllpackSegmentsType >();
+   test_forElementsWithSegmentIndexes_EmptySegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_forElementsWithSegmentIndexes< BiEllpackSegmentsType >();
+   test_forElementsWithSegmentIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackTraverseSegmentsTest, forSegments )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
+   test_forSegments< typename TestFixture::SegmentsType >();
+}
 
-   test_forSegments< BiEllpackSegmentsType >();
+TYPED_TEST( BiEllpackTraverseSegmentsTest, forSegmentsWithIndexes )
+{
+   test_forSegmentsWithIndexes< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( BiEllpackTraverseSegmentsTest, forSegmentsIf )
+{
+   test_forSegmentsIf< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( BiEllpackTraverseSegmentsTest, forSegmentsSequential )
+{
+   test_forSegmentsSequential< typename TestFixture::SegmentsType >();
 }
 
 #include "../../../main.h"

@@ -10,7 +10,7 @@ template< typename Segments >
 class BiEllpackSegmentsTest : public ::testing::Test
 {
 protected:
-   using BiEllpackSegmentsType = Segments;
+   using SegmentsType = Segments;
 };
 
 // types for which MatrixTest is instantiated
@@ -31,51 +31,37 @@ TYPED_TEST_SUITE( BiEllpackSegmentsTest, BiEllpackSegmentsTypes );
 
 TYPED_TEST( BiEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_SetSegmentsSizes_EqualSizes< BiEllpackSegmentsType >();
+   test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackSegmentsTest, findInSegments )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_findInSegments< BiEllpackSegmentsType >();
+   test_findInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackSegmentsTest, findInSegmentsWithIndexes )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_findInSegmentsWithIndexes< BiEllpackSegmentsType >();
+   test_findInSegmentsWithIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackSegmentsTest, findInSegmentsIf )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_findInSegmentsIf< BiEllpackSegmentsType >();
+   test_findInSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackSegmentsTest, sortSegments )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_sortSegments< BiEllpackSegmentsType >();
+   test_sortSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackSegmentsTest, sortSegmentsWithSegmentIndexes )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_sortSegmentsWithSegmentIndexes< BiEllpackSegmentsType >();
+   test_sortSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackSegmentsTest, sortSegmentsIf )
 {
-   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
-
-   test_sortSegmentsIf< BiEllpackSegmentsType >();
+   test_sortSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
 #include "../../main.h"

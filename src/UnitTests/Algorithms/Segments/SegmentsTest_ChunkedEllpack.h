@@ -10,7 +10,7 @@ template< typename Segments >
 class ChunkedEllpackSegmentsTest : public ::testing::Test
 {
 protected:
-   using ChunkedEllpackSegmentsType = Segments;
+   using SegmentsType = Segments;
 };
 
 // types for which MatrixTest is instantiated
@@ -31,51 +31,37 @@ TYPED_TEST_SUITE( ChunkedEllpackSegmentsTest, ChunkedEllpackSegmentsTypes );
 
 TYPED_TEST( ChunkedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 {
-   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
-
-   test_SetSegmentsSizes_EqualSizes< ChunkedEllpackSegmentsType >();
+   test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( ChunkedEllpackSegmentsTest, findInSegments )
 {
-   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
-
-   test_findInSegments< ChunkedEllpackSegmentsType >();
+   test_findInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( ChunkedEllpackSegmentsTest, findInSegmentsWithIndexes )
 {
-   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
-
-   test_findInSegmentsWithIndexes< ChunkedEllpackSegmentsType >();
+   test_findInSegmentsWithIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( ChunkedEllpackSegmentsTest, findInSegmentsIf )
 {
-   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
-
-   test_findInSegmentsIf< ChunkedEllpackSegmentsType >();
+   test_findInSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( ChunkedEllpackSegmentsTest, sortSegments )
 {
-   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
-
-   test_sortSegments< ChunkedEllpackSegmentsType >();
+   test_sortSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( ChunkedEllpackSegmentsTest, sortSegmentsWithSegmentIndexes )
 {
-   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
-
-   test_sortSegmentsWithSegmentIndexes< ChunkedEllpackSegmentsType >();
+   test_sortSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( ChunkedEllpackSegmentsTest, sortSegmentsIf )
 {
-   using ChunkedEllpackSegmentsType = typename TestFixture::ChunkedEllpackSegmentsType;
-
-   test_sortSegmentsIf< ChunkedEllpackSegmentsType >();
+   test_sortSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
 #include "../../main.h"

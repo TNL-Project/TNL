@@ -10,7 +10,7 @@ template< typename Segments >
 class CSRTraverseSegmentsTest : public ::testing::Test
 {
 protected:
-   using CSRSegmentsType = Segments;
+   using SegmentsType = Segments;
 };
 
 // types for which MatrixTest is instantiated
@@ -31,51 +31,52 @@ TYPED_TEST_SUITE( CSRTraverseSegmentsTest, CSRSegmentsTypes );
 
 TYPED_TEST( CSRTraverseSegmentsTest, forElements_EmptySegments )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_forElements_EmptySegments< CSRSegmentsType >();
+   test_forElements_EmptySegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRTraverseSegmentsTest, forElements_EqualSizes )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_forElements_EqualSizes< CSRSegmentsType >();
+   test_forElements_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRTraverseSegmentsTest, forElements )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_forElements< CSRSegmentsType >();
+   test_forElements< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRTraverseSegmentsTest, forElementsIf )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_forElementsIf< CSRSegmentsType >();
+   test_forElementsIf< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRTraverseSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_forElementsWithSegmentIndexes_EmptySegments< CSRSegmentsType >();
+   test_forElementsWithSegmentIndexes_EmptySegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRTraverseSegmentsTest, forElementsWithSegmentIndexes )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_forElementsWithSegmentIndexes< CSRSegmentsType >();
+   test_forElementsWithSegmentIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRTraverseSegmentsTest, forSegments )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+   test_forSegments< typename TestFixture::SegmentsType >();
+}
 
-   test_forSegments< CSRSegmentsType >();
+TYPED_TEST( CSRTraverseSegmentsTest, forSegmentsWithIndexes )
+{
+   test_forSegmentsWithIndexes< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( CSRTraverseSegmentsTest, forSegmentsIf )
+{
+   test_forSegmentsIf< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( CSRTraverseSegmentsTest, forSegmentsSequential )
+{
+   test_forSegmentsSequential< typename TestFixture::SegmentsType >();
 }
 
 #include "../../../main.h"
