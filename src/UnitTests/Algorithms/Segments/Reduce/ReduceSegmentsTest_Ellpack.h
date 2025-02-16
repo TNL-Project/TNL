@@ -10,7 +10,7 @@ template< typename Segments >
 class EllpackReduceSegmentsTest : public ::testing::Test
 {
 protected:
-   using EllpackSegmentsType = Segments;
+   using SegmentsType = Segments;
 };
 
 // types for which MatrixTest is instantiated
@@ -39,51 +39,37 @@ TYPED_TEST_SUITE( EllpackReduceSegmentsTest, EllpackSegmentsTypes );
 
 TYPED_TEST( EllpackReduceSegmentsTest, reduceSegments_MaximumInSegments )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_reduceSegments_MaximumInSegments< EllpackSegmentsType >();
+   test_reduceSegments_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackReduceSegmentsTest, reduceSegments_MaximumInSegments_short_fetch )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_reduceSegments_MaximumInSegments_short_fetch< EllpackSegmentsType >();
+   test_reduceSegments_MaximumInSegments_short_fetch< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsWithArgument_MaximumInSegments )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_reduceSegmentsWithArgument_MaximumInSegments< EllpackSegmentsType >();
+   test_reduceSegmentsWithArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexes_MaximumInSegments )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_reduceSegmentsWithSegmentIndexes_MaximumInSegments< EllpackSegmentsType >();
+   test_reduceSegmentsWithSegmentIndexes_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments< EllpackSegmentsType >();
+   test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsIf_MaximumInSegments )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_reduceSegmentsIf_MaximumInSegments< EllpackSegmentsType >();
+   test_reduceSegmentsIf_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsIfWithArg_MaximumInSegments )
 {
-   using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-
-   test_reduceSegmentsIfWithArgument_MaximumInSegments< EllpackSegmentsType >();
+   test_reduceSegmentsIfWithArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
 #include "../../../main.h"

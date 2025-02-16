@@ -10,7 +10,7 @@ template< typename Segments >
 class SlicedEllpackTraverseSegmentsTest : public ::testing::Test
 {
 protected:
-   using SlicedEllpackSegmentsType = Segments;
+   using SegmentsType = Segments;
 };
 
 // types for which MatrixTest is instantiated
@@ -38,51 +38,52 @@ TYPED_TEST_SUITE( SlicedEllpackTraverseSegmentsTest, SlicedEllpackSegmentsTypes 
 
 TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElements_EmptySegments )
 {
-   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
-
-   test_forElements_EmptySegments< SlicedEllpackSegmentsType >();
+   test_forElements_EmptySegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElements_EqualSizes )
 {
-   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
-
-   test_forElements_EqualSizes< SlicedEllpackSegmentsType >();
+   test_forElements_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElements )
 {
-   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
-
-   test_forElements< SlicedEllpackSegmentsType >();
+   test_forElements< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElementsIf )
 {
-   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
-
-   test_forElementsIf< SlicedEllpackSegmentsType >();
+   test_forElementsIf< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
 {
-   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
-
-   test_forElementsWithSegmentIndexes_EmptySegments< SlicedEllpackSegmentsType >();
+   test_forElementsWithSegmentIndexes_EmptySegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes )
 {
-   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
-
-   test_forElementsWithSegmentIndexes< SlicedEllpackSegmentsType >();
+   test_forElementsWithSegmentIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forSegments )
 {
-   using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
+   test_forSegments< typename TestFixture::SegmentsType >();
+}
 
-   test_forSegments< SlicedEllpackSegmentsType >();
+TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forSegmentsWithIndexes )
+{
+   test_forSegmentsWithIndexes< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forSegmentsIf )
+{
+   test_forSegmentsIf< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackTraverseSegmentsTest, forSegmentsSequential )
+{
+   test_forSegmentsSequential< typename TestFixture::SegmentsType >();
 }
 
 #include "../../../main.h"

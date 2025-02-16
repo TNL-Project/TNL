@@ -10,7 +10,7 @@ template< typename Segments >
 class CSRSegmentsTest : public ::testing::Test
 {
 protected:
-   using CSRSegmentsType = Segments;
+   using SegmentsType = Segments;
 };
 
 // types for which MatrixTest is instantiated
@@ -31,51 +31,37 @@ TYPED_TEST_SUITE( CSRSegmentsTest, CSRSegmentsTypes );
 
 TYPED_TEST( CSRSegmentsTest, setSegmentsSizes_EqualSizes )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_SetSegmentsSizes_EqualSizes< CSRSegmentsType >();
+   test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRSegmentsTest, findInSegments )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_findInSegments< CSRSegmentsType >();
+   test_findInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRSegmentsTest, findInSegmentsWithIndexes )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_findInSegmentsWithIndexes< CSRSegmentsType >();
+   test_findInSegmentsWithIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRSegmentsTest, findInSegmentsIf )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_findInSegmentsIf< CSRSegmentsType >();
+   test_findInSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRSegmentsTest, sortSegments )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_sortSegments< CSRSegmentsType >();
+   test_sortSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRSegmentsTest, sortSegmentsWithIndexes )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_sortSegmentsWithSegmentIndexes< CSRSegmentsType >();
+   test_sortSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRSegmentsTest, sortSegmentsIf )
 {
-   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
-
-   test_sortSegmentsIf< CSRSegmentsType >();
+   test_sortSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
 #include "../../main.h"
