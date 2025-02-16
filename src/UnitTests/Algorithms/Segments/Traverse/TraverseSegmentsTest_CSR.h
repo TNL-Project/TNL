@@ -71,4 +71,11 @@ TYPED_TEST( CSRTraverseSegmentsTest, forElementsWithSegmentIndexes )
    test_forElementsWithSegmentIndexes< CSRSegmentsType >();
 }
 
+TYPED_TEST( CSRTraverseSegmentsTest, forSegments )
+{
+   using CSRSegmentsType = typename TestFixture::CSRSegmentsType;
+
+   test_forSegments< CSRSegmentsType >();
+}
+
 #include "../../../main.h"
