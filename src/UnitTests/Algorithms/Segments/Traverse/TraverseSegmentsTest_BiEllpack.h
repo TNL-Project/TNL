@@ -70,4 +70,11 @@ TYPED_TEST( BiEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes )
    test_forElementsWithSegmentIndexes< BiEllpackSegmentsType >();
 }
 
+TYPED_TEST( BiEllpackTraverseSegmentsTest, forSegments )
+{
+   using BiEllpackSegmentsType = typename TestFixture::BiEllpackSegmentsType;
+
+   test_forSegments< BiEllpackSegmentsType >();
+}
+
 #include "../../../main.h"
