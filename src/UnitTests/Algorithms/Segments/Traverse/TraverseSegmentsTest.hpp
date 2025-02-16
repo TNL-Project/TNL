@@ -62,11 +62,13 @@ test_forElements_EqualSizes()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+   using HostVectorType = TNL::Containers::Vector< IndexType, TNL::Devices::Host, IndexType >;
 
    const IndexType segmentsCount = 50;
    const IndexType segmentSize = 5;
 
-   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   VectorType segmentsSizes( segmentsCount );
    segmentsSizes = segmentSize;
    Segments segments( segmentsSizes );
 
@@ -75,7 +77,8 @@ test_forElements_EqualSizes()
    {
       SCOPED_TRACE( tag );
 
-      TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
+      VectorType v( segments.getStorageSize() );
+      VectorType host_v;
       auto v_view = v.getView();
       TNL::Algorithms::Segments::forAllElements(
          segments,
@@ -85,9 +88,10 @@ test_forElements_EqualSizes()
          },
          launch_config );
 
+      host_v = v;
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
          for( IndexType localIdx = 0; localIdx < segmentSize; localIdx++ )
-            EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx )
+            EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
                << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
                << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
       }
@@ -104,14 +108,15 @@ test_forElements_EqualSizes()
          },
          launch_config );
 
+      host_v = v;
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
          for( IndexType localIdx = 0; localIdx < segmentSize; localIdx++ )
             if( segmentIdx >= 3 && segmentIdx < segmentsCount - 3 )
-               EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), segmentIdx + localIdx )
+               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
                   << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
                   << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
             else
-               EXPECT_EQ( v.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ), 0 );
+               EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], 0 );
       }
    }
 }
