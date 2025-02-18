@@ -7,7 +7,6 @@
 
 #include "SegmentView.h"
 #include "ElementsOrganization.h"
-#include "printSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -155,13 +154,7 @@ protected:
    bind( IndexType segmentsCount, IndexType segmentSize, IndexType alignedSize );
 };
 
-template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
-std::ostream&
-operator<<( std::ostream& str, const EllpackBase< Device, Index, Organization, Alignment >& ellpack )
-{
-   return printSegments( str, ellpack );
-}
-
 }  // namespace TNL::Algorithms::Segments
 
 #include "EllpackBase.hpp"
+#include "print.h"

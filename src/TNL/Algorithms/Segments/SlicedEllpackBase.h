@@ -9,7 +9,6 @@
 
 #include "ElementsOrganization.h"
 #include "SegmentView.h"
-#include "printSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -179,13 +178,7 @@ protected:
          OffsetsView sliceSegmentSizes );
 };
 
-template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
-std::ostream&
-operator<<( std::ostream& str, const SlicedEllpackBase< Device, Index, Organization, SliceSize >& segments )
-{
-   return printSegments( str, segments );
-}
-
 }  // namespace TNL::Algorithms::Segments
 
 #include "SlicedEllpackBase.hpp"
+#include "print.h"

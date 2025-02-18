@@ -1,5 +1,6 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
+#include <TNL/Algorithms/Segments/TypeTraits.h>
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Algorithms/Segments/find.h>
@@ -8,6 +9,13 @@
 
 #include <iostream>
 #include <gtest/gtest.h>
+
+template< typename Segments >
+void
+test_isSegments()
+{
+   EXPECT_EQ( TNL::Algorithms::Segments::isSegments_v< Segments >, true );
+}
 
 template< typename Segments >
 void

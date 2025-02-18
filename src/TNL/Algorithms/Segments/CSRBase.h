@@ -8,7 +8,6 @@
 #include <TNL/Containers/VectorView.h>
 
 #include "SegmentView.h"
-#include "printSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -315,23 +314,7 @@ protected:
    bind( OffsetsView offsets );
 };
 
-/**
- * \brief Insertion operator of CSR segments to output stream.
- *
- * \tparam Device is the device type of the source segments.
- * \tparam Index is the index type of the source segments.
- * \tparam IndexAllocator is the index allocator of the source segments.
- * \param str is the output stream.
- * \param segments are the source segments.
- * \return reference to the output stream.
- */
-template< typename Device, typename Index >
-std::ostream&
-operator<<( std::ostream& str, const CSRBase< Device, Index >& segments )
-{
-   return printSegments( str, segments );
-}
-
 }  // namespace TNL::Algorithms::Segments
 
 #include "CSRBase.hpp"
+#include "print.h"
