@@ -46,7 +46,7 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   printSegments( std::cout, segments, fetch );
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
 }
 
 int
