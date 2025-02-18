@@ -10,7 +10,6 @@
 #include "ElementsOrganization.h"
 #include "ChunkedEllpackSegmentView.h"
 #include "detail/ChunkedEllpack.h"
-#include "printSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -244,13 +243,7 @@ protected:
          SliceInfoContainerView slices );
 };
 
-template< typename Device, typename Index, ElementsOrganization Organization >
-std::ostream&
-operator<<( std::ostream& str, const ChunkedEllpackBase< Device, Index, Organization >& segments )
-{
-   return printSegments( str, segments );
-}
-
 }  // namespace TNL::Algorithms::Segments
 
 #include "ChunkedEllpackBase.hpp"
+#include "print.h"

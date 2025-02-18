@@ -23,7 +23,7 @@ namespace TNL::Algorithms::Segments {
  * \include printSegmentsExample-1.out
  */
 template< typename Segments >
-std::ostream&
+[[deprecated( "Use `operator <<` instead." )]] std::ostream&
 printSegments( std::ostream& str, const Segments& segments )
 {
    using IndexType = typename Segments::IndexType;
@@ -41,7 +41,7 @@ printSegments( std::ostream& str, const Segments& segments )
 }
 
 template< typename Segments, typename Fetch >
-std::ostream&
+[[deprecated( "Use `std::ostream << TNL::Algorithms::Segments::print( segments, fetch)` instead." )]] std::ostream&
 printSegments( std::ostream& str, const Segments& segments, Fetch&& fetch )
 {
    using IndexType = typename Segments::IndexType;

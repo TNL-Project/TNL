@@ -29,6 +29,11 @@ using BiEllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::BiEl
 
 TYPED_TEST_SUITE( BiEllpackSegmentsTest, BiEllpackSegmentsTypes );
 
+TYPED_TEST( BiEllpackSegmentsTest, isSegments )
+{
+   test_isSegments< typename TestFixture::SegmentsType >();
+}
+
 TYPED_TEST( BiEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 {
    test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
