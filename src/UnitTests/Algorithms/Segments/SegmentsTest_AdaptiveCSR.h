@@ -29,6 +29,11 @@ using AdaptiveCSRSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::Ad
 
 TYPED_TEST_SUITE( AdaptiveCSRSegmentsTest, AdaptiveCSRSegmentsTypes );
 
+TYPED_TEST( AdaptiveCSRSegmentsTest, isSegments )
+{
+   test_isSegments< typename TestFixture::SegmentsType >();
+}
+
 TYPED_TEST( AdaptiveCSRSegmentsTest, setSegmentsSizes_EqualSizes )
 {
    test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();

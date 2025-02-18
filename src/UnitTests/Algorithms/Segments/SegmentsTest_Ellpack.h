@@ -37,6 +37,11 @@ using EllpackSegmentsTypes =
 
 TYPED_TEST_SUITE( EllpackSegmentsTest, EllpackSegmentsTypes );
 
+TYPED_TEST( EllpackSegmentsTest, isSegments )
+{
+   test_isSegments< typename TestFixture::SegmentsType >();
+}
+
 TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 {
    test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
