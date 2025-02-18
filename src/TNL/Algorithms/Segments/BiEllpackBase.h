@@ -9,7 +9,6 @@
 
 #include "ElementsOrganization.h"
 #include "BiEllpackSegmentView.h"
-#include "printSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -187,13 +186,7 @@ protected:
    getVirtualSegments( IndexType segmentsCount ) const;
 };
 
-template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
-std::ostream&
-operator<<( std::ostream& str, const BiEllpackBase< Device, Index, Organization, WarpSize >& segments )
-{
-   return printSegments( str, segments );
-}
-
 }  // namespace TNL::Algorithms::Segments
 
 #include "BiEllpackBase.hpp"
+#include "print.h"

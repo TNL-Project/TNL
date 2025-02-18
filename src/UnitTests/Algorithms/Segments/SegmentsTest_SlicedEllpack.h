@@ -36,6 +36,11 @@ using SlicedEllpackSegmentsTypes =
 
 TYPED_TEST_SUITE( SlicedEllpackSegmentsTest, SlicedEllpackSegmentsTypes );
 
+TYPED_TEST( SlicedEllpackSegmentsTest, isSegments )
+{
+   test_isSegments< typename TestFixture::SegmentsType >();
+}
+
 TYPED_TEST( SlicedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 {
    test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();

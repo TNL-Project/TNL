@@ -5,7 +5,7 @@
 
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Algorithms/Segments/printSegments.h>
+#include <TNL/Algorithms/Segments/print.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/detail/CheckLambdas.h>
 
 namespace TNL::Algorithms::Segments {
