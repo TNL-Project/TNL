@@ -98,6 +98,7 @@ struct SegmentsBenchmark
       IndexVector data( segments.getStorageSize(), 0 );
       auto dataView = data.getView();
       benchmark.setMetadataElement( { "segments type", segmentsType } );
+
       benchmark.setMetadataElement( { "function", "forElements" } );
       benchmark.setDatasetSize( sum( segmentsSizes ) * sizeof( Index ) );
       for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
@@ -123,72 +124,241 @@ struct SegmentsBenchmark
          }
       }
 
-      benchmark.setMetadataElement( { "function", "forElements with indexes" } );
-      IndexVector segmentIndexes( segmentsSizes.getSize() / 2 );
-      auto segmentIndexes_view = segmentIndexes.getConstView();
-      segmentIndexes.forAllElements(
-         [ = ] __cuda_callable__( IndexType idx, IndexType & value )
-         {
-            value = 2 * idx;
-         } );
-      benchmark.setDatasetSize( TNL::Algorithms::reduce< Device >(
-                                   0,
-                                   segmentIndexes.getSize(),
-                                   [ = ] __cuda_callable__( Index idx )
-                                   {
-                                      return segmentsSizes_view[ segmentIndexes_view[ idx ] ];
-                                   },
-                                   TNL::Plus{} )
-                                * sizeof( Index ) );
-      for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
-         benchmark.setMetadataElement( { "threads mapping", tag } );
-         auto segmentsView = segments.getView();
-         auto segmentIndexesView = segmentIndexes.getView();
-         auto f = [ & ]() mutable
-         {
-            TNL::Algorithms::Segments::forElements(
-               segmentsView,
-               segmentIndexesView,
-               [ = ] __cuda_callable__(
-                  const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
-               {
-                  dataView[ globalIdx ] = 1;
-               },
-               launchConfig );
-         };
-         benchmark.time< Device >( device, f );
+      for( auto stride : { 2, 4, 8 } ) {
+         benchmark.setMetadataElement( { "function", "forElements with indexes stride " + convertToString( stride ) } );
+         IndexVector segmentIndexes( segmentsSizes.getSize() / stride );
+         auto segmentIndexes_view = segmentIndexes.getView();
+         segmentIndexes.forAllElements(
+            [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+            {
+               value = stride * idx;
+            } );
+         benchmark.setDatasetSize( TNL::Algorithms::reduce< Device >(
+                                      0,
+                                      segmentIndexes.getSize(),
+                                      [ = ] __cuda_callable__( Index idx )
+                                      {
+                                         return segmentsSizes_view[ segmentIndexes_view[ idx ] ];
+                                      },
+                                      TNL::Plus{} )
+                                   * sizeof( Index ) );
+         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+            benchmark.setMetadataElement( { "threads mapping", tag } );
+            auto segmentsView = segments.getView();
+            auto f = [ & ]() mutable
+            {
+               TNL::Algorithms::Segments::forElements(
+                  segmentsView,
+                  segmentIndexes_view,
+                  [ = ] __cuda_callable__(
+                     const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+                  {
+                     dataView[ globalIdx ] = 1;
+                  },
+                  launchConfig );
+            };
+            benchmark.time< Device >( device, f );
+         }
       }
 
-      benchmark.setMetadataElement( { "function", "forElementsIf" } );
-      benchmark.setDatasetSize( TNL::Algorithms::reduce< Device >(
-                                   0,
-                                   segmentsSizes.getSize(),
-                                   [ = ] __cuda_callable__( Index idx )
-                                   {
-                                      return ( idx % 2 == 0 ) ? segmentsSizes_view[ idx ] : 0;
-                                   },
-                                   TNL::Plus{} )
-                                * sizeof( Index ) );
+      for( auto stride : { 2, 4, 8 } ) {
+         benchmark.setMetadataElement( { "function", "forElementsIf stride " + convertToString( stride ) } );
+         benchmark.setDatasetSize( TNL::Algorithms::reduce< Device >(
+                                      0,
+                                      segmentsSizes.getSize(),
+                                      [ = ] __cuda_callable__( Index idx )
+                                      {
+                                         return ( idx % stride == 0 ) ? segmentsSizes_view[ idx ] : 0;
+                                      },
+                                      TNL::Plus{} )
+                                   * sizeof( Index ) );
 
+         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+            benchmark.setMetadataElement( { "threads mapping", tag } );
+            auto segmentsView = segments.getView();
+            auto f = [ & ]() mutable
+            {
+               TNL::Algorithms::Segments::forAllElementsIf(
+                  segmentsView,
+                  [ = ] __cuda_callable__( const IndexType segmentIdx ) -> bool
+                  {
+                     return segmentIdx % stride == 0;
+                  },
+                  [ = ] __cuda_callable__(
+                     const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+                  {
+                     dataView[ globalIdx ] = 1;
+                  },
+                  launchConfig );
+            };
+            benchmark.time< Device >( device, f );
+         }
+
+         benchmark.setMetadataElement( { "function", "forElementsIfSparse with stride " + convertToString( stride ) } );
+         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+            benchmark.setMetadataElement( { "threads mapping", tag } );
+            auto segmentsView = segments.getView();
+            auto f = [ & ]() mutable
+            {
+               TNL::Algorithms::Segments::forAllElementsIfSparse(
+                  segmentsView,
+                  [ = ] __cuda_callable__( const IndexType segmentIdx ) -> bool
+                  {
+                     return segmentIdx % stride == 0;
+                  },
+                  [ = ] __cuda_callable__(
+                     const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+                  {
+                     dataView[ globalIdx ] = 1;
+                  },
+                  launchConfig );
+            };
+            benchmark.time< Device >( device, f );
+         }
+      }
+
+      IndexVector result( segmentsSizes.getSize(), 0 );
+      auto resultView = result.getView();
+      TNL::Algorithms::Segments::forAllElements(
+         segments,
+         [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+         {
+            if( localIdx < segmentsSizes_view[ segmentIdx ] ) {
+               dataView[ globalIdx ] = 1;
+            }
+            else
+               dataView[ globalIdx ] = 0;
+         } );
+      benchmark.setMetadataElement( { "function", "reduceSegments" } );
+      benchmark.setDatasetSize( sum( segmentsSizes ) * sizeof( Index ) );
       for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
          benchmark.setMetadataElement( { "threads mapping", tag } );
          auto segmentsView = segments.getView();
          auto f = [ & ]() mutable
          {
-            TNL::Algorithms::Segments::forAllElementsIf(
+            TNL::Algorithms::Segments::reduceAllSegments(
                segmentsView,
-               [ = ] __cuda_callable__( const IndexType segmentIdx ) -> bool
+               [ = ] __cuda_callable__( const IndexType globalIdx ) mutable
                {
-                  return segmentIdx % 2 == 0;
+                  return dataView[ globalIdx ];
                },
-               [ = ] __cuda_callable__(
-                  const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
+               TNL::Plus{},
+               [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType result ) mutable
                {
-                  dataView[ globalIdx ] = 1;
+                  resultView[ segmentIdx ] = result;
                },
                launchConfig );
          };
          benchmark.time< Device >( device, f );
+         HostVector resultHost( result );
+         for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
+            if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
+               throw std::runtime_error( "Error in reduceSegments" );
+         }
+      }
+
+      for( auto stride : { 2, 4, 8 } ) {
+         result = 0;
+         benchmark.setMetadataElement( { "function", "reduceSegmentsWithIndexes stride " + convertToString( stride ) } );
+         IndexVector segmentIndexes( segmentsSizes.getSize() / stride );
+         auto segmentIndexes_view = segmentIndexes.getConstView();
+         segmentIndexes.forAllElements(
+            [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+            {
+               value = stride * idx;
+            } );
+         benchmark.setDatasetSize( TNL::Algorithms::reduce< Device >(
+                                      0,
+                                      segmentIndexes.getSize(),
+                                      [ = ] __cuda_callable__( Index idx )
+                                      {
+                                         return segmentsSizes_view[ segmentIndexes_view[ idx ] ];
+                                      },
+                                      TNL::Plus{} )
+                                   * sizeof( Index ) );
+         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+            benchmark.setMetadataElement( { "threads mapping", tag } );
+            auto segmentsView = segments.getView();
+            auto f = [ & ]() mutable
+            {
+               TNL::Algorithms::Segments::reduceSegments(
+                  segmentsView,
+                  segmentIndexes,
+                  [ = ] __cuda_callable__( const IndexType globalIdx ) mutable
+                  {
+                     return dataView[ globalIdx ];
+                  },
+                  TNL::Plus{},
+                  [ = ] __cuda_callable__(
+                     const IndexType segmentIdx_idx, const IndexType segmentIdx, const IndexType result ) mutable
+                  {
+                     resultView[ segmentIdx ] = result;
+                  },
+                  launchConfig );
+            };
+            benchmark.time< Device >( device, f );
+            HostVector resultHost( result );
+            for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
+               if( segmentIdx % stride == 0 ) {
+                  if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
+                     throw std::runtime_error( "Error in reduceSegments" );
+               }
+               else {
+                  if( resultHost[ segmentIdx ] != 0 )
+                     throw std::runtime_error( "Error in reduceSegments" );
+               }
+            }
+         }
+      }
+
+      for( auto stride : { 2, 4, 8 } ) {
+         result = 0;
+         benchmark.setMetadataElement( { "function", "reduceSegmentIf stride " + convertToString( stride ) } );
+         benchmark.setDatasetSize( TNL::Algorithms::reduce< Device >(
+                                      0,
+                                      segmentsSizes.getSize(),
+                                      [ = ] __cuda_callable__( Index idx )
+                                      {
+                                         return ( idx % stride == 0 ) ? segmentsSizes_view[ idx ] : 0;
+                                      },
+                                      TNL::Plus{} )
+                                   * sizeof( Index ) );
+         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+            benchmark.setMetadataElement( { "threads mapping", tag } );
+            auto segmentsView = segments.getView();
+            auto f = [ & ]() mutable
+            {
+               TNL::Algorithms::Segments::reduceAllSegmentsIf(
+                  segmentsView,
+                  [ = ] __cuda_callable__( const IndexType segmentIdx ) -> bool
+                  {
+                     return segmentIdx % stride == 0;
+                  },
+                  [ = ] __cuda_callable__( const IndexType globalIdx ) mutable
+                  {
+                     return dataView[ globalIdx ];
+                  },
+                  TNL::Plus{},
+                  [ = ] __cuda_callable__(
+                     const IndexType segmentIdx_idx, const IndexType segmentIdx, const IndexType result ) mutable
+                  {
+                     resultView[ segmentIdx ] = result;
+                  },
+                  launchConfig );
+            };
+            benchmark.time< Device >( device, f );
+            HostVector resultHost( result );
+            for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
+               if( segmentIdx % stride == 0 ) {
+                  if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
+                     throw std::runtime_error( "Error in reduceSegments" );
+               }
+               else {
+                  if( resultHost[ segmentIdx ] != 0 )
+                     throw std::runtime_error( "Error in reduceSegments" );
+               }
+            }
+         }
       }
    }
 
@@ -209,7 +379,7 @@ struct SegmentsBenchmark
          { "max segment size", 18 },
          { "elements count", 16 },
          { "segments type", 25 },
-         { "function", 28 },
+         { "function", 35 },
          { "threads mapping", 44 },
       } );
 
