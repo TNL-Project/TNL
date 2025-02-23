@@ -7,14 +7,14 @@ set(COMMON_EXAMPLES
     SegmentsExample_CSR_getSegmentsType
     SegmentsExample_CSR_setSegmentsSizes
     SegmentsExample_CSR_getSegmentView
-    SegmentsExample_CSR_forElements
-    SegmentsExample_CSR_forSegments
-    SegmentsExample_CSR_sequentialForAllSegments
     SegmentsExample_CSR_sequentialForSegments
     SegmentsExample_CSR_reduceSegments
     SegmentsExample_forElements
+    SegmentsExample_forElementsWithIndexes
+    SegmentsExample_forElementsIf
     SegmentsExample_forSegments-1
     SegmentsExample_forSegments-2
+    SegmentsExample_forSegmentsWithIndexes
     SegmentsExample_reduceSegments
 )
 

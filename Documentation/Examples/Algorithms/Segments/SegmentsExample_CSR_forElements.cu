@@ -1,1 +1,0 @@
-SegmentsExample_CSR_forElements.cpp
