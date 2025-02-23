@@ -182,10 +182,6 @@ public:
     * \e localIdx is rank of the element within the segment and \e globalIdx is
     * index of the element within the related container.
     *
-    * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_forElements.cpp
-    * \par Output
-    * \include SegmentsExample_CSR_forElements.out
     */
    template< typename Function >
    [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]]
@@ -241,10 +237,6 @@ public:
     * where \e segment represents given segment (see \ref TNL::Algorithms::Segments::SegmentView).
     * Its type is given by \ref SegmentViewType.
     *
-    * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_forSegments.cpp
-    * \par Output
-    * \include SegmentsExample_CSR_forSegments.out
     */
    template< typename Function >
    [[deprecated( "Use TNL::Algorithms::Segments::forSegments instead." )]]
@@ -276,11 +268,6 @@ public:
     * \param function is the lambda function to be applied on the elements of the segments.
     *
     * See \ref TNL::Algorithms::Segments::CSR::forSegments for more details.
-    *
-    * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_sequentialForSegments.cpp
-    * \par Output
-    * \include SegmentsExample_CSR_sequentialForSegments.out
     */
    template< typename Function >
    [[deprecated( "Use TNL::Algorithms::Segments::sequentialForSegments instead." )]]
