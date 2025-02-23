@@ -10,8 +10,27 @@ import math
 import argparse
 from TNL.BenchmarkLogs import *
 import MultiindexCreator as mic
+import Graphs
 
-functions = ["forElements", "forElements with indexes", "forElementsIf"]
+functions = [
+    "forElements",
+    "forElements with indexes stride 2",
+    "forElements with indexes stride 4",
+    "forElements with indexes stride 8",
+    "forElementsIf stride 2",
+    "forElementsIf stride 4",
+    "forElementsIf stride 8",
+    "forElementsIfSparse stride 2",
+    "forElementsIfSparse stride 4",
+    "forElementsIfSparse stride 8",
+    "reduceSegments",
+    "reduceSegmentsWithIndexes stride 2",
+    "reduceSegmentsWithIndexes stride 4",
+    "reduceSegmentsWithIndexes stride 8",
+    "reduceSegmentsIf stride 2",
+    "reduceSegmentsIf stride 4",
+    "reduceSegmentsIf stride 8",
+]
 all_segments = [
     "CSR",
     "Ellpack",
@@ -39,6 +58,12 @@ threads_mappings_translation = {
     "BlockMergedSegments 2 thread per segment": "Block Merge 2",
     "BlockMergedSegments 4 thread per segment": "Block Merge 4",
     "BlockMergedSegments 8 thread per segment": "Block Merge 8",
+}
+
+tests = {
+    "constant",
+    "linear",
+    "quadratic",
 }
 
 
@@ -211,6 +236,62 @@ def compute_speedup(df):
                     )
 
 
+def write_results(df):
+    """
+    Write results to a file
+    """
+    df.to_html("tnl-benchmark-segments.html")
+    bw_df = df.xs("bandwidth", level=4, axis=1)
+    bw_df = bw_df.dropna(axis=1, how="all")
+    min_bw = bw_df.min().min()
+    max_bw = bw_df.max().max()
+    print(f"Min bandwidth: {min_bw} GB/s")
+    print(f"Max bandwidth: {max_bw} GB/s")
+    for test in tests:
+        print("Processing test: ", test)
+        test_df = df[df["segments setup"] == test]
+        test_df.to_html(f"tnl-benchmark-segments-{test}.html")
+        try:
+            os.mkdir(f"{test}")
+        except:
+            pass
+        for function in functions:
+            print("Processing function: ", function)
+            function_df = test_df[
+                ["segments count", "max segment size", "elements count", function]
+            ]
+            function_df.to_html(f"{test}/{function}.html")
+
+            for segments in all_segments:
+                graphs = {}
+                labels = []
+                for mapping in threads_mappings:
+                    label = f"{segments} {mapping}"
+                    print(
+                        f"Processing graph for {function}, cuda, {segments}, {mapping}"
+                    )
+                    try:
+                        graphs[label] = function_df[
+                            (function, "cuda", segments, mapping, "bandwidth")
+                        ].copy()
+                        labels.append(label)
+                    except:
+                        print(
+                            f"Cannot process graph for {function}, cuda, {segments}, {mapping}"
+                        )
+                Graphs.draw_graphs(
+                    labels,
+                    graphs,
+                    "Function",
+                    "Bandwidth [GB/s]",
+                    f"{test}/{function}_{segments}_bandwidth.pdf",
+                    legend_loc="lower right",
+                    yscale="log",
+                    y_min=min_bw,
+                    y_max=max_bw,
+                )
+
+
 ###
 # Main part of the script
 parser = argparse.ArgumentParser(
@@ -237,14 +318,8 @@ for file in args.input:
 
 
 multicolumns, df_data = get_multiindex()
-input_df.to_html("tnl-benchmark-segments-input.html")
+input_df.to_html("tnl-benchmark-segments-raw.html")
 df = convert_data_frame(input_df, multicolumns, df_data={})
 compute_speedup(df)
 
-
-def highlight_column(s, col):
-    return ["background-color: #d42a2a" if s.name == col else "" for v in s.index]
-
-
-df.style.apply(highlight_col, axis=None)
-df.to_html("tnl-benchmark-segments.html")
+write_results(df)
