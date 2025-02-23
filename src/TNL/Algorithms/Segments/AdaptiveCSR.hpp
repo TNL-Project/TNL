@@ -65,7 +65,6 @@ AdaptiveCSR< Device, Index, IndexAllocator >::operator=( const AdaptiveCSR< Devi
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
-__cuda_callable__
 auto
 AdaptiveCSR< Device, Index, IndexAllocator >::getView() -> ViewType
 {
@@ -73,7 +72,6 @@ AdaptiveCSR< Device, Index, IndexAllocator >::getView() -> ViewType
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
-__cuda_callable__
 auto
 AdaptiveCSR< Device, Index, IndexAllocator >::getConstView() const -> ConstViewType
 {
