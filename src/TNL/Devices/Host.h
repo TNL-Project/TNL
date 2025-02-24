@@ -96,7 +96,7 @@ public:
 #ifdef HAVE_OPENMP
          enableOMP();
 #else
-         std::cerr << "OpenMP is not supported - please recompile the TNL library with OpenMP." << std::endl;
+         std::cerr << "OpenMP is not supported - please recompile the TNL library with OpenMP.\n" ;
          return false;
 #endif
       }
@@ -104,7 +104,7 @@ public:
          disableOMP();
       const int threadsCount = parameters.getParameter< int >( prefix + "openmp-max-threads" );
       if( threadsCount > 1 && ! isOMPEnabled() )
-         std::cerr << "Warning: openmp-max-threads was set to " << threadsCount << ", but OpenMP is disabled." << std::endl;
+         std::cerr << "Warning: openmp-max-threads was set to " << threadsCount << ", but OpenMP is disabled.\n";
       setMaxThreadsCount( threadsCount );
       return true;
    }

@@ -149,7 +149,7 @@ abortWithDiagnosticsHost( const char* assertion,
        << "Function: " << function << "\n"
        << "Line: " << line << "\n"
        << "Diagnostics:\n"
-       << diagnostics << std::endl;
+       << diagnostics << "\n";
    throw AssertionError( str.str() );
 }
 
@@ -256,11 +256,11 @@ cmpHelperOpFailure( const char* assertion,
       if( formatted_rhs_value != rhs_expression ) {
          str << "\n      Which is: " << formatted_rhs_value;
       }
-      str << std::endl;
+      str << "\n";
    }
    else {
       str << "Expected: (" << lhs_expression << ") " << op << " (" << rhs_expression << "), "
-          << "actual: " << formatted_lhs_value << " vs " << formatted_rhs_value << std::endl;
+          << "actual: " << formatted_lhs_value << " vs " << formatted_rhs_value << "\n";
    }
    abortWithDiagnosticsHost( assertion, message, file, function, line, str.str().c_str() );
    #endif
