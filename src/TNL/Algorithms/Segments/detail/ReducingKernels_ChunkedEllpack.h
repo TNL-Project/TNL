@@ -226,7 +226,7 @@ ChunkedEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
          chunkIndex++;
       }
       if( segment >= begin && segment < end )
-         keeper( segment, result, argument );
+         keeper( segment, argument, result );
    }
 #endif
 }
@@ -291,7 +291,7 @@ ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
          }
       }
    }
-   keeper( segmentIdx_idx, segmentIdx, result, argument );
+   keeper( segmentIdx_idx, segmentIdx, argument, result );
 #endif
 }
 

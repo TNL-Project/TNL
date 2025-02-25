@@ -316,7 +316,7 @@ reduceSegmentsKernelWithAllParametersWithArgument( SegmentsView segments,
       }
       groupHeight /= 2;
    }
-   keeper( segmentIdx, result, argument );
+   keeper( segmentIdx, argument, result );
 #endif
 }
 
@@ -404,7 +404,7 @@ BiEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
       }
       groupHeight /= 2;
    }
-   keeper( segmentIdx_idx, segmentIdx, result, argument );
+   keeper( segmentIdx_idx, segmentIdx, argument, result );
 #endif
 }
 

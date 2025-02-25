@@ -246,7 +246,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                 localIdx );
                }
             }
-            keeper( segmentIdx, result, argument );
+            keeper( segmentIdx, argument, result );
          }
       }
       else {
@@ -335,7 +335,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                 localIdx );
                }
             }
-            keeper( segmentIdx_idx, segmentIdx, result, argument );
+            keeper( segmentIdx_idx, segmentIdx, argument, result );
          }
       }
       else {
