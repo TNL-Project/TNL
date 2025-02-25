@@ -1,0 +1,1 @@
+SegmentsExample_getSerializationType.cpp
