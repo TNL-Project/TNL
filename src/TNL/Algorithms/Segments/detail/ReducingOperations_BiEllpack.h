@@ -267,7 +267,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
                globalIdx = globalIdxBack + groupSize;
                groupHeight /= 2;
             }
-            keeper( segmentIdx, result, argument );
+            keeper( segmentIdx, argument, result );
          }
       }
       else {
@@ -364,7 +364,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
                globalIdx = globalIdxBack + groupSize;
                groupHeight /= 2;
             }
-            keeper( segmentIdx_idx, segmentIdx, result, argument );
+            keeper( segmentIdx_idx, segmentIdx, argument, result );
          }
       }
       else {

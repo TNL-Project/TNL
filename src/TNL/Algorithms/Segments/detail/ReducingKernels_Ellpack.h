@@ -182,7 +182,7 @@ EllpackCudaReductionKernelWithArgument( Segments segments,
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx, result_, argument_ );
+      keep( segmentIdx, argument_, result_ );
 
 #endif
 }
@@ -243,7 +243,7 @@ EllpackCudaReductionKernelWithSegmentIndexesAndArgument( Segments segments,
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx_idx, segmentIdx, result_, argument_ );
+      keep( segmentIdx_idx, segmentIdx, argument_, result_ );
 
 #endif
 }
