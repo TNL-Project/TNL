@@ -33,13 +33,13 @@ SegmentsExample()
                                               [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
                                               {
                                                  if( localIdx <= segmentIdx )
-                                                    data_view[ globalIdx ] = segmentIdx;
+                                                    data_view[ globalIdx ] = segmentIdx + localIdx;
                                               } );
 
    /***
     * Print the data by the segments.
     */
-   std::cout << "Values of elements after initial setup:\n";
+   std::cout << "Values of elements after intial setup: " << std::endl;
    auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];
@@ -47,10 +47,17 @@ SegmentsExample()
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
 
    /***
-    * Compute sums of elements in each segment.
+    * Create array with the indexes of segments we want to iterate over.
     */
-   TNL::Containers::Vector< double, Device > sums( size );
+   TNL::Containers::Array< int, Device > segmentIndexes{ 0, 2, 4 };
+
+   /***
+    * Find the largest element in each segment.
+    */
+   TNL::Containers::Vector< double, Device > sums( size ), compressedSums( size ), positions( size );
    auto sums_view = sums.getView();
+   auto compressedSums_view = compressedSums.getView();
+   auto positions_view = positions.getView();
    auto fetch_full = [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) -> double
    {
       if( localIdx <= segmentIdx )
@@ -62,31 +69,41 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   auto keep = [ = ] __cuda_callable__( int segmentIdx, const double& value ) mutable
+   auto keep = [ = ] __cuda_callable__( int indexOfSegmentIdx, int segmentIdx, int localIdx, const double& value ) mutable
    {
+      compressedSums_view[ indexOfSegmentIdx ] = value;
       sums_view[ segmentIdx ] = value;
+      positions_view[ segmentIdx ] = localIdx;
    };
 
-   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_full, TNL::Plus{}, keep );
+   TNL::Algorithms::Segments::reduceSegmentsWithArgument( segments, segmentIndexes, fetch_full, TNL::MaxWithArg{}, keep );
    std::cout << "The sums with full fetch form are: " << sums << std::endl;
-   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_brief, TNL::Plus{}, keep );
+   std::cout << "The compressed sums with full fetch form are: " << compressedSums << std::endl;
+   std::cout << "The positions of the largest elements are: " << positions << std::endl;
+
+   sums = 0;
+   compressedSums = 0;
+   positions = 0;
+   TNL::Algorithms::Segments::reduceSegmentsWithArgument( segments, segmentIndexes, fetch_brief, TNL::MaxWithArg{}, keep );
    std::cout << "The sums with brief fetch form are: " << sums << std::endl << std::endl;
+   std::cout << "The compressed sums with full fetch form are: " << compressedSums << std::endl;
+   std::cout << "The positions of the largest elements are: " << positions << std::endl;
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Example of CSR segments on host:\n";
+   std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int > >();
 
-   std::cout << "Example of Ellpack segments on host:\n";
+   std::cout << "Example of Ellpack segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of CSR segments on host:\n";
+   std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > >();
 
-   std::cout << "Example of Ellpack segments on host:\n";
+   std::cout << "Example of Ellpack segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int > >();
 #endif
    return EXIT_SUCCESS;
