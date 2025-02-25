@@ -11,7 +11,7 @@ template< typename Index, ElementsOrganization Organization >
 class ChunkedEllpackSegmentView;
 
 template< typename Index >
-class ChunkedEllpackSegmentView< Index, ColumnMajorOrder >
+class ChunkedEllpackSegmentView< Index, RowMajorOrder >
 {
 public:
    using IndexType = Index;
@@ -66,7 +66,7 @@ protected:
 };
 
 template< typename Index >
-class ChunkedEllpackSegmentView< Index, RowMajorOrder >
+class ChunkedEllpackSegmentView< Index, ColumnMajorOrder >
 {
 public:
    using IndexType = Index;

@@ -100,8 +100,9 @@ public:
       // TNL_ASSERT_LE( localIdx, segmentChunksCount * chunkSize, "" );
       TNL_ASSERT_LE( localIdx, ( segmentsToChunksMapping[ segmentIdx ] - firstChunkOfSegment ) * chunkSize, "" );
 
-      if constexpr( Organization == RowMajorOrder )
+      if constexpr( Organization == RowMajorOrder ) {
          return sliceOffset + firstChunkOfSegment * chunkSize + localIdx;
+      }
       else {
          const IndexType inChunkOffset = localIdx % chunkSize;
          const IndexType chunkIdx = localIdx / chunkSize;
@@ -158,10 +159,9 @@ public:
       const IndexType segmentSize = segmentChunksCount * chunkSize;
 
       if constexpr( Organization == RowMajorOrder )
-         return SegmentViewType(
-            segmentIdx, sliceOffset + firstChunkOfSegment * chunkSize, segmentSize, chunkSize, chunksInSlice );
+         return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment * chunkSize, segmentSize );
       else
-         return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment, segmentSize );
+         return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment, segmentSize, chunkSize, chunksInSlice );
    }
 
    [[nodiscard]] __cuda_callable__
@@ -184,10 +184,9 @@ public:
       const IndexType segmentSize = segmentChunksCount * chunkSize;
 
       if constexpr( Organization == RowMajorOrder )
-         return SegmentViewType(
-            segmentIdx, sliceOffset + firstChunkOfSegment * chunkSize, segmentSize, chunkSize, chunksInSlice );
+         return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment * chunkSize, segmentSize );
       else
-         return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment, segmentSize );
+         return SegmentViewType( segmentIdx, sliceOffset + firstChunkOfSegment, segmentSize, chunkSize, chunksInSlice );
    }
 };
 
