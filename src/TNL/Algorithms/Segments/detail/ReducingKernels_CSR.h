@@ -556,7 +556,7 @@ reduceSegmentsCSRVectorKernelWithArgument( Index gridIdx,
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx, result_, argument_ );
+      keep( segmentIdx, argument_, result_ );
 #endif
 }
 
@@ -658,7 +658,7 @@ reduceSegmentsCSRVariableVectorKernelWithArgument( const Index gridID,
 
    // Write the result
    if( laneID == 0 )
-      keep( segmentIdx, result, argument );
+      keep( segmentIdx, argument, result );
 #endif
 }
 
@@ -879,8 +879,8 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
                  shared_results[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ],
                  shared_arguments[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );*/
          keep( segmentIdx + inWarpLaneIdx,
-               shared_results[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ],
-               shared_arguments[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
+               shared_arguments[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ],
+               shared_results[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
       }
    }
 #endif
@@ -942,7 +942,7 @@ reduceSegmentsCSRVectorKernelWithIndexesAndArgument( Index gridIdx,
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx_idx, segmentIdx, result_, argument_ );
+      keep( segmentIdx_idx, segmentIdx, argument_, result_ );
 
 #endif
 }
@@ -1048,7 +1048,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument( const Index gridID,
 
    // Write the result
    if( laneID == 0 )
-      keep( segmentIdx_idx, segmentIdx, result, argument );
+      keep( segmentIdx_idx, segmentIdx, argument, result );
 #endif
 }
 
@@ -1167,8 +1167,8 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
       if( inWarpLaneIdx < segmentsCount && segmentIdx_idx + inWarpLaneIdx < end ) {
          keep( segmentIdx_idx,
                segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
-               shared_results[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ],
-               shared_arguments[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
+               shared_arguments[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ],
+               shared_results[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
       }
    }
 #endif
