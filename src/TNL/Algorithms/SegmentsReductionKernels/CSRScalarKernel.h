@@ -90,9 +90,9 @@ struct CSRScalarKernel
     *                 by the user.
     *
     * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_reduceSegments.cpp
+    * \include Algorithms/Segments/SegmentsExample_reduceSegments.cpp
     * \par Output
-    * \include SegmentsExample_CSR_reduceSegments.out
+    * \include SegmentsExample_reduceSegments.out
     */
    template< typename SegmentsView,
              typename Fetch,

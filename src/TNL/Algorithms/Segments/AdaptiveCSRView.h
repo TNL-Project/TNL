@@ -10,14 +10,13 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief Data structure for adaptive CSR segments format.
+ * \brief \e AdaptiveCSRView is provides a non-owning encapsulation of meta-data stored in
+ * the AdaptiveCSR segments.
  *
- *
- * See \ref TNL::Algorithms::Segments for more details about segments.
+ * See \ref TNL::Algorithms::Segments::AdaptiveCSR for more details about AdaptiveCSR segments.
  *
  * \tparam Device is type of device where the segments will be operating.
  * \tparam Index is type for indexing of the elements managed by the segments.
- * \tparam IndexAllocator is allocator for supporting index containers.
  */
 template< typename Device, typename Index >
 class AdaptiveCSRView : public CSRView< Device, Index >
@@ -45,18 +44,6 @@ public:
    using BlocksType = TNL::Containers::Vector< detail::CSRAdaptiveKernelBlockDescriptor< Index >, Device, Index >;
    using BlocksView = typename BlocksType::ViewType;
 
-   [[nodiscard]] static constexpr int
-   MaxValueSizeLog()
-   {
-      return detail::CSRAdaptiveKernelParameters<>::MaxValueSizeLog;
-   }
-
-   [[nodiscard]] static int
-   getSizeValueLog( const int& i )
-   {
-      return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
-   }
-
    //! \brief Default constructor with no parameters to create empty segments view.
    __cuda_callable__
    AdaptiveCSRView() = default;
@@ -69,15 +56,19 @@ public:
    __cuda_callable__
    AdaptiveCSRView( AdaptiveCSRView&& ) noexcept = default;
 
+   //! \brief Binds a new CSR view together with blocks of AdaptiveCSR.
    __cuda_callable__
    AdaptiveCSRView( const CSRView< Device, Index >& csrView, BlocksView* blocksView );
 
+   //! \brief Binds a new CSR view together with blocks of AdaptiveCSR.
    __cuda_callable__
    AdaptiveCSRView( const CSRView< Device, Index >& csrView, BlocksType* blocksView );
 
+   //! \brief Copy-assignment operator.
    AdaptiveCSRView&
    operator=( const AdaptiveCSRView< Index, Device >& kernelView ) = delete;
 
+   //! \brief Move-assignment operator.
    AdaptiveCSRView&
    operator=( const AdaptiveCSRView< Index, Device >&& kernelView ) = delete;
 
@@ -86,33 +77,33 @@ public:
    void
    bind( AdaptiveCSRView view );
 
+   //! \brief Method for rebinding (reinitialization) using another CSR offsets and AdaptiveCSR blocks.
    __cuda_callable__
    void
    bind( OffsetsView offsets, BlocksView* blocks );
 
+   //! \brief Method for rebinding (reinitialization) using another CSR offsets and AdaptiveCSR blocks.
    __cuda_callable__
    void
    bind( OffsetsView offsets, BlocksType* blocks );
 
+   //! \brief Method for setting AdaptiveCSR blocks.
    void
    setBlocks( BlocksType& blocks, int idx );
 
-   /**
-    * \brief Returns a view for this instance of CSR segments which can by used
-    * for example in lambda functions running in GPU kernels.
-    */
+   //! \brief Returns a view for this instance of segments which can by used
+   //! for example in lambda functions running in GPU kernels.
    [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
-   /**
-    * \brief Returns a constant view for this instance of CSR segments which
-    * can by used for example in lambda functions running in GPU kernels.
-    */
+   //! \brief Returns a constant view for this instance of segments which
+   //! can by used for example in lambda functions running in GPU kernels.
    [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
 
+   //! \brief Returns a view with blocks of AdaptiveCSR.
    [[nodiscard]] __cuda_callable__
    const BlocksView*
    getBlocks() const;
@@ -133,8 +124,21 @@ public:
    void
    load( File& file );
 
+   //! \brief Print the blocks of AdaptiveCSR.
    void
    printBlocks( int idx = 1 ) const;
+
+   [[nodiscard]] static constexpr int
+   MaxValueSizeLog()
+   {
+      return detail::CSRAdaptiveKernelParameters<>::MaxValueSizeLog;
+   }
+
+   [[nodiscard]] static int
+   getSizeValueLog( const int& i )
+   {
+      return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
+   }
 
 protected:
    BlocksView blocksArray[ MaxValueSizeLog() ];
