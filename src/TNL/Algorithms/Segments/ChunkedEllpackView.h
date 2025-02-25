@@ -68,6 +68,46 @@ public:
    load( File& file );
 };
 
+template< typename Device, typename Index >
+struct RowMajorChunkedEllpackView : public ChunkedEllpackView< Device, Index, RowMajorOrder >
+{
+   using BaseType = ChunkedEllpackView< Device, Index, RowMajorOrder >;
+
+   RowMajorChunkedEllpackView() = default;
+
+   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
+   explicit RowMajorChunkedEllpackView( const SizesContainer& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   template< typename ListIndex >
+   RowMajorChunkedEllpackView( const std::initializer_list< ListIndex >& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   RowMajorChunkedEllpackView( const RowMajorChunkedEllpackView& );
+
+   RowMajorChunkedEllpackView( RowMajorChunkedEllpackView&& ) noexcept = default;
+};
+
+template< typename Device, typename Index >
+struct ColumnMajorChunkedEllpackView : public ChunkedEllpackView< Device, Index, ColumnMajorOrder >
+{
+   using BaseType = ChunkedEllpackView< Device, Index, ColumnMajorOrder >;
+
+   ColumnMajorChunkedEllpackView() = default;
+
+   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
+   explicit ColumnMajorChunkedEllpackView( const SizesContainer& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   template< typename ListIndex >
+   ColumnMajorChunkedEllpackView( const std::initializer_list< ListIndex >& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   ColumnMajorChunkedEllpackView( const ColumnMajorChunkedEllpackView& );
+
+   ColumnMajorChunkedEllpackView( ColumnMajorChunkedEllpackView&& ) noexcept = default;
+};
+
 }  // namespace TNL::Algorithms::Segments
 
 #include "ChunkedEllpackView.hpp"

@@ -537,10 +537,12 @@ test_forSegments()
                                               } );
 
    host_v = v;
-   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
-         EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx );
-   }
+   for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ )
+      for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+         EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+            << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
+            << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+      }
 
    // Test with segments view
    v = 0;
