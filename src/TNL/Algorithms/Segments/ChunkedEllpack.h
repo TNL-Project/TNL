@@ -102,6 +102,50 @@ protected:
    SliceInfoContainer slices;
 };
 
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+struct RowMajorChunkedEllpack : public ChunkedEllpack< Device, Index, IndexAllocator, RowMajorOrder >
+{
+   using BaseType = ChunkedEllpack< Device, Index, IndexAllocator, RowMajorOrder >;
+
+   RowMajorChunkedEllpack() = default;
+
+   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
+   explicit RowMajorChunkedEllpack( const SizesContainer& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   template< typename ListIndex >
+   RowMajorChunkedEllpack( const std::initializer_list< ListIndex >& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   RowMajorChunkedEllpack( const RowMajorChunkedEllpack& );
+
+   RowMajorChunkedEllpack( RowMajorChunkedEllpack&& ) noexcept = default;
+};
+
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+struct ColumnMajorChunkedEllpack : public ChunkedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder >
+{
+   using BaseType = ChunkedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder >;
+
+   ColumnMajorChunkedEllpack() = default;
+
+   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
+   explicit ColumnMajorChunkedEllpack( const SizesContainer& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   template< typename ListIndex >
+   ColumnMajorChunkedEllpack( const std::initializer_list< ListIndex >& segmentsSizes ) : BaseType( segmentsSizes )
+   {}
+
+   ColumnMajorChunkedEllpack( const ColumnMajorChunkedEllpack& );
+
+   ColumnMajorChunkedEllpack( ColumnMajorChunkedEllpack&& ) noexcept = default;
+};
+
 template< typename Segments >
 struct isChunkedEllpackSegments : std::false_type
 {};
