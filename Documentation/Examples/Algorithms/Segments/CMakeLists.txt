@@ -14,8 +14,14 @@ set(COMMON_EXAMPLES
     SegmentsExample_forElementsIf
     SegmentsExample_forSegments-1
     SegmentsExample_forSegments-2
+    SegmentsExample_forSegmentsIf
     SegmentsExample_forSegmentsWithIndexes
     SegmentsExample_reduceSegments
+    SegmentsExample_reduceSegmentsIf
+    SegmentsExample_reduceSegmentsIfWithArgument
+    SegmentsExample_reduceSegmentsWithSegmentIndexes
+    SegmentsExample_reduceSegmentsWithArgument
+    SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument
 )
 
 if(TNL_BUILD_CUDA)
