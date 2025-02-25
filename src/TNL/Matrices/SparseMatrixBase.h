@@ -607,9 +607,11 @@ public:
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
     *
+    * \param rowIndexes is an array with row indexes.
     * \param begin defines beginning of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
     * \param end defines ending of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
     * \param function is an instance of the lambda function to be called for each element.
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-2.cpp
@@ -638,9 +640,11 @@ public:
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
     *
+    * \param rowIndexes is an array with row indexes.
     * \param begin defines beginning of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
     * \param end defines ending of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
     * \param function is an instance of the lambda function to be called for each element.
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-2.cpp
@@ -669,7 +673,9 @@ public:
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
     *
+    * \param rowIndexes is an array with row indexes.
     * \param function is an instance of the lambda function to be called for each element.
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-1.cpp
@@ -696,7 +702,9 @@ public:
     *
     *  The \e localIdx parameter is a rank of the non-zero element in given row.
     *
+    * \param rowIndexes is an array with row indexes.
     * \param function is an instance of the lambda function to be called for each element.
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
     *
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_forElementsWithRowIndexes-1.cpp
@@ -782,6 +790,8 @@ public:
     *
     * \tparam Condition is a type of lambda function representing the condition based on the row index.
     * \tparam Function is a type of lambda function that will operate on matrix elements.
+    *
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
     * \param function is an instance of the lambda function to be called in each row.
     */
    template< typename Condition, typename Function >
@@ -795,6 +805,8 @@ public:
     *
     * \tparam Condition is a type of lambda function representing the condition based on the row index.
     * \tparam Function is a type of lambda function that will operate on matrix elements.
+    *
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
     * \param function is an instance of the lambda function to be called in each row.
     */
    template< typename Condition, typename Function >
