@@ -8,8 +8,8 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief \e CSRView is provides a non-owning encapsulation of data stored in
- * the CSR segments format.
+ * \brief \e CSRView is provides a non-owning encapsulation of meta-data stored in
+ * the \ref TNL::Algorithms::Segments::CSR segments.
  *
  * \tparam Device is type of device where the segments will be operating.
  * \tparam Index is type for indexing of the elements managed by the segments.
@@ -64,18 +64,14 @@ public:
    void
    bind( CSRView view );
 
-   /**
-    * \brief Returns a view for this instance of CSR segments which can by used
-    * for example in lambda functions running in GPU kernels.
-    */
+   //! \brief Returns a view for this instance of segments which can by used
+   //! for example in lambda functions running in GPU kernels.
    [[nodiscard]] __cuda_callable__
    ViewType
    getView();
 
-   /**
-    * \brief Returns a constant view for this instance of CSR segments which
-    * can by used for example in lambda functions running in GPU kernels.
-    */
+   //! \brief Returns a constant view for this instance of segments which
+   //! can by used for example in lambda functions running in GPU kernels.
    [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
