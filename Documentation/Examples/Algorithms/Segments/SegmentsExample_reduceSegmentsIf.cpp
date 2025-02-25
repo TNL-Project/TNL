@@ -39,7 +39,7 @@ SegmentsExample()
    /***
     * Print the data by the segments.
     */
-   std::cout << "Values of elements after initial setup:\n";
+   std::cout << "Values of elements after intial setup: " << std::endl;
    auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];
@@ -47,10 +47,15 @@ SegmentsExample()
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
 
    /***
-    * Compute sums of elements in each segment.
+    * Compute sums of elements in segments with given indexes.
     */
-   TNL::Containers::Vector< double, Device > sums( size );
+   TNL::Containers::Vector< double, Device > sums( size ), compressedSums( size );
    auto sums_view = sums.getView();
+   auto compressedSums_view = compressedSums.getView();
+   auto condition = [ = ] __cuda_callable__( int segmentIdx ) -> bool
+   {
+      return segmentIdx % 2 == 0;
+   };
    auto fetch_full = [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) -> double
    {
       if( localIdx <= segmentIdx )
@@ -62,31 +67,37 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   auto keep = [ = ] __cuda_callable__( int segmentIdx, const double& value ) mutable
+   auto keep = [ = ] __cuda_callable__( int indexOfSegmentIdx, int segmentIdx, const double& value ) mutable
    {
       sums_view[ segmentIdx ] = value;
+      compressedSums_view[ indexOfSegmentIdx ] = value;
    };
 
-   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_full, TNL::Plus{}, keep );
+   TNL::Algorithms::Segments::reduceAllSegmentsIf( segments, condition, fetch_full, TNL::Plus{}, keep );
    std::cout << "The sums with full fetch form are: " << sums << std::endl;
-   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_brief, TNL::Plus{}, keep );
+   std::cout << "The compressed sums with full fetch form are: " << compressedSums << std::endl;
+
+   sums = 0;
+   compressedSums = 0;
+   TNL::Algorithms::Segments::reduceAllSegmentsIf( segments, condition, fetch_brief, TNL::Plus{}, keep );
    std::cout << "The sums with brief fetch form are: " << sums << std::endl << std::endl;
+   std::cout << "The compressed sums with brief fetch form are: " << compressedSums << std::endl << std::endl;
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Example of CSR segments on host:\n";
+   std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int > >();
 
-   std::cout << "Example of Ellpack segments on host:\n";
+   std::cout << "Example of Ellpack segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of CSR segments on host:\n";
+   std::cout << "Example of CSR segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > >();
 
-   std::cout << "Example of Ellpack segments on host:\n";
+   std::cout << "Example of Ellpack segments on host: " << std::endl;
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int > >();
 #endif
    return EXIT_SUCCESS;
