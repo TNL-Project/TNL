@@ -188,7 +188,7 @@ test_findInSegments()
    {
       return v_view[ globalIdx ] == 5;
    };
-   auto keep = [ = ] __cuda_callable__( const IndexType segmentIdx, bool found, const IndexType localIdx ) mutable
+   auto keep = [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, bool found ) mutable
    {
       found_view[ segmentIdx ] = found;
       if( found )
@@ -282,7 +282,7 @@ test_findInSegmentsWithIndexes()
       return v_view[ globalIdx ] == 5;
    };
    auto keep = [ = ] __cuda_callable__(
-                  const IndexType segmentIdx_idx, const IndexType segmentIdx, bool found, const IndexType localIdx ) mutable
+                  const IndexType segmentIdx_idx, const IndexType segmentIdx, const IndexType localIdx, bool found ) mutable
    {
       found_view[ segmentIdx ] = found;
       if( found )
@@ -373,7 +373,7 @@ test_findInSegmentsIf()
    {
       return v_view[ globalIdx ] == 5;
    };
-   auto keep = [ = ] __cuda_callable__( const IndexType segmentIdx, bool found, const IndexType localIdx ) mutable
+   auto keep = [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, bool found ) mutable
    {
       found_view[ segmentIdx ] = found;
       if( found )
