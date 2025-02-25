@@ -1,14 +1,12 @@
 set(COMMON_EXAMPLES
     printSegmentsExample-1
     printSegmentsExample-2
-    SegmentsExample_CSR_constructor_1
-    SegmentsExample_CSR_constructor_2
-    SegmentsExample_CSR_getSerializationType
-    SegmentsExample_CSR_getSegmentsType
-    SegmentsExample_CSR_setSegmentsSizes
-    SegmentsExample_CSR_getSegmentView
-    SegmentsExample_CSR_sequentialForSegments
-    SegmentsExample_CSR_reduceSegments
+    SegmentsExample_constructor_1
+    SegmentsExample_constructor_2
+    SegmentsExample_getSerializationType
+    SegmentsExample_getSegmentsType
+    SegmentsExample_setSegmentsSizes
+    SegmentsExample_getSegmentView
     SegmentsExample_forElements
     SegmentsExample_forElementsWithIndexes
     SegmentsExample_forElementsIf
