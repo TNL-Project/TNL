@@ -247,10 +247,10 @@ printThreadsSetup( const dim3& blockSize,
                    const dim3& gridsCount,
                    std::ostream& str = std::cout )
 {
-   str << "Block size: " << blockSize << std::endl
-       << " Blocks count: " << blocksCount << std::endl
-       << " Grid size: " << gridSize << std::endl
-       << " Grids count: " << gridsCount << std::endl;
+   str << "Block size: " << blockSize
+       << "\n Blocks count: " << blocksCount
+       << "\n Grid size: " << gridSize
+       << "\n Grids count: " << gridsCount << "\n" ;
 }
 
 }  // namespace TNL::Backend
