@@ -191,10 +191,10 @@ test_reduceSegmentsWithArgument_MaximumInSegments()
             return v_view[ globalIdx ];
          return 0;
       };
-      auto keep = [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType res, const IndexType arg ) mutable
+      auto keep = [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType res ) mutable
       {
          result_view[ segmentIdx ] = res;
-         args_view[ segmentIdx ] = arg;
+         args_view[ segmentIdx ] = localIdx;
       };
       TNL::Algorithms::Segments::reduceAllSegmentsWithArgument( segments, fetch, TNL::MaxWithArg{}, keep, launch_config );
 
@@ -379,12 +379,13 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
             return v_view[ globalIdx ];
          return 0;
       };
-      auto keep =
-         [ = ] __cuda_callable__(
-            const IndexType indexOfSegmentIdx, const IndexType segmentIdx, const IndexType res, const IndexType arg ) mutable
+      auto keep = [ = ] __cuda_callable__( const IndexType indexOfSegmentIdx,
+                                           const IndexType segmentIdx,
+                                           const IndexType localIdx,
+                                           const IndexType res ) mutable
       {
          result_view[ segmentIdx ] = res;
-         args_view[ segmentIdx ] = arg;
+         args_view[ segmentIdx ] = localIdx;
       };
       TNL::Algorithms::Segments::reduceSegmentsWithArgument(
          segments, segmentIndexes, fetch, TNL::MaxWithArg{}, keep, launch_config );
@@ -577,12 +578,13 @@ test_reduceSegmentsIfWithArgument_MaximumInSegments()
             return v_view[ globalIdx ];
          return 0;
       };
-      auto keep =
-         [ = ] __cuda_callable__(
-            const IndexType indexOfSegmentIdx, const IndexType segmentIdx, const IndexType res, const IndexType arg ) mutable
+      auto keep = [ = ] __cuda_callable__( const IndexType indexOfSegmentIdx,
+                                           const IndexType segmentIdx,
+                                           const IndexType localIdx,
+                                           const IndexType res ) mutable
       {
          result_view[ segmentIdx ] = res;
-         args_view[ segmentIdx ] = arg;
+         args_view[ segmentIdx ] = localIdx;
       };
       TNL::Algorithms::Segments::reduceAllSegmentsIfWithArgument(
          segments, condition, fetch, TNL::MaxWithArg{}, keep, launch_config );

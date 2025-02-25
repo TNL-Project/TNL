@@ -184,7 +184,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                           argument,
                           localIdx );
          }
-         keeper( segmentIdx, result, argument );
+         keeper( segmentIdx, argument, result );
       };
 
       Algorithms::parallelFor< Device >( begin, end, l );
@@ -247,7 +247,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                           argument,
                           localIdx );
          }
-         keeper( segmentIdx_idx, segmentIdx, result, argument );
+         keeper( segmentIdx_idx, segmentIdx, argument, result );
       };
 
       Algorithms::parallelFor< Device >( begin, end, l );

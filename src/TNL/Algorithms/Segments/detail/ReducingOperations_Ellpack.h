@@ -216,7 +216,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                              detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, j ),
                              argument,
                              localIdx );
-               keeper( segmentIdx, result, argument );
+               keeper( segmentIdx, argument, result );
             };
             Algorithms::parallelFor< Device >( begin, end, l );
          }
@@ -236,7 +236,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                           detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, j ),
                           argument,
                           localIdx );
-            keeper( segmentIdx, result, argument );
+            keeper( segmentIdx, argument, result );
          };
          Algorithms::parallelFor< Device >( begin, end, l );
       }
@@ -300,7 +300,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                              detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, j ),
                              argument,
                              localIdx );
-               keeper( segmentIdx_idx, segmentIdx, result, argument );
+               keeper( segmentIdx_idx, segmentIdx, argument, result );
             };
             Algorithms::parallelFor< Device >( begin, end, l );
          }
@@ -322,7 +322,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                           detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, j ),
                           argument,
                           localIdx );
-            keeper( segmentIdx_idx, segmentIdx, result, argument );
+            keeper( segmentIdx_idx, segmentIdx, argument, result );
          };
          Algorithms::parallelFor< Device >( begin, end, l );
       }
