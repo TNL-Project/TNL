@@ -12,7 +12,7 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief \e CSRBase serves as a base class for \ref CSR and \ref CSRView.
+ * \brief \e CSRBase serves as a base class for \ref TNL::Algorithms::Segments::CSR and \ref TNL::Algorithms::Segments::CSRView.
  *
  * \tparam Device is type of device where the segments will be operating.
  * \tparam Index is type for indexing of the elements managed by the segments.
@@ -27,15 +27,15 @@ public:
    //! \brief The type used for indexing of segments elements.
    using IndexType = std::remove_const_t< Index >;
 
-   //! \brief The type for representing the vector view with row offsets used
+   //! \brief The type for representing the vector view with segment offsets used
    //! in the CSR format.
    using OffsetsView = Containers::VectorView< Index, DeviceType, IndexType >;
 
-   //! \brief The type for representing the constant vector view with row
+   //! \brief The type for representing the constant vector view with segment
    //! offsets used in the CSR format.
    using ConstOffsetsView = typename OffsetsView::ConstViewType;
 
-   //! \brief Accessor type fro one particular segment.
+   //! \brief Accessor type for one particular segment.
    using SegmentViewType = SegmentView< IndexType, RowMajorOrder >;
 
    //! \brief Returns the data layout for the CSR format (it is always row-major order).
@@ -126,38 +126,37 @@ public:
    /**
     * \brief Computes the global index of an element managed by the segments.
     *
-    * The global index serves as a reference on the element in its container.
+    * The global index serves as a reference to the element within its container.
     *
-    * \param segmentIdx is index of a segment with the element.
-    * \param localIdx is the local index of the element within the segment.
-    * \return global index of the element.
+    * \param segmentIdx The index of the segment containing the element.
+    * \param localIdx The local index of the element within the segment.
+    * \return The global index of the element.
     */
    [[nodiscard]] __cuda_callable__
    IndexType
    getGlobalIndex( Index segmentIdx, Index localIdx ) const;
 
    /**
-    * \brief Returns segment view (i.e. segment accessor) of segment with given
-    * index.
+    * \brief Returns a segment view (i.e., a segment accessor) for the specified segment index.
     *
-    * \param segmentIdx is index of the request segment.
-    * \return segment view of given segment.
+    * \param segmentIdx The index of the requested segment.
+    * \return The segment view of the specified segment.
     *
     * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_getSegmentView.cpp
+    * \include Algorithms/Segments/SegmentsExample_getSegmentView.cpp
     * \par Output
-    * \include SegmentsExample_CSR_getSegmentView.out
+    * \include SegmentsExample_getSegmentView.out
     */
    [[nodiscard]] __cuda_callable__
    SegmentViewType
    getSegmentView( IndexType segmentIdx ) const;
 
-   //! \brief Returns a modifiable vector view with row offsets used in the CSR format.
+   //! \brief Returns a modifiable vector view with segment offsets used in the CSR format.
    [[nodiscard]] __cuda_callable__
    OffsetsView
    getOffsets();
 
-   //! \brief Returns a constant vector view with row offsets used in the CSR format.
+   //! \brief Returns a constant vector view with segment offsets used in the CSR format.
    [[nodiscard]] __cuda_callable__
    ConstOffsetsView
    getOffsets() const;
@@ -184,8 +183,7 @@ public:
     *
     */
    template< typename Function >
-   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]]
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]] void
    forElements( IndexType begin, IndexType end, Function function ) const;
 
    /**
@@ -195,28 +193,23 @@ public:
     * See \ref TNL::Algorithms::Segments::CSR::forElements for more details.
     */
    template< typename Function >
-   [[deprecated( "Use TNL::Algorithms::Segments::forAllElements instead." )]]
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::forAllElements instead." )]] void
    forAllElements( Function function ) const;
 
    template< typename Array, typename Function >
-   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]]
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]] void
    forElements( const Array& segmentIndexes, Index begin, Index end, Function function ) const;
 
    template< typename Array, typename Function >
-   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]]
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::forElements instead." )]] void
    forElements( const Array& segmentIndexes, Function function ) const;
 
    template< typename Condition, typename Function >
-   [[deprecated( "Use TNL::Algorithms::Segments::forElementsIf instead." )]]
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::forElementsIf instead." )]] void
    forElementsIf( IndexType begin, IndexType end, Condition condition, Function function ) const;
 
    template< typename Condition, typename Function >
-   [[deprecated( "Use TNL::Algorithms::Segments::forElementsIf instead." )]]
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::forElementsIf instead." )]] void
    forAllElementsIf( Condition condition, Function function ) const;
 
    /**
@@ -239,8 +232,7 @@ public:
     *
     */
    template< typename Function >
-   [[deprecated( "Use TNL::Algorithms::Segments::forSegments instead." )]]
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::forSegments instead." )]] void
    forSegments( IndexType begin, IndexType end, Function&& function ) const;
 
    /**
@@ -249,8 +241,7 @@ public:
     * See \ref TNL::Algorithms::Segments::CSR::forSegments for more details.
     */
    template< typename Function >
-   [[deprecated( "Use TNL::Algorithms::Segments::forAllSegments instead." )]]
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::forAllSegments instead." )]] void
    forAllSegments( Function&& function ) const;
 
    /**
@@ -270,8 +261,7 @@ public:
     * See \ref TNL::Algorithms::Segments::CSR::forSegments for more details.
     */
    template< typename Function >
-   [[deprecated( "Use TNL::Algorithms::Segments::sequentialForSegments instead." )]]
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::sequentialForSegments instead." )]] void
    sequentialForSegments( IndexType begin, IndexType end, Function&& function ) const;
 
    /**
@@ -280,8 +270,7 @@ public:
     * See \ref TNL::Algorithms::Segments::CSR::sequentialForSegments for more details.
     */
    template< typename Function >
-   [[deprecated( "Use TNL::Algorithms::Segments::sequentialForAllSegments instead." )]]
-   void
+   [[deprecated( "Use TNL::Algorithms::Segments::sequentialForAllSegments instead." )]] void
    sequentialForAllSegments( Function&& function ) const;
 
 protected:
