@@ -457,13 +457,13 @@ template< typename Device, typename Index, ElementsOrganization Organization >
 void
 ChunkedEllpackBase< Device, Index, Organization >::printStructure( std::ostream& str ) const
 {
-   str << "Segments count: " << this->getSize() << std::endl << "Slices: " << this->getNumberOfSlices() << std::endl;
+   str << "Segments count: " << this->getSegmentsCount() << std::endl << "Slices: " << this->getNumberOfSlices() << std::endl;
    for( IndexType i = 0; i < this->getNumberOfSlices(); i++ )
       str << "   Slice " << i << " : size = " << this->slices.getElement( i ).size
           << " chunkSize = " << this->slices.getElement( i ).chunkSize
           << " firstSegment = " << this->slices.getElement( i ).firstSegment
           << " pointer = " << this->slices.getElement( i ).pointer << std::endl;
-   for( IndexType i = 0; i < this->getSize(); i++ )
+   for( IndexType i = 0; i < this->getSegmentsCount(); i++ )
       str << "Segment " << i << " : slice = " << this->segmentToSliceMapping.getElement( i )
           << " chunk = " << this->segmentToChunkMapping.getElement( i ) << std::endl;
 }
