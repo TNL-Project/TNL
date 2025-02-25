@@ -100,9 +100,9 @@ findInSegmentsIf( const Segments& segments,
    using IndexType = typename Segments::IndexType;
    auto keep_ =
       [ = ] __cuda_callable__(
-         const IndexType segmentIdx_idx, const IndexType segmentIdx, const bool found, const IndexType localIdx ) mutable
+         const IndexType segmentIdx_idx, const IndexType segmentIdx, const IndexType localIdx, const bool found ) mutable
    {
-      keeper( segmentIdx, found, localIdx );
+      keeper( segmentIdx, localIdx, found );
    };
    reduceSegmentsIfWithArgument( segments,
                                  begin,
