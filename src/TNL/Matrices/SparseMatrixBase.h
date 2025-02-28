@@ -66,7 +66,7 @@ public:
     * initialized by the user and the object must be passed to the
     * vectorProduct or reduceRows method.
     */
-   //using DefaultSegmentsReductionKernel = typename Algorithms::SegmentsReductionKernels::DefaultKernel< SegmentsView >::type;
+   using DefaultSegmentsReductionKernel = typename Algorithms::SegmentsReductionKernels::DefaultKernel< SegmentsView >::type;
 
    /**
     * \brief The type of matrix elements.
@@ -375,9 +375,24 @@ public:
       const FetchValue& identity,
       const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
 
-   template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
-   [[deprecated( "Use reduceRows without segments reduction kernel instead" )]]
+   template< typename Fetch, typename Reduce, typename Keep >
    void
+   reduceRows(
+      IndexType begin,
+      IndexType end,
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
+
+   template< typename Fetch,
+             typename Reduce,
+             typename Keep,
+             typename FetchValue,
+             typename SegmentsReductionKernel,
+             typename T = std::enable_if_t<
+                Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
+   [[deprecated( "Use reduceRows without segments reduction kernel instead" )]] void
    reduceRows( IndexType begin,
                IndexType end,
                Fetch&& fetch,
@@ -420,14 +435,19 @@ public:
     * \par Output
     * \include SparseMatrixExample_reduceRows.out
     */
-   template< typename Fetch, typename Reduce, typename Keep, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
-   std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+   template< typename Fetch,
+             typename Reduce,
+             typename Keep,
+             typename SegmentsReductionKernel,
+             typename T = std::enable_if_t<
+                Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
+   [[deprecated( "Use reduceRows without segments reduction kernel instead" )]] void
    reduceRows( IndexType begin,
                IndexType end,
                Fetch&& fetch,
                const Reduce& reduce,
                Keep&& keep,
-               const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+               const SegmentsReductionKernel& kernel ) const;
 
    /**
     * \brief Method for performing general reduction on all matrix rows for constant instances.
@@ -476,9 +496,22 @@ public:
       const FetchValue& identity,
       const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
 
-   template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
-   [[deprecated( "Use reduceAllRows without segments reduction kernel instead" )]]
+   template< typename Fetch, typename Reduce, typename Keep >
    void
+   reduceAllRows(
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
+
+   template< typename Fetch,
+             typename Reduce,
+             typename Keep,
+             typename FetchValue,
+             typename SegmentsReductionKernel,
+             typename T = std::enable_if_t<
+                Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
+   [[deprecated( "Use reduceAllRows without segments reduction kernel instead" )]] void
    reduceAllRows( Fetch&& fetch,
                   const Reduce& reduce,
                   Keep&& keep,
@@ -976,8 +1009,7 @@ public:
              typename SegmentsReductionKernel,
              typename T = std::enable_if_t<
                 Algorithms::SegmentsReductionKernels::isSegmentsReductionKernel_v< SegmentsReductionKernel > > >
-   [[deprecated( "Use vectorProduct without segments reduction kernel instead" )]]
-   void
+   [[deprecated( "Use vectorProduct without segments reduction kernel instead" )]] void
    vectorProduct( const InVector& inVector,
                   OutVector& outVector,
                   ComputeRealType matrixMultiplicator,
@@ -993,8 +1025,7 @@ public:
              typename T = std::enable_if_t<
                 Algorithms::SegmentsReductionKernels::isSegmentsReductionKernel_v< SegmentsReductionKernel > >,
              std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeRealType >, bool > = true >
-   [[deprecated( "Use vectorProduct without segments reduction kernel instead" )]]
-   void
+   [[deprecated( "Use vectorProduct without segments reduction kernel instead" )]] void
    vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
 
    /**
