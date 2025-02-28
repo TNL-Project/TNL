@@ -96,7 +96,7 @@ public:
 #ifdef HAVE_OPENMP
          enableOMP();
 #else
-         std::cerr << "OpenMP is not supported - please recompile the TNL library with OpenMP.\n" ;
+         std::cerr << "OpenMP is not supported - please recompile the TNL library with OpenMP.\n";
          return false;
 #endif
       }
