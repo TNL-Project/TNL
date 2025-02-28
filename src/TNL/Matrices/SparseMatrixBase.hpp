@@ -613,8 +613,23 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
-std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+template< typename Fetch, typename Reduce, typename Keep >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows(
+   IndexType begin,
+   IndexType end,
+   Fetch&& fetch,
+   const Reduce& reduce,
+   Keep&& keep,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig ) const
+{
+   using FetchValue = decltype( fetch( IndexType(), IndexType(), RealType() ) );
+   this->reduceRows( begin, end, fetch, reduce, keep, reduce.template getIdentity< FetchValue >(), launchConfig );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel, typename T >
+void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows(
    IndexType begin,
    IndexType end,
@@ -643,8 +658,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-template< typename Fetch, typename Reduce, typename Keep, typename SegmentsReductionKernel >
-std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+template< typename Fetch, typename Reduce, typename Keep, typename SegmentsReductionKernel, typename T >
+void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceRows(
    IndexType begin,
    IndexType end,
@@ -664,8 +679,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel >
-std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
+template< typename Fetch, typename Reduce, typename Keep, typename FetchValue, typename SegmentsReductionKernel, typename T >
+void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceAllRows(
    Fetch&& fetch,
    const Reduce& reduce,
@@ -674,6 +689,19 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    const SegmentsReductionKernel& kernel ) const
 {
    this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity, kernel );
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename Fetch, typename Reduce, typename Keep >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::reduceAllRows(
+   Fetch&& fetch,
+   const Reduce& reduce,
+   Keep&& keep,
+   const Algorithms::Segments::LaunchConfiguration& launchConfig ) const
+{
+   using FetchValue = decltype( fetch( IndexType(), IndexType(), RealType() ) );
+   this->reduceAllRows( fetch, reduce, keep, reduce.template getIdentity< FetchValue >(), launchConfig );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
