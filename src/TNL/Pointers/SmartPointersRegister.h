@@ -51,7 +51,7 @@ public:
       catch( const std::out_of_range& ) {
          std::cerr << "Given deviceId " << deviceId << " does not have any pointers yet. "
                    << "Requested to remove pointer " << pointer << ". "
-                   << "This is most likely a bug in the smart pointer." << std::endl;
+                   << "This is most likely a bug in the smart pointer.\n";
          throw;
       }
    }

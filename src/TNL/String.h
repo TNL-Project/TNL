@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -32,7 +33,7 @@ public:
    /**
     * \brief This enum defines how the operation split of string is to be performed.
     */
-   enum class SplitSkip
+   enum class SplitSkip : std::uint8_t
    {
       NoSkip,    ///< Do not skip empty characters
       SkipEmpty  ///< Skip empty characters.

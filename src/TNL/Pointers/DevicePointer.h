@@ -331,7 +331,7 @@ public:
     * \param ptr2 the other device pointer for swapping.
     */
    void
-   swap( DevicePointer& ptr2 )
+   swap( DevicePointer& ptr2 ) noexcept
    {
       std::swap( this->pointer, ptr2.pointer );
    }
@@ -737,7 +737,7 @@ public:
     * \param ptr2 the other device pointer for swapping.
     */
    void
-   swap( DevicePointer& ptr2 )
+   swap( DevicePointer& ptr2 ) noexcept
    {
       std::swap( this->pointer, ptr2.pointer );
       std::swap( this->pd, ptr2.pd );
