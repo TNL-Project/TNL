@@ -21,7 +21,7 @@ __cuda_callable__
 void
 DenseMatrixView< Real, Device, Index, Organization >::bind( DenseMatrixView& view )
 {
-   Base::bind( view.getRows(), view.getColumns(), view.getValues() );
+   Base::bind( view.getRows(), view.getColumns(), view.getValues(), view.segments );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -29,7 +29,7 @@ __cuda_callable__
 void
 DenseMatrixView< Real, Device, Index, Organization >::bind( DenseMatrixView&& view )
 {
-   Base::bind( view.getRows(), view.getColumns(), view.getValues() );
+   Base::bind( view.getRows(), view.getColumns(), view.getValues(), view.segments );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >

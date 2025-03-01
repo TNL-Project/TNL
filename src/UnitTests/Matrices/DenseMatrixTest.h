@@ -1462,6 +1462,22 @@ test_AssignmentOperator()
 
 template< typename Matrix >
 void
+test_bind()
+{
+   Matrix mat{
+      // clang-format off
+         {  1.0, 2.0},
+         {  3.0, 4.0}  // clang-format on
+   };
+   typename Matrix::ViewType view1 = mat.getView();
+   typename Matrix::ViewType view2;
+   view2.bind( view1 );
+
+   EXPECT_EQ( view1, view2 );
+}
+
+template< typename Matrix >
+void
 test_SaveAndLoad()
 {
    using RealType = typename Matrix::RealType;
@@ -1730,6 +1746,13 @@ TYPED_TEST( MatrixTest, assignmentOperatorTest )
    using MatrixType = typename TestFixture::MatrixType;
 
    test_AssignmentOperator< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, bindTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_bind< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, saveAndLoadTest )
