@@ -395,7 +395,7 @@ public:
     * \param ptr2 the other shared pointer for swapping.
     */
    void
-   swap( SharedPointer& ptr2 )
+   swap( SharedPointer& ptr2 ) noexcept
    {
       std::swap( this->pd, ptr2.pd );
    }
