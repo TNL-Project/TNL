@@ -240,8 +240,9 @@ String::split( char separator, SplitSkip skip ) const
             parts.push_back( s );
          s = "";
       }
-      else
+      else {
          s += ( *this )[ i ];
+      }
    }
    if( skip != SplitSkip::SkipEmpty || ! s.empty() )
       parts.push_back( s );
