@@ -296,7 +296,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       auto fetch = [ valuesView, columnIndexesView, inVectorView, outVectorView, matrixMultiplicator ] __cuda_callable__(
                       IndexType row, IndexType localIdx, IndexType globalIdx ) mutable -> ComputeRealType
       {
-         TNL_ASSERT_GE( globalIdx, 0, "Global index must be non-negative." );
+         TNL_ASSERT_GE(
+            globalIdx, 0, "Global index must be non-negative. Negative values may appear due to Index type overflow." );
          TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "Global index must be smaller than the number of elements." );
          const IndexType column = columnIndexesView[ globalIdx ];
          if( column == paddingIndex< IndexType > )
@@ -325,7 +326,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
       auto fetch =
          [ inVectorView, valuesView, columnIndexesView ] __cuda_callable__( IndexType globalIdx ) mutable -> ComputeRealType
       {
-         TNL_ASSERT_GE( globalIdx, 0, "Global index must be non-negative." );
+         TNL_ASSERT_GE(
+            globalIdx, 0, "Global index must be non-negative. Negative values may appear due to Index type overflow." );
          TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "Global index must be smaller than the number of elements." );
          const IndexType column = columnIndexesView[ globalIdx ];
          TNL_ASSERT_TRUE( (column >= 0 || column == paddingIndex< Index >), "Wrong column index." );
