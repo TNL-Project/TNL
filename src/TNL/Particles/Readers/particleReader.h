@@ -4,9 +4,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-//#include <TNL/3rdparty/mpark/variant.hpp>  // backport of std::variant from C++17
-//#include "variant.hpp"
-//old: #include <mpark/variant.hpp>
 #include <variant>
 #include <TNL/Exceptions/NotImplementedError.h>
 
