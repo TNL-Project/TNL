@@ -546,7 +546,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       typename Matrix1::RowCapacitiesType rowLengths;
       rowLengths.setSize( rows );
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < rows; i++ ) {
          const auto row = B.getRow( i );
@@ -561,7 +561,7 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
       A.setRowCapacities( rowLengths );
 
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel for if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < rows; i++ ) {
          const auto length = rowLengths[ i ];

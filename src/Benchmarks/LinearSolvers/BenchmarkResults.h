@@ -20,7 +20,10 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
    const Vector& b;
 
    BenchmarkResult( Solver< Matrix >& solver, const std::shared_ptr< Matrix >& matrix, const Vector& x, const Vector& b )
-   : solver( solver ), matrix( matrix ), x( x ), b( b )
+   : solver( solver ),
+     matrix( matrix ),
+     x( x ),
+     b( b )
    {}
 
    [[nodiscard]] virtual HeaderElements

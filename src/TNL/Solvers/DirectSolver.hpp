@@ -14,14 +14,14 @@ constexpr bool
 DirectSolver< Real, Index, SolverMonitor >::isIterativeSolver()
 {
    return false;
-};
+}
 
 template< typename Real, typename Index, typename SolverMonitor >
 constexpr bool
 DirectSolver< Real, Index, SolverMonitor >::isDirectSolver()
 {
    return true;
-};
+}
 
 template< typename Real, typename Index, typename SolverMonitor >
 void
@@ -88,6 +88,6 @@ inline constexpr bool
 isDirectSolver()
 {
    return is_direct_solver< Solver >::value;
-};
+}
 
 }  // namespace TNL::Solvers
