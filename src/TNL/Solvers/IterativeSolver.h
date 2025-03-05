@@ -268,7 +268,7 @@ inline constexpr bool
 isIterativeSolver()
 {
    return is_iterative_solver< Solver >::value;
-};
+}
 
 }  // namespace TNL::Solvers
 

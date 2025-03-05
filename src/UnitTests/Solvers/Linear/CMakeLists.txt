@@ -1,15 +1,10 @@
-set(COMMON_TESTS
-)
+set(COMMON_TESTS)
 
-set(CPP_TESTS
-    UmfpackWrapperTest
-)
+set(CPP_TESTS UmfpackWrapperTest)
 
-set(CUDA_TESTS
-)
+set(CUDA_TESTS)
 
-set(HIP_TESTS
-)
+set(HIP_TESTS)
 
 if(TNL_BUILD_CUDA)
     set(CUDA_TESTS ${CUDA_TESTS} ${COMMON_TESTS})
@@ -50,7 +45,7 @@ endif()
 find_package(UMFPACK)
 
 if(UMFPACK_FOUND)
-    target_compile_definitions( UmfpackWrapperTest PUBLIC "-DHAVE_UMFPACK")
-    target_include_directories( UmfpackWrapperTest PUBLIC ${UMFPACK_INCLUDE_DIR})
-    target_link_libraries( UmfpackWrapperTest PUBLIC -lumfpack)
+    target_compile_definitions(UmfpackWrapperTest PUBLIC "-DHAVE_UMFPACK")
+    target_include_directories(UmfpackWrapperTest PUBLIC ${UMFPACK_INCLUDE_DIR})
+    target_link_libraries(UmfpackWrapperTest PUBLIC -lumfpack)
 endif()

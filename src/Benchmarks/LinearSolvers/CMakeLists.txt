@@ -36,7 +36,6 @@ if(TNL_BUILD_CUDA)
         target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC -lumfpack)
     endif()
 
-
     if(Trilinos_FOUND AND Kokkos_ENABLE_CUDA)
         target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_TRILINOS -DKOKKOS_ARCH_ADA89")
         target_include_directories(tnl-benchmark-linear-solvers-cuda PUBLIC ${Trilinos_INCLUDE_DIRS})
@@ -82,4 +81,3 @@ if(TNL_BUILD_CPP_TARGETS)
     endif()
 
 endif()
-
