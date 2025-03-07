@@ -1,5 +1,5 @@
 #include <cfloat> //FLT_MAX
-#include "Particles.h"
+#include "../Particles.h"
 
 namespace TNL {
 namespace ParticleSystem {
