@@ -15,7 +15,7 @@ using namespace TNL;
  *      l <= x <= u
  */
 
-TEST( PDLPTest, NoATest )
+TEST( PDLPTest, SmallProblemOnlyInequalitiesTest )
 {
    using RealType = double;
    using VectorType = Containers::Vector< RealType >;
@@ -48,7 +48,7 @@ TEST( PDLPTest, NoATest )
    EXPECT_NEAR( TNL::max( TNL::abs( x - exact_solution ) ), (RealType) 0.0, 0.1 );
 }
 
-TEST( PDLPTest, AGTest )
+TEST( PDLPTest, SmallProblemMixedConstraintsTest )
 {
    using RealType = double;
    using VectorType = Containers::Vector< RealType >;
@@ -127,5 +127,88 @@ TEST( PDLPTest, TransportationProblemTest )
 
    EXPECT_NEAR( TNL::max( TNL::abs( x - exact_solution ) ), (RealType) 0.0, 0.1 );
 }
+
+#ifdef undef
+TEST( PDLPTest, NetworkFlowProblemTest )
+{
+   using RealType = double;
+   using VectorType = Containers::Vector< RealType >;
+   using MatrixType = Matrices::DenseMatrix< RealType >;
+
+   /****
+    * We solve the following problem:
+    * We have a network with source S, sink T and nodes A, B, C, ... H.
+    * The following is table of the costs and capacities of the edges:
+    *
+    * Edge  Capacity  Cost
+    * S-A   20        2
+    * S-B   30        3
+    * A-C   15        2
+    * A-D   10        4
+    * B-C   10        1
+    * B-E   15        2
+    * C-D    5        3
+    * C-F   10        2
+    * C-G   15        1
+    * D-H   10        2
+    * E-G   15        1
+    * F-T   15        4
+    * G-F   15        2
+    * G-H   10        2
+    * H-T   20        3
+    *
+    * The following is the transposed constraint matrix:
+    *
+    *       S	A	B	C	D	E	F	G	H	T
+    *  S-A	-1	1	0	0	0	0	0	0	0	0
+    *  S-B	-1	0	1	0	0	0	0	0	0	0
+    *  A-C	0	-1	0	1	0	0	0	0	0	0
+    *  A-D	0	-1	0	0	1	0	0	0	0	0
+    *  B-C	0	0	-1	1	0	0	0	0	0	0
+    *  B-E	0	0	-1	0	0	1	0	0	0	0
+    *  C-D	0	0	0	-1	1	0	0	0	0	0
+    *  C-F	0	0	0	-1	0	0	1	0	0	0
+    *  C-G	0	0	0	-1	0	0	0	1	0	0
+    *  D-H	0	0	0	0	-1	0	0	0	1	0
+    *  E-G	0	0	0	0	0	-1	0	1	0	0
+    *  F-T	0	0	0	0	0	0	-1	0	0	1
+    *  G-F	0	0	0	0	0	0	1	-1	0	0
+    *  G-H	0	0	0	0	0	0	0	-1	1	0
+    *  H-T	0	0	0	0	0	0	0	0	-1	1
+    *
+    * Total Minimum Cost = 370.0
+    */
+
+   // clang-format off
+   MatrixType GA( {
+      // S-A  S-B  A-C  A-D  B-C  B-E  C-D  C-F  C-G  D-H  E-G  F-T  G-F  G-H  H-T
+        { -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 }, // S
+        {  1,   0,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 }, // A
+        {  0,   1,   0,   0,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0 }, // B
+        {  0,   0,   1,   0,   1,   0,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0 }, // C
+        {  0,   0,   0,   1,   0,   0,   1,   0,   0,  -1,   0,   0,   0,   0,   0 }, // D
+        {  0,   0,   0,   0,   0,   1,   0,   0,   0,   0,  -1,   0,   0,   0,   0 }, // E
+        {  0,   0,   0,   0,   0,   0,   0,   1,   0,   0,   0,  -1,   1,   0,   0 }, // F
+        {  0,   0,   0,   0,   0,   0,   0,   0,   1,   0,   1,   0,  -1,  -1,   0 }, // G
+        {  0,   0,   0,   0,   0,   0,   0,   0,   0,   1,   0,   0,   0,   1,  -1 }, // H
+        {  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   1,   0,   0,   1 }, // T
+   } );
+   VectorType hb( { 35, 0, 0, 0, 0, 0, 0, 0, 0, 35 } );
+   VectorType c( { 2, 3, 2, 4, 1, 2, 3, 2, 1, 2, 1, 4, 2, 2, 3 } );
+   VectorType l( 15, 0 );
+   VectorType u( { 20, 30, 15, 10, 10, 15, 5, 10, 15, 10, 15, 15, 15, 10, 20 } );
+   VectorType exact_solution( { 20, 15, 10, 10, 10, 5, 0, 10, 10, 10, 5, 15, 5, 10, 20 });
+   // clang-format on
+
+   using LPProblemType = Solvers::Optimization::LPProblem< MatrixType >;
+   LPProblemType lpProblem( GA, hb, 0, c, l, u );
+
+   VectorType x( 15, 0 );
+   Solvers::Optimization::PDLP< LPProblemType > solver;
+   solver.solve( lpProblem, x );
+
+   EXPECT_NEAR( TNL::max( TNL::abs( x - exact_solution ) ), (RealType) 0.0, 0.1 );
+}
+#endif
 
 #include "../../main.h"

@@ -111,7 +111,6 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
                                                  RealType& current_omega,
                                                  RealType& current_eta )
 {
-   TNL_ASSERT_GT( m1, 0, "Number of inequalities must be positive." );
    const IndexType m = GA.getRows();
    const IndexType m2 = m - m1;
    const IndexType n = GA.getColumns();
