@@ -748,7 +748,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             if( value != (RealType) 0 )
                str << column << ":" << value << "\t";
          }
-         str << std::endl;
+         str << '\n';
       }
    }
    else {
@@ -771,7 +771,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
                str << std::setw( 10 ) << str_.str();
             }
          }
-         str << std::endl;
+         str << '\n';
       }
    }
 }

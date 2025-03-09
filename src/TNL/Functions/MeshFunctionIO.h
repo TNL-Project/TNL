@@ -278,7 +278,7 @@ writeDistributedMeshFunction(
       //}
    }
    else {
-      std::cerr << "Unknown output format: " << format << std::endl;
+      std::cerr << "Unknown output format: " << format << "\n";
       return false;
    }
    return true;
