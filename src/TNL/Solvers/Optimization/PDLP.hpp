@@ -56,7 +56,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    auto eta_container_view = eta_container.getView();
    RealType eta_sum( 0 );
 
-   while( k < 80 ) {  //this->nextIteration() ) {
+   while( k < 10000 ) {  //this->nextIteration() ) {
       IndexType t = 0;
       eta_sum = 0;
       VectorView z_view( &z_container( 0, 0 ), n + m1 + m2 );
@@ -145,7 +145,8 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       out_y1 = maximum( 0, in_y1 + sigma * ( h - Kx_1 ) );
       if( m2 > 0 )
          out_y2 = in_y2 + sigma * ( b - Kx_2 );
-      std::cout << "ITER: " << k << " TAU: " << tau << " SIGMA: " << sigma << " x: " << out_x << std::endl;
+      std::cout << "ITER: " << k << " TAU: " << tau << " SIGMA: " << sigma << " COST: " << dot( c, out_x )
+                << std::endl;  // << " x: " << out_x << std::endl;
 
       // Compute new parameter eta
       delta_x = out_x - in_x;
