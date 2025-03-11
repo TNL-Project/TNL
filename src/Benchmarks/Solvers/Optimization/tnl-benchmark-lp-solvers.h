@@ -16,26 +16,27 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/MPI/ScopedInitializer.h>
 #include <TNL/MPI/Config.h>
+#include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Solvers/Optimization/PDLP.h>
+#include <TNL/Solvers/Optimization/LPProblem.h>
+#include <TNL/Solvers/Optimization/LPProblemReader.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
 
-#ifdef HAVE_ORTOOLS
-
-#endif
+#include "GurobiLPBenchmark.h"
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
 
-template< typename Real, typename Index >
+template< typename Value, typename Index >
 void
 benchmarkLPSolvers( Benchmark<>& benchmark, const Config::ParameterContainer& parameters, size_t dofs )
 {}
 
-template< typename Real, typename Device, typename Index >
+template< typename Value, typename Device, typename Index >
 struct LPSolversBenchmark
 {
-   using RealType = Real;
+   using ValueType = Value;
    using DeviceType = Device;
    using IndexType = Index;
    using SolverMonitorType = typename Benchmark<>::SolverMonitorType;
@@ -46,7 +47,9 @@ struct LPSolversBenchmark
    {
       using ValueType = typename SolverType::ValueType;
       using VectorType = TNL::Containers::Vector< ValueType, DeviceType, IndexType >;
-      using VectorView = typename VectorType::ViewType;
+      //using VectorView = typename VectorType::ViewType;
+      using MatrixType = TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType >;
+      //using LPProblemType = TNL::Solvers::Optimization::LPProblem< MatrixType >;
 
       std::string device = "host";
       if( std::is_same_v< DeviceType, Devices::Cuda > ) {
@@ -59,7 +62,29 @@ struct LPSolversBenchmark
    static bool
    run( Benchmark<>& benchmark, const Config::ParameterContainer& parameters )
    {
-      using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+      using MatrixType = TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType >;
+      using LPProblemType = TNL::Solvers::Optimization::LPProblem< MatrixType >;
+
+      const String& fileName = parameters.getParameter< String >( "input-file" );
+
+      // Gurobi solver
+      try {
+         gurobiBenchmark( benchmark, fileName );
+      }
+      catch( GRBException& e ) {
+         std::cerr << "Gurobi error: " << e.getMessage() << std::endl;
+      }
+      catch( ... ) {
+         std::cerr << "An unexpected error occurred." << std::endl;
+      }
+
+      std::cout << "Reading LP problem from file " << fileName << std::endl;
+      TNL::Solvers::Optimization::LPProblemReader< LPProblemType > reader;
+      auto lpProblem = reader.read( fileName );
+      typename LPProblemType::VectorType x( lpProblem.getVariableCount() );
+      TNL::Solvers::Optimization::PDLP< LPProblemType > solver;
+      solver.solve( lpProblem, x );
+      //std::cout << "Solution: " << x << std::endl;
       return true;
    }
 };
@@ -113,6 +138,7 @@ void
 configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "Benchmark settings:" );
+   config.addEntry< String >( "input-file", "Input file name." );
    config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-lp-solvers.log" );
    config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "append" );
@@ -140,7 +166,7 @@ configSetup( Config::ConfigDescription& config )
 
    config.addDelimiter( "LP solver settings:" );
    Solvers::IterativeSolver< double, int >::configSetup( config );
-   using Vector = TNL::Containers::Vector< int >;
+   //using Vector = TNL::Containers::Vector< int >;
 }
 
 int
@@ -155,26 +181,27 @@ main( int argc, char* argv[] )
 
    configSetup( conf_desc );
 
-   TNL::MPI::ScopedInitializer mpi( argc, argv );
-   const int rank = TNL::MPI::GetRank();
+   //TNL::MPI::ScopedInitializer mpi( argc, argv );
+   //const int rank = TNL::MPI::GetRank();
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) || ! TNL::MPI::setup( parameters ) )
+   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) )  // || ! TNL::MPI::setup( parameters ) )
       return EXIT_FAILURE;
 
    const String& logFileName = parameters.getParameter< String >( "log-file" );
    const String& outputMode = parameters.getParameter< String >( "output-mode" );
    const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = ( rank == 0 ) ? parameters.getParameter< int >( "verbose" ) : 0;
+   //const int verbose = ( rank == 0 ) ? parameters.getParameter< int >( "verbose" ) : 0;
+   const int verbose = parameters.getParameter< int >( "verbose" );
 
    // open log file
    auto mode = std::ios::out;
    if( outputMode == "append" )
       mode |= std::ios::app;
    std::ofstream logFile;
-   if( rank == 0 )
-      logFile.open( logFileName, mode );
+   //if( rank == 0 )
+   logFile.open( logFileName, mode );
 
    // init benchmark and set parameters
    Benchmark<> benchmark( logFile, loops, verbose );
@@ -183,5 +210,6 @@ main( int argc, char* argv[] )
    std::map< std::string, std::string > metadata = getHardwareMetadata();
    writeMapAsJson( metadata, logFileName, ".metadata.json" );
 
+   std::cout << "Running benchmarks for LP solvers." << std::endl;
    return ! resolveRealTypes( benchmark, parameters );
 }
