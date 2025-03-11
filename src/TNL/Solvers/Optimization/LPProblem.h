@@ -73,11 +73,14 @@ struct LPProblem
     * \param constraintVector is the constraint vector b.
     * \param inequalityCount is the number of inequality constraints and defines the number of rows of the matrix A_1.
     */
-   LPProblem( const MatrixType& constraintMatrix, const VectorType& constraintVector, const IndexType inequalityCount )
+   LPProblem( const MatrixType& constraintMatrix,
+              const VectorType& constraintVector,
+              const IndexType inequalityCount,
+              const VectorType& objectiveFunction )
    : LPProblem( constraintMatrix,
                 constraintVector,
                 inequalityCount,
-                VectorType( constraintMatrix.getColumns(), 0 ),
+                objectiveFunction,
                 VectorType( constraintMatrix.getColumns(), -std::numeric_limits< RealType >::infinity() ),
                 VectorType( constraintMatrix.getColumns(), std::numeric_limits< RealType >::infinity() ) )
    {}
@@ -146,6 +149,12 @@ struct LPProblem
    getInequalityCount() const
    {
       return inequalityCount;
+   }
+
+   IndexType
+   getVariableCount() const
+   {
+      return constraintMatrix.getColumns();
    }
 
 protected:
