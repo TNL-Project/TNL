@@ -366,6 +366,46 @@ public:
       return std::make_pair( gridDimensionsAdjustment, gridOriginAdjustment );
    }
 
+   std::pair< IndexVectorType, IndexVectorType >
+   loadBalancingDomainAdjustmentCompTime()
+   {
+      IndexVectorType gridDimensionsAdjustment = 0;
+      IndexVectorType gridOriginAdjustment = 0.;
+      const int* neighbors = this->getDistributedGrid().getNeighbors();
+
+      if( neighbors[ ZzYzXm ] != -1 ){
+         const float compTimeDifference = subdomainCompTime - subdomainsCompTime[ ZzYzXm ];
+         const float averageCompTime = 0.5f * ( subdomainCompTime + subdomainsCompTime[ ZzYzXm ] );
+         const float relativeCompTimeDifference = compTimeDifference / averageCompTime;
+         if( relativeCompTimeDifference > this->computationalTimeResizeTrashold  ){
+            //pCD > pCRT -> interface mm => gridDimension.x++, gridOrigin--
+            gridDimensionsAdjustment[ 0 ]--;
+            gridOriginAdjustment[ 0 ]++;
+         }
+         if( relativeCompTimeDifference < ( ( -1 ) * this->computationalTimeResizeTrashold ) ){
+            //pCD > pCRT -> interface mm => gridDimension.x--, gridOrigin++
+            gridDimensionsAdjustment[ 0 ]++;
+            gridOriginAdjustment[ 0 ]--;
+         }
+
+      }
+
+      if( neighbors[ ZzYzXp ] != -1 ){
+         const float compTimeDifference = subdomainCompTime - subdomainsCompTime[ ZzYzXp ];
+         const float averageCompTime = 0.5f * ( subdomainCompTime + subdomainsCompTime[ ZzYzXp ] );
+         const float relativeCompTimeDifference = compTimeDifference / averageCompTime;
+         if( relativeCompTimeDifference > this->computationalTimeResizeTrashold  ){
+            //pCD > pCRT -> interface pp => gridDimensions.x++, gridOring unchanged
+            gridDimensionsAdjustment[ 0 ]--;
+         }
+         if( relativeCompTimeDifference < ( ( -1 ) * this->computationalTimeResizeTrashold ) ){
+            //pCD > pCRT -> interface pm => gridDimensions.x--, gridOrigin unchanged
+            gridDimensionsAdjustment[ 0 ]++;
+         }
+      }
+      return std::make_pair( gridDimensionsAdjustment, gridOriginAdjustment );
+   }
+
    void
    writeProlog( TNL::Logger& logger ) //const noexcept
    {
