@@ -116,7 +116,7 @@ public:
       this->subdomainParticlesCount = numberOfParticles;
    }
 
-   const GlobalIndexType
+   const RealType
    getCompTime() const
    {
       return this->subdomainCompTime;
@@ -125,7 +125,7 @@ public:
    void
    setCompTimeForLoadBalancing( const RealType compTime )
    {
-      this->subdomainsCompTime = compTime;
+      this->subdomainCompTime = compTime;
    }
 
    void
