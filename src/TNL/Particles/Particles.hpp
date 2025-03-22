@@ -225,6 +225,23 @@ Particles< ParticleConfig, DeviceType >::getSortPermutations()
    return this->sortPermutations;
 }
 
+
+template< typename ParticleConfig, typename DeviceType >
+template< typename ArrayType >
+void
+Particles< ParticleConfig, DeviceType >::reorderArray( ArrayType& array, ArrayType& arraySwap )
+{
+   const GlobalIndexType numberOfParticle = this->getNumberOfParticles();
+   using ThrustDeviceType = TNL::Thrust::ThrustExecutionPolicy< typename ArrayType::DeviceType >;
+   ThrustDeviceType thrustDevice;
+   thrust::gather( thrustDevice,
+                   this->sortPermutations->getArrayData(),
+                   this->sortPermutations->getArrayData() + numberOfParticles,
+                   array.getArrayData(),
+                   arraySwap.getArrayData() );
+   array.swap( arraySwap );
+}
+
 template< typename ParticleConfig, typename Device >
 const typename Particles< ParticleConfig, Device >::GlobalIndexType
 Particles< ParticleConfig, Device >::getNumberOfParticlesToRemove() const

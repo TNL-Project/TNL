@@ -251,6 +251,14 @@ public:
    getSortPermutations();
 
    /**
+    * \brief Swap particle array based on the new particle ordering.
+    * TODO: Resolve the swapArray.
+    */
+   template< typename ArrayType >
+   void
+   reorderArray( ArrayType& array, ArrayType& arraySwap );
+
+   /**
     * \brief Get number of particles that are set to be removed during next search procedure.
     *
     * \return number of particles
