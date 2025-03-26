@@ -305,11 +305,17 @@ Particles< ParticleConfig, Device >::isInsideDomain( const PointType& point,
                                                      const PointType& domainOrigin,
                                                      const PointType& domainSize ) const
 {
-   //FIXME: These two lines produces different results
-   //if( ( point > domainOrigin ) && ( point < ( domainOrigin + domainSize ) ) )
-   if( ( point[ 0 ] >= domainOrigin[ 0 ] ) && ( point[ 0 ] < ( domainOrigin[ 0 ] + domainSize[ 0 ] ) ) )  // >=, <= vs >, <
-      return true;
-   return false;
+   //Is inside domain means:
+   //if( ( point[ 0 ] >= domainOrigin[ 0 ] ) && ( point[ 0 ] < ( domainOrigin[ 0 ] + domainSize[ 0 ] ) ) )  // >=, <= vs >, <
+   //TODO: Remove this function! Due to arithmetic, it is not accrued, use the cell comparison instead!
+
+   bool isInsideDomain = true;
+
+   for( int i = 0; i < getParticlesDimension(); i++ )
+      if( ( point[ i ] < domainOrigin[ i ] ) || ( point[ i ] >= ( domainOrigin[ i ] + domainSize[ i ] ) ) )  // >=, <= vs >, <
+         isInsideDomain = false;
+
+   return isInsideDomain;
 }
 
 template< typename ParticleConfig, typename Device >
@@ -318,9 +324,16 @@ bool
 Particles< ParticleConfig, Device >::isInsideDomain( const IndexVectorType& particleCell,
                                                      const IndexVectorType& gridDimensionsWithOverlap ) const
 {
-   if( ( particleCell[ 0 ] > 0 ) && ( particleCell[ 0 ] < ( gridDimensionsWithOverlap[ 0 ] - 1 ) ) )  // >=, <= vs >, <
-      return true;
-   return false;
+   //Is inside domain means:
+   //if( ( particleCell[ i ] > 0 ) && ( particleCell[ i ] < ( gridDimensionsWithOverlap[ i ] - 1 ) ) )  // >=, <= vs >, <
+
+   bool isInsideDomain = true;
+
+   for( int i = 0; i < getParticlesDimension(); i++ )
+      if( ( particleCell[ i ] <= 0 ) || ( particleCell[ i ] >= ( gridDimensionsWithOverlap[ i ] - 1 ) ) )  // >=, <= vs >, <
+         isInsideDomain = false;
+
+   return isInsideDomain;
 }
 
 template< typename ParticleConfig, typename Device >
