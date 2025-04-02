@@ -10,6 +10,7 @@ Checks: >
   -readability-else-after-return,
   -readability-named-parameter,
   -readability-magic-numbers,
+  -readability-math-missing-parentheses,
   -readability-function-cognitive-complexity,
   -readability-function-size,
   -readability-identifier-length,
