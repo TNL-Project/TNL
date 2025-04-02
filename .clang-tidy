@@ -7,6 +7,7 @@ UseColor:         true
 
 Checks: >
   readability-*,
+  -readability-braces-around-statements,
   -readability-else-after-return,
   -readability-named-parameter,
   -readability-magic-numbers,
@@ -31,8 +32,6 @@ WarningsAsErrors: >
   bubprone-suspicious-semicolon,
 
 CheckOptions:
-  - key:             readability-braces-around-statements.ShortStatementLines
-    value:           99
   - key:             readability-function-size.LineThreshold
     value:           64
   - key:             readability-function-size.ParameterThreshold
