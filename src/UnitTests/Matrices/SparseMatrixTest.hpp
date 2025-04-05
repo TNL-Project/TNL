@@ -1,8 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <iostream>
-#include <sstream>
 
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Containers/StaticVector.h>
@@ -48,7 +46,8 @@ test_Constructors()
    EXPECT_EQ( m1.getColumns(), 6 );
 
    Matrix m2( { 1, 2, 2, 2, 1 }, 5 );
-   typename Matrix::RowCapacitiesType v1, v2{ 1, 2, 2, 2, 1 };
+   typename Matrix::RowCapacitiesType v1;
+   typename Matrix::RowCapacitiesType v2{ 1, 2, 2, 2, 1 };
    m2.setElement( 0, 0, 1 );  // 0th row
    m2.setElement( 1, 0, 1 );  // 1st row
    m2.setElement( 1, 1, 1 );
@@ -67,7 +66,7 @@ test_Constructors()
    EXPECT_EQ( m2.getElement( 3, 3 ), RealType{ 1 } );
    EXPECT_EQ( m2.getElement( 4, 4 ), RealType{ 1 } );  // 4th row
 
-   if( std::is_same< DeviceType, TNL::Devices::Host >::value ) {
+   if( std::is_same_v< DeviceType, TNL::Devices::Host > ) {
       EXPECT_EQ( m2.getRow( 0 ).getValue( 0 ), RealType{ 1 } );  // 0th row
       EXPECT_EQ( m2.getRow( 1 ).getValue( 0 ), RealType{ 1 } );  // 1st row
       EXPECT_EQ( m2.getRow( 1 ).getValue( 1 ), RealType{ 1 } );
@@ -154,7 +153,7 @@ test_Constructors()
    EXPECT_EQ( m3.getElement( 5, 3 ), RealType{ 12 } );
    EXPECT_EQ( m3.getElement( 5, 4 ), RealType{ 0 } );
 
-   if( std::is_same< DeviceType, TNL::Devices::Host >::value ) {
+   if( std::is_same_v< DeviceType, TNL::Devices::Host > ) {
       EXPECT_EQ( m3.getRow( 0 ).getValue( 0 ), RealType{ 1 } );
       EXPECT_EQ( m3.getRow( 0 ).getValue( 1 ), RealType{ 2 } );
       EXPECT_EQ( m3.getRow( 0 ).getValue( 2 ), RealType{ 3 } );
@@ -450,7 +449,8 @@ test_GetRow()
    using IndexType = typename Matrix::IndexType;
 
    Matrix m2( { 1, 2, 2, 2, 1 }, 5 );
-   typename Matrix::RowCapacitiesType v1, v2{ 1, 2, 2, 2, 1 };
+   typename Matrix::RowCapacitiesType v1;
+   typename Matrix::RowCapacitiesType v2{ 1, 2, 2, 2, 1 };
    m2.setElement( 0, 0, 1 );  // 0th row
    m2.setElement( 1, 0, 1 );  // 1st row
    m2.setElement( 1, 1, 1 );
@@ -469,7 +469,7 @@ test_GetRow()
    EXPECT_EQ( m2.getElement( 3, 3 ), RealType{ 1 } );
    EXPECT_EQ( m2.getElement( 4, 4 ), RealType{ 1 } );  // 4th row
 
-   if( std::is_same< DeviceType, TNL::Devices::Host >::value ) {
+   if( std::is_same_v< DeviceType, TNL::Devices::Host > ) {
       EXPECT_EQ( m2.getRow( 0 ).getValue( 0 ), RealType{ 1 } );  // 0th row
       EXPECT_EQ( m2.getRow( 1 ).getValue( 0 ), RealType{ 1 } );  // 1st row
       EXPECT_EQ( m2.getRow( 1 ).getValue( 1 ), RealType{ 1 } );
@@ -546,7 +546,7 @@ test_GetRow()
    EXPECT_EQ( m3.getElement( 5, 3 ), RealType{ 12 } );
    EXPECT_EQ( m3.getElement( 5, 4 ), RealType{ 0 } );
 
-   if( std::is_same< DeviceType, TNL::Devices::Host >::value ) {
+   if( std::is_same_v< DeviceType, TNL::Devices::Host > ) {
       EXPECT_EQ( m3.getRow( 0 ).getValue( 0 ), RealType{ 1 } );
       EXPECT_EQ( m3.getRow( 0 ).getValue( 1 ), RealType{ 2 } );
       EXPECT_EQ( m3.getRow( 0 ).getValue( 2 ), RealType{ 3 } );
@@ -1130,7 +1130,8 @@ test_FindElement()
                                                         Vector{ 0, 0, 1, 0, 0, 1 } };
 
    for( IndexType columnIdx = 0; columnIdx < cols; columnIdx++ ) {
-      Vector to_find( rows, columnIdx ), result( rows, 0 );
+      Vector to_find( rows, columnIdx );
+      Vector result( rows, 0 );
       auto m_view = m.getConstView();
       auto to_find_view = to_find.getConstView();
       auto result_view = result.getView();

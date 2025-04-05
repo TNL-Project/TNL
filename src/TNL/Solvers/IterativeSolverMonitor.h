@@ -119,7 +119,7 @@ public:
    refresh() override;
 
 protected:
-   int
+   [[nodiscard]] int
    getLineWidth();
 
    std::string stage, saved_stage;

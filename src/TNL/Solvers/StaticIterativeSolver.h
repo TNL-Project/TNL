@@ -73,7 +73,7 @@ public:
     *
     * \return maximal number of allowed iterations.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Index&
    getMaxIterations() const;
 
@@ -91,7 +91,7 @@ public:
     *
     * \return minimal number of iterations the solver is supposed to do.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Index&
    getMinIterations() const;
 
@@ -100,7 +100,7 @@ public:
     *
     * \return number of iterations performed so far.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Index&
    getIterations() const;
 
@@ -122,7 +122,7 @@ public:
     *
     * \return the convergence threshold.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Real&
    getConvergenceResidue() const;
 
@@ -144,7 +144,7 @@ public:
     *
     * \return the residue limit fo the divergence.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Real&
    getDivergenceResidue() const;
 
@@ -162,7 +162,7 @@ public:
     *
     * \return residue reached at the current iteration.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Real&
    getResidue() const;
 
@@ -180,7 +180,7 @@ public:
     * \return \e false if the solver is \b not allowed to do the next iteration. This may
     *    happen because the divergence occurred.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    nextIteration();
 
@@ -191,7 +191,7 @@ public:
     * \return \e false if the solver is \b not allowed to do the next iteration. This may
     *    happen because the divergence occurred.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    checkNextIteration();
 
@@ -201,7 +201,7 @@ public:
     * \return \e true if the convergence already occured.
     * \return \e false if the convergence did not occur yet.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    bool
    checkConvergence();
 

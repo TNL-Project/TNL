@@ -3,14 +3,16 @@
 
 #pragma once
 
+#include <cstdint>
+#include <utility>
+
 #include <TNL/Matrices/Factorization/QR/GramSchmidt.h>
 #include <TNL/Matrices/Factorization/QR/Givens.h>
 #include <TNL/Matrices/Factorization/QR/Householder.h>
-#include <utility>
 
 namespace TNL::Matrices::Factorization::QR {
 
-enum class FactorizationMethod
+enum class FactorizationMethod : std::uint8_t
 {
    GramSchmidt,
    Givens,

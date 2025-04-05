@@ -154,7 +154,7 @@ solveQuadraticAssignmentProblem( int nproc, const CostMatrix& costMatrix, const 
             // keep the permutation
             current_cost = cost;
             if( TNL::MPI::GetRank( MPI_COMM_WORLD ) == 0 ) {
-               std::cout << "permutation " << perm << " cost " << cost << std::endl;
+               std::cout << "permutation " << perm << " cost " << cost << '\n';
             }
          }
          else {

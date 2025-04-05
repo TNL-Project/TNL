@@ -121,14 +121,14 @@ protected:
    // Specialized methods to distinguish between normal and distributed matrices
    // in the implementation.
    template< typename M >
-   static IndexType
+   [[nodiscard]] static IndexType
    getMinColumn( const M& m )
    {
       return 0;
    }
 
    template< typename M >
-   static IndexType
+   [[nodiscard]] static IndexType
    getMinColumn( const Matrices::DistributedMatrix< M >& m )
    {
       if( m.getRows() == m.getColumns() )

@@ -63,7 +63,7 @@ printSegments( std::ostream& str, const Segments& segments, Fetch&& fetch )
          if( localIdx < segmentSize - 1 )
             str << ", ";
       }
-      str << " ] " << std::endl;
+      str << " ]\n";
    }
    return str;
 }

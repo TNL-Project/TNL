@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 #include <TNL/Containers/Array.h>
+#include <TNL/Meshes/GridDetails/Templates/BooleanOperations.h>
 
 #include "../CoordinateIterator.h"
 
@@ -80,7 +81,8 @@ public:
       using Real = typename Grid::RealType;
       using CoordinatesType = typename Grid::CoordinatesType;
 
-      CoordinatesType start, end;
+      CoordinatesType start;
+      CoordinatesType end;
 
       for( int i = 0; i < start.getSize(); i++ ) {
          start[ i ] = -( spaceStepsSize >> 1 );
@@ -96,13 +98,13 @@ public:
          for( typename Grid::IndexType i = 0; i < start.getSize(); i++ )
             product *= pow( spaceSteps[ i ], coordinate[ i ] );
 
-         if( std::is_same< Real, float >::value ) {
+         if( std::is_same_v< Real, float > ) {
             EXPECT_FLOAT_EQ( grid.getSpaceStepsProducts( coordinate ), product )
                << "Expect the step size products are the same";
             continue;
          }
 
-         if( std::is_same< Real, double >::value ) {
+         if( std::is_same_v< Real, double > ) {
             EXPECT_DOUBLE_EQ( grid.getSpaceStepsProducts( coordinate ), product )
                << "Expect the step size products are the same";
             continue;
@@ -143,7 +145,7 @@ public:
    void
    verifyOriginGetter( const Grid& grid, const typename Grid::PointType& coordinates ) const
    {
-      auto result = grid.getOrigin();
+      const auto& result = grid.getOrigin();
 
       EXPECT_EQ( coordinates, result ) << "Verify, that the origin was correctly set";
    }
@@ -152,7 +154,7 @@ public:
    void
    verifySpaceStepsGetter( const Grid& grid, const typename Grid::PointType& spaceSteps ) const
    {
-      auto result = grid.getSpaceSteps();
+      const auto& result = grid.getSpaceSteps();
 
       EXPECT_EQ( spaceSteps, result ) << "Verify, that space steps were correctly set";
    }
@@ -161,7 +163,7 @@ public:
    void
    verifyDimensionByCoordinateGetter( const Grid& grid, const typename Grid::CoordinatesType& dimensions ) const
    {
-      auto result = grid.getDimensions();
+      const auto& result = grid.getDimensions();
 
       EXPECT_EQ( dimensions, result ) << "Verify, that dimension container accessor returns valid dimension";
    }
@@ -172,7 +174,7 @@ public:
       const Grid& grid,
       const TNL::Containers::StaticVector< Grid::getMeshDimension() + 1, typename Grid::IndexType >& entitiesCounts ) const
    {
-      auto result = grid.getEntitiesCounts();
+      const auto& result = grid.getEntitiesCounts();
 
       EXPECT_EQ( entitiesCounts, result ) << "Verify, that returns expected entities counts";
    }

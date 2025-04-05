@@ -103,6 +103,7 @@ private:
    template< typename U >
    static constexpr auto check(U*)
    -> std::enable_if_t<
+         // NOLINTNEXTLINE(readability-static-accessed-through-instance)
          ! std::is_same_v< decltype( std::declval<U>()[ std::declval<U>().getSize() ] ), void >,
          std::true_type
       >;

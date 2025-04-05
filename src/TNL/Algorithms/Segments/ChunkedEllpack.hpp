@@ -153,7 +153,7 @@ template< typename SizesContainer >
 void
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSegmentsSizes( const SizesContainer& segmentsSizes )
 {
-   if constexpr( std::is_same< Device, Devices::Host >::value ) {
+   if constexpr( std::is_same_v< Device, Devices::Host > ) {
       this->size = sum( segmentsSizes );
       const Index segmentsCount = segmentsSizes.getSize();
       this->slices.setSize( segmentsCount );

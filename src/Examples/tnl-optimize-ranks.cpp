@@ -34,11 +34,11 @@ main( int argc, char* argv[] )
    }
 
    if( rank == 0 )
-      std::cout << "Communication pattern:\n" << comm_pattern << std::endl;
+      std::cout << "Communication pattern:\n" << comm_pattern << '\n';
 
    const TNL::MPI::Comm perm_comm = TNL::MPI::optimizeRanks< DeviceType >( MPI_COMM_WORLD, comm_pattern );
 
-   std::cout << "rank " << rank << " remapped to " << perm_comm.rank() << std::endl;
+   std::cout << "rank " << rank << " remapped to " << perm_comm.rank() << '\n';
 
    // measure again to verify (up to measurement errors) the optimization
    const auto cost_matrix_perm = TNL::MPI::measureAlltoallCommunicationCost< DeviceType >( perm_comm );
@@ -49,9 +49,9 @@ main( int argc, char* argv[] )
       for( int i = 0; i < nproc; i++ )
          identity[ i ] = i;
 
-      std::cout << "cost matrix after permutation:\n" << cost_matrix_perm << std::endl;
+      std::cout << "cost matrix after permutation:\n" << cost_matrix_perm << '\n';
       const auto cost = TNL::MPI::getCommunicationCosts( cost_matrix_perm, comm_pattern, identity );
-      std::cout << "cost vector: " << cost << " sum " << TNL::sum( cost ) << std::endl;
+      std::cout << "cost vector: " << cost << " sum " << TNL::sum( cost ) << '\n';
    }
 
    return EXIT_SUCCESS;

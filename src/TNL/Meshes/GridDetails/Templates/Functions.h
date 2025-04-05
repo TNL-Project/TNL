@@ -19,7 +19,7 @@ namespace TNL::Meshes::Templates {
  */
 template< typename Index, int Size >
 constexpr Index
-makeCollapsedIndex( const Index base, const TNL::Containers::StaticVector< Size, Index > powers )
+makeCollapsedIndex( const Index base, const TNL::Containers::StaticVector< Size, Index >& powers )
 {
    Index index = 0;
    Index currentBase = 1;

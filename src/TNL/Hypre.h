@@ -91,7 +91,7 @@ struct Hypre
 };
 
 //! \brief Returns the memory location used by Hypre objects.
-inline constexpr HYPRE_MemoryLocation
+constexpr HYPRE_MemoryLocation
 getHypreMemoryLocation()
 {
    #ifdef HYPRE_USING_GPU

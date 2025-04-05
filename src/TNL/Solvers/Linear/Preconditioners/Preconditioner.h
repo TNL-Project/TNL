@@ -112,7 +112,7 @@ public:
    /**
     * \brief Destructor of the preconditioner.
     */
-   virtual ~Preconditioner() {}
+   virtual ~Preconditioner() = default;
 };
 
 }  // namespace TNL::Solvers::Linear::Preconditioners

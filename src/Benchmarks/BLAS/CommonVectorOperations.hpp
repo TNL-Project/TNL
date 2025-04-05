@@ -161,7 +161,7 @@ CommonVectorOperations< Device >::getVectorSum( const Vector& v )
 {
    TNL_ASSERT_GT( v.getSize(), 0, "Vector size must be positive." );
 
-   if( std::is_same< ResultType, bool >::value )
+   if( std::is_same_v< ResultType, bool > )
       abort();
 
    using IndexType = typename Vector::IndexType;

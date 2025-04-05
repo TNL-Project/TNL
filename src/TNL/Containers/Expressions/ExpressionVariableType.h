@@ -3,11 +3,13 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <TNL/Containers/Expressions/TypeTraits.h>
 
 namespace TNL::Containers::Expressions {
 
-enum ExpressionVariableType
+enum ExpressionVariableType : std::uint8_t
 {
    ArithmeticVariable,
    VectorExpressionVariable,

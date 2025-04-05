@@ -131,11 +131,11 @@ getECCEnabled( int deviceNum )
 #if defined( __CUDACC__ )
    cudaDeviceProp properties;
    TNL_BACKEND_SAFE_CALL( cudaGetDeviceProperties( &properties, deviceNum ) );
-   return properties.ECCEnabled;
+   return static_cast< bool >( properties.ECCEnabled );
 #elif defined( __HIP__ )
    hipDeviceProp_t properties;
    TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
-   return properties.ECCEnabled;
+   return static_cast< bool >( properties.ECCEnabled );
 #else
    throw Exceptions::BackendSupportMissing();
 #endif

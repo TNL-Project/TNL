@@ -18,7 +18,7 @@ public:
    //! \brief Alias to the GPU kernel launch configuration structure.
    using LaunchConfiguration = TNL::Backend::LaunchConfiguration;
 
-   static inline void
+   static void
    configSetup( Config::ConfigDescription& config, const std::string& prefix = "" )
    {
 #if defined( __HIP__ )
@@ -33,7 +33,7 @@ public:
 #endif
    }
 
-   static inline bool
+   static bool
    setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" )
    {
 #if defined( __CUDACC__ ) || defined( __HIP__ )

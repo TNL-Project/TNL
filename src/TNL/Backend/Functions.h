@@ -77,7 +77,7 @@ memcpy( void* dst, const void* src, std::size_t sizeBytes, MemcpyKind kind )
 [[nodiscard]] inline stream_t
 streamCreateWithPriority( unsigned int flags, int priority )
 {
-   stream_t stream = 0;
+   stream_t stream = 0;  // NOLINT(modernize-use-nullptr)
 #if defined( __CUDACC__ )
    TNL_BACKEND_SAFE_CALL( cudaStreamCreateWithPriority( &stream, flags, priority ) );
 #elif defined( __HIP__ )
@@ -93,7 +93,7 @@ streamDestroy( stream_t stream )
 {
 #if defined( __CUDACC__ )
    // cannot free a null stream
-   if( stream != 0 )
+   if( stream != 0 )  // NOLINT(modernize-use-nullptr)
       TNL_BACKEND_SAFE_CALL( cudaStreamDestroy( stream ) );
 #elif defined( __HIP__ )
    // cannot free a null stream

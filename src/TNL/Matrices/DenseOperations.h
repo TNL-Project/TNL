@@ -3,9 +3,11 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace TNL::Matrices {
 
-enum class TransposeState
+enum class TransposeState : std::uint8_t
 {
    None,
    Transpose

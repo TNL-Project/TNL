@@ -79,20 +79,20 @@ public:
             typename Container< Index >::ViewType isBoundary,
             typename Container< Real >::ViewType center,
             typename Container< Real >::ViewType measure )
-      : calls( calls ),
-        indices( indices ),
-        coordinates( coordinates ),
-        normals( normals ),
-        orientations( orientations ),
-        isBoundary( isBoundary ),
-        center( center ),
-        measure( measure )
+      : calls( std::move( calls ) ),
+        indices( std::move( indices ) ),
+        coordinates( std::move( coordinates ) ),
+        normals( std::move( normals ) ),
+        orientations( std::move( orientations ) ),
+        isBoundary( std::move( isBoundary ) ),
+        center( std::move( center ) ),
+        measure( std::move( measure ) )
       {}
 
       template< typename Entity >
       __cuda_callable__
       void
-      store( const Entity entity )
+      store( const Entity& entity )
       {
          this->store( entity, entity.getIndex() );
       }
@@ -100,7 +100,7 @@ public:
       template< typename Entity >
       __cuda_callable__
       void
-      store( const Entity entity, const Index index )
+      store( const Entity& entity, const Index index )
       {
          calls[ index ] += 1;
          indices[ index ] = entity.getIndex();
@@ -108,9 +108,9 @@ public:
          orientations[ index ] = entity.getOrientation();
          measure[ index ] = entity.getMeasure();
 
-         auto coordinates = entity.getCoordinates();
-         auto normals = entity.getNormals();
-         auto center = entity.getCenter();
+         const auto& coordinates = entity.getCoordinates();
+         const auto& normals = entity.getNormals();
+         const auto& center = entity.getCenter();
 
          for( Index i = 0; i < GridDimension; i++ ) {
             Index containerIndex = index * GridDimension + i;
@@ -124,7 +124,7 @@ public:
       template< typename Entity >
       __cuda_callable__
       void
-      clear( const Entity entity )
+      clear( const Entity& entity )
       {
          auto index = entity.getIndex();
 
@@ -150,10 +150,11 @@ public:
          }
       }
 
-      EntityPrototype< Index, Real, GridDimension >
+      [[nodiscard]] EntityPrototype< Index, Real, GridDimension >
       getEntity( const Index index )
       {
-         Coordinate coordinates, normals;
+         Coordinate coordinates;
+         Coordinate normals;
          Point center;
 
          for( Index i = 0; i < GridDimension; i++ ) {
@@ -219,7 +220,7 @@ public:
      measure( measure )
    {}
 
-   View
+   [[nodiscard]] View
    getView()
    {
       return { calls.getView(),        indices.getView(),    coordinates.getView(), normals.getView(),
@@ -227,7 +228,7 @@ public:
    }
 
    template< typename NewDevice >
-   EntityDataStore< Index, Real, NewDevice, GridDimension >
+   [[nodiscard]] EntityDataStore< Index, Real, NewDevice, GridDimension >
    move() const
    {
       using NewIndexContainer = TNL::Containers::Array< Index, NewDevice, Index >;
@@ -246,7 +247,7 @@ public:
       return newContainer;
    }
 
-   typename Container< Index >::ViewType
+   [[nodiscard]] typename Container< Index >::ViewType
    getCallsView()
    {
       return calls.getView();

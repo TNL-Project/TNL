@@ -449,7 +449,8 @@ testArrayElementwiseAccess( Array< Value, Devices::Cuda, Index >&& u )
    using ArrayType = Array< Value, Devices::Cuda, Index >;
    u.setSize( 10 );
    ArrayType v( 10 );
-   Pointers::DevicePointer< ArrayType > kernel_u( u ), kernel_v( v );
+   Pointers::DevicePointer< ArrayType > kernel_u( u );
+   Pointers::DevicePointer< ArrayType > kernel_v( v );
    // clang-format off
    testSetGetElementKernel<<< 1, 16 >>>( &kernel_u.template modifyData< Devices::Cuda >(),
                                          &kernel_v.template modifyData< Devices::Cuda >() );
@@ -499,7 +500,8 @@ test_setElement_on_device( const Array< Value, Devices::Cuda, Index >& )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ArrayType = Array< Value, Devices::Cuda, Index >;
-   ArrayType a( 10, 0 ), b( 10, 0 );
+   ArrayType a( 10, 0 );
+   ArrayType b( 10, 0 );
    Pointers::DevicePointer< ArrayType > kernel_a( a );
    Pointers::DevicePointer< ArrayType > kernel_b( b );
    // clang-format off
@@ -557,7 +559,9 @@ TYPED_TEST( ArrayTest, comparisonOperator )
    using ArrayType = typename TestFixture::ArrayType;
    using HostArrayType = typename ArrayType::template Self< typename ArrayType::ValueType, Devices::Sequential >;
 
-   ArrayType u( 10 ), v( 10 ), w( 10 );
+   ArrayType u( 10 );
+   ArrayType v( 10 );
+   ArrayType w( 10 );
    HostArrayType u_host( 10 );
    for( int i = 0; i < 10; i++ ) {
       u.setElement( i, i );
@@ -603,7 +607,7 @@ TYPED_TEST( ArrayTest, comparisonOperatorWithDifferentType )
    EXPECT_FALSE( u != v );
 
    // the comparison will be in floats
-   v.setElement( 0, 0.1f );
+   v.setElement( 0, 0.1F );
    EXPECT_FALSE( u == v );
    EXPECT_TRUE( u != v );
 }
@@ -613,7 +617,8 @@ TYPED_TEST( ArrayTest, assignmentOperator )
    using ArrayType = typename TestFixture::ArrayType;
    using HostArrayType = typename ArrayType::template Self< typename ArrayType::ValueType, Devices::Sequential >;
 
-   ArrayType u( 10 ), v( 10 );
+   ArrayType u( 10 );
+   ArrayType v( 10 );
    HostArrayType u_host( 10 );
    for( int i = 0; i < 10; i++ ) {
       u.setElement( i, i );
@@ -686,7 +691,8 @@ TYPED_TEST( ArrayTest, SaveAndLoad )
 {
    using ArrayType = typename TestFixture::ArrayType;
 
-   ArrayType u, v;
+   ArrayType u;
+   ArrayType v;
    v.setSize( 100 );
    for( int i = 0; i < 100; i++ )
       v.setElement( i, 42 );
@@ -746,7 +752,8 @@ TYPED_TEST( ArrayTest, LoadViaView )
 {
    using ArrayType = typename TestFixture::ArrayType;
 
-   ArrayType v, w;
+   ArrayType v;
+   ArrayType w;
    v.setSize( 100 );
    for( int i = 0; i < 100; i++ )
       v.setElement( i, 42 );

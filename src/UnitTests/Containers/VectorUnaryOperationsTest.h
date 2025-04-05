@@ -157,7 +157,8 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
    #define SETUP_UNARY_VECTOR_TEST( _ )                        \
       using VectorOrView = typename TestFixture::VectorOrView; \
                                                                \
-      VectorOrView V1, V2;                                     \
+      VectorOrView V1;                                         \
+      VectorOrView V2;                                         \
                                                                \
       V1 = 1;                                                  \
       V2 = 2;                                                  \
@@ -188,7 +189,8 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
       const LocalRangeType localRange = splitRange< typename VectorOrView::IndexType >( size, this->communicator ); \
       using Synchronizer = DistributedArraySynchronizer< VectorOrView >;                                            \
                                                                                                                     \
-      VectorType _V1, _V2;                                                                                          \
+      VectorType _V1;                                                                                               \
+      VectorType _V2;                                                                                               \
       _V1.setDistribution( localRange, this->ghosts, size, this->communicator );                                    \
       _V2.setDistribution( localRange, this->ghosts, size, this->communicator );                                    \
                                                                                                                     \
@@ -199,7 +201,8 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
       _V1 = 1;                                                                                                      \
       _V2 = 2;                                                                                                      \
                                                                                                                     \
-      VectorOrView V1( _V1 ), V2( _V2 );                                                                            \
+      VectorOrView V1( _V1 );                                                                                       \
+      VectorOrView V2( _V2 );                                                                                       \
       (void) 0  // dummy statement here enforces ';' after the macro use
 
    #define SETUP_UNARY_VECTOR_TEST_FUNCTION( size, begin, end, function )                                                    \
@@ -245,12 +248,14 @@ TYPED_TEST_SUITE( VectorUnaryOperationsTest, VectorTypes );
       using VectorOrView = typename TestFixture::VectorOrView; \
       using ValueType = typename VectorType::ValueType;        \
                                                                \
-      VectorType _V1( size ), _V2( size );                     \
+      VectorType _V1( size );                                  \
+      VectorType _V2( size );                                  \
                                                                \
       _V1 = ValueType( 1 );                                    \
       _V2 = ValueType( 2 );                                    \
                                                                \
-      VectorOrView V1( _V1 ), V2( _V2 );                       \
+      VectorOrView V1( _V1 );                                  \
+      VectorOrView V2( _V2 );                                  \
       (void) 0  // dummy statement here enforces ';' after the macro use
 
    #define SETUP_UNARY_VECTOR_TEST_FUNCTION( size, begin, end, function )                                                    \
@@ -538,8 +543,8 @@ TYPED_TEST( VectorUnaryOperationsTest, atanh )
 TYPED_TEST( VectorUnaryOperationsTest, pow )
 {
    // FIXME: for integer exponent, the test fails with CUDA
-   //   auto pow3 = [](auto i) { return TNL::pow(i, 3); };
-   auto pow3 = []( auto i )
+   //   auto pow3 = [](const auto& i) { return TNL::pow(i, 3); };
+   auto pow3 = []( const auto& i )
    {
       return TNL::pow( i, 3.0 );
    };
@@ -673,13 +678,13 @@ TYPED_TEST( VectorUnaryOperationsTest, cast )
 
    // vector or vector view
    auto expression1 = cast< bool >( V1 );
-   static_assert( std::is_same< typename decltype( expression1 )::RealType, bool >::value,
+   static_assert( std::is_same_v< typename decltype( expression1 )::RealType, bool >,
                   "BUG: the cast function does not work for vector or vector view." );
    EXPECT_EQ( expression1, true );
 
    // binary expression
    auto expression2 = cast< bool >( V1 + V1 );
-   static_assert( std::is_same< typename decltype( expression2 )::RealType, bool >::value,
+   static_assert( std::is_same_v< typename decltype( expression2 )::RealType, bool >,
                   "BUG: the cast function does not work for binary expression." );
    // FIXME: expression2 cannot be reused, because expression templates for StaticVector and DistributedVector contain
    // references and the test would crash in Release
@@ -688,7 +693,7 @@ TYPED_TEST( VectorUnaryOperationsTest, cast )
 
    // unary expression
    auto expression3 = cast< bool >( -V1 );
-   static_assert( std::is_same< typename decltype( expression3 )::RealType, bool >::value,
+   static_assert( std::is_same_v< typename decltype( expression3 )::RealType, bool >,
                   "BUG: the cast function does not work for unary expression." );
    // FIXME: expression3 cannot be reused, because expression templates for StaticVector and DistributedVector contain
    // references and the test would crash in Release

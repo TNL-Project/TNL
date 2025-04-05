@@ -101,11 +101,10 @@ __cuda_callable__
 bool
 StaticIterativeSolver< Real, Index >::checkNextIteration()
 {
-   if( std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
-       || ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() >= this->getMinIterations() )
-       || ( this->getResidue() < this->getConvergenceResidue() && this->getIterations() >= this->getMinIterations() ) )
-      return false;
-   return true;
+   return ! static_cast< bool >(
+      std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
+      || ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() >= this->getMinIterations() )
+      || ( this->getResidue() < this->getConvergenceResidue() && this->getIterations() >= this->getMinIterations() ) );
 }
 
 template< typename Real, typename Index >

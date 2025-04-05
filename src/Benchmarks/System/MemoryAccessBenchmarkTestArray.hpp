@@ -77,8 +77,8 @@ template< int Size >
 bool
 MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
 {
-   if( 4096 % sizeof( ElementType ) ) {
-      std::cerr << "Element size does not divide the page size" << std::endl;
+   if( 4096 % sizeof( ElementType ) != 0U ) {
+      std::cerr << "Element size does not divide the page size.\n";
       return false;
    }
    const unsigned int elementsPerPage = 4096 / sizeof( ElementType );
@@ -92,7 +92,9 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
    if( this->numberOfElements % elementsPerPage != 0 )
       elementsOnPageLeft[ numberOfPages - 1 ] = this->numberOfElements % elementsPerPage;
 
-   unsigned long long int previousElement, newElement, pageIndex;
+   unsigned long long int previousElement;
+   unsigned long long int newElement;
+   unsigned long long int pageIndex;
    usedElements[ 0 ] = 1;
    previousElement = 0;
    elementsOnPageLeft[ 0 ]--;
@@ -100,7 +102,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
 
    for( unsigned long long int i = 1; i < this->numberOfElements; i++ ) {
       pageIndex = ( pageIndex + 1 ) % numberOfPages;
-      while( ! elementsOnPageLeft[ pageIndex ] )
+      while( elementsOnPageLeft[ pageIndex ] == 0 )
          pageIndex = ( pageIndex + 1 ) % numberOfPages;
       elementsOnPageLeft[ pageIndex ]--;
 
@@ -111,7 +113,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
 
       if( pageIndex * elementsPerPage + newElement >= this->numberOfElements )
          newElement = rand() % ( this->numberOfElements % elementsPerPage );
-      while( usedElements[ pageIndex * elementsPerPage + newElement ] )
+      while( usedElements[ pageIndex * elementsPerPage + newElement ] != 0 )
          newElement = ( newElement + 1 ) % thisPageElements;
       newElement = pageIndex * elementsPerPage + newElement;
 
@@ -121,7 +123,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
       usedElements[ newElement ] = 1;
       previousElement = newElement;
    }
-   this->array[ newElement ].next = NULL;
+   this->array[ newElement ].next = nullptr;
    this->array[ newElement ][ 0 ] = 1;
    this->array[ newElement ][ ( Size - 1 ) / 2 ] = 1;
    delete[] elementsOnPageLeft;
@@ -136,7 +138,8 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( const unsigned lon
                                                               const int numThreads )
 {
    TNL::Containers::Array< char > usedElements( blockSize, 0 );
-   TNL::Containers::Array< unsigned long long int > previousElement( numThreads, 0 ), newElement( numThreads, 0 );
+   TNL::Containers::Array< unsigned long long int > previousElement( numThreads, 0 );
+   TNL::Containers::Array< unsigned long long int > newElement( numThreads, 0 );
 
    if( blockLink[ 0 ] != NULL )
       for( int tid = 0; tid < numThreads && tid < (int) blockSize; tid++ )
@@ -151,10 +154,10 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( const unsigned lon
       for( int tid = 0; tid < numThreads && i < blockSize; tid++, i++ ) {
          newElement[ tid ] = rand() % blockSize;
          unsigned long long int aux = newElement[ tid ];
-         while( usedElements[ newElement[ tid ] ] ) {
+         while( usedElements[ newElement[ tid ] ] != 0 ) {
             newElement[ tid ] = ( newElement[ tid ] + 1 ) % blockSize;
             if( aux == newElement[ tid ] ) {
-               std::cerr << "Error, I cannot setup random access test." << std::endl;
+               std::cerr << "Error, I cannot setup random access test.\n";
                return false;
             }
          }
@@ -168,7 +171,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( const unsigned lon
       }
    }
    for( int tid = 0; tid < numThreads && tid < (int) blockSize; tid++ ) {
-      this->array[ newElement[ tid ] ].next = NULL;
+      this->array[ newElement[ tid ] ].next = nullptr;
       if( Size > 1 ) {
          this->array[ newElement[ tid ] ][ 0 ] = newElement[ tid ];
          this->array[ newElement[ tid ] ][ ( Size - 1 ) / 2 ] = newElement[ tid ];
@@ -182,9 +185,9 @@ template< int Size >
 bool
 MemoryAccessBenchmarkTestArray< Size >::setupRandomTest( int tlbTestBlockSize, const int numThreads )
 {
-   srand( time( NULL ) );
+   srand( time( nullptr ) );
 
-   TNL::Containers::Array< ElementType* > blockLink( numThreads, 0 );
+   TNL::Containers::Array< ElementType* > blockLink( numThreads, nullptr );
 
    if( tlbTestBlockSize == 0 )
       return this->setupRandomTestBlock( this->numberOfElements, blockLink, numThreads );
@@ -208,7 +211,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupSequentialTest( const int numThread
          if( i + numThreads < this->numberOfElements )
             this->array[ i ].next = &this->array[ i + numThreads ];
          else
-            this->array[ i ].next = NULL;
+            this->array[ i ].next = nullptr;
          if( Size > 1 ) {
             this->array[ i ][ 0 ] = i;
             this->array[ i ][ ( Size - 1 ) / 2 ] = i;
@@ -231,7 +234,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupSequentialTest( const int numThread
          }
          for( int i = firstElement; i < lastElement; i++ ) {
             if( i == lastElement - 1 )
-               this->array[ i ].next = NULL;
+               this->array[ i ].next = nullptr;
             else
                this->array[ i ].next = &this->array[ i + 1 ];
             if( Size > 1 ) {

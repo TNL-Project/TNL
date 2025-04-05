@@ -4,13 +4,9 @@
 #pragma once
 
 #include <cstring>
-#include <fstream>
-#include <iomanip>
 #include <iostream>
-#include <string>
-#include <limits.h>
+#include <climits>
 #include <sys/time.h>
-#include <math.h>
 
 #include <TNL/Containers/Array.h>
 
@@ -35,7 +31,7 @@ struct MemoryAccessBenchmarkTestElement< 1 >
    long int&
    operator[]( int i )
    {
-      std::cerr << "Calling of operator [] for TestArrayElement with Size = 1 does not make sense." << std::endl;
+      std::cerr << "Calling of operator [] for TestArrayElement with Size = 1 does not make sense.\n";
       abort();
    }
 
@@ -61,7 +57,7 @@ public:
    void
    setThreadsCount( int threads_count );
 
-   unsigned long long int
+   [[nodiscard]] unsigned long long int
    getElementsCount() const;
 
    void
@@ -74,7 +70,7 @@ public:
    setReadTest( bool readTest );
 
    void
-   setCentralDataAccess( bool centralDataAccess );
+   setCentralDataAccess( bool accessCentralData );
 
    void
    setInterleaving( bool interleaving );

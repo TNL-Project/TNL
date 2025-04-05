@@ -33,7 +33,7 @@ runBlasBenchmarks( Benchmark<>& benchmark,
    } );
 
    // Array operations
-   std::cout << "\n== Array operations ==\n" << std::endl;
+   std::cout << "\n== Array operations ==\n\n";
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
          { "precision", getType< Real >() },
@@ -79,7 +79,7 @@ runBlasBenchmarks( Benchmark<>& benchmark,
 #endif
 
    // Vector operations
-   std::cout << "\n== Vector operations ==\n" << std::endl;
+   std::cout << "\n== Vector operations ==\n\n";
    for( std::size_t size = minSize; size <= maxSize; size *= sizeStepFactor ) {
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
          { "precision", getType< Real >() },
@@ -90,7 +90,7 @@ runBlasBenchmarks( Benchmark<>& benchmark,
 
    // Triad benchmark: copy from host, compute, copy to host
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   std::cout << "\n== Triad ==\n" << std::endl;
+   std::cout << "\n== Triad ==\n\n";
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
       benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
          { "precision", getType< Real >() },
@@ -101,7 +101,7 @@ runBlasBenchmarks( Benchmark<>& benchmark,
 #endif
 
    // Dense matrix-vector multiplication
-   std::cout << "\n== Dense matrix-vector multiplication ==\n" << std::endl;
+   std::cout << "\n== Dense matrix-vector multiplication ==\n\n";
    for( std::size_t rows = 10; rows <= 20000 * 20000; rows *= 2 ) {
       for( std::size_t columns = 10; columns <= 20000 * 20000; columns *= 2 ) {
          if( rows * columns > 20000 * 20000 )
@@ -175,7 +175,7 @@ main( int argc, char* argv[] )
    const int verbose = parameters.getParameter< int >( "verbose" );
 
    if( sizeStepFactor <= 1 ) {
-      std::cerr << "The value of --size-step-factor must be greater than 1." << std::endl;
+      std::cerr << "The value of --size-step-factor must be greater than 1.\n";
       return EXIT_FAILURE;
    }
 

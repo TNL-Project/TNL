@@ -10,7 +10,7 @@
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
-enum LightCSRSThreadsMapping
+enum LightCSRSThreadsMapping : std::uint8_t
 {
    LightCSRConstantThreads,
    CSRLightAutomaticThreads,

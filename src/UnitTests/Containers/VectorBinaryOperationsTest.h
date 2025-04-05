@@ -534,11 +534,11 @@ TYPED_TEST( VectorBinaryOperationsTest, division )
    EXPECT_EQ( LeftReal( 2 ) / ( R1 + R1 ), 1 );
 }
 
-template< typename Left, typename Right, std::enable_if_t< std::is_const< typename Left::RealType >::value, bool > = true >
+template< typename Left, typename Right, std::enable_if_t< std::is_const_v< typename Left::RealType >, bool > = true >
 void
 test_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
 {}
-template< typename Left, typename Right, std::enable_if_t< ! std::is_const< typename Left::RealType >::value, bool > = true >
+template< typename Left, typename Right, std::enable_if_t< ! std::is_const_v< typename Left::RealType >, bool > = true >
 void
 test_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
 {
@@ -561,11 +561,11 @@ TYPED_TEST( VectorBinaryOperationsTest, assignment )
    test_assignment( L1, L2, R1, R2 );
 }
 
-template< typename Left, typename Right, std::enable_if_t< std::is_const< typename Left::RealType >::value, bool > = true >
+template< typename Left, typename Right, std::enable_if_t< std::is_const_v< typename Left::RealType >, bool > = true >
 void
 test_add_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
 {}
-template< typename Left, typename Right, std::enable_if_t< ! std::is_const< typename Left::RealType >::value, bool > = true >
+template< typename Left, typename Right, std::enable_if_t< ! std::is_const_v< typename Left::RealType >, bool > = true >
 void
 test_add_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
 {
@@ -591,11 +591,11 @@ TYPED_TEST( VectorBinaryOperationsTest, add_assignment )
    test_add_assignment( L1, L2, R1, R2 );
 }
 
-template< typename Left, typename Right, std::enable_if_t< std::is_const< typename Left::RealType >::value, bool > = true >
+template< typename Left, typename Right, std::enable_if_t< std::is_const_v< typename Left::RealType >, bool > = true >
 void
 test_subtract_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
 {}
-template< typename Left, typename Right, std::enable_if_t< ! std::is_const< typename Left::RealType >::value, bool > = true >
+template< typename Left, typename Right, std::enable_if_t< ! std::is_const_v< typename Left::RealType >, bool > = true >
 void
 test_subtract_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
 {
@@ -621,11 +621,11 @@ TYPED_TEST( VectorBinaryOperationsTest, subtract_assignment )
    test_subtract_assignment( L1, L2, R1, R2 );
 }
 
-template< typename Left, typename Right, std::enable_if_t< std::is_const< typename Left::RealType >::value, bool > = true >
+template< typename Left, typename Right, std::enable_if_t< std::is_const_v< typename Left::RealType >, bool > = true >
 void
 test_multiply_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
 {}
-template< typename Left, typename Right, std::enable_if_t< ! std::is_const< typename Left::RealType >::value, bool > = true >
+template< typename Left, typename Right, std::enable_if_t< ! std::is_const_v< typename Left::RealType >, bool > = true >
 void
 test_multiply_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
 {
@@ -651,11 +651,11 @@ TYPED_TEST( VectorBinaryOperationsTest, multiply_assignment )
    test_multiply_assignment( L1, L2, R1, R2 );
 }
 
-template< typename Left, typename Right, std::enable_if_t< std::is_const< typename Left::RealType >::value, bool > = true >
+template< typename Left, typename Right, std::enable_if_t< std::is_const_v< typename Left::RealType >, bool > = true >
 void
 test_divide_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
 {}
-template< typename Left, typename Right, std::enable_if_t< ! std::is_const< typename Left::RealType >::value, bool > = true >
+template< typename Left, typename Right, std::enable_if_t< ! std::is_const_v< typename Left::RealType >, bool > = true >
 void
 test_divide_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
 {
@@ -701,7 +701,7 @@ TYPED_TEST( VectorBinaryOperationsTest, scalarProduct )
 #endif
 
    const int size = L.getSize();
-   const int expected = size % 2 ? 1 : 0;
+   const int expected = ( size % 2 != 0 ) ? 1 : 0;
 
    // vector or vector view
    EXPECT_EQ( dot( L, R ), expected );

@@ -25,7 +25,7 @@ public:
    using ByteArrayView = ArrayView< std::uint8_t, Device, Index >;
    using RequestsVector = std::vector< MPI_Request >;
 
-   enum class AsyncPolicy
+   enum class AsyncPolicy : std::uint8_t
    {
       synchronous,
       deferred,

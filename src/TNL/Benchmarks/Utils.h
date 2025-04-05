@@ -70,13 +70,14 @@ timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const 
       performanceCounters.stop();
 
       results_time[ loops ] = timer.getRealTime();
-      if constexpr( std::is_same< Device, Devices::Sequential >::value || std::is_same< Device, Devices::Host >::value )
+      if constexpr( std::is_same_v< Device, Devices::Sequential > || std::is_same_v< Device, Devices::Host > )
          results_cpu_cycles[ loops ] = performanceCounters.getCPUCycles();
    }
 
    const double mean_time = sum( results_time ) / (double) loops;
    const double mean_cpu_cycles = sum( results_cpu_cycles ) / (double) loops;
-   double stddev_time, stddev_cpu_cycles;
+   double stddev_time;
+   double stddev_cpu_cycles;
    if( loops > 1 ) {
       stddev_time = 1.0 / std::sqrt( loops - 1 ) * l2Norm( results_time - mean_time );
       stddev_cpu_cycles = 1.0 / std::sqrt( loops - 1 ) * l2Norm( results_cpu_cycles - mean_cpu_cycles );
@@ -132,7 +133,7 @@ getHardwareMetadata()
       { "GPU clock rate (MHz)", std::to_string( (double) Backend::getClockRate( activeGPU ) / 1e3 ) },
       { "GPU global memory (GB)", std::to_string( (double) Backend::getGlobalMemorySize( activeGPU ) / 1e9 ) },
       { "GPU memory clock rate (MHz)", std::to_string( (double) Backend::getMemoryClockRate( activeGPU ) / 1e3 ) },
-      { "GPU memory ECC enabled", std::to_string( Backend::getECCEnabled( activeGPU ) ) },
+      { "GPU memory ECC enabled", TNL::convertToString( Backend::getECCEnabled( activeGPU ) ) },
 #endif
    };
 

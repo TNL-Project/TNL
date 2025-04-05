@@ -45,16 +45,20 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
    using VertexMeshEntityType = typename QuadrangleMeshEntityType::SubentityTraits< 0 >::SubentityType;
 
    using PointType = typename VertexMeshEntityType::PointType;
-   static_assert( std::is_same< PointType, Containers::StaticVector< 2, RealType > >::value, "unexpected PointType" );
+   static_assert( std::is_same_v< PointType, Containers::StaticVector< 2, RealType > >, "unexpected PointType" );
 
-   const IndexType xSize( 3 ), ySize( 4 );
-   const RealType width( 1.0 ), height( 1.0 );
-   const RealType hx( width / (RealType) xSize ), hy( height / (RealType) ySize );
+   const IndexType xSize( 3 );
+   const IndexType ySize( 4 );
+   const RealType width( 1.0 );
+   const RealType height( 1.0 );
+   const RealType hx( width / (RealType) xSize );
+   const RealType hy( height / (RealType) ySize );
    const IndexType numberOfCells = xSize * ySize;
    const IndexType numberOfVertices = ( xSize + 1 ) * ( ySize + 1 );
 
-   typedef Mesh< TestQuadrangleMeshConfig > TestQuadrangleMesh;
-   TestQuadrangleMesh mesh, mesh2;
+   using TestQuadrangleMesh = Mesh< TestQuadrangleMeshConfig >;
+   TestQuadrangleMesh mesh;
+   TestQuadrangleMesh mesh2;
    MeshBuilder< TestQuadrangleMesh > meshBuilder;
    meshBuilder.setEntitiesCount( numberOfVertices, numberOfCells );
 
@@ -101,20 +105,20 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
    }
 
    // Test setting other tags
-   for( size_t i = 0; i < boundaryCells.size(); i++ ) {
-      mesh.template addEntityTag< 2 >( boundaryCells[ i ], Meshes::EntityTags::GhostEntity );
-      EXPECT_EQ( mesh.template getEntityTag< 2 >( boundaryCells[ i ] ),
+   for( int boundaryCell : boundaryCells ) {
+      mesh.template addEntityTag< 2 >( boundaryCell, Meshes::EntityTags::GhostEntity );
+      EXPECT_EQ( mesh.template getEntityTag< 2 >( boundaryCell ),
                  Meshes::EntityTags::BoundaryEntity | Meshes::EntityTags::GhostEntity );
-      EXPECT_TRUE( mesh.template isBoundaryEntity< 2 >( boundaryCells[ i ] ) );
-      mesh.template removeEntityTag< 2 >( boundaryCells[ i ], Meshes::EntityTags::GhostEntity );
-      EXPECT_EQ( mesh.template getEntityTag< 2 >( boundaryCells[ i ] ), Meshes::EntityTags::BoundaryEntity );
+      EXPECT_TRUE( mesh.template isBoundaryEntity< 2 >( boundaryCell ) );
+      mesh.template removeEntityTag< 2 >( boundaryCell, Meshes::EntityTags::GhostEntity );
+      EXPECT_EQ( mesh.template getEntityTag< 2 >( boundaryCell ), Meshes::EntityTags::BoundaryEntity );
    }
-   for( size_t i = 0; i < interiorCells.size(); i++ ) {
-      mesh.template addEntityTag< 2 >( interiorCells[ i ], Meshes::EntityTags::GhostEntity );
-      EXPECT_EQ( mesh.template getEntityTag< 2 >( interiorCells[ i ] ), Meshes::EntityTags::GhostEntity );
-      EXPECT_FALSE( mesh.template isBoundaryEntity< 2 >( interiorCells[ i ] ) );
-      mesh.template removeEntityTag< 2 >( interiorCells[ i ], Meshes::EntityTags::GhostEntity );
-      EXPECT_EQ( mesh.template getEntityTag< 2 >( interiorCells[ i ] ), 0 );
+   for( int interiorCell : interiorCells ) {
+      mesh.template addEntityTag< 2 >( interiorCell, Meshes::EntityTags::GhostEntity );
+      EXPECT_EQ( mesh.template getEntityTag< 2 >( interiorCell ), Meshes::EntityTags::GhostEntity );
+      EXPECT_FALSE( mesh.template isBoundaryEntity< 2 >( interiorCell ) );
+      mesh.template removeEntityTag< 2 >( interiorCell, Meshes::EntityTags::GhostEntity );
+      EXPECT_EQ( mesh.template getEntityTag< 2 >( interiorCell ), 0 );
    }
 
    std::vector< IndexType > boundaryFaces = { 0, 3, 4, 7, 8, 12, 15, 19, 22, 25, 26, 28, 29, 30 };
@@ -134,20 +138,20 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
    }
 
    // Test setting other tags
-   for( size_t i = 0; i < boundaryFaces.size(); i++ ) {
-      mesh.template addEntityTag< 1 >( boundaryFaces[ i ], Meshes::EntityTags::GhostEntity );
-      EXPECT_EQ( mesh.template getEntityTag< 1 >( boundaryFaces[ i ] ),
+   for( int boundaryFace : boundaryFaces ) {
+      mesh.template addEntityTag< 1 >( boundaryFace, Meshes::EntityTags::GhostEntity );
+      EXPECT_EQ( mesh.template getEntityTag< 1 >( boundaryFace ),
                  Meshes::EntityTags::BoundaryEntity | Meshes::EntityTags::GhostEntity );
-      EXPECT_TRUE( mesh.template isBoundaryEntity< 1 >( boundaryFaces[ i ] ) );
-      mesh.template removeEntityTag< 1 >( boundaryFaces[ i ], Meshes::EntityTags::GhostEntity );
-      EXPECT_EQ( mesh.template getEntityTag< 1 >( boundaryFaces[ i ] ), Meshes::EntityTags::BoundaryEntity );
+      EXPECT_TRUE( mesh.template isBoundaryEntity< 1 >( boundaryFace ) );
+      mesh.template removeEntityTag< 1 >( boundaryFace, Meshes::EntityTags::GhostEntity );
+      EXPECT_EQ( mesh.template getEntityTag< 1 >( boundaryFace ), Meshes::EntityTags::BoundaryEntity );
    }
-   for( size_t i = 0; i < interiorFaces.size(); i++ ) {
-      mesh.template addEntityTag< 1 >( interiorFaces[ i ], Meshes::EntityTags::GhostEntity );
-      EXPECT_EQ( mesh.template getEntityTag< 1 >( interiorFaces[ i ] ), Meshes::EntityTags::GhostEntity );
-      EXPECT_FALSE( mesh.template isBoundaryEntity< 1 >( interiorFaces[ i ] ) );
-      mesh.template removeEntityTag< 1 >( interiorFaces[ i ], Meshes::EntityTags::GhostEntity );
-      EXPECT_EQ( mesh.template getEntityTag< 1 >( interiorFaces[ i ] ), 0 );
+   for( int interiorFace : interiorFaces ) {
+      mesh.template addEntityTag< 1 >( interiorFace, Meshes::EntityTags::GhostEntity );
+      EXPECT_EQ( mesh.template getEntityTag< 1 >( interiorFace ), Meshes::EntityTags::GhostEntity );
+      EXPECT_FALSE( mesh.template isBoundaryEntity< 1 >( interiorFace ) );
+      mesh.template removeEntityTag< 1 >( interiorFace, Meshes::EntityTags::GhostEntity );
+      EXPECT_EQ( mesh.template getEntityTag< 1 >( interiorFace ), 0 );
    }
 }
 

@@ -12,9 +12,9 @@ template< typename Grid, typename Iterator >
 void
 test( Iterator& iterator,
       Grid& grid,
-      typename Grid::CoordinatesType coordinate,
-      typename Grid::CoordinatesType normals,
-      typename Grid::PointType center,
+      const typename Grid::CoordinatesType& coordinate,
+      const typename Grid::CoordinatesType& normals,
+      const typename Grid::PointType& center,
       bool isBoundary,
       typename Iterator::Index index,
       typename Iterator::Real measure,

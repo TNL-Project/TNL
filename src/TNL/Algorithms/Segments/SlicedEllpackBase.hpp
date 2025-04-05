@@ -68,7 +68,7 @@ auto
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentSize( const IndexType segmentIdx ) const -> IndexType
 {
    const Index sliceIdx = segmentIdx / SliceSize;
-   if constexpr( std::is_same< DeviceType, Devices::Host >::value )
+   if constexpr( std::is_same_v< DeviceType, Devices::Host > )
       return this->sliceSegmentSizes[ sliceIdx ];
    else {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
@@ -105,7 +105,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::getGlobalIndex( con
    const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
    IndexType sliceOffset;
    IndexType segmentSize;
-   if constexpr( std::is_same< DeviceType, Devices::Host >::value ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       sliceOffset = this->sliceOffsets[ sliceIdx ];
       segmentSize = this->sliceSegmentSizes[ sliceIdx ];
    }

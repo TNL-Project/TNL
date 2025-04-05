@@ -8,6 +8,7 @@ using MPI_Request = int;
 using MPI_Comm = int;
 using MPI_Info = int;
 
+// NOLINTNEXTLINE(performance-enum-size)
 enum MPI_Op
 {
    MPI_MAX,
@@ -25,6 +26,7 @@ enum MPI_Op
 };
 
 // Comparison results
+// NOLINTNEXTLINE(performance-enum-size)
 enum
 {
    MPI_IDENT,
@@ -34,6 +36,7 @@ enum
 };
 
 // MPI_Init_thread constants
+// NOLINTNEXTLINE(performance-enum-size)
 enum
 {
    MPI_THREAD_SINGLE,
@@ -43,6 +46,7 @@ enum
 };
 
 // Miscellaneous constants
+// NOLINTNEXTLINE(performance-enum-size)
 enum
 {
    MPI_ANY_SOURCE = -1,    /* match any source rank */
@@ -59,6 +63,7 @@ enum
 // MPI handles
 // (According to the MPI standard, they are only link-time constants (not
 // compile-time constants). OpenMPI implements them as global variables.)
+// NOLINTNEXTLINE(performance-enum-size)
 enum
 {
    MPI_COMM_WORLD = 1,
@@ -66,6 +71,7 @@ enum
 };
 
 // NULL handles
+// NOLINTNEXTLINE(performance-enum-size)
 enum
 {
    MPI_GROUP_NULL = 0,

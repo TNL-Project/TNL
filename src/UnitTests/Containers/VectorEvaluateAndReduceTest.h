@@ -1,7 +1,5 @@
 #pragma once
 
-#include <limits>
-
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include "VectorTestSetup.h"
@@ -35,8 +33,12 @@ TYPED_TEST( VectorTest, evaluateAndReduce )
    using RealType = typename VectorType::RealType;
    const int size = VECTOR_TEST_SIZE;
 
-   VectorType _u( size ), _v( size ), _w( size );
-   ViewType u( _u ), v( _v ), w( _w );
+   VectorType _u( size );
+   VectorType _v( size );
+   VectorType _w( size );
+   ViewType u( _u );
+   ViewType v( _v );
+   ViewType w( _w );
    RealType aux( 0.0 );
    for( int i = 0; i < size; i++ ) {
       const RealType x = i;
@@ -78,8 +80,12 @@ TYPED_TEST( VectorTest, addAndReduce )
    using RealType = typename VectorType::RealType;
    const int size = VECTOR_TEST_SIZE;
 
-   VectorType _u( size ), _v( size ), _w( size );
-   ViewType u( _u ), v( _v ), w( _w );
+   VectorType _u( size );
+   VectorType _v( size );
+   VectorType _w( size );
+   ViewType u( _u );
+   ViewType v( _v );
+   ViewType w( _w );
    RealType aux( 0.0 );
    for( int i = 0; i < size; i++ ) {
       const RealType x = i;

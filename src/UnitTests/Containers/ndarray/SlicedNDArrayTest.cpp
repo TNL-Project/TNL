@@ -239,7 +239,10 @@ TEST( SlicedNDArrayTest, CopySemantics )
 {
    const int I = 3;
    const int J = 4;
-   SlicedNDArray< int, SizesHolder< int, 0, 0 >, index_sequence< 0, 1 >, SliceInfo< 1, 2 > > a, b, c;  // J is sliced
+   // J is sliced
+   SlicedNDArray< int, SizesHolder< int, 0, 0 >, index_sequence< 0, 1 >, SliceInfo< 1, 2 > > a;
+   SlicedNDArray< int, SizesHolder< int, 0, 0 >, index_sequence< 0, 1 >, SliceInfo< 1, 2 > > b;
+   SlicedNDArray< int, SizesHolder< int, 0, 0 >, index_sequence< 0, 1 >, SliceInfo< 1, 2 > > c;
    a.setSizes( I, J );
 
    int v = 0;

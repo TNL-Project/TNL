@@ -131,7 +131,8 @@ TYPED_TEST( SegmentedScanTest, inclusive )
    ArrayType v( size );
    ViewType v_view( v );
 
-   FlagsArrayType flags( size ), flags_copy( size );
+   FlagsArrayType flags( size );
+   FlagsArrayType flags_copy( size );
    FlagsViewType flags_view( flags );
    setupFlags( flags_view );
    flags_copy = flags_view;

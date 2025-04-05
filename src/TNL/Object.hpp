@@ -4,7 +4,6 @@
 #pragma once
 
 #include <iostream>
-#include <fstream>
 #include <cstring>
 
 #include <TNL/Object.h>
@@ -22,7 +21,7 @@ Object::getSerializationType()
 inline std::string
 Object::getSerializationTypeVirtual() const
 {
-   return this->getSerializationType();
+   return getSerializationType();
 }
 
 inline void

@@ -5,6 +5,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Containers/StaticVector.h>
+#include <cstdint>
 
 namespace TNL::Meshes::DistributedMeshes {
 
@@ -42,7 +43,7 @@ enum Directions3D {
                   };
 */
 
-enum Directions3D
+enum Directions3D : std::uint8_t
 {
    ZzYzXm = 0,
    ZzYzXp = 1,

@@ -1,9 +1,5 @@
 #pragma once
 
-#include <functional>
-#include <iostream>
-#include <sstream>
-
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Math.h>
@@ -502,7 +498,8 @@ test_VectorProduct_largeMatrix()
       m1.getCompressedRowLengths( rowCapacities );
       EXPECT_EQ( rowCapacities, 1 );
 
-      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 ), out( size, 0.0 );
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 );
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > out( size, 0.0 );
       Kernel kernel;
       kernel.init( m1.getSegments() );
       m1.vectorProduct( in, out, kernel );
@@ -511,7 +508,8 @@ test_VectorProduct_largeMatrix()
          EXPECT_EQ( out.getElement( i ), OutRealType( i + 1 ) );
 
       // Test with large triangular matrix
-      const int rows( size ), columns( size );
+      const int rows( size );
+      const int columns( size );
       Matrix m2( rows, columns );
       rowCapacities.setSize( rows );
       rowCapacities.forAllElements(
@@ -566,7 +564,8 @@ test_VectorProduct_longRowsMatrix()
          value = localIdx + row;
       };
       m3.forAllElements( f );
-      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( columns, 1.0 ), out( rows, 0.0 );
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( columns, 1.0 );
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > out( rows, 0.0 );
       Kernel kernel;
       kernel.init( m3.getSegments() );
       m3.vectorProduct( in, out, kernel );

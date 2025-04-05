@@ -653,7 +653,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::print( std::ostream& str )
          str << std::setw( 10 ) << str_.str();
       }
       if( row < this->getRows() - 1 )
-         str << std::endl;
+         str << '\n';
    }
 }
 

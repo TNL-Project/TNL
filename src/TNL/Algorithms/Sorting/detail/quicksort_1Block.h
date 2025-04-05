@@ -75,9 +75,14 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
    }
 
    static __shared__ int stackTop;
-   static __shared__ int stackArrBegin[ stackSize ], stackArrEnd[ stackSize ], stackDepth[ stackSize ];
-   static __shared__ int begin, end, iteration;
-   static __shared__ int pivotBegin, pivotEnd;
+   static __shared__ int stackArrBegin[ stackSize ];
+   static __shared__ int stackArrEnd[ stackSize ];
+   static __shared__ int stackDepth[ stackSize ];
+   static __shared__ int begin;
+   static __shared__ int end;
+   static __shared__ int iteration;
+   static __shared__ int pivotBegin;
+   static __shared__ int pivotEnd;
    Value* piv = sharedMem;
    sharedMem += 1;
 
@@ -125,7 +130,8 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
       __syncthreads();
       Value& pivot = *piv;
 
-      int smaller = 0, bigger = 0;
+      int smaller = 0;
+      int bigger = 0;
       countElem( src.getView( begin, end ), Cmp, smaller, bigger, pivot );
 
       // synchronization is in this function already
@@ -149,7 +155,8 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
       auto& dst = ( iteration & 1 ) == 0 ? aux : arr;
 
       if( useShared && size <= memSize ) {
-         static __shared__ int smallerTotal, biggerTotal;
+         static __shared__ int smallerTotal;
+         static __shared__ int biggerTotal;
          if( threadIdx.x == blockDim.x - 1 ) {
             smallerTotal = smallerPrefSumInc;
             biggerTotal = biggerPrefSumInc;
@@ -204,7 +211,8 @@ stackPush( int stackArrBegin[],
            int end,
            int iteration )
 {
-   int sizeL = pivotBegin - begin, sizeR = end - pivotEnd;
+   int sizeL = pivotBegin - begin;
+   int sizeR = end - pivotEnd;
 
    // push the bigger one 1st and then smaller one 2nd
    // in next iteration, the smaller part will be handled 1st

@@ -37,7 +37,8 @@ MultiplicationKernel2( ResultMatrix resultMatrix,
    const IndexType& matrixAColumns = matrixA.getColumns();
    const IndexType& matrixBRows = matrixB.getRows();
    const IndexType& matrixBColumns = matrixB.getColumns();
-   IndexType row, col;
+   IndexType row;
+   IndexType col;
    // Reset the tile C
    for( row = 0; row < tileDim; row += tileRowBlockSize )
       tileC[ ( row + threadIdx.y ) * tileDim + threadIdx.x ] = 0.0;

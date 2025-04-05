@@ -5,6 +5,7 @@
   SPDX-License-Identifier: BSL-1.0
 **/
 //==================================================================================================
+// NOLINTBEGIN
 #ifndef SPY_SPY_HPP_INCLUDED
 #define SPY_SPY_HPP_INCLUDED
 #include <ostream>
@@ -1119,3 +1120,4 @@ namespace spy::literal
   }
 }
 #endif
+// NOLINTEND

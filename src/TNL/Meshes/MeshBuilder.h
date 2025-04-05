@@ -342,7 +342,7 @@ private:
                                     + std::to_string( points.getSize() ) + " points)." );
       }
 
-      if( min( pointsSet ) != true )
+      if( ! min( pointsSet ) )
          throw MeshBuilderError( "Not all points were set." );
 
       BoolVector assignedPoints;
@@ -361,7 +361,7 @@ private:
             }
          }
 
-         if( min( assignedPoints ) != true )
+         if( ! min( assignedPoints ) )
             throw MeshBuilderError( "Some points were not used for cells." );
       }
       else {
@@ -376,7 +376,7 @@ private:
             }
          }
 
-         if( min( assignedPoints ) != true )
+         if( ! min( assignedPoints ) )
             throw MeshBuilderError( "Some points were not used for faces." );
 
          BoolVector assignedFaces;
@@ -394,7 +394,7 @@ private:
             }
          }
 
-         if( min( assignedFaces ) != true )
+         if( ! min( assignedFaces ) )
             throw MeshBuilderError( "Some faces were not used for cells." );
       }
    }

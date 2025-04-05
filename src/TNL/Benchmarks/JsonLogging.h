@@ -27,7 +27,7 @@ public:
          }
          for( std::size_t i = 0; i < headerElements.size(); i++ )
             std::cout << std::setw( widths[ i ] ) << headerElements[ i ];
-         std::cout << std::endl;
+         std::cout << '\n';
          header_changed = false;
          lastHeaderElements = headerElements;
       }
@@ -70,9 +70,9 @@ public:
             log << ", ";
          log << "\"error\": \"" << escape_json( errorMessage ) << "\"";
       }
-      log << "}" << std::endl;
+      log << "}\n";
       if( verbose > 0 )
-         std::cout << std::endl;
+         std::cout << '\n';
    }
 
    void
@@ -104,7 +104,7 @@ public:
          log << ", ";
       log << "\"error\": \"" << escape_json( message ) << "\"";
 
-      log << "}" << std::endl;
+      log << "}\n";
    }
 
 protected:

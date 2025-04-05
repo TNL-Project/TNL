@@ -29,7 +29,7 @@ public:
    __cuda_callable__
    BiEllpackView( Index size,
                   Index storageSize,
-                  typename Base::OffsetsView rowsPermutation,
+                  typename Base::OffsetsView segmentsPermutation,
                   typename Base::OffsetsView groupPointers );
 
    __cuda_callable__

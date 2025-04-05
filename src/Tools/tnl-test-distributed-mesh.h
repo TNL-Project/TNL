@@ -1,6 +1,7 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
+#include <algorithm>
 #include <random>
 
 #include <TNL/Config/parseCommandLine.h>
@@ -104,14 +105,14 @@ struct MeshConfigTemplateTag< MyConfigTag >
       static constexpr bool
       superentityStorage( int entityDimension, int superentityDimension )
       {
-         //         return false;
+         // return false;
          return ( entityDimension == 0 || entityDimension == meshDimension - 1 ) && superentityDimension >= meshDimension - 1;
       }
 
       static constexpr bool
       entityTagsStorage( int entityDimension )
       {
-         //         return false;
+         // return false;
          return entityDimension == 0 || entityDimension >= meshDimension - 1;
       }
 
@@ -138,13 +139,13 @@ struct MyMeshFunction
    using IndexType = typename LocalMesh::GlobalIndexType;
    using VectorType = Containers::Vector< RealType, DeviceType, IndexType >;
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getEntitiesDimension()
    {
       return EntitiesDimension;
    }
 
-   static constexpr int
+   [[nodiscard]] static constexpr int
    getMeshDimension()
    {
       return LocalMesh::getMeshDimension();
@@ -155,13 +156,13 @@ struct MyMeshFunction
       data.setSize( localMesh.template getEntitiesCount< getEntitiesDimension() >() );
    }
 
-   const VectorType&
+   [[nodiscard]] const VectorType&
    getData() const
    {
       return data;
    }
 
-   VectorType&
+   [[nodiscard]] VectorType&
    getData()
    {
       return data;
@@ -235,12 +236,12 @@ testSynchronizerOnDevice( const MeshType& mesh )
                       << mesh.template getGlobalIndices< EntityType::getEntityDimension() >()[ i ] << ")"
                       << " of dimension = " << EntityType::getEntityDimension() << ": received " << received
                       << ", expected = " << center << ", neighbor cells " << cellIndexes[ 0 ] << " "
-                      << ( ( numCells > 1 ) ? cellIndexes[ 1 ] : -1 ) << std::endl;
+                      << ( ( numCells > 1 ) ? cellIndexes[ 1 ] : -1 ) << '\n';
             errors++;
          }
       }
    if( errors > 0 ) {
-      std::cerr << "rank " << TNL::MPI::GetRank() << ": " << errors << " errors in total." << std::endl;
+      std::cerr << "rank " << TNL::MPI::GetRank() << ": " << errors << " errors in total.\n";
       TNL_ASSERT_TRUE( false, "test failed" );
    }
 }
@@ -278,8 +279,9 @@ testPropagationOverFaces( const Mesh& mesh, int max_iterations )
    face_sync.initialize( mesh );
 
    using Real = int;
-   MyMeshFunction< Real, LocalMesh, Mesh::getMeshDimension() > f_K( localMesh ), f_K_test( localMesh ),
-      f_K_test_aux( localMesh );
+   MyMeshFunction< Real, LocalMesh, Mesh::getMeshDimension() > f_K( localMesh );
+   MyMeshFunction< Real, LocalMesh, Mesh::getMeshDimension() > f_K_test( localMesh );
+   MyMeshFunction< Real, LocalMesh, Mesh::getMeshDimension() > f_K_test_aux( localMesh );
    MyMeshFunction< Real, LocalMesh, Mesh::getMeshDimension() - 1 > f_E( localMesh );
    f_K.getData().setValue( 0 );
    f_K_test.getData().setValue( 0 );
@@ -334,7 +336,7 @@ testPropagationOverFaces( const Mesh& mesh, int max_iterations )
    do {
       iteration++;
       if( TNL::MPI::GetRank() == 0 )
-         std::cout << "Computing iteration " << iteration << "..." << std::endl;
+         std::cout << "Computing iteration " << iteration << "...\n";
 
       const Index prev_sum = sum( f_K.getData() );
 
@@ -362,12 +364,9 @@ testPropagationOverFaces( const Mesh& mesh, int max_iterations )
             else {
                edge_value =
                   std::ceil( 0.5 * ( f_K_test_aux_view[ cellIndexes[ 0 ] ] + f_K_test_aux_view[ cellIndexes[ 1 ] ] ) );
-               //               edge_value = TNL::max( f_K_test_aux_view[ cellIndexes[ 0 ] ], f_K_test_aux_view[ cellIndexes[ 1
-               //               ] ] );
+               // edge_value = TNL::max( f_K_test_aux_view[ cellIndexes[ 0 ] ], f_K_test_aux_view[ cellIndexes[ 1 ] ] );
             }
-            if( edge_value > max ) {
-               max = edge_value;
-            }
+            max = std::max( edge_value, max );
          }
          f_K_test_view[ K ] = max;
       };
@@ -395,7 +394,7 @@ testPropagationOverFaces( const Mesh& mesh, int max_iterations )
          }
          else {
             f_E_view[ E ] = std::ceil( 0.5 * ( f_K_view[ cellIndexes[ 0 ] ] + f_K_view[ cellIndexes[ 1 ] ] ) );
-            //            f_E_view[ E ] = TNL::max( f_K_view[ cellIndexes[ 0 ] ], f_K_view[ cellIndexes[ 1 ] ] );
+            // f_E_view[ E ] = TNL::max( f_K_view[ cellIndexes[ 0 ] ], f_K_view[ cellIndexes[ 1 ] ] );
          }
       };
       localMesh.template forLocal< LocalMesh::getMeshDimension() - 1 >( faceAverageKernel );

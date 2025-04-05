@@ -58,11 +58,8 @@ inline DicomSeries::~DicomSeries()
    }
 
 #ifdef HAVE_DCMTK_H
-   if( dicomImage )
-      delete dicomImage;
-
-   if( pixelData )
-      delete pixelData;
+   delete dicomImage;
+   delete pixelData;
 #endif
 }
 
@@ -78,7 +75,8 @@ DicomSeries::getImage( const int imageIdx,
    using GridType = Meshes::Grid< 2, Real, Device, Index >;
    typename GridType::Cell cell( grid, { 0, 0 } );
 
-   Index i, j;
+   Index i;
+   Index j;
    int position( 0 );
    for( i = 0; i < this->height; i++ ) {
       for( j = 0; j < this->width; j++ ) {
@@ -94,11 +92,11 @@ DicomSeries::getImage( const int imageIdx,
          }
          position++;
       }
-      // cout << std::endl;
+      // cout << '\n';
    }
    return true;
 #else
-   std::cerr << "DICOM format is not supported in this build of TNL." << std::endl;
+   std::cerr << "DICOM format is not supported in this build of TNL.\n";
    return false;
 #endif
 }
@@ -113,7 +111,7 @@ DicomSeries::retrieveFileList( const String& filePath )
     * Check DICOM files
     */
    if( suffix != "ima" && suffix != "dcm" ) {
-      std::cerr << "The given file is not a DICOM file." << std::endl;
+      std::cerr << "The given file is not a DICOM file.\n";
       return false;
    }
 
@@ -143,20 +141,20 @@ DicomSeries::retrieveFileList( const String& filePath )
    // scan and sort directory
    int ndirs = scandir( directoryPath.getString(), &dirp, filter, alphasort );
    for( int i = 0; i < ndirs; ++i ) {
-      files.push_back( String( (char*) dirp[ i ]->d_name ) );
+      files.emplace_back( (char*) dirp[ i ]->d_name );
       delete dirp[ i ];
    }
 
    for( auto& file : files ) {
       // check if file prefix contained
-      if( strstr( file.getString(), fileNamePrefix.getString() ) ) {
+      if( strstr( file.getString(), fileNamePrefix.getString() ) != nullptr ) {
          fileList.push_back( directoryPath + file );
       }
    }
 
    return true;
 #else
-   std::cerr << "Support for scanning a directory is not implemented for Windows." << std::endl;
+   std::cerr << "Support for scanning a directory is not implemented for Windows.\n";
    return false;
 #endif
 }
@@ -178,10 +176,7 @@ DicomSeries::loadImage( const String& filePath, int number )
       return false;
 
    // load image
-   if( dicomImage )
-      delete dicomImage;
-   dicomImage = nullptr;
-
+   delete dicomImage;
    dicomImage = new DicomImage( filePath.getString() );
 
    if( dicomImage->getFrameCount() > 1 ) {
@@ -189,7 +184,7 @@ DicomSeries::loadImage( const String& filePath, int number )
       return false;
    }
 
-   if( ! dicomImage->isMonochrome() ) {
+   if( dicomImage->isMonochrome() == 0 ) {
       std::cout << filePath << " not supported format--Dicom Image is not monochrome";
       return false;
    }
@@ -201,8 +196,7 @@ DicomSeries::loadImage( const String& filePath, int number )
       }
       else if( imageStatus == EIS_MissingAttribute ) {
          // bitmap is propably old ARC/NEMA format
-         std::cerr << "Error: cannot load DICOM image(ACR/NEMA) (" << DicomImage::getString( dicomImage->getStatus() ) << ")"
-                   << std::endl;
+         std::cerr << "Error: cannot load DICOM image(ACR/NEMA) (" << DicomImage::getString( dicomImage->getStatus() ) << ")\n";
 
          delete dicomImage;
          dicomImage = nullptr;
@@ -211,8 +205,7 @@ DicomSeries::loadImage( const String& filePath, int number )
       else {
          delete dicomImage;
          dicomImage = nullptr;
-         std::cerr << "Error: cannot load DICOM image (" << DicomImage::getString( dicomImage->getStatus() ) << ")"
-                   << std::endl;
+         std::cerr << "Error: cannot load DICOM image (" << DicomImage::getString( dicomImage->getStatus() ) << ")\n";
          return false;
       }
    }
@@ -239,23 +232,18 @@ DicomSeries::loadImage( const String& filePath, int number )
    }
 
    // update vales
-   double min, max;
+   double min;
+   double max;
    dicomImage->getMinMaxValues( min, max );
-   if( imagesInfo.minColorValue > min ) {
-      imagesInfo.minColorValue = min;
-   }
-
-   if( imagesInfo.maxColorValue < max ) {
-      imagesInfo.maxColorValue = max;
-   }
+   imagesInfo.minColorValue = TNL::min( imagesInfo.minColorValue, min );
+   imagesInfo.maxColorValue = TNL::max( imagesInfo.maxColorValue, max );
 
    const unsigned long size = dicomImage->getOutputDataSize( 16 );
    // number of unsigned ints to allocate
    imagesInfo.frameUintsCount = size / sizeof( Uint16 );
    if( number == 0 ) {  // perform allocation only once
       imagesInfo.frameSize = size;
-      if( pixelData )
-         delete pixelData;
+      delete pixelData;
       pixelData = new Uint16[ imagesInfo.frameUintsCount * fileList.size() ];
    }
    else {  // check image size for compatibility
@@ -266,7 +254,8 @@ DicomSeries::loadImage( const String& filePath, int number )
    }
 
    dicomImage->setMinMaxWindow();
-   double center, width;
+   double center;
+   double width;
    dicomImage->getWindow( center, width );
    imagesInfo.window.center = center;
    imagesInfo.window.width = width;
@@ -293,7 +282,7 @@ DicomSeries::loadDicomSeries( const String& filePath )
     * Load list of files
     */
    if( ! retrieveFileList( filePath ) ) {
-      std::cerr << "I am not able to retrieve the files of the DICOM series in " << filePath << "." << std::endl;
+      std::cerr << "I am not able to retrieve the files of the DICOM series in " << filePath << ".\n";
       return false;
    }
 
@@ -309,7 +298,7 @@ DicomSeries::loadDicomSeries( const String& filePath )
 }
 
 inline int
-DicomSeries::getImagesCount()
+DicomSeries::getImagesCount() const
 {
    return imagesInfo.imagesCount;
 }
@@ -323,31 +312,31 @@ DicomSeries::getData( int imageNumber )
 #endif
 
 inline int
-DicomSeries::getColorCount()
+DicomSeries::getColorCount() const
 {
    return imagesInfo.colorsCount;
 }
 
 inline int
-DicomSeries::getBitsPerSampleCount()
+DicomSeries::getBitsPerSampleCount() const
 {
    return imagesInfo.bps;
 }
 
 inline int
-DicomSeries::getMinColorValue()
+DicomSeries::getMinColorValue() const
 {
    return imagesInfo.minColorValue;
 }
 
 inline WindowCenterWidth
-DicomSeries::getWindowDefaults()
+DicomSeries::getWindowDefaults() const
 {
    return imagesInfo.window;
 }
 
 inline int
-DicomSeries::getMaxColorValue()
+DicomSeries::getMaxColorValue() const
 {
    return imagesInfo.maxColorValue;
 }
@@ -356,8 +345,7 @@ inline void
 DicomSeries::freeData()
 {
 #ifdef HAVE_DCMTK_H
-   if( pixelData )
-      delete pixelData;
+   delete pixelData;
    pixelData = nullptr;
 #endif
 }
@@ -366,13 +354,13 @@ inline DicomHeader&
 DicomSeries::getHeader( int image )
 {
    // check user argument
-   if( ( image > 0 ) | ( image <= dicomSeriesHeaders.getSize() ) )
+   if( image > 0 || image <= dicomSeriesHeaders.getSize() )
       return *dicomSeriesHeaders.getElement( image );
    throw std::out_of_range( "image index out of range" );
 }
 
 inline bool
-DicomSeries::isDicomSeriesLoaded()
+DicomSeries::isDicomSeriesLoaded() const
 {
    return isLoaded;
 }

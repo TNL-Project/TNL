@@ -219,7 +219,7 @@ constexpr bool
 is_increasing_sequence( std::initializer_list< std::size_t > list )
 {
    std::size_t prev = *list.begin();
-   for( auto& elem : list ) {
+   for( const auto& elem : list ) {
       if( &elem == list.begin() )
          continue;
       if( elem <= prev )

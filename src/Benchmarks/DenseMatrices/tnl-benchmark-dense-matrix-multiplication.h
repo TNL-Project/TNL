@@ -59,7 +59,7 @@ main( int argc, char* argv[] )
       success = runDenseMatrixMultiplicationBenchmark< double >( parameters );
    }
    else {
-      std::cerr << "Unknown precision " << precision << "." << std::endl;
+      std::cerr << "Unknown precision " << precision << ".\n";
       return EXIT_FAILURE;
    }
 

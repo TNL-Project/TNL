@@ -81,7 +81,7 @@ getPreconditionerOptions()
  */
 template< typename MatrixType >
 std::shared_ptr< Linear::LinearSolver< MatrixType > >
-getLinearSolver( std::string name )
+getLinearSolver( const std::string& name )
 {
    if( name == "jacobi" )
       return std::make_shared< Linear::Jacobi< MatrixType > >();
@@ -105,13 +105,13 @@ getLinearSolver( std::string name )
 #endif
 
    std::string options;
-   for( auto o : getLinearSolverOptions() )
+   for( const auto& o : getLinearSolverOptions() )
       if( options.empty() )
          options += o;
       else
          options += ", " + o;
 
-   std::cerr << "Unknown semi-implicit discrete solver " << name << ". It can be only: " << options << "." << std::endl;
+   std::cerr << "Unknown semi-implicit discrete solver " << name << ". It can be only: " << options << ".\n";
 
    return nullptr;
 }
@@ -135,7 +135,7 @@ getLinearSolver( std::string name )
  */
 template< typename MatrixType >
 std::shared_ptr< Linear::Preconditioners::Preconditioner< MatrixType > >
-getPreconditioner( std::string name )
+getPreconditioner( const std::string& name )
 {
    if( name == "none" )
       return nullptr;
@@ -147,13 +147,13 @@ getPreconditioner( std::string name )
       return std::make_shared< Linear::Preconditioners::ILUT< MatrixType > >();
 
    std::string options;
-   for( auto o : getPreconditionerOptions() )
+   for( const auto& o : getPreconditionerOptions() )
       if( options.empty() )
          options += o;
       else
          options += ", " + o;
 
-   std::cerr << "Unknown preconditioner " << name << ". It can be only: " << options << "." << std::endl;
+   std::cerr << "Unknown preconditioner " << name << ". It can be only: " << options << ".\n";
 
    return nullptr;
 }

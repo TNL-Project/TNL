@@ -17,7 +17,7 @@ public:
    void
    OnTestStart( const ::testing::TestInfo& test_info ) override
    {
-      sout << test_info.test_case_name() << "." << test_info.name() << " Start." << std::endl;
+      sout << test_info.test_case_name() << "." << test_info.name() << " Start.\n";
    }
 
    // Called after a failed assertion or a SUCCEED() invocation.
@@ -25,8 +25,8 @@ public:
    OnTestPartResult( const ::testing::TestPartResult& test_part_result ) override
    {
       sout << ( test_part_result.failed() ? "====Failure=== " : "===Success=== " ) << test_part_result.file_name() << " "
-           << test_part_result.line_number() << std::endl
-           << test_part_result.summary() << std::endl;
+           << test_part_result.line_number() << '\n'
+           << test_part_result.summary() << '\n';
    }
 
    // Called after a test ends.
@@ -34,8 +34,8 @@ public:
    OnTestEnd( const ::testing::TestInfo& test_info ) override
    {
       const int rank = TNL::MPI::GetRank();
-      sout << test_info.test_case_name() << "." << test_info.name() << " End." << std::endl;
-      std::cout << rank << ":" << std::endl << sout.str() << std::endl;
+      sout << test_info.test_case_name() << "." << test_info.name() << " End.\n";
+      std::cout << rank << ":\n" << sout.str() << '\n';
       sout.str( std::string() );
       sout.clear();
    }

@@ -43,19 +43,19 @@ struct ODESolversBenchmarkResult : public BenchmarkResult
      benchmarkResult( benchmarkResult )
    {}
 
-   virtual HeaderElements
+   HeaderElements
    getTableHeader() const override
    {
       return HeaderElements( { "time", "stddev", "stddev/time", "loops", "bandwidth", "speed-up", "error", "EOC", "iters" } );
    }
 
-   virtual std::vector< int >
+   std::vector< int >
    getColumnWidthHints() const override
    {
       return std::vector< int >( { 14, 14, 14, 6, 14, 10, 14, 10, 14 } );
    }
 
-   virtual RowElements
+   RowElements
    getRowElements() const override
    {
       RealType error;

@@ -20,7 +20,7 @@ TYPED_TEST( VectorTest, constructors )
    VectorType v( 10 );
    EXPECT_EQ( v.getSize(), 10 );
 
-   if( std::is_same< typename VectorType::DeviceType, Devices::Host >::value ) {
+   if( std::is_same_v< typename VectorType::DeviceType, Devices::Host > ) {
       typename VectorType::ValueType data[ 10 ];
       VectorType w( data, 10 );
       EXPECT_NE( w.getData(), data );
@@ -109,8 +109,10 @@ TEST( VectorSpecialCasesTest, assignmentThroughView )
    static_assert( HasSubscriptOperator< ViewType >::value,
                   "Subscript operator detection by SFINAE does not work for VectorView." );
 
-   VectorType u( 100 ), v( 100 );
-   ViewType u_view( u ), v_view( v );
+   VectorType u( 100 );
+   VectorType v( 100 );
+   ViewType u_view( u );
+   ViewType v_view( v );
 
    u.setValue( 42 );
    v.setValue( 0 );

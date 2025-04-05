@@ -111,11 +111,10 @@ template< typename Real, typename Index, typename SolverMonitor >
 bool
 IterativeSolver< Real, Index, SolverMonitor >::checkNextIteration()
 {
-   if( std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
-       || ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() >= this->getMinIterations() )
-       || ( this->getResidue() < this->getConvergenceResidue() && this->getIterations() >= this->getMinIterations() ) )
-      return false;
-   return true;
+   return ! static_cast< bool >(
+      std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
+      || ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() >= this->getMinIterations() )
+      || ( this->getResidue() < this->getConvergenceResidue() && this->getIterations() >= this->getMinIterations() ) );
 }
 
 template< typename Real, typename Index, typename SolverMonitor >
@@ -123,24 +122,20 @@ bool
 IterativeSolver< Real, Index, SolverMonitor >::checkConvergence()
 {
    if( std::isnan( this->getResidue() ) ) {
-      std::cerr << std::endl << "The residue is NaN." << std::endl;
+      std::cerr << "\nThe residue is NaN.\n";
       return false;
    }
    if( this->getResidue() > this->getDivergenceResidue() && this->getIterations() > this->minIterations ) {
-      std::cerr << std::endl
-                << "The residue has exceeded allowed tolerance " << this->getDivergenceResidue() << "." << std::endl;
+      std::cerr << "The residue has exceeded allowed tolerance " << this->getDivergenceResidue() << ".\n";
       return false;
    }
    if( this->getIterations() >= this->getMaxIterations() ) {
-      std::cerr << std::endl
-                << "The solver has exceeded maximal allowed number of iterations " << this->getMaxIterations() << "."
-                << std::endl;
+      std::cerr << "\nThe solver has exceeded maximal allowed number of iterations " << this->getMaxIterations() << ".\n";
       return false;
    }
    if( this->getResidue() > this->getConvergenceResidue() ) {
-      std::cerr << std::endl
-                << "The residue ( = " << this->getResidue() << " ) is too large( > " << this->getConvergenceResidue() << " )."
-                << std::endl;
+      std::cerr << "\nThe residue ( = " << this->getResidue() << " ) is too large( > " << this->getConvergenceResidue()
+                << " ).\n";
       return false;
    }
    return true;

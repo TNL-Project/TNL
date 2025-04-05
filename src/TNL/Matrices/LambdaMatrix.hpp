@@ -333,7 +333,7 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
             str << std::setw( 10 ) << str_.str();
          }
       }
-      str << std::endl;
+      str << '\n';
    }
 }
 
