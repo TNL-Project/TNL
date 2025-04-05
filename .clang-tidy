@@ -32,22 +32,13 @@ WarningsAsErrors: >
   bubprone-suspicious-semicolon,
 
 CheckOptions:
-  - key:             readability-function-size.LineThreshold
-    value:           64
-  - key:             readability-function-size.ParameterThreshold
-    value:           15
-  - key:             readability-magic-numbers.IgnoreAllFloatingPointValues
-    value:           true
-  - key:             readability-magic-numbers.IgnorePowersOf2IntegerValues
-    value:           true
-
-  - key:             modernize-use-default-member-init.UseAssignment
-    value:           true
-  - key:             modernize-use-auto.MinTypeNameLength
-    value:           10
-
-  - key:             cppcoreguidelines-pro-type-member-init.UseAssignment
-    value:           true
+  readability-function-size.LineThreshold: 64
+  readability-function-size.ParameterThreshold: 15
+  readability-magic-numbers.IgnoreAllFloatingPointValues: true
+  readability-magic-numbers.IgnorePowersOf2IntegerValues: true
+  modernize-use-default-member-init.UseAssignment: true
+  modernize-use-auto.MinTypeNameLength: 10
+  cppcoreguidelines-pro-type-member-init.UseAssignment: true
 
 ...
 # vim: ft=yaml
