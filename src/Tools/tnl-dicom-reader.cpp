@@ -45,30 +45,30 @@ processDicomSeries( const Config::ParameterContainer& parameters )
    Images::RegionOfInterest< int > roi;
    for( std::size_t i = 0; i < dicomSeriesNames.size(); i++ ) {
       const String& seriesName = dicomSeriesNames[ i ];
-      std::cout << "Reading a file " << seriesName << std::endl;
+      std::cout << "Reading a file " << seriesName << '\n';
       Images::DicomSeries dicomSeries( seriesName.getString() );
       if( ! dicomSeries.isDicomSeriesLoaded() ) {
-         std::cerr << "Loading of the DICOM series " << seriesName << " failed." << std::endl;
+         std::cerr << "Loading of the DICOM series " << seriesName << " failed.\n";
       }
       if( i == 0 ) {
          if( ! roi.setup( parameters, &dicomSeries ) )
             return false;
          roi.setGrid( grid, verbose );
          vector.setSize( grid.template getEntitiesCount< 2 >() );
-         std::cout << "Writing grid to file " << meshFile << std::endl;
+         std::cout << "Writing grid to file " << meshFile << '\n';
          using Writer = Meshes::Writers::VTIWriter< GridType >;
          std::ofstream file( meshFile );
          Writer writer( file );
          writer.writeImageData( grid );
       }
-      std::cout << "The series consists of " << dicomSeries.getImagesCount() << " images." << std::endl;
+      std::cout << "The series consists of " << dicomSeries.getImagesCount() << " images.\n";
       for( int imageIdx = 0; imageIdx < dicomSeries.getImagesCount(); imageIdx++ ) {
          dicomSeries.getImage( imageIdx, grid, roi, vector );
          FileName fileName;
          fileName.setFileNameBase( seriesName.getString() );
          fileName.setExtension( "tnl" );
          fileName.setIndex( imageIdx );
-         std::cout << "Writing file " << fileName.getFileName() << " ... " << std::endl;
+         std::cout << "Writing file " << fileName.getFileName() << " ... \n";
          File( fileName.getFileName(), std::ios_base::out ) << vector;
       }
    }
@@ -85,7 +85,7 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, configDescription, parameters ) )
       return EXIT_FAILURE;
    if( ! parameters.checkParameter( "dicom-files" ) && ! parameters.checkParameter( "dicom-series" ) ) {
-      std::cerr << "Neither DICOM series nor DICOM files are given." << std::endl;
+      std::cerr << "Neither DICOM series nor DICOM files are given.\n";
       Config::printUsage( configDescription, argv[ 0 ] );
       return EXIT_FAILURE;
    }
@@ -96,7 +96,7 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
    return EXIT_SUCCESS;
 #else
-   std::cerr << "TNL was not compiled with DCMTK support." << std::endl;
+   std::cerr << "TNL was not compiled with DCMTK support.\n";
    return EXIT_FAILURE;
 #endif
 }

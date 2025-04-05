@@ -121,7 +121,7 @@ struct GrowingSegmentsView : public SegmentsView_
       this->segmentsFilling = 0;
    }
 
-   const FillingVector&
+   [[nodiscard]] const FillingVector&
    getFilling() const
    {
       return this->segmentsFilling;

@@ -157,7 +157,7 @@ public:
    /**
     * \brief Default destructor.
     */
-   virtual ~LinearSolver() {}
+   virtual ~LinearSolver() = default;
 
 protected:
    MatrixPointer matrix = nullptr;

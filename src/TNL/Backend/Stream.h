@@ -14,7 +14,7 @@ class Stream
 private:
    struct Wrapper
    {
-      stream_t handle = 0;
+      stream_t handle = 0;  // NOLINT(modernize-use-nullptr)
 
       Wrapper() = default;
       Wrapper( const Wrapper& other ) = delete;

@@ -10,8 +10,7 @@
 
 //#define TNL_DEBUG_SHARED_POINTERS
 
-namespace TNL {
-namespace Pointers {
+namespace TNL::Pointers {
 
 /**
  * \brief Cross-device shared smart pointer.
@@ -46,10 +45,10 @@ class SharedPointer
                   "The device cannot be void. You need to specify the device explicitly in your code." );
 };
 
-}  // namespace Pointers
+}  // namespace TNL::Pointers
 
 #ifndef NDEBUG
-namespace Assert {
+namespace TNL::Assert {
 
 template< typename Object, typename Device >
 struct Formatter< Pointers::SharedPointer< Object, Device > >
@@ -63,10 +62,8 @@ struct Formatter< Pointers::SharedPointer< Object, Device > >
    }
 };
 
-}  // namespace Assert
+}  // namespace TNL::Assert
 #endif
-
-}  // namespace TNL
 
 #include <TNL/Pointers/SharedPointerHost.h>
 #include <TNL/Pointers/SharedPointerCuda.h>

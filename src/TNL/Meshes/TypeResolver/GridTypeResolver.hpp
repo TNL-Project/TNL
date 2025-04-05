@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <type_traits>
 #include <utility>
 
 #include <TNL/Meshes/TypeResolver/GridTypeResolver.h>
@@ -29,7 +28,7 @@ GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveGridDim
       return resolveReal< 2 >( reader, std::forward< Functor >( functor ) );
    if( reader.getMeshDimension() == 3 )
       return resolveReal< 3 >( reader, std::forward< Functor >( functor ) );
-   std::cerr << "Unsupported mesh dimension: " << reader.getMeshDimension() << std::endl;
+   std::cerr << "Unsupported mesh dimension: " << reader.getMeshDimension() << '\n';
    return false;
 }
 
@@ -50,7 +49,7 @@ GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveReal( R
       return false;
    }
    else {
-      std::cerr << "The grid dimension " << MeshDimension << " is disabled in the build configuration." << std::endl;
+      std::cerr << "The grid dimension " << MeshDimension << " is disabled in the build configuration.\n";
       return false;
    }
 }
@@ -68,11 +67,11 @@ GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveIndex( 
          return resolveGridType< MeshDimension, Real, std::int32_t >( reader, std::forward< Functor >( functor ) );
       if( reader.getGlobalIndexType() == "std::int64_t" || reader.getGlobalIndexType() == "std::uint64_t" )
          return resolveGridType< MeshDimension, Real, std::int64_t >( reader, std::forward< Functor >( functor ) );
-      std::cerr << "Unsupported index type: " << reader.getRealType() << std::endl;
+      std::cerr << "Unsupported index type: " << reader.getRealType() << '\n';
       return false;
    }
    else {
-      std::cerr << "The grid real type " << getType< Real >() << " is disabled in the build configuration." << std::endl;
+      std::cerr << "The grid real type " << getType< Real >() << " is disabled in the build configuration.\n";
       return false;
    }
 }
@@ -88,7 +87,7 @@ GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveGridTyp
       return resolveTerminate< GridType >( reader, std::forward< Functor >( functor ) );
    }
    else {
-      std::cerr << "The grid index type " << getType< Index >() << " is disabled in the build configuration." << std::endl;
+      std::cerr << "The grid index type " << getType< Index >() << " is disabled in the build configuration.\n";
       return false;
    }
 }
@@ -103,7 +102,7 @@ GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveTermina
       return std::forward< Functor >( functor )( reader, GridType{} );
    }
    else {
-      std::cerr << "The mesh type " << TNL::getType< GridType >() << " is disabled in the build configuration." << std::endl;
+      std::cerr << "The mesh type " << TNL::getType< GridType >() << " is disabled in the build configuration.\n";
       return false;
    }
 }

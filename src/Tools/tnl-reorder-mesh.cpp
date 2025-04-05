@@ -140,7 +140,7 @@ reorder( Mesh&& mesh, const std::string& ordering, const std::string& outputFile
       MeshOrdering< Mesh, KdTreeOrdering > kdtree_ordering;
       kdtree_ordering.reorder( mesh );
 #else
-      std::cerr << "CGAL support is missing. Recompile with -DHAVE_CGAL and try again." << std::endl;
+      std::cerr << "CGAL support is missing. Recompile with -DHAVE_CGAL and try again.\n";
       return false;
 #endif
    }
@@ -150,20 +150,19 @@ reorder( Mesh&& mesh, const std::string& ordering, const std::string& outputFile
       MeshOrdering< Mesh, HilbertOrdering > hilbert_ordering;
       hilbert_ordering.reorder( mesh );
 #else
-      std::cerr << "CGAL support is missing. Recompile with -DHAVE_CGAL and try again." << std::endl;
+      std::cerr << "CGAL support is missing. Recompile with -DHAVE_CGAL and try again.\n";
       return false;
 #endif
    }
    else {
-      std::cerr << "unknown ordering algorithm: '" << ordering << "'. Available options are: rcm, kdtree, hilbert."
-                << std::endl;
+      std::cerr << "unknown ordering algorithm: '" << ordering << "'. Available options are: rcm, kdtree, hilbert.\n";
       return false;
    }
 
    namespace fs = std::filesystem;
    if( outputFileFormat == "auto" ) {
       outputFileFormat = fs::path( outputFileName ).extension().string();
-      if( outputFileFormat.length() > 0 )
+      if( ! outputFileFormat.empty() )
          // remove dot from the extension
          outputFileFormat = outputFileFormat.substr( 1 );
    }
@@ -181,7 +180,7 @@ reorder( Mesh&& mesh, const std::string& ordering, const std::string& outputFile
       writer.template writeEntities< Mesh::getMeshDimension() >( mesh );
    }
    else {
-      std::cerr << "unknown output file format: '" << outputFileFormat << "'. Available options are: vtk, vtu." << std::endl;
+      std::cerr << "unknown output file format: '" << outputFileFormat << "'. Available options are: vtk, vtu.\n";
       return false;
    }
 

@@ -51,7 +51,7 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
    GridDistributor( CoordinatesType rank_sizes, MPI_Comm communicator )
    : rank( TNL::MPI::GetRank( communicator ) ),
      nproc( TNL::MPI::GetSize( communicator ) ),
-     rank_sizes( rank_sizes ),
+     rank_sizes( std::move( rank_sizes ) ),
      communicator( communicator )
    {}
 
@@ -103,7 +103,8 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
       meshBuilder.setEntitiesCount( verticesCount, cellsCount );
 
       // mappings for vertex indices
-      std::unordered_map< Index, Index > vert_global_to_local, cell_global_to_local;
+      std::unordered_map< Index, Index > vert_global_to_local;
+      std::unordered_map< Index, Index > cell_global_to_local;
 
       Index idx = 0;
       auto add_vertex = [ & ]( Index x, Index y )
@@ -411,9 +412,11 @@ validateMesh( const Mesh& mesh, const Distributor& distributor, int ghostLevels 
 
    if( ghostLevels > 0 ) {
       // exchange local vertices and cells counts, exclusive scan to compute offsets
-      Containers::Vector< Index, Device > vert_offsets( distributor.nproc + 1 ), cell_offsets( distributor.nproc + 1 );
+      Containers::Vector< Index, Device > vert_offsets( distributor.nproc + 1 );
+      Containers::Vector< Index, Device > cell_offsets( distributor.nproc + 1 );
       {
-         Containers::Array< Index, Device > vert_sendbuf( distributor.nproc ), cell_sendbuf( distributor.nproc );
+         Containers::Array< Index, Device > vert_sendbuf( distributor.nproc );
+         Containers::Array< Index, Device > cell_sendbuf( distributor.nproc );
          vert_sendbuf.setValue( distributor.localVerticesCount );
          cell_sendbuf.setValue( distributor.localCellsCount );
          TNL::MPI::Alltoall( vert_sendbuf.getData(), 1, vert_offsets.getData(), 1, distributor.communicator );

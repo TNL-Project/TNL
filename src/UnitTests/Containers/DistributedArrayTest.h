@@ -190,7 +190,7 @@ TYPED_TEST( DistributedArrayTest, elementwiseAccess )
       const IndexType gi = localRange.getGlobalIndex( i );
       EXPECT_EQ( localArrayView.getElement( i ), 0 );
       EXPECT_EQ( this->distributedArray.getElement( gi ), 0 );
-      if( std::is_same< typename TestFixture::DeviceType, Devices::Host >::value ) {
+      if( std::is_same_v< typename TestFixture::DeviceType, Devices::Host > ) {
          EXPECT_EQ( this->distributedArray[ gi ], 0 );
       }
    }
@@ -206,7 +206,7 @@ TYPED_TEST( DistributedArrayTest, elementwiseAccess )
       const IndexType gi = localRange.getGlobalIndex( i );
       EXPECT_EQ( localArrayView.getElement( i ), i + 1 );
       EXPECT_EQ( this->distributedArray.getElement( gi ), i + 1 );
-      if( std::is_same< typename TestFixture::DeviceType, Devices::Host >::value ) {
+      if( std::is_same_v< typename TestFixture::DeviceType, Devices::Host > ) {
          EXPECT_EQ( this->distributedArray[ gi ], i + 1 );
       }
    }
@@ -215,7 +215,7 @@ TYPED_TEST( DistributedArrayTest, elementwiseAccess )
    this->distributedArray.waitForSynchronization();
 
    // use operator[]
-   if( std::is_same< typename TestFixture::DeviceType, Devices::Host >::value ) {
+   if( std::is_same_v< typename TestFixture::DeviceType, Devices::Host > ) {
       for( IndexType i = 0; i < localRange.getSize(); i++ ) {
          const IndexType gi = localRange.getGlobalIndex( i );
          this->distributedArray[ gi ] = i + 1;
@@ -261,7 +261,8 @@ TYPED_TEST( DistributedArrayTest, comparisonOperators )
 
    const auto localRange = this->distributedArray.getLocalRange();
    DistributedArrayType& u = this->distributedArray;
-   DistributedArrayType v, w;
+   DistributedArrayType v;
+   DistributedArrayType w;
    v.setLike( u );
    w.setLike( u );
 

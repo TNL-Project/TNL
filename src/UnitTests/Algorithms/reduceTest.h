@@ -237,7 +237,7 @@ TYPED_TEST( ReduceTest, logicalOr )
 
 // bitwise AND (&) is not defined for floating-point types
 template< typename ArrayType >
-std::enable_if_t< std::is_integral< typename ArrayType::ValueType >::value >
+std::enable_if_t< std::is_integral_v< typename ArrayType::ValueType > >
 test_bitAnd( ArrayType& a )
 {
    for( int size = 1; size <= 100000; size *= 10 ) {
@@ -254,7 +254,7 @@ test_bitAnd( ArrayType& a )
 }
 
 template< typename ArrayType >
-std::enable_if_t< ! std::is_integral< typename ArrayType::ValueType >::value >
+std::enable_if_t< ! std::is_integral_v< typename ArrayType::ValueType > >
 test_bitAnd( ArrayType& a )
 {}
 
@@ -267,7 +267,7 @@ TYPED_TEST( ReduceTest, bitAnd )
 
 // bitwise OR (|) is not defined for floating-point types
 template< typename ArrayType >
-std::enable_if_t< std::is_integral< typename ArrayType::ValueType >::value >
+std::enable_if_t< std::is_integral_v< typename ArrayType::ValueType > >
 test_bitOr( ArrayType& a )
 {
    for( int size = 10; size <= 100000; size *= 10 ) {
@@ -284,7 +284,7 @@ test_bitOr( ArrayType& a )
 }
 
 template< typename ArrayType >
-std::enable_if_t< ! std::is_integral< typename ArrayType::ValueType >::value >
+std::enable_if_t< ! std::is_integral_v< typename ArrayType::ValueType > >
 test_bitOr( ArrayType& a )
 {}
 

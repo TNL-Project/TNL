@@ -102,7 +102,7 @@ struct Push< Type, pack< counted_pack< Types, Counts >... > >
 {
 public:
    using type = std::conditional_t< disjunction< std::is_same< Types, Type >... >::value,
-                                    pack< counted_pack< Types, Counts + ( std::is_same< Types, Type >::value ? 1 : 0 ) >... >,
+                                    pack< counted_pack< Types, Counts + ( std::is_same_v< Types, Type > ? 1 : 0 ) >... >,
                                     pack< counted_pack< Types, Counts >..., counted_pack< Type, 1 > > >;
 };
 
@@ -130,9 +130,8 @@ template< class Type, class Head, class... Tail >
 struct RemoveFirst< Type, pack< Head, Tail... > >
 {
 public:
-   using type = std::conditional_t< std::is_same< Type, Head >::value,
-                                    pack< Tail... >,
-                                    prepend< Head, remove_first< Type, pack< Tail... > > > >;
+   using type = std::
+      conditional_t< std::is_same_v< Type, Head >, pack< Tail... >, prepend< Head, remove_first< Type, pack< Tail... > > > >;
 };
 
 /*
@@ -147,8 +146,8 @@ struct Pop;
 template< class T, class... Types, std::size_t... Indices >
 struct Pop< T, pack< counted_pack< Types, Indices >... > >
 {
-   using type = remove_first< counted_pack< T, 0 >,
-                              pack< counted_pack< Types, Indices - ( std::is_same< Types, T >::value ? 1 : 0 ) >... > >;
+   using type =
+      remove_first< counted_pack< T, 0 >, pack< counted_pack< Types, Indices - ( std::is_same_v< Types, T > ? 1 : 0 ) >... > >;
 };
 
 template< class Type, class CountedType >

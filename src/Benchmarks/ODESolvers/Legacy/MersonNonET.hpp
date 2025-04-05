@@ -6,6 +6,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Config/ParameterContainer.h>
+#include <TNL/MPI/Wrappers.h>
 
 #include "MersonNonET.h"
 
@@ -104,7 +105,7 @@ bool
 MersonNonET< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsFunction )
 {
    if( this->getTau() == 0.0 ) {
-      std::cerr << "The time step for the MersonNonET ODE solver is zero." << std::endl;
+      std::cerr << "The time step for the MersonNonET ODE solver is zero.\n";
       return false;
    }
 
@@ -360,7 +361,8 @@ MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
    const RealType* _k4 = k4.getData();
    const RealType* _k5 = k5.getData();
 
-   RealType eps( 0.0 ), maxEps( 0.0 );
+   RealType eps = 0;
+   RealType maxEps = 0;
    if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
       for( IndexType i = 0; i < size; i++ ) {
          RealType err = (RealType) ( tau / 3.0 * abs( 0.2 * _k1[ i ] + -0.9 * _k3[ i ] + 0.8 * _k4[ i ] + -0.1 * _k5[ i ] ) );
@@ -491,7 +493,7 @@ MersonNonET< Vector, SolverMonitor >::writeGrids( const DofVectorType& u )
    File( "MersonNonET-k3.tnl", std::ios_base::out ) << k3;
    File( "MersonNonET-k4.tnl", std::ios_base::out ) << k4;
    File( "MersonNonET-k5.tnl", std::ios_base::out ) << k5;
-   std::cout << " done. PRESS A KEY." << std::endl;
+   std::cout << " done. PRESS A KEY.\n";
    getchar();
 }
 

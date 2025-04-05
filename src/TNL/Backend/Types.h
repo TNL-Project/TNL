@@ -38,6 +38,7 @@ namespace TNL::Backend {
 using error_t = cudaError_t;
 using stream_t = cudaStream_t;
 
+// NOLINTNEXTLINE(performance-enum-size)
 enum MemcpyKind
 {
    MemcpyHostToHost = cudaMemcpyHostToHost,
@@ -47,12 +48,14 @@ enum MemcpyKind
    MemcpyDefault = cudaMemcpyDefault,
 };
 
+// NOLINTNEXTLINE(performance-enum-size)
 enum
 {
    StreamDefault = cudaStreamDefault,
    StreamNonBlocking = cudaStreamNonBlocking,
 };
 
+// NOLINTNEXTLINE(performance-enum-size)
 enum FuncCache
 {
    FuncCachePreferNone = cudaFuncCachePreferNone,
@@ -64,6 +67,7 @@ enum FuncCache
 using error_t = hipError_t;
 using stream_t = hipStream_t;
 
+// NOLINTNEXTLINE(performance-enum-size)
 enum MemcpyKind
 {
    MemcpyHostToHost = hipMemcpyHostToHost,
@@ -73,12 +77,14 @@ enum MemcpyKind
    MemcpyDefault = hipMemcpyDefault,
 };
 
+// NOLINTNEXTLINE(performance-enum-size)
 enum
 {
    StreamDefault = hipStreamDefault,
    StreamNonBlocking = hipStreamNonBlocking,
 };
 
+// NOLINTNEXTLINE(performance-enum-size)
 enum FuncCache
 {
    FuncCachePreferNone = hipFuncCachePreferNone,
@@ -90,6 +96,7 @@ enum FuncCache
 using error_t = int;
 using stream_t = int;
 
+// NOLINTNEXTLINE(performance-enum-size)
 enum MemcpyKind
 {
    MemcpyHostToHost,
@@ -99,12 +106,14 @@ enum MemcpyKind
    MemcpyDefault,
 };
 
+// NOLINTNEXTLINE(performance-enum-size)
 enum
 {
    StreamDefault,
    StreamNonBlocking,
 };
 
+// NOLINTNEXTLINE(performance-enum-size)
 enum FuncCache
 {
    FuncCachePreferNone = 0,

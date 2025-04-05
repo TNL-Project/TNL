@@ -413,5 +413,6 @@ main( int argc, char* argv[] )
    std::map< std::string, std::string > metadata = getHardwareMetadata();
    writeMapAsJson( metadata, logFileName, ".metadata.json" );
 
-   return ! resolveRealTypes( benchmark, parameters );
+   const bool status = resolveRealTypes( benchmark, parameters );
+   return static_cast< int >( ! status );
 }

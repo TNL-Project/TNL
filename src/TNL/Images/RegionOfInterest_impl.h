@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Images/Image.h>
+#include <TNL/Images/RegionOfInterest.h>
 
 namespace TNL::Images {
 
@@ -25,11 +26,11 @@ RegionOfInterest< Index >::setup( const Config::ParameterContainer& parameters, 
    const int roiLeft = parameters.getParameter< int >( "roi-left" );
 
    if( roiBottom < roiTop ) {
-      std::cerr << "Error: roi-bottom (" << roiBottom << ") is smaller than roi-top (" << roiTop << ")." << std::endl;
+      std::cerr << "Error: roi-bottom (" << roiBottom << ") is smaller than roi-top (" << roiTop << ").\n";
       return false;
    }
    if( roiRight < roiLeft ) {
-      std::cerr << "Error: roi-right (" << roiRight << ") is smaller than roi-left (" << roiLeft << ")." << std::endl;
+      std::cerr << "Error: roi-right (" << roiRight << ") is smaller than roi-left (" << roiLeft << ").\n";
       return false;
    }
 
@@ -37,7 +38,7 @@ RegionOfInterest< Index >::setup( const Config::ParameterContainer& parameters, 
       this->left = 0;
    else {
       if( roiLeft >= image->getWidth() ) {
-         std::cerr << "ROI left column is larger than image width ( " << image->getWidth() << ")." << std::endl;
+         std::cerr << "ROI left column is larger than image width ( " << image->getWidth() << ").\n";
          return false;
       }
       this->left = roiLeft;
@@ -47,7 +48,7 @@ RegionOfInterest< Index >::setup( const Config::ParameterContainer& parameters, 
       this->right = image->getWidth();
    else {
       if( roiRight >= image->getWidth() ) {
-         std::cerr << "ROI right column is larger than image width ( " << image->getWidth() << ")." << std::endl;
+         std::cerr << "ROI right column is larger than image width ( " << image->getWidth() << ").\n";
          return false;
       }
       this->right = roiRight;
@@ -57,7 +58,7 @@ RegionOfInterest< Index >::setup( const Config::ParameterContainer& parameters, 
       this->top = 0;
    else {
       if( roiTop >= image->getHeight() ) {
-         std::cerr << "ROI top line is larger than image height ( " << image->getHeight() << ")." << std::endl;
+         std::cerr << "ROI top line is larger than image height ( " << image->getHeight() << ").\n";
          return false;
       }
       this->top = roiTop;
@@ -67,7 +68,7 @@ RegionOfInterest< Index >::setup( const Config::ParameterContainer& parameters, 
       this->bottom = image->getHeight();
    else {
       if( roiBottom >= image->getHeight() ) {
-         std::cerr << "ROI bottom line is larger than image height ( " << image->getHeight() << ")." << std::endl;
+         std::cerr << "ROI bottom line is larger than image height ( " << image->getHeight() << ").\n";
          return false;
       }
       this->bottom = roiBottom;
@@ -79,9 +80,8 @@ template< typename Index >
 bool
 RegionOfInterest< Index >::check( const Image< Index >* image ) const
 {
-   if( top >= image->getHeight() || bottom >= image->getHeight() || left >= image->getWidth() || right >= image->getWidth() )
-      return false;
-   return true;
+   return ! ( top >= image->getHeight() || bottom >= image->getHeight() || left >= image->getWidth()
+              || right >= image->getWidth() );
 }
 
 template< typename Index >
@@ -132,7 +132,8 @@ bool
 RegionOfInterest< Index >::setGrid( Grid& grid, bool verbose )
 {
    grid.setDimensions( this->getWidth(), this->getHeight() );
-   typename Grid::PointType origin, proportions;
+   typename Grid::PointType origin;
+   typename Grid::PointType proportions;
    origin.x() = 0.0;
    origin.y() = 0.0;
    proportions.x() = 1.0;
@@ -140,7 +141,7 @@ RegionOfInterest< Index >::setGrid( Grid& grid, bool verbose )
    grid.setDomain( origin, proportions );
    if( verbose ) {
       std::cout << "Setting grid to dimensions " << grid.getDimensions() << " and proportions " << grid.getProportions()
-                << std::endl;
+                << '\n';
    }
    return true;
 }
@@ -149,9 +150,7 @@ template< typename Index >
 bool
 RegionOfInterest< Index >::isIn( const Index row, const Index column ) const
 {
-   if( row >= top && row < bottom && column >= left && column < right )
-      return true;
-   return false;
+   return row >= top && row < bottom && column >= left && column < right;
 }
 
 }  // namespace TNL::Images

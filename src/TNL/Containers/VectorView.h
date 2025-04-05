@@ -23,7 +23,7 @@ template< typename Real = double, typename Device = Devices::Host, typename Inde
 class VectorView : public ArrayView< Real, Device, Index >
 {
    using BaseType = ArrayView< Real, Device, Index >;
-   using NonConstReal = typename std::remove_const< Real >::type;
+   using NonConstReal = std::remove_const_t< Real >;
 
 public:
    /**

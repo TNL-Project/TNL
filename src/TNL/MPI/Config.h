@@ -47,12 +47,12 @@ setup( const Config::ParameterContainer& parameters, const std::string& prefix =
    #if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVDIA__ )
       if( GetSize() > 1 ) {
       #if defined( MPIX_CUDA_AWARE_SUPPORT ) && MPIX_CUDA_AWARE_SUPPORT
-         std::cout << "CUDA-aware MPI detected on this system ... " << std::endl;
+         std::cout << "CUDA-aware MPI detected on this system ...\n";
       #elif defined( MPIX_CUDA_AWARE_SUPPORT ) && ! MPIX_CUDA_AWARE_SUPPORT
-         std::cerr << "MPI is not CUDA-aware. Please install correct version of MPI." << std::endl;
+         std::cerr << "MPI is not CUDA-aware. Please install correct version of MPI.\n";
          return false;
       #else
-         std::cerr << "WARNING: TNL cannot detect if you have CUDA-aware MPI. Some problems may occur." << std::endl;
+         std::cerr << "WARNING: TNL cannot detect if you have CUDA-aware MPI. Some problems may occur.\n";
       #endif
       }
    #elif defined( __HIP__ )
@@ -60,10 +60,10 @@ setup( const Config::ParameterContainer& parameters, const std::string& prefix =
       #if defined( MPIX_ROCM_AWARE_SUPPORT ) && MPIX_ROCM_AWARE_SUPPORT
          std::cout << "ROCm-aware MPI detected on this system ... " << std::endl;
       #elif defined( MPIX_ROCM_AWARE_SUPPORT ) && ! MPIX_ROCM_AWARE_SUPPORT
-         std::cerr << "MPI is not ROCm-aware. Please install correct version of MPI." << std::endl;
+         std::cerr << "MPI is not ROCm-aware. Please install correct version of MPI.\n";
          return false;
       #else
-         std::cerr << "WARNING: TNL cannot detect if you have ROCm-aware MPI. Some problems may occur." << std::endl;
+         std::cerr << "WARNING: TNL cannot detect if you have ROCm-aware MPI. Some problems may occur.\n";
       #endif
       }
    #endif
@@ -79,7 +79,7 @@ setup( const Config::ParameterContainer& parameters, const std::string& prefix =
          MPI_Send( &pid, 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
          MPI_Barrier( MPI_COMM_WORLD );
          if( rank == 0 ) {
-            std::cout << "Attach GDB to MPI process(es) by entering:" << std::endl;
+            std::cout << "Attach GDB to MPI process(es) by entering:\n";
             for( int i = 0; i < GetSize(); i++ ) {
                MPI_Status status;
                int recvPid;
@@ -88,7 +88,7 @@ setup( const Config::ParameterContainer& parameters, const std::string& prefix =
                if( i == processToAttach || processToAttach == -1 ) {
                   std::cout << "  For MPI process " << i << ": gdb -q -ex \"attach " << recvPid << "\""
                             << " -ex \"set variable tnlMPIDebugAttached=1\""
-                            << " -ex \"continue\"" << std::endl;
+                            << " -ex \"continue\"\n";
                }
             }
             std::cout << std::flush;

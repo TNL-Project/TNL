@@ -220,7 +220,7 @@ bool
 ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunction&& rhsFunction, Params&&... params )
 {
    if( this->getTau() == 0.0 ) {
-      std::cerr << "The time step for the ODE solver is zero." << std::endl;
+      std::cerr << "The time step for the ODE solver is zero.\n";
       return false;
    }
 

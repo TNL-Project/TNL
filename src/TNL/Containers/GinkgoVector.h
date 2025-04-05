@@ -61,11 +61,11 @@ public:
      wrapped_view( ViewType{ vector.getData(), static_cast< IndexType >( vector.getSize() ) } ),
      ownership( ownership )
    {
-      static_assert( std::is_same< typename std::decay_t< Vector >::DeviceType, DeviceType >::value,
+      static_assert( std::is_same_v< typename std::decay_t< Vector >::DeviceType, DeviceType >,
                      "the DeviceType passed to the constructor does not match the GinkgoVector type" );
    }
 
-   virtual ~GinkgoVector()
+   ~GinkgoVector() override
    {
       if( ownership ) {
          AllocatorType allocator;
@@ -78,7 +78,7 @@ public:
    [[nodiscard]] static std::unique_ptr< GinkgoVector >
    create( std::shared_ptr< const gko::Executor > exec, Vector&& vector, bool ownership = false )
    {
-      static_assert( std::is_same< typename std::decay_t< Vector >::DeviceType, DeviceType >::value,
+      static_assert( std::is_same_v< typename std::decay_t< Vector >::DeviceType, DeviceType >,
                      "the DeviceType passed to the create function does not match the GinkgoVector type" );
       return std::unique_ptr< GinkgoVector >( new GinkgoVector( exec, std::forward< Vector >( vector ), ownership ) );
    }

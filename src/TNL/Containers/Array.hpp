@@ -144,7 +144,7 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 std::string
 Array< Value, Device, Index, Allocator >::getSerializationTypeVirtual() const
 {
-   return this->getSerializationType();
+   return Array::getSerializationType();
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
@@ -303,7 +303,7 @@ Array< Value, Device, Index, Allocator >::operator ConstViewType() const
 
 template< typename Value, typename Device, typename Index, typename Allocator >
 void
-Array< Value, Device, Index, Allocator >::swap( Array< Value, Device, Index, Allocator >& array )
+Array< Value, Device, Index, Allocator >::swap( Array< Value, Device, Index, Allocator >& array ) noexcept
 {
    TNL::swap( this->size, array.size );
    TNL::swap( this->data, array.data );

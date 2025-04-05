@@ -35,8 +35,8 @@ template< typename Real >
 bool
 processImages( const Config::ParameterContainer& parameters )
 {
-   const std::vector< std::string > inputImages = parameters.getParameter< std::vector< std::string > >( "input-images" );
-   const std::string meshFunctionName = parameters.getParameter< std::string >( "mesh-function-name" );
+   const auto& inputImages = parameters.getParameter< std::vector< std::string > >( "input-images" );
+   const auto& meshFunctionName = parameters.getParameter< std::string >( "mesh-function-name" );
 
    using GridType = Meshes::Grid< 2, Real, Devices::Host, int >;
    using GridPointer = Pointers::SharedPointer< GridType >;
@@ -56,7 +56,7 @@ processImages( const Config::ParameterContainer& parameters )
          meshFunction.setMesh( grid );
          if( ! pgmImage.read( roi, meshFunction ) )
             return false;
-         std::cout << "Writing image data to " << outputFileName << std::endl;
+         std::cout << "Writing image data to " << outputFileName << '\n';
          meshFunction.write( meshFunctionName, outputFileName );
          pgmImage.close();
          continue;
@@ -69,7 +69,7 @@ processImages( const Config::ParameterContainer& parameters )
          meshFunction.setMesh( grid );
          if( ! pngImage.read( roi, meshFunction ) )
             return false;
-         std::cout << "Writing image data to " << outputFileName << std::endl;
+         std::cout << "Writing image data to " << outputFileName << '\n';
          meshFunction.write( meshFunctionName, outputFileName );
          pngImage.close();
          continue;
@@ -82,7 +82,7 @@ processImages( const Config::ParameterContainer& parameters )
          meshFunction.setMesh( grid );
          if( ! jpegImage.read( roi, meshFunction ) )
             return false;
-         std::cout << "Writing image data to " << outputFileName << std::endl;
+         std::cout << "Writing image data to " << outputFileName << '\n';
          meshFunction.write( meshFunctionName, outputFileName );
          jpegImage.close();
          continue;
@@ -94,9 +94,9 @@ processImages( const Config::ParameterContainer& parameters )
 bool
 processFiles( const Config::ParameterContainer& parameters )
 {
-   const std::vector< std::string > inputFiles = parameters.getParameter< std::vector< std::string > >( "input-files" );
-   const std::string imageFormat = parameters.getParameter< std::string >( "image-format" );
-   const std::string meshFunctionName = parameters.getParameter< std::string >( "mesh-function-name" );
+   const auto& inputFiles = parameters.getParameter< std::vector< std::string > >( "input-files" );
+   const auto& imageFormat = parameters.getParameter< std::string >( "image-format" );
+   const auto& meshFunctionName = parameters.getParameter< std::string >( "mesh-function-name" );
 
    for( const auto& fileName : inputFiles ) {
       std::cout << "Processing file " << fileName << "... ";
@@ -147,7 +147,7 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, configDescription, parameters ) )
       return EXIT_FAILURE;
    if( ! parameters.checkParameter( "input-images" ) && ! parameters.checkParameter( "input-files" ) ) {
-      std::cerr << "Neither input images nor input .tnl files are given." << std::endl;
+      std::cerr << "Neither input images nor input .tnl files are given.\n";
       Config::printUsage( configDescription, argv[ 0 ] );
       return EXIT_FAILURE;
    }

@@ -45,13 +45,13 @@ template< typename Device >
 const char*
 performer()
 {
-   if( std::is_same< Device, TNL::Devices::Host >::value )
+   if( std::is_same_v< Device, TNL::Devices::Host > )
 #ifdef HAVE_OPENMP
       return "CPUP";
 #else
       return "CPU";
 #endif
-   else if( std::is_same< Device, TNL::Devices::Cuda >::value )
+   else if( std::is_same_v< Device, TNL::Devices::Cuda > )
       return "GPU";
    else
       return "unknown";

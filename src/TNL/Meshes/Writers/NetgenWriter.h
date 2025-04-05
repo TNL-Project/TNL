@@ -30,7 +30,7 @@ public:
          str << " ";
          for( int d = 0; d < meshDimension; d++ )
             str << " " << point[ d ];
-         str << std::endl;
+         str << '\n';
       }
 
       const GlobalIndexType numberOfCells = mesh.template getEntitiesCount< typename Mesh::Cell >();

@@ -142,7 +142,7 @@ public:
     * \param pointer is the source shared pointer.
     */
    SharedPointer( SharedPointer&& pointer ) noexcept  // this is needed only to avoid the default compiler-generated constructor
-   : pd( (PointerData*) pointer.pd ),
+   : pd( pointer.pd ),
      cuda_pointer( pointer.cuda_pointer )
    {
       pointer.pd = nullptr;
@@ -178,7 +178,7 @@ public:
    recreate( Args... args )
    {
 #ifdef TNL_DEBUG_SHARED_POINTERS
-      std::cerr << "Recreating shared pointer to " << getType< ObjectType >() << std::endl;
+      std::cerr << "Recreating shared pointer to " << getType< ObjectType >() << '\n';
 #endif
       if( ! this->pd )
          return this->allocate( args... );
@@ -286,7 +286,7 @@ public:
    __cuda_callable__
    operator bool() const
    {
-      return this->pd;
+      return this->pd != nullptr;
    }
 
    /**
@@ -298,7 +298,7 @@ public:
    bool
    operator!() const
    {
-      return ! this->pd;
+      return this->pd == nullptr;
    }
 
    /**
@@ -373,7 +373,7 @@ public:
          this->pd->counter += 1;
 #ifdef TNL_DEBUG_SHARED_POINTERS
       std::cerr << "Copy-assigned shared pointer: counter = " << this->pd->counter << ", type: " << getType< ObjectType >()
-                << std::endl;
+                << '\n';
 #endif
       return *this;
    }
@@ -397,7 +397,7 @@ public:
          this->pd->counter += 1;
 #ifdef TNL_DEBUG_SHARED_POINTERS
       std::cerr << "Copy-assigned shared pointer: counter = " << this->pd->counter << ", type: " << getType< ObjectType >()
-                << std::endl;
+                << '\n';
 #endif
       return *this;
    }
@@ -414,13 +414,13 @@ public:
    operator=( SharedPointer&& ptr ) noexcept  // this is needed only to avoid the default compiler-generated operator
    {
       this->free();
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = ptr.pd;
       this->cuda_pointer = ptr.cuda_pointer;
       ptr.pd = nullptr;
       ptr.cuda_pointer = nullptr;
 #ifdef TNL_DEBUG_SHARED_POINTERS
       std::cerr << "Move-assigned shared pointer: counter = " << this->pd->counter << ", type: " << getType< ObjectType >()
-                << std::endl;
+                << '\n';
 #endif
       return *this;
    }
@@ -444,7 +444,7 @@ public:
       ptr.cuda_pointer = nullptr;
 #ifdef TNL_DEBUG_SHARED_POINTERS
       std::cerr << "Move-assigned shared pointer: counter = " << this->pd->counter << ", type: " << getType< ObjectType >()
-                << std::endl;
+                << '\n';
 #endif
       return *this;
    }
@@ -460,13 +460,13 @@ public:
    bool
    synchronize() override
    {
-      if( ! this->pd )
+      if( this->pd == nullptr )
          return true;
       if( this->modified() ) {
 #ifdef TNL_DEBUG_SHARED_POINTERS
          std::cerr << "Synchronizing shared pointer: counter = " << this->pd->counter << ", type: " << getType< ObjectType >()
-                   << std::endl;
-         std::cerr << "   ( " << sizeof( Object ) << " bytes, CUDA adress " << this->cuda_pointer << " )" << std::endl;
+                   << '\n';
+         std::cerr << "   ( " << sizeof( Object ) << " bytes, CUDA adress " << this->cuda_pointer << " )\n";
 #endif
          TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
          Backend::memcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), Backend::MemcpyHostToDevice );
@@ -530,8 +530,8 @@ protected:
       // synchronize
       this->synchronize();
 #ifdef TNL_DEBUG_SHARED_POINTERS
-      std::cerr << "Created shared pointer to " << getType< ObjectType >() << " (cuda_pointer = " << this->cuda_pointer << ")"
-                << std::endl;
+      std::cerr << "Created shared pointer to " << getType< ObjectType >() << " (cuda_pointer = " << this->cuda_pointer
+                << ")\n";
 #endif
       getSmartPointersRegister< DeviceType >().insert( this );
       return true;
@@ -561,7 +561,7 @@ protected:
       if( this->pd ) {
 #ifdef TNL_DEBUG_SHARED_POINTERS
          std::cerr << "Freeing shared pointer: counter = " << this->pd->counter << ", cuda_pointer = " << this->cuda_pointer
-                   << ", type: " << getType< ObjectType >() << std::endl;
+                   << ", type: " << getType< ObjectType >() << '\n';
 #endif
          if( ! --this->pd->counter ) {
             delete this->pd;
@@ -569,7 +569,7 @@ protected:
             if( this->cuda_pointer )
                AllocatorType{}.deallocate( this->cuda_pointer, 1 );
 #ifdef TNL_DEBUG_SHARED_POINTERS
-            std::cerr << "...deleted data." << std::endl;
+            std::cerr << "...deleted data.\n";
 #endif
          }
       }

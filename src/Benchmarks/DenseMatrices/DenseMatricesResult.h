@@ -30,7 +30,7 @@ struct DenseMatricesResult : public BenchmarkResult
      benchmarkResults( benchmarkResults )
    {}
 
-   virtual HeaderElements
+   [[nodiscard]] HeaderElements
    getTableHeader() const override
    {
       HeaderElements headers = { "time", "time_stddev", "time_stddev/time", "loops", "bandwidth", "speedup" };
@@ -41,7 +41,7 @@ struct DenseMatricesResult : public BenchmarkResult
       return headers;
    }
 
-   virtual std::vector< IndexType >
+   [[nodiscard]] std::vector< IndexType >
    getColumnWidthHints() const override
    {
       std::vector< IndexType > columnWidths = { 14, 16, 18, 6, 14, 14 };
@@ -52,7 +52,7 @@ struct DenseMatricesResult : public BenchmarkResult
       return columnWidths;
    }
 
-   virtual RowElements
+   [[nodiscard]] RowElements
    getRowElements() const override
    {
       RowElements elements;

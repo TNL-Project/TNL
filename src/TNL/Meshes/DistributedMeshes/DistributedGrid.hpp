@@ -293,7 +293,7 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setupNeighbors()
          this->periodicNeighbors[ i ] = this->getRankOfProcCoord( coordinates );
       }
 
-      // std::cout << "Setting i-th neighbour to " << neighbors[ i ] << " and " << periodicNeighbors[ i ] << std::endl;
+      // std::cout << "Setting i-th neighbour to " << neighbors[ i ] << " and " << periodicNeighbors[ i ] << '\n';
    }
 }
 
@@ -446,23 +446,23 @@ operator<<( std::ostream& str, const DistributedMesh< Grid< Dimension, Real, Dev
 {
    for( int j = 0; j < MPI::GetSize(); j++ ) {
       if( j == MPI::GetRank() ) {
-         str << "Node : " << MPI::GetRank() << std::endl
-             << " globalGrid : " << grid.getGlobalGrid() << std::endl
-             << " localGrid : " << grid.getLocalMesh() << std::endl
-             << " localSize : " << grid.getLocalSize() << std::endl
-             << " globalBegin : " << grid.globalBegin << std::endl
-             << " lowerOverlap : " << grid.lowerOverlap << std::endl
-             << " upperOverlap : " << grid.upperOverlap << std::endl
-             << " domainDecomposition : " << grid.domainDecomposition << std::endl
-             << " subdomainCoordinates : " << grid.subdomainCoordinates << std::endl
+         str << "Node : " << MPI::GetRank() << '\n'
+             << " globalGrid : " << grid.getGlobalGrid() << '\n'
+             << " localGrid : " << grid.getLocalMesh() << '\n'
+             << " localSize : " << grid.getLocalSize() << '\n'
+             << " globalBegin : " << grid.globalBegin << '\n'
+             << " lowerOverlap : " << grid.lowerOverlap << '\n'
+             << " upperOverlap : " << grid.upperOverlap << '\n'
+             << " domainDecomposition : " << grid.domainDecomposition << '\n'
+             << " subdomainCoordinates : " << grid.subdomainCoordinates << '\n'
              << " neighbors : ";
          for( int i = 0; i < grid.getNeighborsCount(); i++ )
             str << " " << grid.getNeighbors()[ i ];
-         str << std::endl;
+         str << '\n';
          str << " periodicNeighbours : ";
          for( int i = 0; i < grid.getNeighborsCount(); i++ )
             str << " " << grid.getPeriodicNeighbors()[ i ];
-         str << std::endl;
+         str << '\n';
       }
       MPI::Barrier();
    }

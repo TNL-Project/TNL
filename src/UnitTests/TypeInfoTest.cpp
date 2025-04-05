@@ -1,15 +1,17 @@
+#include <cstdint>
+
 #include <TNL/TypeInfo.h>
 
 #include <gtest/gtest.h>
 
 using namespace TNL;
 
-enum MyEnumType
+enum MyEnumType : std::uint8_t
 {
    foo,
    bar
 };
-enum class MyEnumClass
+enum class MyEnumClass : std::uint8_t
 {
    foo,
    bar
@@ -34,12 +36,12 @@ class MyClassTemplate
 class MyPolymorphicBase
 {
 public:
-   virtual ~MyPolymorphicBase() {}
+   virtual ~MyPolymorphicBase() = default;
 };
 class MyPolymorphicDerived : public MyPolymorphicBase
 {
 public:
-   virtual ~MyPolymorphicDerived() {}
+   ~MyPolymorphicDerived() override = default;
 };
 
 TEST( TypeInfoTest, getType )

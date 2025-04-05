@@ -90,9 +90,9 @@ public:
    [[nodiscard]] Point
    getCenter( const Grid& grid ) const
    {
-      Point origin = grid.getOrigin();
+      const Point& origin = grid.getOrigin();
       Point center;
-      Point spaceSteps = grid.getSpaceSteps();
+      const Point& spaceSteps = grid.getSpaceSteps();
 
       Coordinate normals = getNormals();
 

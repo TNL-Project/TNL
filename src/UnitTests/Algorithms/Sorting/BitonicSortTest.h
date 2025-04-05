@@ -3,8 +3,6 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
-#include <random>
-#include <iostream>
 
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
@@ -28,7 +26,7 @@ TEST( permutations, allPermutationSize_2_to_7 )
 
          BitonicSort::sort( view );
 
-         EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed " << i << std::endl;
+         EXPECT_TRUE( Algorithms::isAscending( view ) ) << "failed " << i << '\n';
       } while( std::next_permutation( orig.begin(), orig.end() ) );
    }
 }
@@ -51,7 +49,7 @@ TEST( permutations, allPermutationSize_8 )
 
       BitonicSort::sort( view );
 
-      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
    } while( std::next_permutation( orig.begin(), orig.end() ) );
 }
 
@@ -73,7 +71,7 @@ TEST( permutations, somePermutationSize9 )
 
       BitonicSort::sort( view );
 
-      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
    } while( std::next_permutation( orig.begin(), orig.end() ) );
 }
 
@@ -81,9 +79,9 @@ TEST( selectedSize, size15 )
 {
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr{ 5, 9, 4, 8, 6, 1, 2, 3, 4, 8, 1, 6, 9, 4, 9 };
    auto view = cudaArr.getView();
-   EXPECT_EQ( 15, view.getSize() ) << "size not 15" << std::endl;
+   EXPECT_EQ( 15, view.getSize() ) << "size not 15\n";
    BitonicSort::sort( view );
-   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
 }
 
 TEST( multiblock, 32768_decreasingNegative )
@@ -96,7 +94,7 @@ TEST( multiblock, 32768_decreasingNegative )
    auto view = cudaArr.getView();
 
    BitonicSort::sort( view );
-   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
 }
 
 TEST( randomGenerated, smallArray_randomVal )
@@ -134,7 +132,7 @@ TEST( nonIntegerType, float_notPow2 )
    TNL::Containers::Array< float, TNL::Devices::Cuda > cudaArr{ 5.0, 9.4, 4.6, 8.9, 6.2, 1.15184, 2.23 };
    auto view = cudaArr.getView();
    BitonicSort::sort( view );
-   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
 }
 
 TEST( nonIntegerType, double_notPow2 )
@@ -142,7 +140,7 @@ TEST( nonIntegerType, double_notPow2 )
    TNL::Containers::Array< double, TNL::Devices::Cuda > cudaArr{ 5.0, 9.4, 4.6, 8.9, 6.2, 1.15184, 2.23 };
    auto view = cudaArr.getView();
    BitonicSort::sort( view );
-   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
 }
 
 struct TMPSTRUCT
@@ -285,7 +283,7 @@ TEST( sortWithFunction, descending )
    auto view = cudaArr.getView();
    descendingSort( view );
 
-   EXPECT_FALSE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   EXPECT_FALSE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
 
    EXPECT_TRUE( view.getElement( 0 ) == 9 );
    EXPECT_TRUE( view.getElement( 1 ) == 6 );
@@ -396,7 +394,7 @@ TEST( fetchAndSwap, oneBlockSort )
       TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( orig );
       auto view = cudaArr.getView();
       fetchAndSwapSorter( view );
-      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
    } while( std::next_permutation( orig.begin(), orig.end() ) );
 }
 
@@ -410,7 +408,7 @@ TEST( fetchAndSwap, typeDouble )
       TNL::Containers::Array< double, TNL::Devices::Cuda > cudaArr( orig );
       auto view = cudaArr.getView();
       fetchAndSwapSorter( view );
-      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
    } while( std::next_permutation( orig.begin(), orig.end() ) );
 }
 
@@ -434,12 +432,13 @@ TEST( fetchAndSwap, sortMiddle )
    std::vector< int > orig{ 5, 9, 4, 54, 21, 6, 7, 9, 0, 9, 42, 4 };
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( orig );
    auto view = cudaArr.getView();
-   size_t from = 3, to = 8;
+   std::size_t from = 3;
+   std::size_t to = 8;
 
    fetchAndSwap_sortMiddle( view, from, to );
-   EXPECT_TRUE( Algorithms::isAscending( view.getView( 3, 8 ) ) ) << "result " << view << std::endl;
+   EXPECT_TRUE( Algorithms::isAscending( view.getView( 3, 8 ) ) ) << "result " << view << '\n';
 
-   for( size_t i = 0; i < orig.size(); i++ ) {
+   for( std::size_t i = 0; i < orig.size(); i++ ) {
       if( i < from || i >= to )
          EXPECT_TRUE( view.getElement( i ) == orig[ i ] );
    }

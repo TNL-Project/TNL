@@ -24,7 +24,7 @@ getMeshReader( const std::string& fileName, const std::string& fileFormat )
    std::string format = fileFormat;
    if( format == "auto" ) {
       format = fs::path( fileName ).extension().string();
-      if( format.length() > 0 )
+      if( ! format.empty() )
          // remove dot from the extension
          format = format.substr( 1 );
    }
@@ -48,7 +48,7 @@ getMeshReader( const std::string& fileName, const std::string& fileFormat )
       std::cerr << "File '" << fileName << "' has unsupported format (based on the file extension): " << format << ".";
    else
       std::cerr << "Unsupported fileFormat parameter: " << fileFormat << ".";
-   std::cerr << " Supported formats are 'ng', 'vtk', 'vtu', 'vti', 'pvtu' and 'pvti'." << std::endl;
+   std::cerr << " Supported formats are 'ng', 'vtk', 'vtu', 'vti', 'pvtu' and 'pvti'.\n";
    return nullptr;
 }
 

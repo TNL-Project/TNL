@@ -16,7 +16,7 @@ template< typename Real, typename Device = Devices::Host, typename Index = int >
 class DistributedVectorView : public DistributedArrayView< Real, Device, Index >
 {
    using BaseType = DistributedArrayView< Real, Device, Index >;
-   using NonConstReal = typename std::remove_const< Real >::type;
+   using NonConstReal = std::remove_const_t< Real >;
 
 public:
    using RealType = Real;

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedGrid.h>
@@ -34,7 +36,7 @@ public:
       return DistributedGridType::getNeighborsCount();
    }
 
-   enum PeriodicBoundariesCopyDirection
+   enum PeriodicBoundariesCopyDirection : std::uint8_t
    {
       BoundaryToOverlap,
       OverlapToBoundary
@@ -72,7 +74,7 @@ public:
 
       const int* neighbors = distributedGrid->getNeighbors();
 
-      for( int i = 0; i < this->getNeighborsCount(); i++ ) {
+      for( int i = 0; i < getNeighborsCount(); i++ ) {
          Index sendSize = 1;  // send and receive  areas have the same size
 
          // bool isBoundary=( neighbor[ i ] == -1 );
@@ -82,7 +84,7 @@ public:
          sendBegin[ i ] = localBegin;
          recieveBegin[ i ] = localBegin;
 
-         for( int j = 0; j < this->getMeshDimension(); j++ ) {
+         for( int j = 0; j < getMeshDimension(); j++ ) {
             if( directions[ j ] == -1 ) {
                sendDimensions[ i ][ j ] = lowerOverlap[ j ];
                recieveBegin[ i ][ j ] = 0;
@@ -120,7 +122,7 @@ public:
          return;
 
       // allocate buffers (setSize does nothing if the array size is already correct)
-      for( int i = 0; i < this->getNeighborsCount(); i++ ) {
+      for( int i = 0; i < getNeighborsCount(); i++ ) {
          sendBuffers[ i ].setSize( sendSizes[ i ] * sizeof( RealType ) );
          recieveBuffers[ i ].setSize( sendSizes[ i ] * sizeof( RealType ) );
       }
@@ -139,12 +141,12 @@ public:
                    PeriodicBoundariesMaskPointer( nullptr ) );  // the mask is used only when receiving data );
 
       // async send and receive
-      std::unique_ptr< MPI_Request[] > requests{ new MPI_Request[ 2 * this->getNeighborsCount() ] };
+      std::unique_ptr< MPI_Request[] > requests{ new MPI_Request[ 2 * getNeighborsCount() ] };
       const MPI::Comm& communicator = distributedGrid->getCommunicator();
       int requestsCount( 0 );
 
       // send everything, recieve everything
-      for( int i = 0; i < this->getNeighborsCount(); i++ ) {
+      for( int i = 0; i < getNeighborsCount(); i++ ) {
          /*TNL_MPI_PRINT( "Sending data... " << i << " sizes -> "
             << sendSizes[ i ] << "sendDimensions -> " <<  sendDimensions[ i ]
             << " upperOverlap -> " << this->distributedGrid->getUpperOverlap() );*/
@@ -200,7 +202,7 @@ private:
       using Helper =
          BufferEntitiesHelper< MeshFunctionType, PeriodicBoundariesMaskPointer, getMeshDimension(), RealType, Device >;
 
-      for( int i = 0; i < this->getNeighborsCount(); i++ ) {
+      for( int i = 0; i < getNeighborsCount(); i++ ) {
          bool isBoundary = ( neighbor[ i ] == -1 );
          if( ! isBoundary || periodicBoundaries ) {
             Helper::BufferEntities( meshFunction,
@@ -214,7 +216,6 @@ private:
       }
    }
 
-private:
    Containers::StaticArray< getNeighborsCount(), int > sendSizes;
    Containers::Array< std::uint8_t, Device, Index > sendBuffers[ getNeighborsCount() ];
    Containers::Array< std::uint8_t, Device, Index > recieveBuffers[ getNeighborsCount() ];

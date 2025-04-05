@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <iomanip>
 #include <sstream>
 #include <map>
 
@@ -62,7 +61,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtx( std::istream& file, Matrix&
       throw std::runtime_error( "Matrix is not symmetric, but flag for symmetric matrix is given. Aborting." );
 
    if( verbose )
-      std::cout << "Matrix dimensions are " << rows << " x " << columns << std::endl;
+      std::cout << "Matrix dimensions are " << rows << " x " << columns << '\n';
    matrix.setDimensions( rows, columns );
 
    readMatrixElementsFromMtxFile( file, matrix, symmetricSourceMatrix, sourceMatrixPattern, verbose );
@@ -100,10 +99,10 @@ MatrixReader< Matrix, TNL::Devices::Host >::verifyMtxFile( std::istream& file, c
           || ( symmetricSourceMatrix && value != matrix.getElement( column - 1, row - 1 ) ) )
       {
          std::stringstream str;
-         str << "*** !!! VERIFICATION ERROR !!! *** " << std::endl
-             << "The elements differ at " << row - 1 << " row " << column - 1 << " column." << std::endl
+         str << "*** !!! VERIFICATION ERROR !!! ***\n"
+             << "The elements differ at " << row - 1 << " row " << column - 1 << " column.\n"
              << "The matrix value is " << matrix.getElement( row - 1, column - 1 ) << " while the file value is " << value
-             << "." << std::endl;
+             << ".\n";
          throw std::runtime_error( str.str() );
       }
       processedElements++;
@@ -118,8 +117,8 @@ MatrixReader< Matrix, TNL::Devices::Host >::verifyMtxFile( std::istream& file, c
    timer.stop();
    if( verbose )
       std::cout << " Verifying the matrix elements ... " << processedElements << " / " << matrix.getNumberOfMatrixElements()
-                << " -> " << timer.getRealTime() << " sec. i.e. " << fileSize / ( timer.getRealTime() * ( 1 << 20 ) ) << "MB/s."
-                << std::endl;
+                << " -> " << timer.getRealTime() << " sec. i.e. " << fileSize / ( timer.getRealTime() * ( 1 << 20 ) )
+                << "MB/s.\n";
 }
 
 template< typename Matrix >
@@ -214,7 +213,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file,
       rows = atoi( parsedLine[ 0 ].getString() );
       columns = atoi( parsedLine[ 1 ].getString() );
       if( verbose )
-         std::cout << " The matrix has " << rows << " rows and " << columns << " columns. " << std::endl;
+         std::cout << " The matrix has " << rows << " rows and " << columns << " columns.\n";
 
       if( rows <= 0 || columns <= 0 )
          throw std::runtime_error( "Row or column index is negative." );
@@ -283,7 +282,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::
    timer.stop();
    if( verbose )
       std::cout << " Reading the matrix elements ... " << processedElements << " -> " << timer.getRealTime() << " sec. i.e. "
-                << fileSize / ( timer.getRealTime() * ( 1 << 20 ) ) << "MB/s." << std::endl;
+                << fileSize / ( timer.getRealTime() * ( 1 << 20 ) ) << "MB/s.\n";
 
    timer.reset();
    timer.start();
@@ -296,7 +295,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::
    const long int dataSize = processedElements * ( sizeof( RealType ) + sizeof( IndexType ) );
    if( verbose )
       std::cout << " Copying matrix elements from std::map to the matrix ... -> " << timer.getRealTime() << " sec. i.e. "
-                << dataSize / ( timer.getRealTime() * ( 1 << 20 ) ) << "MB/s." << std::endl;
+                << dataSize / ( timer.getRealTime() * ( 1 << 20 ) ) << "MB/s.\n";
 }
 
 template< typename Matrix >

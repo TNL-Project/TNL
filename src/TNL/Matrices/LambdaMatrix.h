@@ -574,17 +574,17 @@ struct LambdaMatrixFactory
    {
       // TODO: fix the following asserts, they do not work in fact
       static_assert(
-         std::is_same<
+         std::is_same_v<
             std::enable_if_t< true,
                               decltype( matrixElementsLambda(
                                  Index(), Index(), Index(), Index(), std::declval< Index& >(), std::declval< Real& >() ) ) >,
-            void >::value,
+            void >,
          "Wong type of MatrixElementsLambda, it should be - matrixElementsLambda( Index rows, Index columns, Index rowIdx, "
          "Index localIdx, Index& columnIdx, Real& value )" );
-      static_assert( std::is_integral<
-                        std::enable_if_t< true, decltype( compressedRowLengthsLambda( Index(), Index(), Index() ) ) > >::value,
-                     "Wong type of CompressedRowLengthsLambda, it should be - matrixElementsLambda( Index rows, Index columns, "
-                     "Index rowIdx )" );
+      static_assert(
+         std::is_integral_v< std::enable_if_t< true, decltype( compressedRowLengthsLambda( Index(), Index(), Index() ) ) > >,
+         "Wong type of CompressedRowLengthsLambda, it should be - matrixElementsLambda( Index rows, Index columns, "
+         "Index rowIdx )" );
       return LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >(
          matrixElementsLambda, compressedRowLengthsLambda );
    }
@@ -614,17 +614,17 @@ struct LambdaMatrixFactory
    {
       // TODO: fix the following asserts, they do not work in fact
       static_assert(
-         std::is_same<
+         std::is_same_v<
             std::enable_if_t< true,
                               decltype( matrixElementsLambda(
                                  Index(), Index(), Index(), Index(), std::declval< Index& >(), std::declval< Real& >() ) ) >,
-            void >::value,
+            void >,
          "Wong type of MatrixElementsLambda, it should be - matrixElementsLambda( Index rows, Index columns, Index rowIdx, "
          "Index localIdx, Index& columnIdx, Real& value )" );
-      static_assert( std::is_integral<
-                        std::enable_if_t< true, decltype( compressedRowLengthsLambda( Index(), Index(), Index() ) ) > >::value,
-                     "Wong type of CompressedRowLengthsLambda, it should be - matrixElementsLambda( Index rows, Index columns, "
-                     "Index rowIdx )" );
+      static_assert(
+         std::is_integral_v< std::enable_if_t< true, decltype( compressedRowLengthsLambda( Index(), Index(), Index() ) ) > >,
+         "Wong type of CompressedRowLengthsLambda, it should be - matrixElementsLambda( Index rows, Index columns, "
+         "Index rowIdx )" );
 
       return LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >(
          rows, columns, matrixElementsLambda, compressedRowLengthsLambda );

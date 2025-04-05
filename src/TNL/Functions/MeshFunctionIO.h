@@ -40,7 +40,7 @@ readMeshFunction( MeshFunction& function,
       data = reader->readCellData( functionName );
    else {
       std::cerr << "The mesh function with entities dimension " << function.getEntitiesDimension()
-                << " cannot be read from the file " << fileName << std::endl;
+                << " cannot be read from the file " << fileName << '\n';
       return false;
    }
 
@@ -132,7 +132,7 @@ writeMeshFunction( const MeshFunction& function,
    std::ofstream file;
    file.open( fileName );
    if( ! file ) {
-      std::cerr << "Unable to open a file " << fileName << "." << std::endl;
+      std::cerr << "Unable to open a file " << fileName << ".\n";
       return false;
    }
 
@@ -157,7 +157,7 @@ writeMeshFunction( const MeshFunction& function,
    else if( format == "gnuplot" || format == "gplt" || format == "plt" )
       return MeshFunctionGnuplotWriter< MeshFunction >::write( function, file );
    else {
-      std::cerr << "Unknown output format: " << format << std::endl;
+      std::cerr << "Unknown output format: " << format << '\n';
       return false;
    }
    return true;
@@ -174,7 +174,7 @@ writeMeshFunction( const MeshFunction& function,
    std::ofstream file;
    file.open( fileName );
    if( ! file ) {
-      std::cerr << "Unable to open a file " << fileName << "." << std::endl;
+      std::cerr << "Unable to open a file " << fileName << ".\n";
       return false;
    }
 
@@ -207,7 +207,7 @@ writeMeshFunction( const MeshFunction& function,
    else if( format == "gnuplot" || format == "gplt" || format == "plt" )
       return MeshFunctionGnuplotWriter< MeshFunction >::write( function, file );
    else {
-      std::cerr << "Unknown output format: " << format << std::endl;
+      std::cerr << "Unknown output format: " << format << '\n';
       return false;
    }
    return true;

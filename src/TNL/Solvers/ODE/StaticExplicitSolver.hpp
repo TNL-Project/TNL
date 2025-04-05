@@ -96,12 +96,11 @@ __cuda_callable__
 bool
 StaticExplicitSolver< Real, Index >::checkNextIteration()
 {
-   if( std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
-       || ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() >= this->getMinIterations() )
-       || ( this->getResidue() < this->getConvergenceResidue() && this->getIterations() >= this->getMinIterations()
-            && this->stopOnSteadyState ) )
-      return false;
-   return true;
+   return ! static_cast< bool >(
+      std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
+      || ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() >= this->getMinIterations() )
+      || ( this->getResidue() < this->getConvergenceResidue() && this->getIterations() >= this->getMinIterations()
+           && this->stopOnSteadyState ) );
 }
 
 template< typename Real, typename Index >

@@ -94,7 +94,8 @@ MultiplicationKernel6( ResultMatrix resultMatrix,
 
       // Compute the matrix multiplication for this tile
       for( IndexType k = 0; k < 16; ++k ) {
-         RealType regA[ 4 ], regB[ 4 ];
+         RealType regA[ 4 ];
+         RealType regB[ 4 ];
          #pragma unroll
          for( IndexType i = 0; i < 4; ++i ) {
             regA[ i ] = sharedA[ threadIdx.y * 4 + i ][ k ];

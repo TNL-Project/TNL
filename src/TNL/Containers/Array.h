@@ -379,7 +379,7 @@ public:
     * \param array The array to be swapped with this array.
     */
    void
-   swap( Array& array );
+   swap( Array& array ) noexcept;
 
    /**
     * \brief Resets the array to the empty state.
@@ -555,7 +555,7 @@ public:
     */
    template< typename T,
              typename...,
-             typename = std::enable_if_t< std::is_convertible< T, ValueType >::value || IsArrayType< T >::value > >
+             typename = std::enable_if_t< std::is_convertible_v< T, ValueType > || IsArrayType< T >::value > >
    Array&
    operator=( const T& data );
 

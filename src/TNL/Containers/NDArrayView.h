@@ -124,7 +124,7 @@ public:
    NDArrayView&
    operator=( const OtherView& other )
    {
-      static_assert( std::is_same< PermutationType, typename OtherView::PermutationType >::value,
+      static_assert( std::is_same_v< PermutationType, typename OtherView::PermutationType >,
                      "Arrays must have the same permutation of indices." );
       static_assert( NDArrayView::isContiguous() && OtherView::isContiguous(),
                      "Non-contiguous array views cannot be assigned." );

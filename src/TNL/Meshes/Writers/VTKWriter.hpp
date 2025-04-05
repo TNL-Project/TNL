@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <limits>
-
 #include <TNL/Meshes/Writers/VTKWriter.h>
 #include <TNL/Meshes/Writers/detail/VTKOffsetsCountGetter.h>
 #include <TNL/Meshes/Writers/detail/VTKMeshEntitiesWriter.h>
@@ -63,13 +61,13 @@ VTKWriter< Mesh >::writeEntities( const Mesh& mesh )
    // legacy VTK files always have fixed integer width, even in the BINARY format
    // - DataFormat version 2.0: 32-bit
    // - DataFormat version 5.1: 64-bit (vtktypeint64)
-   str << std::endl << "CELLS " << cellsCount + 1 << " " << offsetsCount << std::endl;
-   str << "OFFSETS vtktypeint64" << std::endl;
+   str << "\nCELLS " << cellsCount + 1 << " " << offsetsCount << '\n';
+   str << "OFFSETS vtktypeint64\n";
    detail::VTKMeshEntitiesWriter< Mesh, EntityDimension >::template writeOffsets< std::int64_t >( mesh, str, format );
-   str << "CONNECTIVITY vtktypeint64" << std::endl;
+   str << "CONNECTIVITY vtktypeint64\n";
    detail::VTKMeshEntitiesWriter< Mesh, EntityDimension >::template writeConnectivity< std::int64_t >( mesh, str, format );
 
-   str << std::endl << "CELL_TYPES " << cellsCount << std::endl;
+   str << "\nCELL_TYPES " << cellsCount << '\n';
    detail::VTKMeshEntityTypesWriter< Mesh, EntityDimension >::exec( mesh, str, format );
 }
 
@@ -89,7 +87,7 @@ VTKWriter< Mesh >::writePointData( const Array& array, const std::string& name, 
 
    // start the appropriate section if necessary
    if( pointDataArrays == 0 )
-      str << std::endl << "POINT_DATA " << pointsCount << std::endl;
+      str << "\nPOINT_DATA " << pointsCount << '\n';
    ++pointDataArrays;
 
    writeDataArray( array, name, numberOfComponents );
@@ -111,7 +109,7 @@ VTKWriter< Mesh >::writeCellData( const Array& array, const std::string& name, c
 
    // start the appropriate section if necessary
    if( cellDataArrays == 0 )
-      str << std::endl << "CELL_DATA " << cellsCount << std::endl;
+      str << "\nCELL_DATA " << cellsCount << '\n';
    ++cellDataArrays;
 
    writeDataArray( array, name, numberOfComponents );
@@ -137,11 +135,11 @@ VTKWriter< Mesh >::writeDataArray( const Array& array, const std::string& name, 
 
    // write DataArray header
    if( numberOfComponents == 1 ) {
-      str << "SCALARS " << name << " " << getType< typename Array::ValueType >() << std::endl;
-      str << "LOOKUP_TABLE default" << std::endl;
+      str << "SCALARS " << name << " " << getType< typename Array::ValueType >() << '\n';
+      str << "LOOKUP_TABLE default\n";
    }
    else {
-      str << "VECTORS " << name << " " << getType< typename Array::ValueType >() << std::endl;
+      str << "VECTORS " << name << " " << getType< typename Array::ValueType >() << '\n';
    }
 
    using detail::writeValue;
@@ -158,7 +156,7 @@ VTKWriter< Mesh >::writePoints( const Mesh& mesh )
 {
    using detail::writeValue;
    pointsCount = mesh.template getEntitiesCount< typename Mesh::Vertex >();
-   str << "POINTS " << pointsCount << " " << getType< typename Mesh::RealType >() << std::endl;
+   str << "POINTS " << pointsCount << " " << getType< typename Mesh::RealType >() << '\n';
    for( std::uint64_t i = 0; i < pointsCount; i++ ) {
       const auto& vertex = mesh.template getEntity< typename Mesh::Vertex >( i );
       const auto& point = vertex.getPoint();

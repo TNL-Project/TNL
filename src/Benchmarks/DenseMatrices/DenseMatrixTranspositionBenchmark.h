@@ -16,6 +16,7 @@
 #include "DenseMatricesResult.h"
 #include "LegacyKernelsLauncher.h"
 #include <cmath>
+#include <utility>
 #include <vector>
 
 #if defined( __CUDACC__ )
@@ -70,15 +71,15 @@ struct DenseMatrixTranspositionBenchmark
    }
 
    TNL::Config::ParameterContainer parameters;
-   DenseMatrixTranspositionBenchmark( const TNL::Config::ParameterContainer& parameters_ )
-   : parameters( parameters_ )
+   DenseMatrixTranspositionBenchmark( TNL::Config::ParameterContainer parameters_ )
+   : parameters( std::move( parameters_ ) )
    {}
 
    bool
    runBenchmark()
    {
-      const TNL::String logFileName = parameters.getParameter< TNL::String >( "log-file" );
-      const TNL::String outputMode = parameters.getParameter< TNL::String >( "output-mode" );
+      const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
+      const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
       const IndexType loops = parameters.getParameter< IndexType >( "loops" );
       const IndexType verbose = parameters.getParameter< IndexType >( "verbose" );
       bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";

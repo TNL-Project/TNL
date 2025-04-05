@@ -82,8 +82,7 @@ distributedInclusiveScan( const InputDistributedArray& input,
 {
    if( end == 0 )
       end = input.getSize();
-   constexpr typename OutputDistributedArray::ValueType identity =
-      Reduction::template getIdentity< typename OutputDistributedArray::ValueType >();
+   constexpr auto identity = Reduction::template getIdentity< typename OutputDistributedArray::ValueType >();
    distributedInclusiveScan( input, output, begin, end, std::forward< Reduction >( reduction ), identity );
 }
 
@@ -159,8 +158,7 @@ distributedExclusiveScan( const InputDistributedArray& input,
 {
    if( end == 0 )
       end = input.getSize();
-   constexpr typename OutputDistributedArray::ValueType identity =
-      Reduction::template getIdentity< typename OutputDistributedArray::ValueType >();
+   constexpr auto identity = Reduction::template getIdentity< typename OutputDistributedArray::ValueType >();
    distributedExclusiveScan( input, output, begin, end, std::forward< Reduction >( reduction ), identity );
 }
 
@@ -222,8 +220,7 @@ distributedInplaceInclusiveScan( DistributedArray& array,
 {
    if( end == 0 )
       end = array.getSize();
-   constexpr typename DistributedArray::ValueType identity =
-      Reduction::template getIdentity< typename DistributedArray::ValueType >();
+   constexpr auto identity = Reduction::template getIdentity< typename DistributedArray::ValueType >();
    distributedInplaceInclusiveScan( array, begin, end, std::forward< Reduction >( reduction ), identity );
 }
 
@@ -285,8 +282,7 @@ distributedInplaceExclusiveScan( DistributedArray& array,
 {
    if( end == 0 )
       end = array.getSize();
-   constexpr typename DistributedArray::ValueType identity =
-      Reduction::template getIdentity< typename DistributedArray::ValueType >();
+   constexpr auto identity = Reduction::template getIdentity< typename DistributedArray::ValueType >();
    distributedInplaceExclusiveScan( array, begin, end, std::forward< Reduction >( reduction ), identity );
 }
 

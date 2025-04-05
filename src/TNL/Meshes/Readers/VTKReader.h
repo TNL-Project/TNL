@@ -758,7 +758,7 @@ protected:
                }
                else {
                   std::cerr << "VTKReader: encountered an unsupported CELL_DATA array type: " << type
-                            << ". Ignoring the rest of the file." << std::endl;
+                            << ". Ignoring the rest of the file.\n";
                   return;
                }
 
@@ -883,7 +883,7 @@ protected:
       return value;
    }
 
-   [[nodiscard]] static inline std::string
+   [[nodiscard]] static std::string
    rstrip_cr( const std::string& string )
    {
       const auto end = string.find_last_not_of( '\r' );

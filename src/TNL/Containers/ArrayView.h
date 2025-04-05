@@ -243,7 +243,7 @@ public:
     */
    __cuda_callable__
    void
-   swap( ArrayView& view );
+   swap( ArrayView& view ) noexcept;
 
    /***
     * \brief Resets the array view to the empty state.

@@ -29,7 +29,7 @@ using namespace TNL::Algorithms::Sorting;
 
 template< typename Sorter >
 void
-start( ostream& out, string delim )
+start( ostream& out, const string& delim )
 {
    out << "size" << delim;
    out << "random" << delim;
@@ -41,7 +41,7 @@ start( ostream& out, string delim )
    out << "bucket" << delim;
    out << "stagger" << delim;
    out << "zero_entropy";
-   out << endl;
+   out << '\n';
 
    int wrongAnsCnt = 0;
 
@@ -77,11 +77,11 @@ start( ostream& out, string delim )
       out << delim << flush;
 
       out << Measurer< Sorter >::measure( generateZero_entropy( size ), TRIES, wrongAnsCnt );
-      out << endl;
+      out << '\n';
    }
 
    if( wrongAnsCnt > 0 )
-      std::cerr << wrongAnsCnt << "tries were sorted incorrectly" << std::endl;
+      std::cerr << wrongAnsCnt << "tries were sorted incorrectly\n";
 }
 
 int
@@ -89,53 +89,53 @@ main( int argc, char* argv[] )
 {
    if( argc == 1 ) {
 #ifdef __CUDACC__
-      std::cout << "Quicksort on GPU ... " << std::endl;
+      std::cout << "Quicksort on GPU ...\n";
       start< Quicksort >( cout, "\t" );
-      std::cout << "Bitonic sort on GPU ... " << std::endl;
+      std::cout << "Bitonic sort on GPU ...\n";
       start< BitonicSort >( cout, "\t" );
 
    // FIXME: clang 14 fails to compile the reference algorithms (e.g. due to compile errors in thrust or cub)
    #if defined( __CUDA__ ) && ! defined( __clang__ )
       #ifdef HAVE_CUDA_SAMPLES
-      std::cout << "Manca quicksort on GPU ... " << std::endl;
+      std::cout << "Manca quicksort on GPU ...\n";
       start< MancaQuicksort >( cout, "\t" );
-      std::cout << "Nvidia bitonic sort on GPU ... " << std::endl;
+      std::cout << "Nvidia bitonic sort on GPU ...\n";
       start< NvidiaBitonicSort >( cout, "\t" );
       #endif
-      std::cout << "Cederman quicksort on GPU ... " << std::endl;
+      std::cout << "Cederman quicksort on GPU ...\n";
       start< CedermanQuicksort >( cout, "\t" );
-      std::cout << "Thrust radixsort on GPU ... " << std::endl;
+      std::cout << "Thrust radixsort on GPU ...\n";
       start< ThrustRadixsort >( cout, "\t" );
    #endif
 #endif
 
-      std::cout << "STL sort on CPU ... " << std::endl;
+      std::cout << "STL sort on CPU ...\n";
       start< STLSort >( cout, "\t" );
    }
    else {
       std::ofstream out( argv[ 1 ] );
 #ifdef __CUDACC__
-      std::cout << "Quicksort on GPU ... " << std::endl;
+      std::cout << "Quicksort on GPU ...\n";
       start< Quicksort >( out, "," );
-      std::cout << "Bitonic sort on GPU ... " << std::endl;
+      std::cout << "Bitonic sort on GPU ...\n";
       start< BitonicSort >( out, "," );
 
    // FIXME: clang 14 fails to compile the reference algorithms (e.g. due to compile errors in thrust or cub)
    #if defined( __CUDA__ ) && ! defined( __clang__ )
       #ifdef HAVE_CUDA_SAMPLES
-      std::cout << "Manca quicksort on GPU ... " << std::endl;
+      std::cout << "Manca quicksort on GPU ...\n";
       start< MancaQuicksort >( out, "," );
-      std::cout << "Nvidia bitonic sort on GPU ... " << std::endl;
+      std::cout << "Nvidia bitonic sort on GPU ...\n";
       start< NvidiaBitonicSort >( out, "," );
       #endif
-      std::cout << "Cederman quicksort on GPU ... " << std::endl;
+      std::cout << "Cederman quicksort on GPU ...\n";
       start< CedermanQuicksort >( out, "," );
-      std::cout << "Thrust radixsort on GPU ... " << std::endl;
+      std::cout << "Thrust radixsort on GPU ...\n";
       start< ThrustRadixsort >( out, "," );
    #endif
 #endif
 
-      std::cout << "STL sort on CPU ... " << std::endl;
+      std::cout << "STL sort on CPU ...\n";
       start< STLSort >( out, "," );
    }
    return 0;

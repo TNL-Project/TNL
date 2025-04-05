@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <type_traits>
+
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/MatrixBase.h>
-#include <type_traits>
 
 #ifdef HAVE_BLAS
 
@@ -38,12 +38,12 @@ matrixMultiplicationBLAS( const DenseMatrix& matrix1, const DenseMatrix& matrix2
                    m,
                    n,
                    k,
-                   1.0f,
+                   1.0F,
                    matrix1.getValues().getData(),
                    k,
                    matrix2.getValues().getData(),
                    n,
-                   0.0f,
+                   0.0F,
                    resultMatrix.getValues().getData(),
                    organization == TNL::Algorithms::Segments::RowMajorOrder ? n : m );
    }

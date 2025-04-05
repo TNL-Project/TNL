@@ -3,8 +3,6 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
-#include <random>
-#include <iostream>
 
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/Sorting/BubbleSort.h>
@@ -45,7 +43,7 @@ TEST( fetchAndSwap, oneBlockSort )
       TNL::Containers::Array< int, TNL::Devices::Host > arr( orig );
       auto view = arr.getView();
       fetchAndSwapSorter( view );
-      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
    } while( std::next_permutation( orig.begin(), orig.end() ) );
 }
 
@@ -59,7 +57,7 @@ TEST( fetchAndSwap, typeDouble )
       TNL::Containers::Array< double, TNL::Devices::Host > arr( orig );
       auto view = arr.getView();
       fetchAndSwapSorter( view );
-      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+      EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
    } while( std::next_permutation( orig.begin(), orig.end() ) );
 }
 
@@ -83,12 +81,13 @@ TEST( fetchAndSwap, sortMiddle )
    std::vector< int > orig{ 5, 9, 4, 54, 21, 6, 7, 9, 0, 9, 42, 4 };
    TNL::Containers::Array< int, TNL::Devices::Host > arr( orig );
    auto view = arr.getView();
-   size_t from = 3, to = 8;
+   std::size_t from = 3;
+   std::size_t to = 8;
 
    fetchAndSwap_sortMiddle( view, from, to );
-   EXPECT_TRUE( Algorithms::isAscending( view.getView( 3, 8 ) ) ) << "result " << view << std::endl;
+   EXPECT_TRUE( Algorithms::isAscending( view.getView( 3, 8 ) ) ) << "result " << view << '\n';
 
-   for( size_t i = 0; i < orig.size(); i++ ) {
+   for( std::size_t i = 0; i < orig.size(); i++ ) {
       if( i < from || i >= to ) {
          EXPECT_TRUE( view.getElement( i ) == orig[ i ] );
       }

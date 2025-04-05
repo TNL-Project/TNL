@@ -29,8 +29,7 @@ resolveElementSize( const TNL::Config::ParameterContainer& parameters )
       case 256:
          return MemoryAccessBenchmark::performBenchmark< 256 >( parameters );
    }
-   std::cerr << "Element size " << element_size << " is not allowed. It can be only 1, 2, 4, 8, 16, 32, 64, 128, 256."
-             << std::endl;
+   std::cerr << "Element size " << element_size << " is not allowed. It can be only 1, 2, 4, 8, 16, 32, 64, 128, 256.\n";
    return false;
 }
 

@@ -111,8 +111,10 @@ cudaWritePivot( Containers::ArrayView< Value, Devices::Cuda > arr,
    __syncthreads();
    Value& pivot = *piv;
 
-   int leftBegin = myTask.partitionBegin, leftEnd = myTask.partitionBegin + myTask.dstBegin;
-   int rightBegin = myTask.partitionBegin + myTask.dstEnd, rightEnd = myTask.partitionEnd;
+   int leftBegin = myTask.partitionBegin;
+   int leftEnd = myTask.partitionBegin + myTask.dstBegin;
+   int rightBegin = myTask.partitionBegin + myTask.dstEnd;
+   int rightEnd = myTask.partitionEnd;
 
    for( int i = leftEnd + threadIdx.x; i < rightBegin; i += blockDim.x ) {
       /*

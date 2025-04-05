@@ -811,7 +811,7 @@ struct CudaScanKernelLauncher
          }
 
          // synchronize the null-stream after all grids
-         Backend::streamSynchronize( 0 );
+         Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
 
          // blockResults now contains scan results for each block. The first phase
          // ends by computing an exclusive scan of this array.
@@ -934,7 +934,7 @@ struct CudaScanKernelLauncher
          }
 
          // synchronize the null-stream after all grids
-         Backend::streamSynchronize( 0 );
+         Backend::streamSynchronize( 0 );  // NOLINT(modernize-use-nullptr)
       }
    }
 

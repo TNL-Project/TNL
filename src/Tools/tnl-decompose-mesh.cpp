@@ -139,7 +139,7 @@ struct MeshConfigTemplateTag< DecomposeMeshConfigTag >
          if( subentityDimension == 0 && entityDimension >= D - 1 )
             return true;
          // subfaces of cells are needed for polyhedral meshes
-         if( std::is_same< Cell, TNL::Meshes::Topologies::Polyhedron >::value && subentityDimension == D - 1
+         if( std::is_same_v< Cell, TNL::Meshes::Topologies::Polyhedron > && subentityDimension == D - 1
              && entityDimension == D )
             return true;
          return false;
@@ -345,7 +345,7 @@ decompose_and_save( const Mesh& mesh,
                     const std::shared_ptr< idx_t >& dual_adjncy,
                     const unsigned ncommon,
                     const unsigned ghost_levels,
-                    const std::string pvtuFileName )
+                    const std::string& pvtuFileName )
 {
    using Index = typename Mesh::GlobalIndexType;
    using IndexArray = Containers::Array< Index, Devices::Sequential, Index >;
@@ -484,10 +484,10 @@ decompose_and_save( const Mesh& mesh,
       pvtu.template writePCellData< Index >( "GlobalIndex" );
    }
 
-   std::cout << "Writing subdomains..." << std::endl;
+   std::cout << "Writing subdomains...\n";
    for( unsigned p = 0; p < nparts; p++ ) {
       const std::string outputFileName = pvtu.addPiece( pvtuFileName, p );
-      std::cout << outputFileName << std::endl;
+      std::cout << outputFileName << '\n';
 
       // Due to ghost levels, we don't know the number of cells, let alone points, in each
       // subdomain ahead of time. Hence, we use dynamic data structures instead of MeshBuilder.
@@ -764,8 +764,7 @@ run( const Mesh& mesh, const Config::ParameterContainer& parameters )
    // warn if input mesh has 64-bit indices, but METIS uses only 32-bit indices
    if( IDXTYPEWIDTH == 32 && sizeof( Index ) > 4 )
       std::cerr << "Warning: the input mesh uses 64-bit indices, but METIS was compiled only with 32-bit indices. "
-                   "Decomposition may not work correctly if the index values overflow the 32-bit type."
-                << std::endl;
+                   "Decomposition may not work correctly if the index values overflow the 32-bit type.\n";
 
    // get the mesh connectivity information in a format suitable for METIS. Actually, the same
    // format is used by the XML-based VTK formats - the only difference is that METIS requires
@@ -807,7 +806,7 @@ run( const Mesh& mesh, const Config::ParameterContainer& parameters )
 
    // We could use METIS_PartMeshDual directly instead of METIS_MeshToDual + METIS_PartGraph*,
    // but we need to reuse the dual graph for the generation of ghost cells.
-   std::cout << "Running METIS_MeshToDual..." << std::endl;
+   std::cout << "Running METIS_MeshToDual...\n";
    int status = METIS_MeshToDual( &ne, &nn, eptr, eind, &ncommon, &numflag, &xadj, &adjncy );
 
    // wrap xadj and adjncy with shared_ptr
@@ -874,12 +873,12 @@ run( const Mesh& mesh, const Config::ParameterContainer& parameters )
    }
    else {
       if( options[ METIS_OPTION_PTYPE ] == METIS_PTYPE_KWAY ) {
-         std::cout << "Running METIS_PartGraphKway..." << std::endl;
+         std::cout << "Running METIS_PartGraphKway...\n";
          status = METIS_PartGraphKway(
             &nvtxs, &ncon, xadj, adjncy, vwgt, vsize, adjwgt, &nparts, tpwgts, ubvec, options, &objval, part );
       }
       else {
-         std::cout << "Running METIS_PartGraphRecursive..." << std::endl;
+         std::cout << "Running METIS_PartGraphRecursive...\n";
          status = METIS_PartGraphRecursive(
             &nvtxs, &ncon, xadj, adjncy, vwgt, vsize, adjwgt, &nparts, tpwgts, ubvec, options, &objval, part );
       }
@@ -923,7 +922,7 @@ main( int argc, char* argv[] )
    const String inputFileFormat = parameters.getParameter< String >( "input-file-format" );
    const String outputFile = parameters.template getParameter< String >( "output-file" );
    if( ! outputFile.endsWith( ".pvtu" ) ) {
-      std::cerr << "Error: the output file must have a '.pvtu' extension." << std::endl;
+      std::cerr << "Error: the output file must have a '.pvtu' extension.\n";
       return EXIT_FAILURE;
    }
 

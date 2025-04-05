@@ -14,8 +14,7 @@
 
 #include <cstring>  // std::memcpy, std::memcmp
 
-namespace TNL {
-namespace Pointers {
+namespace TNL::Pointers {
 
 /**
  * \brief The DevicePointer is like SharedPointer, except it takes an existing host
@@ -209,7 +208,7 @@ public:
    bool
    operator!() const
    {
-      return ! this->pointer;
+      return this->pointer == nullptr;
    }
 
    /**
@@ -444,7 +443,7 @@ public:
     */
    DevicePointer( DevicePointer&& pointer ) noexcept  // this is needed only to avoid the default compiler-generated constructor
    : pointer( pointer.pointer ),
-     pd( (PointerData*) pointer.pd ),
+     pd( pointer.pd ),
      cuda_pointer( pointer.cuda_pointer )
    {
       pointer.pointer = nullptr;
@@ -552,7 +551,7 @@ public:
    __cuda_callable__
    operator bool() const
    {
-      return this->pd;
+      return this->pd != nullptr;
    }
 
    /**
@@ -564,7 +563,7 @@ public:
    bool
    operator!() const
    {
-      return ! this->pd;
+      return this->pd == nullptr;
    }
 
    /**
@@ -677,7 +676,7 @@ public:
    {
       this->free();
       this->pointer = ptr.pointer;
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = ptr.pd;
       this->cuda_pointer = ptr.cuda_pointer;
       ptr.pointer = nullptr;
       ptr.pd = nullptr;
@@ -718,7 +717,7 @@ public:
    bool
    synchronize() override
    {
-      if( ! this->pd )
+      if( this->pd == nullptr )
          return true;
       if( this->modified() ) {
          TNL_ASSERT_NE( this->pointer, nullptr, "" );
@@ -816,10 +815,10 @@ protected:
    Object* cuda_pointer;
 };
 
-}  // namespace Pointers
+}  // namespace TNL::Pointers
 
 #ifndef NDEBUG
-namespace Assert {
+namespace TNL::Assert {
 
 template< typename Object, typename Device >
 struct Formatter< Pointers::DevicePointer< Object, Device > >
@@ -833,7 +832,5 @@ struct Formatter< Pointers::DevicePointer< Object, Device > >
    }
 };
 
-}  // namespace Assert
+}  // namespace TNL::Assert
 #endif
-
-}  // namespace TNL

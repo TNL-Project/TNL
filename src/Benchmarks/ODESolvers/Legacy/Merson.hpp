@@ -52,7 +52,7 @@ bool
 Merson< Vector, SolverMonitor >::solve( VectorType& _u, RHSFunction&& rhsFunction )
 {
    if( this->getTau() == 0.0 ) {
-      std::cerr << "The time step for the Merson ODE solver is zero." << std::endl;
+      std::cerr << "The time step for the Merson ODE solver is zero.\n";
       return false;
    }
 
@@ -186,7 +186,7 @@ Merson< Vector, SolverMonitor >::writeGrids( const DofVectorType& u )
    File( "Merson-k3.tnl", std::ios_base::out ) << _k3;
    File( "Merson-k4.tnl", std::ios_base::out ) << _k4;
    File( "Merson-k5.tnl", std::ios_base::out ) << _k5;
-   std::cout << " done. PRESS A KEY." << std::endl;
+   std::cout << " done. PRESS A KEY.\n";
    getchar();
 }
 

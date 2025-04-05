@@ -55,15 +55,15 @@ generate( Real X, Real Y, Real Z, int Nx, int Ny, int Nz, int ntimes, double tim
       ViewType view;
       view.bind( u.getData(), u.getStorageSize() );
       writer.writeCellData( view, "u", 1 );
-      std::cout << "u_" << t << " mean = " << TNL::sum( view ) / view.getSize() << std::endl;
+      std::cout << "u_" << t << " mean = " << TNL::sum( view ) / view.getSize() << '\n';
 
       view.bind( v.getData(), v.getStorageSize() );
       writer.writeCellData( view, "v", 1 );
-      std::cout << "v_" << t << " mean = " << TNL::sum( view ) / view.getSize() << std::endl;
+      std::cout << "v_" << t << " mean = " << TNL::sum( view ) / view.getSize() << '\n';
 
       view.bind( w.getData(), w.getStorageSize() );
       writer.writeCellData( view, "w", 1 );
-      std::cout << "w_" << t << " mean = " << TNL::sum( view ) / view.getSize() << std::endl;
+      std::cout << "w_" << t << " mean = " << TNL::sum( view ) / view.getSize() << '\n';
    }
 }
 

@@ -270,9 +270,13 @@ public:
       // buffer for asynchronous communication requests
       RequestsVector requests;
 
-      Containers::Array< GlobalIndexType, Devices::Host, int > send_rankOffsets( nproc + 1 ), recv_rankOffsets( nproc + 1 );
-      Containers::Array< GlobalIndexType, Devices::Host, GlobalIndexType > send_rowCapacities, send_rowPointers,
-         send_columnIndices, recv_rowPointers, recv_columnIndices;
+      Containers::Array< GlobalIndexType, Devices::Host, int > send_rankOffsets( nproc + 1 );
+      Containers::Array< GlobalIndexType, Devices::Host, int > recv_rankOffsets( nproc + 1 );
+      Containers::Array< GlobalIndexType, Devices::Host, GlobalIndexType > send_rowCapacities;
+      Containers::Array< GlobalIndexType, Devices::Host, GlobalIndexType > send_rowPointers;
+      Containers::Array< GlobalIndexType, Devices::Host, GlobalIndexType > send_columnIndices;
+      Containers::Array< GlobalIndexType, Devices::Host, GlobalIndexType > recv_rowPointers;
+      Containers::Array< GlobalIndexType, Devices::Host, GlobalIndexType > recv_columnIndices;
 
       // sending part
       {

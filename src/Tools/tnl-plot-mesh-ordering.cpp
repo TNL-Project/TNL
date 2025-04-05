@@ -133,7 +133,7 @@ writeMeshOrdering( const MeshType& mesh, const String& outputFileName )
       const auto center = getEntityCenter( mesh, cell );
       for( int j = 0; j < center.getSize(); j++ )
          outputFile << center[ j ] << " ";
-      outputFile << std::endl;
+      outputFile << '\n';
    }
 }
 
@@ -172,7 +172,7 @@ plotOrdering( Mesh< MeshConfig, Devices::Host >& mesh, const String& fileName )
    writeMeshOrdering< MeshEntity >( mesh, baseName + ".kdtree.gplt" );
    writeMeshVTU( mesh, baseName + ".kdtree.vtu" );
 #else
-   std::cerr << "CGAL support is missing. Skipping KdTreeOrdering." << std::endl;
+   std::cerr << "CGAL support is missing. Skipping KdTreeOrdering.\n";
 #endif
 
 #ifdef HAVE_CGAL
@@ -182,7 +182,7 @@ plotOrdering( Mesh< MeshConfig, Devices::Host >& mesh, const String& fileName )
    writeMeshOrdering< MeshEntity >( mesh, baseName + ".hilbert.gplt" );
    writeMeshVTU( mesh, baseName + ".hilbert.vtu" );
 #else
-   std::cerr << "CGAL support is missing. Skipping HilbertOrdering." << std::endl;
+   std::cerr << "CGAL support is missing. Skipping HilbertOrdering.\n";
 #endif
 
    return true;
@@ -192,7 +192,7 @@ int
 main( int argc, char* argv[] )
 {
    if( argc < 2 ) {
-      std::cerr << "Usage: " << argv[ 0 ] << " filename.[tnl|ng|vtk|vtu] ..." << std::endl;
+      std::cerr << "Usage: " << argv[ 0 ] << " filename.[tnl|ng|vtk|vtu] ...\n";
       return EXIT_FAILURE;
    }
 

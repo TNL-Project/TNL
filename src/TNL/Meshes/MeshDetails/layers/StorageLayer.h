@@ -229,10 +229,10 @@ public:
    void
    print( std::ostream& str ) const
    {
-      str << "Number of entities with dimension " << DimensionTag::value << ": " << entitiesCount << std::endl;
+      str << "Number of entities with dimension " << DimensionTag::value << ": " << entitiesCount << '\n';
       SubentityStorageBaseType::print( str );
       SuperentityStorageBaseType::print( str );
-      str << std::endl;
+      str << '\n';
       BaseType::print( str );
    }
 

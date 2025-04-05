@@ -17,7 +17,8 @@ expect_identity( const Array& a )
 
 TEST( StaticNDArrayTest, Static_2D_Identity )
 {
-   constexpr int I = 3, J = 5;
+   constexpr int I = 3;
+   constexpr int J = 5;
    StaticNDArray< int, SizesHolder< int, I, J > > a;
 
    int v = 0;
@@ -30,7 +31,8 @@ TEST( StaticNDArrayTest, Static_2D_Identity )
 
 TEST( StaticNDArrayTest, Static_2D_Permuted )
 {
-   constexpr int I = 3, J = 5;
+   constexpr int I = 3;
+   constexpr int J = 5;
    StaticNDArray< int, SizesHolder< int, I, J >, index_sequence< 1, 0 > > a;
 
    int v = 0;
@@ -43,7 +45,12 @@ TEST( StaticNDArrayTest, Static_2D_Permuted )
 
 TEST( StaticNDArrayTest, Static_6D_Permuted )
 {
-   constexpr int I = 2, J = 2, K = 2, L = 2, M = 2, N = 2;
+   constexpr int I = 2;
+   constexpr int J = 2;
+   constexpr int K = 2;
+   constexpr int L = 2;
+   constexpr int M = 2;
+   constexpr int N = 2;
    StaticNDArray< int, SizesHolder< int, I, J, K, L, M, N >, index_sequence< 5, 3, 4, 2, 0, 1 > > a;
 
    int v = 0;
@@ -60,8 +67,11 @@ TEST( StaticNDArrayTest, Static_6D_Permuted )
 
 TEST( StaticNDArrayTest, CopySemantics )
 {
-   constexpr int I = 3, J = 5;
-   StaticNDArray< int, SizesHolder< int, I, J > > a, b, c;
+   constexpr int I = 3;
+   constexpr int J = 5;
+   StaticNDArray< int, SizesHolder< int, I, J > > a;
+   StaticNDArray< int, SizesHolder< int, I, J > > b;
+   StaticNDArray< int, SizesHolder< int, I, J > > c;
 
    int v = 0;
    for( int i = 0; i < I; i++ )

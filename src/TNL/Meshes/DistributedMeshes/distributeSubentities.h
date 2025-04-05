@@ -20,9 +20,11 @@ exchangeGhostEntitySeeds( MPI_Comm communicator,
    const int nproc = MPI::GetSize( communicator );
 
    // exchange sizes of the arrays
-   Containers::Array< GlobalIndexType, Devices::Host, int > sizes_vertex_indices( nproc ), sizes_entity_offsets( nproc );
+   Containers::Array< GlobalIndexType, Devices::Host, int > sizes_vertex_indices( nproc );
+   Containers::Array< GlobalIndexType, Devices::Host, int > sizes_entity_offsets( nproc );
    {
-      Containers::Array< GlobalIndexType, Devices::Host, int > sendbuf_indices( nproc ), sendbuf_offsets( nproc );
+      Containers::Array< GlobalIndexType, Devices::Host, int > sendbuf_indices( nproc );
+      Containers::Array< GlobalIndexType, Devices::Host, int > sendbuf_offsets( nproc );
       for( int i = 0; i < nproc; i++ ) {
          sendbuf_indices[ i ] = seeds_vertex_indices[ i ].size();
          sendbuf_offsets[ i ] = seeds_entity_offsets[ i ].size();
@@ -32,7 +34,8 @@ exchangeGhostEntitySeeds( MPI_Comm communicator,
    }
 
    // allocate arrays for the results
-   std::vector< std::vector< GlobalIndexType > > foreign_seeds_vertex_indices, foreign_seeds_entity_offsets;
+   std::vector< std::vector< GlobalIndexType > > foreign_seeds_vertex_indices;
+   std::vector< std::vector< GlobalIndexType > > foreign_seeds_entity_offsets;
    foreign_seeds_vertex_indices.resize( nproc );
    foreign_seeds_entity_offsets.resize( nproc );
    for( int i = 0; i < nproc; i++ ) {
@@ -245,7 +248,9 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
    // they have common all its subvertices.
 
    // 4. build seeds for ghost entities
-   std::vector< std::vector< GlobalIndexType > > seeds_vertex_indices, seeds_entity_offsets, seeds_local_indices;
+   std::vector< std::vector< GlobalIndexType > > seeds_vertex_indices;
+   std::vector< std::vector< GlobalIndexType > > seeds_entity_offsets;
+   std::vector< std::vector< GlobalIndexType > > seeds_local_indices;
    seeds_vertex_indices.resize( nproc );
    seeds_entity_offsets.resize( nproc );
    seeds_local_indices.resize( nproc );
@@ -375,7 +380,8 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
    // 7. reorder the entities to make sure that global indices are sorted
    {
       // prepare arrays for the permutation and inverse permutation
-      typename LocalMesh::GlobalIndexArray perm, iperm;
+      typename LocalMesh::GlobalIndexArray perm;
+      typename LocalMesh::GlobalIndexArray iperm;
       perm.setSize( localMesh.template getEntitiesCount< Dimension >() );
       iperm.setSize( localMesh.template getEntitiesCount< Dimension >() );
 
