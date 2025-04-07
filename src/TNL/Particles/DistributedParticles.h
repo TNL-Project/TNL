@@ -134,10 +134,28 @@ public:
       this->particlesCountResizeTrashold = trashold;
    }
 
+   /**
+    *
+    */
+   const GlobalIndexType
+   getParticlesCountResizeTraholsd() const
+   {
+      return particlesCountResizeTrashold;
+   }
+
    void
    setCompTimeResizePercetnageTrashold( const RealType trashold )
    {
       this->computationalTimeResizeTrashold = trashold;
+   }
+
+   /**
+    *
+    */
+   const RealType
+   getCompTimeResizePercentageTrashold() const
+   {
+      return computationalTimeResizeTrashold;
    }
 
    //[[nodiscard]] const MPI::Comm&
