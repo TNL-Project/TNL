@@ -138,7 +138,7 @@ public:
     *
     */
    const GlobalIndexType
-   getParticlesCountResizeTraholsd() const
+   getParticlesCountResizeTrashold() const
    {
       return particlesCountResizeTrashold;
    }
