@@ -50,16 +50,18 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    RealType current_eta = initial_eta;
    RealType current_omega = initial_omega;
 
-   const IndexType max_restarting_steps = 15;
+   const IndexType max_restarting_steps = 100;
    Array2D z_container;
    z_container.setSizes( max_restarting_steps + 1, n + m1 + m2 );
    auto z_container_view = z_container.getView();
-   VectorType z_c( N ), z_bar( N ), eta_container( max_restarting_steps + 1 );
-   auto z_c_view = z_c.getView();
-   z_c_view = 0;
+   VectorType z_c( N ), z_bar( N ), last_z( N ), eta_container( max_restarting_steps + 1 );
    auto z_bar_view = z_bar.getView();
+   z_bar_view = 0;
+   auto z_c_view = z_c.getView();
+   z_c = 0;
+   last_z = 0;
    auto eta_container_view = eta_container.getView();
-   RealType eta_sum( 0 ), error, last_error;
+   RealType eta_sum( 0 ), last_z_gap( 0 );
 
    while( k < 10000 ) {  //this->nextIteration() ) {
       IndexType t = 0;
@@ -72,9 +74,9 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
          VectorView in_z_view( &z_container( t, 0 ), n + m1 + m2 );
          VectorView in_x_view = in_z_view.getView( 0, n );
          VectorView in_y_view = in_z_view.getView( n, n + m1 + m2 );
-         VectorView out_z_view( &z_container( t + 1, 0 ), n + m1 + m2 );
-         VectorView out_x_view = out_z_view.getView( 0, n );
-         VectorView out_y_view = out_z_view.getView( n, n + m1 + m2 );
+         VectorView z_new_view( &z_container( t + 1, 0 ), n + m1 + m2 );
+         VectorView out_x_view = z_new_view.getView( 0, n );
+         VectorView out_y_view = z_new_view.getView( n, n + m1 + m2 );
          if( adaptiveStep(
                 GA, GAT, hb, m1, u, l, c, in_x_view, in_y_view, out_x_view, out_y_view, k, current_omega, current_eta ) )
             return true;
@@ -84,53 +86,50 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                                                 n + m1 + m2,
                                                 [ = ] __cuda_callable__( IndexType i ) mutable
                                                 {
-                                                   //z_c_view[ i ] = z_container_view( t + 1, i );
-                                                   z_c_view[ i ] = 0;
+                                                   z_bar_view[ i ] = 0;
                                                    for( IndexType j = 0; j <= t + 1; j++ )
-                                                      z_c_view[ i ] +=
+                                                      z_bar_view[ i ] +=
                                                          z_container_view( j, i ) * eta_container_view[ j ] / eta_sum;
                                                 } );
          t++;
          k++;
 
+         RealType z_new_gap, z_bar_gap, error;
          if( restarting == PDLPRestarting::KKTError )
             error = KKTError( GA, GAT, m1, hb, out_x_view, out_y_view, u, l, c, current_omega );
          else if( restarting == PDLPRestarting::DualityGap ) {
             // Solve argmin_{x^hat \in X, y^hat \in Y } [ ((K^T *y )^T - c )*x^hat + ( q - K*x )^T *y^hat ]
-            const IndexType N = n + m;
-            VectorType g( N ), g_l( N ), g_u( N );
-            auto g_1 = g.getView( 0, n );
-            auto g_2 = g.getView( n, N );
-            GAT.vectorProduct( out_y_view, g_1 );
-            g_1 = c - g_1;
-            GA.vectorProduct( out_x_view, g_2 );
-            g_2 = g_2 - hb;
-
-            g_l.getView( 0, n ) = l;
-            g_u.getView( 0, n ) = u;
-            if( m1 > 0 )
-               g_l.getView( n, n + m1 ) = 0.0;
-            if( m2 > 0 )
-               g_l.getView( n + m1, N ) = -std::numeric_limits< RealType >::infinity();
-            g_u.getView( n, N ) = std::numeric_limits< RealType >::infinity();
-
-            VectorType z_hat( N );
-            auto z_hat_view = z_hat.getView();
-            RealType r = max( 1, l2Norm( z_view - z_c_view ) );  // TODO: How to deal with small r?
-            //std::cout << "   z = " << z_view << " g = " << g << " g_l = " << g_l << " g_u = " << g_u << " r = " << r
-            //          << std::endl;
-            linearTrustRegion( z_view, g_l.getView(), g_u.getView(), g.getView(), r, z_hat_view );
-            error = ( ( c, out_x_view ) - ( out_y_view, hb ) - ( z_hat, g ) ) / r;  // TODO: How to deal with small r?
-            std::cout << " error = " << error << std::endl;
-            if( abs( error ) < 1.0e-5 ) {
-               std::cout << "Found solution with duality gap: " << error << std::endl;
+            z_new_gap = primalDualGap( GA, GAT, m1, c, hb, u, l, z_new_view, z_view );
+            z_bar_gap = primalDualGap( GA, GAT, m1, c, hb, u, l, z_bar_view, z_view );
+            // Get restart candidate
+            error = min( z_new_gap, z_bar_gap );
+            z_c = z_new_gap < z_bar_gap ? z_new_view : z_bar_view;
+            if( abs( min( z_new_gap, z_bar_gap ) ) < 1.0e-5 ) {
+               std::cout << "Found solution with duality gap: " << min( z_new_gap, z_bar_gap ) << std::endl;
+               std::cout << "x: " << z_c.getView( 0, n ) << std::endl;
+               std::cout << "y: " << z_c.getView( n, N ) << std::endl;
                return true;
             }
+            std::cout << "ITER: " << k << " / " << t << " COST: " << dot( z_c.getView( 0, n ), x ) << " ERROR:" << error;
+
+            // Restart criteria
+            const RealType beta_sufficient = 0.9;
+            const RealType beta_necessary = 0.1;
+            const RealType beta_artificial = 0.5;
+            last_z_gap = primalDualGap( GA, GAT, m1, c, hb, u, l, z_view, last_z );
+            VectorView z_n_t_view( &z_container( t, 0 ), N );
+            const RealType z_n_t_gap = primalDualGap( GA, GAT, m1, c, hb, u, l, z_n_t_view, z_view );
+
+            if( z_new_gap <= beta_sufficient * last_z_gap
+                || ( z_new_gap <= beta_necessary * last_z_gap && z_new_gap > z_n_t_gap ) || ( t >= beta_artificial * k ) )
+            {
+               std::cout << " ... RESTARTING \n";
+               break;
+            }
          }
-         //if( k > 0 ) {
-         //   if()
-         // }
+         std::cout << std::endl;
       }
+      last_z = z_view;
       auto new_x_view = z_c.getView( 0, n );
       auto new_y_view = z_c.getView( n, n + m1 + m2 );
       //Compute new parameter omega
@@ -139,7 +138,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
       if( delta_x > 1.0e-10 && delta_y > 1.0e-10 ) {
          const RealType theta = 0.5;
          current_omega = exp( theta * log( delta_y / delta_x ) + ( 1.0 - theta ) * log( current_omega ) );
-         std::cout << "Setting new omega: " << current_omega << std::endl;
+         //std::cout << "Setting new omega: " << current_omega << std::endl;
       }
       x = new_x_view;
       y = new_y_view;
@@ -203,8 +202,8 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       out_y1 = maximum( 0, in_y1 + sigma * ( h - Kx_1 ) );
       if( m2 > 0 )
          out_y2 = in_y2 + sigma * ( b - Kx_2 );
-      std::cout << "ITER: " << k << " ETA: " << current_eta << " TAU: " << tau << " SIGMA: " << sigma
-                << " COST: " << dot( c, out_x ) << " x: " << out_x << " y: " << out_y << std::endl;
+      //std::cout << "    ITER: " << t << " ETA: " << current_eta << " TAU: " << tau << " SIGMA: " << sigma
+      //          << " COST: " << dot( c, out_x ) << " x: " << out_x << " y: " << out_y << std::endl;
 
       // Compute new parameter eta
       delta_x = out_x - in_x;
@@ -230,16 +229,52 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
          current_eta = 1.0 / max_norm;
          return false;
       }
-
-      //Compute new parameter omega
-      /*RealType delta_x = lpNorm( out_x - in_x, 2 );
-      RealType delta_y = lpNorm( out_y - in_y, 2 );
-      if( delta_x > 1.0e-10 && delta_y > 1.0e-10 ) {
-         const RealType theta = 0.5;
-         current_omega = exp( theta * log( delta_y / delta_x ) + ( 1 - theta ) * log( current_omega ) );
-      }*/
-      //return false;
    }
+}
+
+template< typename LPProblem_, typename SolverMonitor >
+auto
+PDLP< LPProblem_, SolverMonitor >::primalDualGap( const MatrixType& GA,
+                                                  const MatrixType& GAT,
+                                                  const IndexType m1,
+                                                  const VectorType& c,
+                                                  const VectorType& q,
+                                                  const VectorType& u,
+                                                  const VectorType& l,
+                                                  const VectorView& z,
+                                                  const VectorView& z_ref ) const -> RealType
+{
+   const IndexType m = GA.getRows();
+   const IndexType m2 = m - m1;
+   const IndexType n = GA.getColumns();
+   const IndexType N = n + m;
+
+   auto x_view = z.getConstView( 0, n );
+   auto y_view = z.getConstView( n, N );
+
+   VectorType g( N ), g_l( N ), g_u( N );
+   auto g_1 = g.getView( 0, n );
+   auto g_2 = g.getView( n, N );
+   GAT.vectorProduct( y_view, g_1 );
+   g_1 = c - g_1;
+   GA.vectorProduct( x_view, g_2 );
+   g_2 = g_2 - q;
+
+   g_l.getView( 0, n ) = l;
+   g_u.getView( 0, n ) = u;
+   if( m1 > 0 )
+      g_l.getView( n, n + m1 ) = 0.0;
+   if( m2 > 0 )
+      g_l.getView( n + m1, N ) = -std::numeric_limits< RealType >::infinity();
+   g_u.getView( n, N ) = std::numeric_limits< RealType >::infinity();
+
+   VectorType z_hat( N );
+   auto z_hat_view = z_hat.getView();
+   RealType r = max( 0.001, l2Norm( z_ref - z ) );  // TODO: How to deal with small r?
+   //std::cout << "   z = " << z_view << " g = " << g << " g_l = " << g_l << " g_u = " << g_u << " r = " << r
+   //          << std::endl;
+   linearTrustRegion( z, g_l.getView(), g_u.getView(), g.getView(), r, z_hat_view );
+   return ( ( c, x_view ) - ( y_view, q ) - ( z_hat, g ) ) / r;  // TODO: How to deal with small r?
 }
 
 template< typename LPProblem_, typename SolverMonitor >
