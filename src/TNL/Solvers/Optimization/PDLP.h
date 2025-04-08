@@ -79,6 +79,17 @@ protected:
              const VectorType& c,
              const RealType& omega ) const;
 
+   RealType
+   primalDualGap( const MatrixType& GA,
+                  const MatrixType& GAT,
+                  const IndexType m1,
+                  const VectorType& c,
+                  const VectorType& q,
+                  const VectorType& u,
+                  const VectorType& l,
+                  const VectorView& z,
+                  const VectorView& z_ref ) const;
+
    VectorType primal_gradient;
 
    PDLPRestarting restarting = PDLPRestarting::DualityGap;  //KKTError;
