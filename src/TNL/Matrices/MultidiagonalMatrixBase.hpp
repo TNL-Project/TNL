@@ -415,9 +415,12 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct( con
                                                                              IndexType begin,
                                                                              IndexType end ) const
 {
-   if( this->getColumns() != inVector.getSize() )
+   if( end == 0 )
+      end = this->getRows();
+
+   if( inVector.getSize() != this->getColumns() )
       throw std::invalid_argument( "vectorProduct: size of the input vector does not match the number of matrix columns" );
-   if( this->getRows() != outVector.getSize() )
+   if( outVector.getSize() != end - begin )
       throw std::invalid_argument( "vectorProduct: size of the output vector does not match the number of matrix rows" );
 
    const auto inVectorView = inVector.getConstView();
@@ -439,8 +442,6 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct( con
       outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
    };
 
-   if( end == 0 )
-      end = this->getRows();
    if( outVectorMultiplicator == (RealType) 0.0 )
       this->reduceRows( begin, end, fetch, reduction, keeper1, (RealType) 0.0 );
    else
