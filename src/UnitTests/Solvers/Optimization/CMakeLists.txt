@@ -1,5 +1,6 @@
 set(CPP_TESTS
     PDLPTest
+    LinearTrustRegionTest
 )
 
 if(TNL_BUILD_CUDA)
