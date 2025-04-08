@@ -8,6 +8,12 @@
 
 namespace TNL::Solvers::Optimization {
 
+enum class PDLPRestarting
+{
+   DualityGap,
+   KKTError
+};
+
 /**
  * \brief Implementation of Primal-Dual Hybrid Gradient Method for Linear Programming (PDLP).
  *
@@ -60,6 +66,22 @@ protected:
                  IndexType k,
                  RealType& current_omega,
                  RealType& current_eta );
+
+   RealType
+   KKTError( const MatrixType& GA,
+             const MatrixType& GAT,
+             const IndexType m1,
+             const VectorType& q,
+             const VectorView& x,
+             const VectorView& y,
+             const VectorType& u,
+             const VectorType& l,
+             const VectorType& c,
+             const RealType& omega ) const;
+
+   VectorType primal_gradient;
+
+   PDLPRestarting restarting = PDLPRestarting::DualityGap;  //KKTError;
 };
 
 }  // namespace TNL::Solvers::Optimization
