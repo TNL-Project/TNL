@@ -6,6 +6,7 @@
 #include <TNL/Matrices/MatrixOperations.h>
 #include <TNL/Containers/NDArray.h>
 #include "PDLP.h"
+#include "LinearTrustRegion.h"
 
 namespace TNL::Solvers::Optimization {
 
@@ -26,6 +27,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    const IndexType m = GA.getRows();
    const IndexType m2 = m - m1;
    const IndexType n = GA.getColumns();
+   const IndexType N = n + m;
    TNL_ASSERT_EQ( c.getSize(), n, "" );
    TNL_ASSERT_EQ( hb.getSize(), m, "" );
    TNL_ASSERT_EQ( l.getSize(), n, "" );
@@ -42,6 +44,8 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    const RealType initial_omega = ( c_norm > 1.0e-10 && q_norm > 1.0e-10 ) ? c_norm / q_norm : 1;
    std::cout << "initital eta = " << initial_eta << " omega = " << initial_omega << std::endl;
 
+   if( restarting == PDLPRestarting::KKTError )
+      this->primal_gradient.setSize( n );
    IndexType k = 1;
    RealType current_eta = initial_eta;
    RealType current_omega = initial_omega;
@@ -50,11 +54,12 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    Array2D z_container;
    z_container.setSizes( max_restarting_steps + 1, n + m1 + m2 );
    auto z_container_view = z_container.getView();
-   VectorType z_c( n + m1 + m2 ), eta_container( max_restarting_steps + 1 );
+   VectorType z_c( N ), z_bar( N ), eta_container( max_restarting_steps + 1 );
    auto z_c_view = z_c.getView();
    z_c_view = 0;
+   auto z_bar_view = z_bar.getView();
    auto eta_container_view = eta_container.getView();
-   RealType eta_sum( 0 );
+   RealType eta_sum( 0 ), error, last_error;
 
    while( k < 10000 ) {  //this->nextIteration() ) {
       IndexType t = 0;
@@ -87,10 +92,58 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                                                 } );
          t++;
          k++;
+
+         if( restarting == PDLPRestarting::KKTError )
+            error = KKTError( GA, GAT, m1, hb, out_x_view, out_y_view, u, l, c, current_omega );
+         else if( restarting == PDLPRestarting::DualityGap ) {
+            // Solve argmin_{x^hat \in X, y^hat \in Y } [ ((K^T *y )^T - c )*x^hat + ( q - K*x )^T *y^hat ]
+            const IndexType N = n + m;
+            VectorType g( N ), g_l( N ), g_u( N );
+            auto g_1 = g.getView( 0, n );
+            auto g_2 = g.getView( n, N );
+            GAT.vectorProduct( out_y_view, g_1 );
+            g_1 = c - g_1;
+            GA.vectorProduct( out_x_view, g_2 );
+            g_2 = g_2 - hb;
+
+            g_l.getView( 0, n ) = l;
+            g_u.getView( 0, n ) = u;
+            if( m1 > 0 )
+               g_l.getView( n, n + m1 ) = 0.0;
+            if( m2 > 0 )
+               g_l.getView( n + m1, N ) = -std::numeric_limits< RealType >::infinity();
+            g_u.getView( n, N ) = std::numeric_limits< RealType >::infinity();
+
+            VectorType z_hat( N );
+            auto z_hat_view = z_hat.getView();
+            RealType r = max( 1, l2Norm( z_view - z_c_view ) );  // TODO: How to deal with small r?
+            //std::cout << "   z = " << z_view << " g = " << g << " g_l = " << g_l << " g_u = " << g_u << " r = " << r
+            //          << std::endl;
+            linearTrustRegion( z_view, g_l.getView(), g_u.getView(), g.getView(), r, z_hat_view );
+            error = ( ( c, out_x_view ) - ( out_y_view, hb ) - ( z_hat, g ) ) / r;  // TODO: How to deal with small r?
+            std::cout << " error = " << error << std::endl;
+            if( abs( error ) < 1.0e-5 ) {
+               std::cout << "Found solution with duality gap: " << error << std::endl;
+               return true;
+            }
+         }
+         //if( k > 0 ) {
+         //   if()
+         // }
       }
+      auto new_x_view = z_c.getView( 0, n );
+      auto new_y_view = z_c.getView( n, n + m1 + m2 );
+      //Compute new parameter omega
+      RealType delta_x = lpNorm( new_x_view - x, 2 );
+      RealType delta_y = lpNorm( new_y_view - y, 2 );
+      if( delta_x > 1.0e-10 && delta_y > 1.0e-10 ) {
+         const RealType theta = 0.5;
+         current_omega = exp( theta * log( delta_y / delta_x ) + ( 1.0 - theta ) * log( current_omega ) );
+         std::cout << "Setting new omega: " << current_omega << std::endl;
+      }
+      x = new_x_view;
+      y = new_y_view;
    }
-   auto z_c_x_view = z_c.getView( 0, n );
-   x = z_c_x_view;
    return false;
 }
 
@@ -139,14 +192,19 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       const RealType sigma = current_eta * current_omega;
 
       GAT.vectorProduct( in_y, KT_y );
-      out_x = minimum( u, maximum( l, in_x - tau * ( c - KT_y ) ) );
+      if( restarting == PDLPRestarting::KKTError ) {
+         primal_gradient = c - KT_y;
+         out_x = minimum( u, maximum( l, in_x - tau * primal_gradient ) );
+      }
+      else
+         out_x = minimum( u, maximum( l, in_x - tau * ( c - KT_y ) ) );
       aux = 2.0 * out_x - in_x;
       GA.vectorProduct( aux, Kx );
       out_y1 = maximum( 0, in_y1 + sigma * ( h - Kx_1 ) );
       if( m2 > 0 )
          out_y2 = in_y2 + sigma * ( b - Kx_2 );
-      std::cout << "ITER: " << k << " TAU: " << tau << " SIGMA: " << sigma << " COST: " << dot( c, out_x )
-                << std::endl;  // << " x: " << out_x << std::endl;
+      std::cout << "ITER: " << k << " ETA: " << current_eta << " TAU: " << tau << " SIGMA: " << sigma
+                << " COST: " << dot( c, out_x ) << " x: " << out_x << " y: " << out_y << std::endl;
 
       // Compute new parameter eta
       delta_x = out_x - in_x;
@@ -159,7 +217,8 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
          const RealType max_eta = delta_z_norm / div;
 
          const RealType new_eta = min( ( 1.0 - pow( k + 1, -0.3 ) ) * max_eta, ( 1.0 + pow( k + 1, -0.6 ) ) * current_eta );
-         if( current_eta < max_eta ) {
+         //std::cout << "NEW ETA: " << new_eta << " MAX ETA: " << max_eta << std::endl;
+         if( new_eta < max_eta ) {
             current_eta = new_eta;
             return false;
          }
@@ -169,18 +228,98 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       }
       else {
          current_eta = 1.0 / max_norm;
+         return false;
       }
 
       //Compute new parameter omega
-      RealType delta_x = lpNorm( out_x - in_x, 2 );
+      /*RealType delta_x = lpNorm( out_x - in_x, 2 );
       RealType delta_y = lpNorm( out_y - in_y, 2 );
       if( delta_x > 1.0e-10 && delta_y > 1.0e-10 ) {
          const RealType theta = 0.5;
          current_omega = exp( theta * log( delta_y / delta_x ) + ( 1 - theta ) * log( current_omega ) );
-      }
-
-      return false;
+      }*/
+      //return false;
    }
+}
+
+template< typename LPProblem_, typename SolverMonitor >
+auto
+PDLP< LPProblem_, SolverMonitor >::KKTError( const MatrixType& GA,
+                                             const MatrixType& GAT,
+                                             const IndexType m1,
+                                             const VectorType& q,
+                                             const VectorView& x,
+                                             const VectorView& y,
+                                             const VectorType& u,
+                                             const VectorType& l,
+                                             const VectorType& c,
+                                             const RealType& omega ) const -> RealType
+{
+   const IndexType m = GA.getRows();
+   const IndexType m2 = m - m1;
+   const IndexType n = GA.getColumns();
+
+   auto h = q.getConstView( 0, m1 );
+   auto b = q.getConstView( m1, m );
+   VectorType aux1( m1 ), aux2( m2 ), KTy( n ), lambda( n );
+   GA.vectorProduct( x, aux1, 1, 0, 0, m1 );  // aux1 = G * x
+   GA.vectorProduct( x, aux2, 1, 0, m1, m );  // aux2 = A * x
+   aux1 = maximum( h - aux1, 0 );
+   aux2 -= b;
+   GAT.vectorProduct( y, KTy );
+   auto pg = this->primal_gradient.getConstView();
+   auto l_view = l.getConstView();
+   auto u_view = u.getConstView();
+   lambda.forAllElements(
+      [ = ] __cuda_callable__( IndexType i, RealType & value )
+      {
+         value = max( pg[ i ], 0 ) * ( l_view[ i ] != -std::numeric_limits< RealType >::infinity() )
+               + min( pg[ i ], 0 ) * ( u_view[ i ] != std::numeric_limits< RealType >::infinity() );
+      } );
+   /*const auto c_view = c.getConstView();
+   const auto KTy_view = KTy.getConstView();
+   lambda.forAllElements(
+      [ = ] __cuda_callable__( IndexType i, RealType & value )
+      {
+         value = c_view[ i ] - KTy_view[ i ];
+         if( l_view[ i ] != -std::numeric_limits< RealType >::infinity() ) {
+            if( u_view[ i ] != std::numeric_limits< RealType >::infinity() )
+               value = 0;
+            else
+               value = min( value, 0 );
+         }
+         else if( u_view[ i ] != std::numeric_limits< RealType >::infinity() )
+            value = max( value, 0 );
+      } );*/
+   std::cout << "LAMBDA: " << lambda << std::endl;
+   std::cout << "     l: " << l << std::endl;
+   std::cout << "     u: " << u << std::endl;
+   const RealType omega_sqr = omega * omega;
+   const auto primal_objective = ( c, x );
+   const auto primal_constraint_residue = ( aux1, aux1 ) + ( aux2, aux2 );
+   const auto lambda_view = lambda.getConstView();
+   const auto dual_objective =
+      ( q, y )
+      + Algorithms::reduce< DeviceType >( (IndexType) 0,
+                                          n,
+                                          [ = ] __cuda_callable__( IndexType i ) -> RealType
+                                          {
+                                             RealType result = 0;
+                                             if( l_view[ i ] != -std::numeric_limits< RealType >::infinity() )
+                                                result += l_view[ i ] * lambda_view[ i ];
+                                             if( u_view[ i ] != std::numeric_limits< RealType >::infinity() )
+                                                result -= u_view[ i ] * lambda_view[ i ];
+                                             return result;
+                                          },
+                                          TNL::Plus{} );
+   const RealType dual_constraint_residue = l2Norm( c - KTy - lambda );
+   const RealType objective_diff = dual_objective - primal_objective;
+   const RealType error = omega_sqr * primal_constraint_residue
+                        + 1.0 / omega_sqr * dual_constraint_residue * dual_constraint_residue + objective_diff * objective_diff;
+   std::cout << "PRIMAL OBJ.: " << primal_objective << " DUAL OBJ.: " << dual_objective << " PRIMAL CONSTR. RES."
+             << primal_constraint_residue << " DUAL CONSTR. RES. " << dual_constraint_residue << " ERROR: " << sqrt( error )
+             << std::endl;
+   return sqrt( error );
 }
 
 }  // namespace TNL::Solvers::Optimization
