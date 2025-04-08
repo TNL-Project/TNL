@@ -51,7 +51,7 @@ public:
    solve( const LPProblemType& lpProblem, VectorType& x );
 
 protected:
-   bool
+   void
    adaptiveStep( const MatrixType& GA,
                  const MatrixType& GAT,
                  const VectorType& q,
