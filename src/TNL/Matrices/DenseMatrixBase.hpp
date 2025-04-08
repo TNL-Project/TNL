@@ -491,16 +491,17 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
                                                                      IndexType begin,
                                                                      IndexType end ) const
 {
-   if( this->getColumns() != inVector.getSize() )
+   if( end == 0 )
+      end = this->getRows();
+
+   if( inVector.getSize() != this->getColumns() )
       throw std::invalid_argument( "vectorProduct: input vector size differs from the matrix columns count." );
-   if( this->getRows() != outVector.getSize() )
+   if( outVector.getSize() != end - begin )
       throw std::invalid_argument( "vectorProduct: output vector size differs from the matrix rows count." );
 
    const auto inVectorView = inVector.getConstView();
    auto outVectorView = outVector.getView();
    const auto valuesView = this->getValues().getConstView();
-   if( end == 0 )
-      end = this->getRows();
 
    // specialization for the case where we can use the CUDA shared memory
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > && Organization == Algorithms::Segments::ColumnMajorOrder ) {
@@ -542,19 +543,19 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
    };
    auto keeperGeneral = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
    {
-      outVectorView[ row ] = matrixMultiplicator * value + outVectorMultiplicator * outVectorView[ row ];
+      outVectorView[ row - begin ] = matrixMultiplicator * value + outVectorMultiplicator * outVectorView[ row ];
    };
    auto keeperDirect = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
    {
-      outVectorView[ row ] = value;
+      outVectorView[ row - begin ] = value;
    };
    auto keeperMatrixMult = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
    {
-      outVectorView[ row ] = matrixMultiplicator * value;
+      outVectorView[ row - begin ] = matrixMultiplicator * value;
    };
    auto keeperVectorMult = [ = ] __cuda_callable__( IndexType row, const RealType& value ) mutable
    {
-      outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
+      outVectorView[ row - begin ] = outVectorMultiplicator * outVectorView[ row - begin ] + value;
    };
 
    if( outVectorMultiplicator == RealType{ 0 } ) {

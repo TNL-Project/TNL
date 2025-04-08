@@ -401,9 +401,11 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct( const
                                                                            IndexType begin,
                                                                            IndexType end ) const
 {
-   if( this->getColumns() != inVector.getSize() )
+   if( end == 0 )
+      end = this->getRows();
+   if( inVector.getSize() != this->getColumns() )
       throw std::invalid_argument( "vectorProduct: size of the input vector does not match the number of matrix columns" );
-   if( this->getRows() != outVector.getSize() )
+   if( outVector.getSize() != end - begin )
       throw std::invalid_argument( "vectorProduct: size of the output vector does not match the number of matrix rows" );
 
    const auto inVectorView = inVector.getConstView();
@@ -426,7 +428,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct( const
    };
    if( end == 0 )
       end = this->getRows();
-   if( matrixMultiplicator == 1 && outVectorMultiplicator == 0 )
+   if( matrixMultiplicator == 1.0 && outVectorMultiplicator == 0.0 )
       this->reduceRows( begin, end, fetch, reduction, keeper1, (RealType) 0.0 );
    else
       this->reduceRows( begin, end, fetch, reduction, keeper2, (RealType) 0.0 );
