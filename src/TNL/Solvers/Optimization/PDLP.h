@@ -47,7 +47,7 @@ public:
    bool
    setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" );
 
-   bool
+   std::tuple< bool, RealType, RealType >
    solve( const LPProblemType& lpProblem, VectorType& x );
 
 protected:
@@ -67,17 +67,29 @@ protected:
                  RealType& current_omega,
                  RealType& current_eta );
 
-   RealType
+   /**
+    * \brief Computes the KKT error.
+    *
+    * \param GA The constraint matrix.
+    * \param GAT The transposed constraint matrix.
+    * \param m1 The number of inequality constraints.
+    * \param c The objective function coefficients.
+    * \param q The right-hand side vector.
+    * \param z The primal-dual variable vector.
+    * \param u The upper bounds vector.
+    * \param l The lower bounds vector.
+    *
+    * \return A tuple containing the primal feasibility, dual feasibility, primal objective and dual objective.
+    */
+   std::tuple< RealType, RealType, RealType, RealType >
    KKTError( const MatrixType& GA,
              const MatrixType& GAT,
              const IndexType m1,
-             const VectorType& q,
-             const VectorView& x,
-             const VectorView& y,
-             const VectorType& u,
-             const VectorType& l,
              const VectorType& c,
-             const RealType& omega ) const;
+             const VectorType& q,
+             const VectorView& z,
+             const VectorType& u,
+             const VectorType& l ) const;
 
    RealType
    primalDualGap( const MatrixType& GA,
