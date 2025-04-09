@@ -8,11 +8,14 @@
 void
 gurobiBenchmark( TNL::Benchmarks::Benchmark<>& benchmark, const TNL::String& fileName )
 {
+#ifdef HAVE_GUROBI
    // Initialize Gurobi environment
    GRBEnv env = GRBEnv();
 
    // Read the MPS file into a model
    GRBModel model = GRBModel( env, fileName.getData() );
+   //model.write( "gurobi-model.lp" );
+   //model.write( "gurobi-model.mps" );
 
    // Optimize the model
    auto f = [ &model ]()
@@ -48,4 +51,5 @@ gurobiBenchmark( TNL::Benchmarks::Benchmark<>& benchmark, const TNL::String& fil
    else {
       std::cout << "Optimization was stopped with status = " << optimstatus << std::endl;
    }
+#endif
 }
