@@ -59,8 +59,12 @@ linearTrustRegion( const VectorView& z,
       z_hat = z;
       return true;
    }
-   if( ! all( greaterEqual( z, l_ ) ) || ! all( lessEqual( z, u ) ) )
+   if( ! all( greaterEqual( z, l_ - std::numeric_limits< Real >::round_error() ) )
+       || ! all( lessEqual( z, u + std::numeric_limits< Real >::round_error() ) ) )
+   {
+      std::cout << "z is not in the feasible region" << std::endl;
       return false;
+   }
    const Index N = z.getSize();
    Vector lambda_i( N );
    Vector l, g;
@@ -79,7 +83,7 @@ linearTrustRegion( const VectorView& z,
    lambda_i.forAllElements(
       [ = ] __cuda_callable__( Index i, Real & value )
       {
-         if( l_view[ i ] == -std::numeric_limits< Real >::infinity() )
+         if( l_view[ i ] == -std::numeric_limits< Real >::infinity() || g_view[ i ] == 0 )
             value = std::numeric_limits< Real >::infinity();
          else
             value = ( z_view[ i ] - l_view[ i ] ) / g_view[ i ];
