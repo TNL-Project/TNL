@@ -1,6 +1,9 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Matrices/DenseMatrix.h>
+#include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Solvers/Optimization/PDLP.h>
+#include <TNL/Solvers/Optimization/LPProblem.h>
+#include <TNL/Solvers/Optimization/LPProblemReader.h>
 
 #include <gtest/gtest.h>
 
@@ -128,87 +131,87 @@ TEST( PDLPTest, TransportationProblemTest )
    EXPECT_NEAR( TNL::max( TNL::abs( x - exact_solution ) ), (RealType) 0.0, 0.1 );
 }
 
-#ifdef undef
-TEST( PDLPTest, NetworkFlowProblemTest )
+TEST( PDLPTest, MPSTest1 )
 {
    using RealType = double;
    using VectorType = Containers::Vector< RealType >;
    using MatrixType = Matrices::DenseMatrix< RealType >;
-
-   /****
-    * We solve the following problem:
-    * We have a network with source S, sink T and nodes A, B, C, ... H.
-    * The following is table of the costs and capacities of the edges:
-    *
-    * Edge  Capacity  Cost
-    * S-A   20        2
-    * S-B   30        3
-    * A-C   15        2
-    * A-D   10        4
-    * B-C   10        1
-    * B-E   15        2
-    * C-D    5        3
-    * C-F   10        2
-    * C-G   15        1
-    * D-H   10        2
-    * E-G   15        1
-    * F-T   15        4
-    * G-F   15        2
-    * G-H   10        2
-    * H-T   20        3
-    *
-    * The following is the transposed constraint matrix:
-    *
-    *       S	A	B	C	D	E	F	G	H	T
-    *  S-A	-1	1	0	0	0	0	0	0	0	0
-    *  S-B	-1	0	1	0	0	0	0	0	0	0
-    *  A-C	0	-1	0	1	0	0	0	0	0	0
-    *  A-D	0	-1	0	0	1	0	0	0	0	0
-    *  B-C	0	0	-1	1	0	0	0	0	0	0
-    *  B-E	0	0	-1	0	0	1	0	0	0	0
-    *  C-D	0	0	0	-1	1	0	0	0	0	0
-    *  C-F	0	0	0	-1	0	0	1	0	0	0
-    *  C-G	0	0	0	-1	0	0	0	1	0	0
-    *  D-H	0	0	0	0	-1	0	0	0	1	0
-    *  E-G	0	0	0	0	0	-1	0	1	0	0
-    *  F-T	0	0	0	0	0	0	-1	0	0	1
-    *  G-F	0	0	0	0	0	0	1	-1	0	0
-    *  G-H	0	0	0	0	0	0	0	-1	1	0
-    *  H-T	0	0	0	0	0	0	0	0	-1	1
-    *
-    * Total Minimum Cost = 370.0
-    */
-
-   // clang-format off
-   MatrixType GA( {
-      // S-A  S-B  A-C  A-D  B-C  B-E  C-D  C-F  C-G  D-H  E-G  F-T  G-F  G-H  H-T
-        { -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 }, // S
-        {  1,   0,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 }, // A
-        {  0,   1,   0,   0,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0 }, // B
-        {  0,   0,   1,   0,   1,   0,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0 }, // C
-        {  0,   0,   0,   1,   0,   0,   1,   0,   0,  -1,   0,   0,   0,   0,   0 }, // D
-        {  0,   0,   0,   0,   0,   1,   0,   0,   0,   0,  -1,   0,   0,   0,   0 }, // E
-        {  0,   0,   0,   0,   0,   0,   0,   1,   0,   0,   0,  -1,   1,   0,   0 }, // F
-        {  0,   0,   0,   0,   0,   0,   0,   0,   1,   0,   1,   0,  -1,  -1,   0 }, // G
-        {  0,   0,   0,   0,   0,   0,   0,   0,   0,   1,   0,   0,   0,   1,  -1 }, // H
-        {  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   1,   0,   0,   1 }, // T
-   } );
-   VectorType hb( { 35, 0, 0, 0, 0, 0, 0, 0, 0, 35 } );
-   VectorType c( { 2, 3, 2, 4, 1, 2, 3, 2, 1, 2, 1, 4, 2, 2, 3 } );
-   VectorType l( 15, 0 );
-   VectorType u( { 20, 30, 15, 10, 10, 15, 5, 10, 15, 10, 15, 15, 15, 10, 20 } );
-   VectorType exact_solution( { 20, 15, 10, 10, 10, 5, 0, 10, 10, 10, 5, 15, 5, 10, 20 });
-   // clang-format on
-
    using LPProblemType = Solvers::Optimization::LPProblem< MatrixType >;
-   LPProblemType lpProblem( GA, hb, 0, c, l, u );
 
-   VectorType x( 15, 0 );
-   Solvers::Optimization::PDLP< LPProblemType > solver;
-   solver.solve( lpProblem, x );
+   const char* mps = " \
+************************************************************************\n \
+*                                                                       \n \
+*  The data in this file represents the following problem:              \n \
+*                                                                       \n \
+*  Minimize or maximize Z = x1 + 2x5 - x8                               \n \
+*                                                                       \n \
+*  Subject to:                                                          \n \
+*                                                                       \n \
+*  2.5 <=   3x1 +  x2          - 2x4  - x5              -    x8         \n \
+*                 2x2 + 1.1x3                                   <=  2.1 \n \
+*                          x3              + x6                  =  4.0 \n \
+*  1.8 <=                      2.8x4             -1.2x7         <=  5.0 \n \
+*  3.0 <= 5.6x1                       + x5              + 1.9x8 <= 15.0 \n \
+*                                                                       \n \
+*  where:                                                               \n \
+*                                                                       \n \
+*  2.5 <= x1 <= 4.1                                                     \n \
+*    0 <= x2 <= 4.1                                                     \n \
+*    0 <= x3 <= 4.1                                                     \n \
+*    0 <= x4 <= 4.1                                                     \n \
+*  0.5 <= x5 <= 4.0                                                     \n \
+*    0 <= x6 <= 4.1                                                     \n \
+*    0 <= x7 <= 4.1                                                     \n \
+*    0 <= x8 <= 4.3                                                     \n \
+*                                                                       \n \
+************************************************************************\n \
+NAME          EXAMPLE                                                   \n \
+ROWS                                                                    \n \
+ N  OBJ                                                                 \n \
+ G  ROW01                                                               \n \
+ L  ROW02                                                               \n \
+ E  ROW03                                                               \n \
+ G  ROW04                                                               \n \
+ L  ROW05                                                               \n \
+COLUMNS                                                                 \n \
+    COL01     OBJ                1.0                                    \n \
+    COL01     ROW01              3.0   ROW05              5.6           \n \
+    COL02     ROW01              1.0   ROW02              2.0           \n \
+    COL03     ROW02              1.1   ROW03              1.0           \n \
+    COL04     ROW01             -2.0   ROW04              2.8           \n \
+    COL05     OBJ                2.0                                    \n \
+    COL05     ROW01             -1.0   ROW05              1.0           \n \
+    COL06     ROW03              1.0                                    \n \
+    COL07     ROW04             -1.2                                    \n \
+    COL08     OBJ               -1.0                                    \n \
+    COL08     ROW01             -1.0   ROW05              1.9           \n \
+RHS                                                                     \n \
+    RHS1      ROW01              2.5                                    \n \
+    RHS1      ROW02              2.1                                    \n \
+    RHS1      ROW03              4.0                                    \n \
+    RHS1      ROW04              1.8                                    \n \
+    RHS1      ROW05             15.0                                    \n \
+RANGES                                                                  \n \
+    RNG1      ROW04              3.2                                    \n \
+    RNG1      ROW05             12.0                                    \n \
+BOUNDS                                                                  \n \
+ LO BND1      COL01              2.5                                    \n \
+ UP BND1      COL02              4.1                                    \n \
+ LO BND1      COL05              0.5                                    \n \
+ UP BND1      COL05              4.0                                    \n \
+ UP BND1      COL08              4.3                                    \n \
+ENDATA                                                                  \n";
 
-   EXPECT_NEAR( TNL::max( TNL::abs( x - exact_solution ) ), (RealType) 0.0, 0.1 );
+   std::istringstream iss( mps );
+   TNL::Solvers::Optimization::LPProblemReader< LPProblemType > reader;
+   auto lpProblem = reader.read( iss );
+   typename LPProblemType::VectorType x( lpProblem.getVariableCount() );
+   TNL::Solvers::Optimization::PDLP< LPProblemType > solver;
+   auto [ converged, cost, error ] = solver.solve( lpProblem, x );
+   EXPECT_TRUE( converged );
+   EXPECT_NEAR( cost, 3.23684, 1.0e-5 );
 }
-#endif
+
+// TODO: Added test given by MPS - https://www.cenapad.unicamp.br/parque/manuais/OSL/oslweb/features/feat24DT.htm
 
 #include "../../main.h"
