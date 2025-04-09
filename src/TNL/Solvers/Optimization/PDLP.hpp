@@ -8,11 +8,14 @@
 #include "PDLP.h"
 #include "LinearTrustRegion.h"
 
+#include <iomanip>
+
 namespace TNL::Solvers::Optimization {
 
 template< typename LPProblem_, typename SolverMonitor >
-bool
+auto
 PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, VectorType& x )
+   -> std::tuple< bool, RealType, RealType >
 {
    using Array2D =
       Containers::NDArray< RealType, Containers::SizesHolder< IndexType, 0, 0 >, std::index_sequence< 0, 1 >, DeviceType >;
@@ -111,7 +114,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 
          RealType z_new_gap, z_bar_gap, error;
          if( restarting == PDLPRestarting::KKTError )
-            error = KKTError( GA, GAT, m1, hb, out_x_view, out_y_view, u, l, c, current_omega );
+            error = 1;  //KKTError( GA, GAT, m1, hb, out_x_view, out_y_view, u, l, c, current_omega );
          else if( restarting == PDLPRestarting::DualityGap ) {
             // Solve argmin_{x^hat \in X, y^hat \in Y } [ ((K^T *y )^T - c )*x^hat + ( q - K*x )^T *y^hat ]
             z_new_gap = primalDualGap( GA, GAT, m1, c, hb, u, l, z_new_view, z_view );
@@ -119,15 +122,20 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
             // Get restart candidate
             error = min( z_new_gap, z_bar_gap );
             z_c = z_new_gap < z_bar_gap ? z_new_view : z_bar_view;
-            if( error < 1.0e-6 ) {
+            /*if( error < 1.0e-12 ) {
                std::cout << std::endl;
-               std::cout << "Found solution with duality gap: " << min( z_new_gap, z_bar_gap ) << std::endl;
-               std::cout << "x: " << z_c.getView( 0, n ) << std::endl;
-               std::cout << "y: " << z_c.getView( n, N ) << std::endl;
-               return true;
-            }
-            std::cout << "ITER: " << k << " / " << t << " COST: "  //
-                      << dot( z_c.getView( 0, n ), c ) << " ERROR:" << error;
+               x = z_c.getView( 0, n );
+               const RealType cost = ( x, c );
+               std::cout << "===============================" << std::endl;
+               std::cout << "SOLUTION FOUND" << std::endl;
+               std::cout << "ERROR: " << error << std::endl;
+               std::cout << "COST: " << cost << std::endl;
+               std::cout << "X: " << x << std::endl;
+               std::cout << "Y: " << z_c.getView( n, N ) << std::endl;
+               return { true, cost, error };
+            }*/
+            //std::cout << "ITER: " << k << " / " << t << " PRIMAL OBJECTIVE: "  //
+            //         << dot( z_c.getView( 0, n ), c ) << " ERROR:" << error;
 
             // Restart criteria
             const RealType beta_sufficient = 0.9;
@@ -140,7 +148,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
             if( z_new_gap <= beta_sufficient * last_z_gap
                 || ( z_new_gap <= beta_necessary * last_z_gap && z_new_gap > z_n_t_gap ) || ( t >= beta_artificial * k ) )
             {
-               std::cout << " ... RESTARTING \r";
+               //std::cout << "RESTARTING AFTER " << t << " STEPS" << std::endl;
                break;
             }
          }
@@ -149,6 +157,35 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
       last_z = z_view;
       auto new_x_view = z_c.getView( 0, n );
       auto new_y_view = z_c.getView( n, n + m1 + m2 );
+
+      auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] =
+         KKTError( GA, GAT, m1, c, hb, z_c, u, l );
+
+      const RealType epsilon = 1.0e-8;
+      const RealType duality_gap = abs( dual_objective - primal_objective );
+      const RealType error = duality_gap + primal_feasibility + dual_feasibility;
+      if( duality_gap < epsilon * ( abs( dual_objective ) + abs( primal_objective ) )
+          && primal_feasibility < epsilon * ( 1 + l2Norm( hb ) ) && dual_feasibility < epsilon * ( 1 + l2Norm( c ) ) )
+      {
+         std::cout << "===============================" << std::endl;
+         std::cout << "SOLUTION FOUND" << std::endl;
+         std::cout << "ERROR: " << error << std::endl;
+         std::cout << "PRIMAL OBJECTIVE: " << primal_objective << std::endl;
+         std::cout << "DUAL OBJECTIVE: " << dual_objective << std::endl;
+         std::cout << "DUALITY GAP: " << duality_gap << std::endl;
+         std::cout << "PRIMAL FEASIBILITY: " << primal_feasibility << std::endl;
+         std::cout << "DUAL FEASIBILITY: " << dual_feasibility << std::endl;
+         std::cout << "X: " << new_x_view << std::endl;
+         std::cout << "Y: " << new_y_view << std::endl;
+         return { true, dual_objective, error };
+      }
+      else
+         std::cout << "ITER: " << std::setw( 6 ) << k << " PRIM. OBJ.: " << std::setw( 10 ) << primal_objective
+                   << " DUAL OBJ.: " << std::setw( 12 ) << dual_objective << " PRIM. FEAS.: " << std::setw( 12 )
+                   << primal_feasibility << " DUAL FEAS.: " << std::setw( 12 ) << dual_feasibility
+                   << " ERROR: " << std::setw( 10 ) << error
+                   << std::endl;  // << " X: " << new_x_view << " Y: " << new_y_view << std::endl;
+
       //Compute new parameter omega
       RealType delta_x = lpNorm( new_x_view - x, 2 );
       RealType delta_y = lpNorm( new_y_view - y, 2 );
@@ -159,7 +196,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
       x = new_x_view;
       y = new_y_view;
    }
-   return false;
+   return { false, 0.0, 0.0 };
 }
 
 template< typename LPProblem_, typename SolverMonitor >
@@ -292,58 +329,68 @@ auto
 PDLP< LPProblem_, SolverMonitor >::KKTError( const MatrixType& GA,
                                              const MatrixType& GAT,
                                              const IndexType m1,
-                                             const VectorType& q,
-                                             const VectorView& x,
-                                             const VectorView& y,
-                                             const VectorType& u,
-                                             const VectorType& l,
                                              const VectorType& c,
-                                             const RealType& omega ) const -> RealType
+                                             const VectorType& q,
+                                             const VectorView& z,
+                                             const VectorType& u,
+                                             const VectorType& l ) const -> std::tuple< RealType, RealType, RealType, RealType >
 {
    const IndexType m = GA.getRows();
    const IndexType m2 = m - m1;
    const IndexType n = GA.getColumns();
+   const IndexType N = n + m;
 
-   auto h = q.getConstView( 0, m1 );
-   auto b = q.getConstView( m1, m );
-   VectorType aux1( m1 ), aux2( m2 ), KTy( n ), lambda( n );
-   GA.vectorProduct( x, aux1, 1, 0, 0, m1 );  // aux1 = G * x
-   GA.vectorProduct( x, aux2, 1, 0, m1, m );  // aux2 = A * x
-   aux1 = maximum( h - aux1, 0 );
-   aux2 -= b;
+   auto x = z.getConstView( 0, n );
+   auto y = z.getConstView( n, N );
+   auto c_view = c.getConstView();
+
+   // Compute error of the primal feasibility
+   VectorType aux( m );
+   if( m1 > 0 ) {
+      auto aux1 = aux.getView( 0, m1 );
+      GA.vectorProduct( x, aux1, 1, 0, 0, m1 );  // aux1 = G * x
+      auto h = q.getConstView( 0, m1 );
+      aux1 = maximum( h - aux1, 0 );
+   }
+   if( m > m1 ) {
+      auto aux2 = aux.getView( m1, m );
+      GA.vectorProduct( x, aux2, 1, 0, m1, m );  // aux2 = A * x
+      auto b = q.getConstView( m1, m );
+      aux2 -= b;
+   }
+   const RealType primal_feasibility = l2Norm( aux );
+
+   // Compute error of the dual feasibility
+   VectorType KTy( n ), lambda( n );
    GAT.vectorProduct( y, KTy );
-   auto pg = this->primal_gradient.getConstView();
+   auto KTy_view = KTy.getConstView();
    auto l_view = l.getConstView();
    auto u_view = u.getConstView();
    lambda.forAllElements(
       [ = ] __cuda_callable__( IndexType i, RealType & value )
       {
-         value = max( pg[ i ], 0 ) * ( l_view[ i ] != -std::numeric_limits< RealType >::infinity() )
-               + min( pg[ i ], 0 ) * ( u_view[ i ] != std::numeric_limits< RealType >::infinity() );
-      } );
-   /*const auto c_view = c.getConstView();
-   const auto KTy_view = KTy.getConstView();
-   lambda.forAllElements(
-      [ = ] __cuda_callable__( IndexType i, RealType & value )
-      {
-         value = c_view[ i ] - KTy_view[ i ];
-         if( l_view[ i ] != -std::numeric_limits< RealType >::infinity() ) {
-            if( u_view[ i ] != std::numeric_limits< RealType >::infinity() )
-               value = 0;
-            else
+         if( l_view[ i ] == -std::numeric_limits< RealType >::infinity()
+             && u_view[ i ] == std::numeric_limits< RealType >::infinity() )
+            value = 0;
+         else {
+            value = c_view[ i ] - KTy_view[ i ];
+            if( l_view[ i ] == -std::numeric_limits< RealType >::infinity() ) {
                value = min( value, 0 );
+            }
+            else if( u_view[ i ] == std::numeric_limits< RealType >::infinity() ) {
+               value = max( value, 0 );
+            }
          }
-         else if( u_view[ i ] != std::numeric_limits< RealType >::infinity() )
-            value = max( value, 0 );
-      } );*/
-   std::cout << "LAMBDA: " << lambda << std::endl;
-   std::cout << "     l: " << l << std::endl;
-   std::cout << "     u: " << u << std::endl;
-   const RealType omega_sqr = omega * omega;
-   const auto primal_objective = ( c, x );
-   const auto primal_constraint_residue = ( aux1, aux1 ) + ( aux2, aux2 );
-   const auto lambda_view = lambda.getConstView();
-   const auto dual_objective =
+      } );
+   //std::cout << "c - KTy = " << c_view - KTy_view << " lambda = " << lambda << " l = " << l << " u = " << u << std::endl;
+   const RealType dual_feasibility = l2Norm( c - KTy - lambda );
+
+   // Compute the primal objective
+   const RealType primal_objective = ( c, x );
+
+   // Compute the dual objective
+   auto lambda_view = lambda.getConstView();
+   const RealType dual_objective =
       ( q, y )
       + Algorithms::reduce< DeviceType >( (IndexType) 0,
                                           n,
@@ -351,20 +398,14 @@ PDLP< LPProblem_, SolverMonitor >::KKTError( const MatrixType& GA,
                                           {
                                              RealType result = 0;
                                              if( l_view[ i ] != -std::numeric_limits< RealType >::infinity() )
-                                                result += l_view[ i ] * lambda_view[ i ];
+                                                result += l_view[ i ] * max( lambda_view[ i ], 0 );
                                              if( u_view[ i ] != std::numeric_limits< RealType >::infinity() )
-                                                result -= u_view[ i ] * lambda_view[ i ];
+                                                result -= u_view[ i ] * min( lambda_view[ i ], 0 );
                                              return result;
                                           },
                                           TNL::Plus{} );
-   const RealType dual_constraint_residue = l2Norm( c - KTy - lambda );
-   const RealType objective_diff = dual_objective - primal_objective;
-   const RealType error = omega_sqr * primal_constraint_residue
-                        + 1.0 / omega_sqr * dual_constraint_residue * dual_constraint_residue + objective_diff * objective_diff;
-   std::cout << "PRIMAL OBJ.: " << primal_objective << " DUAL OBJ.: " << dual_objective << " PRIMAL CONSTR. RES."
-             << primal_constraint_residue << " DUAL CONSTR. RES. " << dual_constraint_residue << " ERROR: " << sqrt( error )
-             << std::endl;
-   return sqrt( error );
+
+   return { primal_feasibility, dual_feasibility, primal_objective, dual_objective };
 }
 
 }  // namespace TNL::Solvers::Optimization
