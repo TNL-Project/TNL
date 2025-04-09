@@ -34,6 +34,7 @@ struct LPProblem
    using DeviceType = typename MatrixType::DeviceType;
    using IndexType = typename MatrixType::IndexType;
    using VectorType = Containers::Vector< RealType, DeviceType, IndexType >;
+   using StringArrayType = Containers::Array< std::string >;
 
    LPProblem() = default;
 
@@ -52,9 +53,10 @@ struct LPProblem
               const IndexType inequalityCount,
               const VectorType& objectiveFunction,
               const VectorType& lowerBounds,
-              const VectorType& upperBounds )
+              const VectorType& upperBounds,
+              const StringArrayType& variableNames = {} )
    : constraintMatrix( constraintMatrix ), constraintVector( constraintVector ), objectiveFunction( objectiveFunction ),
-     lowerBounds( lowerBounds ), upperBounds( upperBounds ), inequalityCount( inequalityCount )
+     lowerBounds( lowerBounds ), upperBounds( upperBounds ), inequalityCount( inequalityCount ), variableNames( variableNames )
    {
       TNL_ASSERT_EQ( constraintMatrix.getRows(), constraintVector.getSize(), "" );
       TNL_ASSERT_EQ( constraintMatrix.getColumns(), objectiveFunction.getSize(), "" );
@@ -157,12 +159,85 @@ struct LPProblem
       return constraintMatrix.getColumns();
    }
 
+   const StringArrayType&
+   getVariableNames() const
+   {
+      return variableNames;
+   }
+
+   void
+   write( std::ostream& os ) const
+   {
+      os << "Minimize: ";
+      bool printPlus = false;
+      for( IndexType i = 0; i < objectiveFunction.getSize(); ++i ) {
+         const auto value = objectiveFunction[ i ];
+         if( value != 0 ) {
+            if( printPlus )
+               os << ( value > 0 ? " + " : " - " );
+            os << abs( value ) << " * " << variableNames[ i ];
+            printPlus = true;
+         }
+      }
+      os << std::endl;
+
+      os << "Subject to:" << std::endl;
+
+      for( IndexType rowIdx = 0; rowIdx < constraintMatrix.getRows(); ++rowIdx ) {
+         const auto row = constraintMatrix.getRow( rowIdx );
+         os << "  ";
+         bool printPlus = false;
+         for( IndexType j = 0; j < row.getSize(); ++j ) {
+            const auto value = row.getValue( j );
+            const auto columnIdx = row.getColumnIndex( j );
+            if( value != 0 ) {
+               if( printPlus )
+                  os << ( value > 0 ? " + " : " - " );
+               else if( value < 0 )
+                  os << "-";
+               if( abs( value ) == 1 )
+                  os << variableNames[ columnIdx ] << " ";
+               else
+                  os << abs( value ) << " * " << variableNames[ columnIdx ] << " ";
+               printPlus = true;
+            }
+         }
+         if( rowIdx < inequalityCount )
+            os << " >= " << constraintVector[ rowIdx ] << std::endl;
+         else
+            os << " = " << constraintVector[ rowIdx ] << std::endl;
+      }
+
+      std::cout << "Bounds:" << std::endl;
+      for( IndexType i = 0; i < lowerBounds.getSize(); ++i ) {
+         if( lowerBounds[ i ] == -std::numeric_limits< RealType >::infinity()
+             && upperBounds[ i ] == std::numeric_limits< RealType >::infinity() )
+            os << "  " << variableNames[ i ] << " is free" << std::endl;
+         else if( lowerBounds[ i ] == -std::numeric_limits< RealType >::infinity() )
+            os << "  " << variableNames[ i ] << " <= " << upperBounds[ i ] << std::endl;
+         else if( upperBounds[ i ] == std::numeric_limits< RealType >::infinity() )
+            os << "  " << lowerBounds[ i ] << " <= " << variableNames[ i ] << std::endl;
+         else
+            os << "  " << lowerBounds[ i ] << " <= " << variableNames[ i ] << " <= " << upperBounds[ i ] << std::endl;
+      }
+   }
+
 protected:
    MatrixType constraintMatrix;
 
    VectorType constraintVector, objectiveFunction, lowerBounds, upperBounds;
 
    IndexType inequalityCount;
+
+   StringArrayType variableNames, rowNames;
 };
+
+template< typename Matrix >
+std::ostream&
+operator<<( std::ostream& os, const LPProblem< Matrix >& lpProblem )
+{
+   lpProblem.write( os );
+   return os;
+}
 
 }  // namespace TNL::Solvers::Optimization
