@@ -24,6 +24,7 @@
 #include <TNL/Benchmarks/Benchmarks.h>
 
 #include "GurobiLPBenchmark.h"
+#include "ORToolsLPBenchmark.h"
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
@@ -81,10 +82,19 @@ struct LPSolversBenchmark
       std::cout << "Reading LP problem from file " << fileName << std::endl;
       TNL::Solvers::Optimization::LPProblemReader< LPProblemType > reader;
       auto lpProblem = reader.read( fileName );
+      std::cout << lpProblem << std::endl;
+
+      try {
+         orToolsLPBenchmark( benchmark, lpProblem );
+      }
+      catch( ... ) {
+         std::cerr << "An unexpected error occurred." << std::endl;
+      }
+
       typename LPProblemType::VectorType x( lpProblem.getVariableCount() );
       TNL::Solvers::Optimization::PDLP< LPProblemType > solver;
-      solver.solve( lpProblem, x );
-      //std::cout << "Solution: " << x << std::endl;
+      auto [ converged, cost, error ] = solver.solve( lpProblem, x );
+      std::cout << "Solution: " << x << std::endl;
       return true;
    }
 };
