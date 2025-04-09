@@ -27,6 +27,13 @@ struct BoundEntry
    double value;
 };
 
+struct RangeEntry
+{
+   std::string rangeName;
+   std::string rowName;
+   double value;
+};
+
 /**
  * \brief Reader of MPS files for linear programming problems.
  *
@@ -47,29 +54,36 @@ struct LPProblemReader
    read( const std::string& filename )
    {
       std::ifstream file( filename );
+      return read( file );
+   }
 
+   static LPProblem
+   read( std::istream& in_stream )
+   {
       std::string line;
       std::string section;
       std::vector< Constraint > constraints;
       std::vector< ColumnEntry > columns;
       std::vector< BoundEntry > bounds;
+      std::vector< RangeEntry > ranges;
       std::map< std::string, RealType > rhs;
       std::map< std::string, IndexType > columnIndexes;
       std::map< std::string, IndexType > leInequalityRowIndexes;
       std::map< std::string, IndexType > geInequalityRowIndexes;
       std::map< std::string, IndexType > equalityRowIndexes;
+      std::set< std::string > rangeRows;
       std::vector< std::pair< std::string, RealType > > objectiveFunction;
       std::string objectiveFunctionName;
+      std::vector< std::string > variableNames_;
 
       IndexType nCols = 0;
       IndexType nInequalityRows = 0;
       IndexType nEqualityRows = 0;
-      while( getline( file, line ) ) {
+      while( std::getline( in_stream, line ) ) {
          std::string word;
          std::istringstream iss( line );
          iss >> word;
-         //std::cout << line << std::endl;
-         if( word == "NAME" || word == "ROWS" || word == "COLUMNS" || word == "RHS" || word == "BOUNDS" ) {
+         if( word == "NAME" || word == "ROWS" || word == "COLUMNS" || word == "RHS" || word == "BOUNDS" || word == "RANGES" ) {
             section = word;
             continue;
          }
@@ -87,15 +101,22 @@ struct LPProblemReader
                equalityRowIndexes[ name ] = nEqualityRows++;
             else if( type == 'N' )
                objectiveFunctionName = name;
-            //constraints.push_back( { name, type } );
+            else {
+               std::ostringstream oss;
+               oss << "Unknown row type: " << type;
+               throw std::runtime_error( oss.str() );
+            }
          }
          else if( section == "COLUMNS" ) {
             std::istringstream iss( line );
             std::string colName, rowName;
             RealType coefficient;
-            while( iss >> colName >> rowName >> coefficient ) {
+
+            iss >> colName;
+            while( iss >> rowName >> coefficient ) {
                if( columnIndexes.find( colName ) == columnIndexes.end() ) {
                   columnIndexes[ colName ] = nCols++;
+                  variableNames_.push_back( colName );
                }
                if( rowName == objectiveFunctionName )
                   objectiveFunction.push_back( std::pair< std::string, RealType >( colName, coefficient ) );
@@ -107,7 +128,8 @@ struct LPProblemReader
             std::istringstream iss( line );
             std::string rhsName, consName;
             RealType value;
-            while( iss >> rhsName >> consName >> value ) {
+            iss >> rhsName;
+            while( iss >> consName >> value ) {
                rhs[ consName ] = value;
             }
          }
@@ -119,43 +141,44 @@ struct LPProblemReader
             iss >> boundType >> boundName >> variableName >> value;
             bounds.push_back( { boundType, boundName, variableName, value } );
          }
+         else if( section == "RANGES" ) {
+            std::istringstream iss( line );
+            std::string rangeName, rowName;
+            RealType value;
+            iss >> rangeName >> rowName >> value;
+            ranges.push_back( { rangeName, rowName, value } );
+            rangeRows.insert( rowName );
+            if( leInequalityRowIndexes.find( rowName ) != leInequalityRowIndexes.end()
+                || geInequalityRowIndexes.find( rowName ) != geInequalityRowIndexes.end() )
+            {
+               // To handle ranges, we need to convert inequality constraints to equality constraints
+               // and add a new variable for the range ...
+               std::string colName = "MPS_Rg" + rowName;
+               if( leInequalityRowIndexes.find( rowName ) != leInequalityRowIndexes.end() ) {
+                  leInequalityRowIndexes.erase( rowName );
+                  columns.push_back( { colName, rowName, 1 } );
+               }
+               else {
+                  geInequalityRowIndexes.erase( rowName );
+                  columns.push_back( { colName, rowName, -1 } );
+               }
+               columnIndexes[ colName ] = nCols++;
+               variableNames_.push_back( colName );
+               equalityRowIndexes[ rowName ] = nEqualityRows;
+               nInequalityRows--;
+               nEqualityRows++;
+
+               // ... and add the range constraint
+               bounds.push_back( { "UP", "MPS_RgBOUND", colName, value } );
+            }
+         }
       }
-
-      file.close();
-
-      // Print parsed data
-      /*std::cout << "Constraints:\n";
-      for( const auto& c : constraints ) {
-         std::cout << c.name << " (" << c.type << ") -> ";
-         if( c.type == 'L' )
-            std::cout << leInequalityRowIndexes[ c.name ] << "\n";
-         else if( c.type == 'G' )
-            std::cout << geInequalityRowIndexes[ c.name ] << "\n";
-         else if( c.type == 'E' )
-            std::cout << equalityRowIndexes[ c.name ] + nInequalityRows << "\n";
-      }
-
-      std::cout << "\nColumns:\n";
-      for( const auto& col : columns ) {
-         std::cout << col.colName << "( " << columnIndexes[ col.colName ] << " ) "
-                   << " affects " << col.rowName << " with coefficient " << col.coefficient << "\n";
-      }
-
-      std::cout << "\nRHS values:\n";
-      for( const auto& r : rhs ) {
-         std::cout << r.first << " = " << r.second << "\n";
-      }*/
 
       IndexType nRows = nInequalityRows + nEqualityRows;
       VectorType rhsVector( nRows, 0 );
       VectorType costFunction( nCols, 0 );
-      VectorType lowerBounds( nCols, -std::numeric_limits< RealType >::infinity() );
+      VectorType lowerBounds( nCols, 0 );
       VectorType upperBounds( nCols, std::numeric_limits< RealType >::infinity() );
-
-      //std::cout << "Number of columns: " << nCols << std::endl;
-      //std::cout << "Number of rows: " << nRows << std::endl;
-      //std::cout << "Number of inequality rows: " << nInequalityRows << std::endl;
-      //std::cout << "Number of equality rows: " << nEqualityRows << std::endl;
 
       std::map< std::pair< IndexType, IndexType >, RealType > matrixElements;
       for( const auto& col : columns ) {
@@ -170,7 +193,7 @@ struct LPProblemReader
                std::make_pair( std::make_pair( rowIndex, colIndex ), col.coefficient ) );  // TODO: check sign
          }
          else if( equalityRowIndexes.find( col.rowName ) != equalityRowIndexes.end() ) {
-            const IndexType rowIndex = geInequalityRowIndexes[ col.rowName ] + nInequalityRows;
+            const IndexType rowIndex = equalityRowIndexes[ col.rowName ] + nInequalityRows;
             matrixElements.insert( std::make_pair( std::make_pair( rowIndex, colIndex ), col.coefficient ) );
          }
       }
@@ -185,13 +208,16 @@ struct LPProblemReader
          else if( equalityRowIndexes.find( r.first ) != equalityRowIndexes.end() )
             rhsVector.setElement( equalityRowIndexes[ r.first ] + nInequalityRows, r.second );
       }
-      for( const auto& of : objectiveFunction ) {
+
+      Containers::Array< std::string > variableNames( variableNames_ );
+      for( const auto& of : objectiveFunction )
          costFunction.setElement( columnIndexes[ of.first ], of.second );
-      }
 
       for( const auto& b : bounds ) {
          if( b.boundType == "UP" ) {
             upperBounds.setElement( columnIndexes[ b.variableName ], b.value );
+            if( b.value <= 0 )
+               lowerBounds.setElement( columnIndexes[ b.variableName ], -std::numeric_limits< RealType >::infinity() );
          }
          else if( b.boundType == "LO" ) {
             lowerBounds.setElement( columnIndexes[ b.variableName ], b.value );
@@ -202,12 +228,7 @@ struct LPProblemReader
          }
       }
 
-      //std::cout << "Cost function: " << costFunction << std::endl;
-      //std::cout << "Constraint matrix: " << constraintMatrix << std::endl;
-      //std::cout << "RHS vector: " << rhsVector << std::endl;
-      //std::cout << "Lower bounds: " << lowerBounds << std::endl;
-      //std::cout << "Upper bounds: " << upperBounds << std::endl;
-      return LPProblem( constraintMatrix, rhsVector, nInequalityRows, costFunction );
+      return LPProblem( constraintMatrix, rhsVector, nInequalityRows, costFunction, lowerBounds, upperBounds, variableNames );
    }
 };
 
