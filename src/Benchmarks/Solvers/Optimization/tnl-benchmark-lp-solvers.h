@@ -69,32 +69,41 @@ struct LPSolversBenchmark
       const String& fileName = parameters.getParameter< String >( "input-file" );
 
       // Gurobi solver
-      try {
-         gurobiBenchmark( benchmark, fileName );
-      }
-      catch( GRBException& e ) {
-         std::cerr << "Gurobi error: " << e.getMessage() << std::endl;
-      }
-      catch( ... ) {
-         std::cerr << "An unexpected error occurred." << std::endl;
+      if( parameters.getParameter< bool >( "with-gurobi" ) ) {
+         std::cout << "Running Gurobi solver..." << std::endl;
+         try {
+            gurobiBenchmark( benchmark, fileName );
+         }
+         catch( GRBException& e ) {
+            std::cerr << "Gurobi error: " << e.getMessage() << std::endl;
+         }
+         catch( ... ) {
+            std::cerr << "An unexpected error occurred." << std::endl;
+         }
       }
 
       std::cout << "Reading LP problem from file " << fileName << std::endl;
       TNL::Solvers::Optimization::LPProblemReader< LPProblemType > reader;
       auto lpProblem = reader.read( fileName );
-      std::cout << lpProblem << std::endl;
+      //std::cout << lpProblem << std::endl;
 
-      try {
-         orToolsLPBenchmark( benchmark, lpProblem );
-      }
-      catch( ... ) {
-         std::cerr << "An unexpected error occurred." << std::endl;
+      if( parameters.getParameter< bool >( "with-ortools" ) ) {
+         std::cout << "Running OR-Tools solver..." << std::endl;
+         try {
+            orToolsLPBenchmark( benchmark, lpProblem );
+         }
+         catch( ... ) {
+            std::cerr << "An unexpected error occurred." << std::endl;
+         }
       }
 
-      typename LPProblemType::VectorType x( lpProblem.getVariableCount() );
-      TNL::Solvers::Optimization::PDLP< LPProblemType > solver;
-      auto [ converged, cost, error ] = solver.solve( lpProblem, x );
-      std::cout << "Solution: " << x << std::endl;
+      if( parameters.getParameter< bool >( "with-tnl" ) ) {
+         std::cout << "Running TNL PDLP solver..." << std::endl;
+         typename LPProblemType::VectorType x( lpProblem.getVariableCount() );
+         TNL::Solvers::Optimization::PDLP< LPProblemType > solver;
+         auto [ converged, cost, error ] = solver.solve( lpProblem, x );
+         std::cout << "Solution: " << x << std::endl;
+      }
       return true;
    }
 };
@@ -161,6 +170,9 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "host" );
    config.addEntryEnum( "cuda" );
    config.addEntryEnum( "all" );
+   config.addEntry< bool >( "with-gurobi", "Run benchmarks with Gurobi solver.", false );
+   config.addEntry< bool >( "with-ortools", "Run benchmarks with OR-Tools solver.", false );
+   config.addEntry< bool >( "with-tnl", "Run benchmarks with TNL PDLP solver.", true );
    config.addEntry< String >( "precision", "Precision of the arithmetics.", "double" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );

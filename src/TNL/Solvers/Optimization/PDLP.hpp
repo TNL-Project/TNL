@@ -79,7 +79,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    auto eta_container_view = eta_container.getView();
    RealType eta_sum( 0 ), last_z_gap( 0 );
 
-   while( k < 10000 ) {  //this->nextIteration() ) {
+   while( k < 1000000 ) {  //this->nextIteration() ) {
       IndexType t = 0;
       eta_sum = 0;
       VectorView z_view( &z_container( 0, 0 ), n + m1 + m2 );
@@ -109,8 +109,9 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                           "x is not in the feasible region" );
          TNL_ASSERT_TRUE( all( greaterEqual( z_bar.getView( 0, n ), l - std::numeric_limits< RealType >::round_error() ) ),
                           "x is not in the feasible region" );
-         TNL_ASSERT_TRUE( m1 == 0 || all( greaterEqual( z_bar.getView( n, n + m1 ), -std::numeric_limits< RealType >::round_error() ) ),
-                          "y is not in the feasible region" );
+         TNL_ASSERT_TRUE(
+            m1 == 0 || all( greaterEqual( z_bar.getView( n, n + m1 ), -std::numeric_limits< RealType >::round_error() ) ),
+            "y is not in the feasible region" );
          t++;
          k++;
 
