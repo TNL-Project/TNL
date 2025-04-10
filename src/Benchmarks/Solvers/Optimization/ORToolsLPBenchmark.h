@@ -111,7 +111,7 @@ orToolsLPBenchmark( TNL::Benchmarks::Benchmark<>& benchmark, const LPProblem& lp
    }
    objective->SetMinimization();
 
-   PrintModel( solver );
+   //PrintModel( solver );
 
    // Solve the problem.
    std::cout << "Solving the problem using OR Tools..." << std::endl;

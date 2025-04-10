@@ -34,10 +34,10 @@ gurobiBenchmark( TNL::Benchmarks::Benchmark<>& benchmark, const TNL::String& fil
       auto vars = model.getVars();
 
       // Display the optimal values of the variables
-      std::cout << "Optimal solution:" << std::endl;
+      /*std::cout << "Optimal solution:" << std::endl;
       for( int i = 0; i < numvars; ++i ) {
          std::cout << vars[ i ].get( GRB_StringAttr_VarName ) << " = " << vars[ i ].get( GRB_DoubleAttr_X ) << std::endl;
-      }
+      }*/
    }
    else if( optimstatus == GRB_INF_OR_UNBD ) {
       std::cout << "Model is infeasible or unbounded." << std::endl;
