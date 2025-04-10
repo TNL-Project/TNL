@@ -367,7 +367,7 @@ protected:
    /**
     * In case that referential origin is used, store global coordinates of current origin.
     */
-   IndexVectorType gridOriginGlobalCoords;
+   IndexVectorType gridOriginGlobalCoords = 0;
 
    /**
     * Origin of the domain where particles live. The domain is assumed in form
