@@ -41,6 +41,8 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 
    VectorType y( m1 + m2, 0 );
    const RealType max_norm = Matrices::maxNorm( GA );
+   if( max_norm < 1.0e-10 )
+      throw std::runtime_error( "Matrix for the LP problem is nearly zero matrix." );
    const RealType initial_eta = 1.0 / max_norm;
    const RealType c_norm = lpNorm( c, 2 );
    const RealType q_norm = l2Norm( hb );
@@ -52,7 +54,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    RealType current_eta = initial_eta;
    RealType current_omega = initial_omega;
 
-   const IndexType max_restarting_steps = 100;
+   const IndexType max_restarting_steps = 50;
    Array2D z_container;
    z_container.setSizes( max_restarting_steps + 1, n + m1 + m2 );
    auto z_container_view = z_container.getView();
@@ -107,7 +109,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                           "x is not in the feasible region" );
          TNL_ASSERT_TRUE( all( greaterEqual( z_bar.getView( 0, n ), l - std::numeric_limits< RealType >::round_error() ) ),
                           "x is not in the feasible region" );
-         TNL_ASSERT_TRUE( all( greaterEqual( z_bar.getView( n, n + m1 ), -std::numeric_limits< RealType >::round_error() ) ),
+         TNL_ASSERT_TRUE( m1 == 0 || all( greaterEqual( z_bar.getView( n, n + m1 ), -std::numeric_limits< RealType >::round_error() ) ),
                           "y is not in the feasible region" );
          t++;
          k++;
