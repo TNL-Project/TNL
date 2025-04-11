@@ -105,6 +105,10 @@ protected:
    VectorType primal_gradient;
 
    PDLPRestarting restarting = PDLPRestarting::DualityGap;  //KKTError;
+
+   // Preconditioning
+   VectorType T, Sigma;
+
 };
 
 }  // namespace TNL::Solvers::Optimization
