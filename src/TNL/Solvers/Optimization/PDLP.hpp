@@ -4,7 +4,6 @@
 #pragma once
 
 #include <TNL/Matrices/MatrixOperations.h>
-#include <TNL/Containers/NDArray.h>
 #include "PDLP.h"
 #include "LinearTrustRegion.h"
 
@@ -17,9 +16,6 @@ auto
 PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, VectorType& x )
    -> std::tuple< bool, RealType, RealType >
 {
-   using Array2D =
-      Containers::NDArray< RealType, Containers::SizesHolder< IndexType, 0, 0 >, std::index_sequence< 0, 1 >, DeviceType >;
-
    const MatrixType& GA = lpProblem.getConstraintMatrix();
    const VectorType& hb = lpProblem.getConstraintVector();
    const IndexType m1 = lpProblem.getInequalityCount();
@@ -87,12 +83,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    RealType current_omega = initial_omega;
 
    const IndexType max_restarting_steps = 50;
-   Array2D z_container;
-   z_container.setSizes( max_restarting_steps + 1, n + m1 + m2 );
-   auto z_container_view = z_container.getView();
-   VectorType z_c( N ), z_bar( N ), last_z( N ), eta_container( max_restarting_steps + 1 );
-   auto z_bar_view = z_bar.getView();
-   z_bar_view = 0;
+   VectorType z_c( N ), z_bar( N ), last_z( N );
    auto l_view = l.getConstView();
    auto u_view = u.getConstView();
    z_c.forElements( 0,
@@ -108,38 +99,19 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    last_z = z_c;
    x = z_c.getView( 0, n );
    y = z_c.getView( n, N );
-   auto eta_container_view = eta_container.getView();
    RealType eta_sum( 0 ), error_n_0( 0 );
 
-   VectorType z_k_0( N );
+   VectorType z_k_0( N ), z_k_t( N ), z_k_t_new( N );
    while( k < 1000000 ) {  //this->nextIteration() ) {
       IndexType t = 0;
-      eta_sum = 0;
-      VectorView z_view( &z_container( 0, 0 ), n + m1 + m2 );
-      z_view = z_c;
-      t = 0;
-      eta_container[ 0 ] = eta_sum = current_eta;
+
+      eta_sum = current_eta;
+      z_k_t = z_k_0 = z_bar = z_c;
       while( t < max_restarting_steps ) {
-         VectorView in_z_view( &z_container( t, 0 ), n + m1 + m2 );
-         VectorView in_x_view = in_z_view.getView( 0, n );
-         VectorView in_y_view = in_z_view.getView( n, n + m1 + m2 );
-         VectorView z_new_view( &z_container( t + 1, 0 ), n + m1 + m2 );
-         VectorView out_x_view = z_new_view.getView( 0, n );
-         VectorView out_y_view = z_new_view.getView( n, n + m1 + m2 );
-         adaptiveStep( GA, GAT, hb, m1, u, l, c, in_x_view, in_y_view, out_x_view, out_y_view, k, current_omega, current_eta );
-         eta_container[ t + 1 ] = current_eta;
-         //z_bar = ( z_bar * eta_sum + z_new_view * current_eta ) / ( eta_sum + current_eta );
+         adaptiveStep( GA, GAT, hb, m1, u, l, c, z_k_t, z_k_t_new, k, current_omega, current_eta );
+         z_bar = ( z_bar * eta_sum + z_k_t_new * current_eta ) / ( eta_sum + current_eta );
          eta_sum += current_eta;
 
-         Algorithms::parallelFor< DeviceType >( 0,
-                                                n + m1 + m2,
-                                                [ = ] __cuda_callable__( IndexType i ) mutable
-                                                {
-                                                   z_bar_view[ i ] = 0;
-                                                   for( IndexType j = 0; j <= t + 1; j++ )
-                                                      z_bar_view[ i ] +=
-                                                         z_container_view( j, i ) * eta_container_view[ j ] / eta_sum;
-                                                } );
          TNL_ASSERT_TRUE( all( lessEqual( z_bar.getView( 0, n ), u + std::numeric_limits< RealType >::round_error() ) ),
                           "x is not in the feasible region" );
          TNL_ASSERT_TRUE( all( greaterEqual( z_bar.getView( 0, n ), l - std::numeric_limits< RealType >::round_error() ) ),
@@ -151,31 +123,31 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
          k++;
 
          RealType error_new, error_bar, error_n_t;
-         VectorView z_n_t_view( &z_container( t, 0 ), N );
          if( t % 1 == 0 ) {
             if( restarting == PDLPRestarting::KKTError ) {
-               error_new = KKTError( GA, GAT, m1, c, hb, z_new_view, u, l, current_omega );
-               error_bar = KKTError( GA, GAT, m1, c, hb, z_bar_view, u, l, current_omega );
-               error_n_0 = KKTError( GA, GAT, m1, c, hb, z_view, u, l, current_omega );
-               error_n_t = KKTError( GA, GAT, m1, c, hb, z_n_t_view, u, l, current_omega );
+               error_new = KKTError( GA, GAT, m1, c, hb, z_k_t_new, u, l, current_omega );
+               error_bar = KKTError( GA, GAT, m1, c, hb, z_bar, u, l, current_omega );
+               error_n_0 = KKTError( GA, GAT, m1, c, hb, z_k_0, u, l, current_omega );
+               error_n_t = KKTError( GA, GAT, m1, c, hb, z_k_t, u, l, current_omega );
             }
             else if( restarting == PDLPRestarting::DualityGap ) {
                // Solve argmin_{x^hat \in X, y^hat \in Y } [ ((K^T *y )^T - c )*x^hat + ( q - K*x )^T *y^hat ]
-               error_new = primalDualGap( GA, GAT, m1, c, hb, u, l, z_new_view, z_view );
-               error_bar = primalDualGap( GA, GAT, m1, c, hb, u, l, z_bar_view, z_view );
-               error_n_0 = primalDualGap( GA, GAT, m1, c, hb, u, l, z_view, last_z );
-               error_n_t = primalDualGap( GA, GAT, m1, c, hb, u, l, z_n_t_view, z_view );
+               error_new = primalDualGap( GA, GAT, m1, c, hb, u, l, z_k_t_new, z_k_0 );
+               error_bar = primalDualGap( GA, GAT, m1, c, hb, u, l, z_bar, z_k_0 );
+               error_n_0 = primalDualGap( GA, GAT, m1, c, hb, u, l, z_k_0, last_z );
+               error_n_t = primalDualGap( GA, GAT, m1, c, hb, u, l, z_k_t, z_k_0 );
             }
             // Get restart candidate
-            z_c = error_new < error_bar ? z_new_view : z_bar_view;
+            z_c = error_new < error_bar ? z_k_t_new : z_bar;
             if( error_new <= beta_sufficient * error_n_0 || ( error_new <= beta_necessary * error_n_0 && error_new > error_n_t )
                 || ( t >= beta_artificial * k ) )
                break;
          }
          else
-            z_c = z_bar_view;
+            z_c = z_bar;
+         z_k_t = z_k_t_new;
       }
-      last_z = z_view;
+      last_z = z_k_0;
       auto new_x_view = z_c.getView( 0, n );
       auto new_y_view = z_c.getView( n, n + m1 + m2 );
 
@@ -229,10 +201,8 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
                                                  const VectorType& u,
                                                  const VectorType& l,
                                                  const VectorType& c,
-                                                 const VectorView& in_x,
-                                                 const VectorView& in_y,
-                                                 VectorView& out_x,
-                                                 VectorView& out_y,
+                                                 const VectorType& in_z,
+                                                 VectorType& out_z,
                                                  const IndexType k,
                                                  RealType& current_omega,
                                                  RealType& current_eta )
@@ -240,6 +210,12 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
    const IndexType m = GA.getRows();
    const IndexType m2 = m - m1;
    const IndexType n = GA.getColumns();
+   const IndexType N = n + m;
+
+   auto in_x = in_z.getConstView( 0, n );
+   auto in_y = in_z.getConstView( n, N );
+   auto out_x = out_z.getView( 0, n );
+   auto out_y = out_z.getView( n, N );
 
    VectorType KT_y( n ), Kx( m );
    VectorType delta_y( m, 0 ), delta_x( n, 0 ), aux( n, 0 );
