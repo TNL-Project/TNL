@@ -19,7 +19,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 {
    using Array2D =
       Containers::NDArray< RealType, Containers::SizesHolder< IndexType, 0, 0 >, std::index_sequence< 0, 1 >, DeviceType >;
-
+   
    const MatrixType& GA = lpProblem.getConstraintMatrix();
    const VectorType& hb = lpProblem.getConstraintVector();
    const IndexType m1 = lpProblem.getInequalityCount();
@@ -38,6 +38,28 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    TNL_ASSERT_EQ( x.getSize(), n, "" );
    MatrixType GAT;
    GAT.getTransposition( GA );
+
+   // Preconditioning
+   T.setSize( n );
+   Sigma.setSize( m );
+   T = 1;
+   Sigma = 1;
+   auto T_view = T.getView();
+   auto Sigma_view = Sigma.getView();
+   const RealType alfa = 1.0;
+   GA.reduceAllRows( [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType {
+      return pow( abs( value ), 2.0 - alfa);},
+      TNL::Plus{},
+      [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) mutable {
+         T_view[ rowIdx ] = 1.0 / value; 
+      }, 0.0);
+   GAT.reduceAllRows( [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType {
+      return pow( abs( value ), alfa);},
+      TNL::Plus{},
+      [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) mutable {
+         T_view[ rowIdx ] = 1.0 / value; 
+      }, 0.0);
+   std::cout << "T = " << T << " Sigma = " << Sigma << std::endl;
 
    VectorType y( m1 + m2, 0 );
    const RealType max_norm = Matrices::maxNorm( GA );
@@ -249,15 +271,15 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       GAT.vectorProduct( in_y, KT_y );
       if( restarting == PDLPRestarting::KKTError ) {
          primal_gradient = c - KT_y;
-         out_x = minimum( u, maximum( l, in_x - tau * primal_gradient ) );
+         out_x = minimum( u, maximum( l, in_x - tau * T * primal_gradient ) );
       }
       else
-         out_x = minimum( u, maximum( l, in_x - tau * ( c - KT_y ) ) );
+         out_x = minimum( u, maximum( l, in_x - tau * T * ( c - KT_y ) ) );
       aux = 2.0 * out_x - in_x;
       GA.vectorProduct( aux, Kx );
-      out_y1 = maximum( 0, in_y1 + sigma * ( h - Kx_1 ) );
+      out_y1 = maximum( 0, in_y1 + sigma * Sigma.getView(0, m1) * ( h - Kx_1 ) );
       if( m2 > 0 )
-         out_y2 = in_y2 + sigma * ( b - Kx_2 );
+         out_y2 = in_y2 + sigma * Sigma.getView(m1, m) * ( b - Kx_2 );
 
       // Compute new parameter eta
       delta_x = out_x - in_x;
