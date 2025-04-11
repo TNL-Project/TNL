@@ -172,6 +172,39 @@ ParticlesLinkedList< ParticleConfig, Device >::computeParticleCellIndices()
    Algorithms::parallelFor< DeviceType >( 0, this->numberOfParticles, indexParticles );
 }
 
+//FIXME: Temp. function. Remove after resolving the overlaps.
+template< typename ParticleConfig, typename Device >
+void
+ParticlesLinkedList< ParticleConfig, Device >::removeParitclesOutOfDomainPositionBased()
+{
+   const IndexVectorType gridOrigin = this->getGridOrigin();
+   const IndexVectorType gridDimensions = this->getGridDimensions();
+   const RealType searchRadius = this->getSearchRadius();
+   const PointType domainOrigin = gridOrigin;
+   const PointType domainSize = searchRadius * gridDimensions;
+
+   auto view_points = this->points.getView();
+
+   auto checkParticlePosition = [ = ] __cuda_callable__( int i ) mutable
+   {
+      const PointType point = view_points[ i ];
+      // if the particle is already removed, skip
+      if( point[ 0 ] == FLT_MAX )
+         return 0;
+
+      if( this->isInsideDomain( point, domainOrigin, domainSize ) ) {
+         return 0;
+      }
+      else {
+         view_points[ i ] = FLT_MAX;
+         return 1;
+      }
+   };
+   const GlobalIndexType numberOfParticlesToRemove =
+      Algorithms::reduce< DeviceType >( 0, this->numberOfParticles, checkParticlePosition, TNL::Plus() );
+   this->setNumberOfParticlesToRemove( this->getNumberOfParticlesToRemove() + numberOfParticlesToRemove );
+}
+
 template< typename ParticleConfig, typename Device >
 void
 ParticlesLinkedList< ParticleConfig, Device >::removeParitclesOutOfDomain()

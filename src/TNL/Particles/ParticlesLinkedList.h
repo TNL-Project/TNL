@@ -187,6 +187,10 @@ public:
    void
    particlesToCells();
 
+   //FIXME: Temp. function. Remove after resolving the overlaps.
+   void
+   removeParitclesOutOfDomainPositionBased();
+
    /**
     * FIXME: Here or in base?
     * Start remove procedure for all particles out of interior region.
