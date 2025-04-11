@@ -82,6 +82,16 @@ protected:
     * \return A tuple containing the primal feasibility, dual feasibility, primal objective and dual objective.
     */
    std::tuple< RealType, RealType, RealType, RealType >
+   KKT( const MatrixType& GA,
+        const MatrixType& GAT,
+        const IndexType m1,
+        const VectorType& c,
+        const VectorType& q,
+        const VectorView& z,
+        const VectorType& u,
+        const VectorType& l ) const;
+
+   RealType
    KKTError( const MatrixType& GA,
              const MatrixType& GAT,
              const IndexType m1,
@@ -89,7 +99,8 @@ protected:
              const VectorType& q,
              const VectorView& z,
              const VectorType& u,
-             const VectorType& l ) const;
+             const VectorType& l,
+             const RealType& omega ) const;
 
    RealType
    primalDualGap( const MatrixType& GA,
@@ -104,11 +115,15 @@ protected:
 
    VectorType primal_gradient;
 
-   PDLPRestarting restarting = PDLPRestarting::DualityGap;  //KKTError;
+   PDLPRestarting restarting = PDLPRestarting::DualityGap;
+
+   // Restart criteria
+   RealType beta_sufficient = 0.9;
+   RealType beta_necessary = 0.1;
+   RealType beta_artificial = 0.5;
 
    // Preconditioning
    VectorType T, Sigma;
-
 };
 
 }  // namespace TNL::Solvers::Optimization
