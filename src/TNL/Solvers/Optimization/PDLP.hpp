@@ -19,7 +19,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 {
    using Array2D =
       Containers::NDArray< RealType, Containers::SizesHolder< IndexType, 0, 0 >, std::index_sequence< 0, 1 >, DeviceType >;
-   
+
    const MatrixType& GA = lpProblem.getConstraintMatrix();
    const VectorType& hb = lpProblem.getConstraintVector();
    const IndexType m1 = lpProblem.getInequalityCount();
@@ -40,26 +40,36 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    GAT.getTransposition( GA );
 
    // Preconditioning
-   T.setSize( n );
+   /*T.setSize( n );
    Sigma.setSize( m );
    T = 1;
    Sigma = 1;
    auto T_view = T.getView();
    auto Sigma_view = Sigma.getView();
    const RealType alfa = 1.0;
-   GA.reduceAllRows( [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType {
-      return pow( abs( value ), 2.0 - alfa);},
+   GA.reduceAllRows(
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType
+      {
+         return pow( abs( value ), 2.0 - alfa );
+      },
       TNL::Plus{},
-      [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) mutable {
-         T_view[ rowIdx ] = 1.0 / value; 
-      }, 0.0);
-   GAT.reduceAllRows( [=] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType {
-      return pow( abs( value ), alfa);},
+      [ = ] __cuda_callable__( IndexType rowIdx, const RealType& value ) mutable
+      {
+         T_view[ rowIdx ] = 1.0 / value;
+      },
+      0.0 );
+   GAT.reduceAllRows(
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType
+      {
+         return pow( abs( value ), alfa );
+      },
       TNL::Plus{},
-      [=] __cuda_callable__ ( IndexType rowIdx, const RealType& value ) mutable {
-         T_view[ rowIdx ] = 1.0 / value; 
-      }, 0.0);
-   std::cout << "T = " << T << " Sigma = " << Sigma << std::endl;
+      [ = ] __cuda_callable__( IndexType rowIdx, const RealType& value ) mutable
+      {
+         T_view[ rowIdx ] = 1.0 / value;
+      },
+      0.0 );
+   std::cout << "T = " << T << " Sigma = " << Sigma << std::endl;*/
 
    VectorType y( m1 + m2, 0 );
    const RealType max_norm = Matrices::maxNorm( GA );
@@ -99,8 +109,9 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    x = z_c.getView( 0, n );
    y = z_c.getView( n, N );
    auto eta_container_view = eta_container.getView();
-   RealType eta_sum( 0 ), last_z_gap( 0 );
+   RealType eta_sum( 0 ), error_n_0( 0 );
 
+   VectorType z_k_0( N );
    while( k < 1000000 ) {  //this->nextIteration() ) {
       IndexType t = 0;
       eta_sum = 0;
@@ -117,7 +128,9 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
          VectorView out_y_view = z_new_view.getView( n, n + m1 + m2 );
          adaptiveStep( GA, GAT, hb, m1, u, l, c, in_x_view, in_y_view, out_x_view, out_y_view, k, current_omega, current_eta );
          eta_container[ t + 1 ] = current_eta;
+         //z_bar = ( z_bar * eta_sum + z_new_view * current_eta ) / ( eta_sum + current_eta );
          eta_sum += current_eta;
+
          Algorithms::parallelFor< DeviceType >( 0,
                                                 n + m1 + m2,
                                                 [ = ] __cuda_callable__( IndexType i ) mutable
@@ -137,56 +150,38 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
          t++;
          k++;
 
-         RealType z_new_gap, z_bar_gap, error;
-         if( restarting == PDLPRestarting::KKTError )
-            error = 1;  //KKTError( GA, GAT, m1, hb, out_x_view, out_y_view, u, l, c, current_omega );
-         else if( restarting == PDLPRestarting::DualityGap ) {
-            // Solve argmin_{x^hat \in X, y^hat \in Y } [ ((K^T *y )^T - c )*x^hat + ( q - K*x )^T *y^hat ]
-            z_new_gap = primalDualGap( GA, GAT, m1, c, hb, u, l, z_new_view, z_view );
-            z_bar_gap = primalDualGap( GA, GAT, m1, c, hb, u, l, z_bar_view, z_view );
-            // Get restart candidate
-            error = min( z_new_gap, z_bar_gap );
-            z_c = z_new_gap < z_bar_gap ? z_new_view : z_bar_view;
-            /*if( error < 1.0e-12 ) {
-               std::cout << std::endl;
-               x = z_c.getView( 0, n );
-               const RealType cost = ( x, c );
-               std::cout << "===============================" << std::endl;
-               std::cout << "SOLUTION FOUND" << std::endl;
-               std::cout << "ERROR: " << error << std::endl;
-               std::cout << "COST: " << cost << std::endl;
-               std::cout << "X: " << x << std::endl;
-               std::cout << "Y: " << z_c.getView( n, N ) << std::endl;
-               return { true, cost, error };
-            }*/
-            //std::cout << "ITER: " << k << " / " << t << " PRIMAL OBJECTIVE: "  //
-            //         << dot( z_c.getView( 0, n ), c ) << " ERROR:" << error;
-
-            // Restart criteria
-            const RealType beta_sufficient = 0.9;
-            const RealType beta_necessary = 0.1;
-            const RealType beta_artificial = 0.5;
-            last_z_gap = primalDualGap( GA, GAT, m1, c, hb, u, l, z_view, last_z );
-            VectorView z_n_t_view( &z_container( t, 0 ), N );
-            const RealType z_n_t_gap = primalDualGap( GA, GAT, m1, c, hb, u, l, z_n_t_view, z_view );
-
-            if( z_new_gap <= beta_sufficient * last_z_gap
-                || ( z_new_gap <= beta_necessary * last_z_gap && z_new_gap > z_n_t_gap ) || ( t >= beta_artificial * k ) )
-            {
-               //std::cout << "RESTARTING AFTER " << t << " STEPS" << std::endl;
-               break;
+         RealType error_new, error_bar, error_n_t;
+         VectorView z_n_t_view( &z_container( t, 0 ), N );
+         if( t % 1 == 0 ) {
+            if( restarting == PDLPRestarting::KKTError ) {
+               error_new = KKTError( GA, GAT, m1, c, hb, z_new_view, u, l, current_omega );
+               error_bar = KKTError( GA, GAT, m1, c, hb, z_bar_view, u, l, current_omega );
+               error_n_0 = KKTError( GA, GAT, m1, c, hb, z_view, u, l, current_omega );
+               error_n_t = KKTError( GA, GAT, m1, c, hb, z_n_t_view, u, l, current_omega );
             }
+            else if( restarting == PDLPRestarting::DualityGap ) {
+               // Solve argmin_{x^hat \in X, y^hat \in Y } [ ((K^T *y )^T - c )*x^hat + ( q - K*x )^T *y^hat ]
+               error_new = primalDualGap( GA, GAT, m1, c, hb, u, l, z_new_view, z_view );
+               error_bar = primalDualGap( GA, GAT, m1, c, hb, u, l, z_bar_view, z_view );
+               error_n_0 = primalDualGap( GA, GAT, m1, c, hb, u, l, z_view, last_z );
+               error_n_t = primalDualGap( GA, GAT, m1, c, hb, u, l, z_n_t_view, z_view );
+            }
+            // Get restart candidate
+            z_c = error_new < error_bar ? z_new_view : z_bar_view;
+            if( error_new <= beta_sufficient * error_n_0 || ( error_new <= beta_necessary * error_n_0 && error_new > error_n_t )
+                || ( t >= beta_artificial * k ) )
+               break;
          }
-         std::cout << "\r";
+         else
+            z_c = z_bar_view;
       }
       last_z = z_view;
       auto new_x_view = z_c.getView( 0, n );
       auto new_y_view = z_c.getView( n, n + m1 + m2 );
 
-      auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] =
-         KKTError( GA, GAT, m1, c, hb, z_c, u, l );
+      auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = KKT( GA, GAT, m1, c, hb, z_c, u, l );
 
-      const RealType epsilon = 1.0e-8;
+      const RealType epsilon = 1.0e-4;
       const RealType duality_gap = abs( dual_objective - primal_objective );
       const RealType error = duality_gap + primal_feasibility + dual_feasibility;
       if( duality_gap < epsilon * ( abs( dual_objective ) + abs( primal_objective ) )
@@ -218,6 +213,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
          const RealType theta = 0.5;
          current_omega = exp( theta * log( delta_y / delta_x ) + ( 1.0 - theta ) * log( current_omega ) );
       }
+      std::cout << "OMEGA: " << current_omega << std::endl;
       x = new_x_view;
       y = new_y_view;
    }
@@ -271,15 +267,15 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       GAT.vectorProduct( in_y, KT_y );
       if( restarting == PDLPRestarting::KKTError ) {
          primal_gradient = c - KT_y;
-         out_x = minimum( u, maximum( l, in_x - tau * T * primal_gradient ) );
+         out_x = minimum( u, maximum( l, in_x - tau * primal_gradient ) );
       }
       else
-         out_x = minimum( u, maximum( l, in_x - tau * T * ( c - KT_y ) ) );
+         out_x = minimum( u, maximum( l, in_x - tau * ( c - KT_y ) ) );
       aux = 2.0 * out_x - in_x;
       GA.vectorProduct( aux, Kx );
-      out_y1 = maximum( 0, in_y1 + sigma * Sigma.getView(0, m1) * ( h - Kx_1 ) );
+      out_y1 = maximum( 0, in_y1 + sigma * ( h - Kx_1 ) );
       if( m2 > 0 )
-         out_y2 = in_y2 + sigma * Sigma.getView(m1, m) * ( b - Kx_2 );
+         out_y2 = in_y2 + sigma * ( b - Kx_2 );
 
       // Compute new parameter eta
       delta_x = out_x - in_x;
@@ -351,17 +347,16 @@ PDLP< LPProblem_, SolverMonitor >::primalDualGap( const MatrixType& GA,
 
 template< typename LPProblem_, typename SolverMonitor >
 auto
-PDLP< LPProblem_, SolverMonitor >::KKTError( const MatrixType& GA,
-                                             const MatrixType& GAT,
-                                             const IndexType m1,
-                                             const VectorType& c,
-                                             const VectorType& q,
-                                             const VectorView& z,
-                                             const VectorType& u,
-                                             const VectorType& l ) const -> std::tuple< RealType, RealType, RealType, RealType >
+PDLP< LPProblem_, SolverMonitor >::KKT( const MatrixType& GA,
+                                        const MatrixType& GAT,
+                                        const IndexType m1,
+                                        const VectorType& c,
+                                        const VectorType& q,
+                                        const VectorView& z,
+                                        const VectorType& u,
+                                        const VectorType& l ) const -> std::tuple< RealType, RealType, RealType, RealType >
 {
    const IndexType m = GA.getRows();
-   const IndexType m2 = m - m1;
    const IndexType n = GA.getColumns();
    const IndexType N = n + m;
 
@@ -431,6 +426,24 @@ PDLP< LPProblem_, SolverMonitor >::KKTError( const MatrixType& GA,
                                           TNL::Plus{} );
 
    return { primal_feasibility, dual_feasibility, primal_objective, dual_objective };
+}
+
+template< typename LPProblem_, typename SolverMonitor >
+auto
+PDLP< LPProblem_, SolverMonitor >::KKTError( const MatrixType& GA,
+                                             const MatrixType& GAT,
+                                             const IndexType m1,
+                                             const VectorType& c,
+                                             const VectorType& q,
+                                             const VectorView& z,
+                                             const VectorType& u,
+                                             const VectorType& l,
+                                             const RealType& omega ) const -> RealType
+{
+   auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = KKT( GA, GAT, m1, c, q, z, u, l );
+   const RealType omega_sqr = omega * omega;
+   return sqrt( omega_sqr * primal_feasibility * primal_feasibility + 1.0 / omega_sqr * ( dual_feasibility * dual_feasibility )
+                + pow( primal_objective - dual_objective, 2 ) );
 }
 
 }  // namespace TNL::Solvers::Optimization
