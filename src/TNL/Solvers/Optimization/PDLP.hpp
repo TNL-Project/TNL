@@ -6,6 +6,7 @@
 #include <TNL/Matrices/MatrixOperations.h>
 #include "PDLP.h"
 #include "LinearTrustRegion.h"
+#include "Preconditioning/PockChambolle.h"
 
 #include <iomanip>
 
@@ -16,12 +17,12 @@ auto
 PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, VectorType& x )
    -> std::tuple< bool, RealType, RealType >
 {
-   const MatrixType& GA = lpProblem.getConstraintMatrix();
-   const VectorType& hb = lpProblem.getConstraintVector();
+   this->GA = lpProblem.getConstraintMatrix();
+   this->c = lpProblem.getObjectiveFunction();
+   this->hb = lpProblem.getConstraintVector();
+   this->l = lpProblem.getLowerBounds();
+   this->u = lpProblem.getUpperBounds();
    const IndexType m1 = lpProblem.getInequalityCount();
-   const VectorType& l = lpProblem.getLowerBounds();
-   const VectorType& u = lpProblem.getUpperBounds();
-   const VectorType& c = lpProblem.getObjectiveFunction();
 
    const IndexType m = GA.getRows();
    const IndexType m2 = m - m1;
@@ -36,39 +37,18 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    GAT.getTransposition( GA );
 
    // Preconditioning
-   /*T.setSize( n );
-   Sigma.setSize( m );
-   T = 1;
-   Sigma = 1;
-   auto T_view = T.getView();
-   auto Sigma_view = Sigma.getView();
-   const RealType alfa = 1.0;
-   GA.reduceAllRows(
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType
-      {
-         return pow( abs( value ), 2.0 - alfa );
-      },
-      TNL::Plus{},
-      [ = ] __cuda_callable__( IndexType rowIdx, const RealType& value ) mutable
-      {
-         T_view[ rowIdx ] = 1.0 / value;
-      },
-      0.0 );
-   GAT.reduceAllRows(
-      [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const RealType& value ) -> RealType
-      {
-         return pow( abs( value ), alfa );
-      },
-      TNL::Plus{},
-      [ = ] __cuda_callable__( IndexType rowIdx, const RealType& value ) mutable
-      {
-         T_view[ rowIdx ] = 1.0 / value;
-      },
-      0.0 );
-   std::cout << "T = " << T << " Sigma = " << Sigma << std::endl;*/
+   D1.setSize( m );
+   D2.setSize( n );
+   D1 = 1;
+   D2 = 1;
+   //Preconditioning::pockChambole( GA, GAT, m1, c, hb, l, u, D1, D2 );
+   //std::cout << "D1: " << D1 << std::endl;
+   //std::cout << "D2: " << D2 << std::endl;
 
    VectorType y( m1 + m2, 0 );
    const RealType max_norm = Matrices::maxNorm( GA );
+   std::cout << "Constraint matrix max norm: " << max_norm << std::endl;
+   //std::cout << "Constraint matrix: " << GA << std::endl;
    if( max_norm < 1.0e-10 )
       throw std::runtime_error( "Matrix for the LP problem is nearly zero matrix." );
    const RealType initial_eta = 1.0 / max_norm;
@@ -76,13 +56,11 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    const RealType q_norm = l2Norm( hb );
    const RealType initial_omega = ( c_norm > 1.0e-10 && q_norm > 1.0e-10 ) ? c_norm / q_norm : 1;
 
-   if( restarting == PDLPRestarting::KKTError )
-      this->primal_gradient.setSize( n );
    IndexType k = 1;
    RealType current_eta = initial_eta;
    RealType current_omega = initial_omega;
 
-   const IndexType max_restarting_steps = 50;
+   const IndexType max_restarting_steps = 10000;
    VectorType z_c( N ), z_bar( N ), last_z( N );
    auto l_view = l.getConstView();
    auto u_view = u.getConstView();
@@ -96,6 +74,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                           value = l_view[ i ];
                     } );
    z_c.getView( n, N ) = 0;
+   //z_c = 0;  // TODO: Erase
    last_z = z_c;
    x = z_c.getView( 0, n );
    y = z_c.getView( n, N );
@@ -119,11 +98,10 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
          TNL_ASSERT_TRUE(
             m1 == 0 || all( greaterEqual( z_bar.getView( n, n + m1 ), -std::numeric_limits< RealType >::round_error() ) ),
             "y is not in the feasible region" );
-         t++;
-         k++;
 
          RealType error_new, error_bar, error_n_t;
-         if( t % 1 == 0 ) {
+         //bool restart_to_average( false );
+         if( true ) {  //t % 1 == 0 ) {
             if( restarting == PDLPRestarting::KKTError ) {
                error_new = KKTError( GA, GAT, m1, c, hb, z_k_t_new, u, l, current_omega );
                error_bar = KKTError( GA, GAT, m1, c, hb, z_bar, u, l, current_omega );
@@ -139,13 +117,36 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
             }
             // Get restart candidate
             z_c = error_new < error_bar ? z_k_t_new : z_bar;
+
+            // Log
+            auto new_x_view = z_c.getView( 0, n );
+            auto new_y_view = z_c.getView( n, n + m1 + m2 );
+            auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] =
+               KKT( GA, GAT, m1, c, hb, z_c, u, l );
+            const RealType duality_gap = abs( dual_objective - primal_objective );
+            const RealType error = duality_gap + primal_feasibility + dual_feasibility;
+            std::cout << "ITER: " << std::setw( 6 ) << k << " NORMS=(" << std::setw( 10 ) << l2Norm( new_x_view ) << ", "
+                      << std::setw( 10 ) << l2Norm( new_y_view ) << ") INV.STEP : " << std::setw( 10 ) << 1.0 / current_eta
+                      << " PRIMAL WEIGHT: " << std::setw( 10 ) << current_omega << " PRIM.OBJ. : " << std::setw( 10 )
+                      << primal_objective << " DUAL OBJ. : " << std::setw( 12 ) << dual_objective
+                      << " PRIM. FEAS.: " << std::setw( 12 ) << primal_feasibility << " DUAL FEAS.: " << std::setw( 12 )
+                      << dual_feasibility << " KKT ERROR: " << std::setw( 10 ) << error << std::endl;
+            // End of log
+
             if( error_new <= beta_sufficient * error_n_0 || ( error_new <= beta_necessary * error_n_0 && error_new > error_n_t )
                 || ( t >= beta_artificial * k ) )
+            {
+               std::cout << "Restart to " << ( error_bar < error_new ? "average" : "current" ) << " after " << t
+                         << " iterations." << std::endl;
                break;
+            }
          }
          else
             z_c = z_bar;
          z_k_t = z_k_t_new;
+
+         t++;
+         k++;
       }
       last_z = z_k_0;
       auto new_x_view = z_c.getView( 0, n );
@@ -153,30 +154,36 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 
       auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = KKT( GA, GAT, m1, c, hb, z_c, u, l );
 
-      const RealType epsilon = 1.0e-4;
+      const RealType epsilon = 1.0e-6;
       const RealType duality_gap = abs( dual_objective - primal_objective );
       const RealType error = duality_gap + primal_feasibility + dual_feasibility;
       if( duality_gap < epsilon * ( abs( dual_objective ) + abs( primal_objective ) )
           && primal_feasibility < epsilon * ( 1 + l2Norm( hb ) ) && dual_feasibility < epsilon * ( 1 + l2Norm( c ) ) )
       {
+         //new_x_view *= D2;
+         //new_y_view *= D1;
          std::cout << "===============================" << std::endl;
          std::cout << "SOLUTION FOUND" << std::endl;
-         std::cout << "ERROR: " << error << std::endl;
+         std::cout << "KKT ERROR: " << error << std::endl;
          std::cout << "PRIMAL OBJECTIVE: " << primal_objective << std::endl;
          std::cout << "DUAL OBJECTIVE: " << dual_objective << std::endl;
          std::cout << "DUALITY GAP: " << duality_gap << std::endl;
          std::cout << "PRIMAL FEASIBILITY: " << primal_feasibility << std::endl;
          std::cout << "DUAL FEASIBILITY: " << dual_feasibility << std::endl;
          std::cout << "X: " << new_x_view << std::endl;
+         std::cout << "D2 * X: " << D2 * new_x_view << std::endl;
          std::cout << "Y: " << new_y_view << std::endl;
+         x = new_x_view;
+         //y = new_y_view;
          return { true, dual_objective, error };
       }
-      else
-         std::cout << "ITER: " << std::setw( 6 ) << k << " PRIM. OBJ.: " << std::setw( 10 ) << primal_objective
-                   << " DUAL OBJ.: " << std::setw( 12 ) << dual_objective << " PRIM. FEAS.: " << std::setw( 12 )
-                   << primal_feasibility << " DUAL FEAS.: " << std::setw( 12 ) << dual_feasibility
-                   << " ERROR: " << std::setw( 10 ) << error
-                   << std::endl;  // << " X: " << new_x_view << " Y: " << new_y_view << std::endl;
+      /*else
+         std::cout << "ITER: " << std::setw( 6 ) << k << " NORMS=(" << std::setw( 10 ) << l2Norm( new_x_view ) << ", "
+                   << std::setw( 10 ) << l2Norm( new_y_view ) << ") INV.STEP : " << std::setw( 10 ) << 1.0 / current_eta
+                   << " PRIMAL WEIGHT: " << std::setw( 10 ) << current_omega << " PRIM.OBJ. : " << std::setw( 10 )
+                   << primal_objective << " DUAL OBJ. : " << std::setw( 12 ) << dual_objective
+                   << " PRIM. FEAS.: " << std::setw( 12 ) << primal_feasibility << " DUAL FEAS.: " << std::setw( 12 )
+                   << dual_feasibility << " KKT ERROR: " << std::setw( 10 ) << error << std::endl;*/
 
       //Compute new parameter omega
       RealType delta_x = lpNorm( new_x_view - x, 2 );
@@ -185,9 +192,6 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
          const RealType theta = 0.5;
          current_omega = exp( theta * log( delta_y / delta_x ) + ( 1.0 - theta ) * log( current_omega ) );
       }
-      std::cout << "OMEGA: " << current_omega << std::endl;
-      x = new_x_view;
-      y = new_y_view;
    }
    return { false, 0.0, 0.0 };
 }
@@ -234,19 +238,15 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       out_y2.bind( out_y.getView( m1, m ) );
    }
 
-   const RealType max_norm = Matrices::maxNorm( GA );
+   std::cout << "GA values:" << GA.getValues() << std::endl;
+   const RealType max_norm = maxNorm( GA.getValues() );  //Matrices::maxNorm( GA );
 
    while( true ) {
       const RealType tau = current_eta / current_omega;
       const RealType sigma = current_eta * current_omega;
 
       GAT.vectorProduct( in_y, KT_y );
-      if( restarting == PDLPRestarting::KKTError ) {
-         primal_gradient = c - KT_y;
-         out_x = minimum( u, maximum( l, in_x - tau * primal_gradient ) );
-      }
-      else
-         out_x = minimum( u, maximum( l, in_x - tau * ( c - KT_y ) ) );
+      out_x = minimum( u, maximum( l, in_x - tau * ( c - KT_y ) ) );
       aux = 2.0 * out_x - in_x;
       GA.vectorProduct( aux, Kx );
       out_y1 = maximum( 0, in_y1 + sigma * ( h - Kx_1 ) );
@@ -256,7 +256,7 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       // Compute new parameter eta
       delta_x = out_x - in_x;
       delta_y = out_y - in_y;
-      const RealType delta_z_norm = sqrt( current_omega * ( delta_x, delta_x ) + ( delta_y, delta_y ) / current_omega );
+      const RealType delta_z_norm = current_omega * ( delta_x, delta_x ) + ( delta_y, delta_y ) / current_omega;
 
       GA.vectorProduct( delta_x, Kx );
       const RealType div = 2.0 * abs( ( Kx, delta_y ) );
