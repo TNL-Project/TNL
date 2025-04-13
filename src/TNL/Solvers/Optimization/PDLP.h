@@ -111,7 +111,11 @@ protected:
                   const VectorView& z,
                   const VectorView& z_ref ) const;
 
-   VectorType primal_gradient;
+   MatrixType GA, GAT;
+   VectorType c;
+   VectorType hb;
+   VectorType l;
+   VectorType u;
 
    PDLPRestarting restarting = PDLPRestarting::DualityGap;
 
@@ -121,7 +125,7 @@ protected:
    RealType beta_artificial = 0.5;
 
    // Preconditioning
-   VectorType T, Sigma;
+   VectorType D1, D2;
 };
 
 }  // namespace TNL::Solvers::Optimization
