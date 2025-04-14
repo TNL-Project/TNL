@@ -238,8 +238,8 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       out_y2.bind( out_y.getView( m1, m ) );
    }
 
-   std::cout << "GA values:" << GA.getValues() << std::endl;
-   const RealType max_norm = maxNorm( GA.getValues() );  //Matrices::maxNorm( GA );
+   //std::cout << "GA values:" << GA.getValues() << std::endl;
+   const RealType max_norm = Matrices::maxNorm( GA );
 
    while( true ) {
       const RealType tau = current_eta / current_omega;
@@ -259,21 +259,16 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       const RealType delta_z_norm = current_omega * ( delta_x, delta_x ) + ( delta_y, delta_y ) / current_omega;
 
       GA.vectorProduct( delta_x, Kx );
-      const RealType div = 2.0 * abs( ( Kx, delta_y ) );
-      if( abs( div ) > 1.0e-10 ) {
-         const RealType max_eta = delta_z_norm / div;
-         const RealType new_eta = min( ( 1.0 - pow( k + 1, -0.3 ) ) * max_eta, ( 1.0 + pow( k + 1, -0.6 ) ) * current_eta );
-         if( new_eta < max_eta ) {
-            current_eta = new_eta;
-            return;
-         }
-         else
-            current_eta = new_eta;
-      }
-      else {
-         current_eta = 1.0 / max_norm;
+      const RealType div = 2.0 * abs( ( Kx, delta_y ) );  // TODO: It is 0.5 in source code
+      const RealType max_eta = div > 0 ? delta_z_norm / div : std::numeric_limits< RealType >::infinity();
+      const RealType new_eta = min( ( 1.0 - pow( k + 1, -0.3 ) ) * max_eta, ( 1.0 + pow( k + 1, -0.6 ) ) * current_eta );
+      TNL_ASSERT_GT( new_eta, 0, "new_eta <= 0" );
+      if( new_eta < max_eta ) {
+         current_eta = new_eta;
          return;
       }
+      else
+         current_eta = new_eta;
    }
 }
 
