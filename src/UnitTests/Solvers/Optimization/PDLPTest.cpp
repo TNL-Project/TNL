@@ -9,6 +9,7 @@
 
 using namespace TNL;
 
+//#ifdef UNDEF
 /***
  * The unit tests in this file solve the following problem:
  *
@@ -17,7 +18,6 @@ using namespace TNL;
  *      A * x = b if A is given
  *      l <= x <= u
  */
-
 TEST( PDLPTest, SmallProblemOnlyInequalitiesTest )
 {
    using RealType = double;
@@ -213,5 +213,45 @@ ENDATA                                                                  \n";
 }
 
 // TODO: Added test given by MPS - https://www.cenapad.unicamp.br/parque/manuais/OSL/oslweb/features/feat24DT.htm
+
+//#endif
+
+TEST( PDLPTest, cuPDLP_C_Test )
+{
+   using RealType = double;
+   using VectorType = Containers::Vector< RealType >;
+   using MatrixType = Matrices::SparseMatrix< RealType >;
+   MatrixType K( 13,
+                 24,
+                 // clang-format off
+                 {{0,0,-1},  { 0, 1, -1 }, { 0, 6,  1 },
+                 {1,0,1},  { 1, 2,  1 }, { 1, 4, -1 }, { 1, 5, 1 }, { 1,6,-1 },
+                 {2,2,-1},{2,3,-1},{2,7,1},
+                 {3,1,1},{3,3,1},{3,4,1},{3,5,-1},{3,7,-1},
+                 {4,8,-1},{4,9,-1},{4,14,1},
+                 {5,8,1},{5,10,1},{5,12,-1},{5,13,1},{5,14,-1},
+                 {6,10,-1},{6,11,-1},{6,15,1},
+                 {7,9,1},{7,11,1},{7,12,1},{7,13,-1},{7,15,-1},
+                 {8,16,-1},{8,17,-1},{8,22,1},
+                 {9,16,1},{9,18,1},{9,20,-1},{9,21,1},{9,22,-1},
+                 {10,18,-1},{10,19,-1},{10,23,1},
+                 {11,17,1},{11,19,1},{11,20,1},{11,21,-1},{11,23,-1},
+                 {12,1,-1},{12,9,-1},{12,17,-1}}  // clang-format on
+   );
+
+   VectorType q( { -1, 1, -1, 1, -1, 1, -2, 2, -1, 1, -3, 3, -1 } );
+   VectorType c( { 1.0, 2.0, 3.0, 4.2, 5.0, 6.2, 5.0, 6.2, 1.0, 2.0, 3.0, 4.2,
+                   5.0, 6.2, 5.0, 6.2, 1.0, 2.0, 3.0, 4.2, 5.0, 6.2, 5.0, 6.2 } );
+   VectorType l( c.getSize(), 0 );
+   VectorType u( c.getSize(), std::numeric_limits< RealType >::infinity() );
+   using LPProblemType = Solvers::Optimization::LPProblem< MatrixType >;
+   LPProblemType lpProblem( K, q, 12, c, l, u );
+   //VectorType exact_solution( { 0, 10, 40, 0, 30, 0, 0, 30, 0, 30, 0, 20 } );
+   VectorType x( c.getSize(), 0 );
+
+   Solvers::Optimization::PDLP< LPProblemType > solver;
+   solver.setInequalitiesFirst( false );
+   solver.solve( lpProblem, x );
+}
 
 #include "../../main.h"

@@ -10,6 +10,7 @@ namespace TNL::Solvers::Optimization {
 
 enum class PDLPRestarting
 {
+   None,
    DualityGap,
    KKTError
 };
@@ -49,6 +50,12 @@ public:
 
    std::tuple< bool, RealType, RealType >
    solve( const LPProblemType& lpProblem, VectorType& x );
+
+   void
+   setInequalitiesFirst( bool inequalitiesFirst )
+   {
+      this->inequalitiesFirst = inequalitiesFirst;
+   }
 
 protected:
    void
@@ -117,7 +124,9 @@ protected:
    VectorType l;
    VectorType u;
 
+   //PDLPRestarting restarting = PDLPRestarting::None;
    PDLPRestarting restarting = PDLPRestarting::DualityGap;
+   //PDLPRestarting restarting = PDLPRestarting::KKTError;
 
    // Restart criteria
    RealType beta_sufficient = 0.9;
@@ -126,6 +135,13 @@ protected:
 
    // Preconditioning
    VectorType D1, D2;
+
+   RealType K_norm;
+
+   IndexType adaptive_k = 0;
+   bool inequalitiesFirst = true;
+
+   bool averaging = false;
 };
 
 }  // namespace TNL::Solvers::Optimization
