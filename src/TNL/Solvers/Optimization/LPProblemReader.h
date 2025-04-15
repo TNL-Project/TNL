@@ -207,6 +207,11 @@ struct LPProblemReader
             rhsVector.setElement( geInequalityRowIndexes[ r.first ], r.second );
          else if( equalityRowIndexes.find( r.first ) != equalityRowIndexes.end() )
             rhsVector.setElement( equalityRowIndexes[ r.first ] + nInequalityRows, r.second );
+         else {
+            std::ostringstream oss;
+            oss << "Unknown row name: " << r.first;
+            throw std::runtime_error( oss.str() );
+         }
       }
 
       Containers::Array< std::string > variableNames( variableNames_ );

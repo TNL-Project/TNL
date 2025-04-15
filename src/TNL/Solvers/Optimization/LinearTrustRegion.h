@@ -62,7 +62,10 @@ linearTrustRegion( const VectorView& z,
    if( ! all( greaterEqual( z, l_ - std::numeric_limits< Real >::round_error() ) )
        || ! all( lessEqual( z, u + std::numeric_limits< Real >::round_error() ) ) )
    {
-      std::cout << "z is not in the feasible region" << std::endl;
+      /*std::cout << "z is not in the feasible region" << std::endl;
+      std::cout << "l = " << l_ << std::endl;
+      std::cout << "u = " << u << std::endl;
+      std::cout << "z = " << z << std::endl;*/
       return false;
    }
    const Index N = z.getSize();
@@ -124,8 +127,13 @@ linearTrustRegion( const VectorView& z,
                                                        },
                                                        TNL::Max{} );
          z_hat = minimum( u, maximum( l_, z - lambda_mid * g_ ) );
-         if( l2Norm( z_hat - z ) > r + std::numeric_limits< Real >::round_error() )
+         if( l2Norm( z_hat - z ) > r + std::numeric_limits< Real >::round_error() ) {
+            std::cout << "z_hat is not in the feasible region" << std::endl;
+            std::cout << "l2Norm( z_hat - z ) = " << l2Norm( z_hat - z )
+                      << " > r + e = " << r + std::numeric_limits< Real >::round_error() << std::endl;
+
             return false;
+         }
          return true;
       }
       auto m = I.begin() + I.size() / 2;
