@@ -944,7 +944,7 @@ checkShiftedPowerIterationSparse2D()
    const RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
       TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVec, 10000 );
-   EXPECT_NEAR( eigenvalue, 3, 1e-7 );
+   EXPECT_NEAR( eigenvalue, 3, 1e-7 ) << "Eigenvalue: " << eigenvalue;
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_NEAR( eigenvector.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
    }
@@ -960,6 +960,63 @@ checkShiftedPowerIterationSparse2D()
    EXPECT_NEAR( eigenvalueB, 1, 1e-7 );
    for( int i = 0; i < eigenvectorB.getSize(); i++ ) {
       EXPECT_NEAR( eigenvectorB.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
+   }
+}
+
+template< typename RealType, typename Device >
+void
+checkPowerIterationWithTransposedMatrix1()
+{
+   using MatrixType = TNL::Matrices::SparseMatrix< RealType, Device, int >;
+   MatrixType A( 2,
+                 2,
+                 {
+                    // clang-format off
+         { 0, 0,  1.0 }, { 0,0, 2.0 },
+         { 1, 0,  3.0 }, { 1,0, 3.0 },
+                    // clang-format on
+                 } );
+   using VectorType = TNL::Containers::Vector< RealType, Device >;
+   MatrixType AT;
+   AT.getTransposition( A );
+   const RealType epsilon = 1e-8;
+   auto [ eigenvalue, eigenvector, iterations ] = TNL::Matrices::Eigen::powerIteration< MatrixType >( A, AT, epsilon, 10000 );
+   VectorType Ax( A.getRows(), 0 ), ATAx( AT.getRows(), 0 );
+   A.vectorProduct( eigenvector, Ax );
+   AT.vectorProduct( Ax, ATAx );
+
+   for( int i = 0; i < eigenvector.getSize(); i++ ) {
+      EXPECT_NEAR( ATAx.getElement( i ), eigenvalue * eigenvector.getElement( i ), 1e-7 );
+   }
+}
+
+template< typename RealType, typename Device >
+void
+checkPowerIterationWithTransposedMatrix2()
+{
+   using MatrixType = TNL::Matrices::SparseMatrix< RealType, Device, int >;
+   MatrixType A( 5,
+                 5,
+                 {
+                    // clang-format off
+         { 0, 0,  2.0 },
+         { 1, 0, -1.0 }, { 1, 1, 2.0 }, { 1, 2, -1.0 },
+         { 2, 1, -1.0 }, { 2, 2, 2.0 }, { 2, 3, -1.0 },
+         { 3, 2, -1.0 }, { 3, 3, 2.0 }, { 3, 4, -1.0 },
+         { 4, 4,  2.0 },
+                    // clang-format on
+                 } );
+   using VectorType = TNL::Containers::Vector< RealType, Device >;
+   MatrixType AT;
+   AT.getTransposition( A );
+   const RealType epsilon = 1e-8;
+   auto [ eigenvalue, eigenvector, iterations ] = TNL::Matrices::Eigen::powerIteration< MatrixType >( A, AT, epsilon, 10000 );
+   VectorType Ax( A.getRows(), 0 ), ATAx( AT.getRows(), 0 );
+   A.vectorProduct( eigenvector, Ax );
+   AT.vectorProduct( Ax, ATAx );
+
+   for( int i = 0; i < eigenvector.getSize(); i++ ) {
+      EXPECT_NEAR( ATAx.getElement( i ), eigenvalue * eigenvector.getElement( i ), 1e-7 );
    }
 }
 
@@ -986,6 +1043,10 @@ TEST( EigenTest, ShiftedPowerIteration )
    checkShiftedPowerIterationSparse1D< float, TNL::Devices::Host >();
    checkShiftedPowerIterationSparse2D< double, TNL::Devices::Host >();
    checkShiftedPowerIterationSparse2D< float, TNL::Devices::Host >();
+   checkPowerIterationWithTransposedMatrix1< double, TNL::Devices::Host >();
+   checkPowerIterationWithTransposedMatrix1< float, TNL::Devices::Host >();
+   checkPowerIterationWithTransposedMatrix2< double, TNL::Devices::Host >();
+   checkPowerIterationWithTransposedMatrix2< float, TNL::Devices::Host >();
 #else
    checkShiftedPowerIterationDense0D< double, TNL::Devices::Cuda >();
    checkShiftedPowerIterationDense0D< float, TNL::Devices::Cuda >();
@@ -1007,6 +1068,10 @@ TEST( EigenTest, ShiftedPowerIteration )
    checkShiftedPowerIterationSparse1D< float, TNL::Devices::Cuda >();
    checkShiftedPowerIterationSparse2D< double, TNL::Devices::Cuda >();
    checkShiftedPowerIterationSparse2D< float, TNL::Devices::Cuda >();
+   checkPowerIterationWithTransposedMatrix1< double, TNL::Devices::Cuda >();
+   checkPowerIterationWithTransposedMatrix1< float, TNL::Devices::Cuda >();
+   checkPowerIterationWithTransposedMatrix2< double, TNL::Devices::Cuda >();
+   checkPowerIterationWithTransposedMatrix2< float, TNL::Devices::Cuda >();
 #endif
 }
 

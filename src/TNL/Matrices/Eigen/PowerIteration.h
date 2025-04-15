@@ -64,6 +64,29 @@ powerIteration( const MatrixType& matrix,
    return TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( matrix, epsilon, 0, initialVec, maxIterations );
 }
 
+template< typename MatrixType >
+std::tuple<
+   typename MatrixType::RealType,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType, typename MatrixType::IndexType >,
+   typename MatrixType::IndexType >
+powerIteration(
+   const MatrixType& matrix,
+   const MatrixType& transposed_matrix,
+   const typename MatrixType::RealType& epsilon,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType, typename MatrixType::IndexType >&
+      initialVec,
+   const int& maxIterations = 100000 )
+{
+   if( matrix.getRows() != transposed_matrix.getColumns() )
+      throw std::invalid_argument( "The matrix and its transposed matrix sizes do not fit." );
+   if( matrix.getRows() == 0 )
+      throw std::invalid_argument( "Zero-sized matrices are not allowed" );
+   if( matrix.getColumns() != initialVec.getSize() )
+      throw std::invalid_argument( "The initial vector and the matrix size do not fit." );
+   return TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >(
+      matrix, transposed_matrix, epsilon, 0, initialVec, maxIterations );
+}
+
 /**
  * \brief Calculates the largest eigenvalue and its corresponding eigenvector of a given matrix using the power iteration
  * method.
@@ -119,6 +142,37 @@ powerIteration( const MatrixType& matrix, const typename MatrixType::RealType& e
       }
    } while( TNL::l2Norm( initialVec ) == 0 );
    return powerIteration( matrix, epsilon, initialVec, maxIterations );
+}
+
+template< typename MatrixType >
+std::tuple<
+   typename MatrixType::RealType,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType, typename MatrixType::IndexType >,
+   typename MatrixType::IndexType >
+powerIteration( const MatrixType& matrix,
+                const MatrixType& transposed_matrix,
+                const typename MatrixType::RealType& epsilon,
+                const int& maxIterations = 100000 )
+{
+   if( matrix.getRows() != transposed_matrix.getColumns() )
+      throw std::invalid_argument( "The matrix and its transposed matrix sizes do not fit." );
+   if( matrix.getRows() == 0 )
+      throw std::invalid_argument( "Zero-sized matrices are not allowed" );
+   using IndexType = typename MatrixType::IndexType;
+   using RealType = typename MatrixType::RealType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   IndexType vecSize = matrix.getColumns();
+   VectorType initialVec( vecSize );
+   do {
+      if constexpr( std::is_integral_v< RealType > ) {
+         TNL::Algorithms::fillRandom< DeviceType >( initialVec.getData(), vecSize, (RealType) -10000, (RealType) 10000 );
+      }
+      else {
+         TNL::Algorithms::fillRandom< DeviceType >( initialVec.getData(), vecSize, (RealType) -1, (RealType) 1 );
+      }
+   } while( TNL::l2Norm( initialVec ) == 0 );
+   return powerIteration( matrix, transposed_matrix, epsilon, initialVec, maxIterations );
 }
 
 }  // namespace TNL::Matrices::Eigen
