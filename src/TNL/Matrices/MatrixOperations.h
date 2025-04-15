@@ -16,6 +16,7 @@
 #include <TNL/Math.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Containers/Vector.h>
+#include <TNL/Matrices/Eigen/PowerIteration.h>
 
 namespace TNL::Matrices {
 
@@ -475,6 +476,40 @@ maxNorm( const Matrix& matrix ) -> typename Matrix::RealType
       },
       0 );
    return max( aux );
+}
+
+/**
+ * \brief Computes the spectral norm of a matrix.
+ *
+ * \tparam Matrix is the type of the matrix.
+ * \param matrix is the input matrix.
+ * \param AT is the transposed matrix.
+ * \return the maximum norm of the matrix.
+ */
+template< typename Matrix >
+auto
+spectralNorm( const Matrix& A, const Matrix& AT ) -> typename Matrix::RealType
+{
+   auto [ eigenvalue, eigenvector, iterations ] = TNL::Matrices::Eigen::powerIteration( A, AT, 1.0e-8, 10000 );
+   return sqrt( eigenvalue );
+}
+
+/**
+ * \brief Computes the spectral norm of a matrix.
+ *
+ * \tparam Matrix is the type of the matrix.
+ * \param matrix is the input matrix.
+ * \param AT is the transposed matrix.
+ * \return the maximum norm of the matrix.
+ */
+template< typename Matrix >
+auto
+spectralNorm( const Matrix& A ) -> typename Matrix::RealType
+{
+   Matrix AT;
+   AT.getTransposition( A );
+   auto [ eigenvalue, eigenvector, iterations ] = TNL::Matrices::Eigen::powerIteration( A, AT, 1.0e-8, 10000 );
+   return sqrt( eigenvalue );
 }
 
 }  // namespace TNL::Matrices
