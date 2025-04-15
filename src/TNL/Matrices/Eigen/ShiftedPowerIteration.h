@@ -61,7 +61,7 @@ shiftedPowerIteration( const MatrixType& matrix,
    using RealType = typename MatrixType::RealType;
    using DeviceType = typename MatrixType::DeviceType;
    IndexType vecSize = matrix.getColumns();
-   TNL::Containers::Vector< RealType, DeviceType > eigenVecOut( vecSize );
+   TNL::Containers::Vector< RealType, DeviceType > eigenVecOut( vecSize );  // TODO: Add VectorType with proper IndexType
    eigenVecOut.setValue( 0 );
    RealType norm = 0;
    RealType normOld = 0;
@@ -75,6 +75,83 @@ shiftedPowerIteration( const MatrixType& matrix,
       initialVec = initialVec / norm;
    while( true ) {
       matrix.vectorProduct( initialVec, eigenVecOut );
+      if( shiftValue != 0 ) {
+         eigenVecOut += initialVec * shiftValue;
+      }
+      norm = TNL::l2Norm( eigenVecOut );
+      if( std::isnan( norm ) )
+         return std::make_tuple( norm, eigenVecOut, -1 );
+      initialVec = std::move( eigenVecOut / norm );
+      iterations++;
+      if( TNL::abs( normOld - norm ) < epsilon ) {
+         if( TNL::all( TNL::less( TNL::abs( initialVec - eigenVecOld ), epsilon ) ) )
+            return std::make_tuple( norm - shiftValue, initialVec, iterations );
+         if( TNL::all( TNL::less( TNL::abs( initialVec + eigenVecOld ), epsilon ) ) )
+            return std::make_tuple( -norm - shiftValue, initialVec, iterations );
+      }
+      if( iterations == maxIterations )
+         return std::make_tuple( norm - shiftValue, initialVec, 0 );
+      eigenVecOld = initialVec;
+      normOld = norm;
+   }
+   iterations = -1;
+   return std::make_tuple( norm - shiftValue, std::move( initialVec ), iterations );
+}
+
+/**
+ * \brief Power method for shifted eigenvalue calculation for matrix A^T * A.
+ *
+ * \tparam MatrixType
+ * \param matrix
+ * \param transposed_matrix
+ * \param epsilon
+ * \param shiftValue
+ * \param initialVec
+ * \param maxIterations
+ * \return std::tuple< typename MatrixType::RealType,
+ * TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >,
+ * int >
+ */
+template< typename MatrixType >
+std::tuple<
+   typename MatrixType::RealType,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType, typename MatrixType::IndexType >,
+   typename MatrixType::IndexType >
+shiftedPowerIteration(
+   const MatrixType& matrix,
+   const MatrixType& transposed_matrix,
+   const typename MatrixType::RealType& epsilon,
+   const typename MatrixType::RealType& shiftValue,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType, typename MatrixType::IndexType >&
+      initialVec,
+   const int& maxIterations = 100000 )
+{
+   if( matrix.getRows() != transposed_matrix.getColumns() )
+      throw std::invalid_argument( "The matrix and its transposed matrix sizes do not fit." );
+   if( matrix.getRows() == 0 )
+      throw std::invalid_argument( "Zero-sized matrices are not allowed" );
+   if( matrix.getColumns() != initialVec.getSize() )
+      throw std::invalid_argument( "The initial vector must have the same size as the matrix" );
+   using IndexType = typename MatrixType::IndexType;
+   using RealType = typename MatrixType::RealType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   IndexType outVectorSize = transposed_matrix.getRows();
+   VectorType eigenVecOut( outVectorSize, 0 );
+   VectorType eigenVecOld( outVectorSize, 0 );
+   VectorType auxVec( matrix.getRows(), 0 );
+   RealType norm = 0;
+   RealType normOld = 0;
+   int iterations = 0;
+
+   norm = TNL::l2Norm( initialVec );
+   if( norm == 0 )
+      throw std::invalid_argument( "The initial vector must be nonzero" );
+   if( norm != 1 )
+      initialVec = initialVec / norm;
+   while( true ) {
+      matrix.vectorProduct( initialVec, auxVec );
+      transposed_matrix.vectorProduct( auxVec, eigenVecOut );
       if( shiftValue != 0 ) {
          eigenVecOut += initialVec * shiftValue;
       }
@@ -158,6 +235,39 @@ shiftedPowerIteration( const MatrixType& matrix,
       }
    } while( TNL::l2Norm( initialVec ) == 0 );
    return shiftedPowerIteration( matrix, epsilon, shiftValue, std::move( initialVec ), maxIterations );
+}
+
+template< typename MatrixType >
+std::tuple<
+   typename MatrixType::RealType,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType, typename MatrixType::IndexType >,
+   typename MatrixType::IndexType >
+shiftedPowerIteration( const MatrixType& matrix,
+                       const MatrixType& transposed_matrix,
+                       const typename MatrixType::RealType& epsilon,
+                       const typename MatrixType::RealType& shiftValue,
+                       const int& maxIterations = 100000 )
+{
+   if( matrix.getRows() != transposed_matrix.getColumns() )
+      throw std::invalid_argument( "The matrix and its transposed matrix sizes do not fit." );
+   if( matrix.getRows() == 0 )
+      throw std::invalid_argument( "Zero-sized matrices are not allowed" );
+   using IndexType = typename MatrixType::IndexType;
+   using RealType = typename MatrixType::RealType;
+   using DeviceType = typename MatrixType::DeviceType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   IndexType vecSize = matrix.getRows();
+   VectorType initialVec( vecSize );
+   initialVec.resize( vecSize );
+   do {
+      if constexpr( std::is_integral_v< RealType > ) {
+         TNL::Algorithms::fillRandom< DeviceType >( initialVec.getData(), vecSize, (RealType) -10000, (RealType) 10000 );
+      }
+      else {
+         TNL::Algorithms::fillRandom< DeviceType >( initialVec.getData(), vecSize, (RealType) -1, (RealType) 1 );
+      }
+   } while( TNL::l2Norm( initialVec ) == 0 );
+   return shiftedPowerIteration( matrix, transposed_matrix, epsilon, shiftValue, std::move( initialVec ), maxIterations );
 }
 
 }  // namespace TNL::Matrices::Eigen
