@@ -214,11 +214,16 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                    << dual_feasibility << " KKT ERROR: " << std::setw( 10 ) << error << std::endl;
 
       //Compute new parameter omega
-      RealType delta_x = lpNorm( new_x_view - x, 2 );
-      RealType delta_y = lpNorm( new_y_view - y, 2 );
-      if( delta_x > 1.0e-10 && delta_y > 1.0e-10 ) {
-         const RealType theta = 0.5;
-         current_omega = exp( theta * log( delta_y / delta_x ) + ( 1.0 - theta ) * log( current_omega ) );
+      if( this->primalWeightUpdate) {
+         RealType delta_x = lpNorm( new_x_view - x, 2 );
+         RealType delta_y = lpNorm( new_y_view - y, 2 );
+         if( delta_x > 1.0e-10 && delta_y > 1.0e-10 ) {
+            const RealType theta = 0.5;
+            current_omega = exp( theta * log( delta_y / delta_x ) + ( 1.0 - theta ) * log( current_omega ) );
+         }
+         #ifdef PRINTING
+         std::cout <<  "Omega update: primal diff = " << delta_x << " dual diff = " << delta_y << " new  omega = " << current_omega << std::endl;
+         #endif
       }
    }
    return { false, 0.0, 0.0 };
@@ -478,7 +483,7 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const MatrixType& GA,
          }
       } );
 #ifdef PRINTING
-   std::cout << " y = " << y << "\nc - KTy = " << c_view - KTy_view << "\n lambda = " << lambda << " l = " << l << " u = " << u
+   std::cout << "y = " << y << "\nc - KTy = " << c_view - KTy_view << "\n lambda = " << lambda //<< " l = " << l << " u = " << u
              << std::endl;
 #endif
    const RealType dual_feasibility = l2Norm( c - KTy - lambda );

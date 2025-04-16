@@ -125,8 +125,8 @@ protected:
    VectorType u;
 
    //PDLPRestarting restarting = PDLPRestarting::None;
-   PDLPRestarting restarting = PDLPRestarting::DualityGap;
-   //PDLPRestarting restarting = PDLPRestarting::KKTError;
+   //PDLPRestarting restarting = PDLPRestarting::DualityGap;
+   PDLPRestarting restarting = PDLPRestarting::KKTError;
 
    // Restart criteria
    RealType beta_sufficient = 0.9;
@@ -141,7 +141,8 @@ protected:
    IndexType adaptive_k = 0;
    bool inequalitiesFirst = true;
 
-   bool averaging = false;
+   bool averaging = true;
+   bool primalWeightUpdate = false;
 };
 
 }  // namespace TNL::Solvers::Optimization
