@@ -50,14 +50,14 @@ struct LPProblemReader
    using RealType = typename LPProblemType::RealType;
    using IndexType = typename LPProblemType::IndexType;
 
-   static LPProblem
+   LPProblem
    read( const std::string& filename )
    {
       std::ifstream file( filename );
       return read( file );
    }
 
-   static LPProblem
+   LPProblem
    read( std::istream& in_stream )
    {
       std::string line;
@@ -180,20 +180,23 @@ struct LPProblemReader
       VectorType lowerBounds( nCols, 0 );
       VectorType upperBounds( nCols, std::numeric_limits< RealType >::infinity() );
 
+      IndexType inequalitiesOffset = this->inequalitiesFirst ? 0 : nEqualityRows;
+      IndexType equalitiesOffset = this->inequalitiesFirst ? nInequalityRows : 0;
+
       std::map< std::pair< IndexType, IndexType >, RealType > matrixElements;
       for( const auto& col : columns ) {
          const IndexType colIndex = columnIndexes[ col.colName ];
          if( leInequalityRowIndexes.find( col.rowName ) != leInequalityRowIndexes.end() ) {
-            const IndexType rowIndex = leInequalityRowIndexes[ col.rowName ];
+            const IndexType rowIndex = leInequalityRowIndexes[ col.rowName ] + inequalitiesOffset;
             matrixElements.insert( std::make_pair( std::make_pair( rowIndex, colIndex ), -col.coefficient ) );
          }
          else if( geInequalityRowIndexes.find( col.rowName ) != geInequalityRowIndexes.end() ) {
-            const IndexType rowIndex = geInequalityRowIndexes[ col.rowName ];
+            const IndexType rowIndex = geInequalityRowIndexes[ col.rowName ] + inequalitiesOffset;
             matrixElements.insert(
                std::make_pair( std::make_pair( rowIndex, colIndex ), col.coefficient ) );  // TODO: check sign
          }
          else if( equalityRowIndexes.find( col.rowName ) != equalityRowIndexes.end() ) {
-            const IndexType rowIndex = equalityRowIndexes[ col.rowName ] + nInequalityRows;
+            const IndexType rowIndex = equalityRowIndexes[ col.rowName ] + equalitiesOffset;
             matrixElements.insert( std::make_pair( std::make_pair( rowIndex, colIndex ), col.coefficient ) );
          }
       }
@@ -202,11 +205,11 @@ struct LPProblemReader
       constraintMatrix.template setElements< IndexType, RealType >( matrixElements );
       for( const auto& r : rhs ) {
          if( leInequalityRowIndexes.find( r.first ) != leInequalityRowIndexes.end() )
-            rhsVector.setElement( leInequalityRowIndexes[ r.first ], -r.second );
+            rhsVector.setElement( leInequalityRowIndexes[ r.first ] + inequalitiesOffset, -r.second );
          else if( geInequalityRowIndexes.find( r.first ) != geInequalityRowIndexes.end() )
-            rhsVector.setElement( geInequalityRowIndexes[ r.first ], r.second );
+            rhsVector.setElement( geInequalityRowIndexes[ r.first ] + inequalitiesOffset, r.second );
          else if( equalityRowIndexes.find( r.first ) != equalityRowIndexes.end() )
-            rhsVector.setElement( equalityRowIndexes[ r.first ] + nInequalityRows, r.second );
+            rhsVector.setElement( equalityRowIndexes[ r.first ] + equalitiesOffset, r.second );
          else {
             std::ostringstream oss;
             oss << "Unknown row name: " << r.first;
@@ -233,8 +236,24 @@ struct LPProblemReader
          }
       }
 
-      return LPProblem( constraintMatrix, rhsVector, nInequalityRows, costFunction, lowerBounds, upperBounds, variableNames );
+      return LPProblem( constraintMatrix,
+                        rhsVector,
+                        max( equalitiesOffset, inequalitiesOffset ),
+                        this->inequalitiesFirst,
+                        costFunction,
+                        lowerBounds,
+                        upperBounds,
+                        variableNames );
    }
+
+   void
+   setInequalitiesFirst( bool inequalitiesFirst )
+   {
+      this->inequalitiesFirst = inequalitiesFirst;
+   }
+
+protected:
+   bool inequalitiesFirst = false;
 };
 
 }  // namespace TNL::Solvers::Optimization
