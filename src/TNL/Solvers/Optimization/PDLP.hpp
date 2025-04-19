@@ -59,13 +59,38 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    const RealType q_norm = l2Norm( hb );
    const RealType initial_omega = ( c_norm > 1.0e-10 && q_norm > 1.0e-10 ) ? c_norm / q_norm : 1;
 #ifdef PRINTING
-   std::cout << "q = " << hb << std::endl;
-   std::cout << "c = " << c << std::endl;
-   std::cout << "c norm: " << c_norm << " q norm: " << q_norm << " omega: " << initial_omega << " eta: " << initial_eta
-             << std::endl;
+   //std::cout << "q = " << hb << std::endl;
+   //std::cout << "c = " << c << std::endl;
+   //std::cout << "c norm: " << c_norm << " q norm: " << q_norm << " omega: " << initial_omega << " eta: " << initial_eta
+   //          << std::endl;
 #endif
 
-   IndexType k = 1;
+   RealType kkt_last_restart_primal_feasibility = 0;
+   RealType kkt_last_restart_dual_feasibility = 0;
+   RealType kkt_last_restart_primal_objective = 0;
+   RealType kkt_last_restart_dual_objective = 0;
+
+   RealType kkt_restart_candidate_primal_feasibility = 0;
+   RealType kkt_restart_candidate_dual_feasibility = 0;
+   RealType kkt_restart_candidate_primal_objective = 0;
+   RealType kkt_restart_candidate_dual_objective = 0;
+
+   /*RealType kkt_last_candidate_primal_feasibility = 0;
+   RealType kkt_last_candidate_dual_feasibility = 0;
+   RealType kkt_last_candidate_primal_objective = 0;
+   RealType kkt_last_candidate_dual_objective = 0;*/
+
+   RealType kkt_current_primal_feasibility = 0;
+   RealType kkt_current_dual_feasibility = 0;
+   RealType kkt_current_primal_objective = 0;
+   RealType kkt_current_dual_objective = 0;
+
+   RealType kkt_average_primal_feasibility = 0;
+   RealType kkt_average_dual_feasibility = 0;
+   RealType kkt_average_primal_objective = 0;
+   RealType kkt_average_dual_objective = 0;
+
+   IndexType k = 0;
    this->adaptive_k = 1;
    RealType current_eta = initial_eta;
    RealType current_omega = initial_omega;
@@ -88,23 +113,45 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    last_z = z_c;
    x = z_c.getView( 0, n );
    y = z_c.getView( n, N );
-   RealType eta_sum( 0 ), error_n_0( 0 );
+   RealType eta_sum( 0 ), error_n_0( std::numeric_limits< RealType >::infinity() ), error_z_c( 0 ), last_candidate_error( 0 );
 
    VectorType z_k_0( N ), z_k_t( N ), z_k_t_new( N );
    const IndexType max_iterations = 10000;
    while( k < max_iterations ) {  //this->nextIteration() ) {
       IndexType t = 0;
+      //IndexType t = min( k, 1 );  // cuPDLP-C starts t from 1
 
-      eta_sum = current_eta;
+      eta_sum = 0;
       z_k_t = z_k_0 = z_bar = z_c;
       if( ! this->averaging ) {
          adaptiveStep( GA, GAT, hb, m1, u, l, c, z_k_t, z_c, k, current_omega, current_eta );
+         k++;
          z_k_t = z_c;
       }
       else {
+         /*std::cout << "KKT errors for last restart:" << std::endl;
+         if( restarting == PDLPRestarting::KKTError )
+            error_n_0 = KKTError( GA, GAT, m1, c, hb, z_k_0, u, l, current_omega );
+         else if( restarting == PDLPRestarting::DualityGap )
+            error_n_0 = primalDualGap( GA, GAT, m1, c, hb, u, l, z_k_0, last_z );*/
+
+         last_candidate_error = error_n_0;
          while( t < max_restarting_steps && k < max_iterations ) {
+            //std::cout << "######################################## >>> k = " << k << " t = " << t << std::endl;
             adaptiveStep( GA, GAT, hb, m1, u, l, c, z_k_t, z_k_t_new, k, current_omega, current_eta );
             z_bar = ( z_bar * eta_sum + z_k_t_new * current_eta ) / ( eta_sum + current_eta );
+            k++;
+            t++;
+
+#ifdef PRINTING
+            //std::cout << "xUpdate = " << z_k_t_new.getView( 0, n ) << std::endl;
+            //std::cout << "yUpdate = " << z_k_t_new.getView( n, n + m1 + m2 ) << std::endl;
+            //std::cout << "xAverage = " << z_bar.getView( 0, n ) << std::endl;
+            //std::cout << "yAverage = " << z_bar.getView( n, n + m1 + m2 ) << std::endl;
+            //std::cout << "eta sum " << eta_sum << " -> " << eta_sum + current_eta << "(adding " << current_eta << ") "
+            //          << std::endl;
+            //std::cout << "Scaling by " << 1.0 / ( eta_sum + current_eta ) << std::endl;
+#endif
             eta_sum += current_eta;
 
             TNL_ASSERT_TRUE( all( lessEqual( z_bar.getView( 0, n ), u + std::numeric_limits< RealType >::round_error() ) ),
@@ -121,26 +168,147 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                "y is not in the feasible region" );
 
             RealType error_new, error_bar, error_n_t;
-            //bool restart_to_average( false );
-            if( restarting != PDLPRestarting::None ) {  //t % 1 == 0 ) {
+            if( restarting != PDLPRestarting::None ) {
                if( restarting == PDLPRestarting::KKTError ) {
-                  error_new = KKTError( GA, GAT, m1, c, hb, z_k_t_new, u, l, current_omega );
-                  error_bar = KKTError( GA, GAT, m1, c, hb, z_bar, u, l, current_omega );
-                  error_n_0 = KKTError( GA, GAT, m1, c, hb, z_k_0, u, l, current_omega );
-                  error_n_t = KKTError( GA, GAT, m1, c, hb, z_k_t, u, l, current_omega );
+                  //std::cout << "KKT for current:" << std::endl;
+                  auto [ current_primal_feasibility,
+                         current_dual_feasibility,
+                         current_primal_objective,
+                         current_dual_objective ] = KKT( GA, GAT, m1, c, hb, z_k_t_new, u, l );
+                  error_new = KKTError( current_primal_feasibility,
+                                        current_dual_feasibility,
+                                        current_primal_objective,
+                                        current_dual_objective,
+                                        current_omega );
+                  kkt_current_primal_feasibility = current_primal_feasibility;
+                  kkt_current_dual_feasibility = current_dual_feasibility;
+                  kkt_current_primal_objective = current_primal_objective;
+                  kkt_current_dual_objective = current_dual_objective;
+                  //std::cout << "KKT for average:" << std::endl;
+                  auto [ average_primal_feasibility,
+                         average_dual_feasibility,
+                         average_primal_objective,
+                         average_dual_objective ] = KKT( GA, GAT, m1, c, hb, z_bar, u, l );
+                  error_bar = KKTError( average_primal_feasibility,
+                                        average_dual_feasibility,
+                                        average_primal_objective,
+                                        average_dual_objective,
+                                        current_omega );
+                  kkt_average_primal_feasibility = average_primal_feasibility;
+                  kkt_average_dual_feasibility = average_dual_feasibility;
+                  kkt_average_primal_objective = average_primal_objective;
+                  kkt_average_dual_objective = average_dual_objective;
                }
                else if( restarting == PDLPRestarting::DualityGap ) {
-                  // Solve argmin_{x^hat \in X, y^hat \in Y } [ ((K^T *y )^T - c )*x^hat + ( q - K*x )^T *y^hat ]
                   error_new = primalDualGap( GA, GAT, m1, c, hb, u, l, z_k_t_new, z_k_0 );
                   error_bar = primalDualGap( GA, GAT, m1, c, hb, u, l, z_bar, z_k_0 );
-                  error_n_0 = primalDualGap( GA, GAT, m1, c, hb, u, l, z_k_0, last_z );
-                  error_n_t = primalDualGap( GA, GAT, m1, c, hb, u, l, z_k_t, z_k_0 );
                }
+
                // Get restart candidate
-               z_c = error_new < error_bar ? z_k_t_new : z_bar;
+               if( error_new <= error_bar ) {
+                  z_c = z_k_t_new;
+                  error_z_c = error_new;
+                  kkt_restart_candidate_primal_feasibility = kkt_current_primal_feasibility;
+                  kkt_restart_candidate_dual_feasibility = kkt_current_dual_feasibility;
+                  kkt_restart_candidate_primal_objective = kkt_current_primal_objective;
+                  kkt_restart_candidate_dual_objective = kkt_current_dual_objective;
+               }
+               else {
+                  z_c = z_bar;
+                  error_z_c = error_bar;
+                  kkt_restart_candidate_primal_feasibility = kkt_average_primal_feasibility;
+                  kkt_restart_candidate_dual_feasibility = kkt_average_dual_feasibility;
+                  kkt_restart_candidate_primal_objective = kkt_average_primal_objective;
+                  kkt_restart_candidate_dual_objective = kkt_average_dual_objective;
+               }
+               //z_c = error_new < error_bar ? z_k_t_new : z_bar;
+               if( k == 0 && t == 0 ) {  // This is for compatibility with cuPDLP-C
+                  k = t = 1;
+                  break;
+               }
+#ifdef PRINTING
+               //std::cout << "k = " << k << " t = " << t << std::endl;
+               //std::cout << "Restarting errs.: current = " << error_new << " average = " << error_bar << std::endl;
+               //std::cout << "Checking artificial restart: " << t << " >= " << beta_artificial * k << std::endl;
+#endif
+               if( t >= beta_artificial * k ) {
+                  std::cout << "ARTIFICIAL restart to " << ( error_bar <= error_new ? "AVERAGE" : "CURRENT" ) << " at k = " << k
+                            << " t = " << t << " iterations." << std::endl;
+                  error_n_0 = error_z_c;
+                  kkt_last_restart_primal_feasibility = kkt_restart_candidate_primal_feasibility;
+                  kkt_last_restart_dual_feasibility = kkt_restart_candidate_dual_feasibility;
+                  kkt_last_restart_primal_objective = kkt_restart_candidate_primal_objective;
+                  kkt_last_restart_dual_objective = kkt_restart_candidate_dual_objective;
+                  //k++;
+                  break;
+               }
+
+               if( restarting == PDLPRestarting::KKTError ) {
+                  //std::cout << "KKT for last restart:" << std::endl;
+                  error_n_0 = KKTError( kkt_last_restart_primal_feasibility,
+                                        kkt_last_restart_dual_feasibility,
+                                        kkt_last_restart_primal_objective,
+                                        kkt_last_restart_dual_objective,
+                                        current_omega );
+                  if( t == 1 )
+                     last_candidate_error = error_n_0;
+               }
+#ifdef PRINTING
+               //std::cout << "Restarting errs.: last restart = " << error_n_0 << std::endl;
+               //std::cout << "Checking sufficient restart: " << error_z_c << " < " << beta_sufficient << " * " << error_n_0
+               //          << " = " << beta_sufficient * error_n_0 << std::endl;
+#endif
+
+               if( error_z_c <= beta_sufficient * error_n_0 ) {
+                  std::cout << "SUFFICIENT restart to " << ( error_bar <= error_new ? "AVERAGE" : "CURRENT" ) << " at k = " << k
+                            << " t = " << t << " iterations." << std::endl;
+                  error_n_0 = error_z_c;
+                  kkt_last_restart_primal_feasibility = kkt_restart_candidate_primal_feasibility;
+                  kkt_last_restart_dual_feasibility = kkt_restart_candidate_dual_feasibility;
+                  kkt_last_restart_primal_objective = kkt_restart_candidate_primal_objective;
+                  kkt_last_restart_dual_objective = kkt_restart_candidate_dual_objective;
+                  //k++;
+                  break;
+               }
+
+               if( restarting == PDLPRestarting::KKTError ) {
+                  //std::cout << "KKT for last iter.:" << std::endl;
+                  auto [ last_primal_feasibility, last_dual_feasibility, last_primal_objective, last_dual_objective ] =
+                     KKT( GA, GAT, m1, c, hb, z_k_t, u, l );
+                  error_n_t = KKTError( last_primal_feasibility,
+                                        last_dual_feasibility,
+                                        last_primal_objective,
+                                        last_dual_objective,
+                                        current_omega );
+               }
+               else if( restarting == PDLPRestarting::DualityGap )
+                  error_n_t = primalDualGap( GA, GAT, m1, c, hb, u, l, z_k_t, z_k_0 );
+
+#ifdef PRINTING
+               //std::cout << "Checking necessary restart: " << error_z_c << " < " << beta_necessary << " * " << error_n_0
+               //         << " = " << beta_necessary * error_n_0 << " and " << error_z_c << " > " << error_n_t << std::endl;
+               /*std::cout << "NECESSARY TEST k = " << k << " t = " << t << " : " << error_z_c << " < " << beta_necessary << " *
+                  "
+                         << error_n_0 << " = " << beta_necessary * error_n_0 << " and " << error_z_c << " > "
+                         << last_candidate_error << std::endl;*/
+
+#endif
+
+               if( error_z_c <= beta_necessary * error_n_0 && error_z_c > last_candidate_error ) {
+                  std::cout << "NECESSARY restart to " << ( error_bar <= error_new ? "AVERAGE" : "CURRENT" ) << " at k = " << k
+                            << " t = " << t << " iterations." << std::endl;
+
+                  error_n_0 = error_z_c;
+                  kkt_last_restart_primal_feasibility = kkt_restart_candidate_primal_feasibility;
+                  kkt_last_restart_dual_feasibility = kkt_restart_candidate_dual_feasibility;
+                  kkt_last_restart_primal_objective = kkt_restart_candidate_primal_objective;
+                  kkt_last_restart_dual_objective = kkt_restart_candidate_dual_objective;
+                  //k++;
+                  break;
+               }
 
                // Log
-               auto new_x_view = z_c.getView( 0, n );
+               /*auto new_x_view = z_c.getView( 0, n );
                auto new_y_view = z_c.getView( n, n + m1 + m2 );
                auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] =
                   KKT( GA, GAT, m1, c, hb, z_c, u, l );
@@ -154,35 +322,28 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                          << " DUAL FEAS.: " << std::setw( 12 ) << dual_feasibility << " KKT ERROR: " << std::setw( 10 ) << error
                          << std::endl;*/
                // End of log
-
-               if( error_new <= beta_sufficient * error_n_0
-                   || ( error_new <= beta_necessary * error_n_0 && error_new > error_n_t ) || ( t >= beta_artificial * k ) )
-               {
-                  std::cout << "Restart to " << ( error_bar < error_new ? "average" : "current" ) << " after " << t
-                            << " iterations." << std::endl;
-                  break;
-               }
-            }
+            }  // if( restarting != PDLPRestarting::None )
             else
                z_c = z_bar;
             z_k_t = z_k_t_new;
+            last_candidate_error = error_z_c;
 
-            t++;
-            k++;
-         }
-      }
+            //t++;
+            //k++;
+         }  // while( t < max_restarting_steps && k < max_iterations );
+      }  // if( this->averaging )
       last_z = z_k_0;
       auto new_x_view = z_c.getView( 0, n );
       auto new_y_view = z_c.getView( n, n + m1 + m2 );
 
       auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = KKT( GA, GAT, m1, c, hb, z_c, u, l );
 
-      const RealType epsilon = 1.0e-6;
+      const RealType epsilon = 1.0e-4;
       const RealType duality_gap = abs( dual_objective - primal_objective );
 
 #ifdef PRINTING
-      std::cout << "primal feas. " << primal_feasibility << " dual feas. " << dual_feasibility << " primal obj. "
-                << primal_objective << " dual obj. " << dual_objective << " duality gap " << duality_gap << std::endl;
+      //std::cout << "primal feas. " << primal_feasibility << " dual feas. " << dual_feasibility << " primal obj. "
+      //          << primal_objective << " dual obj. " << dual_objective << " duality gap " << duality_gap << std::endl;
 #endif
       const RealType error = duality_gap + primal_feasibility + dual_feasibility;
       if( duality_gap < epsilon * ( abs( dual_objective ) + abs( primal_objective ) )
@@ -198,32 +359,35 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
          std::cout << "DUALITY GAP: " << duality_gap << std::endl;
          std::cout << "PRIMAL FEASIBILITY: " << primal_feasibility << std::endl;
          std::cout << "DUAL FEASIBILITY: " << dual_feasibility << std::endl;
-         std::cout << "X: " << new_x_view << std::endl;
-         std::cout << "D2 * X: " << D2 * new_x_view << std::endl;
-         std::cout << "Y: " << new_y_view << std::endl;
+         //std::cout << "X: " << new_x_view << std::endl;
+         //std::cout << "D2 * X: " << D2 * new_x_view << std::endl;
+         //std::cout << "Y: " << new_y_view << std::endl;
          x = new_x_view;
          //y = new_y_view;
          return { true, dual_objective, error };
       }
-      else
+      /*else // TODO: Uncomment  this !!!!!!!!!!!!!!!!!!!!!!!!!
          std::cout << "ITER: " << std::setw( 6 ) << k << " NORMS=(" << std::setw( 10 ) << l2Norm( new_x_view ) << ", "
                    << std::setw( 10 ) << l2Norm( new_y_view ) << ") INV.STEP : " << std::setw( 10 ) << 1.0 / current_eta
                    << " PRIMAL WEIGHT: " << std::setw( 10 ) << current_omega << " PRIM.OBJ. : " << std::setw( 10 )
                    << primal_objective << " DUAL OBJ. : " << std::setw( 12 ) << dual_objective
                    << " PRIM. FEAS.: " << std::setw( 12 ) << primal_feasibility << " DUAL FEAS.: " << std::setw( 12 )
-                   << dual_feasibility << " KKT ERROR: " << std::setw( 10 ) << error << std::endl;
+                   << dual_feasibility << " KKT ERROR: " << std::setw( 10 ) << error << std::endl;*/
 
       //Compute new parameter omega
-      if( this->primalWeightUpdate) {
-         RealType delta_x = lpNorm( new_x_view - x, 2 );
-         RealType delta_y = lpNorm( new_y_view - y, 2 );
+      if( this->adaptivePrimalWeight ) {
+         RealType delta_x = l2Norm( new_x_view - x );
+         RealType delta_y = l2Norm( new_y_view - y );
          if( delta_x > 1.0e-10 && delta_y > 1.0e-10 ) {
             const RealType theta = 0.5;
             current_omega = exp( theta * log( delta_y / delta_x ) + ( 1.0 - theta ) * log( current_omega ) );
          }
-         #ifdef PRINTING
-         std::cout <<  "Omega update: primal diff = " << delta_x << " dual diff = " << delta_y << " new  omega = " << current_omega << std::endl;
-         #endif
+#ifdef PRINTING
+         //std::cout << "Omega update: primal diff = " << delta_x << " dual diff = " << delta_y
+         //          << " new omega = " << current_omega << std::endl;
+#endif
+         x = new_x_view;
+         y = new_y_view;
       }
    }
    return { false, 0.0, 0.0 };
@@ -278,9 +442,9 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       const RealType sigma = current_eta * current_omega;
 
 #ifdef PRINTING
-      std::cout << "=====================================================================" << std::endl;
-      std::cout << this->adaptive_k - 2 << " eta: " << current_eta << " omega: " << current_omega << " primal step : " << tau
-                << " dual step : " << sigma << std::endl;
+      //std::cout << "=====================================================================" << std::endl;
+      //std::cout << this->adaptive_k - 2 << " eta: " << current_eta << " omega: " << current_omega << " primal step : " << tau
+      //          << " dual step : " << sigma << std::endl;
 #endif
 
       /*GAT.vectorProduct( in_y, KT_y );
@@ -313,13 +477,11 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       }
 
 #ifdef PRINTING
-      std::cout << "       x: " << in_x << std::endl;
-      std::cout << "       y: " << in_y << std::endl;
-      std::cout << "   2*x-x: " << aux << std::endl;
-      std::cout << " A(2x-x): " << Kx << std::endl;
-      std::cout << "    AT_y: " << KT_y << std::endl;
-      std::cout << "   out_x: " << out_x << std::endl;
-      std::cout << "   out_y: " << out_y << std::endl;
+      //std::cout << "Adpt. step       x = " << in_x << std::endl;
+      //std::cout << "Adpt. step       y = " << in_y << std::endl;
+      //std::cout << "Adpt. step    AT_y = " << KT_y << std::endl;
+      //std::cout << "Adpt. step   out_x = " << out_x << std::endl;
+      //std::cout << "Adpt. step   out_y = " << out_y << std::endl;
 #endif
 
       // Compute new parameter eta
@@ -330,20 +492,27 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const MatrixType& GA,
       GA.vectorProduct( delta_x, Kx );
       const RealType interaction = abs( dot( Kx, delta_y ) );  // TODO: It is 0.5 in source code
       const RealType max_eta = interaction > 0 ? movement / interaction : std::numeric_limits< RealType >::infinity();
-      const RealType new_eta = min( ( 1.0 - pow( this->adaptive_k + 1, -0.3 ) ) * max_eta,
-                                    ( 1.0 + pow( this->adaptive_k + 1, -0.6 ) ) * current_eta );
+      RealType new_eta;
+      if( this->adaptive_k == 0 && max_eta == std::numeric_limits< RealType >::infinity() )
+         new_eta = ( 1.0 + pow( this->adaptive_k + 1, -0.6 ) ) * current_eta;
+      else
+         new_eta = min( ( 1.0 - pow( this->adaptive_k + 1, -0.3 ) ) * max_eta,
+                        ( 1.0 + pow( this->adaptive_k + 1, -0.6 ) ) * current_eta );
       TNL_ASSERT_GT( new_eta, 0, "new_eta <= 0" );
+
 #ifdef PRINTING
-      std::cout << "   Movement: dX " << ( delta_x, delta_x ) << " dY " << ( delta_y, delta_y ) << std::endl;
-      std::cout << "   delta_x: " << delta_x << "\n   delta_y: " << delta_y << std::endl;
-      std::cout << "k: " << this->adaptive_k << " movement : " << movement << " interaction : " << interaction
-                << " step limit : " << max_eta << " new eta: " << new_eta << std::endl;
+      //std::cout << "   Movement: dX " << ( delta_x, delta_x ) << " dY " << ( delta_y, delta_y ) << std::endl;
+      //std::cout << "   delta_x = " << delta_x << "\n   delta_y = " << delta_y << std::endl;
+      //std::cout << "k: " << this->adaptive_k << " movement : " << movement << " interaction : " << interaction
+      //          << " step limit : " << max_eta << " new eta: " << new_eta << std::endl;
 #endif
       this->adaptive_k++;
       if( current_eta < max_eta ) {
          current_eta = new_eta;
 #ifdef PRINTING
-         std::cout << "End of adaptive step." << std::endl;
+         //std::cout << "End of adaptive step." << std::endl;
+         //std::cout << "Adpt. step   out_x = " << out_x << std::endl;
+         //std::cout << "Adpt. step   out_y = " << out_y << std::endl;
 #endif
          return;
       }
@@ -431,6 +600,10 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const MatrixType& GA,
    // Compute error of the primal feasibility
    VectorType res( m );
    GA.vectorProduct( x, res );
+#ifdef PRINTING
+   //std::cout << "KKT:      x = " << x  //
+   //          << "KKT:\n     Kx = " << res << std::endl;
+#endif
    if( this->inequalitiesFirst ) {
       if( m1 > 0 )
          res.getView( 0, m1 ) = maximum( q.getConstView( 0, m1 ) - res.getView( 0, m1 ), 0 );  // ( h - Gx)^+
@@ -483,8 +656,11 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const MatrixType& GA,
          }
       } );
 #ifdef PRINTING
-   std::cout << "y = " << y << "\nc - KTy = " << c_view - KTy_view << "\n lambda = " << lambda //<< " l = " << l << " u = " << u
-             << std::endl;
+   //std::cout << "KKT:      y = " << y                    //
+   //          << "\nKKT:c - KTy = " << c_view - KTy_view  //
+   //          << "\nKKT: lambda = "
+   //          << lambda  //
+   //          << std::endl;
 #endif
    const RealType dual_feasibility = l2Norm( c - KTy - lambda );
 
@@ -507,24 +683,29 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const MatrixType& GA,
                                              return result;
                                           },
                                           TNL::Plus{} );
-
    return { primal_feasibility, dual_feasibility, primal_objective, dual_objective };
 }
 
 template< typename LPProblem_, typename SolverMonitor >
 auto
-PDLP< LPProblem_, SolverMonitor >::KKTError( const MatrixType& GA,
-                                             const MatrixType& GAT,
-                                             const IndexType m1,
-                                             const VectorType& c,
-                                             const VectorType& q,
-                                             const VectorView& z,
-                                             const VectorType& u,
-                                             const VectorType& l,
+PDLP< LPProblem_, SolverMonitor >::KKTError( const RealType& primal_feasibility,
+                                             const RealType& dual_feasibility,
+                                             const RealType& primal_objective,
+                                             const RealType& dual_objective,
                                              const RealType& omega ) const -> RealType
 {
-   auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = KKT( GA, GAT, m1, c, q, z, u, l );
    const RealType omega_sqr = omega * omega;
+
+#ifdef PRINTING
+   /*std::cout << " omega sqr. = " << omega_sqr << " primal feas. = " << primal_feasibility
+             << " dual feas. = " << dual_feasibility << " duality gap = " << abs( primal_objective - dual_objective )
+             << " error = "
+             << sqrt( omega_sqr * primal_feasibility * primal_feasibility
+                      + 1.0 / omega_sqr * ( dual_feasibility * dual_feasibility )
+                      + pow( primal_objective - dual_objective, 2 ) )
+             << std::endl;*/
+#endif
+
    return sqrt( omega_sqr * primal_feasibility * primal_feasibility + 1.0 / omega_sqr * ( dual_feasibility * dual_feasibility )
                 + pow( primal_objective - dual_objective, 2 ) );
 }
