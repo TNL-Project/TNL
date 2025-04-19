@@ -24,6 +24,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    this->hb = lpProblem.getConstraintVector();
    this->l = lpProblem.getLowerBounds();
    this->u = lpProblem.getUpperBounds();
+   this->inequalitiesFirst = lpProblem.getInequalitiesFirst();
    const IndexType m1 = lpProblem.getInequalityCount();
 
    const IndexType m = GA.getRows();
@@ -116,7 +117,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    RealType eta_sum( 0 ), error_n_0( std::numeric_limits< RealType >::infinity() ), error_z_c( 0 ), last_candidate_error( 0 );
 
    VectorType z_k_0( N ), z_k_t( N ), z_k_t_new( N );
-   const IndexType max_iterations = 10000;
+   const IndexType max_iterations = 1015;
    while( k < max_iterations ) {  //this->nextIteration() ) {
       IndexType t = 0;
       //IndexType t = min( k, 1 );  // cuPDLP-C starts t from 1

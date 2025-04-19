@@ -51,12 +51,19 @@ struct LPProblem
    LPProblem( const MatrixType& constraintMatrix,
               const VectorType& constraintVector,
               const IndexType inequalityCount,
+              bool inequalitiesFirst,
               const VectorType& objectiveFunction,
               const VectorType& lowerBounds,
               const VectorType& upperBounds,
               const StringArrayType& variableNames = {} )
-   : constraintMatrix( constraintMatrix ), constraintVector( constraintVector ), objectiveFunction( objectiveFunction ),
-     lowerBounds( lowerBounds ), upperBounds( upperBounds ), inequalityCount( inequalityCount ), variableNames( variableNames )
+   : constraintMatrix( constraintMatrix ),
+     constraintVector( constraintVector ),
+     objectiveFunction( objectiveFunction ),
+     lowerBounds( lowerBounds ),
+     upperBounds( upperBounds ),
+     inequalityCount( inequalityCount ),
+     inequalitiesFirst( inequalitiesFirst ),
+     variableNames( variableNames )
    {
       TNL_ASSERT_EQ( constraintMatrix.getRows(), constraintVector.getSize(), "" );
       TNL_ASSERT_EQ( constraintMatrix.getColumns(), objectiveFunction.getSize(), "" );
@@ -166,6 +173,18 @@ struct LPProblem
    }
 
    void
+   setInequalitiesFirst( bool inequalitiesFirst )
+   {
+      this->inequalitiesFirst = inequalitiesFirst;
+   }
+
+   bool
+   getInequalitiesFirst() const
+   {
+      return inequalitiesFirst;
+   }
+
+   void
    write( std::ostream& os ) const
    {
       os << "Minimize: ";
@@ -228,6 +247,8 @@ protected:
    VectorType constraintVector, objectiveFunction, lowerBounds, upperBounds;
 
    IndexType inequalityCount;
+
+   bool inequalitiesFirst = true;
 
    StringArrayType variableNames, rowNames;
 };
