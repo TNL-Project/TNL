@@ -84,6 +84,8 @@ struct LPSolversBenchmark
 
       std::cout << "Reading LP problem from file " << fileName << std::endl;
       TNL::Solvers::Optimization::LPProblemReader< LPProblemType > reader;
+      //reader.setInequalitiesFirst( parameters.getParameter< bool >( "inequalities-first" ) );
+      reader.setInequalitiesFirst( false );
       auto lpProblem = reader.read( fileName );
       //std::cout << lpProblem << std::endl;
 
@@ -102,7 +104,7 @@ struct LPSolversBenchmark
          typename LPProblemType::VectorType x( lpProblem.getVariableCount() );
          TNL::Solvers::Optimization::PDLP< LPProblemType > solver;
          auto [ converged, cost, error ] = solver.solve( lpProblem, x );
-         std::cout << "Solution: " << x << std::endl;
+         //std::cout << "Solution: " << x << std::endl;
       }
       return true;
    }
