@@ -97,14 +97,10 @@ protected:
         const VectorType& l ) const;
 
    RealType
-   KKTError( const MatrixType& GA,
-             const MatrixType& GAT,
-             const IndexType m1,
-             const VectorType& c,
-             const VectorType& q,
-             const VectorView& z,
-             const VectorType& u,
-             const VectorType& l,
+   KKTError( const RealType& average_primal_feasibility,
+             const RealType& average_dual_feasibility,
+             const RealType& average_primal_objective,
+             const RealType& average_dual_objective,
              const RealType& omega ) const;
 
    RealType
@@ -129,20 +125,23 @@ protected:
    PDLPRestarting restarting = PDLPRestarting::KKTError;
 
    // Restart criteria
-   RealType beta_sufficient = 0.9;
-   RealType beta_necessary = 0.1;
-   RealType beta_artificial = 0.5;
+   RealType beta_sufficient = 0.2;  // This is used in cuPDLP-C
+   //RealType beta_sufficient = 0.9; // This is used in the original paper
+   RealType beta_necessary = 0.8;  // This is used in cuPDLP-C
+   //RealType beta_necessary = 0.1; // This is used in the original paper
+   RealType beta_artificial = 0.36;  // This is used in cuPDLP-C
+   //RealType beta_artificial = 0.5; // This is used in the original paper
 
    // Preconditioning
    VectorType D1, D2;
 
    RealType K_norm;
 
-   IndexType adaptive_k = 0;
+   IndexType adaptive_k = 1;
    bool inequalitiesFirst = true;
 
    bool averaging = true;
-   bool primalWeightUpdate = false;
+   bool adaptivePrimalWeight = true;
 };
 
 }  // namespace TNL::Solvers::Optimization
