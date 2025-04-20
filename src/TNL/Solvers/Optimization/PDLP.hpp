@@ -10,7 +10,7 @@
 
 #include <iomanip>
 
-//#define PRINTING
+#define PRINTING
 
 namespace TNL::Solvers::Optimization {
 
@@ -26,6 +26,8 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    this->u = lpProblem.getUpperBounds();
    this->inequalitiesFirst = lpProblem.getInequalitiesFirst();
 
+   //this->u = 1;  // TODO: Remove this line !!!!!!!!!!!
+
    this->m1 = lpProblem.getInequalityCount();  // TODO: Rename the method
    this->m = K.getRows();
    this->m2 = m - m1;
@@ -38,6 +40,38 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    TNL_ASSERT_EQ( u.getSize(), n, "" );
    TNL_ASSERT_EQ( x.getSize(), n, "" );
    this->KT.getTransposition( K );
+
+   // Exporting bounds
+   std::fstream file( "lower-bounds.txt", std::ios::out );
+   if( file.is_open() ) {
+      for( IndexType i = 0; i < l.getSize(); ++i ) {
+         file << l[ i ] << std::endl;
+      }
+      file.close();
+   }
+   file.open( "upper-bounds.txt", std::ios::out );
+   if( file.is_open() ) {
+      for( IndexType i = 0; i < u.getSize(); ++i ) {
+         file << u[ i ] << std::endl;
+      }
+      file.close();
+   }
+
+   // Filter the bounds
+   this->filtered_l = this->l;
+   this->filtered_u = this->u;
+   this->filtered_l.forAllElements(
+      [ = ] __cuda_callable__( IndexType i, RealType & value ) mutable
+      {
+         if( value == -std::numeric_limits< RealType >::infinity() )
+            value = 0;
+      } );
+   this->filtered_u.forAllElements(
+      [ = ] __cuda_callable__( IndexType i, RealType & value ) mutable
+      {
+         if( value == std::numeric_limits< RealType >::infinity() )
+            value = 0;
+      } );
 
    // Preconditioning
    D1.setSize( m );
@@ -60,8 +94,10 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    const RealType q_norm = l2Norm( q );
    const RealType initial_omega = ( c_norm > 1.0e-10 && q_norm > 1.0e-10 ) ? c_norm / q_norm : 1;
 #ifdef PRINTING
-   //std::cout << "q = " << q << std::endl;
-   //std::cout << "c = " << c << std::endl;
+   /*std::cout << "q = " << q << std::endl;
+   std::cout << "c = " << c << std::endl;
+   std::cout << "l = " << l << std::endl;
+   std::cout << "u = " << u << std::endl;*/
    std::cout << "c norm: " << c_norm << " q norm: " << q_norm << " omega: " << initial_omega << " eta: " << initial_eta
              << std::endl;
 #endif
@@ -141,10 +177,10 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
             if( restarting != PDLPRestarting::None ) {
                KKTDataType kkt_current, kkt_average;
                if( restarting == PDLPRestarting::KKTError ) {
-                  //std::cout << "KKT for current:" << std::endl;
+                  //std::cout << "KKT for current: ";
                   kkt_current = KKT( z_k_t_new );
                   error_new = kkt_current.getKKTError( current_omega );
-                  //std::cout << "KKT for average:" << std::endl;
+                  //std::cout << "KKT for average:";
                   kkt_average = KKT( z_bar );
                   error_bar = kkt_average.getKKTError( current_omega );
                }
@@ -207,13 +243,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 
                if( restarting == PDLPRestarting::KKTError ) {
                   //std::cout << "KKT for last iter.:" << std::endl;
-                  auto [ last_primal_feasibility, last_dual_feasibility, last_primal_objective, last_dual_objective ] =
-                     KKT( z_k_t );
-                  error_n_t = KKTError( last_primal_feasibility,
-                                        last_dual_feasibility,
-                                        last_primal_objective,
-                                        last_dual_objective,
-                                        current_omega );
+                  error_n_t = KKT( z_k_t ).getKKTError( current_omega );
                }
                else if( restarting == PDLPRestarting::DualityGap )
                   error_n_t = primalDualGap( z_k_t, z_k_0 );
@@ -281,13 +311,13 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
          //y = new_y_view;
          return { true, dual_objective, error };
       }
-      else
+      /*else
          std::cout << "ITER: " << std::setw( 6 ) << k << " NORMS=(" << std::setw( 10 ) << l2Norm( new_x_view ) << ", "
                    << std::setw( 10 ) << l2Norm( new_y_view ) << ") INV.STEP : " << std::setw( 10 ) << 1.0 / current_eta
                    << " PRIMAL WEIGHT: " << std::setw( 10 ) << current_omega << " PRIM.OBJ. : " << std::setw( 10 )
                    << primal_objective << " DUAL OBJ. : " << std::setw( 12 ) << dual_objective
                    << " PRIM. FEAS.: " << std::setw( 12 ) << primal_feasibility << " DUAL FEAS.: " << std::setw( 12 )
-                   << dual_feasibility << " KKT ERROR: " << std::setw( 10 ) << error << std::endl;
+                   << dual_feasibility << " KKT ERROR: " << std::setw( 10 ) << error << std::endl;*/
 
       //Compute new parameter omega
       if( this->adaptivePrimalWeight ) {
@@ -459,7 +489,7 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z ) -> KKTDataType
    this->matrixVectorProducts++;
 #ifdef PRINTING
    //std::cout << "KKT:      x = " << x  //
-   //          << "KKT:\n     Kx = " << res << std::endl;
+   //          << "\nKKT:     Kx = " << res << std::endl;
 #endif
    if( this->inequalitiesFirst ) {
       if( m1 > 0 )
@@ -490,11 +520,6 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z ) -> KKTDataType
             value = 0;
          else {
             value = c_view[ i ] - KTy_view[ i ];
-            // This is from cuPDLP-C
-            /*if( u_view[ i ] < std::numeric_limits< RealType >::infinity() )
-               value = -min( value, 0 );
-            else if( l_view[ i ] > -std::numeric_limits< RealType >::infinity() )
-               value = max( value, 0 );*/
             if( l_view[ i ] == -std::numeric_limits< RealType >::infinity() ) {
                value = min( value, 0 );
             }
@@ -506,8 +531,7 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z ) -> KKTDataType
 #ifdef PRINTING
    //std::cout << "KKT:      y = " << y                    //
    //          << "\nKKT:c - KTy = " << c_view - KTy_view  //
-   //          << "\nKKT: lambda = "
-   //          << lambda  //
+   //          << "\nKKT: lambda = " << lambda             //
    //          << std::endl;
 #endif
    const RealType dual_feasibility = l2Norm( c - KTy - lambda );
@@ -517,35 +541,14 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z ) -> KKTDataType
 
    // Compute the dual objective
    auto lambda_view = lambda.getConstView();
-   const RealType dual_objective =
-      ( q, y )
-      + Algorithms::reduce< DeviceType >( (IndexType) 0,
-                                          n,
-                                          [ = ] __cuda_callable__( IndexType i ) -> RealType
-                                          {
-                                             RealType result = 0;
-                                             if( l_view[ i ] != -std::numeric_limits< RealType >::infinity() )
-                                                result += l_view[ i ] * max( lambda_view[ i ], 0 );
-                                             if( u_view[ i ] != std::numeric_limits< RealType >::infinity() )
-                                                result += -u_view[ i ] * min( lambda_view[ i ], 0 );
-                                             return result;
-                                          },
-                                          TNL::Plus{} );
+   const RealType dual_objective = ( q, y ) + ( filtered_l, maximum( lambda_view, 0 ) )
+                                 + ( filtered_u, minimum( lambda_view, 0 ) );  // cuPDLP-C  - not correct, I guess
+   //( q, y ) + ( filtered_l, maximum( lambda_view, 0 ) ) - ( filtered_u, minimum( lambda_view, 0 ) ); // should be correct
+   //std::cout << "( q, y ) = " << ( q, y ) << std::endl;
+   //std::cout << "lower filter = " << ( filtered_l, maximum( lambda_view, 0 ) ) << std::endl;
+   //std::cout << "upper filter = " << ( filtered_u, minimum( lambda_view, 0 ) ) << std::endl;
 
    return { primal_feasibility, dual_feasibility, primal_objective, dual_objective };
-}
-
-template< typename LPProblem_, typename SolverMonitor >
-auto
-PDLP< LPProblem_, SolverMonitor >::KKTError( const RealType& primal_feasibility,
-                                             const RealType& dual_feasibility,
-                                             const RealType& primal_objective,
-                                             const RealType& dual_objective,
-                                             const RealType& omega ) const -> RealType
-{
-   const RealType omega_sqr = omega * omega;
-   return sqrt( omega_sqr * primal_feasibility * primal_feasibility + 1.0 / omega_sqr * ( dual_feasibility * dual_feasibility )
-                + pow( primal_objective - dual_objective, 2 ) );
 }
 
 template< typename Real >
