@@ -87,21 +87,16 @@ public:  // TODO: Just because of nvcc
 
 protected:
    RealType
-   KKTError( const RealType& average_primal_feasibility,
-             const RealType& average_dual_feasibility,
-             const RealType& average_primal_objective,
-             const RealType& average_dual_objective,
-             const RealType& omega ) const;
-
-   RealType
    primalDualGap( const VectorView& z, const VectorView& z_ref );
 
-   MatrixType K;   // The constraints matrix.   TODO: Make this matrix view
-   MatrixType KT;  // The transposed constraints matrix.
-   VectorType c;   // The objective function coefficients.
-   VectorType q;   // The right-hand side vector.
-   VectorType l;   // The lower bounds vector.
-   VectorType u;   // The upper bounds vector.
+   MatrixType K;           // The constraints matrix.   TODO: Make this matrix view
+   MatrixType KT;          // The transposed constraints matrix.
+   VectorType c;           // The objective function coefficients.
+   VectorType q;           // The right-hand side vector.
+   VectorType l;           // The lower bounds vector.
+   VectorType u;           // The upper bounds vector.
+   VectorType filtered_l;  // The filtered lower bounds vector.
+   VectorType filtered_u;  // The filtered upper bounds vector.
 
    IndexType n;   // Number of variables
    IndexType m1;  // Number of equality/inequality constraints depending on the order of the matrix
