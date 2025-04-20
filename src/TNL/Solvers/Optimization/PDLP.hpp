@@ -26,8 +26,6 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    this->u = lpProblem.getUpperBounds();
    this->inequalitiesFirst = lpProblem.getInequalitiesFirst();
 
-   //this->u = 1;  // TODO: Remove this line !!!!!!!!!!!
-
    this->m1 = lpProblem.getInequalityCount();  // TODO: Rename the method
    this->m = K.getRows();
    this->m2 = m - m1;
@@ -86,20 +84,27 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    //this->K_norm = Matrices::spectralNorm( K, KT );
    //std::cout << "Constraint matrix spectral norm: " << this->K_norm << std::endl;
    this->K_norm = max( abs( K.getValues() ) );
-   //std::cout << "Constraint matrix: " << K << std::endl;
    if( this->K_norm < 1.0e-10 )
       throw std::runtime_error( "Matrix for the LP problem is nearly zero matrix." );
    const RealType initial_eta = 1.0 / this->K_norm;
    const RealType c_norm = l2Norm( c );
    const RealType q_norm = l2Norm( q );
    const RealType initial_omega = ( c_norm > 1.0e-10 && q_norm > 1.0e-10 ) ? c_norm / q_norm : 1;
+
+   std::cout << "Columns:           " << n << std::endl;
+   std::cout << "Rows:              " << m << std::endl;
+   std::cout << "C norm:            " << c_norm << std::endl;
+   std::cout << "Q norm:            " << q_norm << std::endl;
+   std::cout << "Lower bounds norm: " << l2Norm( this->filtered_l ) << std::endl;
+   std::cout << "Upper bounds norm: " << l2Norm( this->filtered_u ) << std::endl;
+   std::cout << "Initial omega:     " << initial_omega << std::endl;
+   std::cout << "Initial eta:       " << initial_eta << std::endl;
+
 #ifdef PRINTING
    /*std::cout << "q = " << q << std::endl;
    std::cout << "c = " << c << std::endl;
    std::cout << "l = " << l << std::endl;
    std::cout << "u = " << u << std::endl;*/
-   std::cout << "c norm: " << c_norm << " q norm: " << q_norm << " omega: " << initial_omega << " eta: " << initial_eta
-             << std::endl;
 #endif
 
    KKTDataType kkt_restart_candidate, kkt_last_restart;
@@ -253,7 +258,9 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                //         << " = " << beta_necessary * error_n_0 << " and " << error_z_c << " > " << error_n_t << std::endl;
                //std::cout << "Necessary test: " << error_z_c << " < " << beta_necessary << " * " << error_n_0 << " = "
                //          << beta_necessary * error_n_0 << " and " << error_z_c << " > " << last_candidate_error << std::endl;
-               /*printf( "Necessary test: %g < %g * %g = %g and %g > %g\n",
+               /*printf( "Necessary test k = %d t = %d: %g < %g * %g = %g and %g > %g\n",
+                       k,
+                       t,
                        error_z_c,
                        beta_necessary,
                        error_n_0,
@@ -286,14 +293,18 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 
       const RealType epsilon = 1.0e-4;
       const RealType duality_gap = abs( dual_objective - primal_objective );
+      const RealType relative_duality_gap = duality_gap / ( 1 + abs( dual_objective ) + abs( primal_objective ) );
 
 #ifdef PRINTING
       //std::cout << "primal feas. " << primal_feasibility << " dual feas. " << dual_feasibility << " primal obj. "
       //          << primal_objective << " dual obj. " << dual_objective << " duality gap " << duality_gap << std::endl;
+      //std::cout << "Termination check: " << primal_feasibility << "|" << epsilon * ( 1 + l2Norm( q ) ) << " "
+      //          << dual_feasibility << "|" << epsilon * ( 1 + l2Norm( c ) ) << " " << relative_duality_gap << "|" << epsilon
+      //          << " : primal obj. " << primal_objective << " dual obj. " << dual_objective << std::endl;
 #endif
       const RealType error = duality_gap + primal_feasibility + dual_feasibility;
-      if( duality_gap < epsilon * ( abs( dual_objective ) + abs( primal_objective ) )
-          && primal_feasibility < epsilon * ( 1 + l2Norm( q ) ) && dual_feasibility < epsilon * ( 1 + l2Norm( c ) ) )
+      if( relative_duality_gap < epsilon && primal_feasibility < epsilon * ( 1 + l2Norm( q ) )
+          && dual_feasibility < epsilon * ( 1 + l2Norm( c ) ) )
       {
          std::cout << "===============================" << std::endl;
          std::cout << "SOLUTION FOUND" << std::endl;
@@ -311,13 +322,13 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
          //y = new_y_view;
          return { true, dual_objective, error };
       }
-      /*else
+      else
          std::cout << "ITER: " << std::setw( 6 ) << k << " NORMS=(" << std::setw( 10 ) << l2Norm( new_x_view ) << ", "
                    << std::setw( 10 ) << l2Norm( new_y_view ) << ") INV.STEP : " << std::setw( 10 ) << 1.0 / current_eta
                    << " PRIMAL WEIGHT: " << std::setw( 10 ) << current_omega << " PRIM.OBJ. : " << std::setw( 10 )
                    << primal_objective << " DUAL OBJ. : " << std::setw( 12 ) << dual_objective
                    << " PRIM. FEAS.: " << std::setw( 12 ) << primal_feasibility << " DUAL FEAS.: " << std::setw( 12 )
-                   << dual_feasibility << " KKT ERROR: " << std::setw( 10 ) << error << std::endl;*/
+                   << dual_feasibility << " KKT ERROR: " << std::setw( 10 ) << error << std::endl;
 
       //Compute new parameter omega
       if( this->adaptivePrimalWeight ) {
@@ -541,9 +552,8 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z ) -> KKTDataType
 
    // Compute the dual objective
    auto lambda_view = lambda.getConstView();
-   const RealType dual_objective = ( q, y ) + ( filtered_l, maximum( lambda_view, 0 ) )
-                                 + ( filtered_u, minimum( lambda_view, 0 ) );  // cuPDLP-C  - not correct, I guess
-   //( q, y ) + ( filtered_l, maximum( lambda_view, 0 ) ) - ( filtered_u, minimum( lambda_view, 0 ) ); // should be correct
+   const RealType dual_objective =
+      ( q, y ) + ( filtered_l, maximum( lambda_view, 0 ) ) - ( filtered_u, minimum( lambda_view, 0 ) );  // cuPDLP-C has + here
    //std::cout << "( q, y ) = " << ( q, y ) << std::endl;
    //std::cout << "lower filter = " << ( filtered_l, maximum( lambda_view, 0 ) ) << std::endl;
    //std::cout << "upper filter = " << ( filtered_u, minimum( lambda_view, 0 ) ) << std::endl;
