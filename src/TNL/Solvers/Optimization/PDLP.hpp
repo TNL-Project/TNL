@@ -107,7 +107,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    std::cout << "u = " << u << std::endl;*/
 #endif
 
-   KKTDataType kkt_restart_candidate, kkt_last_restart;
+   KKTDataType kkt_candidate, kkt_last_restart;
 
    IndexType k = 0;
    this->adaptive_k = 1;
@@ -116,94 +116,95 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    RealType current_omega = initial_omega;
 
    const IndexType max_restarting_steps = 10000;
-   VectorType z_c( N ), z_bar( N ), last_z( N );
+   VectorType z_candidate( N ), z_averaged( N ), z_last_restart( N ), z_last_iteration( N ), z_current( N );
    auto l_view = l.getConstView();
    auto u_view = u.getConstView();
-   z_c.forElements( 0,
-                    n,
-                    [ = ] __cuda_callable__( IndexType i, RealType & value ) mutable
-                    {
-                       if( l_view[ i ] == -std::numeric_limits< RealType >::infinity() )
-                          value = min( u_view[ i ], 0 );
-                       else
-                          value = l_view[ i ];
-                    } );
-   z_c.getView( n, N ) = 0;
-   last_z = z_c;
-   x = z_c.getView( 0, n );
-   y = z_c.getView( n, N );
-   RealType eta_sum( 0 ), error_n_0( std::numeric_limits< RealType >::infinity() ), error_z_c( 0 ), last_candidate_error( 0 );
+   z_candidate.forElements( 0,
+                            n,
+                            [ = ] __cuda_callable__( IndexType i, RealType & value ) mutable
+                            {
+                               if( l_view[ i ] == -std::numeric_limits< RealType >::infinity() )
+                                  value = min( u_view[ i ], 0 );
+                               else
+                                  value = l_view[ i ];
+                            } );
+   z_candidate.getView( n, N ) = 0;
+   x = z_candidate.getView( 0, n );
+   y = z_candidate.getView( n, N );
 
-   VectorType z_k_0( N ), z_k_t( N ), z_k_t_new( N );
-   const IndexType max_iterations = 100000;
+   RealType eta_sum( 0 ), mu_last_restart( std::numeric_limits< RealType >::infinity() ), mu_candidate( 0 ),
+      mu_last_candidate( 0 );
+
+   const IndexType max_iterations = 1000000;
    while( k < max_iterations ) {  //this->nextIteration() ) {
       IndexType t = 0;
 
       eta_sum = 0;
-      z_k_t = z_k_0 = z_bar = z_c;
+      z_last_iteration = z_last_restart = z_averaged = z_candidate;
       if( ! this->averaging ) {
-         adaptiveStep( z_k_t, z_c, k, current_omega, current_eta );
+         adaptiveStep( z_last_iteration, z_candidate, k, current_omega, current_eta );
          k++;
-         z_k_t = z_c;
+         z_last_iteration = z_candidate;
       }
       else {
-         last_candidate_error = error_n_0;
+         mu_last_candidate = mu_last_restart;
          while( t < max_restarting_steps && k < max_iterations ) {
-            adaptiveStep( z_k_t, z_k_t_new, k, current_omega, current_eta );
-            z_bar = ( z_bar * eta_sum + z_k_t_new * current_eta ) / ( eta_sum + current_eta );
+            adaptiveStep( z_last_iteration, z_current, k, current_omega, current_eta );
+            z_averaged = ( z_averaged * eta_sum + z_current * current_eta ) / ( eta_sum + current_eta );
             k++;
             t++;
 
 #ifdef PRINTING
-            //std::cout << "xUpdate = " << z_k_t_new.getView( 0, n ) << std::endl;
-            //std::cout << "yUpdate = " << z_k_t_new.getView( n, n + m1 + m2 ) << std::endl;
-            //std::cout << "xAverage = " << z_bar.getView( 0, n ) << std::endl;
-            //std::cout << "yAverage = " << z_bar.getView( n, n + m1 + m2 ) << std::endl;
+            //std::cout << "xUpdate = " << z_current.getView( 0, n ) << std::endl;
+            //std::cout << "yUpdate = " << z_current.getView( n, n + m1 + m2 ) << std::endl;
+            //std::cout << "xAverage = " << z_averaged.getView( 0, n ) << std::endl;
+            //std::cout << "yAverage = " << z_averaged.getView( n, n + m1 + m2 ) << std::endl;
             //std::cout << "eta sum " << eta_sum << " -> " << eta_sum + current_eta << "(adding " << current_eta << ") "
             //          << std::endl;
             //std::cout << "Scaling by " << 1.0 / ( eta_sum + current_eta ) << std::endl;
 #endif
             eta_sum += current_eta;
 
-            TNL_ASSERT_TRUE( all( lessEqual( z_bar.getView( 0, n ), u + std::numeric_limits< RealType >::round_error() ) ),
-                             "x is not in the feasible region" );
-            TNL_ASSERT_TRUE( all( greaterEqual( z_bar.getView( 0, n ), l - std::numeric_limits< RealType >::round_error() ) ),
+            TNL_ASSERT_TRUE( all( lessEqual( z_averaged.getView( 0, n ), u + std::numeric_limits< RealType >::round_error() ) ),
                              "x is not in the feasible region" );
             TNL_ASSERT_TRUE(
+               all( greaterEqual( z_averaged.getView( 0, n ), l - std::numeric_limits< RealType >::round_error() ) ),
+               "x is not in the feasible region" );
+            TNL_ASSERT_TRUE(
                ! this->inequalitiesFirst || m1 == 0
-                  || all( greaterEqual( z_bar.getView( n, n + m1 ), -std::numeric_limits< RealType >::round_error() ) ),
+                  || all( greaterEqual( z_averaged.getView( n, n + m1 ), -std::numeric_limits< RealType >::round_error() ) ),
                "y is not in the feasible region" );
             TNL_ASSERT_TRUE(
                this->inequalitiesFirst || m2 == 0
-                  || all( greaterEqual( z_bar.getView( n + m1, N ), -std::numeric_limits< RealType >::round_error() ) ),
+                  || all( greaterEqual( z_averaged.getView( n + m1, N ), -std::numeric_limits< RealType >::round_error() ) ),
                "y is not in the feasible region" );
 
-            RealType error_new, error_bar, error_n_t;
+            RealType mu_current, mu_averaged, mu_last_iteration;
             if( restarting != PDLPRestarting::None ) {
                KKTDataType kkt_current, kkt_average;
                if( restarting == PDLPRestarting::KKTError ) {
                   //std::cout << "KKT for current: ";
-                  kkt_current = KKT( z_k_t_new );
-                  error_new = kkt_current.getKKTError( current_omega );
+                  kkt_current = KKT( z_current );
+                  mu_current = kkt_current.getKKTError( current_omega );
                   //std::cout << "KKT for average:";
-                  kkt_average = KKT( z_bar );
-                  error_bar = kkt_average.getKKTError( current_omega );
+                  kkt_average = KKT( z_averaged );
+                  mu_averaged = kkt_average.getKKTError( current_omega );
                }
                else if( restarting == PDLPRestarting::DualityGap ) {
-                  error_new = primalDualGap( z_k_t_new, z_k_0 );
-                  error_bar = primalDualGap( z_bar, z_k_0 );
+                  mu_current = primalDualGap( z_current, z_last_restart );
+                  mu_averaged = primalDualGap( z_averaged, z_last_restart );
                }
 
                // Get restart candidate
-               if( error_new <= error_bar ) {
-                  z_c = z_k_t_new;
-                  error_z_c = error_new;
-                  kkt_restart_candidate = kkt_current;
+               if( mu_current <= mu_averaged ) {
+                  z_candidate = z_current;
+                  mu_candidate = mu_current;
+                  kkt_candidate = kkt_current;
                }
                else {
-                  z_c = z_bar;
-                  error_z_c = error_bar;
-                  kkt_restart_candidate = kkt_average;
+                  z_candidate = z_averaged;
+                  mu_candidate = mu_averaged;
+                  kkt_candidate = kkt_average;
                }
                if( k == 0 && t == 0 ) {  // This is for compatibility with cuPDLP-C
                   k = t = 1;
@@ -211,85 +212,89 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                }
 #ifdef PRINTING
                //std::cout << "k = " << k << " t = " << t << std::endl;
-               //std::cout << "Restarting errs.: current = " << error_new << " average = " << error_bar << std::endl;
+               //std::cout << "Restarting errs.: current = " << mu_current << " average = " << mu_averaged << std::endl;
                //std::cout << "Artificial test: " << t << " >= " << beta_artificial * k << std::endl;
                //printf( "Artificial test: %d >= %g * %d = %g\n", t, beta_artificial, k, beta_artificial * k );
 #endif
                if( t >= beta_artificial * k ) {
-                  std::cout << "ARTIFICIAL restart to " << ( error_bar <= error_new ? "AVERAGE" : "CURRENT" ) << " at k = " << k
-                            << " t = " << t << std::endl;
-                  error_n_0 = error_z_c;
-                  kkt_last_restart = kkt_restart_candidate;
+                  std::cout << "ARTIFICIAL restart to " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" )
+                            << " at k = " << k << " t = " << t << std::endl;
+                  mu_last_restart = mu_candidate;
+                  kkt_last_restart = kkt_candidate;
                   break;
                }
 
                if( restarting == PDLPRestarting::KKTError ) {
                   //std::cout << "KKT for last restart:" << std::endl;
-                  error_n_0 = kkt_last_restart.getKKTError( current_omega );
+                  mu_last_restart = kkt_last_restart.getKKTError( current_omega );
                   if( t == 1 )
-                     last_candidate_error = error_n_0;
+                     mu_last_candidate = mu_last_restart;
                }
 #ifdef PRINTING
-               //std::cout << "Restarting errs.: last restart = " << error_n_0 << std::endl;
-               //std::cout << "Sufficient test: " << error_z_c << " < " << beta_sufficient << " * " << error_n_0 << " = "
-               //          << beta_sufficient * error_n_0 << std::endl;
+               //std::cout << "Restarting errs.: last restart = " << mu_last_restart << std::endl;
+               //std::cout << "Sufficient test: " << mu_candidate << " < " << beta_sufficient << " * " << mu_last_restart << " =
+               //"
+               //          << beta_sufficient * mu_last_restart << std::endl;
                //printf(
-               //   "Sufficient test: %g < %g * %g = %g\n", error_z_c, beta_sufficient, error_n_0, beta_sufficient * error_n_0
+               //   "Sufficient test: %g < %g * %g = %g\n", mu_candidate, beta_sufficient, mu_last_restart, beta_sufficient *
+               //   mu_last_restart
                //   );
 #endif
 
-               if( error_z_c <= beta_sufficient * error_n_0 ) {
-                  std::cout << "SUFFICIENT restart to " << ( error_bar <= error_new ? "AVERAGE" : "CURRENT" ) << " at k = " << k
-                            << " t = " << t << std::endl;
-                  error_n_0 = error_z_c;
-                  kkt_last_restart = kkt_restart_candidate;
+               if( mu_candidate <= beta_sufficient * mu_last_restart ) {
+                  std::cout << "SUFFICIENT restart to " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" )
+                            << " at k = " << k << " t = " << t << std::endl;
+                  mu_last_restart = mu_candidate;
+                  kkt_last_restart = kkt_candidate;
                   break;
                }
 
                if( restarting == PDLPRestarting::KKTError ) {
                   //std::cout << "KKT for last iter.:" << std::endl;
-                  error_n_t = KKT( z_k_t ).getKKTError( current_omega );
+                  mu_last_iteration = KKT( z_last_iteration ).getKKTError( current_omega );
                }
                else if( restarting == PDLPRestarting::DualityGap )
-                  error_n_t = primalDualGap( z_k_t, z_k_0 );
+                  mu_last_iteration = primalDualGap( z_last_iteration, z_last_restart );
 
 #ifdef PRINTING
-               //std::cout << "Checking necessary restart: " << error_z_c << " < " << beta_necessary << " * " << error_n_0
-               //         << " = " << beta_necessary * error_n_0 << " and " << error_z_c << " > " << error_n_t << std::endl;
-               //std::cout << "Necessary test: " << error_z_c << " < " << beta_necessary << " * " << error_n_0 << " = "
-               //          << beta_necessary * error_n_0 << " and " << error_z_c << " > " << last_candidate_error << std::endl;
+               //std::cout << "Checking necessary restart: " << mu_candidate << " < " << beta_necessary << " * " <<
+               //mu_last_restart
+               //         << " = " << beta_necessary * mu_last_restart << " and " << mu_candidate << " > " << mu_last_iteration
+               //         << std::endl;
+               //std::cout << "Necessary test: " << mu_candidate << " < " << beta_necessary << " * " << mu_last_restart << " = "
+               //          << beta_necessary * mu_last_restart << " and " << mu_candidate << " > " << mu_last_candidate <<
+               //          std::endl;
                /*printf( "Necessary test k = %d t = %d: %g < %g * %g = %g and %g > %g\n",
                        k,
                        t,
-                       error_z_c,
+                       mu_candidate,
                        beta_necessary,
-                       error_n_0,
-                       beta_necessary * error_n_0,
-                       error_z_c,
-                       last_candidate_error );*/
+                       mu_last_restart,
+                       beta_necessary * mu_last_restart,
+                       mu_candidate,
+                       mu_last_candidate );*/
 
 #endif
 
-               if( error_z_c <= beta_necessary * error_n_0 && error_z_c > last_candidate_error ) {
-                  std::cout << "NECESSARY restart to " << ( error_bar <= error_new ? "AVERAGE" : "CURRENT" ) << " at k = " << k
-                            << " t = " << t << std::endl;
+               if( mu_candidate <= beta_necessary * mu_last_restart && mu_candidate > mu_last_candidate ) {
+                  std::cout << "NECESSARY restart to " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" )
+                            << " at k = " << k << " t = " << t << std::endl;
 
-                  error_n_0 = error_z_c;
-                  kkt_last_restart = kkt_restart_candidate;
+                  mu_last_restart = mu_candidate;
+                  kkt_last_restart = kkt_candidate;
                   break;
                }
             }  // if( restarting != PDLPRestarting::None )
             else
-               z_c = z_bar;
-            z_k_t = z_k_t_new;
-            last_candidate_error = error_z_c;
+               z_candidate = z_averaged;
+            z_last_iteration = z_current;
+            mu_last_candidate = mu_candidate;
          }  // while( t < max_restarting_steps && k < max_iterations );
       }  // if( this->averaging )
-      last_z = z_k_0;
-      auto new_x_view = z_c.getView( 0, n );
-      auto new_y_view = z_c.getView( n, n + m1 + m2 );
+      auto new_x_view = z_candidate.getView( 0, n );
+      auto new_y_view = z_candidate.getView( n, n + m1 + m2 );
 
-      auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = KKT( z_c );
+      auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = kkt_candidate;
 
       const RealType epsilon = 1.0e-4;
       const RealType duality_gap = abs( dual_objective - primal_objective );
@@ -552,8 +557,8 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z ) -> KKTDataType
 
    // Compute the dual objective
    auto lambda_view = lambda.getConstView();
-   const RealType dual_objective =
-      ( q, y ) + ( filtered_l, maximum( lambda_view, 0 ) ) - ( filtered_u, minimum( lambda_view, 0 ) );  // cuPDLP-C has + here
+   const RealType dual_objective = ( q, y ) + ( filtered_l, maximum( lambda_view, 0 ) )
+                                 + ( filtered_u, minimum( lambda_view, 0 ) );  // cuPDLP-C has + here, should be - I guess
    //std::cout << "( q, y ) = " << ( q, y ) << std::endl;
    //std::cout << "lower filter = " << ( filtered_l, maximum( lambda_view, 0 ) ) << std::endl;
    //std::cout << "upper filter = " << ( filtered_u, minimum( lambda_view, 0 ) ) << std::endl;
