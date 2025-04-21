@@ -24,7 +24,40 @@ struct KKTData
    Real dual_objective;
 
    Real
+   getPrimalFeasibility() const
+   {
+      return primal_feasibility;
+   }
+
+   Real
+   getDualFeasibility() const
+   {
+      return dual_feasibility;
+   }
+
+   Real
+   getPrimalObjective() const
+   {
+      return primal_objective;
+   }
+
+   Real
+   getDualObjective() const
+   {
+      return dual_objective;
+   }
+
+   Real
+   getDualityGap() const
+   {
+      return std::abs( primal_objective - dual_objective );
+   }
+
+   Real
    getKKTError( const Real& omega ) const;
+
+   Real
+   getRelativeDualityGap() const;
 };
 
 /**
