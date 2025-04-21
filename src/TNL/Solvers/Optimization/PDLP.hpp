@@ -107,7 +107,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    std::cout << "u = " << u << std::endl;*/
 #endif
 
-   KKTDataType kkt_candidate, kkt_last_restart;
+   KKTDataType kkt_candidate, kkt_last_restart, kkt_last_ietartion;
 
    IndexType k = 0;
    this->adaptive_k = 1;
@@ -179,7 +179,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                   || all( greaterEqual( z_averaged.getView( n + m1, N ), -std::numeric_limits< RealType >::round_error() ) ),
                "y is not in the feasible region" );
 
-            RealType mu_current, mu_averaged, mu_last_iteration;
+            RealType mu_current, mu_averaged;
             if( restarting != PDLPRestarting::None ) {
                KKTDataType kkt_current, kkt_average;
                if( restarting == PDLPRestarting::KKTError ) {
@@ -206,10 +206,6 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                   mu_candidate = mu_averaged;
                   kkt_candidate = kkt_average;
                }
-               if( k == 0 && t == 0 ) {  // This is for compatibility with cuPDLP-C
-                  k = t = 1;
-                  break;
-               }
 #ifdef PRINTING
                //std::cout << "k = " << k << " t = " << t << std::endl;
                //std::cout << "Restarting errs.: current = " << mu_current << " average = " << mu_averaged << std::endl;
@@ -225,7 +221,6 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                }
 
                if( restarting == PDLPRestarting::KKTError ) {
-                  //std::cout << "KKT for last restart:" << std::endl;
                   mu_last_restart = kkt_last_restart.getKKTError( current_omega );
                   if( t == 1 )
                      mu_last_candidate = mu_last_restart;
@@ -249,18 +244,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                   break;
                }
 
-               if( restarting == PDLPRestarting::KKTError ) {
-                  //std::cout << "KKT for last iter.:" << std::endl;
-                  mu_last_iteration = KKT( z_last_iteration ).getKKTError( current_omega );
-               }
-               else if( restarting == PDLPRestarting::DualityGap )
-                  mu_last_iteration = primalDualGap( z_last_iteration, z_last_restart );
-
 #ifdef PRINTING
-               //std::cout << "Checking necessary restart: " << mu_candidate << " < " << beta_necessary << " * " <<
-               //mu_last_restart
-               //         << " = " << beta_necessary * mu_last_restart << " and " << mu_candidate << " > " << mu_last_iteration
-               //         << std::endl;
                //std::cout << "Necessary test: " << mu_candidate << " < " << beta_necessary << " * " << mu_last_restart << " = "
                //          << beta_necessary * mu_last_restart << " and " << mu_candidate << " > " << mu_last_candidate <<
                //          std::endl;
@@ -297,8 +281,9 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
       auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = kkt_candidate;
 
       const RealType epsilon = 1.0e-4;
-      const RealType duality_gap = abs( dual_objective - primal_objective );
-      const RealType relative_duality_gap = duality_gap / ( 1 + abs( dual_objective ) + abs( primal_objective ) );
+      const RealType relative_duality_gap = kkt_candidate.getRelativeDualityGap();
+      const RealType relative_primal_feasibility = primal_feasibility / ( 1 + l2Norm( q ) );
+      const RealType relative_dual_feasibility = dual_feasibility / ( 1 + l2Norm( c ) );
 
 #ifdef PRINTING
       //std::cout << "primal feas. " << primal_feasibility << " dual feas. " << dual_feasibility << " primal obj. "
@@ -307,33 +292,31 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
       //          << dual_feasibility << "|" << epsilon * ( 1 + l2Norm( c ) ) << " " << relative_duality_gap << "|" << epsilon
       //          << " : primal obj. " << primal_objective << " dual obj. " << dual_objective << std::endl;
 #endif
-      const RealType error = duality_gap + primal_feasibility + dual_feasibility;
-      if( relative_duality_gap < epsilon && primal_feasibility < epsilon * ( 1 + l2Norm( q ) )
-          && dual_feasibility < epsilon * ( 1 + l2Norm( c ) ) )
-      {
+
+      if( relative_duality_gap < epsilon && relative_primal_feasibility < epsilon && relative_dual_feasibility < epsilon ) {
          std::cout << "===============================" << std::endl;
          std::cout << "SOLUTION FOUND" << std::endl;
-         std::cout << "KKT ERROR: " << error << std::endl;
-         std::cout << "PRIMAL OBJECTIVE: " << primal_objective << std::endl;
-         std::cout << "DUAL OBJECTIVE: " << dual_objective << std::endl;
-         std::cout << "DUALITY GAP: " << duality_gap << std::endl;
-         std::cout << "PRIMAL FEASIBILITY: " << primal_feasibility << std::endl;
-         std::cout << "DUAL FEASIBILITY: " << dual_feasibility << std::endl;
+         std::cout << "PRIMAL OBJECTIVE: " << kkt_candidate.getPrimalObjective() << std::endl;
+         std::cout << "DUAL OBJECTIVE: " << kkt_candidate.getDualObjective() << std::endl;
+         std::cout << "DUALITY GAP: " << kkt_candidate.getDualityGap() << std::endl;
+         std::cout << "PRIMAL FEASIBILITY: " << kkt_candidate.getPrimalFeasibility() << std::endl;
+         std::cout << "DUAL FEASIBILITY: " << kkt_candidate.getDualFeasibility() << std::endl;
          std::cout << "#KKT:" << this->matrixVectorProducts << std::endl;
          //std::cout << "X: " << new_x_view << std::endl;
          //std::cout << "D2 * X: " << D2 * new_x_view << std::endl;
          //std::cout << "Y: " << new_y_view << std::endl;
          x = new_x_view;
          //y = new_y_view;
-         return { true, dual_objective, error };
+         return { true, dual_objective, kkt_candidate.getRelativeDualityGap() };
       }
       else
          std::cout << "ITER: " << std::setw( 6 ) << k << " NORMS=(" << std::setw( 10 ) << l2Norm( new_x_view ) << ", "
                    << std::setw( 10 ) << l2Norm( new_y_view ) << ") INV.STEP : " << std::setw( 10 ) << 1.0 / current_eta
                    << " PRIMAL WEIGHT: " << std::setw( 10 ) << current_omega << " PRIM.OBJ. : " << std::setw( 10 )
                    << primal_objective << " DUAL OBJ. : " << std::setw( 12 ) << dual_objective
-                   << " PRIM. FEAS.: " << std::setw( 12 ) << primal_feasibility << " DUAL FEAS.: " << std::setw( 12 )
-                   << dual_feasibility << " KKT ERROR: " << std::setw( 10 ) << error << std::endl;
+                   << " REL.PRIM. FEAS.: " << std::setw( 12 ) << relative_primal_feasibility
+                   << " REL.DUAL FEAS.: " << std::setw( 12 ) << relative_dual_feasibility
+                   << " REL. DUAL.GAP: " << std::setw( 10 ) << relative_duality_gap << std::endl;
 
       //Compute new parameter omega
       if( this->adaptivePrimalWeight ) {
@@ -581,6 +564,13 @@ KKTData< Real >::getKKTError( const Real& omega ) const
              << " dual obj. = " << dual_objective << " error = " << error << std::endl;*/
 #endif
    return error;
+}
+
+template< typename Real >
+Real
+KKTData< Real >::getRelativeDualityGap() const
+{
+   return std::abs( ( primal_objective - dual_objective ) / ( 1 + std::abs( primal_objective ) + std::abs( dual_objective ) ) );
 }
 
 }  // namespace TNL::Solvers::Optimization
