@@ -107,7 +107,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    std::cout << "u = " << u << std::endl;*/
 #endif
 
-   KKTDataType kkt_candidate, kkt_last_restart, kkt_last_ietartion;
+   KKTDataType kkt_candidate, kkt_last_restart;
 
    IndexType k = 0;
    this->adaptive_k = 1;
@@ -220,6 +220,28 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                   break;
                }
 
+               // Kuba restarting
+               // "maly subgradient a maly gap, restart probability treba 10e^-8;
+               // maly subgradient a velky gap, restart probability close to 1;
+               // jinak neco mezi, treba 10^-4"
+               /*const RealType update = maxNorm( z_candidate - z_last_iteration );
+               const RealType beta_gap = 10;
+               if( kkt_candidate.getDualityGap() > beta_gap
+                   //|| kkt_candidate.getPrimalFeasibility() > beta_gap
+                   //|| kkt_candidate.getDualFeasibility() > beta_gap
+                   && update < 0.1 )
+               {
+                  std::cout << "KUBA restart to " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" ) << " at k = " << k
+                            << " t = " << t << std::endl;
+                  std::cout << "   Duality gap: " << kkt_candidate.getDualityGap() << std::endl;
+                  std::cout << "   Primal feas.: " << kkt_candidate.getPrimalFeasibility() << std::endl;
+                  std::cout << "   Dual feas.: " << kkt_candidate.getDualFeasibility() << std::endl;
+                  std::cout << "   Update: " << update << std::endl;
+                  mu_last_restart = mu_candidate;
+                  kkt_last_restart = kkt_candidate;
+                  break;
+               }*/
+
                if( restarting == PDLPRestarting::KKTError ) {
                   mu_last_restart = kkt_last_restart.getKKTError( current_omega );
                   if( t == 1 )
@@ -280,7 +302,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 
       auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = kkt_candidate;
 
-      const RealType epsilon = 1.0e-4;
+      const RealType epsilon = 1.0e-6;
       const RealType relative_duality_gap = kkt_candidate.getRelativeDualityGap();
       const RealType relative_primal_feasibility = primal_feasibility / ( 1 + l2Norm( q ) );
       const RealType relative_dual_feasibility = dual_feasibility / ( 1 + l2Norm( c ) );
@@ -315,8 +337,8 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                    << " PRIMAL WEIGHT: " << std::setw( 10 ) << current_omega << " PRIM.OBJ. : " << std::setw( 10 )
                    << primal_objective << " DUAL OBJ. : " << std::setw( 12 ) << dual_objective
                    << " REL.PRIM. FEAS.: " << std::setw( 12 ) << relative_primal_feasibility
-                   << " REL.DUAL FEAS.: " << std::setw( 12 ) << relative_dual_feasibility
-                   << " REL. DUAL.GAP: " << std::setw( 10 ) << relative_duality_gap << std::endl;
+                   << " REL.DUAL FEAS.: " << std::setw( 12 ) << relative_dual_feasibility << " DUAL.GAP: " << std::setw( 10 )
+                   << kkt_candidate.getDualityGap() << std::endl;
 
       //Compute new parameter omega
       if( this->adaptivePrimalWeight ) {
@@ -410,6 +432,7 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
          new_eta = min( ( 1.0 - pow( this->adaptive_k + 1, -0.3 ) ) * max_eta,
                         ( 1.0 + pow( this->adaptive_k + 1, -0.6 ) ) * current_eta );
       TNL_ASSERT_GT( new_eta, 0, "new_eta <= 0" );
+      std::cout << "   Adaptive step: k = " << this->adaptive_k << " new eta = " << new_eta << std::endl;
 
 #ifdef PRINTING
       //std::cout << "   Movement: dX " << ( delta_x, delta_x ) << " dY " << ( delta_y, delta_y ) << std::endl;
