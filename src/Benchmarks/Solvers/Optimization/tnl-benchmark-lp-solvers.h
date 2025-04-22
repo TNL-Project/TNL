@@ -23,8 +23,13 @@
 
 #include <TNL/Benchmarks/Benchmarks.h>
 
-#include "GurobiLPBenchmark.h"
-#include "ORToolsLPBenchmark.h"
+#ifdef HAVE_GUROBI
+   #include "GurobiLPBenchmark.h"
+#endif
+
+#ifdef HAVE_OR_TOOLS
+   #include "ORToolsLPBenchmark.h"
+#endif
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
@@ -69,6 +74,7 @@ struct LPSolversBenchmark
       const String& fileName = parameters.getParameter< String >( "input-file" );
 
       // Gurobi solver
+#ifdef HAVE_GUROBI
       if( parameters.getParameter< bool >( "with-gurobi" ) ) {
          std::cout << "Running Gurobi solver..." << std::endl;
          try {
@@ -81,6 +87,7 @@ struct LPSolversBenchmark
             std::cerr << "An unexpected error occurred." << std::endl;
          }
       }
+#endif
 
       std::cout << "Reading LP problem from file " << fileName << std::endl;
       TNL::Solvers::Optimization::LPProblemReader< LPProblemType > reader;
@@ -89,6 +96,7 @@ struct LPSolversBenchmark
       auto lpProblem = reader.read( fileName );
       //std::cout << lpProblem << std::endl;
 
+#ifdef HAVE_OR_TOOLS
       if( parameters.getParameter< bool >( "with-ortools" ) ) {
          std::cout << "Running OR-Tools solver..." << std::endl;
          try {
@@ -98,6 +106,7 @@ struct LPSolversBenchmark
             std::cerr << "An unexpected error occurred." << std::endl;
          }
       }
+#endif
 
       if( parameters.getParameter< bool >( "with-tnl" ) ) {
          std::cout << "Running TNL PDLP solver..." << std::endl;
