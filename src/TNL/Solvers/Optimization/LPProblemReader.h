@@ -79,7 +79,11 @@ struct LPProblemReader
       IndexType nCols = 0;
       IndexType nInequalityRows = 0;
       IndexType nEqualityRows = 0;
+      IndexType lineNumber = 0;
       while( std::getline( in_stream, line ) ) {
+         lineNumber++;
+         if( line.empty() || line[ 0 ] == '*' )
+            continue;
          std::string word;
          std::istringstream iss( line );
          iss >> word;
@@ -103,7 +107,8 @@ struct LPProblemReader
                objectiveFunctionName = name;
             else {
                std::ostringstream oss;
-               oss << "Unknown row type: " << type;
+               oss << "Error at line " << lineNumber << " unknown row type: '" << type << "'";
+               std::cout << "Line: " << lineNumber << std::endl;
                throw std::runtime_error( oss.str() );
             }
          }
