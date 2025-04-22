@@ -1,7 +1,8 @@
 set(CPP_TESTS
-    PDLPTest
     LinearTrustRegionTest
 )
+
+set(COMMON_TESTS PDLPTest)
 
 if(TNL_BUILD_CUDA)
     set(CUDA_TESTS ${CUDA_TESTS} ${COMMON_TESTS})
