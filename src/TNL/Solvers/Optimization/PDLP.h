@@ -5,14 +5,18 @@
 
 #include <TNL/Solvers/IterativeSolver.h>
 #include <TNL/Solvers/Optimization/LPProblem.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/CSRVectorKernel.h>
+#include <TNL/Algorithms/SegmentsReductionKernels/CSRLightKernel.h>
 
 namespace TNL::Solvers::Optimization {
 
 enum class PDLPRestarting
 {
    None,
+   Constant,
    DualityGap,
-   KKTError
+   KKT,
+   Gradient
 };
 
 template< typename Real >
@@ -85,6 +89,8 @@ public:
    using VectorView = typename VectorType::ViewType;
    using ConstVectorView = typename VectorType::ConstViewType;
    using KKTDataType = KKTData< RealType >;
+   using SegmentsReductionKernel = typename MatrixType::DefaultSegmentsReductionKernel;
+   //using SegmentsReductionKernel = typename Algorithms::SegmentsReductionKernels::CSRLightKernel< IndexType, DeviceType >;
 
    PDLP() = default;
 
@@ -101,6 +107,24 @@ public:
    setInequalitiesFirst( bool inequalitiesFirst )
    {
       this->inequalitiesFirst = inequalitiesFirst;
+   }
+
+   void
+   setRestarting( PDLPRestarting restarting )
+   {
+      this->restarting = restarting;
+   }
+
+   PDLPRestarting
+   getRestarting() const
+   {
+      return this->restarting;
+   }
+
+   void
+   setMaximalRestartingInterval( IndexType maxRestartingInterval )
+   {
+      this->maxRestartingInterval = maxRestartingInterval;
    }
 
 protected:
@@ -137,16 +161,15 @@ protected:
    IndexType m;   // Number of constraints
    IndexType N;   // Number of variables + constraints
 
-   //PDLPRestarting restarting = PDLPRestarting::None;
-   //PDLPRestarting restarting = PDLPRestarting::DualityGap;
-   PDLPRestarting restarting = PDLPRestarting::KKTError;
+   PDLPRestarting restarting = PDLPRestarting::KKT;
+   IndexType maxRestartingInterval = 0;  // Maximal interval without restarting
 
    // Restart criteria
-   RealType beta_sufficient = 0.2;  // This is used in cuPDLP-C
-   //RealType beta_sufficient = 0.9;  // This is used in the original paper
-   RealType beta_necessary = 0.8;  // This is used in cuPDLP-C
-   //RealType beta_necessary = 0.1;  // This is used in the original paper
+   RealType beta_sufficient = 0.2;   // This is used in cuPDLP-C
+   RealType beta_necessary = 0.8;    // This is used in cuPDLP-C
    RealType beta_artificial = 0.36;  // This is used in cuPDLP-C
+   //RealType beta_sufficient = 0.9;  // This is used in the original paper
+   //RealType beta_necessary = 0.1;  // This is used in the original paper
    //RealType beta_artificial = 0.5;  // This is used in the original paper
 
    // Preconditioning
@@ -160,7 +183,15 @@ protected:
    bool averaging = true;
    bool adaptivePrimalWeight = true;
 
+   // Performance measuring
+   Timer solverTimer;
+
    IndexType matrixVectorProducts = 0;
+
+   // Supporting vectors
+   VectorType Kx, KTy, lambda;
+
+   SegmentsReductionKernel segmentsReductionKernel;
 };
 
 }  // namespace TNL::Solvers::Optimization
