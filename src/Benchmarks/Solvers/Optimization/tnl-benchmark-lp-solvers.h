@@ -112,6 +112,7 @@ struct LPSolversBenchmark
          std::cout << "Running TNL PDLP solver..." << std::endl;
          typename LPProblemType::VectorType x( lpProblem.getVariableCount() );
          TNL::Solvers::Optimization::PDLP< LPProblemType > solver;
+         solver.setup( parameters );
          auto [ converged, cost, error ] = solver.solve( lpProblem, x );
          //std::cout << "Solution: " << x << std::endl;
       }
@@ -198,8 +199,8 @@ configSetup( Config::ConfigDescription& config )
    TNL::MPI::configSetup( config );
 
    config.addDelimiter( "LP solver settings:" );
-   Solvers::IterativeSolver< double, int >::configSetup( config );
-   //using Vector = TNL::Containers::Vector< int >;
+   using LPProblemType = TNL::Solvers::Optimization::LPProblem< TNL::Matrices::SparseMatrix< double, Devices::Host, int > >;
+   Solvers::Optimization::PDLP< LPProblemType >::configSetup( config );
 }
 
 int
