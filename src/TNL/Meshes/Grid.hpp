@@ -229,7 +229,7 @@ Index
 Grid< Dimension, Real, Device, Index >::getOrientation( const CoordinatesType& normals ) const noexcept
 {
    constexpr Index index = firstKCombinationsSum( EntityDimension, Dimension );
-   const Index count = this->getEntityOrientationsCount( EntityDimension );
+   const Index count = getEntityOrientationsCount( EntityDimension );
    for( IndexType orientation = 0; orientation < count; orientation++ )
       if( this->normals( index + orientation ) == normals )
          return orientation;
@@ -245,7 +245,7 @@ Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityId
                                                               Index& orientation ) const noexcept -> CoordinatesType
 {
    orientation = firstKCombinationsSum( EntityDimension, Dimension );
-   const Index end = orientation + this->getEntityOrientationsCount( EntityDimension );
+   const Index end = orientation + getEntityOrientationsCount( EntityDimension );
    auto entityIdx_( entityIdx );
    while( orientation < end && entityIdx_ >= this->entitiesCountAlongNormals[ orientation ] ) {
       entityIdx_ -= this->entitiesCountAlongNormals[ orientation ];
@@ -256,7 +256,7 @@ Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityId
    const CoordinatesType dims = this->getDimensions() + entityNormals;
    CoordinatesType entityCoordinates( 0 );
    int idx = 0;
-   while( idx < this->getMeshDimension() - 1 ) {
+   while( idx < getMeshDimension() - 1 ) {
       entityCoordinates[ idx ] = entityIdx % dims[ idx ];
       entityIdx /= dims[ idx++ ];
    }
@@ -349,7 +349,7 @@ __cuda_callable__
 Real
 Grid< Dimension, Real, Device, Index >::getSpaceStepsProducts( Powers... powers ) const
 {
-   int index = Templates::makeCollapsedIndex( this->spaceStepsPowersSize, CoordinatesType( powers... ) );
+   int index = Templates::makeCollapsedIndex( spaceStepsPowersSize, CoordinatesType( powers... ) );
 
    return this->spaceStepsProducts( index );
 }
@@ -359,7 +359,7 @@ __cuda_callable__
 Real
 Grid< Dimension, Real, Device, Index >::getSpaceStepsProducts( const CoordinatesType& powers ) const
 {
-   int index = Templates::makeCollapsedIndex( this->spaceStepsPowersSize, powers );
+   int index = Templates::makeCollapsedIndex( spaceStepsPowersSize, powers );
 
    return this->spaceStepsProducts( index );
 }
@@ -394,7 +394,7 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::traverseAll( Func func, FuncArgs... args ) const
 {
-   this->traverseAll< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), func, args... );
+   this->traverseAll< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), std::move( func ), std::move( args )... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -422,7 +422,8 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::traverseInterior( Func func, FuncArgs... args ) const
 {
-   this->traverseInterior< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), func, args... );
+   this->traverseInterior< EntityDimension >(
+      CoordinatesType( 0 ), this->getDimensions(), std::move( func ), std::move( args )... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -470,7 +471,8 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::traverseBoundary( Func func, FuncArgs... args ) const
 {
-   this->traverseBoundary< EntityDimension >( CoordinatesType( 0 ), this->getDimensions(), func, args... );
+   this->traverseBoundary< EntityDimension >(
+      CoordinatesType( 0 ), this->getDimensions(), std::move( func ), std::move( args )... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -678,9 +680,8 @@ Grid< Dimension, Real, Device, Index >::writeProlog( TNL::Logger& logger ) const
    TNL::Algorithms::staticFor< IndexType, 0, Dimension + 1 >(
       [ & ]( auto entityDim )
       {
-         for( IndexType entityOrientation = 0; entityOrientation < this->getEntityOrientationsCount( entityDim() );
-              entityOrientation++ )
-         {
+         for( IndexType entityOrientation = 0; entityOrientation < getEntityOrientationsCount( entityDim() );
+              entityOrientation++ ) {
             auto normals = this->getBasis< entityDim >( entityOrientation );
             TNL::String tmp = TNL::String( "Entities count with basis " ) + TNL::convertToString( normals ) + ":";
             logger.writeParameter( tmp, this->getOrientedEntitiesCount( entityDim, entityOrientation ) );
@@ -706,7 +707,7 @@ Grid< Dimension, Real, Device, Index >::fillEntitiesCount()
    }
 
    for( Index i = 0, j = 0; i <= Dimension; i++ ) {
-      for( Index n = 0; n < this->getEntityOrientationsCount( i ); n++, j++ ) {
+      for( Index n = 0; n < getEntityOrientationsCount( i ); n++, j++ ) {
          int result = 1;
          auto normals = this->normals[ j ];
 
@@ -752,7 +753,7 @@ Grid< Dimension, Real, Device, Index >::fillSpaceStepsPowers()
    Containers::StaticVector< spaceStepsPowersSize * Dimension, Real > powers;
 
    for( Index i = 0; i < Dimension; i++ ) {
-      Index power = -( this->spaceStepsPowersSize >> 1 );
+      Index power = -( spaceStepsPowersSize >> 1 );
 
       for( Index j = 0; j < spaceStepsPowersSize; j++ ) {
          powers[ i * spaceStepsPowersSize + j ] = pow( this->spaceSteps[ i ], power );
@@ -760,14 +761,14 @@ Grid< Dimension, Real, Device, Index >::fillSpaceStepsPowers()
       }
    }
 
-   for( Index i = 0; i < this->spaceStepsProducts.getSize(); i++ ) {
+   for( Index i = 0; i < spaceStepsProducts.getSize(); i++ ) {
       Real product = 1;
       Index index = i;
 
       for( Index j = 0; j < Dimension; j++ ) {
-         Index residual = index % this->spaceStepsPowersSize;
+         Index residual = index % spaceStepsPowersSize;
 
-         index /= this->spaceStepsPowersSize;
+         index /= spaceStepsPowersSize;
 
          product *= powers[ j * spaceStepsPowersSize + residual ];
       }

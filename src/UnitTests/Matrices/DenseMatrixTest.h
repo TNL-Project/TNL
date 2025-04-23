@@ -1017,7 +1017,7 @@ test_LargeVectorProduct()
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
-   if( std::is_same< IndexType, short >::value )
+   if( std::is_same_v< IndexType, short > )
       return;
 
    const IndexType rows = 997;
@@ -1424,7 +1424,8 @@ test_AssignmentOperator()
 
    using DenseHost = TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Host, IndexType >;
 
-   const IndexType rows( 10 ), columns( 10 );
+   const IndexType rows = 10;
+   const IndexType columns = 10;
    DenseHost hostMatrix( rows, columns );
    for( IndexType i = 0; i < columns; i++ )
       for( IndexType j = 0; j <= i; j++ )

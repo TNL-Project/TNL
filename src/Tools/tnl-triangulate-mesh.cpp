@@ -178,7 +178,7 @@ triangulateMesh( const Mesh& mesh,
    if( outputFormat == "auto" ) {
       namespace fs = std::filesystem;
       format = fs::path( outputFileName ).extension().string();
-      if( format.length() > 0 )
+      if( ! format.empty() )
          // remove dot from the extension
          format = format.substr( 1 );
    }
@@ -202,7 +202,7 @@ triangulateMesh( const Mesh& mesh,
       std::cerr << "File '" << outputFileName << "' has unsupported format (based on the file extension): " << format << ".";
    else
       std::cerr << "Unsupported output file format: " << outputFormat << ".";
-   std::cerr << " Supported formats are 'vtk' and 'vtu'." << std::endl;
+   std::cerr << " Supported formats are 'vtk' and 'vtu'.\n";
    return false;
 }
 

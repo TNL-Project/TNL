@@ -17,7 +17,8 @@ testIndexCollapse( const int base )
    SCOPED_TRACE( "Base: " + TNL::convertToString( base ) );
 
    const int halfBase = base >> 1;
-   Coordinate< Size > start, end;
+   Coordinate< Size > start;
+   Coordinate< Size > end;
 
    for( int i = 0; i < Size; i++ ) {
       start[ i ] = -halfBase;

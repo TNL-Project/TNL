@@ -21,6 +21,7 @@
 #include <TNL/Algorithms/fillRandom.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
+#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <type_traits>
@@ -70,8 +71,7 @@ generateMatrixSM( int size )
    rowCapacities.forAllElements(
       [] __cuda_callable__( int i, int& value )
       {
-         if( value > i + 1 )
-            value = i + 1;
+         value = std::min( value, i + 1 );
       } );
    matrix.setRowCapacities( rowCapacities );
    int offset = 0;

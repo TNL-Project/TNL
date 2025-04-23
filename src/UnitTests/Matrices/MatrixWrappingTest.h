@@ -7,8 +7,6 @@
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/MatrixWrapping.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
-#include <iostream>
-#include <sstream>
 
 #include <gtest/gtest.h>
 
@@ -83,7 +81,8 @@ TYPED_TEST( MatrixTest, WrapMatrix )
       TNL::Matrices::SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, RowMajorEllpack >;
 
    DenseMatrix denseMatrix{ { 1, 2, 0, 0 }, { 0, 6, 0, 0 }, { 9, 0, 0, 0 }, { 0, 0, 15, 16 } };
-   IndexType rows( 4 ), columns( 4 );
+   IndexType rows( 4 );
+   IndexType columns( 4 );
    CSRMatrix csrMatrix;
    EllpackMatrix ellpackMatrix;
    csrMatrix = ellpackMatrix = denseMatrix;

@@ -30,8 +30,10 @@ MultiplicationKernel4( ResultMatrix resultMatrix,
    __shared__ RealType tileB[ tileDim ][ tileDim ];
 
    // Calculate thread and block indices
-   IndexType bx = blockIdx.x, by = blockIdx.y;
-   IndexType tx = threadIdx.x, ty = threadIdx.y;
+   IndexType bx = blockIdx.x;
+   IndexType by = blockIdx.y;
+   IndexType tx = threadIdx.x;
+   IndexType ty = threadIdx.y;
 
    // Calculate the row and column index
    IndexType row = by * tileDim + ty;

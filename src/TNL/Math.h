@@ -13,7 +13,7 @@
 namespace TNL {
 
 //! \brief Value of the pi constant
-static constexpr double pi = 3.14159265358979323846;
+inline constexpr double pi = 3.14159265358979323846;
 
 /**
  * \brief This function returns minimum of two numbers.
@@ -33,7 +33,7 @@ min( const T1& a, const T2& b )
  * right.
  */
 template< typename T1, typename T2, typename T3, typename... Ts >
-constexpr typename std::common_type< T1, T2, T3, Ts... >::type
+constexpr std::common_type_t< T1, T2, T3, Ts... >
 min( T1&& val1, T2&& val2, T3&& val3, Ts&&... vs )
 {
    return min(
@@ -58,7 +58,7 @@ max( const T1& a, const T2& b )
  * right.
  */
 template< typename T1, typename T2, typename T3, typename... Ts >
-constexpr typename std::common_type< T1, T2, T3, Ts... >::type
+constexpr std::common_type_t< T1, T2, T3, Ts... >
 max( T1&& val1, T2&& val2, T3&& val3, Ts&&... vs )
 {
    return max(
@@ -493,7 +493,7 @@ ceil( const T& value ) -> decltype( std::ceil( value ) )
 template< typename Type >
 __cuda_callable__
 constexpr void
-swap( Type& a, Type& b )
+swap( Type& a, Type& b ) noexcept
 {
    Type tmp( a );
    a = b;

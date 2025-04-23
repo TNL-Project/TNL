@@ -136,7 +136,7 @@ Benchmark< Logger >::time( ResetFunction reset,
    }
    catch( const std::exception& e ) {
       errorMessage = "timeFunction failed due to a C++ exception with description: " + std::string( e.what() );
-      std::cerr << errorMessage << std::endl;
+      std::cerr << errorMessage << '\n';
    }
 
    result.bandwidth = datasetSize / result.time;
@@ -185,7 +185,7 @@ void
 Benchmark< Logger >::addErrorMessage( const std::string& message )
 {
    logger.writeErrorMessage( message );
-   std::cerr << message << std::endl;
+   std::cerr << message << '\n';
 }
 
 template< typename Logger >

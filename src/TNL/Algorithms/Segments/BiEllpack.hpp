@@ -163,7 +163,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::setSegmentsS
     * segments managed by the group.
     */
    TNL_ASSERT_TRUE( TNL::all( greaterEqual( segmentsSizes, 0 ) ), "Segment size cannot be negative" );
-   if constexpr( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Sequential >::value ) {
+   if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > ) {
       // NOTE: the following functions (e.g. getVirtualSegments and performSegmentBubbleSort)
       // depend on this->size being set
       const Index segmentsCount = segmentsSizes.getSize();
@@ -234,7 +234,7 @@ template< typename SizesHolder >
 void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::initSegmentsPermutation( const SizesHolder& segmentsSizes )
 {
-   static_assert( std::is_same< Device, Devices::Host >::value || std::is_same< Device, Devices::Sequential >::value,
+   static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential >,
                   "The initiation of the segmentPermutationArray can be done only on the CPU." );
 
    // TODO: The following function could be probably replaced with general sorting algorithms (e.g. bitonnic sort) and run on
@@ -356,7 +356,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifySegmen
             }
          }
          if( ! first || ! second )
-            std::cout << "Wrong permutation!" << std::endl;
+            std::cout << "Wrong permutation!\n";
          if( segmentsSizes.getElement( permIndex1 ) >= segmentsSizes.getElement( permIndex2 ) )
             continue;
          else

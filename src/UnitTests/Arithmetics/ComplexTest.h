@@ -62,13 +62,14 @@ TYPED_TEST( ComplexTest, copyConstructors )
    using ComplexType = typename TestFixture::ComplexType;
    using RealType = typename ComplexType::ValueType;
 
-   ComplexType u{ 1.0, 2.0 }, c{ u };
+   const ComplexType u{ 1.0, 2.0 };
+   const ComplexType c{ u };
 
    EXPECT_EQ( c.real(), (RealType) 1.0 );
    EXPECT_EQ( c.imag(), (RealType) 2.0 );
 
-   Complex< int > iu( 1, 2 );
-   ComplexType ci{ iu };
+   const Complex< int > iu( 1, 2 );
+   const ComplexType ci{ iu };
 
    EXPECT_EQ( ci.real(), (RealType) 1.0 );
    EXPECT_EQ( ci.imag(), (RealType) 2.0 );
@@ -113,7 +114,8 @@ TYPED_TEST( ComplexTest, assignmentWithComplex )
    using ComplexType = typename TestFixture::ComplexType;
    using RealType = typename ComplexType::ValueType;
 
-   ComplexType c1( 1.0, 2.0 ), c2;
+   ComplexType c1( 1.0, 2.0 );
+   ComplexType c2;
    c2 = c1;
 
    EXPECT_EQ( c2.real(), (RealType) 1.0 );

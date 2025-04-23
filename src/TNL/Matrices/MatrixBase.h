@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <type_traits>
 #include <utility>
 
@@ -30,7 +31,7 @@ constexpr Index paddingIndex = static_cast< Index >( -1 );
 /**
  * \brief Encoding of the matrix elements of the symmetric matrix.
  */
-enum class SymmetricMatrixEncoding
+enum class SymmetricMatrixEncoding : std::uint8_t
 {
    Complete,    //!<  All elements of the matrix are stored.
    LowerPart,   //!<  Only lower part of the matrix is stored.

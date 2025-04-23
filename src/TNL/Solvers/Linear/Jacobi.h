@@ -85,7 +85,7 @@ public:
     *
     * \return value of the relaxation parameter.
     */
-   RealType
+   [[nodiscard]] RealType
    getOmega() const;
 
    /**
@@ -101,7 +101,7 @@ public:
     *
     * \return number of iterations between subsequent recomputations of the residue.
     */
-   IndexType
+   [[nodiscard]] IndexType
    getResiduePerid() const;
 
    /**

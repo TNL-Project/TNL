@@ -14,7 +14,7 @@ template< typename ConfigTag, typename Device, typename Functor >
 bool
 resolveDistributedMeshType( Functor&& functor, const std::string& fileName, const std::string& fileFormat )
 {
-   std::cout << "Detecting distributed mesh from file " << fileName << " ..." << std::endl;
+   std::cout << "Detecting distributed mesh from file " << fileName << " ...\n";
 
    auto wrapper = [ &functor ]( Readers::MeshReader& reader, auto&& localMesh )
    {
@@ -36,7 +36,7 @@ resolveAndLoadDistributedMesh( Functor&& functor,
    auto wrapper = [ & ]( Readers::MeshReader& reader, auto&& mesh ) -> bool
    {
       using MeshType = std::decay_t< decltype( mesh ) >;
-      std::cout << "Loading a mesh from the file " << fileName << " ..." << std::endl;
+      std::cout << "Loading a mesh from the file " << fileName << " ...\n";
       try {
          if( reader.getMeshType() == "Meshes::DistributedMesh" ) {
             auto& pvtu = dynamic_cast< Readers::PVTUReader& >( reader );
@@ -52,7 +52,7 @@ resolveAndLoadDistributedMesh( Functor&& functor,
             throw std::runtime_error( "Unknown type of a distributed mesh: " + reader.getMeshType() );
       }
       catch( const Meshes::Readers::MeshReaderError& e ) {
-         std::cerr << "Failed to load the mesh from the file " << fileName << ". The error is:\n" << e.what() << std::endl;
+         std::cerr << "Failed to load the mesh from the file " << fileName << ". The error is:\n" << e.what() << '\n';
          return false;
       }
       return functor( reader, std::forward< MeshType >( mesh ) );
@@ -91,7 +91,7 @@ loadDistributedMesh( DistributedMeshes::DistributedMesh< Mesh >& distributedMesh
          std::cerr << "File '" << fileName << "' has unsupported format (based on the file extension): " << format << ".";
       else
          std::cerr << "Unsupported fileFormat parameter: " << fileFormat << ".";
-      std::cerr << " Supported formats are 'pvtu' and 'pvti'." << std::endl;
+      std::cerr << " Supported formats are 'pvtu' and 'pvti'.\n";
       return false;
    }
 }

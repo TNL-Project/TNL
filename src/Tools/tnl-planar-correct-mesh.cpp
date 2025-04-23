@@ -161,7 +161,7 @@ struct PlanarMeshWriter< Topologies::Polygon >
       if( outputFormat == "auto" ) {
          namespace fs = std::filesystem;
          format = fs::path( outputFileName ).extension().string();
-         if( format.length() > 0 )
+         if( ! format.empty() )
             // remove dot from the extension
             format = format.substr( 1 );
       }
@@ -185,7 +185,7 @@ struct PlanarMeshWriter< Topologies::Polygon >
          std::cerr << "File '" << outputFileName << "' has unsupported format (based on the file extension): " << format << ".";
       else
          std::cerr << "Unsupported output file format: " << outputFormat << ".";
-      std::cerr << " Supported formats are 'vtk' and 'vtu'." << std::endl;
+      std::cerr << " Supported formats are 'vtk' and 'vtu'.\n";
       return false;
    }
 };
@@ -198,8 +198,8 @@ struct PlanarMeshWriter< Topologies::Polyhedron >
    exec( const Mesh& mesh, const std::string& outputFileName, const std::string& outputFormat )
    {
       if( outputFormat != "auto" && outputFormat != "fpma" ) {
-         std::cerr << "Unsupported output file format: " << outputFormat << ". Only 'fpma' is supported for polyhedral meshes."
-                   << std::endl;
+         std::cerr << "Unsupported output file format: " << outputFormat
+                   << ". Only 'fpma' is supported for polyhedral meshes.\n";
          return false;
       }
 
@@ -248,15 +248,17 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   const std::string inputFileName = parameters.getParameter< std::string >( "input-file" );
-   const std::string inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
-   const std::string outputFileName = parameters.getParameter< std::string >( "output-file" );
-   const std::string outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
-   const std::string decompositionType = parameters.getParameter< std::string >( "decomposition-type" );
+   const auto inputFileName = parameters.getParameter< std::string >( "input-file" );
+   const auto inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
+   const auto outputFileName = parameters.getParameter< std::string >( "output-file" );
+   const auto outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
+   const auto decompositionType = parameters.getParameter< std::string >( "decomposition-type" );
 
    auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
    {
       return triangulateMesh( mesh, outputFileName, outputFileFormat, decompositionType );
    };
-   return ! Meshes::resolveAndLoadMesh< MeshPlanarCorrectConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   const bool status =
+      Meshes::resolveAndLoadMesh< MeshPlanarCorrectConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   return static_cast< int >( ! status );
 }

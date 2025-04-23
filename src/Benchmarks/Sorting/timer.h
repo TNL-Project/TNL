@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <string>
 #include <chrono>
 #include <functional>
 #include <iostream>
@@ -17,7 +16,7 @@ struct TIMER
    TIMER( std::function< void( double ) > func =
              []( double res )
           {
-             std::cout << res << std::endl;
+             std::cout << res << '\n';
           } )
    : f( std::move( func ) ),
      begin( std::chrono::high_resolution_clock::now() )

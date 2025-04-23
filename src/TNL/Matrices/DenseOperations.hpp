@@ -34,7 +34,8 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
    // Calculate the global block indices using gridIdx_x and gridIdx_y
    IndexType bx = blockIdx.x + gridIdx_x * Backend::getMaxGridXSize();
    IndexType by = blockIdx.y + gridIdx_y * Backend::getMaxGridYSize();
-   IndexType tx = threadIdx.x, ty = threadIdx.y;
+   IndexType tx = threadIdx.x;
+   IndexType ty = threadIdx.y;
 
    IndexType row = by * tileDim + ty;
    IndexType col = bx * tileDim + tx;
@@ -58,10 +59,12 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
 
       // Load tileA from matrix A if within bounds, else initialize to 0
       tileA[ ty ][ tx ] =
+         // NOLINTNEXTLINE(readability-suspicious-call-argument)
          loadTileA ? ( TransposeA == TransposeState::None ? matrixA( row, aCols ) : matrixA( aCols, row ) ) : 0.0;
 
       // Load tileB from matrix B if within bounds, else initialize to 0
       tileB[ ty ][ tx ] =
+         // NOLINTNEXTLINE(readability-suspicious-call-argument)
          loadTileB ? ( TransposeB == TransposeState::None ? matrixB( bRows, col ) : matrixB( col, bRows ) ) : 0.0;
 
       __syncthreads();

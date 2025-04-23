@@ -27,7 +27,7 @@ setupRedirection( const std::string& outputDirectory )
    if( GetSize() > 1 && GetRank() != 0 ) {
       const std::string stdoutFile = outputDirectory + "/stdout_" + std::to_string( GetRank() ) + ".txt";
       const std::string stderrFile = outputDirectory + "/stderr_" + std::to_string( GetRank() ) + ".txt";
-      std::cout << GetRank() << ": Redirecting stdout and stderr to files " << stdoutFile << " and " << stderrFile << std::endl;
+      std::cout << GetRank() << ": Redirecting stdout and stderr to files " << stdoutFile << " and " << stderrFile << '\n';
       Debugging::redirect_stdout_stderr( stdoutFile, stderrFile );
    }
 #endif
@@ -49,21 +49,21 @@ selectGPU()
 
    // avoid division by zero
    if( gpuCount == 0 ) {
-      std::cout << "Rank " << GetRank() << " detected 0 GPUs." << std::endl;
+      std::cout << "Rank " << GetRank() << " detected 0 GPUs.\n";
       return;
    }
 
    const int local_rank = getRankOnNode();
    const int gpuNumber = local_rank % gpuCount;
    std::cout << "Rank " << GetRank() << ": rank on node is " << local_rank << ", using GPU id " << gpuNumber << " of "
-             << gpuCount << "\n";
+             << gpuCount << '\n';
 
    auto print_env_var = []( const char* key )
    {
       const char* value = std::getenv( key );
       if( value == nullptr )
          value = "";
-      std::cout << "  " << key << "=" << value << "\n";
+      std::cout << "  " << key << "=" << value << '\n';
    };
 
    // write debug output before calling Backend::setDevice

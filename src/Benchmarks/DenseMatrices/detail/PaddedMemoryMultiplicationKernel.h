@@ -29,8 +29,10 @@ MultiplicationKernel5( ResultMatrix resultMatrix,
    __shared__ RealType tileA[ tileDim ][ tileDim + 1 ];
    __shared__ RealType tileB[ tileDim ][ tileDim + 1 ];
 
-   IndexType bx = blockIdx.x, by = blockIdx.y;
-   IndexType tx = threadIdx.x, ty = threadIdx.y;
+   IndexType bx = blockIdx.x;
+   IndexType by = blockIdx.y;
+   IndexType tx = threadIdx.x;
+   IndexType ty = threadIdx.y;
 
    IndexType row = by * tileDim + ty;
    IndexType col = bx * tileDim + tx;

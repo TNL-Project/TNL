@@ -21,7 +21,7 @@ Init( int& argc, char**& argv, int required_thread_level = MPI_THREAD_SINGLE )
       case MPI_THREAD_MULTIPLE:    // application is multithreaded and any thread may issue MPI calls at any time
          break;
       default:
-         std::cerr << "ERROR: invalid argument for the 'required' thread level support: " << required_thread_level << std::endl;
+         std::cerr << "ERROR: invalid argument for the 'required' thread level support: " << required_thread_level << '\n';
          MPI_Abort( MPI_COMM_WORLD, 1 );
    }
 
@@ -43,7 +43,7 @@ Init( int& argc, char**& argv, int required_thread_level = MPI_THREAD_SINGLE )
             level = "MPI_THREAD_MULTIPLE";
             break;
       }
-      std::cerr << "ERROR: The MPI library does not have the required level of thread support: " << level << std::endl;
+      std::cerr << "ERROR: The MPI library does not have the required level of thread support: " << level << '\n';
       MPI_Abort( MPI_COMM_WORLD, 1 );
    }
 

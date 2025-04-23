@@ -142,7 +142,7 @@ struct MeshConfigTemplateTag< MeshConverterConfigTag >
       subentityStorage( int entityDimension, int subentityDimension )
       {
          // faces must be stored for polyhedral meshes
-         if( std::is_same< Cell, TNL::Meshes::Topologies::Polyhedron >::value ) {
+         if( std::is_same_v< Cell, TNL::Meshes::Topologies::Polyhedron > ) {
             if( subentityDimension == 0 && entityDimension == Cell::dimension - 1 )
                return true;
             if( subentityDimension == Cell::dimension - 1 && entityDimension == Cell::dimension )
@@ -246,7 +246,7 @@ convertMesh( const Mesh& mesh,
    if( outputFormat == "auto" ) {
       namespace fs = std::filesystem;
       format = fs::path( outputFileName ).extension().string();
-      if( format.length() > 0 )
+      if( ! format.empty() )
          // remove dot from the extension
          format = format.substr( 1 );
    }
@@ -260,8 +260,7 @@ convertMesh( const Mesh& mesh,
    else
       std::cerr << "Unsupported output file format: " << outputFormat << ".";
    std::cerr << " Supported formats are 'vtk', 'vtu', 'vti' (only grids), 'ng' (only static unstructured meshes) and 'fpma' "
-                "(only polyhedral meshes)."
-             << std::endl;
+                "(only polyhedral meshes).\n";
    return false;
 }
 
@@ -306,12 +305,12 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   const std::string inputFileName = parameters.getParameter< std::string >( "input-file" );
-   const std::string inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
-   const std::string realType = parameters.getParameter< std::string >( "real-type" );
-   const std::string globalIndexType = parameters.getParameter< std::string >( "global-index-type" );
-   const std::string outputFileName = parameters.getParameter< std::string >( "output-file" );
-   const std::string outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
+   const auto inputFileName = parameters.getParameter< std::string >( "input-file" );
+   const auto inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
+   const auto realType = parameters.getParameter< std::string >( "real-type" );
+   const auto globalIndexType = parameters.getParameter< std::string >( "global-index-type" );
+   const auto outputFileName = parameters.getParameter< std::string >( "output-file" );
+   const auto outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
 
    auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
    {

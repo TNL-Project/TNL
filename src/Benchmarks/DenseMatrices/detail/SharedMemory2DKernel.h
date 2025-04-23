@@ -36,7 +36,8 @@ MultiplicationKernel3( ResultMatrix resultMatrix,
    const IndexType matrixBRows = matrixB.getRows();
    const IndexType matrixBColumns = matrixB.getColumns();
 
-   IndexType row, col;
+   IndexType row;
+   IndexType col;
 
    // Reset the tile C
    for( IndexType r = 0; r < tileDim; r += tileRowBlockSize )

@@ -38,26 +38,26 @@ public:
       // first open the file
       file = ::fopen( fname.c_str(), "w" );
       if( file == nullptr ) {
-         std::cerr << "error: fopen() failed, output is not redirected." << std::endl;
+         std::cerr << "error: fopen() failed, output is not redirected.\n";
          return false;
       }
 
       // then backup the original file descriptors
       backupFd = ::dup( targetFd );
       if( backupFd < 0 ) {
-         std::cerr << "error: dup() failed, output is not redirected." << std::endl;
+         std::cerr << "error: dup() failed, output is not redirected.\n";
          return false;
       }
 
       // finally redirect stdout and stderr
       if( ::dup2( ::fileno( file ), targetFd ) < 0 ) {
-         std::cerr << "error: dup2() failed, output is not redirected." << std::endl;
+         std::cerr << "error: dup2() failed, output is not redirected.\n";
          return false;
       }
 
       return true;
 #else
-      std::cerr << "Output redirection is supported only on POSIX systems." << std::endl;
+      std::cerr << "Output redirection is supported only on POSIX systems.\n";
       return false;
 #endif
    }
@@ -69,7 +69,7 @@ public:
       // first restore the original file descriptor
       if( backupFd >= 0 ) {
          if( ::dup2( backupFd, targetFd ) < 0 ) {
-            std::cerr << "error: dup2() failed, output is not restored." << std::endl;
+            std::cerr << "error: dup2() failed, output is not restored.\n";
             return false;
          }
          backupFd = -1;
@@ -82,7 +82,7 @@ public:
       }
       return true;
 #else
-      std::cerr << "Output redirection is supported only on POSIX systems." << std::endl;
+      std::cerr << "Output redirection is supported only on POSIX systems.\n";
       return false;
 #endif
    }
@@ -113,7 +113,7 @@ redirect_stdout_stderr( const std::string& stdout_fname, const std::string& stde
 
    return true;
 #else
-   std::cerr << "Output redirection is supported only on POSIX systems." << std::endl;
+   std::cerr << "Output redirection is supported only on POSIX systems.\n";
    return false;
 #endif
 }

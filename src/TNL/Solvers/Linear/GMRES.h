@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <TNL/Solvers/Linear/LinearSolver.h>
 
 namespace TNL::Solvers::Linear {
@@ -117,7 +119,7 @@ protected:
    using HostView = typename DeviceView::template Self< RealType, Devices::Host >;
    using HostVector = typename DeviceVector::template Self< RealType, Devices::Host >;
 
-   enum class Variant
+   enum class Variant : std::uint8_t
    {
       CGS,
       CGSR,

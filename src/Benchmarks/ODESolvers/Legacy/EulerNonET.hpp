@@ -78,7 +78,7 @@ EulerNonET< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhsF
    /****
     * Start the main loop
     */
-   while( 1 ) {
+   while( true ) {
       /****
        * Compute the RHS
        */

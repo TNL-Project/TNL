@@ -22,7 +22,9 @@ pickPivot( TNL::Containers::ArrayView< Value, Device > src, const CMP& Cmp )
    if( src.getSize() == 1 )
       return src[ 0 ];
 
-   const Value &a = src[ 0 ], &b = src[ src.getSize() / 2 ], &c = src[ src.getSize() - 1 ];
+   const Value& a = src[ 0 ];
+   const Value& b = src[ src.getSize() / 2 ];
+   const Value& c = src[ src.getSize() - 1 ];
 
    if( Cmp( a, b ) )  // ..a..b..
    {
@@ -55,7 +57,9 @@ pickPivotIdx( TNL::Containers::ArrayView< Value, Device > src, const CMP& Cmp )
    if( src.getSize() <= 1 )
       return 0;
 
-   const Value &a = src[ 0 ], &b = src[ src.getSize() / 2 ], &c = src[ src.getSize() - 1 ];
+   const Value& a = src[ 0 ];
+   const Value& b = src[ src.getSize() / 2 ];
+   const Value& c = src[ src.getSize() - 1 ];
 
    if( Cmp( a, b ) )  // ..a..b..
    {
@@ -171,7 +175,8 @@ cudaPartition( Containers::ArrayView< Value, Devices::Cuda > src,
                int elemPerBlock,
                TASK& task )
 {
-   static __shared__ int smallerStart, biggerStart;
+   static __shared__ int smallerStart;
+   static __shared__ int biggerStart;
 
    int myBegin = elemPerBlock * ( blockIdx.x - task.firstBlock );
    int myEnd = TNL::min( myBegin + elemPerBlock, src.getSize() );
@@ -180,7 +185,8 @@ cudaPartition( Containers::ArrayView< Value, Devices::Cuda > src,
 
    //-------------------------------------------------------------------------
 
-   int smaller = 0, bigger = 0;
+   int smaller = 0;
+   int bigger = 0;
    countElem( srcView, Cmp, smaller, bigger, pivot );
 
    // synchronization is in this function already
@@ -198,7 +204,8 @@ cudaPartition( Containers::ArrayView< Value, Devices::Cuda > src,
 
    //-----------------------------------------------------------
    if( useShared ) {
-      static __shared__ int smallerTotal, biggerTotal;
+      static __shared__ int smallerTotal;
+      static __shared__ int biggerTotal;
       if( threadIdx.x == blockDim.x - 1 ) {
          smallerTotal = smallerPrefSumInc;
          biggerTotal = biggerPrefSumInc;

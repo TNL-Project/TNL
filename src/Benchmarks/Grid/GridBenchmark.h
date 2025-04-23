@@ -111,11 +111,11 @@ public:
       };
 
       TNL::String device;
-      if( std::is_same< Device, TNL::Devices::Sequential >::value )
+      if( std::is_same_v< Device, TNL::Devices::Sequential > )
          device = "sequential";
-      if( std::is_same< Device, TNL::Devices::Host >::value )
+      if( std::is_same_v< Device, TNL::Devices::Host > )
          device = "host";
-      if( std::is_same< Device, TNL::Devices::Cuda >::value )
+      if( std::is_same_v< Device, TNL::Devices::Cuda > )
          device = "cuda";
 
       auto operation = TNL::getType< Operation >();

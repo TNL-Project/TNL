@@ -13,7 +13,7 @@ namespace TNL::MPI {
 template< typename T >
 struct TypeResolver
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       static_assert( sizeof( T ) == sizeof( char ) || sizeof( T ) == sizeof( int ) || sizeof( T ) == sizeof( short int )
@@ -39,7 +39,7 @@ struct TypeResolver
 template<>
 struct TypeResolver< char >
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_CHAR;
@@ -49,7 +49,7 @@ struct TypeResolver< char >
 template<>
 struct TypeResolver< int >
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_INT;
@@ -59,7 +59,7 @@ struct TypeResolver< int >
 template<>
 struct TypeResolver< short int >
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_SHORT;
@@ -69,7 +69,7 @@ struct TypeResolver< short int >
 template<>
 struct TypeResolver< long int >
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_LONG;
@@ -79,7 +79,7 @@ struct TypeResolver< long int >
 template<>
 struct TypeResolver< unsigned char >
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_UNSIGNED_CHAR;
@@ -89,7 +89,7 @@ struct TypeResolver< unsigned char >
 template<>
 struct TypeResolver< unsigned short int >
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_UNSIGNED_SHORT;
@@ -99,7 +99,7 @@ struct TypeResolver< unsigned short int >
 template<>
 struct TypeResolver< unsigned int >
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_UNSIGNED;
@@ -109,7 +109,7 @@ struct TypeResolver< unsigned int >
 template<>
 struct TypeResolver< unsigned long int >
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_UNSIGNED_LONG;
@@ -119,7 +119,7 @@ struct TypeResolver< unsigned long int >
 template<>
 struct TypeResolver< float >
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_FLOAT;
@@ -129,7 +129,7 @@ struct TypeResolver< float >
 template<>
 struct TypeResolver< double >
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_DOUBLE;
@@ -139,7 +139,7 @@ struct TypeResolver< double >
 template<>
 struct TypeResolver< long double >
 {
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_LONG_DOUBLE;
@@ -152,7 +152,7 @@ struct TypeResolver< bool >
    // sizeof(bool) is implementation-defined: https://stackoverflow.com/a/4897859
    static_assert( sizeof( bool ) == 1, "The systems where sizeof(bool) != 1 are not supported by MPI." );
 
-   [[nodiscard]] static inline MPI_Datatype
+   [[nodiscard]] static MPI_Datatype
    getType()
    {
       return MPI_C_BOOL;

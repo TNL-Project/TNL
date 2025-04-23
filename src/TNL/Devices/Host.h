@@ -35,7 +35,7 @@ public:
       ompEnabled() = true;
    }
 
-   static inline bool
+   static bool
    isOMPEnabled()
    {
 #ifdef HAVE_OPENMP

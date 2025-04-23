@@ -58,14 +58,12 @@ benchmarkArrayOperations( Benchmark<>& benchmark, const long& size )
 
    reset12();
 
-   if( std::is_fundamental< Real >::value ) {
+   if( std::is_fundamental_v< Real > ) {
       // std::memcmp
       auto compareHost = [ & ]()
       {
-         if( std::memcmp( hostArray.getData(), hostArray2.getData(), hostArray.getSize() * sizeof( Real ) ) == 0 )
-            resultHost = true;
-         else
-            resultHost = false;
+         resultHost =
+            (int) ( std::memcmp( hostArray.getData(), hostArray2.getData(), hostArray.getSize() * sizeof( Real ) ) == 0 );
       };
       benchmark.setOperation( "comparison (memcmp)", 2 * datasetSize );
       benchmark.time< Devices::Host >( reset12, "CPU", compareHost );

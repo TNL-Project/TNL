@@ -3,15 +3,17 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace TNL::Algorithms::detail {
 
-enum class ScanType
+enum class ScanType : std::uint8_t
 {
    Exclusive,
    Inclusive
 };
 
-enum class ScanPhaseType
+enum class ScanPhaseType : std::uint8_t
 {
    WriteInFirstPhase,
    WriteInSecondPhase

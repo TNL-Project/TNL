@@ -135,8 +135,8 @@ public:
       TNL_ASSERT_ALL_GE( entity.getCoordinates(), 0, "wrong coordinates" );
       TNL_ASSERT_ALL_LT( entity.getCoordinates(), grid.getDimensions() + entity.getNormals(), "wrong coordinates" );
 
-      const CoordinatesType coordinates = entity.getCoordinates();
-      const CoordinatesType dimensions = grid.getDimensions();
+      const CoordinatesType& coordinates = entity.getCoordinates();
+      const CoordinatesType& dimensions = grid.getDimensions();
 
       return ( coordinates.z() * dimensions.y() + coordinates.y() ) * dimensions.x() + coordinates.x();
    }
@@ -223,8 +223,8 @@ public:
       TNL_ASSERT_ALL_GE( entity.getCoordinates(), 0, "wrong coordinates" );
       TNL_ASSERT_ALL_LT( entity.getCoordinates(), grid.getDimensions() + entity.getNormals(), "wrong coordinates" );
 
-      const CoordinatesType coordinates = entity.getCoordinates();
-      const CoordinatesType dimensions = grid.getDimensions();
+      const CoordinatesType& coordinates = entity.getCoordinates();
+      const CoordinatesType& dimensions = grid.getDimensions();
 
       return ( coordinates.z() * ( dimensions.y() + 1 ) + coordinates.y() ) * ( dimensions.x() + 1 ) + coordinates.x();
    }

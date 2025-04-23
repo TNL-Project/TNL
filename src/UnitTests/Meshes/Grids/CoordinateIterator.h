@@ -15,13 +15,13 @@ public:
      end( end )
    {}
 
-   Coordinate
+   [[nodiscard]] Coordinate
    getCoordinate() const
    {
       return current;
    }
 
-   bool
+   [[nodiscard]] bool
    next()
    {
       current[ 0 ] += 1;
@@ -47,7 +47,7 @@ public:
       return isEnded;
    }
 
-   bool
+   [[nodiscard]] bool
    canIterate()
    {
       for( Index i = 0; i < current.getSize(); i++ )

@@ -17,7 +17,7 @@ struct _ForEachOrientationSupport
 
 public:
    template< typename Func >
-   inline static void
+   static void
    exec( Func func )
    {
       func( std::integral_constant< int, Orientation >(), NormalsGetterType::template getNormals< Orientation >() );
@@ -33,7 +33,7 @@ public:
    using NormalsGetterType = NormalsGetter< Index, EntityDimension, Dimension >;
 
    template< typename Func >
-   inline static void
+   static void
    exec( Func func )
    {
       func( std::integral_constant< int, 0 >(), NormalsGetterType::template getNormals< 0 >() );
@@ -45,7 +45,7 @@ struct _ForEachOrientationSupport< Index, 0, EntityDimension, Dimension, 0 >
 {
 public:
    template< typename Func >
-   inline static void
+   static void
    exec( Func func )
    {}
 };

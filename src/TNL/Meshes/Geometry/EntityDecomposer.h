@@ -11,7 +11,7 @@
 
 namespace TNL::Meshes {
 
-enum class EntityDecomposerVersion
+enum class EntityDecomposerVersion : std::uint8_t
 {
    ConnectEdgesToCentroid,
    ConnectEdgesToPoint
@@ -133,13 +133,15 @@ struct EntityDecomposer< MeshConfig,
    getExtraPointsAndEntitiesCount( const MeshEntityType& entity )
    {
       const auto& mesh = entity.getMesh();
-      GlobalIndexType extraPointsCount = 1,  // there is one new centroid point
-         entitiesCount = 0;
+      // there is one new centroid point
+      GlobalIndexType extraPointsCount = 1;
+      GlobalIndexType entitiesCount = 0;
       const auto facesCount = entity.template getSubentitiesCount< 2 >();
       for( LocalIndexType i = 0; i < facesCount; i++ ) {
          const auto face = mesh.template getEntity< 2 >( entity.template getSubentityIndex< 2 >( i ) );
 
-         GlobalIndexType faceExtraPoints, faceEntitiesCount;
+         GlobalIndexType faceExtraPoints;
+         GlobalIndexType faceEntitiesCount;
          std::tie( faceExtraPoints, faceEntitiesCount ) = SubentityDecomposer::getExtraPointsAndEntitiesCount( face );
          extraPointsCount += faceExtraPoints;  // add extra points from decomposition of faces
          entitiesCount += faceEntitiesCount;   // there is a new tetrahedron per triangle of a face
@@ -190,12 +192,14 @@ struct EntityDecomposer< MeshConfig,
    {
       const auto& mesh = entity.getMesh();
       const auto v3 = entity.template getSubentityIndex< 0 >( 0 );
-      GlobalIndexType extraPointsCount = 0, entitiesCount = 0;
+      GlobalIndexType extraPointsCount = 0;
+      GlobalIndexType entitiesCount = 0;
       const auto facesCount = entity.template getSubentitiesCount< 2 >();
       for( LocalIndexType i = 0; i < facesCount; i++ ) {
          const auto face = mesh.template getEntity< 2 >( entity.template getSubentityIndex< 2 >( i ) );
          if( ! faceContainsPoint( face, v3 ) ) {  // include only faces, that don't contain point v3
-            GlobalIndexType faceExtraPoints, faceEntitiesCount;
+            GlobalIndexType faceExtraPoints;
+            GlobalIndexType faceEntitiesCount;
             std::tie( faceExtraPoints, faceEntitiesCount ) = SubentityDecomposer::getExtraPointsAndEntitiesCount( face );
             extraPointsCount += faceExtraPoints;  // add extra points from decomposition of faces
             entitiesCount += faceEntitiesCount;   // there is a new tetrahedron per triangle of a face

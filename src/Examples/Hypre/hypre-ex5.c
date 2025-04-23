@@ -6,6 +6,7 @@
  ******************************************************************************/
 
 // clang-format off
+// NOLINTBEGIN(*)
 
 /*
    Example 5
@@ -674,3 +675,6 @@ int hypre_FlexGMRESModifyPCAMGExample(void *precond_data, int iterations,
 
    return 0;
 }
+
+// NOLINTEND(*)
+// clang-format on

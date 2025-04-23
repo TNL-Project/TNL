@@ -54,11 +54,11 @@ public:
    }
 
    //! Hypre's internal setup function
-   virtual HYPRE_PtrToParSolverFcn
+   [[nodiscard]] virtual HYPRE_PtrToParSolverFcn
    setupFcn() const = 0;
 
    //! Hypre's internal solve function
-   virtual HYPRE_PtrToParSolverFcn
+   [[nodiscard]] virtual HYPRE_PtrToParSolverFcn
    solveFcn() const = 0;
 
    /**
@@ -181,7 +181,7 @@ public:
    void
    setResidualConvergenceOptions( int res_frequency = -1, double rtol = 0.0 );
 
-   HYPRE_Int
+   [[nodiscard]] HYPRE_Int
    getNumIterations() const
    {
       HYPRE_Int num_it;
@@ -189,13 +189,13 @@ public:
       return num_it;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRPCGSetup;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRPCGSolve;
@@ -270,7 +270,7 @@ public:
       this->print_level = print_level;
    }
 
-   HYPRE_Int
+   [[nodiscard]] HYPRE_Int
    getNumIterations() const
    {
       HYPRE_Int num_it;
@@ -278,13 +278,13 @@ public:
       return num_it;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRBiCGSTABSetup;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRBiCGSTABSolve;
@@ -360,7 +360,7 @@ public:
       HYPRE_GMRESSetPrintLevel( solver, print_level );
    }
 
-   HYPRE_Int
+   [[nodiscard]] HYPRE_Int
    getNumIterations() const
    {
       HYPRE_Int num_it;
@@ -368,13 +368,13 @@ public:
       return num_it;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRGMRESSetup;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRGMRESSolve;
@@ -444,7 +444,7 @@ public:
       HYPRE_FlexGMRESSetPrintLevel( solver, print_level );
    }
 
-   HYPRE_Int
+   [[nodiscard]] HYPRE_Int
    getNumIterations() const
    {
       HYPRE_Int num_it;
@@ -452,13 +452,13 @@ public:
       return num_it;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRFlexGMRESSetup;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRFlexGMRESSolve;
@@ -474,13 +474,13 @@ protected:
 class HypreIdentity : public HypreSolver
 {
 public:
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) hypre_ParKrylovIdentitySetup;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) hypre_ParKrylovIdentity;
@@ -492,13 +492,13 @@ public:
 class HypreDiagScale : public HypreSolver
 {
 public:
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRDiagScaleSetup;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRDiagScale;
@@ -517,13 +517,13 @@ public:
 class HypreTriSolve : public HypreSolver
 {
 public:
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSROnProcTriSetup;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSROnProcTriSolve;
@@ -555,13 +555,13 @@ public:
 
    ~HypreParaSails() override;
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParaSailsSetup;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ParaSailsSolve;
@@ -598,13 +598,13 @@ public:
 
    ~HypreEuclid() override;
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_EuclidSetup;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_EuclidSolve;
@@ -648,13 +648,13 @@ public:
       HYPRE_ILUSetPrintLevel( solver, print_level );
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ILUSetup;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_ILUSolve;
@@ -740,7 +740,7 @@ public:
       HYPRE_BoomerAMGSetTol( solver, tol );
    }
 
-   HYPRE_Int
+   [[nodiscard]] HYPRE_Int
    getNumIterations() const
    {
       HYPRE_Int num_it;
@@ -748,13 +748,13 @@ public:
       return num_it;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_BoomerAMGSetup;
    }
 
-   HYPRE_PtrToParSolverFcn
+   [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
       return (HYPRE_PtrToParSolverFcn) HYPRE_BoomerAMGSolve;

@@ -79,7 +79,7 @@ public:
     */
    using IndexType = std::size_t;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isStatic()
    {
       return true;
@@ -142,7 +142,7 @@ public:
     * \returns the current value of the parameter controlling the adaptive choice of
     *    integration time step.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getAdaptivity() const
    {
@@ -154,7 +154,7 @@ public:
     *
     * \return reference to the underlying method.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Method&
    getMethod();
 
@@ -163,7 +163,7 @@ public:
     *
     * \return constant reference to the underlying method.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    const Method&
    getMethod() const;
 
@@ -179,7 +179,7 @@ public:
     * `fu` is variable/static vector into which the lambda function is suppsed to evaluate the function \f$ f(t, \vec x) \f$ at
     * the current time \f$ t \f$.
     * \param u is a variable/static vector representing the solution of the ODE system at current time.
-    * \param f is the lambda function representing the right-hand side of the ODE system.
+    * \param rhsFunction is the lambda function representing the right-hand side of the ODE system.
     * \param params are the parameters which are supposed to be passed to the lambda function \e f. This is due to the fact that
     * the CUDA compiler does not allow nested lambda functions: "An extended __host__ __device__ lambda cannot be defined inside
     * an extended __host__ __device__  lambda expression".
@@ -193,7 +193,7 @@ public:
    template< typename RHSFunction, typename... Params >
    __cuda_callable__
    bool
-   solve( VectorType& u, RHSFunction&& f, Params&&... params );
+   solve( VectorType& u, RHSFunction&& rhsFunction, Params&&... params );
 
    /**
     * \brief Setup auxiliary vectors of the solver.
@@ -216,9 +216,9 @@ public:
     * \tparam Params are the parameters which are supposed to be passed to the lambda function \e f.
     * \param u is a variable/static vector representing the solution of the ODE system at current time.
     * \param time is the current time of the evolution. The variable is increased by \e tau.
-    * \param tau is the current time step. It can be changed by the solver if the adaptive time step control is used.
-    * \param f is the lambda function representing the right-hand side of the ODE system.  The definition of the lambda function
-    *    is the same as in the method \ref solve.
+    * \param currentTau is the current time step. It can be changed by the solver if the adaptive time step control is used.
+    * \param rhsFunction is the lambda function representing the right-hand side of the ODE system.  The definition of the
+    * lambda function is the same as in the method \ref solve.
     * \param params are the parameters which are supposed to be passed to the lambda function \e f.
     *
     * \par Example
@@ -226,7 +226,7 @@ public:
     */
    template< typename RHSFunction, typename... Params >
    void __cuda_callable__
-   iterate( VectorType& u, RealType& time, RealType& tau, RHSFunction&& f, Params&&... params );
+   iterate( VectorType& u, RealType& time, RealType& currentTau, RHSFunction&& rhsFunction, Params&&... params );
 
    /**
     * \brief This method is just for consistency with the ODE solver for dynamic vectors.
@@ -290,7 +290,7 @@ public:
     */
    using SolverMonitorType = SolverMonitor;
 
-   static constexpr bool
+   [[nodiscard]] static constexpr bool
    isStatic()
    {
       return false;
@@ -318,7 +318,7 @@ public:
     * \return true if the parameters where parsed successfully.
     * \return false if the method did not succeed to read the configuration parameters.
     */
-   bool
+   [[nodiscard]] bool
    setup( const Config::ParameterContainer& parameters, const String& prefix = "" );
 
    /**
@@ -342,7 +342,7 @@ public:
     * \returns the current value of the parameter controlling the adaptive choice of
     *    integration time step.
     */
-   __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    RealType
    getAdaptivity() const
    {
@@ -354,7 +354,7 @@ public:
     *
     * \return reference to the underlying method.
     */
-   Method&
+   [[nodiscard]] Method&
    getMethod();
 
    /**
@@ -362,7 +362,7 @@ public:
     *
     * \return constant reference to the underlying method.
     */
-   const Method&
+   [[nodiscard]] const Method&
    getMethod() const;
 
    /**
@@ -377,7 +377,7 @@ public:
     * `fu` is variable/static vector into which the lambda function is suppsed to evaluate the function \f$ f(t, \vec x) \f$ at
     * the current time \f$ t \f$.
     * \param u is a variable/static vector representing the solution of the ODE system at current time.
-    * \param f is the lambda function representing the right-hand side of the ODE system.
+    * \param rhsFunction is the lambda function representing the right-hand side of the ODE system.
     * \param params are the parameters which are supposed to be passed to the lambda function \e f. This is due to the fact that
     * the CUDA compiler does not allow nested lambda functions: "An extended __host__ __device__ lambda cannot be defined inside
     * an extended __host__ __device__  lambda expression".
@@ -388,7 +388,7 @@ public:
     */
    template< typename RHSFunction, typename... Params >
    bool
-   solve( VectorType& u, RHSFunction&& f, Params&&... params );
+   solve( VectorType& u, RHSFunction&& rhsFunction, Params&&... params );
 
    /**
     * \brief Setup auxiliary vectors of the solver.
@@ -412,9 +412,9 @@ public:
     * \tparam Params are the parameters which are supposed to be passed to the lambda function \e f.
     * \param u is a variable/static vector representing the solution of the ODE system at current time.
     * \param time is the current time of the evolution. The variable is increased by \e tau.
-    * \param tau is the current time step. It can be changed by the solver if the adaptive time step control is used.
-    * \param f is the lambda function representing the right-hand side of the ODE system. The definition of the lambda function
-    *    is the same as in the method \ref solve.
+    * \param currentTau is the current time step. It can be changed by the solver if the adaptive time step control is used.
+    * \param rhsFunction is the lambda function representing the right-hand side of the ODE system. The definition of the lambda
+    * function is the same as in the method \ref solve.
     * \param params are the parameters which are supposed to be passed to the lambda function \e f.
     *
     * \par Example
@@ -422,7 +422,7 @@ public:
     */
    template< typename RHSFunction, typename... Params >
    void
-   iterate( VectorType& u, RealType& time, RealType& tau, RHSFunction&& f, Params&&... params );
+   iterate( VectorType& u, RealType& time, RealType& currentTau, RHSFunction&& rhsFunction, Params&&... params );
 
    /**
     * \brief Resets the solver.

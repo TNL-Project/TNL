@@ -12,7 +12,7 @@
 
 namespace TNL::Benchmarks {
 
-const double oneGB = 1024.0 * 1024.0 * 1024.0;
+inline constexpr double oneGB = 1024.0 * 1024.0 * 1024.0;
 
 struct BenchmarkResult
 {
@@ -74,22 +74,22 @@ struct BenchmarkResult
       else
          elements << "N/A";
       elements << bandwidth;
-      if( cpu_cycles_per_operation )
+      if( cpu_cycles_per_operation != 0 )
          elements << cpu_cycles_per_operation;
       else
          elements << "N/A";
-      if( cpu_cycles )
+      if( cpu_cycles != 0 )
          elements << cpu_cycles;
       else
          elements << "N/A";
       elements << time_stddev << time_stddev / time;
-      if( cpu_cycles )
+      if( cpu_cycles != 0 )
          elements << cpu_cycles_stddev << cpu_cycles_stddev / cpu_cycles;
       else
          elements << "N/A"
                   << "N/A";
       elements << loops;
-      if( operations_per_loop )
+      if( operations_per_loop != 0 )
          elements << operations_per_loop;
       else
          elements << "N/A";

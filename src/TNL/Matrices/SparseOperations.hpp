@@ -22,7 +22,7 @@ namespace TNL::Matrices {
 
 template< typename Matrix1, typename Matrix2 >
 void
-copyDenseToDenseMatrix( Matrix1& A, const Matrix2& matrix )
+copyDenseToDenseMatrix( Matrix1& A, const Matrix2& B )
 {
    using Index = typename Matrix1::IndexType;
    using Real = typename Matrix1::RealType;
@@ -31,9 +31,9 @@ copyDenseToDenseMatrix( Matrix1& A, const Matrix2& matrix )
    using RHSRealType = std::remove_const_t< typename Matrix2::RealType >;
    using RHSDeviceType = typename Matrix2::DeviceType;
 
-   A.setLike( matrix );
+   A.setLike( B );
    if constexpr( Matrix1::getOrganization() == Matrix2::getOrganization() ) {
-      A.getValues() = matrix.getValues();
+      A.getValues() = B.getValues();
    }
    else if constexpr( std::is_same_v< Device, RHSDeviceType > ) {
       auto A_view = A.getView();
@@ -42,10 +42,10 @@ copyDenseToDenseMatrix( Matrix1& A, const Matrix2& matrix )
       {
          A_view( rowIdx, columnIdx ) = value;
       };
-      matrix.forAllElements( f );
+      B.forAllElements( f );
    }
    else {
-      const Index maxRowLength = matrix.getColumns();
+      const Index maxRowLength = B.getColumns();
       const Index bufferRowsCount( 128 );
       const std::size_t bufferSize = bufferRowsCount * maxRowLength;
       Containers::Vector< RHSRealType, RHSDeviceType, RHSIndexType > matrixValuesBuffer( bufferSize );
@@ -65,7 +65,7 @@ copyDenseToDenseMatrix( Matrix1& A, const Matrix2& matrix )
             const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + columnIdx;
             matrixValuesBuffer_view[ bufferIdx ] = value;
          };
-         matrix.forElements( baseRow, lastRow, f1 );
+         B.forElements( baseRow, lastRow, f1 );
 
          // Copy the source matrix buffer to this matrix buffer
          thisValuesBuffer_view = matrixValuesBuffer_view;

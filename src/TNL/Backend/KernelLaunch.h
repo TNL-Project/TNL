@@ -27,7 +27,7 @@ struct LaunchConfiguration
    std::size_t dynamicSharedMemorySize = 0U;
 
    //! \brief stream handle
-   Backend::stream_t stream = 0;
+   Backend::stream_t stream = 0;  // NOLINT(modernize-use-nullptr)
 
    //! \brief indicates whether host execution is blocked until the kernel execution is finished
    bool blockHostUntilFinished = true;
@@ -39,7 +39,7 @@ struct LaunchConfiguration
    constexpr LaunchConfiguration( dim3 gridSize,
                                   dim3 blockSize,
                                   std::size_t dynamicSharedMemorySize = 0U,
-                                  Backend::stream_t stream = 0,
+                                  Backend::stream_t stream = 0,  // NOLINT(modernize-use-nullptr)
                                   bool blockHostUntilFinished = true )
    : gridSize( gridSize ),
      blockSize( blockSize ),

@@ -14,13 +14,13 @@
 
 namespace TNL::Backend {
 
-inline constexpr std::size_t
+constexpr std::size_t
 getMaxGridXSize()
 {
    return 2147483647;
 }
 
-inline constexpr std::size_t
+constexpr std::size_t
 getMaxGridYSize()
 {
 #if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
@@ -30,7 +30,7 @@ getMaxGridYSize()
 #endif
 }
 
-inline constexpr std::size_t
+constexpr std::size_t
 getMaxGridZSize()
 {
 #if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
@@ -40,19 +40,19 @@ getMaxGridZSize()
 #endif
 }
 
-inline constexpr int
+constexpr int
 getMaxBlockXSize()
 {
    return 1024;
 }
 
-inline constexpr int
+constexpr int
 getMaxBlockYSize()
 {
    return 1024;
 }
 
-inline constexpr int
+constexpr int
 getMaxBlockZSize()
 {
 #if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
@@ -76,7 +76,7 @@ getMaxBlockZSize()
  *
  * https://rocm.docs.amd.com/projects/HIP/en/latest/reference/kernel_language.html#warpsize
  */
-inline constexpr int
+constexpr int
 getWarpSize()
 {
 #if defined( __CUDACC__ ) || defined( __HIP_PLATFORM_NVCC__ )
@@ -94,7 +94,7 @@ getWarpSize()
 // When we transfer data between the GPU and the CPU we use 1 MiB buffer. This
 // size should ensure good performance.
 // We use the same buffer size even for retyping data during IO operations.
-inline constexpr std::size_t
+constexpr std::size_t
 getTransferBufferSize()
 {
    return 1 << 20;

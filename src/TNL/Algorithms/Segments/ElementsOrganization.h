@@ -3,12 +3,14 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <TNL/Devices/Host.h>
 
 namespace TNL {
 namespace Algorithms::Segments {
 
-enum ElementsOrganization
+enum ElementsOrganization : std::uint8_t
 {
    //! \brief Column-major order
    ColumnMajorOrder = 0,
@@ -22,7 +24,7 @@ struct DefaultElementsOrganization
    static constexpr ElementsOrganization
    getOrganization()
    {
-      if( std::is_same< Device, Devices::Host >::value )
+      if( std::is_same_v< Device, Devices::Host > )
          return RowMajorOrder;
       else
          return ColumnMajorOrder;

@@ -3,9 +3,6 @@
 
 #pragma once
 
-#include <limits>
-#include <string>
-
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
@@ -82,7 +79,7 @@ public:
     *
     * \return maximal number of allowed iterations.
     */
-   const Index&
+   [[nodiscard]] const Index&
    getMaxIterations() const;
 
    /**
@@ -98,7 +95,7 @@ public:
     *
     * \return minimal number of iterations the solver is supposed to do.
     */
-   const Index&
+   [[nodiscard]] const Index&
    getMinIterations() const;
 
    /**
@@ -106,7 +103,7 @@ public:
     *
     * \return number of iterations performed so far.
     */
-   const Index&
+   [[nodiscard]] const Index&
    getIterations() const;
 
    /**
@@ -126,7 +123,7 @@ public:
     *
     * \return the convergence threshold.
     */
-   const Real&
+   [[nodiscard]] const Real&
    getConvergenceResidue() const;
 
    /**
@@ -146,7 +143,7 @@ public:
     *
     * \return the residue limit fo the divergence.
     */
-   const Real&
+   [[nodiscard]] const Real&
    getDivergenceResidue() const;
 
    /**
@@ -162,7 +159,7 @@ public:
     *
     * \return residue reached at the current iteration.
     */
-   const Real&
+   [[nodiscard]] const Real&
    getResidue() const;
 
    /**
@@ -207,7 +204,7 @@ public:
     * \return \e false if the solver is \b not allowed to do the next iteration. This may
     *    happen because the divergence occurred.
     */
-   bool
+   [[nodiscard]] bool
    checkNextIteration();
 
    /**
@@ -216,7 +213,7 @@ public:
     * \return \e true if the convergence already occured.
     * \return \e false if the convergence did not occur yet.
     */
-   bool
+   [[nodiscard]] bool
    checkConvergence();
 
 protected:
@@ -237,7 +234,7 @@ protected:
 
    Index refreshRate = 1;
 
-   std::string residualHistoryFileName = "";
+   std::string residualHistoryFileName;
 
    std::ofstream residualHistoryFile;
 };

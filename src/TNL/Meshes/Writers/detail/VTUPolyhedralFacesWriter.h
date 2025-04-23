@@ -23,15 +23,13 @@ struct VTUPolyhedralFacesWriter
 
    // specialization for all meshes except polyhedral
    template< typename W, typename M >
-   static std::enable_if_t< isMesh< M >::value
-                            && ! std::is_same< typename M::Config::CellTopology, Topologies::Polyhedron >::value >
+   static std::enable_if_t< isMesh< M >::value && ! std::is_same_v< typename M::Config::CellTopology, Topologies::Polyhedron > >
    exec( W& writer, const M& mesh )
    {}
 
    // specialization for polyhedral meshes
    template< typename W, typename M >
-   static std::enable_if_t< isMesh< M >::value
-                            && std::is_same< typename M::Config::CellTopology, Topologies::Polyhedron >::value >
+   static std::enable_if_t< isMesh< M >::value && std::is_same_v< typename M::Config::CellTopology, Topologies::Polyhedron > >
    exec( W& writer, const M& mesh )
    {
       // build the "face stream" for VTK

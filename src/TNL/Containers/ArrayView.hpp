@@ -110,7 +110,7 @@ ArrayView< Value, Device, Index >::operator=( const T& data )
 template< typename Value, typename Device, typename Index >
 __cuda_callable__
 void
-ArrayView< Value, Device, Index >::swap( ArrayView& view )
+ArrayView< Value, Device, Index >::swap( ArrayView& view ) noexcept
 {
    TNL::swap( data, view.data );
    TNL::swap( size, view.size );

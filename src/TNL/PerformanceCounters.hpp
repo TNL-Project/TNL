@@ -62,7 +62,7 @@ PerformanceCounters::writeLog( Logger& logger, int logLevel ) const
 }
 
 inline unsigned long long int
-PerformanceCounters::readCPUCycles() const
+PerformanceCounters::readCPUCycles()
 {
 #if defined( SPY_OS_IS_LINUX )  // TODO: Does it work even on Windows?
    unsigned hi;

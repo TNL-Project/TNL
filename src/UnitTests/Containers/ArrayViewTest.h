@@ -162,7 +162,7 @@ TYPED_TEST( ArrayViewTest, constructors )
    EXPECT_EQ( v.getSize(), 10 );
    EXPECT_EQ( v.getData(), a.getData() );
 
-   if( std::is_same< typename ArrayType::DeviceType, Devices::Host >::value ) {
+   if( std::is_same_v< typename ArrayType::DeviceType, Devices::Host > ) {
       typename ArrayType::ValueType data[ 10 ];
       ViewType w( data, 10 );
       EXPECT_EQ( w.getData(), data );
@@ -220,7 +220,8 @@ TYPED_TEST( ArrayViewTest, swap )
    using ArrayType = typename TestFixture::ArrayType;
    using ViewType = typename TestFixture::ViewType;
 
-   ArrayType a( 10 ), b( 20 );
+   ArrayType a( 10 );
+   ArrayType b( 20 );
    a.setValue( 0 );
    b.setValue( 1 );
 
@@ -309,7 +310,8 @@ testArrayViewElementwiseAccess( Array< Value, Devices::Cuda, Index >&& a )
    using ViewType = ArrayView< Value, Devices::Cuda, Index >;
    a.setSize( 10 );
    ArrayType b( 10 );
-   ViewType u( a ), v( b );
+   ViewType u( a );
+   ViewType v( b );
    // clang-format off
    testSetGetElementKernel<<< 1, 16 >>>( u, v );
    // clang-format on
@@ -354,7 +356,8 @@ template< typename ArrayType >
 void
 test_setElement()
 {
-   ArrayType a( 10, 0 ), b( 10, 0 );
+   ArrayType a( 10, 0 );
+   ArrayType b( 10, 0 );
    auto a_view = a.getView();
    auto b_view = b.getView();
    auto set = [ = ] __cuda_callable__( int i ) mutable
@@ -397,7 +400,8 @@ TYPED_TEST( ArrayViewTest, comparisonOperator )
    using ViewType = typename TestFixture::ViewType;
    using HostArrayType = typename ArrayType::template Self< typename ArrayType::ValueType, Devices::Sequential >;
 
-   ArrayType a( 10 ), b( 10 );
+   ArrayType a( 10 );
+   ArrayType b( 10 );
    HostArrayType a_host( 10 );
    for( int i = 0; i < 10; i++ ) {
       a.setElement( i, i );
@@ -461,7 +465,7 @@ TYPED_TEST( ArrayViewTest, comparisonOperatorWithDifferentType )
    EXPECT_FALSE( u != v );
 
    // the comparison will be in floats
-   v.setElement( 0, 0.1f );
+   v.setElement( 0, 0.1F );
    EXPECT_FALSE( u == v );
    EXPECT_TRUE( u != v );
 }
@@ -475,7 +479,8 @@ TYPED_TEST( ArrayViewTest, assignmentOperator )
    using HostArrayType = typename ArrayType::template Self< typename ArrayType::ValueType, Devices::Sequential >;
    using HostViewType = typename HostArrayType::ViewType;
 
-   ArrayType a( 10 ), b( 10 );
+   ArrayType a( 10 );
+   ArrayType b( 10 );
    HostArrayType a_host( 10 );
    for( int i = 0; i < 10; i++ ) {
       a.setElement( i, i );
@@ -516,8 +521,7 @@ TYPED_TEST( ArrayViewTest, assignmentOperator )
 }
 
 // test works only for arithmetic types
-template< typename ArrayType,
-          typename = typename std::enable_if< std::is_arithmetic< typename ArrayType::ValueType >::value >::type >
+template< typename ArrayType, typename = std::enable_if_t< std::is_arithmetic_v< typename ArrayType::ValueType > > >
 void
 testArrayAssignmentWithDifferentType()
 {
@@ -560,7 +564,7 @@ testArrayAssignmentWithDifferentType()
 }
 
 template< typename ArrayType,
-          typename = typename std::enable_if< ! std::is_arithmetic< typename ArrayType::ValueType >::value >::type,
+          typename = std::enable_if_t< ! std::is_arithmetic_v< typename ArrayType::ValueType > >,
           typename = void >
 void
 testArrayAssignmentWithDifferentType()

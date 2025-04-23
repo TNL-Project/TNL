@@ -91,7 +91,7 @@ addDefaultValues( const ConfigDescription& config, ParameterContainer& parameter
 inline void
 printUsage( const ConfigDescription& config, const char* program_name )
 {
-   std::cout << "Usage of: " << program_name << std::endl << std::endl;
+   std::cout << "Usage of: " << program_name << "\n\n";
    std::size_t max_name_length = 0;
    std::size_t max_type_length = 0;
 
@@ -105,9 +105,7 @@ printUsage( const ConfigDescription& config, const char* program_name )
 
    for( const auto& entry : config ) {
       if( entry->isDelimiter() ) {
-         std::cout << std::endl;
-         std::cout << entry->getDescription();
-         std::cout << std::endl << std::endl;
+         std::cout << '\n' << entry->getDescription() << "\n\n";
       }
       else {
          std::cout << std::setw( max_name_length + 3 ) << "--" << entry->getName() << std::setw( max_type_length + 5 )
@@ -115,21 +113,21 @@ printUsage( const ConfigDescription& config, const char* program_name )
          if( entry->isRequired() )
             std::cout << " *** REQUIRED ***";
          if( entry->hasEnumValues() ) {
-            std::cout << std::endl
+            std::cout << '\n'
                       << std::setw( max_name_length + 3 ) << "" << std::setw( max_type_length + 5 ) << ""
                       << "    ";
             entry->printEnumValues( std::cout );
          }
          if( entry->hasDefaultValue() ) {
-            std::cout << std::endl
+            std::cout << '\n'
                       << std::setw( max_name_length + 3 ) << "" << std::setw( max_type_length + 5 ) << ""
                       << "    ";
             std::cout << "- Default value is: " << entry->printDefaultValue();
          }
-         std::cout << std::endl;
+         std::cout << '\n';
       }
    }
-   std::cout << std::endl;
+   std::cout << '\n';
 }
 
 //! Check for all entries with the flag 'required'.
@@ -148,13 +146,13 @@ checkMissingEntries( const ConfigDescription& config,
          missingParameters.push_back( entry_name );
    }
    if( ! missingParameters.empty() ) {
-      std::cerr << "Some mandatory parameters are misssing. They are listed at the end." << std::endl;
+      std::cerr << "Some mandatory parameters are misssing. They are listed at the end.\n";
       if( printUsage )
          Config::printUsage( config, programName );
-      std::cerr << "Add the following missing parameters to the command line:" << std::endl << "   ";
+      std::cerr << "Add the following missing parameters to the command line:\n   ";
       for( auto& missingParameter : missingParameters )
          std::cerr << "--" << missingParameter << " ... ";
-      std::cerr << std::endl;
+      std::cerr << '\n';
       return false;
    }
    return true;
@@ -338,7 +336,7 @@ parseCommandLine( int argc,
       }
    }
    catch( const Exceptions::ConfigError& e ) {
-      std::cerr << argv[ 0 ] << ": failed to parse the command line due to the following error:\n" << e.what() << std::endl;
+      std::cerr << argv[ 0 ] << ": failed to parse the command line due to the following error:\n" << e.what() << '\n';
       if( printUsage )
          Config::printUsage( config_description, argv[ 0 ] );
       return false;

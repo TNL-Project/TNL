@@ -34,7 +34,8 @@ DenseTranspositionAlignedKernel( OutputMatrix resultMatrix,
    const Index rows = inputMatrix.getRows();
 
    // Diagonal mapping of the CUDA blocks
-   Index blockIdx_x, blockIdx_y;
+   Index blockIdx_x;
+   Index blockIdx_y;
    if( columns == rows ) {
       blockIdx_y = blockIdx.x;
       blockIdx_x = ( blockIdx.x + blockIdx.y ) % gridDim.x;
@@ -80,7 +81,8 @@ DenseTranspositionNonAlignedKernel( OutputMatrix resultMatrix,
    const Index rows = inputMatrix.getRows();
 
    // Diagonal mapping of the CUDA blocks
-   Index blockIdx_x, blockIdx_y;
+   Index blockIdx_x;
+   Index blockIdx_y;
    if( columns == rows ) {
       blockIdx_y = blockIdx.x;
       blockIdx_x = ( blockIdx.x + blockIdx.y ) % gridDim.x;
@@ -138,7 +140,8 @@ TranspositionKernel2( OutputMatrix resultMatrix,
    const Index rows = inputMatrix.getRows();
 
    // Diagonal mapping of the CUDA blocks
-   Index blockIdx_x, blockIdx_y;
+   Index blockIdx_x;
+   Index blockIdx_y;
    if( columns == rows ) {
       blockIdx_y = blockIdx.x;
       blockIdx_x = ( blockIdx.x + blockIdx.y ) % gridDim.x;

@@ -20,8 +20,6 @@
    #include <dcmtk/dcmimgle/dcmimage.h>
 #endif
 
-#include <string>
-
 namespace TNL::Images {
 
 struct WindowCenterWidth
@@ -50,41 +48,41 @@ public:
 
    inline virtual ~DicomSeries();
 
-   inline int
-   getImagesCount();
+   [[nodiscard]] inline int
+   getImagesCount() const;
 
    template< typename Real, typename Device, typename Index, typename Vector >
    bool
    getImage( int imageIdx, const Meshes::Grid< 2, Real, Device, Index >& grid, RegionOfInterest< int > roi, Vector& vector );
 
 #ifdef HAVE_DCMTK_H
-   inline const Uint16*
+   [[nodiscard]] inline const Uint16*
    getData( int imageNumber = 0 );
 #endif
 
-   inline int
-   getColorCount();
+   [[nodiscard]] inline int
+   getColorCount() const;
 
-   inline int
-   getBitsPerSampleCount();
+   [[nodiscard]] inline int
+   getBitsPerSampleCount() const;
 
-   inline int
-   getMinColorValue();
+   [[nodiscard]] inline int
+   getMinColorValue() const;
 
-   inline WindowCenterWidth
-   getWindowDefaults();
+   [[nodiscard]] inline WindowCenterWidth
+   getWindowDefaults() const;
 
-   inline int
-   getMaxColorValue();
+   [[nodiscard]] inline int
+   getMaxColorValue() const;
 
    inline void
    freeData();
 
-   inline DicomHeader&
+   [[nodiscard]] inline DicomHeader&
    getHeader( int image );
 
-   inline bool
-   isDicomSeriesLoaded();
+   [[nodiscard]] inline bool
+   isDicomSeriesLoaded() const;
 
 private:
    bool

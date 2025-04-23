@@ -3,6 +3,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Algorithms/parallelFor.h>
+#include <TNL/Solvers/ODE/ODESolver.h>
 
 #include <gtest/gtest.h>
 
@@ -137,7 +138,8 @@ ODEStaticSolverTest_EOCTest()
       fu = TNL::exp( time );
    };
 
-   StaticVectorType u1( 0.0 ), u2( 0.0 );
+   StaticVectorType u1( 0.0 );
+   StaticVectorType u2( 0.0 );
    SolverType solver;
    solver.setStopTime( final_time );
    solver.setConvergenceResidue( 0.0 );
@@ -183,13 +185,15 @@ ODEStaticSolverTest_EOCTest_iterate()
       fu = TNL::exp( time );
    };
 
-   StaticVectorType u1( 0.0 ), u2( 0.0 );
+   StaticVectorType u1( 0.0 );
+   StaticVectorType u2( 0.0 );
    SolverType solver;
    solver.init( u1 );
    solver.setConvergenceResidue( 0.0 );
    solver.setAdaptivity( 0.0 );
 
-   RealType time( 0.0 ), tau( 0.1 );
+   RealType time = 0.0;
+   RealType tau = 0.1;
    while( time < final_time ) {
       solver.iterate( u1, time, tau, f );
       if( time + tau > final_time )

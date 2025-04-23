@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <limits>
-
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 
 namespace TNL::Solvers::ODE {
@@ -99,12 +97,10 @@ template< typename Real, typename Index, typename SolverMonitor >
 bool
 ExplicitSolver< Real, Index, SolverMonitor >::checkNextIteration()
 {
-   if( std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
-       || ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() >= this->getMinIterations() )
-       || ( this->getResidue() < this->getConvergenceResidue() && this->getIterations() >= this->getMinIterations()
-            && this->stopOnSteadyState ) )
-      return false;
-   return true;
+   return ! ( std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
+              || ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() >= this->getMinIterations() )
+              || ( this->getResidue() < this->getConvergenceResidue() && this->getIterations() >= this->getMinIterations()
+                   && this->stopOnSteadyState ) );
 }
 
 template< typename Real, typename Index, typename SolverMonitor >

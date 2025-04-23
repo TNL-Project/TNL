@@ -106,7 +106,7 @@ public:
    NDArrayStorage&
    operator=( const OtherArray& other )
    {
-      static_assert( std::is_same< PermutationType, typename OtherArray::PermutationType >::value,
+      static_assert( std::is_same_v< PermutationType, typename OtherArray::PermutationType >,
                      "Arrays must have the same permutation of indices." );
       // update sizes
       detail::SetSizesCopyHelper< SizesHolderType, typename OtherArray::SizesHolderType >::copy( getSizes(), other.getSizes() );

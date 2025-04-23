@@ -18,6 +18,7 @@
 #include "LegacyKernelsLauncher.h"
 #include "DenseMatricesResult.h"
 #include <cmath>
+#include <utility>
 #include <vector>
 
 #if defined( __CUDACC__ )
@@ -75,8 +76,8 @@ struct DenseMatrixMultiplicationBenchmark
    }
 
    TNL::Config::ParameterContainer parameters;
-   DenseMatrixMultiplicationBenchmark( const TNL::Config::ParameterContainer& parameters_ )
-   : parameters( parameters_ )
+   DenseMatrixMultiplicationBenchmark( TNL::Config::ParameterContainer parameters )
+   : parameters( std::move( parameters ) )
    {}
 
    bool

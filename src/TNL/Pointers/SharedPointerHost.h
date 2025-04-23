@@ -136,7 +136,7 @@ public:
     * \param pointer is the source shared pointer.
     */
    SharedPointer( SharedPointer&& pointer ) noexcept  // this is needed only to avoid the default compiler-generated constructor
-   : pd( (PointerData*) pointer.pd )
+   : pd( pointer.pd )
    {
       pointer.pd = nullptr;
    }
@@ -243,7 +243,7 @@ public:
     */
    operator bool() const
    {
-      return this->pd;
+      return this->pd != nullptr;
    }
 
    /**
@@ -254,7 +254,7 @@ public:
    bool
    operator!() const
    {
-      return ! this->pd;
+      return this->pd == nullptr;
    }
 
    /**
@@ -344,7 +344,7 @@ public:
    operator=( SharedPointer&& ptr ) noexcept  // this is needed only to avoid the default compiler-generated operator
    {
       this->free();
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = ptr.pd;
       ptr.pd = nullptr;
       return *this;
    }

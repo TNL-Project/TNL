@@ -38,7 +38,7 @@ __device__
 inline long int
 atomicAdd( long int* address, long int val )
 {
-   unsigned long long int* address_as_unsigned = reinterpret_cast< unsigned long long int* >( address );
+   auto* address_as_unsigned = reinterpret_cast< unsigned long long int* >( address );
    long int old = *address;
    long int assumed;
 

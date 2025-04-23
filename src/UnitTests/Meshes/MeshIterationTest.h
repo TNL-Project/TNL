@@ -58,7 +58,7 @@ testIteration( const DeviceMeshPointer& deviceMeshPointer,
 {
    using MeshType = typename DeviceMeshPointer::ObjectType;
    using DeviceType = typename MeshType::DeviceType;
-   static_assert( std::is_same< DeviceType, typename DeviceMeshPointer::DeviceType >::value, "devices must be the same" );
+   static_assert( std::is_same_v< DeviceType, typename DeviceMeshPointer::DeviceType >, "devices must be the same" );
 
    Containers::Array< int, DeviceType > array_boundary( deviceMeshPointer->template getEntitiesCount< EntityType >() );
    Containers::Array< int, DeviceType > array_interior( deviceMeshPointer->template getEntitiesCount< EntityType >() );
@@ -102,11 +102,14 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
    using VertexMeshEntityType = typename QuadrangleMeshEntityType::SubentityTraits< 0 >::SubentityType;
 
    using PointType = typename VertexMeshEntityType::PointType;
-   static_assert( std::is_same< PointType, Containers::StaticVector< 2, RealType > >::value, "unexpected PointType" );
+   static_assert( std::is_same_v< PointType, Containers::StaticVector< 2, RealType > >, "unexpected PointType" );
 
-   const IndexType xSize( 3 ), ySize( 4 );
-   const RealType width( 1.0 ), height( 1.0 );
-   const RealType hx( width / (RealType) xSize ), hy( height / (RealType) ySize );
+   const IndexType xSize = 3;
+   const IndexType ySize = 4;
+   const RealType width = 1.0;
+   const RealType height = 1.0;
+   const RealType hx = width / (RealType) xSize;
+   const RealType hy = height / (RealType) ySize;
    const IndexType numberOfCells = xSize * ySize;
    const IndexType numberOfVertices = ( xSize + 1 ) * ( ySize + 1 );
 
@@ -233,11 +236,17 @@ TEST( MeshTest, RegularMeshOfHexahedronsTest )
    using VertexMeshEntityType = typename HexahedronMeshEntityType::SubentityTraits< 0 >::SubentityType;
 
    using PointType = typename VertexMeshEntityType::PointType;
-   static_assert( std::is_same< PointType, Containers::StaticVector< 3, RealType > >::value, "unexpected PointType" );
+   static_assert( std::is_same_v< PointType, Containers::StaticVector< 3, RealType > >, "unexpected PointType" );
 
-   const IndexType xSize( 3 ), ySize( 4 ), zSize( 5 );
-   const RealType width( 1.0 ), height( 1.0 ), depth( 1.0 );
-   const RealType hx( width / (RealType) xSize ), hy( height / (RealType) ySize ), hz( depth / (RealType) zSize );
+   const IndexType xSize = 3;
+   const IndexType ySize = 4;
+   const IndexType zSize = 5;
+   const RealType width = 1.0;
+   const RealType height = 1.0;
+   const RealType depth = 1.0;
+   const RealType hx = width / (RealType) xSize;
+   const RealType hy = height / (RealType) ySize;
+   const RealType hz = depth / (RealType) zSize;
    const IndexType numberOfCells = xSize * ySize * zSize;
    const IndexType numberOfVertices = ( xSize + 1 ) * ( ySize + 1 ) * ( zSize + 1 );
 

@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <vector>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <TNL/Config/ConfigEntry.h>
 #include <TNL/Config/ConfigEntryList.h>
@@ -133,7 +134,9 @@ public:
     */
    template< typename EntryType = std::string >
    void
-   addEntryEnum( const EntryType entryEnum = EntryType{} )
+   // NOTE: pass-by-value is necessary here, otherwise `char []` arrays are not converted to std::string
+   // NOLINTNEXTLINE(performance-unnecessary-value-param)
+   addEntryEnum( EntryType entryEnum = EntryType{} )
    {
       if( this->currentEntry == nullptr )
          throw Exceptions::ConfigError( "there is no current entry" );

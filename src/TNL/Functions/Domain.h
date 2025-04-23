@@ -3,9 +3,11 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace TNL::Functions {
 
-enum DomainType
+enum DomainType : std::uint8_t
 {
    NonspaceDomain,
    SpaceDomain,

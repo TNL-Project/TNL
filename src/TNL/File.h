@@ -31,13 +31,13 @@ public:
 
    File( const File& ) = delete;
 
-   File( File&& ) = default;
+   File( File&& ) noexcept = default;
 
    File&
    operator=( const File& ) = delete;
 
    File&
-   operator=( File&& ) = default;
+   operator=( File&& ) noexcept = default;
 
    /**
     * \brief Constructor which opens given file.

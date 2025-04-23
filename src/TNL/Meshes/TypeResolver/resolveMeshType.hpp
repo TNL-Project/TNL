@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <filesystem>
-
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
 #include <TNL/Meshes/TypeResolver/GridTypeResolver.h>
 #include <TNL/Meshes/TypeResolver/MeshTypeResolver.h>
@@ -20,7 +18,7 @@ resolveMeshType( Functor&& functor,
                  const std::string& realType,
                  const std::string& globalIndexType )
 {
-   std::cout << "Detecting mesh from file " << fileName << " ..." << std::endl;
+   std::cout << "Detecting mesh from file " << fileName << " ...\n";
 
    std::shared_ptr< Readers::MeshReader > reader = Readers::getMeshReader( fileName, fileFormat );
    if( reader == nullptr )
@@ -38,7 +36,7 @@ resolveMeshType( Functor&& functor,
    else if( reader->getMeshType() == "Meshes::Mesh" || reader->getMeshType() == "Meshes::DistributedMesh" )
       return MeshTypeResolver< ConfigTag, Device >::run( *reader, functor );
    else {
-      std::cerr << "The mesh type " << reader->getMeshType() << " is not supported." << std::endl;
+      std::cerr << "The mesh type " << reader->getMeshType() << " is not supported.\n";
       return false;
    }
 }
@@ -54,12 +52,12 @@ resolveAndLoadMesh( Functor&& functor,
    auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
    {
       using MeshType = std::decay_t< decltype( mesh ) >;
-      std::cout << "Loading a mesh from the file " << fileName << " ..." << std::endl;
+      std::cout << "Loading a mesh from the file " << fileName << " ...\n";
       try {
          reader.loadMesh( mesh );
       }
       catch( const Meshes::Readers::MeshReaderError& e ) {
-         std::cerr << "Failed to load the mesh from the file " << fileName << ". The error is:\n" << e.what() << std::endl;
+         std::cerr << "Failed to load the mesh from the file " << fileName << ". The error is:\n" << e.what() << '\n';
          return false;
       }
       return functor( reader, std::forward< MeshType >( mesh ) );
@@ -71,7 +69,7 @@ template< typename Mesh >
 bool
 loadMesh( Mesh& mesh, const std::string& fileName, const std::string& fileFormat )
 {
-   std::cout << "Loading a mesh from the file " << fileName << " ..." << std::endl;
+   std::cout << "Loading a mesh from the file " << fileName << " ...\n";
 
    std::shared_ptr< Readers::MeshReader > reader = Readers::getMeshReader( fileName, fileFormat );
    if( reader == nullptr )
@@ -81,7 +79,7 @@ loadMesh( Mesh& mesh, const std::string& fileName, const std::string& fileFormat
       reader->loadMesh( mesh );
    }
    catch( const Meshes::Readers::MeshReaderError& e ) {
-      std::cerr << "Failed to load the mesh from the file " << fileName << ". The error is:\n" << e.what() << std::endl;
+      std::cerr << "Failed to load the mesh from the file " << fileName << ". The error is:\n" << e.what() << '\n';
       return false;
    }
 

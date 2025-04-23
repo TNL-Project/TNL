@@ -46,7 +46,7 @@ struct PerformanceCounters
     * CPU cycles are counted by adding the number of CPU cycles between
     * \ref start and \ref stop methods together.
     */
-   unsigned long long int
+   [[nodiscard]] unsigned long long int
    getCPUCycles() const;
 
    /**
@@ -68,8 +68,8 @@ private:
 
    unsigned long long int initialCPUCycles = 0, totalCPUCycles = 0;
 
-   unsigned long long int
-   readCPUCycles() const;
+   [[nodiscard]] static unsigned long long int
+   readCPUCycles();
 };
 
 }  // namespace TNL

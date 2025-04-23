@@ -27,7 +27,7 @@ public:
    using ByteArrayView = typename Base::ByteArrayView;
    using RequestsVector = typename Base::RequestsVector;
 
-   ~DistributedArraySynchronizer()
+   ~DistributedArraySynchronizer() override
    {
       // wait for pending async operation, otherwise it would crash
       if( this->async_op.valid() )

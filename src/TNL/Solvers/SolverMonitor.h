@@ -110,7 +110,7 @@ public:
    }
 
 protected:
-   double
+   [[nodiscard]] double
    getElapsedTime()
    {
       if( timer == nullptr )
