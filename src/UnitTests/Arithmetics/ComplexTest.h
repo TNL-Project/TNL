@@ -738,7 +738,7 @@ TYPED_TEST( ComplexTest, norm )
       RealType amp = 0.1 * (RealType) i;
       ComplexType ci( amp * TNL::cos( phase_i ), amp * TNL::sin( phase_i ) );
       std::complex< RealType > cj( amp * TNL::cos( phase_i ), amp * TNL::sin( phase_i ) );
-      EXPECT_EQ( norm( ci ), norm( cj ) );
+      EXPECT_FLOAT_EQ( norm( ci ), norm( cj ) );
    }
 }
 
