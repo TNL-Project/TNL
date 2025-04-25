@@ -275,16 +275,15 @@ nvcc:
         - .matrix_template
         - .nvcc
 
-# FIXME: builds with NVHPC 23.7 don't pass due to toolchain bugs
-#nvhpc:
-#    stage: build:cuda
-#    tags:
-#        - docker
-#        - nvidia
-#    extends:
-#        - .build_template
-#        - .matrix_template
-#        - .nvhpc
+nvhpc:
+    stage: build:cuda
+    tags:
+        - docker
+        - nvidia
+    extends:
+        - .build_template
+        - .matrix_template
+        - .nvhpc
 
 clang_cuda:
     extends:
