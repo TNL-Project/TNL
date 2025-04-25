@@ -4,6 +4,24 @@
 namespace TNL {
 namespace ParticleSystem {
 
+// Custom Particles config to read data always in doubles
+// This is used in case that particle positions use special real type which is incompatible with Readers
+// space dimension and Cell indexer need to be passed from the user defined config
+template< int spaceDim, typename CellIndexer >
+class ParticleSystemToReadParticleSystem
+{
+public:
+   using GlobalIndexType = long int;
+   using LocalIndexType = long int;
+   using CellIndexType = long int;
+   using RealType = double;
+
+   static constexpr int spaceDimension = spaceDim;
+
+   using UseWithDomainDecomposition = std::false_type;
+   using CellIndexerType = CellIndexer;
+};
+
 template< typename ParticlesConfig, typename Reader >
 class ReadParticles
 {
@@ -19,7 +37,11 @@ public:
    template< typename PointArray >
    void readParticles( PointArray& particles )
    {
-      using ParticleSystemToReadData = typename ParticleSystem::Particles< ParticlesConfig, Devices::Host >;
+      // Custom Particle config to read data
+      using ParticleSystemToReadData = typename ParticleSystem::Particles<
+         ParticleSystemToReadParticleSystem< ParticlesConfig::spaceDimension, typename ParticlesConfig::CellIndexerType >,
+         Devices::Host >;
+
       ParticleSystemToReadData particlesToRead( numberOfParticles, numberOfParticles, 0. );
       reader.template loadParticle< ParticleSystemToReadData >( particlesToRead );
 
