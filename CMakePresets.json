@@ -57,6 +57,26 @@
       }
     },
     {
+      "name": "toolchain-nvhpc-host",
+      "inherits": "default",
+      "displayName": "Toolchain: NVHPC (nvc++) host only",
+      "description": "Switch toolchain: latest NVHPC (nvc++, host only)",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "nvc",
+        "CMAKE_CXX_COMPILER": "nvc++",
+        "CMAKE_CXX_FLAGS": null,
+        "CMAKE_EXE_LINKER_FLAGS": null,
+        "CMAKE_SHARED_LINKER_FLAGS": null,
+        "TNL_USE_CUDA": "OFF",
+        "TNL_USE_HIP": "OFF"
+      }
+    },
+    {
       "name": "toolchain-gcc-nvcc",
       "inherits": "default",
       "displayName": "Toolchain: GCC + nvcc",
@@ -73,6 +93,35 @@
         "CMAKE_C_COMPILER": "gcc",
         "CMAKE_CXX_COMPILER": "g++",
         "CMAKE_CUDA_COMPILER": "nvcc",
+        "CMAKE_CUDA_HOST_COMPILER": null,
+        "CMAKE_CXX_FLAGS": null,
+        "CMAKE_CUDA_FLAGS": null,
+        "CMAKE_EXE_LINKER_FLAGS": null,
+        "CMAKE_SHARED_LINKER_FLAGS": null,
+        "Thrust_DIR": null,
+        "CUB_DIR": null,
+        "TNL_USE_CUDA": "ON",
+        "TNL_USE_HIP": "OFF"
+      }
+    },
+    {
+      "name": "toolchain-nvhpc-cuda",
+      "inherits": "default",
+      "displayName": "Toolchain: NVHPC with CUDA",
+      "description": "Switch toolchain: latest nvc++ and nvcc",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "environment": {
+        "CUDA_PATH": "$penv{CUDA_PATH}"
+      },
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "nvc",
+        "CMAKE_CXX_COMPILER": "nvc++",
+        "CMAKE_CUDA_COMPILER": "nvcc",
+        "CMAKE_CUDA_HOST_COMPILER": "nvc++",
         "CMAKE_CXX_FLAGS": null,
         "CMAKE_CUDA_FLAGS": null,
         "CMAKE_EXE_LINKER_FLAGS": null,
