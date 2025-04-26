@@ -34,7 +34,7 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
    }
 
    [[nodiscard]] virtual std::vector< int >
-   getColumnWidthHints() const
+   getColumnWidthHints() const override
    {
       return std::vector< int >( { 14,      // time
                                    8,       // speedup
