@@ -39,7 +39,7 @@ public:
    }
 
    void
-   setMatrix( const MatrixPointer& matrix )
+   setMatrix( const MatrixPointer& matrix ) override
    {
       this->matrix = matrix;
       auto gko_A = gko::share( gko::matrix::Csr< RealType, IndexType >::create(
