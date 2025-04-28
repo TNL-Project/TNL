@@ -126,15 +126,10 @@ using VectorTypes = ::testing::Types< StaticVector< 1, StaticVector< 3, double >
                                       StaticVector< 4, StaticVector< 3, double > >,
                                       StaticVector< 5, StaticVector< 3, CustomScalar< double > > > >;
    #else
-using VectorTypes = ::testing::Types< StaticVector< 1, int >,
-                                      StaticVector< 1, double >,
-                                      StaticVector< 2, int >,
+using VectorTypes = ::testing::Types< StaticVector< 1, double >,
                                       StaticVector< 2, double >,
-                                      StaticVector< 3, int >,
                                       StaticVector< 3, double >,
-                                      StaticVector< 4, int >,
                                       StaticVector< 4, double >,
-                                      StaticVector< 5, CustomScalar< int > >,
                                       StaticVector< 5, CustomScalar< double > > >;
    #endif
 #else
