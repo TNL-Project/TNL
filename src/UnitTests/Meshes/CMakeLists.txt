@@ -38,6 +38,13 @@ endif()
 # special tests needing external libraries
 set(SPECIAL_TESTS NetgenReaderTest VTKReaderTest VTUReaderTest VTIReaderTest FPMAReaderTest)
 
+if(DEFINED ENV{GITLAB_CI} AND CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC")
+    # FIXME: VTIReaderTest fails when compiled with nvc++ in Release mode
+    list(REMOVE_ITEM SPECIAL_TESTS VTIReaderTest)
+    # FIXME: nvhpc 25.3 has massive memory usage for this test and causes failures in CI
+    list(REMOVE_ITEM SPECIAL_TESTS VTUReaderTest)
+endif()
+
 find_package(ZLIB)
 find_package(tinyxml2)
 

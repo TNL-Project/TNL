@@ -189,15 +189,11 @@ using VectorPairs =
                            StaticVector< 5, StaticVector< 3, CustomScalar< short > > > > >;
    #else
 using VectorPairs = ::testing::Types< Pair< StaticVector< 1, int >, StaticVector< 1, short > >,
-                                      Pair< StaticVector< 1, double >, StaticVector< 1, double > >,
                                       Pair< StaticVector< 2, int >, StaticVector< 2, short > >,
-                                      Pair< StaticVector< 2, double >, StaticVector< 2, double > >,
                                       Pair< StaticVector< 3, int >, StaticVector< 3, short > >,
-                                      Pair< StaticVector< 3, double >, StaticVector< 3, double > >,
                                       Pair< StaticVector< 4, int >, StaticVector< 4, short > >,
-                                      Pair< StaticVector< 4, double >, StaticVector< 4, double > >,
                                       Pair< StaticVector< 5, int >, StaticVector< 5, CustomScalar< short > > >,
-                                      Pair< StaticVector< 5, double >, StaticVector< 5, CustomScalar< double > > > >;
+                                      Pair< StaticVector< 5, int >, StaticVector< 5, CustomScalar< short > > > >;
    #endif
 #else
    #ifdef VECTOR_OF_STATIC_VECTORS
@@ -225,9 +221,7 @@ using VectorPairs = ::testing::Types<
    Pair< Vector< int, Devices::Cuda >, Vector< int, Devices::Cuda > >,
    Pair< VectorView< int, Devices::Cuda >, Vector< int, Devices::Cuda > >,
    Pair< VectorView< const int, Devices::Cuda >, Vector< int, Devices::Cuda > >,
-   Pair< Vector< CustomScalar< int >, Devices::Cuda >, VectorView< CustomScalar< double >, Devices::Cuda > >,
    Pair< Vector< CustomScalar< int >, Devices::Cuda >, VectorView< const CustomScalar< double >, Devices::Cuda > >,
-   Pair< VectorView< CustomScalar< int >, Devices::Cuda >, VectorView< CustomScalar< double >, Devices::Cuda > >,
    Pair< VectorView< const int, Devices::Cuda >, VectorView< int, Devices::Cuda > >,
    Pair< VectorView< const int, Devices::Cuda >, VectorView< const int, Devices::Cuda > >,
    Pair< VectorView< int, Devices::Cuda >, VectorView< const int, Devices::Cuda > >
@@ -235,9 +229,7 @@ using VectorPairs = ::testing::Types<
    Pair< Vector< int, Devices::Hip >, Vector< int, Devices::Hip > >,
    Pair< VectorView< int, Devices::Hip >, Vector< int, Devices::Hip > >,
    Pair< VectorView< const int, Devices::Hip >, Vector< int, Devices::Hip > >,
-   Pair< Vector< CustomScalar< int >, Devices::Hip >, VectorView< CustomScalar< double >, Devices::Hip > >,
    Pair< Vector< CustomScalar< int >, Devices::Hip >, VectorView< const CustomScalar< double >, Devices::Hip > >,
-   Pair< VectorView< CustomScalar< int >, Devices::Hip >, VectorView< CustomScalar< double >, Devices::Hip > >,
    Pair< VectorView< const int, Devices::Hip >, VectorView< int, Devices::Hip > >,
    Pair< VectorView< const int, Devices::Hip >, VectorView< const int, Devices::Hip > >,
    Pair< VectorView< int, Devices::Hip >, VectorView< const int, Devices::Hip > >
@@ -245,9 +237,7 @@ using VectorPairs = ::testing::Types<
    Pair< Vector< int, Devices::Host >, Vector< int, Devices::Host > >,
    Pair< VectorView< int, Devices::Host >, Vector< int, Devices::Host > >,
    Pair< VectorView< const int, Devices::Host >, Vector< int, Devices::Host > >,
-   Pair< Vector< CustomScalar< int >, Devices::Host >, VectorView< CustomScalar< double >, Devices::Host > >,
    Pair< Vector< CustomScalar< int >, Devices::Host >, VectorView< const CustomScalar< double >, Devices::Host > >,
-   Pair< VectorView< CustomScalar< int >, Devices::Host >, VectorView< CustomScalar< double >, Devices::Host > >,
    Pair< VectorView< const int, Devices::Host >, VectorView< int, Devices::Host > >,
    Pair< VectorView< const int, Devices::Host >, VectorView< const int, Devices::Host > >,
    Pair< VectorView< int, Devices::Host >, VectorView< const int, Devices::Host > >

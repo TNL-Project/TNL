@@ -51,6 +51,11 @@ if(TNL_USE_CI_FLAGS AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=deprecated -Wno-error=deprecated-declarations")
 endif()
 
+if(DEFINED ENV{GITLAB_CI} AND CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC")
+    # need to disable some optimizations to lower memory usage in CI
+    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+endif()
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     # icpx complains about -g without -O
     set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
