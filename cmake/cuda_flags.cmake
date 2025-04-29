@@ -56,6 +56,11 @@ if(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
             "${CMAKE_CUDA_FLAGS} -Xcompiler -Werror -Xcompiler -Wno-error=deprecated -Xcompiler -Wno-error=deprecated-declarations"
         )
     endif()
+
+    if(DEFINED ENV{GITLAB_CI} AND CMAKE_CUDA_HOST_COMPILER_ID STREQUAL "NVHPC")
+        # need to disable some optimizations to lower memory usage in CI
+        set(CMAKE_CUDA_FLAGS_RELEASE "-O2 -DNDEBUG")
+    endif()
 endif()
 
 if(CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
