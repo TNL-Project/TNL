@@ -74,7 +74,8 @@ workflow:
         USE_CUDA: "yes"
         CXX: nvc++
         CC: nvc
-        CUDA_HOST_COMPILER: nvc++
+        CUDACXX: nvcc
+        CUDAHOSTCXX: nvc++
 
 # base for Clang builds
 .clang:
@@ -83,7 +84,7 @@ workflow:
         <<: *default_cmake_flags
         CXX: clang++
         CC: clang
-        CUDA_HOST_COMPILER: clang++
+        CUDAHOSTCXX: clang++
         # also use LLVM's libc++ instead of GCC's libstdc++ (which is used by default)
         CMAKE_CXX_FLAGS: "-stdlib=libc++"
         # use the LLVM linker and link to libc++
@@ -282,8 +283,22 @@ nvhpc:
         - nvidia
     extends:
         - .build_template
-        - .matrix_template
+        #- .matrix_template
         - .nvhpc
+    # NOTE: nvc++ has huge memory requirements for matrix tests in Release, so we skip them from the matrix
+    parallel:
+        matrix:
+            - MATRIX_TARGET:
+                - tests
+                - matrix_tests
+                - nontests
+              BUILD_TYPE:
+                - Debug
+            - MATRIX_TARGET:
+                - tests
+                - nontests
+              BUILD_TYPE:
+                - Release
 
 clang_cuda:
     extends:
