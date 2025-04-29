@@ -283,8 +283,22 @@ nvhpc:
         - nvidia
     extends:
         - .build_template
-        - .matrix_template
+        #- .matrix_template
         - .nvhpc
+    # NOTE: nvc++ has huge memory requirements for matrix tests in Release, so we skip them from the matrix
+    parallel:
+        matrix:
+            - MATRIX_TARGET:
+                - tests
+                - matrix_tests
+                - nontests
+              BUILD_TYPE:
+                - Debug
+            - MATRIX_TARGET:
+                - tests
+                - nontests
+              BUILD_TYPE:
+                - Release
 
 clang_cuda:
     extends:
