@@ -6,6 +6,8 @@
 #include <string>
 #include <cstdint>
 
+#include <TNL/Endianness.h>
+
 #include "../Readers/VTKTraits.h"
 
 namespace TNL {
