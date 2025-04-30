@@ -1,11 +1,7 @@
 #pragma once
 
-#include "ParticlesTraits.h"
-#include <cfloat>
-#include <cstdint>
-
-using namespace TNL;
-using namespace TNL::ParticleSystem;
+namespace TNL {
+namespace ParticleSystem {
 
 //note:
 //row-major - std::index_sequence< 0, 1 >
@@ -26,47 +22,40 @@ struct DefaultPermutation< 3 >
    using value = std::index_sequence< 0, 1, 2 >;
 };
 
-template< int Dimension, typename ParticleConfig, typename Permutation = typename DefaultPermutation< Dimension >::value >
+template< int Dimension, typename Permutation = typename DefaultPermutation< Dimension >::value >
 class SimpleCellIndex
 {};
 
-template< typename ParticleConfig, typename Permutation  >
-class SimpleCellIndex< 2, ParticleConfig, Permutation >
+template< typename Permutation  >
+class SimpleCellIndex< 2, Permutation >
 {
 public:
-   using DeviceType = typename ParticleConfig::DeviceType;
-   using ParticleTraitsType = ParticlesTraits< ParticleConfig, DeviceType >;
-   using CellIndexView = TNL::Containers::ArrayView< typename ParticleTraitsType::CellIndexType, DeviceType >;
-   using PointsView = TNL::Containers::ArrayView< typename ParticleTraitsType::PointType, DeviceType >;
 
-   using LocalIndexType = typename ParticleTraitsType::LocalIndexType;
-   using GlobalIndexType = typename ParticleTraitsType::GlobalIndexType;
-   using RealType = typename ParticleTraitsType::RealType;
-   using IndexVectorType = typename ParticleTraitsType::IndexVectorType;
-   using PointType = typename ParticleTraitsType::PointType;
-
+   template< typename IndexType, typename IndexVectorType >
    __cuda_callable__
    static uint32_t
-   EvaluateCellIndex( const GlobalIndexType& i, const GlobalIndexType& j, const IndexVectorType& gridSize )
+   EvaluateCellIndex( const IndexType& i, const IndexType& j, const IndexVectorType& gridSize )
    {
       if constexpr( std::is_same_v< Permutation, std::index_sequence< 0, 1 > > )
-         return j * gridSize[ 0 ]  + i;
+         return j * gridSize[ 0 ] + i;
 
       if constexpr( std::is_same_v< Permutation, std::index_sequence< 1, 0 > > )
-         return i * gridSize[ 1 ]  + j;
+         return i * gridSize[ 1 ] + j;
    }
 
+   template< typename IndexVectorType >
    __cuda_callable__
    static uint32_t
    EvaluateCellIndex( const IndexVectorType& i, const IndexVectorType& gridSize )
    {
       if constexpr( std::is_same_v< Permutation, std::index_sequence< 0, 1 > > )
-         return i[ 1 ] * gridSize[ 0 ]  + i[ 0 ];
+         return i[ 1 ] * gridSize[ 0 ] + i[ 0 ];
 
       if constexpr( std::is_same_v< Permutation, std::index_sequence< 1, 0 > > )
-         return i[ 0 ] * gridSize[ 1 ]  + i[ 1 ];
+         return i[ 0 ] * gridSize[ 1 ] + i[ 1 ];
    }
 
+   template< typename PointType, typename IndexVectorType, typename RealType >
    __cuda_callable__
    static uint32_t
    EvaluateCellIndex( const PointType& r,
@@ -84,24 +73,15 @@ public:
    }
 };
 
-template< typename ParticleConfig, typename Permutation >
-class SimpleCellIndex< 3, ParticleConfig, Permutation >
+template< typename Permutation >
+class SimpleCellIndex< 3, Permutation >
 {
 public:
-   using DeviceType = typename ParticleConfig::DeviceType;
-   using ParticleTraitsType = ParticlesTraits< ParticleConfig, DeviceType >;
-   using CellIndexView = TNL::Containers::ArrayView< typename ParticleTraitsType::CellIndexType, DeviceType >;
-   using PointsView = TNL::Containers::ArrayView< typename ParticleTraitsType::PointType, DeviceType >;
 
-   using LocalIndexType = typename ParticleTraitsType::LocalIndexType;
-   using GlobalIndexType = typename ParticleTraitsType::GlobalIndexType;
-   using RealType = typename ParticleTraitsType::RealType;
-   using IndexVectorType = typename ParticleTraitsType::IndexVectorType;
-   using PointType = typename ParticleTraitsType::PointType;
-
+   template< typename IndexType, typename IndexVectorType >
    __cuda_callable__
    static uint32_t
-   EvaluateCellIndex( const GlobalIndexType& i, const GlobalIndexType& j, const GlobalIndexType& k, const IndexVectorType& gridSize )
+   EvaluateCellIndex( const IndexType& i, const IndexType& j, const IndexType& k, const IndexVectorType& gridSize )
    {
       if constexpr( std::is_same_v< Permutation, std::index_sequence< 0, 1, 2 > > )
          return k * gridSize[ 0 ] * gridSize[ 1 ] + j * gridSize[ 0 ] + i;
@@ -110,6 +90,7 @@ public:
          return i * gridSize[ 1 ] * gridSize[ 2 ] + j * gridSize[ 1 ] + k;
    }
 
+   template< typename IndexVectorType >
    __cuda_callable__
    static uint32_t
    EvaluateCellIndex( const IndexVectorType& i, const IndexVectorType& gridSize )
@@ -121,6 +102,7 @@ public:
          return i[ 0 ] * gridSize[ 1 ] * gridSize[ 2 ] + i[ 1 ] * gridSize[ 1 ] + i[ 2 ];
    }
 
+   template< typename PointType, typename IndexVectorType, typename RealType >
    __cuda_callable__
    static uint32_t
    EvaluateCellIndex( const PointType& r,
@@ -139,4 +121,7 @@ public:
                 TNL::floor( ( r[ 0 ] - gridOrigin[ 0 ] ) / searchRadius ) * gridDimension[ 1 ] * gridDimension[ 2 ];
    }
 };
+
+}  //namespace ParticleSystem
+}  //namespace TNL
 

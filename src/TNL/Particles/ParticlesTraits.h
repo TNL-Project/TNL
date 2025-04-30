@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cfloat>
+
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Meshes/Grid.h>
