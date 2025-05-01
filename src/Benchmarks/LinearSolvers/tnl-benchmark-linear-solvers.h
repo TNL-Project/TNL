@@ -41,6 +41,7 @@
 #include "BenchmarkResults.h"
 #include "StrumpackWrapper.h"
 #include "TachoWrapper.h"
+#include "CuDSSWrapper.h"
 
 // FIXME: nvcc 8.0 fails when cusolverSp.h is included (works fine with clang):
 // /opt/cuda/include/cuda_fp16.h(3068): error: more than one instance of overloaded function "isinf" matches the argument list:
@@ -100,7 +101,7 @@ parse_comma_list( const TNL::Config::ParameterContainer& parameters,
    return set;
 }
 
-// initialize all vector entries with a unioformly distributed random value from the interval [a, b]
+// initialize all vector entries with a uniformly distributed random value from the interval [a, b]
 template< typename Vector >
 void
 set_random_vector( Vector& v, typename Vector::RealType a, typename Vector::RealType b )
@@ -537,8 +538,23 @@ struct LinearSolversBenchmark
 #endif
 
 #ifdef HAVE_UMFPACK
-      if( std::is_same_v< DeviceType, TNL::Devices::Host > || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
+      if constexpr( std::is_same_v< DeviceType, TNL::Devices::Host > || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
          benchmarkDirectSolver< TNL::Solvers::Linear::UmfpackWrapper >( "UMFPACK", benchmark, parameters, matrixCopy, x0, b );
+#endif
+
+#ifdef HAVE_CUDSS
+   #ifdef __CUDACC__
+      using CudaCSR = TNL::Matrices::
+         SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
+      auto cudaMatrix = std::make_shared< CudaCSR >();
+      *cudaMatrix = *matrixCopy;
+      TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
+      benchmarkDirectSolver< TNL::Solvers::Linear::CuDSSWrapper >(
+         "CuDSS", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
+      TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType > cuda_x0_copy( cuda_x0 );
+      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+         std::cout << "Warning: the result of the CuDSS solver is not equal to the result of the CPU solver." << std::endl;
+   #endif
 #endif
 
 #ifdef HAVE_GINKGO
