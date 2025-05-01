@@ -3,11 +3,9 @@
 
 #pragma once
 
-#ifdef HAVE_UMFPACK
+#include "UmfpackWrapper.h"
 
-   #include "UmfpackWrapper.h"
-
-   #include <TNL/Solvers/Linear/Utils/LinearResidueGetter.h>
+#include <TNL/Solvers/Linear/Utils/LinearResidueGetter.h>
 
 namespace TNL::Solvers::Linear {
 
@@ -47,6 +45,7 @@ template< typename SolverMonitor >
 void
 UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::setMatrix( const MatrixPointer& matrix )
 {
+#ifdef HAVE_UMFPACK
    if( matrix->getRows() != matrix->getColumns() )
       throw std::invalid_argument( "UmfpackWrapper::solve: matrix must be square" );
 
@@ -105,12 +104,16 @@ UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::setMat
          umfpack_di_free_numeric( &Numeric );
    }
    this->factorized = true;
+#else
+   std::cerr << "Umfpack is not available." << std::endl;
+#endif
 }
 
 template< typename SolverMonitor >
 bool
 UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::solve( ConstVectorViewType b, VectorViewType x )
 {
+#ifdef HAVE_UMFPACK
    if( this->matrix->getColumns() != x.getSize() )
       throw std::invalid_argument( "UmfpackWrapper::solve: wrong size of the solution vector" );
    if( this->matrix->getColumns() != b.getSize() )
@@ -149,6 +152,10 @@ UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::solve(
 
    this->setResidue( LinearResidueGetter::getResidue( *this->matrix, x, b, bNorm ) );
    return true;
+#else
+   std::cerr << "Umfpack is not available." << std::endl;
+   return false;
+#endif
 }
 
 template< typename SolverMonitor >
@@ -161,12 +168,12 @@ UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::solved
 template< typename SolverMonitor >
 UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::~UmfpackWrapper()
 {
+#ifdef HAVE_UMFPACK
    if( this->Symbolic )
       umfpack_di_free_symbolic( &Symbolic );
    if( this->Numeric )
       umfpack_di_free_numeric( &Numeric );
+#endif
 }
 
 }  // namespace TNL::Solvers::Linear
-
-#endif

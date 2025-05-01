@@ -4,12 +4,12 @@
 #pragma once
 
 #ifdef HAVE_UMFPACK
-
    #include <umfpack.h>
+#endif
 
-   #include <TNL/Solvers/DirectSolver.h>
-   #include <TNL/Matrices/SparseMatrix.h>
-   #include <TNL/Algorithms/Segments/CSR.h>
+#include <TNL/Solvers/DirectSolver.h>
+#include <TNL/Matrices/SparseMatrix.h>
+#include <TNL/Algorithms/Segments/CSR.h>
 
 namespace TNL::Solvers::Linear {
 
@@ -142,12 +142,14 @@ public:
    ~UmfpackWrapper();
 
 protected:
+#ifdef HAVE_UMFPACK
    // UMFPACK objects
    void* Symbolic = nullptr;
    void* Numeric = nullptr;
    double Control[ UMFPACK_CONTROL ];
    double Info[ UMFPACK_INFO ];
 
+#endif
    MatrixPointer matrix;
 
    bool factorized = false;
@@ -156,6 +158,4 @@ protected:
 
 }  // namespace TNL::Solvers::Linear
 
-   #include "UmfpackWrapper.hpp"
-
-#endif
+#include "UmfpackWrapper.hpp"
