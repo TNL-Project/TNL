@@ -3,11 +3,11 @@
 namespace TNL {
 namespace ParticleSystem {
 
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 void
-ParticleZone< ParticleConfig >::assignCells( IndexVectorType firstPointIdx,
-                                             IndexVectorType zoneSizeInCells,
-                                             IndexVectorType gridSize )
+ParticleZone< ParticleConfig, DeviceType >::assignCells( IndexVectorType firstPointIdx,
+                                                         IndexVectorType zoneSizeInCells,
+                                                         IndexVectorType gridSize )
 {
    if constexpr( ParticleConfig::spaceDimension == 2 )
       this->numberOfCellsInZone = zoneSizeInCells[ 0 ] * zoneSizeInCells[ 1 ];
@@ -45,13 +45,13 @@ ParticleZone< ParticleConfig >::assignCells( IndexVectorType firstPointIdx,
 }
 
 //TODO: Merge both assign functions together
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 void
-ParticleZone< ParticleConfig >::assignCells( const PointType firstPoint,
-                                             const PointType secondPoint,
-                                             IndexVectorType gridSize,
-                                             PointType gridOrigin,
-                                             RealType searchRadius )
+ParticleZone< ParticleConfig, DeviceType >::assignCells( const PointType firstPoint,
+                                                         const PointType secondPoint,
+                                                         IndexVectorType gridSize,
+                                                         PointType gridOrigin,
+                                                         RealType searchRadius )
 {
    const PointType zoneSize = TNL::abs( secondPoint - firstPoint );
    const IndexVectorType zoneSizeInCells = TNL::ceil( zoneSize / searchRadius );
@@ -89,92 +89,92 @@ ParticleZone< ParticleConfig >::assignCells( const PointType firstPoint,
    }
 }
 
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 template< typename Array >
 void
-ParticleZone< ParticleConfig >::assignCells( Array& inputCells )
+ParticleZone< ParticleConfig, DeviceType >::assignCells( Array& inputCells )
 {
 
 }
 
-template< typename ParticleConfig >
-const typename ParticleZone< ParticleConfig >::IndexArrayType&
-ParticleZone< ParticleConfig >::getCellsInZone() const
-{
-   return cellsInZone;
-}
-
-template< typename ParticleConfig >
-typename ParticleZone< ParticleConfig >::IndexArrayType&
-ParticleZone< ParticleConfig >::getCellsInZone()
+template< typename ParticleConfig, typename DeviceType >
+const typename ParticleZone< ParticleConfig, DeviceType >::IndexArrayType&
+ParticleZone< ParticleConfig, DeviceType >::getCellsInZone() const
 {
    return cellsInZone;
 }
 
-template< typename ParticleConfig >
-const typename ParticleZone< ParticleConfig >::IndexArrayType&
-ParticleZone< ParticleConfig >::getParticlesInZone() const
+template< typename ParticleConfig, typename DeviceType >
+typename ParticleZone< ParticleConfig, DeviceType >::IndexArrayType&
+ParticleZone< ParticleConfig, DeviceType >::getCellsInZone()
+{
+   return cellsInZone;
+}
+
+template< typename ParticleConfig, typename DeviceType >
+const typename ParticleZone< ParticleConfig, DeviceType >::IndexArrayType&
+ParticleZone< ParticleConfig, DeviceType >::getParticlesInZone() const
 {
    return particlesInZone;
 }
 
-template< typename ParticleConfig >
-typename ParticleZone< ParticleConfig >::IndexArrayType&
-ParticleZone< ParticleConfig >::getParticlesInZone()
+template< typename ParticleConfig, typename DeviceType >
+typename ParticleZone< ParticleConfig, DeviceType >::IndexArrayType&
+ParticleZone< ParticleConfig, DeviceType >::getParticlesInZone()
 {
    return particlesInZone;
 }
 
-template< typename ParticleConfig >
-const typename ParticleZone< ParticleConfig >::GlobalIndexType
-ParticleZone< ParticleConfig >::getNumberOfParticles() const
+template< typename ParticleConfig, typename DeviceType >
+const typename ParticleZone< ParticleConfig, DeviceType >::GlobalIndexType
+ParticleZone< ParticleConfig, DeviceType >::getNumberOfParticles() const
 {
    return numberOfParticlesInZone;
 }
 
-template< typename ParticleConfig >
-const typename ParticleZone< ParticleConfig >::GlobalIndexType
-ParticleZone< ParticleConfig >::getNumberOfCells() const
+template< typename ParticleConfig, typename DeviceType >
+const typename ParticleZone< ParticleConfig, DeviceType >::GlobalIndexType
+ParticleZone< ParticleConfig, DeviceType >::getNumberOfCells() const
 {
    return numberOfCellsInZone;
 }
 
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 void
-ParticleZone< ParticleConfig >::setNumberOfParticlesPerCell( const GlobalIndexType numberOfParticlesPerCell )
+ParticleZone< ParticleConfig, DeviceType >::setNumberOfParticlesPerCell( const GlobalIndexType numberOfParticlesPerCell )
 {
    this->numberOfParticlesPerCell = numberOfParticlesPerCell;
 }
 
-template< typename ParticleConfig >
-const typename ParticleZone< ParticleConfig >::GlobalIndexType
-ParticleZone< ParticleConfig >::getNumberOfParticlesPerCell() const
+template< typename ParticleConfig, typename DeviceType >
+const typename ParticleZone< ParticleConfig, DeviceType >::GlobalIndexType
+ParticleZone< ParticleConfig, DeviceType >::getNumberOfParticlesPerCell() const
 {
    return this->numberOfParticlesPerCell;
 }
 
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 void
-ParticleZone< ParticleConfig >::resetParticles()
+ParticleZone< ParticleConfig, DeviceType >::resetParticles()
 {
    numberOfParticlesInZone = 0;
    numberOfParticlesInCell = 0;
    particlesInZone = 0;
 }
 
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 void
-ParticleZone< ParticleConfig >::resetZoneCells()
+ParticleZone< ParticleConfig, DeviceType >::resetZoneCells()
 {
    numberOfParticlesInZone = 0;
    particlesInZone = 0;
    cellsInZone = 0;
 }
 
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 template< typename ParticlesPointer >
 void
-ParticleZone< ParticleConfig >::collectNumbersOfParticlesInCells( const ParticlesPointer& particles )
+ParticleZone< ParticleConfig, DeviceType >::collectNumbersOfParticlesInCells( const ParticlesPointer& particles )
 {
    const auto firstLastParticle_view = particles->getCellFirstLastParticleList().getConstView();
    const auto cellsInZone_view = this->cellsInZone.getConstView();
@@ -193,10 +193,10 @@ ParticleZone< ParticleConfig >::collectNumbersOfParticlesInCells( const Particle
    Algorithms::parallelFor< DeviceType >( 0, this->numberOfCellsInZone, collectParticlesCounts );
 }
 
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 template< typename ParticlesPointer >
 void
-ParticleZone< ParticleConfig >::buildParticleList( const ParticlesPointer& particles )
+ParticleZone< ParticleConfig, DeviceType >::buildParticleList( const ParticlesPointer& particles )
 {
 
    Algorithms::inplaceExclusiveScan( this->numberOfParticlesInCell );
@@ -236,20 +236,20 @@ ParticleZone< ParticleConfig >::buildParticleList( const ParticlesPointer& parti
 }
 
 
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 template< typename ParticlesPointer >
 void
-ParticleZone< ParticleConfig >::updateParticlesInZone( const ParticlesPointer& particles )
+ParticleZone< ParticleConfig, DeviceType >::updateParticlesInZone( const ParticlesPointer& particles )
 {
    this->resetParticles();
    this->collectNumbersOfParticlesInCells( particles );
    this->buildParticleList( particles );
 }
 
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 template< typename ParticlesPointer, typename TimeMeasurement >
 void
-ParticleZone< ParticleConfig >::updateParticlesInZone( const ParticlesPointer& particles, TimeMeasurement& timeMeasurement )
+ParticleZone< ParticleConfig, DeviceType >::updateParticlesInZone( const ParticlesPointer& particles, TimeMeasurement& timeMeasurement )
 {
    timeMeasurement.start( "zone-reset" );
    this->resetParticles();
@@ -262,9 +262,9 @@ ParticleZone< ParticleConfig >::updateParticlesInZone( const ParticlesPointer& p
    timeMeasurement.stop( "zone-build" );
 }
 
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 void
-ParticleZone< ParticleConfig >::writeProlog( TNL::Logger& logger ) const noexcept
+ParticleZone< ParticleConfig, DeviceType >::writeProlog( TNL::Logger& logger ) const noexcept
 {
    logger.writeParameter( "Particle zone information:", "" );
    logger.writeParameter( "Number of particles per cell:", numberOfParticlesPerCell, 1 );

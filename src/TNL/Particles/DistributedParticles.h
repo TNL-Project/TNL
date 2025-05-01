@@ -23,8 +23,8 @@ public:
    using PointType = typename ParticleSystem::PointType;
    using IndexVectorType = typename ParticleSystem::IndexVectorType;
    using IndexArrayType = typename ParticleSystem::IndexArrayType;
-   using ParticleZoneType = ParticleZone< typename ParticleSystem::Config >;
-   using ParticleZonePointerType = typename Pointers::SharedPointer< ParticleZoneType >;
+   using ParticleZoneType = ParticleZone< typename ParticleSystem::Config, DeviceType >;
+   //using ParticleZonePointerType = typename Pointers::SharedPointer< ParticleZoneType >;
    using GridType = TNL::Meshes::Grid< ParticleSystem::Config::spaceDimension, RealType, DeviceType, GlobalIndexType >;
    using DistributedGridType = TNL::Meshes::DistributedMeshes::DistributedMesh< GridType >;
    using SubdomainCoordinates = Containers::StaticVector< 2, int >;

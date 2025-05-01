@@ -21,13 +21,14 @@ public:
    using Particles = typename DistributedParticlesType::ParticleSystemType;
    using DistributedGridType = typename DistributedParticlesType::DistributedGridType;
 
+   using Device = typename Particles::DeviceType;
+   using DeviceType = typename Particles::DeviceType;
+
    using RealType = typename Particles::RealType;
    using GlobalIndexType = typename Particles::GlobalIndexType;
    //using Index = typename DistributedGridType::Index;
    using Index = typename Particles::GlobalIndexType; //FIXME: Back to grid
-   using ParticleZone = ParticleZone< typename Particles::Config >;
-   using Device = typename Particles::DeviceType;
-   using DeviceType = typename Particles::DeviceType;
+   using ParticleZone = ParticleZone< typename Particles::Config, DeviceType >;
 
    using CoordinatesType = typename DistributedGridType::CoordinatesType;
    using SubdomainOverlapsType = typename DistributedGridType::SubdomainOverlapsType;

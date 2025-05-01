@@ -8,12 +8,11 @@ namespace TNL {
 namespace ParticleSystem {
 
 
-template< typename ParticleConfig >
+template< typename ParticleConfig, typename DeviceType >
 class ParticleZone
 {
 public:
 
-   using DeviceType = typename ParticleConfig::DeviceType;
    using Config = ParticleConfig;
    using ParticleTraitsType = ParticlesTraits< Config, DeviceType >;
    using CellIndexer = typename ParticleConfig::CellIndexerType;
