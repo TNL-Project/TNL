@@ -11,6 +11,28 @@ if(TNL_BUILD_CUDA)
     target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC CUDA::cusparse)
     install(TARGETS tnl-benchmark-linear-solvers-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
 
+    find_path(CUDSS_INCLUDE_DIR
+    NAMES cudss.h
+    PATHS /usr/local/cuda/include /opt/cuda/include
+    )
+
+    find_library(CUDSS_LIBRARY
+        NAMES cudss
+        PATHS /usr/local/cuda/lib /opt/cuda/lib
+    )
+
+    include(FindPackageHandleStandardArgs)
+    find_package_handle_standard_args(CUDSS DEFAULT_MSG CUDSS_LIBRARY CUDSS_INCLUDE_DIR)
+
+    if(CUDSS_FOUND)
+        message(STATUS "Found libcudss: ${CUDSS_LIBRARY}")
+        include_directories(${CUDSS_INCLUDE_DIR})
+        target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_CUDSS")
+        target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC ${CUDSS_LIBRARY})
+    else()
+        message(WARNING "libcudss not found")
+    endif()
+
     if(TNL_BUILD_MPI)
 
         # enable MPI support in TNL
