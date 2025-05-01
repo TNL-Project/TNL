@@ -71,7 +71,6 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
       }
       else {  // direct solver
          const bool solved = solver.solved();
-         RowElements elements;
          elements << time;
          if( speedup != 0 )
             elements << speedup;
