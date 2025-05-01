@@ -39,8 +39,18 @@ public:
              const WidthHints& widths,
              const std::string& errorMessage )
    {
-      if( headerElements.size() != rowElements.size() || headerElements.size() != widths.size() )
-         throw std::invalid_argument( "writeRow: elements must have equal sizes" );
+      if( headerElements.size() != rowElements.size() ) {
+         std::stringstream ss;
+         ss << "writeRow: Header elements and row elements must have equal sizes. Header: " << headerElements.size()
+            << ", Row: " << rowElements.size();
+         throw std::invalid_argument( ss.str() );
+      }
+      if( headerElements.size() != widths.size() ) {
+         std::stringstream ss;
+         ss << "writeRow: Header elements and row element widths must have equal sizes. Header: " << headerElements.size()
+            << ", Widths: " << widths.size();
+         throw std::invalid_argument( ss.str() );
+      }
 
       log << "{";
 
