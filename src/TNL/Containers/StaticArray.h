@@ -261,7 +261,9 @@ public:
     * 2. An object that can be converted to \e Value type. In this case all elements
     * are set to \e v.
     */
-   template< typename T >
+   template< typename T,
+             typename...,
+             typename = std::enable_if_t< std::is_convertible_v< T, ValueType > || IsStaticArrayType< T >::value > >
    constexpr StaticArray< Size, Value >&
    operator=( const T& v );
 

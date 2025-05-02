@@ -54,11 +54,8 @@ public:
    constexpr StaticVector&
    operator=( StaticVector&& ) noexcept = default;
 
-   //! Constructors and assignment operators are inherited from the class \ref StaticArray.
+   //! Constructors are inherited from the class \ref StaticArray.
    using StaticArray< Size, Real >::StaticArray;
-#if ! defined( __CUDACC_VER_MAJOR__ ) || __CUDACC_VER_MAJOR__ < 11
-   using StaticArray< Size, Real >::operator=;
-#endif
 
    /**
     * \brief Constructor from binary vector expression.
