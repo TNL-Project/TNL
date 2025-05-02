@@ -356,6 +356,56 @@ alpine:
         # avoid spurious error due to Alpine's GCC
         CMAKE_CXX_FLAGS: "-Wno-error=array-bounds"
 
+debian:
+    stage: build:host
+    image: "docker.io/${IMAGE_NAME}"
+    before_script:
+        - apt-get update
+        # workaround for gfortran problem in the gcc images
+        # (there is a local gfortran that conflicts with the alternatives system)
+        - if test -f /usr/local/bin/gfortran; then
+              ln -s /usr/local/bin/gfortran /usr/bin/gfortran;
+          fi
+        # install new cmake
+        - wget -q https://github.com/Kitware/CMake/releases/download/v4.0.1/cmake-4.0.1-linux-x86_64.sh
+        - bash cmake-4.0.1-linux-x86_64.sh --skip-license --prefix=/usr
+        # install dependencies for TNL
+        - apt-get install -y build-essential git ninja-build libopenmpi-dev zlib1g-dev
+        # select the compiler
+        - if command -v clang++; then
+              export CXX=clang++;
+              export CC=clang;
+          else
+              export CXX=g++;
+              export CC=gcc;
+          fi
+    extends:
+        - .build_template
+    parallel:
+        matrix:
+            - MATRIX_TARGET:
+                - tests
+              BUILD_TYPE:
+                - Debug
+              IMAGE_NAME:
+                # https://hub.docker.com/_/gcc
+                - gcc:12
+                - gcc:13
+                - gcc:14
+                - gcc:15
+                # https://hub.docker.com/r/silkeh/clang
+                - silkeh/clang:10
+                - silkeh/clang:11
+                - silkeh/clang:12
+                - silkeh/clang:13
+                #- silkeh/clang:14  # segfaults in tests execution
+                #- silkeh/clang:15  # segfaults in tests execution
+                #- silkeh/clang:16  # segfaults in tests execution
+                - silkeh/clang:17
+                - silkeh/clang:18
+                - silkeh/clang:19
+                - silkeh/clang:20
+
 
 
 
