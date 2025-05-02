@@ -43,11 +43,8 @@ public:
              typename _Allocator = typename Allocators::Default< _Device >::template Allocator< _Real > >
    using Self = DistributedVector< _Real, _Device, _Index, _Allocator >;
 
-   // inherit all constructors and assignment operators from Array
+   // inherit all constructors from DistributedArray
    using BaseType::DistributedArray;
-#if ! defined( __CUDACC_VER_MAJOR__ ) || __CUDACC_VER_MAJOR__ < 11
-   using BaseType::operator=;
-#endif
 
    DistributedVector() = default;
 
