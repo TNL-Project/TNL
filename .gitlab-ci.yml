@@ -414,6 +414,9 @@ clang-format:
             - .clang-format
             - scripts/run-clang-format.py
             - .gitlab-ci.yml
+    image: "quay.io/archlinux/archlinux:latest"
+    before_script:
+        - pacman -Syu --needed --noconfirm clang python
     script:
         - ./scripts/run-clang-format.py
                 --color always
@@ -480,6 +483,9 @@ copyright-headers:
             - src/**/*.{h,hpp,cpp,cu,hip}
             - scripts/updage-copyright-headers.py
             - .gitlab-ci.yml
+    image: "quay.io/archlinux/archlinux:latest"
+    before_script:
+        - pacman -Syu --needed --noconfirm git python
     script:
         - ./scripts/update-copyright-headers.py
                 --dir src/
