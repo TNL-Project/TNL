@@ -28,13 +28,12 @@ Grid< Dimension, Real, Device, Index >::getMeshDimension()
 template< int Dimension, typename Real, typename Device, typename Index >
 Grid< Dimension, Real, Device, Index >::Grid()
 {
-   setDimensions( CoordinatesType( 0 ) );
-
    this->proportions = 0;
    this->spaceSteps = 0;
    this->origin = 0;
-   fillNormals();
-   fillEntitiesCount();
+
+   // dimensions must be set after proportions
+   setDimensions( CoordinatesType( 0 ) );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -43,21 +42,23 @@ template< typename... Dimensions,
           std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > >
 Grid< Dimension, Real, Device, Index >::Grid( Dimensions... dimensions )
 {
-   setDimensions( dimensions... );
-
    proportions = 0;
    spaceSteps = 0;
    origin = 0;
+
+   // dimensions must be set after proportions
+   setDimensions( dimensions... );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
 Grid< Dimension, Real, Device, Index >::Grid( const CoordinatesType& dimensions )
 {
-   setDimensions( dimensions );
-
    proportions = 0;
    spaceSteps = 0;
    origin = 0;
+
+   // dimensions must be set after proportions
+   setDimensions( dimensions );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
@@ -740,7 +741,11 @@ Grid< Dimension, Real, Device, Index >::fillSpaceSteps()
       }
    }
 
-   if( ! hasAnyInvalidDimension ) {
+   if( hasAnyInvalidDimension ) {
+      this->spaceSteps = 0;
+      this->spaceStepsProducts = 0;
+   }
+   else {
       this->spaceSteps = this->proportions / this->dimensions;
       fillSpaceStepsPowers();
    }
