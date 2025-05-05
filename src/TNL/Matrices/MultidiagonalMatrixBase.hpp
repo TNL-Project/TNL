@@ -266,7 +266,7 @@ template< typename Function >
 void
 MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexType begin,
                                                                            IndexType end,
-                                                                           Function& function ) const
+                                                                           Function&& function ) const
 {
    const auto values_view = this->values.getConstView();
    const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
@@ -287,7 +287,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( Index
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexType begin, IndexType end, Function& function )
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexType begin, IndexType end, Function&& function )
 {
    auto values_view = this->values.getView();
    const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
@@ -308,7 +308,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( Index
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Function& function ) const
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Function&& function ) const
 {
    this->forElements( (IndexType) 0, this->getRows(), function );
 }
@@ -316,9 +316,150 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Fu
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Function& function )
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Function&& function )
 {
    this->forElements( (IndexType) 0, this->getRows(), function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes,
+                                                                           IndexType begin,
+                                                                           IndexType end,
+                                                                           Function&& function ) const
+{
+   const auto values_view = this->values.getConstView();
+   const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
+   const auto rowIndexes_view = rowIndexes.getConstView();
+   const IndexType diagonalsCount = this->diagonalOffsets.getSize();
+   const IndexType columns = this->getColumns();
+   const auto indexer = this->indexer;
+   auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+   {
+      IndexType rowIdx = rowIndexes_view[ idx ];
+      TNL_ASSERT_GE( rowIdx, 0, "" );
+      TNL_ASSERT_LT( rowIdx, this->getRows(), "" );
+      for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+         const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+         if( columnIdx >= 0 && columnIdx < columns )
+            function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+      }
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes,
+                                                                           IndexType begin,
+                                                                           IndexType end,
+                                                                           Function&& function )
+{
+   auto values_view = this->values.getView();
+   const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
+   auto rowIndexes_view = rowIndexes.getConstView();
+   const IndexType diagonalsCount = this->diagonalOffsets.getSize();
+   const IndexType columns = this->getColumns();
+   const auto indexer = this->indexer;
+   auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
+   {
+      IndexType rowIdx = rowIndexes_view[ idx ];
+      TNL_ASSERT_GE( rowIdx, 0, "" );
+      TNL_ASSERT_LT( rowIdx, this->getRows(), "" );
+      for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+         const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+         if( columnIdx >= 0 && columnIdx < columns )
+            function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+      }
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function ) const
+{
+   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function )
+{
+   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf( IndexType begin,
+                                                                             IndexType end,
+                                                                             Condition&& condition,
+                                                                             Function&& function ) const
+{
+   const auto values_view = this->values.getConstView();
+   const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
+   const IndexType diagonalsCount = this->diagonalOffsets.getSize();
+   const IndexType columns = this->getColumns();
+   const auto indexer = this->indexer;
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+   {
+      if( ! condition( rowIdx ) )
+         return;
+      for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+         const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+         if( columnIdx >= 0 && columnIdx < columns )
+            function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+      }
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf( IndexType begin,
+                                                                             IndexType end,
+                                                                             Condition&& condition,
+                                                                             Function&& function )
+{
+   auto values_view = this->values.getView();
+   const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
+   const IndexType diagonalsCount = this->diagonalOffsets.getSize();
+   const IndexType columns = this->getColumns();
+   const auto indexer = this->indexer;
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
+   {
+      if( ! condition( rowIdx ) )
+         return;
+      for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
+         const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
+         if( columnIdx >= 0 && columnIdx < columns )
+            function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+      }
+   };
+   Algorithms::parallelFor< DeviceType >( begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition,
+                                                                                Function&& function ) const
+{
+   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function )
+{
+   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
