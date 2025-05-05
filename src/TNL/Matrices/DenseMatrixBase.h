@@ -543,6 +543,210 @@ public:
    forAllElements( Function&& function );
 
    /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e columnIdx repeats just due to compatibility with sparse matrices.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param begin defines beginning of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param end defines ending of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param function is an instance of the lambda function to be called for each element.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \par Output
+    * \include DenseMatrixExample_forElementsWithRowIndexes-2.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, IndexType begin, IndexType end, Function&& function ) const;
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * non-constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e columnIdx parameter repeats due to compatibility with sparse matrices.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param begin defines beginning of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param end defines ending of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param function is an instance of the lambda function to be called for each element.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \par Output
+    * \include DenseMatrixExample_forElementsWithRowIndexes-2.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, IndexType begin, IndexType end, Function&& function );
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant
+    * for constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e columnIdx parameter repeats due to compatibility with sparse matrices.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param function is an instance of the lambda function to be called for each element.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \par Output
+    * \include DenseMatrixExample_forElementsWithRowIndexes-1.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, Function&& function ) const;
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * non-constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e columnIdx parameter repeats due to compatibility with sparse matrices.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param function is an instance of the lambda function to be called for each element.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \par Output
+    * \include DenseMatrixExample_forElementsWithRowIndexes-1.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, Function&& function );
+
+   /**
+    * \brief Method for iterating over all matrix elements that meet a condition based on the row index (for constant
+    * instances).
+    *
+    * \tparam Condition is a type of lambda function that will be used to check if the element meets the condition. It should
+    * have form like
+    *
+    * ```
+    * auto condition = [] __cuda_callable__ ( IndexType rowIdx ) -> bool { ... };
+    * ```
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e columnIdx parameter repeats due to compatibility with sparse matrices.
+    *
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called for each matrix element.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsIf.cpp
+    * \par Output
+    * \include DenseMatrixExample_forElementsIf.out
+    */
+   template< typename Condition, typename Function >
+   void
+   forElementsIf( IndexType begin, IndexType end, Condition&& condition, Function&& function ) const;
+
+   /**
+    * \brief Method for iterating over all matrix elements that meet a condition based on the row index (for constant
+    * instances).
+    *
+    * \tparam Condition is a type of lambda function that will be used to check if the element meets the condition. It should
+    * have form like
+    *
+    * ```
+    * auto condition = [] __cuda_callable__ ( IndexType rowIdx ) -> bool { ... };
+    * ```
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType columnIdx, IndexType columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e columnIdx parameter repeats due to compatibility with sparse matrices.
+    *
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called for each matrix element.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsIf.cpp
+    * \par Output
+    * \include DenseMatrixExample_forElementsIf.out
+    */
+   template< typename Condition, typename Function >
+   void
+   forElementsIf( IndexType begin, IndexType end, Condition&& condition, Function&& function );
+
+   /**
+    * \brief This method calls \e forElementsIf for all matrix rows (for constant instances).
+    *
+    * See \ref DenseMatrix::forElementsIf.
+    *
+    * \tparam Condition is a type of lambda function representing the condition based on the row index.
+    * \tparam Function is a type of lambda function that will operate on matrix elements.
+    *
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called in each row.
+    */
+   template< typename Condition, typename Function >
+   void
+   forAllElementsIf( Condition&& condition, Function&& function ) const;
+
+   /**
+    * \brief This method calls \e forElementsIf for all matrix rows (for non-constant instances).
+    *
+    * See \ref DenseMatrix::forElementsIf.
+    *
+    * \tparam Condition is a type of lambda function representing the condition based on the row index.
+    * \tparam Function is a type of lambda function that will operate on matrix elements.
+    *
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called in each row.
+    */
+   template< typename Condition, typename Function >
+   void
+   forAllElementsIf( Condition&& condition, Function&& function );
+
+   /**
     * \brief Method for parallel iteration over matrix rows from interval `[begin, end)`.
     *
     * In each row, given lambda function is performed. Each row is processed by at most one thread unlike the method

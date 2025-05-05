@@ -14,6 +14,9 @@ set(COMMON_EXAMPLES
     DenseMatrixViewExample_reduceRowsWithFunctional
     DenseMatrixViewExample_reduceAllRowsWithFunctional
     DenseMatrixViewExample_forElements
+    DenseMatrixViewExample_forElementsWithRowIndexes-1
+    DenseMatrixViewExample_forElementsWithRowIndexes-2
+    DenseMatrixViewExample_forElementsIf
     DenseMatrixViewExample_forRows
     DenseMatrixViewExample_forAllElements
     DenseMatrixViewExample_wrap
