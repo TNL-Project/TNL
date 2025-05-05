@@ -12,6 +12,9 @@ set(COMMON_EXAMPLES
     TridiagonalMatrixViewExample_reduceRows
     TridiagonalMatrixViewExample_reduceAllRows
     TridiagonalMatrixViewExample_forElements
+    TridiagonalMatrixViewExample_forElementsWithRowIndexes-1
+    TridiagonalMatrixViewExample_forElementsWithRowIndexes-2
+    TridiagonalMatrixViewExample_forElementsIf
     TridiagonalMatrixViewExample_forAllElements
     TridiagonalMatrixViewExample_forRows
 )
