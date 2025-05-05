@@ -14,6 +14,9 @@ set(COMMON_EXAMPLES
     MultidiagonalMatrixViewExample_reduceRows
     MultidiagonalMatrixViewExample_reduceAllRows
     MultidiagonalMatrixViewExample_forElements
+    MultidiagonalMatrixViewExample_forElementsWithRowIndexes-1
+    MultidiagonalMatrixViewExample_forElementsWithRowIndexes-2
+    MultidiagonalMatrixViewExample_forElementsIf
     MultidiagonalMatrixViewExample_forAllElements
     MultidiagonalMatrixViewExample_forRows
 )
