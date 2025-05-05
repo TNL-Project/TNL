@@ -341,6 +341,197 @@ test_SetValue()
 
 template< typename Matrix >
 void
+test_ForElements()
+{
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+
+   /*
+    * Sets up the following 5x5 matrix:
+    *
+    *    /  1  1  0  0  0 \
+    *    |  2  2  2  0  0 |
+    *    |  0  3  3  3  0 |
+    *    |  0  0  4  4  4 |
+    *    \  0  0  0  5  5 /
+    */
+   const IndexType rows = 5;
+   const IndexType cols = 5;
+
+   Matrix m( rows, cols );
+
+   m.forAllElements(
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = rowIdx + 1;
+      } );
+
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 0 );
+
+   EXPECT_EQ( m.getElement( 1, 0 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
+
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 3 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 3 );
+   EXPECT_EQ( m.getElement( 2, 3 ), 3 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 0 );
+
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 3 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 4 ), 4 );
+
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 5 );
+   EXPECT_EQ( m.getElement( 4, 4 ), 5 );
+}
+
+template< typename Matrix >
+void
+test_ForElementsWithArray()
+{
+   using RealType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+
+   /*
+    * Sets up the following 5x5 matrix:
+    *
+    *    /  1  1  0  0  0 \
+    *    |  2  2  2  0  0 |
+    *    |  0  1  1  1  0 |
+    *    |  0  0  4  4  4 |
+    *    \  0  0  0  1  1 /
+    */
+   const IndexType rows = 5;
+   const IndexType cols = 5;
+
+   Matrix m( rows, cols );
+
+   m.forAllElements(
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = rowIdx + 1;
+      } );
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowIndexes{ 0, 2, 4 };
+   m.forElements( rowIndexes,
+                  [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+                  {
+                     value = 1;
+                  } );
+
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 0 );
+
+   EXPECT_EQ( m.getElement( 1, 0 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
+
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 3 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 0 );
+
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 3 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 4 ), 4 );
+
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 1 );
+   EXPECT_EQ( m.getElement( 4, 4 ), 1 );
+}
+
+template< typename Matrix >
+void
+test_ForElementsIf()
+{
+   using RealType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+
+   /*
+    * Sets up the following 5x5 matrix:
+    *
+    *    /  1  1  0  0  0 \
+    *    |  2  2  2  0  0 |
+    *    |  0  1  1  1  0 |
+    *    |  0  0  4  4  4 |
+    *    \  0  0  0  1  1 /
+    */
+   const IndexType rows = 5;
+   const IndexType cols = 5;
+
+   Matrix m( rows, cols );
+
+   m.forAllElements(
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = rowIdx + 1;
+      } );
+   m.forAllElementsIf(
+      [] __cuda_callable__( IndexType rowIdx ) mutable
+      {
+         return rowIdx % 2 == 0;
+      },
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = 1;
+      } );
+
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 0 );
+
+   EXPECT_EQ( m.getElement( 1, 0 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
+
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 3 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 0 );
+
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 3 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 4 ), 4 );
+
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 1 );
+   EXPECT_EQ( m.getElement( 4, 4 ), 1 );
+}
+
+template< typename Matrix >
+void
 test_SetElement()
 {
    using RealType = typename Matrix::RealType;
@@ -1269,6 +1460,27 @@ TYPED_TEST( MatrixTest, setValueTest )
    test_SetValue< MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, forElementsTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ForElements< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, forElementsWithArrayTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ForElementsWithArray< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, forElementsIfTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ForElementsIf< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, setElementTest )
 {
    using MatrixType = typename TestFixture::MatrixType;
@@ -1351,81 +1563,5 @@ TYPED_TEST( MatrixTest, saveAndLoadTest )
 
    test_SaveAndLoad< MatrixType >();
 }
-
-//// test_getType is not general enough yet. DO NOT TEST IT YET.
-
-//TEST( TridiagonalMatrixTest, Tridiagonal_GetTypeTest_Host )
-//{
-//    host_test_GetType< Tridiagonal_host_float, Tridiagonal_host_int >();
-//}
-//
-//#if defined( __CUDACC__ ) || defined( __HIP__ )
-//TEST( TridiagonalMatrixTest, Tridiagonal_GetTypeTest_Cuda )
-//{
-//    cuda_test_GetType< Tridiagonal_cuda_float, Tridiagonal_cuda_int >();
-//}
-//#endif
-
-/*
-TEST( TridiagonalMatrixTest, Tridiagonal_getTranspositionTest_Host )
-{
-//    test_GetTransposition< Tridiagonal_host_int >();
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on CPU, this test will not build, but will print the following message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Tridiagonal_impl.h(836): error: no instance of function template
-\"TNL::Matrices::TridiagonalTranspositionAlignedKernel\" matches the argument list\n"; std::cout << "              argument
-types are: (TNL::Matrices::Tridiagonal<int, TNL::Devices::Host, int> *, Tridiagonal_host_int *, const int, int, int)\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Tridiagonal<Real, Device, Index>::getTransposition(const
-Matrix &, const TNL::Matrices::Tridiagonal<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Host,
-Index=int, Matrix=Tridiagonal_host_int, tileDim=32]\"\n"; std::cout << "
-/home/lukas/tnl-dev/src/UnitTests/Matrices/TridiagonalMatrixTest.h(977): here\n"; std::cout << "                  instantiation
-of \"void test_GetTransposition<Matrix>() [with Matrix=Tridiagonal_host_int]\"\n"; std::cout << "
-/home/lukas/tnl-dev/src/UnitTests/Matrices/TridiagonalMatrixTest.h(1420): here\n\n"; std::cout << "AND this message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Tridiagonal_impl.h(852): error: no instance of function template
-\"TNL::Matrices::TridiagonalTranspositionNonAlignedKernel\" matches the argument list\n"; std::cout << "              argument
-types are: (TNL::Matrices::Tridiagonal<int, TNL::Devices::Host, int> *, Tridiagonal_host_int *, const int, int, int)\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Tridiagonal<Real, Device, Index>::getTransposition(const
-Matrix &, const TNL::Matrices::Tridiagonal<Real, Device, Index>::RealType &) [with Real=int, Device=TNL::Devices::Host,
-Index=int, Matrix=Tridiagonal_host_int, tileDim=32]\"\n"; std::cout << "
-/home/lukas/tnl-dev/src/UnitTests/Matrices/TridiagonalMatrixTest.h(977): here\n"; std::cout << "                  instantiation
-of \"void test_GetTransposition<Matrix>() [with Matrix=Tridiagonal_host_int]\"\n"; std::cout << "
-/home/lukas/tnl-dev/src/UnitTests/Matrices/TridiagonalMatrixTest.h(1420): here\n\n";
-}
-
-#ifdef __CUDACC__
-TEST( TridiagonalMatrixTest, Tridiagonal_getTranspositionTest_Cuda )
-{
-//    test_GetTransposition< Tridiagonal_cuda_int >();
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on GPU, this test throws the following message: \n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!!\n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Tridiagonal_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Tridiagonal_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Tridiagonal_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Tridiagonal_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  terminate called after throwing an instance of 'TNL::Exceptions::CudaRuntimeError'\n";
-    std::cout << "          what():  CUDA ERROR 4 (cudaErrorLaunchFailure): unspecified launch failure.\n";
-    std::cout << "  Source: line 57 in /home/lukas/tnl-dev/src/TNL/Containers/Algorithms/ArrayOperationsCuda_impl.h: unspecified
-launch failure\n"; std::cout << "  [1]    4003 abort (core dumped)  ./TridiagonalMatrixTest-dbg\n";
-}
-#endif
- * */
 
 #include "../main.h"
