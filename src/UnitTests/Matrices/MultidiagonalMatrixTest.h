@@ -370,6 +370,233 @@ test_SetValue()
 
 template< typename Matrix >
 void
+test_ForElements()
+{
+   using RealType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
+
+   /*
+    * Sets up the following 5x7 matrix:
+    *
+    *    /  1  0  1  0  1  0  0 \
+    *    |  2  2  0  2  0  2  0 |
+    *    |  0  3  3  0  3  0  3 |
+    *    |  0  0  4  4  0  4  0 |
+    *    \  0  0  0  5  5  0  5 /
+    */
+   const IndexType rows = 5;
+   const IndexType cols = 7;
+
+   Matrix m( rows, cols, DiagonalOffsetsType( { -1, 0, 2, 4 } ) );
+
+   m.forAllElements(
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = rowIdx + 1;
+      } );
+
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 5 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 6 ), 0 );
+
+   EXPECT_EQ( m.getElement( 1, 0 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 5 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 6 ), 0 );
+
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 3 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 3 );
+   EXPECT_EQ( m.getElement( 2, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 3 );
+   EXPECT_EQ( m.getElement( 2, 5 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 6 ), 3 );
+
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 3 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 5 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 6 ), 0 );
+
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 5 );
+   EXPECT_EQ( m.getElement( 4, 4 ), 5 );
+   EXPECT_EQ( m.getElement( 4, 5 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 6 ), 5 );
+}
+
+template< typename Matrix >
+void
+test_ForElementsWithArray()
+{
+   using RealType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
+
+   /*
+    * Sets up the following 5x7 matrix:
+    *
+    *    /  1  0  1  0  1  0  0 \
+    *    |  2  2  0  2  0  2  0 |
+    *    |  0  1  1  0  1  0  1 |
+    *    |  0  0  4  4  0  4  0 |
+    *    \  0  0  0  1  1  0  1 /
+    */
+   const IndexType rows = 5;
+   const IndexType cols = 7;
+
+   Matrix m( rows, cols, DiagonalOffsetsType( { -1, 0, 2, 4 } ) );
+
+   m.forAllElements(
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = 1;
+      } );
+
+   TNL::Containers::Vector< IndexType, typename Matrix::DeviceType, IndexType > rowIndices{ 1, 3 };
+   m.forElements( rowIndices,
+                  [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+                  {
+                     value = rowIdx + 1;
+                  } );
+
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 5 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 6 ), 0 );
+
+   EXPECT_EQ( m.getElement( 1, 0 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 5 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 6 ), 0 );
+
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 5 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 6 ), 1 );
+
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 3 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 5 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 6 ), 0 );
+
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 1 );
+   EXPECT_EQ( m.getElement( 4, 4 ), 1 );
+   EXPECT_EQ( m.getElement( 4, 5 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 6 ), 1 );
+}
+
+template< typename Matrix >
+void
+test_ForElementsIf()
+{
+   using RealType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+   using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
+
+   /*
+    * Sets up the following 5x7 matrix:
+    *
+    *    /  1  0  1  0  1  0  0 \
+    *    |  2  2  0  2  0  2  0 |
+    *    |  0  1  1  0  1  0  1 |
+    *    |  0  0  4  4  0  4  0 |
+    *    \  0  0  0  1  1  0  1 /
+    */
+   const IndexType rows = 5;
+   const IndexType cols = 7;
+
+   Matrix m( rows, cols, DiagonalOffsetsType( { -1, 0, 2, 4 } ) );
+
+   m.forAllElements(
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = 1;
+      } );
+
+   m.forAllElementsIf(
+      [] __cuda_callable__( IndexType rowIdx )
+      {
+         return rowIdx % 2 == 1;
+      },
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = rowIdx + 1;
+      } );
+
+   EXPECT_EQ( m.getElement( 0, 0 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 2 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 4 ), 1 );
+   EXPECT_EQ( m.getElement( 0, 5 ), 0 );
+   EXPECT_EQ( m.getElement( 0, 6 ), 0 );
+
+   EXPECT_EQ( m.getElement( 1, 0 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 1 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 3 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 1, 5 ), 2 );
+   EXPECT_EQ( m.getElement( 1, 6 ), 0 );
+
+   EXPECT_EQ( m.getElement( 2, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 1 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 2 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 3 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 4 ), 1 );
+   EXPECT_EQ( m.getElement( 2, 5 ), 0 );
+   EXPECT_EQ( m.getElement( 2, 6 ), 1 );
+
+   EXPECT_EQ( m.getElement( 3, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 2 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 3 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 4 ), 0 );
+   EXPECT_EQ( m.getElement( 3, 5 ), 4 );
+   EXPECT_EQ( m.getElement( 3, 6 ), 0 );
+
+   EXPECT_EQ( m.getElement( 4, 0 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 1 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 2 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 3 ), 1 );
+   EXPECT_EQ( m.getElement( 4, 4 ), 1 );
+   EXPECT_EQ( m.getElement( 4, 5 ), 0 );
+   EXPECT_EQ( m.getElement( 4, 6 ), 1 );
+}
+
+template< typename Matrix >
+void
 test_SetElement()
 {
    using RealType = typename Matrix::RealType;
@@ -1327,6 +1554,27 @@ TYPED_TEST( MatrixTest, setValueTest )
    test_SetValue< MatrixType >();
 }
 
+TYPED_TEST( MatrixTest, forElementsTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ForElements< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, forElementsWithArrayTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ForElementsWithArray< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, forElementsIfTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ForElementsIf< MatrixType >();
+}
+
 TYPED_TEST( MatrixTest, setElementTest )
 {
    using MatrixType = typename TestFixture::MatrixType;
@@ -1389,67 +1637,5 @@ TYPED_TEST( MatrixTest, saveAndLoadTest )
 
    test_SaveAndLoad< MatrixType >();
 }
-
-/*
-TEST( MultidiagonalMatrixTest, Multidiagonal_getTranspositionTest_Host )
-{
-//    test_GetTransposition< Multidiagonal_host_int >();
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on CPU, this test will not build, but will print the following message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h(836): error: no instance of function template
-\"TNL::Matrices::MultidiagonalTranspositionAlignedKernel\" matches the argument list\n"; std::cout << "              argument
-types are: (TNL::Matrices::Multidiagonal<int, TNL::Devices::Host, int> *, Multidiagonal_host_int *, const int, int, int)\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Multidiagonal<Real, Device,
-Index>::getTransposition(const Matrix &, const TNL::Matrices::Multidiagonal<Real, Device, Index>::RealType &) [with Real=int,
-Device=TNL::Devices::Host, Index=int, Matrix=Multidiagonal_host_int, tileDim=32]\"\n"; std::cout << "
-/home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(977): here\n"; std::cout << " instantiation of \"void
-test_GetTransposition<Matrix>() [with Matrix=Multidiagonal_host_int]\"\n"; std::cout << "
-/home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(1420): here\n\n"; std::cout << "AND this message: \n";
-    std::cout << "      /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h(852): error: no instance of function template
-\"TNL::Matrices::MultidiagonalTranspositionNonAlignedKernel\" matches the argument list\n"; std::cout << "              argument
-types are: (TNL::Matrices::Multidiagonal<int, TNL::Devices::Host, int> *, Multidiagonal_host_int *, const int, int, int)\n";
-    std::cout << "          detected during:\n";
-    std::cout << "              instantiation of \"void TNL::Matrices::Multidiagonal<Real, Device,
-Index>::getTransposition(const Matrix &, const TNL::Matrices::Multidiagonal<Real, Device, Index>::RealType &) [with Real=int,
-Device=TNL::Devices::Host, Index=int, Matrix=Multidiagonal_host_int, tileDim=32]\"\n"; std::cout << "
-/home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(977): here\n"; std::cout << " instantiation of \"void
-test_GetTransposition<Matrix>() [with Matrix=Multidiagonal_host_int]\"\n"; std::cout << "
-/home/lukas/tnl-dev/src/UnitTests/Matrices/MultidiagonalMatrixTest.h(1420): here\n\n";
-}
-
-#ifdef __CUDACC__
-TEST( MultidiagonalMatrixTest, Multidiagonal_getTranspositionTest_Cuda )
-{
-//    test_GetTransposition< Multidiagonal_cuda_int >();
-    bool testRan = false;
-    EXPECT_TRUE( testRan );
-    std::cout << "\nTEST DID NOT RUN. NOT WORKING.\n\n";
-    std::cout << "If launched on GPU, this test throws the following message: \n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!!\n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  Assertion 'row >= 0 && row < this->getRows() && column >= 0 && column < this->getColumns()' failed !!! \n";
-    std::cout << "      File: /home/lukas/tnl-dev/src/TNL/Matrices/Multidiagonal_impl.h \n";
-    std::cout << "      Line: 329 \n";
-    std::cout << "      Diagnostics: Not supported with CUDA.\n";
-    std::cout << "  terminate called after throwing an instance of 'TNL::Exceptions::CudaRuntimeError'\n";
-    std::cout << "          what():  CUDA ERROR 4 (cudaErrorLaunchFailure): unspecified launch failure.\n";
-    std::cout << "  Source: line 57 in /home/lukas/tnl-dev/src/TNL/Containers/Algorithms/ArrayOperationsCuda_impl.h: unspecified
-launch failure\n"; std::cout << "  [1]    4003 abort (core dumped)  ./MultidiagonalMatrixTest-dbg\n";
-}
-#endif
- * */
 
 #include "../main.h"
