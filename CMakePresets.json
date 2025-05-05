@@ -160,33 +160,6 @@
       }
     },
     {
-      "name": "toolchain-clang-cuda-11.8",
-      "inherits": "default",
-      "displayName": "Toolchain: Clang with CUDA 11.8",
-      "description": "Switch toolchain: Clang for host and CUDA",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      },
-      "environment": {
-        "CUDA_PATH": "$penv{CUDA_PATH}/../cuda-11.8"
-      },
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++",
-        "CMAKE_CUDA_COMPILER": "clang++",
-        "CMAKE_CXX_FLAGS": "-stdlib=libc++",
-        "CMAKE_CUDA_FLAGS": "-stdlib=libc++",
-        "CMAKE_EXE_LINKER_FLAGS": "-fuse-ld=lld -lc++ -lc++abi",
-        "CMAKE_SHARED_LINKER_FLAGS": "-fuse-ld=lld -lc++ -lc++abi",
-        "Thrust_DIR": "$env{CUDA_PATH}/lib64/cmake/thrust/",
-        "CUB_DIR": "$env{CUDA_PATH}/lib64/cmake/cub/",
-        "TNL_USE_CUDA": "ON",
-        "TNL_USE_HIP": "OFF"
-      }
-    },
-    {
       "name": "toolchain-hip",
       "inherits": "default",
       "displayName": "Toolchain: ROCm/HIP",
@@ -281,56 +254,6 @@
       "displayName": "Non-MPI tests",
       "inherits": "default",
       "configurePreset": "default",
-      "filter": {
-        "exclude": {
-          "label": "MPI"
-        }
-      }
-    },
-    {
-      "name": "all-tests-cuda-11.8",
-      "displayName": "All tests",
-      "inherits": "default",
-      "configurePreset": "toolchain-clang-cuda-11.8"
-    },
-    {
-      "name": "matrix-tests-cuda-11.8",
-      "displayName": "Matrix tests",
-      "inherits": "default",
-      "configurePreset": "toolchain-clang-cuda-11.8",
-      "filter": {
-        "include": {
-          "label": "Matrices"
-        }
-      }
-    },
-    {
-      "name": "non-matrix-tests-cuda-11.8",
-      "displayName": "Non-matrix tests",
-      "inherits": "default",
-      "configurePreset": "toolchain-clang-cuda-11.8",
-      "filter": {
-        "exclude": {
-          "label": "Matrices"
-        }
-      }
-    },
-    {
-      "name": "mpi-tests-cuda-11.8",
-      "displayName": "MPI tests",
-      "inherits": "default",
-      "configurePreset": "toolchain-clang-cuda-11.8",
-      "filter": {
-        "include": {
-          "label": "MPI"
-        }
-      }
-    },
-    {
-      "name": "non-mpi-tests-cuda-11.8",
-      "displayName": "Non-MPI tests",
-      "inherits": "default",
-      "configurePreset": "toolchain-clang-cuda-11.8",
       "filter": {
         "exclude": {
           "label": "MPI"
