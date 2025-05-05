@@ -80,9 +80,8 @@ public:
              typename _Allocator = typename Allocators::Default< _Device >::template Allocator< _Real > >
    using Self = Vector< _Real, _Device, _Index, _Allocator >;
 
-   // constructors and assignment operators inherited from the class Array
+   // constructors are inherited from the class Array
    using Array< Real, Device, Index, Allocator >::Array;
-   using Array< Real, Device, Index, Allocator >::operator=;
 
 #ifdef __NVCC__
    // workaround for nvcc 11.6 - the constructor from Array is not inherited "properly" because of the optional argument
@@ -176,6 +175,21 @@ public:
    operator ConstViewType() const;
 
    /**
+    * \brief Assigns a value or an array - same as
+    * \ref TNL::Containers::Array::operator= "Array::operator=".
+    *
+    * \return Reference to this vector.
+    */
+   template< typename T,
+             typename...,
+             typename = std::enable_if_t< std::is_convertible_v< T, Real > || IsArrayType< T >::value > >
+   Array< Real, Device, Index, Allocator >&
+   operator=( const T& data )
+   {
+      return Array< Real, Device, Index, Allocator >::operator=( data );
+   }
+
+   /**
     * \brief Assigns a vector expression to this vector.
     *
     * The assignment is evaluated element-wise. The vector expression must
@@ -193,25 +207,6 @@ public:
                                           && ! IsArrayType< VectorExpression >::value > >
    Vector&
    operator=( const VectorExpression& expression );
-
-   /**
-    * \brief Assigns a value or an array - same as
-    * \ref TNL::Containers::Array::operator= "Array::operator=".
-    *
-    * \return Reference to this vector.
-    */
-   // operator= from the base class should be hidden according to the C++14 standard,
-   // although GCC does not do that - see https://stackoverflow.com/q/57322624
-#if ! defined( __CUDACC_VER_MAJOR__ ) || __CUDACC_VER_MAJOR__ < 11
-   template< typename T,
-             typename...,
-             typename = std::enable_if_t< std::is_convertible_v< T, Real > || IsArrayType< T >::value > >
-   Array< Real, Device, Index, Allocator >&
-   operator=( const T& data )
-   {
-      return Array< Real, Device, Index, Allocator >::operator=( data );
-   }
-#endif
 
    /**
     * \brief Adds elements of this vector and a vector expression and

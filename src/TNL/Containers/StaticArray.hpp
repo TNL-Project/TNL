@@ -253,12 +253,13 @@ StaticArray< Size, Value >::operator=( const StaticArray& v )
 }
 
 template< int Size, typename Value >
-template< typename T >
+template< typename T, typename..., typename >
 constexpr StaticArray< Size, Value >&
 StaticArray< Size, Value >::operator=( const T& v )
 {
    if constexpr( getSize() > 0 ) {
       if constexpr( IsStaticArrayType< T >::value ) {
+         static_assert( getSize() == T::getSize() );
          for( int i = 0; i < getSize(); i++ )
             data[ i ] = v[ i ];
       }

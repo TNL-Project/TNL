@@ -33,11 +33,8 @@ public:
    template< typename _Real, typename _Device = Device, typename _Index = Index >
    using Self = DistributedVectorView< _Real, _Device, _Index >;
 
-   // inherit all constructors and assignment operators from ArrayView
+   // inherit all constructors from DistributedArrayView
    using BaseType::DistributedArrayView;
-#if ! defined( __CUDACC_VER_MAJOR__ ) || __CUDACC_VER_MAJOR__ < 11
-   using BaseType::operator=;
-#endif
 
    // In C++14, default constructors cannot be inherited, although Clang
    // and GCC since version 7.0 inherit them.
