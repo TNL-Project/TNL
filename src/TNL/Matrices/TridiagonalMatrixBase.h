@@ -393,7 +393,7 @@ public:
     */
    template< typename Function >
    void
-   forElements( IndexType begin, IndexType end, Function& function ) const;
+   forElements( IndexType begin, IndexType end, Function&& function ) const;
 
    /**
     * \brief Method for iteration over all matrix rows for non-constant instances.
@@ -418,7 +418,7 @@ public:
     */
    template< typename Function >
    void
-   forElements( IndexType begin, IndexType end, Function& function );
+   forElements( IndexType begin, IndexType end, Function&& function );
 
    /**
     * \brief This method calls \e forElements for all matrix rows (for constant instances).
@@ -435,7 +435,7 @@ public:
     */
    template< typename Function >
    void
-   forAllElements( Function& function ) const;
+   forAllElements( Function&& function ) const;
 
    /**
     * \brief This method calls \e forElements for all matrix rows.
@@ -452,7 +452,212 @@ public:
     */
    template< typename Function >
    void
-   forAllElements( Function& function );
+   forAllElements( Function&& function );
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param begin defines beginning of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param end defines ending of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param function is an instance of the lambda function to be called for each element.
+    *
+    * \par Example
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \par Output
+    * \include TridiagonalMatrixExample_forElementsWithRowIndexes-2.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, IndexType begin, IndexType end, Function&& function ) const;
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * non-constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param begin defines beginning of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param end defines ending of the range `[begin, end)` of row indexes in the array `rowIndexes` to be processed.
+    * \param function is an instance of the lambda function to be called for each element.
+    *
+    * \par Example
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \par Output
+    * \include TridiagonalMatrixExample_forElementsWithRowIndexes-2.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, IndexType begin, IndexType end, Function&& function );
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant
+    * for constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param function is an instance of the lambda function to be called for each element.
+    *
+    * \par Example
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \par Output
+    * \include TridiagonalMatrixExample_forElementsWithRowIndexes-1.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, Function&& function ) const;
+
+   /**
+    * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
+    * non-constant instances.
+    *
+    * \tparam Array is a type of the array (or vector) with row indexes.
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param rowIndexes is an array with row indexes.
+    * \param function is an instance of the lambda function to be called for each element.
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
+    *
+    * \par Example
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \par Output
+    * \include TridiagonalMatrixExample_forElementsWithRowIndexes-1.out
+    */
+   template< typename Array, typename Function >
+   void
+   forElements( const Array& rowIndexes, Function&& function );
+
+   /**
+    * \brief Method for iterating over all matrix elements that meet a condition based on the row index (for constant
+    * instances).
+    *
+    * \tparam Condition is a type of lambda function that will be used to check if the element meets the condition. It should
+    * have form like
+    *
+    * ```
+    * auto condition = [] __cuda_callable__ ( IndexType rowIdx ) -> bool { ... };
+    * ```
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called for each matrix element.
+    *
+    * \par Example
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsIf.cpp
+    * \par Output
+    * \include TridiagonalMatrixExample_forElementsIf.out
+    */
+   template< typename Condition, typename Function >
+   void
+   forElementsIf( IndexType begin, IndexType end, Condition&& condition, Function&& function ) const;
+
+   /**
+    * \brief Method for iterating over all matrix elements that meet a condition based on the row index (for constant
+    * instances).
+    *
+    * \tparam Condition is a type of lambda function that will be used to check if the element meets the condition. It should
+    * have form like
+    *
+    * ```
+    * auto condition = [] __cuda_callable__ ( IndexType rowIdx ) -> bool { ... };
+    * ```
+    * \tparam Function is type of lambda function that will operate on matrix elements. It should have form like
+    *
+    * ```
+    * auto function = [] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType& columnIdx, RealType& value )
+    * { ... };
+    * ```
+    *
+    *  The \e localIdx parameter is a rank of the non-zero element in given row.
+    *
+    * \param begin defines beginning of the range `[begin, end)` of rows to be processed.
+    * \param end defines ending of the range `[begin, end)` of rows to be processed.
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called for each matrix element.
+    *
+    * \par Example
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsIf.cpp
+    * \par Output
+    * \include TridiagonalMatrixExample_forElementsIf.out
+    */
+   template< typename Condition, typename Function >
+   void
+   forElementsIf( IndexType begin, IndexType end, Condition&& condition, Function&& function );
+
+   /**
+    * \brief This method calls \e forElementsIf for all matrix rows (for constant instances).
+    *
+    * See \ref TridiagonalMatrix::forElementsIf.
+    *
+    * \tparam Condition is a type of lambda function representing the condition based on the row index.
+    * \tparam Function is a type of lambda function that will operate on matrix elements.
+    *
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called in each row.
+    */
+   template< typename Condition, typename Function >
+   void
+   forAllElementsIf( Condition&& condition, Function&& function ) const;
+
+   /**
+    * \brief This method calls \e forElementsIf for all matrix rows (for non-constant instances).
+    *
+    * See \ref TridiagonalMatrix::forElementsIf.
+    *
+    * \tparam Condition is a type of lambda function representing the condition based on the row index.
+    * \tparam Function is a type of lambda function that will operate on matrix elements.
+    *
+    * \param condition is an instance of the lambda function representing the condition based on the row index.
+    * \param function is an instance of the lambda function to be called in each row.
+    */
+   template< typename Condition, typename Function >
+   void
+   forAllElementsIf( Condition&& condition, Function&& function );
 
    /**
     * \brief Method for parallel iteration over matrix rows from interval `[begin, end)`.
