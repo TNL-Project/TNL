@@ -402,6 +402,102 @@ DenseMatrixBase< Real, Device, Index, Organization >::forAllElements( Function&&
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes,
+                                                                   IndexType begin,
+                                                                   IndexType end,
+                                                                   Function&& function ) const
+{
+   const auto values = this->getValues().getConstView();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx ) mutable
+   {
+      function( rowIdx, columnIdx, columnIdx, values[ globalIdx ] );
+   };
+   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes,
+                                                                   IndexType begin,
+                                                                   IndexType end,
+                                                                   Function&& function )
+{
+   auto values = this->getValues().getView();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx ) mutable
+   {
+      function( rowIdx, columnIdx, columnIdx, values[ globalIdx ] );
+   };
+   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function ) const
+{
+   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Array, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes, Function&& function )
+{
+   this->forElements( rowIndexes, (Index) 0, rowIndexes.getSize(), function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElementsIf( IndexType begin,
+                                                                     IndexType end,
+                                                                     Condition&& condition,
+                                                                     Function&& function ) const
+{
+   const auto values = this->getValues().getConstView();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx ) mutable
+   {
+      function( rowIdx, columnIdx, columnIdx, values[ globalIdx ] );
+   };
+   Algorithms::Segments::forElementsIf( this->segments, begin, end, condition, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forElementsIf( IndexType begin,
+                                                                     IndexType end,
+                                                                     Condition&& condition,
+                                                                     Function&& function )
+{
+   auto values = this->getValues().getView();
+   auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx ) mutable
+   {
+      function( rowIdx, columnIdx, columnIdx, values[ globalIdx ] );
+   };
+   Algorithms::Segments::forElementsIf( this->segments, begin, end, condition, f );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function ) const
+{
+   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+template< typename Condition, typename Function >
+void
+DenseMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function )
+{
+   this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::forRows( IndexType begin, IndexType end, Function&& function )
