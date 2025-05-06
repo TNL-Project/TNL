@@ -16,7 +16,7 @@ enum class PDLPRestarting
    Constant,
    DualityGap,
    KKT,
-   Gradient
+   Fast
 };
 
 template< typename Real >
@@ -128,6 +128,9 @@ public:
    }
 
 protected:
+   std::tuple< bool, RealType, RealType >
+   PDHG( VectorType& x, VectorType& y );
+
    void
    adaptiveStep( const VectorType& in_z, VectorType& out_z, IndexType k, RealType& current_omega, RealType& current_eta );
 
