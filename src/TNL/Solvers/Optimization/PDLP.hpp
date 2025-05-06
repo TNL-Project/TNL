@@ -28,7 +28,7 @@ PDLP< LPProblem_, SolverMonitor >::configSetup( Config::ConfigDescription& confi
    config.addEntryEnum( "constant" );
    config.addEntryEnum( "duality-gap" );
    config.addEntryEnum( "kkt" );
-   config.addEntryEnum( "gradient" );
+   config.addEntryEnum( "fast" );
    config.addEntry< int >(
       prefix + "max-restarting-interval", "Maximum interval without restarting interval. Zero means no limit.", 0 );
 }
@@ -47,8 +47,8 @@ PDLP< LPProblem_, SolverMonitor >::setup( const Config::ParameterContainer& para
       this->setRestarting( PDLPRestarting::DualityGap );
    else if( restarting == "kkt" )
       this->setRestarting( PDLPRestarting::KKT );
-   else if( restarting == "gradient" )
-      this->setRestarting( PDLPRestarting::Gradient );
+   else if( restarting == "fast" )
+      this->setRestarting( PDLPRestarting::Fast );
    else
       throw std::runtime_error( "Unknown restarting strategy: " + restarting );
    auto restartingInterval = parameters.getParameter< int >( prefix + "max-restarting-interval" );
@@ -107,17 +107,6 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
       }
       file.close();
    }*/
-   std::fstream current_gradient_file( "current-gradient.txt", std::ios::out );
-   std::fstream current_duality_file( "current-duality.txt", std::ios::out );
-   std::fstream averaged_gradient_file( "averaged-gradient.txt", std::ios::out );
-   std::fstream averaged_duality_file( "averaged-duality.txt", std::ios::out );
-   std::fstream candidate_gradient_file( "candidate-gradient.txt", std::ios::out );
-   std::fstream candidate_duality_file( "candidate-duality.txt", std::ios::out );
-   std::fstream primal_objective_file( "primal-objective.txt", std::ios::out );
-   std::fstream dual_objective_file( "dual-objective.txt", std::ios::out );
-   std::fstream primal_feasibility_file( "primal-feasibility.txt", std::ios::out );
-   std::fstream dual_feasibility_file( "dual-feasibility.txt", std::ios::out );
-   std::fstream duality_gap_file( "duality-gap.txt", std::ios::out );
 
    // Filter the bounds
    this->filtered_l = this->l;
@@ -151,22 +140,15 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    this->lambda.setSize( n );
    //this->K_norm = Matrices::spectralNorm( K, KT );
    //std::cout << "Constraint matrix spectral norm: " << this->K_norm << std::endl;
-   this->K_norm = max( abs( K.getValues() ) );
-   if( this->K_norm < 1.0e-10 )
-      throw std::runtime_error( "Matrix for the LP problem is nearly zero matrix." );
-   const RealType initial_eta = 1.0 / this->K_norm;
-   const RealType c_norm = l2Norm( c );
-   const RealType q_norm = l2Norm( q );
-   const RealType initial_omega = ( c_norm > 1.0e-10 && q_norm > 1.0e-10 ) ? c_norm / q_norm : 1;
 
    std::cout << "Columns:           " << n << std::endl;
    std::cout << "Rows:              " << m << std::endl;
-   std::cout << "C norm:            " << c_norm << std::endl;
-   std::cout << "Q norm:            " << q_norm << std::endl;
+   std::cout << "C norm:            " << l2Norm( c ) << std::endl;
+   std::cout << "Q norm:            " << l2Norm( q ) << std::endl;
    std::cout << "Lower bounds norm: " << l2Norm( this->filtered_l ) << std::endl;
    std::cout << "Upper bounds norm: " << l2Norm( this->filtered_u ) << std::endl;
-   std::cout << "Initial omega:     " << initial_omega << std::endl;
-   std::cout << "Initial eta:       " << initial_eta << std::endl;
+   //std::cout << "Initial omega:     " << initial_omega << std::endl;
+   //std::cout << "Initial eta:       " << initial_eta << std::endl;
 
 #ifdef PRINTING
    /*std::cout << "q = " << q << std::endl;
@@ -174,6 +156,44 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    std::cout << "l = " << l << std::endl;
    std::cout << "u = " << u << std::endl;*/
 #endif
+
+   auto l_view = l.getConstView();
+   auto u_view = u.getConstView();
+   x.forElements( 0,
+                  n,
+                  [ = ] __cuda_callable__( IndexType i, RealType & value ) mutable
+                  {
+                     if( l_view[ i ] == -std::numeric_limits< RealType >::infinity() )
+                        value = min( u_view[ i ], 0 );
+                     else
+                        value = l_view[ i ];
+                  } );
+   y = 0;
+   return PDHG( x, y );
+}
+template< typename LPProblem_, typename SolverMonitor >
+auto
+PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::tuple< bool, RealType, RealType >
+{
+   std::fstream current_gradient_file( "current-gradient.txt", std::ios::out );
+   std::fstream current_duality_file( "current-duality.txt", std::ios::out );
+   std::fstream averaged_gradient_file( "averaged-gradient.txt", std::ios::out );
+   std::fstream averaged_duality_file( "averaged-duality.txt", std::ios::out );
+   std::fstream candidate_gradient_file( "candidate-gradient.txt", std::ios::out );
+   std::fstream candidate_duality_file( "candidate-duality.txt", std::ios::out );
+   std::fstream primal_objective_file( "primal-objective.txt", std::ios::out );
+   std::fstream dual_objective_file( "dual-objective.txt", std::ios::out );
+   std::fstream primal_feasibility_file( "primal-feasibility.txt", std::ios::out );
+   std::fstream dual_feasibility_file( "dual-feasibility.txt", std::ios::out );
+   std::fstream duality_gap_file( "duality-gap.txt", std::ios::out );
+
+   this->K_norm = max( abs( K.getValues() ) );
+   if( this->K_norm < 1.0e-10 )
+      throw std::runtime_error( "Matrix for the LP problem is nearly zero matrix." );
+   const RealType initial_eta = 1.0 / this->K_norm;
+   const RealType c_norm = l2Norm( c );
+   const RealType q_norm = l2Norm( q );
+   const RealType initial_omega = ( c_norm > 1.0e-10 && q_norm > 1.0e-10 ) ? c_norm / q_norm : 1;
 
    KKTDataType kkt_candidate, kkt_last_restart;
 
@@ -184,20 +204,8 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    RealType current_omega = initial_omega;
 
    VectorType z_candidate( N ), z_averaged( N ), z_last_restart( N ), z_last_iteration( N ), z_current( N );
-   auto l_view = l.getConstView();
-   auto u_view = u.getConstView();
-   z_candidate.forElements( 0,
-                            n,
-                            [ = ] __cuda_callable__( IndexType i, RealType & value ) mutable
-                            {
-                               if( l_view[ i ] == -std::numeric_limits< RealType >::infinity() )
-                                  value = min( u_view[ i ], 0 );
-                               else
-                                  value = l_view[ i ];
-                            } );
-   z_candidate.getView( n, N ) = 0;
-   x = z_candidate.getView( 0, n );
-   y = z_candidate.getView( n, N );
+   z_candidate.getView( 0, n ) = x;
+   z_candidate.getView( n, N ) = y;
 
    RealType eta_sum( 0 ), mu_last_restart( std::numeric_limits< RealType >::infinity() ), mu_candidate( 0 ),
       mu_last_candidate( 0 );
@@ -345,7 +353,8 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                }
 #ifdef PRINTING
                //std::cout << "Restarting errs.: last restart = " << mu_last_restart << std::endl;
-               //std::cout << "Sufficient test: " << mu_candidate << " < " << beta_sufficient << " * " << mu_last_restart << " =
+               //std::cout << "Sufficient test: " << mu_candidate << " < " << beta_sufficient << " * " << mu_last_restart <<
+               //" =
                //"
                //          << beta_sufficient * mu_last_restart << std::endl;
                //printf(
@@ -363,7 +372,8 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                }
 
 #ifdef PRINTING
-               //std::cout << "Necessary test: " << mu_candidate << " < " << beta_necessary << " * " << mu_last_restart << " = "
+               //std::cout << "Necessary test: " << mu_candidate << " < " << beta_necessary << " * " << mu_last_restart << "
+               //= "
                //          << beta_necessary * mu_last_restart << " and " << mu_candidate << " > " << mu_last_candidate <<
                //          std::endl;
                /*printf( "Necessary test k = %d t = %d: %g < %g * %g = %g and %g > %g\n",
@@ -407,7 +417,8 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
       //std::cout << "primal feas. " << primal_feasibility << " dual feas. " << dual_feasibility << " primal obj. "
       //          << primal_objective << " dual obj. " << dual_objective << " duality gap " << duality_gap << std::endl;
       //std::cout << "Termination check: " << primal_feasibility << "|" << epsilon * ( 1 + l2Norm( q ) ) << " "
-      //          << dual_feasibility << "|" << epsilon * ( 1 + l2Norm( c ) ) << " " << relative_duality_gap << "|" << epsilon
+      //          << dual_feasibility << "|" << epsilon * ( 1 + l2Norm( c ) ) << " " << relative_duality_gap << "|" <<
+      //          epsilon
       //          << " : primal obj. " << primal_objective << " dual obj. " << dual_objective << std::endl;
 #endif
 
@@ -425,18 +436,17 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
          //std::cout << "X: " << new_x_view << std::endl;
          //std::cout << "D2 * X: " << D2 * new_x_view << std::endl;
          //std::cout << "Y: " << new_y_view << std::endl;
-         x = new_x_view;
+         //x = new_x_view;
          //y = new_y_view;
          return { true, dual_objective, kkt_candidate.getRelativeDualityGap() };
       }
       else {
          std::cout << "ITER: " << std::setw( 6 ) << k << " NORMS=(" << std::setw( 10 ) << l2Norm( new_x_view ) << ", "
                    << std::setw( 10 ) << l2Norm( new_y_view ) << ") INV.STEP : " << std::setw( 10 ) << 1.0 / current_eta
-                   << " PRIMAL WEIGHT: " << std::setw( 10 ) << current_omega << " PRIM.OBJ. : " << std::setw( 10 )
-                   << primal_objective << " DUAL OBJ. : " << std::setw( 12 ) << dual_objective
-                   << " REL.PRIM. FEAS.: " << std::setw( 12 ) << relative_primal_feasibility
-                   << " REL.DUAL FEAS.: " << std::setw( 12 ) << relative_dual_feasibility << " DUAL.GAP: " << std::setw( 10 )
-                   << kkt_candidate.getDualityGap() << std::endl;
+                   << " PRIMAL WEIGHT: " << std::setw( 10 ) << current_omega << " OBJECTIVE : ( " << std::setw( 10 )
+                   << primal_objective << ", " << std::setw( 12 ) << dual_objective << " )   FEASIBILITY: ( " << std::setw( 12 )
+                   << relative_primal_feasibility << ", " << std::setw( 12 ) << relative_dual_feasibility
+                   << " )   DUAL.GAP: " << std::setw( 10 ) << kkt_candidate.getDualityGap() << std::endl;
       }
 
       //Compute new parameter omega
@@ -480,7 +490,8 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
 
 #ifdef PRINTING
       //std::cout << "=====================================================================" << std::endl;
-      //std::cout << this->adaptive_k - 2 << " eta: " << current_eta << " omega: " << current_omega << " primal step : " << tau
+      //std::cout << this->adaptive_k - 2 << " eta: " << current_eta << " omega: " << current_omega << " primal step : " <<
+      //tau
       //          << " dual step : " << sigma << std::endl;
 #endif
 
