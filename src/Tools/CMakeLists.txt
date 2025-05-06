@@ -121,5 +121,5 @@ if(TNL_BUILD_CPP_TARGETS)
 
     install(TARGETS tnl-matrix-info tnl-grid-setup tnl-image-converter tnl-dicom-reader DESTINATION bin COMPONENT tools)
 
-    install(PROGRAMS tnl-err2eoc tnl-benchmark-to-html.py DESTINATION bin COMPONENT tools)
+    install(PROGRAMS tnl-benchmark-to-html.py DESTINATION bin COMPONENT tools)
 endif()
