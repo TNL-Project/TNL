@@ -16,20 +16,20 @@ namespace TNL::Solvers {
  * The following example shows how to use the direct solver monitor for monitoring
  * convergence of linear direct solver:
  *
- * \includelineno Solvers/Linear/DirectSolverWithMonitorExample.cpp
+ * \includelineno Solvers/Linear/DirectLinearSolverWithMonitorExample.cpp
  *
  * The result looks as follows:
  *
- * \include DirectSolverWithMonitorExample.out
+ * \include DirectLinearSolverWithMonitorExample.out
  *
  * The following example shows how to employ timer (\ref TNL::Timer) to the monitor
  * of direct solvers:
  *
- * \includelineno Solvers/Linear/DirectSolverWithTimerExample.cpp
+ * \includelineno Solvers/Linear/DirectLinearSolverWithTimerExample.cpp
  *
  * The result looks as follows:
  *
- * \include DirectSolverWithTimerExample.out
+ * \include DirectLinearSolverWithTimerExample.out
  */
 template< typename Real = double, typename Index = int >
 class DirectSolverMonitor : public SolverMonitor
