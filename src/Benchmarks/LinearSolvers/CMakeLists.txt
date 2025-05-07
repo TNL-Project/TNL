@@ -1,5 +1,6 @@
 find_package(STRUMPACK)
-#find_package(Trilinos) # This leads to wrong parameters for linker https://github.com/trilinos/Trilinos/issues/13396
+
+# find_package(Trilinos) # This leads to wrong parameters for linker https://github.com/trilinos/Trilinos/issues/13396
 find_package(Kokkos)
 find_package(UMFPACK)
 
@@ -11,15 +12,9 @@ if(TNL_BUILD_CUDA)
     target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC CUDA::cusparse)
     install(TARGETS tnl-benchmark-linear-solvers-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
 
-    find_path(CUDSS_INCLUDE_DIR
-    NAMES cudss.h
-    PATHS /usr/local/cuda/include /opt/cuda/include
-    )
+    find_path(CUDSS_INCLUDE_DIR NAMES cudss.h PATHS /usr/local/cuda/include /opt/cuda/include)
 
-    find_library(CUDSS_LIBRARY
-        NAMES cudss
-        PATHS /usr/local/cuda/lib /opt/cuda/lib
-    )
+    find_library(CUDSS_LIBRARY NAMES cudss PATHS /usr/local/cuda/lib /opt/cuda/lib)
 
     include(FindPackageHandleStandardArgs)
     find_package_handle_standard_args(CUDSS DEFAULT_MSG CUDSS_LIBRARY CUDSS_INCLUDE_DIR)
@@ -34,20 +29,20 @@ if(TNL_BUILD_CUDA)
     endif()
 
     if(TNL_BUILD_MPI)
-
         # enable MPI support in TNL
         target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_MPI")
 
         # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
         target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC MPI::MPI_CXX)
-        if(Ginkgo_FOUND)
+
+        # FIXME: we can't link to ginkgo when using LLVM's libc++: https://github.com/ginkgo-project/ginkgo/issues/1571
+        if(Ginkgo_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_GINKGO")
             target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC Ginkgo::ginkgo)
         endif()
 
         if(STRUMPACK_FOUND)
             target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_STRUMPACK")
-            target_include_directories(tnl-benchmark-linear-solvers-cuda PUBLIC ${STRUMPACK_INCLUDE_DIR})
             target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC STRUMPACK::strumpack)
         endif()
     endif()
@@ -72,20 +67,20 @@ if(TNL_BUILD_CPP_TARGETS)
     install(TARGETS tnl-benchmark-linear-solvers RUNTIME DESTINATION bin COMPONENT benchmarks)
 
     if(TNL_BUILD_MPI)
-
         # enable MPI support in TNL
         target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_MPI")
 
         # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
         target_link_libraries(tnl-benchmark-linear-solvers PUBLIC MPI::MPI_CXX)
-        if(Ginkgo_FOUND)
+
+        # FIXME: we can't link to ginkgo when using LLVM's libc++: https://github.com/ginkgo-project/ginkgo/issues/1571
+        if(Ginkgo_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_GINKGO")
-            target_link_libraries(tnl-benchmark-linear-solvers PUBLIC TNL::TNL Ginkgo::ginkgo)
+            target_link_libraries(tnl-benchmark-linear-solvers PUBLIC Ginkgo::ginkgo)
         endif()
 
         if(STRUMPACK_FOUND)
             target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_STRUMPACK")
-            target_include_directories(tnl-benchmark-linear-solvers PUBLIC ${STRUMPACK_INCLUDE_DIR})
             target_link_libraries(tnl-benchmark-linear-solvers PUBLIC STRUMPACK::strumpack)
         endif()
     endif()
@@ -101,5 +96,4 @@ if(TNL_BUILD_CPP_TARGETS)
         target_include_directories(tnl-benchmark-linear-solvers PUBLIC ${Trilinos_INCLUDE_DIRS})
         target_link_libraries(tnl-benchmark-linear-solvers PUBLIC ${Trilinos_LIBRARIES})
     endif()
-
 endif()
