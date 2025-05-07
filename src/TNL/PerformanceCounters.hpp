@@ -76,8 +76,9 @@ PerformanceCounters::readCPUCycles()
    unsigned long long int branch_misses;
    get_kperf_counters( cpu_cycles, instructions, branches, branch_misses );
    return cpu_cycles;
-#endif
+#else
    return 0;
+#endif
 }
 
 }  // namespace TNL
