@@ -221,9 +221,10 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
 
    IndexType k = 0;
    this->adaptive_k = 1;
-   this->matrixVectorProducts = 0;
    RealType current_eta = initial_eta;
    RealType current_omega = initial_omega;
+   this->KxComputations = 0;
+   this->KTyComputations = 0;
 
    VectorType z_candidate( N ), z_averaged( N ), z_last_restart( N ), z_last_iteration( N ), z_current( N );
    z_candidate.getView( 0, n ) = x;
@@ -541,7 +542,8 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
          std::cout << "DUAL FEASIBILITY: " << kkt_candidate.getDualFeasibility() << " / " << relative_dual_feasibility
                    << std::endl;
          std::cout << "ITERATIONS: " << k << std::endl;
-         std::cout << "#KKT:" << this->matrixVectorProducts << std::endl;
+         std::cout << "#Kx COMPUTATIONS:" << this->KxComputations << std::endl;
+         std::cout << "#KTy COMPUTATIONS:" << this->KTyComputations << std::endl;
          std::cout << "SOLVER TIME: " << solverTimer.getRealTime() << std::endl;
          std::cout << "MATRIX-VECTOR PRODUCTS TIME: " << this->spmvTimer.getRealTime() << std::endl;
          //std::cout << "X: " << new_x_view << std::endl;
@@ -606,18 +608,14 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
 #endif
 
       // Primal step
-      spmvTimer.start();
-      KT.vectorProduct( in_y, KT_y, segmentsReductionKernel );
-      spmvTimer.stop();
-      this->matrixVectorProducts++;
+      auto KTy_view = KT_y.getView( 0, n );
+      computeKTy( in_y, KTy_view );
       out_x = minimum( u, maximum( l, in_x - tau * ( c - KT_y ) ) );
 
       // Dual step
       aux = 2.0 * out_x - in_x;
-      spmvTimer.start();
-      K.vectorProduct( aux, Kx, segmentsReductionKernel );
-      spmvTimer.stop();
-      this->matrixVectorProducts++;
+      auto Kx_view = Kx.getView( 0, m );
+      computeKx( aux, Kx_view );
       out_y = in_y + sigma * ( q - Kx );
       if( this->inequalitiesFirst ) {
          if( m1 > 0 ) {
@@ -645,11 +643,10 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
       delta_y = out_y - in_y;
       const RealType movement = 0.5 * ( current_omega * ( delta_x, delta_x ) + ( delta_y, delta_y ) / current_omega );
 
-      spmvTimer.start();
-      K.vectorProduct( delta_x, Kx, segmentsReductionKernel );
-      spmvTimer.stop();
-      this->matrixVectorProducts++;
-      const RealType interaction = abs( dot( Kx, delta_y ) );  // TODO: It is 0.5 in source code
+      VectorType K_delta_x( m );
+      auto K_delta_x_view = K_delta_x.getView( 0, m );
+      computeKx( delta_x, K_delta_x_view );
+      const RealType interaction = abs( dot( K_delta_x, delta_y ) );  // TODO: It is 0.5 in source code
       const RealType max_eta = interaction > 0 ? movement / interaction : std::numeric_limits< RealType >::infinity();
       RealType new_eta;
       if( this->adaptive_k == 0 && max_eta == std::numeric_limits< RealType >::infinity() )
@@ -679,6 +676,26 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
       else
          current_eta = new_eta;
    }
+}
+
+template< typename LPProblem_, typename SolverMonitor >
+void
+PDLP< LPProblem_, SolverMonitor >::computeKx( const ConstVectorView& x, VectorView& Kx )
+{
+   spmvTimer.start();
+   K.vectorProduct( x, Kx, segmentsReductionKernel );
+   spmvTimer.stop();
+   this->KxComputations++;
+}
+
+template< typename LPProblem_, typename SolverMonitor >
+void
+PDLP< LPProblem_, SolverMonitor >::computeKTy( const ConstVectorView& y, VectorView& KTy )
+{
+   spmvTimer.start();
+   KT.vectorProduct( y, KTy, segmentsReductionKernel );
+   spmvTimer.stop();
+   this->KTyComputations++;
 }
 
 template< typename LPProblem_, typename SolverMonitor >
@@ -754,15 +771,10 @@ PDLP< LPProblem_, SolverMonitor >::primalDualGap( const VectorView& z, const Vec
    VectorType g( N ), g_l( N ), g_u( N );
    auto g_1 = g.getView( 0, n );
    auto g_2 = g.getView( n, N );
-   spmvTimer.start();
-   KT.vectorProduct( y_view, g_1, segmentsReductionKernel );
-   spmvTimer.stop();
-   this->matrixVectorProducts++;
+
+   computeKTy( y_view, g_1 );  // g_1 = KT * y_view
    g_1 = c - g_1;
-   spmvTimer.start();
-   K.vectorProduct( x_view, g_2, segmentsReductionKernel );
-   spmvTimer.stop();
-   this->matrixVectorProducts++;
+   computeKx( x_view, g_2 );  // g_2 = K * x_view
    g_2 = g_2 - q;
 
    g_l.getView( 0, n ) = l;
@@ -799,17 +811,13 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z ) -> KKTDataType
    auto c_view = c.getConstView();
 
    // Compute error of the primal feasibility
-   spmvTimer.start();
-   K.vectorProduct( x, Kx, segmentsReductionKernel );
-   spmvTimer.stop();
-   this->matrixVectorProducts++;
+   auto Kx_view = Kx.getView();
+   computeKx( x, Kx_view );
    const RealType primal_feasibility = computePrimalFeasibility( q, Kx );
 
    // Compute error of the dual feasibility
-   spmvTimer.start();
-   KT.vectorProduct( y, KTy, segmentsReductionKernel );
-   spmvTimer.stop();
-   this->matrixVectorProducts++;
+   auto KTy_view = KTy.getView();
+   computeKTy( y, KTy_view );
    computeLambda( c, KTy, l, u, lambda );
    const RealType dual_feasibility = l2Norm( c - KTy - lambda );
 
