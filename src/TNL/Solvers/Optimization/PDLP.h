@@ -142,13 +142,23 @@ protected:
     * \return A tuple containing the primal feasibility, dual feasibility, primal objective and dual objective.
     */
    KKTDataType
-   KKT( const VectorView& z );
+   KKT( const VectorView& z, const VectorType& Kx, const VectorType& KTy );
 
    void
    computeKx( const ConstVectorView& x, VectorView& Kx );
 
    void
    computeKTy( const ConstVectorView& y, VectorView& KTy );
+
+   void
+   computePrimalStep( const ConstVectorView& x, const VectorView& KTy, const RealType& tau, VectorView& x_new );
+
+   void
+   computeDualStep( const ConstVectorView& y,
+                    const VectorView& Kx,
+                    const VectorView& Kx_new,
+                    const RealType& sigma,
+                    VectorView& y_new );
 
 public:  // TODO: Just because of nvcc
    void
@@ -191,7 +201,7 @@ protected:
    VectorType D1, D2;
 
    // Supporting vectors
-   VectorType Kx, KTy, lambda;
+   VectorType Kx, Kx_new, Kx_averaged, KTy, KTy_averaged, lambda;
 
    RealType K_norm;
 
