@@ -202,6 +202,8 @@ protected:
 
    // Supporting vectors
    VectorType Kx, Kx_new, Kx_averaged, KTy, KTy_averaged, Kx_candidate, KTy_candidate, lambda;
+   VectorType new_x;
+   bool new_x_precomputed = false;
 
    RealType K_norm;
 

@@ -144,6 +144,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    this->KTy.setSize( n );
    this->KTy_averaged.setSize( n );
    this->KTy_candidate.setSize( n );
+   this->new_x.setSize( n );
    this->lambda.setSize( n );
    //this->K_norm = Matrices::spectralNorm( K, KT );
    //std::cout << "Constraint matrix spectral norm: " << this->K_norm << std::endl;
@@ -369,14 +370,24 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                KKTDataType kkt_current, kkt_averaged;
                if( restarting == PDLPRestarting::KKT || restarting == PDLPRestarting::Constant ) {
                   auto KTy_view = KTy.getView();
+                  auto KTy_averaged_view = KTy_averaged.getView();
+
                   computeKTy( z_current.getView( n, N ), KTy_view );
+                  computeKTy( z_averaged.getConstView( n, N ), KTy_averaged_view );
+
+                  const RealType tau = current_eta / current_omega;
+                  auto new_x_view = new_x.getView();
+                  auto Kx_new_view = Kx_new.getView();
+                  auto Kx_averaged_view = Kx_averaged.getView();
+                  computePrimalStep( z_current.getConstView( 0, n ), KTy, tau, new_x_view );
+
+                  computeKx( z_averaged.getConstView( 0, n ), Kx_averaged_view );
+                  computeKx( new_x.getConstView(), Kx_new_view );
+                  new_x_precomputed = true;
+
                   kkt_current = KKT( z_current, Kx, KTy );
                   mu_current = kkt_current.getKKTError( current_omega );
 
-                  auto KTy_averaged_view = KTy_averaged.getView();
-                  auto Kx_averaged_view = Kx_averaged.getView();
-                  computeKx( z_averaged.getConstView( 0, n ), Kx_averaged_view );
-                  computeKTy( z_averaged.getConstView( n, N ), KTy_averaged_view );
                   kkt_averaged = KKT( z_averaged.getView(), Kx_averaged, KTy_averaged );
                   mu_averaged = kkt_averaged.getKKTError( current_omega );
                }
@@ -534,6 +545,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
       auto new_y_view = z_candidate.getView( n, n + m1 + m2 );
       Kx = Kx_candidate;
       KTy = KTy_candidate;
+      new_x_precomputed = false;
 
       auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = kkt_candidate;
 
@@ -627,7 +639,12 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
 #endif
 
       // Primal step
-      computePrimalStep( in_x, KTy, tau, out_x );
+      if( ! new_x_precomputed )
+         computePrimalStep( in_x, KTy, tau, out_x );
+      else {
+         out_x = new_x;
+         new_x_precomputed = false;
+      }
 
       // Dual step
       auto Kx_new_view = Kx_new.getView();
