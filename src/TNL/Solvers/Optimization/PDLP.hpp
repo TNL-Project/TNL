@@ -138,7 +138,10 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    VectorType y( m, 0 );  // TODO: This should argument maybe
 
    this->Kx.setSize( m );
+   this->Kx_new.setSize( m );
+   this->Kx_averaged.setSize( m );
    this->KTy.setSize( n );
+   this->KTy_averaged.setSize( n );
    this->lambda.setSize( n );
    //this->K_norm = Matrices::spectralNorm( K, KT );
    //std::cout << "Constraint matrix spectral norm: " << this->K_norm << std::endl;
@@ -217,6 +220,10 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
    const RealType q_norm = l2Norm( q );
    const RealType initial_omega = ( c_norm > 1.0e-10 && q_norm > 1.0e-10 ) ? c_norm / q_norm : 1;
 
+   auto Kx_view = Kx.getView();
+   computeKx( x, Kx_view );
+   auto KTy_view = KTy.getView();
+   computeKTy( y, KTy_view );
    KKTDataType kkt_candidate, kkt_last_restart;
 
    IndexType k = 0;
@@ -325,9 +332,9 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                //const RealType mu_averaged = std::numeric_limits< RealType >::infinity();
                mu_candidate = mu_current;
                z_candidate = z_current;
-               if( k % 10 == 1 ) {
-                  kkt_candidate = KKT( z_candidate );
-               }
+               //if( k % 10 == 1 ) {
+               //   kkt_candidate = KKT( z_candidate );
+               //}
 
                if( t >= beta_artificial * k ) {
                   std::cout << "ARTIFICIAL FAST restart to " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" )
@@ -360,10 +367,19 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                KKTDataType kkt_current, kkt_averaged;
                if( restarting == PDLPRestarting::KKT || restarting == PDLPRestarting::Constant ) {
                   //std::cout << "KKT for current: ";
-                  kkt_current = KKT( z_current );
+                  //auto Kx_view = Kx.getView();
+                  auto KTy_view = KTy.getView();
+                  //computeKx( z_current.getView( 0, n ), Kx_view );
+                  computeKTy( z_current.getView( n, N ), KTy_view );
+                  kkt_current = KKT( z_current, Kx, KTy );
                   mu_current = kkt_current.getKKTError( current_omega );
                   //std::cout << "KKT for average:";
-                  kkt_averaged = KKT( z_averaged );
+
+                  auto KTy_averaged_view = KTy_averaged.getView();
+                  auto Kx_averaged_view = Kx_averaged.getView();
+                  computeKx( z_averaged.getConstView( 0, n ), Kx_averaged_view );
+                  computeKTy( z_averaged.getConstView( n, N ), KTy_averaged_view );
+                  kkt_averaged = KKT( z_averaged.getView(), Kx_averaged, KTy_averaged );
                   mu_averaged = kkt_averaged.getKKTError( current_omega );
                }
                else if( restarting == PDLPRestarting::DualityGap ) {
@@ -381,6 +397,8 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   z_candidate = z_averaged;
                   mu_candidate = mu_averaged;
                   kkt_candidate = kkt_averaged;
+                  Kx = Kx_averaged;
+                  KTy = KTy_averaged;
                }
 
                if( this->maxRestartingInterval > 0 && t % this->maxRestartingInterval == 0 ) {
@@ -594,8 +612,13 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
    auto out_x = out_z.getView( 0, n );
    auto out_y = out_z.getView( n, N );
 
-   VectorType KT_y( n ), Kx( m );
    VectorType delta_y( m, 0 ), delta_x( n, 0 ), aux( n, 0 );
+
+   auto KTy_view = KTy.getView();
+   computeKTy( in_y, KTy_view );
+
+   auto Kx_view = Kx.getView();
+   computeKx( in_x, Kx_view );
 
    while( true ) {
       const RealType tau = current_eta / current_omega;
@@ -608,27 +631,12 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
 #endif
 
       // Primal step
-      auto KTy_view = KT_y.getView( 0, n );
-      computeKTy( in_y, KTy_view );
-      out_x = minimum( u, maximum( l, in_x - tau * ( c - KT_y ) ) );
+      computePrimalStep( in_x, KTy, tau, out_x );
 
       // Dual step
-      aux = 2.0 * out_x - in_x;
-      auto Kx_view = Kx.getView( 0, m );
-      computeKx( aux, Kx_view );
-      out_y = in_y + sigma * ( q - Kx );
-      if( this->inequalitiesFirst ) {
-         if( m1 > 0 ) {
-            auto out_y1 = out_y.getView( 0, m1 );
-            out_y1 = maximum( 0, out_y1 );
-         }
-      }
-      else {
-         if( m2 > 0 ) {
-            auto out_y2 = out_y.getView( m1, m );
-            out_y2 = maximum( 0, out_y2 );
-         }
-      }
+      auto Kx_new_view = Kx_new.getView();
+      computeKx( out_x, Kx_new_view );
+      computeDualStep( in_y, Kx, Kx_new, sigma, out_y );
 
 #ifdef PRINTING
       std::cout << "Adpt. step       x = " << l2Norm( in_x ) << std::endl;
@@ -643,10 +651,7 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
       delta_y = out_y - in_y;
       const RealType movement = 0.5 * ( current_omega * ( delta_x, delta_x ) + ( delta_y, delta_y ) / current_omega );
 
-      VectorType K_delta_x( m );
-      auto K_delta_x_view = K_delta_x.getView( 0, m );
-      computeKx( delta_x, K_delta_x_view );
-      const RealType interaction = abs( dot( K_delta_x, delta_y ) );  // TODO: It is 0.5 in source code
+      const RealType interaction = abs( dot( Kx_new - Kx, delta_y ) );
       const RealType max_eta = interaction > 0 ? movement / interaction : std::numeric_limits< RealType >::infinity();
       RealType new_eta;
       if( this->adaptive_k == 0 && max_eta == std::numeric_limits< RealType >::infinity() )
@@ -671,6 +676,7 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
          std::cout << "Adpt. step   out_x = " << l2Norm( out_x ) << std::endl;
          std::cout << "Adpt. step   out_y = " << l2Norm( out_y ) << std::endl;
 #endif
+         Kx = Kx_new;
          return;
       }
       else
@@ -696,6 +702,35 @@ PDLP< LPProblem_, SolverMonitor >::computeKTy( const ConstVectorView& y, VectorV
    KT.vectorProduct( y, KTy, segmentsReductionKernel );
    spmvTimer.stop();
    this->KTyComputations++;
+}
+
+template< typename LPProblem_, typename SolverMonitor >
+void
+PDLP< LPProblem_, SolverMonitor >::computePrimalStep( const ConstVectorView& x,
+                                                      const VectorView& KTy,
+                                                      const RealType& tau,
+                                                      VectorView& x_new )
+{
+   x_new = minimum( u, maximum( l, x - tau * ( c - KTy ) ) );
+}
+
+template< typename LPProblem_, typename SolverMonitor >
+void
+PDLP< LPProblem_, SolverMonitor >::computeDualStep( const ConstVectorView& y,
+                                                    const VectorView& Kx,
+                                                    const VectorView& Kx_new,
+                                                    const RealType& sigma,
+                                                    VectorView& y_new )
+{
+   y_new = y + sigma * ( q - 2 * Kx_new + Kx );
+   if( this->inequalitiesFirst ) {
+      if( m1 > 0 )
+         y_new.getView( 0, m1 ) = maximum( 0, y_new.getView( 0, m1 ) );
+   }
+   else {
+      if( m2 > 0 )
+         y_new.getView( m1, m ) = maximum( 0, y_new.getView( m1, m ) );
+   }
 }
 
 template< typename LPProblem_, typename SolverMonitor >
@@ -804,20 +839,16 @@ PDLP< LPProblem_, SolverMonitor >::primalDualGap( const VectorView& z, const Vec
 
 template< typename LPProblem_, typename SolverMonitor >
 auto
-PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z ) -> KKTDataType
+PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z, const VectorType& Kx, const VectorType& KTy ) -> KKTDataType
 {
    auto x = z.getConstView( 0, n );
    auto y = z.getConstView( n, N );
    auto c_view = c.getConstView();
 
    // Compute error of the primal feasibility
-   auto Kx_view = Kx.getView();
-   computeKx( x, Kx_view );
    const RealType primal_feasibility = computePrimalFeasibility( q, Kx );
 
    // Compute error of the dual feasibility
-   auto KTy_view = KTy.getView();
-   computeKTy( y, KTy_view );
    computeLambda( c, KTy, l, u, lambda );
    const RealType dual_feasibility = l2Norm( c - KTy - lambda );
 
