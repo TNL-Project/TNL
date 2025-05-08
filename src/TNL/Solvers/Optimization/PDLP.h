@@ -134,14 +134,6 @@ protected:
    void
    adaptiveStep( const VectorType& in_z, VectorType& out_z, IndexType k, RealType& current_omega, RealType& current_eta );
 
-public:
-   void
-   computeLambda( const VectorType& c, const VectorType& KTy, const VectorType& l, const VectorType& u, VectorType& lambda );
-
-   RealType
-   computePrimalFeasibility( const VectorType& q, const VectorType& Kx );
-
-public:  // TODO: Just because of nvcc
    /**
     * \brief Computes the KKT error.
     *
@@ -151,6 +143,19 @@ public:  // TODO: Just because of nvcc
     */
    KKTDataType
    KKT( const VectorView& z );
+
+   void
+   computeKx( const ConstVectorView& x, VectorView& Kx );
+
+   void
+   computeKTy( const ConstVectorView& y, VectorView& KTy );
+
+public:  // TODO: Just because of nvcc
+   void
+   computeLambda( const VectorType& c, const VectorType& KTy, const VectorType& l, const VectorType& u, VectorType& lambda );
+
+   RealType
+   computePrimalFeasibility( const VectorType& q, const VectorType& Kx );
 
 protected:
    RealType
@@ -199,7 +204,8 @@ protected:
    // Performance measuring
    Timer solverTimer, spmvTimer;
 
-   IndexType matrixVectorProducts = 0;
+   IndexType KxComputations = 0;
+   IndexType KTyComputations = 0;
 
    // Convergence logging
    bool writeConvergenceGraphs = false;
