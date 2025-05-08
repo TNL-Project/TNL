@@ -201,7 +201,7 @@ protected:
    VectorType D1, D2;
 
    // Supporting vectors
-   VectorType Kx, Kx_new, Kx_averaged, KTy, KTy_averaged, lambda;
+   VectorType Kx, Kx_new, Kx_averaged, KTy, KTy_averaged, Kx_candidate, KTy_candidate, lambda;
 
    RealType K_norm;
 
