@@ -134,6 +134,13 @@ protected:
    void
    adaptiveStep( const VectorType& in_z, VectorType& out_z, IndexType k, RealType& current_omega, RealType& current_eta );
 
+public:
+   void
+   computeLambda( const VectorType& c, const VectorType& KTy, const VectorType& l, const VectorType& u, VectorType& lambda );
+
+   RealType
+   computePrimalFeasibility( const VectorType& q, const VectorType& Kx );
+
 public:  // TODO: Just because of nvcc
    /**
     * \brief Computes the KKT error.
@@ -178,6 +185,9 @@ protected:
    // Preconditioning
    VectorType D1, D2;
 
+   // Supporting vectors
+   VectorType Kx, KTy, lambda;
+
    RealType K_norm;
 
    IndexType adaptive_k = 1;
@@ -187,12 +197,37 @@ protected:
    bool adaptivePrimalWeight = true;
 
    // Performance measuring
-   Timer solverTimer;
+   Timer solverTimer, spmvTimer;
 
    IndexType matrixVectorProducts = 0;
 
-   // Supporting vectors
-   VectorType Kx, KTy, lambda;
+   // Convergence logging
+   bool writeConvergenceGraphs = false;
+   std::fstream kkt_current_primal_objective_file;
+   std::fstream kkt_current_dual_objective_file;
+   std::fstream kkt_averaged_primal_objective_file;
+   std::fstream kkt_averaged_dual_objective_file;
+   std::fstream kkt_current_duality_gap_file;
+   std::fstream kkt_averaged_duality_gap_file;
+   std::fstream kkt_current_primal_feasibility_file;
+   std::fstream kkt_current_dual_feasibility_file;
+   std::fstream kkt_averaged_primal_feasibility_file;
+   std::fstream kkt_averaged_dual_feasibility_file;
+   std::fstream kkt_current_mu_file;
+   std::fstream kkt_averaged_mu_file;
+   std::fstream fast_current_primal_objective_file;
+   std::fstream fast_current_dual_objective_file;
+   std::fstream fast_averaged_primal_objective_file;
+   std::fstream fast_averaged_dual_objective_file;
+   std::fstream fast_current_duality_gap_file;
+   std::fstream fast_averaged_duality_gap_file;
+   std::fstream fast_current_primal_feasibility_file;
+   std::fstream fast_current_dual_feasibility_file;
+   std::fstream fast_current_mu_file;
+   std::fstream fast_averaged_mu_file;
+   std::fstream current_gradient_file;
+   std::fstream averaged_gradient_file;
+   std::fstream restarts_file;
 
    SegmentsReductionKernel segmentsReductionKernel;
 };
