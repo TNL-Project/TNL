@@ -398,6 +398,106 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+template< typename InVector, typename OutVector, typename SegmentsReductionKernel >
+void
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::vectorsProduct(
+   const InVector& inVector1,
+   const InVector& inVector2,
+   OutVector& outVector1,
+   OutVector& outVector2,
+   ComputeRealType matrixMultiplicator,
+   ComputeRealType outVectorMultiplicator,
+   IndexType begin,
+   IndexType end,
+   const SegmentsReductionKernel& kernel ) const
+{
+   if( end == 0 )
+      end = this->getRows();
+
+   if( inVector1.getSize() != this->getColumns() )
+      throw std::invalid_argument( "vectorProduct: size of the input vector does not match the number of matrix columns" );
+   if( outVector1.getSize() != end - begin )
+      throw std::invalid_argument( "vectorProduct: size of the output vector does not match the number of matrix rows" );
+
+   using OutVectorReal = typename OutVector::RealType;
+   static_assert( ! MatrixType::isSymmetric(), "SpMV with multiple vectors is not supported for symmetric matrices." );
+
+   const auto inVector1_view = inVector1.getConstView();
+   const auto inVector2_view = inVector2.getConstView();
+   auto outVector1_view = outVector1.getView();
+   auto outVector2_view = outVector2.getView();
+   const auto valuesView = this->values.getConstView();
+   const auto columnIndexesView = this->columnIndexes.getConstView();
+   using ComputeRealTuple = Containers::StaticArray< 2, ComputeRealType >;
+
+   auto fetch = [ inVector1_view, inVector2_view, valuesView, columnIndexesView ] __cuda_callable__(
+                   IndexType globalIdx ) mutable -> ComputeRealTuple
+   {
+      TNL_ASSERT_GE(
+         globalIdx, 0, "Global index must be non-negative. Negative values may appear due to Index type overflow." );
+      TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "Global index must be smaller than the number of elements." );
+      const IndexType column = columnIndexesView[ globalIdx ];
+      TNL_ASSERT_TRUE( (column >= 0 || column == paddingIndex< Index >), "Wrong column index." );
+      TNL_ASSERT_LT( column, inVector1_view.getSize(), "Wrong column index." );
+      if( column == paddingIndex< Index > )
+         return ComputeRealTuple{ 0, 0 };
+      TNL_ASSERT_TRUE( column >= 0, "Wrong column index." );
+      if constexpr( Base::isBinary() )
+         return ComputeRealTuple{ inVector1_view[ column ], inVector2_view[ column ] };
+      const RealType value = valuesView[ globalIdx ];
+      return ComputeRealTuple{ value * inVector1_view[ column ], value * inVector2_view[ column ] };
+   };
+   auto reduction = [] __cuda_callable__( const ComputeRealTuple& a, const ComputeRealTuple& b ) -> ComputeRealTuple
+   {
+      return ComputeRealTuple{ a[ 0 ] + b[ 0 ], a[ 1 ] + b[ 1 ] };
+   };
+   if( outVectorMultiplicator == ComputeRealType{ 0 } ) {
+      if( matrixMultiplicator == ComputeRealType{ 1 } ) {
+         auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealTuple& value ) mutable
+         {
+            TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+            TNL_ASSERT_LT( row - begin, outVector1_view.getSize(), "Row index must be smaller than the number of elements." );
+            outVector1_view[ row - begin ] = value[ 0 ];
+            outVector2_view[ row - begin ] = value[ 1 ];
+         };
+         kernel.reduceSegments( this->segments, begin, end, fetch, reduction, keep, ComputeRealTuple{ 0, 0 } );
+      }
+      else {
+         auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealTuple& value ) mutable
+         {
+            TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+            TNL_ASSERT_LT( row - begin, outVector1_view.getSize(), "Row index must be smaller than the number of elements." );
+            outVector1_view[ row - begin ] = matrixMultiplicator * value[ 0 ];
+            outVector2_view[ row - begin ] = matrixMultiplicator * value[ 1 ];
+         };
+         kernel.reduceSegments( this->segments, begin, end, fetch, reduction, keep, ComputeRealTuple{ 0, 0 } );
+      }
+   }
+   else {
+      if( matrixMultiplicator == ComputeRealType{ 1 } ) {
+         auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealTuple& value ) mutable
+         {
+            TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+            TNL_ASSERT_LT( row - begin, outVector1_view.getSize(), "Row index must be smaller than the number of elements." );
+            outVector1_view[ row - begin ] = outVectorMultiplicator * outVector1_view[ row ] + value[ 0 ];
+            outVector2_view[ row - begin ] = outVectorMultiplicator * outVector2_view[ row ] + value[ 1 ];
+         };
+         kernel.reduceSegments( this->segments, begin, end, fetch, reduction, keep, ComputeRealTuple{ 0, 0 } );
+      }
+      else {
+         auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealTuple& value ) mutable
+         {
+            TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+            TNL_ASSERT_LT( row - begin, outVector1_view.getSize(), "Row index must be smaller than the number of elements." );
+            outVector1_view[ row - begin ] = outVectorMultiplicator * outVector1_view[ row ] + matrixMultiplicator * value[ 0 ];
+            outVector2_view[ row - begin ] = outVectorMultiplicator * outVector1_view[ row ] + matrixMultiplicator * value[ 1 ];
+         };
+         kernel.reduceSegments( this->segments, begin, end, fetch, reduction, keep, ComputeRealTuple{ 0, 0 } );
+      }
+   }
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename InVector, typename OutVector >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::transposedVectorProduct(

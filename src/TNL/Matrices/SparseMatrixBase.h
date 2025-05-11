@@ -792,6 +792,18 @@ public:
    void
    vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
 
+   template< typename InVector, typename OutVector, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
+   void
+   vectorsProduct( const InVector& inVector1,
+                   const InVector& inVector2,
+                   OutVector& outVector1,
+                   OutVector& outVector2,
+                   ComputeRealType matrixMultiplicator = 1.0,
+                   ComputeRealType outVectorMultiplicator = 0.0,
+                   IndexType begin = 0,
+                   IndexType end = 0,
+                   const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+
    /**
     * \brief Computes product of transposed matrix and vector.
     *
