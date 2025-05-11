@@ -444,7 +444,8 @@ template< typename Real2, typename Index2, template< typename, typename, typenam
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::getTransposition(
    const SparseMatrix< Real2, Device, Index2, MatrixType, Segments2 >& matrix,
-   const ComputeReal& matrixMultiplicator )
+   const ComputeReal& matrixMultiplicator,
+   bool sort )
 {
    // set transposed dimensions
    setDimensions( matrix.getColumns(), matrix.getRows() );
@@ -495,6 +496,8 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
             transRow.setElement( transLocalIdx, rowIdx, row.getValue( c ) * matrixMultiplicator );
          }
       } );
+   if( sort )
+      this->sortColumnIndexes();
 }
 
 template< typename Real,
