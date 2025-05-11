@@ -74,9 +74,18 @@ if(TNL_BUILD_CUDA)
         # add "Matrices" label to the test
         set_property(TEST ${target} APPEND PROPERTY LABELS Matrices)
     endforeach()
-endif()
+    find_package(CUDAToolkit REQUIRED) # For cusparse
+    if( CUDAToolkit_FOUND )
+        add_executable(CusparseCSRMatrixTest CusparseCSRMatrixTest.cu)
+        target_compile_options(CusparseCSRMatrixTest PUBLIC ${CUDA_TESTS_FLAGS})
+        target_link_libraries(CusparseCSRMatrixTest PUBLIC TNL::TNL CUDA::cusparse ${TESTS_LIBRARIES})
+        target_link_options(CusparseCSRMatrixTest PUBLIC ${TESTS_LINKER_FLAGS})
+        add_test(CusparseCSRMatrixTest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+        # add "Matrices" label to the test
+        set_property(TEST CusparseCSRMatrixTest PROPERTY LABELS Matrices)
+    endif()
 
-if(TNL_BUILD_HIP)
+elseif(TNL_BUILD_HIP)
     foreach(target IN ITEMS ${HIP_TESTS})
         add_executable(${target} ${target}.hip)
         target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
