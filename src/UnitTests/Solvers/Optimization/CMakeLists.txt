@@ -5,6 +5,7 @@ set(CPP_TESTS
 set(COMMON_TESTS PDLPTest)
 
 if(TNL_BUILD_CUDA)
+    find_package(CUDAToolkit REQUIRED) # For cusparse
     set(CUDA_TESTS ${CUDA_TESTS} ${COMMON_TESTS})
 elseif(TNL_BUILD_HIP)
     set(HIP_TESTS ${HIP_TESTS} ${COMMON_TESTS})
@@ -24,7 +25,7 @@ if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${CUDA_TESTS})
         add_executable(${target} ${target}.cu)
         target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
-        target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
+        target_link_libraries(${target} PUBLIC TNL::TNL CUDA::cusparse ${TESTS_LIBRARIES})
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
         add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
     endforeach()
