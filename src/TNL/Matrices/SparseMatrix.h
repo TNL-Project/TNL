@@ -428,11 +428,16 @@ public:
     * \tparam Segments2 is the type of the segments of the input matrix.
     * \param matrix is the input matrix.
     * \param matrixMultiplicator is the factor by which the matrix is multiplied.
+    * \param sort is a flag indicating whether the column indexes
+    *   should be sorted. If true, the column indexes are sorted in ascending
+    *   order. Without this, the matrix elements of the transposed matrix can be
+    *   in arbitrary and undeterministic order especially if the transposed matrix is computed in parallel.
     */
    template< typename Real2, typename Index2, template< typename, typename, typename > class Segments2 >
    void
    getTransposition( const SparseMatrix< Real2, Device, Index2, MatrixType, Segments2 >& matrix,
-                     const ComputeReal& matrixMultiplicator = 1.0 );
+                     const ComputeReal& matrixMultiplicator = 1.0,
+                     bool sort = true );
 
    /**
     * \brief Copy-assignment of exactly the same matrix type.
