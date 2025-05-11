@@ -4,8 +4,9 @@ find_package(ortools)
 find_package(GUROBI)
 
 if(TNL_BUILD_CUDA)
+    find_package(CUDAToolkit REQUIRED) # For cusparse
     add_executable(tnl-benchmark-lp-solvers-cuda tnl-benchmark-lp-solvers.cu)
-    target_link_libraries(tnl-benchmark-lp-solvers-cuda PUBLIC TNL::TNL)
+    target_link_libraries(tnl-benchmark-lp-solvers-cuda PUBLIC TNL::TNL CUDA::cusparse)
     install(TARGETS tnl-benchmark-lp-solvers-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
 endif()
 

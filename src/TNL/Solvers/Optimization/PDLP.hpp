@@ -5,6 +5,7 @@
 
 #include <TNL/Matrices/MatrixOperations.h>
 #include <TNL/Matrices/MatrixWriter.h>
+#include <TNL/Devices/Cuda.h>
 #include "PDLP.h"
 #include "LinearTrustRegion.h"
 #include "Preconditioning/PockChambolle.h"
@@ -32,6 +33,7 @@ PDLP< LPProblem_, SolverMonitor >::configSetup( Config::ConfigDescription& confi
    config.addEntry< int >(
       prefix + "max-restarting-interval", "Maximum interval without restarting interval. Zero means no limit.", 0 );
    config.addEntry< bool >( prefix + "write-convergence-graphs", "Write convergence graphs for the solver.", false );
+   config.addEntry< bool >( prefix + "use-cusparse", "Use cuSparse library.", false );
 }
 
 template< typename LPProblem_, typename SolverMonitor >
@@ -57,6 +59,7 @@ PDLP< LPProblem_, SolverMonitor >::setup( const Config::ParameterContainer& para
       throw std::runtime_error( "Restarting interval must be non-negative." );
    this->setMaximalRestartingInterval( restartingInterval );
    this->writeConvergenceGraphs = parameters.getParameter< bool >( prefix + "write-convergence-graphs" );
+   this->useCusparse = parameters.getParameter< bool >( prefix + "use-cusparse" );
 
    return IterativeSolver< RealType, IndexType, SolverMonitor >::setup( parameters, prefix );
 }
@@ -89,26 +92,10 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    TNL_ASSERT_EQ( x.getSize(), n, "" );
    this->KT.getTransposition( K );
 
-   /*Matrices::MatrixWriter< MatrixType >::writeEps( "K.eps", K );
-   Matrices::MatrixWriter< MatrixType >::writeEps( "KT.eps", KT );
-   Matrices::MatrixWriter< MatrixType >::writeMtx( "K.mtx", K );
-   Matrices::MatrixWriter< MatrixType >::writeMtx( "KT.mtx", KT );*/
-
-   // Exporting bounds
-   /*std::fstream file( "lower-bounds.txt", std::ios::out );
-   if( file.is_open() ) {
-      for( IndexType i = 0; i < l.getSize(); ++i ) {
-         file << l.getElement( i ) << std::endl;
-      }
-      file.close();
+   if( this->useCusparse ) {
+      this->cusparseK.init( this->K );
+      this->cusparseKT.init( this->KT );
    }
-   file.open( "upper-bounds.txt", std::ios::out );
-   if( file.is_open() ) {
-      for( IndexType i = 0; i < u.getSize(); ++i ) {
-         file << u.getElement( i ) << std::endl;
-      }
-      file.close();
-   }*/
 
    // Filter the bounds
    this->filtered_l = this->l;
@@ -159,7 +146,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    //std::cout << "Initial eta:       " << initial_eta << std::endl;
 
 #ifdef PRINTING
-   std::cout << std::setprecision( 16 );
+   //std::cout << std::setprecision( 16 );
    /*std::cout << "q = " << q << std::endl;
    std::cout << "c = " << c << std::endl;
    std::cout << "l = " << l << std::endl;
@@ -286,6 +273,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   || all( greaterEqual( z_averaged.getView( n + m1, N ), -std::numeric_limits< RealType >::round_error() ) ),
                "y is not in the feasible region" );
 
+            //if( restarting == PDLPRestarting::Fast ) {
             // TODO: Return back into the fast restarting if branch
             RealType current_primal_objective = ( c, z_current.getView( 0, n ) );
             computeLambda( c, KTy, l, u, lambda );
@@ -300,9 +288,6 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                                               + current_duality_gap * current_duality_gap );
 
             RealType averaged_primal_objective = ( c, z_averaged.getView( 0, n ) );
-            //KT.vectorProduct( z_averaged.getView( n, N ), KTy, segmentsReductionKernel );
-            //this->matrixVectorProducts++;
-            //computeLambda( c, KTy, l, u, lambda );
             const RealType averaged_dual_objective =
                ( q, z_averaged.getView( n, N ) ) + ( filtered_l, maximum( lambda, 0 ) ) + ( filtered_u, minimum( lambda, 0 ) );
             const RealType averaged_duality_gap = averaged_primal_objective - averaged_dual_objective;
@@ -322,7 +307,6 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                fast_current_mu_file << k << " " << mu_current << std::endl;
                fast_averaged_mu_file << k << " " << mu_averaged << std::endl;
             }
-
             if( restarting == PDLPRestarting::Fast ) {
                if( mu_averaged < mu_current ) {
                   mu_candidate = mu_averaged;
@@ -372,8 +356,9 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   auto KTy_view = KTy.getView();
                   auto KTy_averaged_view = KTy_averaged.getView();
 
-                  computeKTy( z_current.getView( n, N ), KTy_view );
-                  computeKTy( z_averaged.getConstView( n, N ), KTy_averaged_view );
+                  //computeKTy( z_current.getView( n, N ), KTy_view );
+                  //computeKTy( z_averaged.getConstView( n, N ), KTy_averaged_view );
+                  computeKTy( z_current.getConstView( n, N ), z_averaged.getConstView( n, N ), KTy_view, KTy_averaged_view );
 
                   const RealType tau = current_eta / current_omega;
                   auto new_x_view = new_x.getView();
@@ -381,8 +366,9 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   auto Kx_averaged_view = Kx_averaged.getView();
                   computePrimalStep( z_current.getConstView( 0, n ), KTy, tau, new_x_view );
 
-                  computeKx( z_averaged.getConstView( 0, n ), Kx_averaged_view );
-                  computeKx( new_x.getConstView(), Kx_new_view );
+                  //computeKx( z_averaged.getConstView( 0, n ), Kx_averaged_view );
+                  //computeKx( new_x.getConstView(), Kx_new_view );
+                  computeKx( z_averaged.getConstView( 0, n ), new_x.getConstView(), Kx_averaged_view, Kx_new_view );
                   new_x_precomputed = true;
 
                   kkt_current = KKT( z_current, Kx, KTy );
@@ -638,23 +624,24 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
                 << " dual step : " << sigma << std::endl;
 #endif
 
-      // Primal step
-      if( ! new_x_precomputed )
+      if( ! new_x_precomputed ) {
          computePrimalStep( in_x, KTy, tau, out_x );
+
+         auto Kx_new_view = Kx_new.getView();
+         computeKx( out_x, Kx_new_view );
+         computeDualStep( in_y, Kx, Kx_new, sigma, out_y );
+      }
       else {
          out_x = new_x;
+         computeDualStep( in_y, Kx, Kx_new, sigma, out_y );
          new_x_precomputed = false;
       }
-
-      // Dual step
-      auto Kx_new_view = Kx_new.getView();
-      computeKx( out_x, Kx_new_view );
-      computeDualStep( in_y, Kx, Kx_new, sigma, out_y );
 
 #ifdef PRINTING
       std::cout << "Adpt. step       x = " << l2Norm( in_x ) << std::endl;
       std::cout << "Adpt. step       y = " << l2Norm( in_y ) << std::endl;
-      std::cout << "Adpt. step    AT_y = " << l2Norm( KT_y ) << std::endl;
+      std::cout << "Adpt. step      Kx = " << l2Norm( Kx ) << std::endl;
+      std::cout << "Adpt. step     KTy = " << l2Norm( KTy ) << std::endl;
       std::cout << "Adpt. step   out_x = " << l2Norm( out_x ) << std::endl;
       std::cout << "Adpt. step   out_y = " << l2Norm( out_y ) << std::endl;
 #endif
@@ -676,8 +663,10 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
       //std::cout << "   Adaptive step: k = " << this->adaptive_k << " new eta = " << new_eta << std::endl;
 
 #ifdef PRINTING
-      std::cout << "   Movement: dX " << ( delta_x, delta_x ) << " dY " << ( delta_y, delta_y ) << std::endl;
-      std::cout << "   delta_x = " << l2Norm( delta_x ) << "\n   delta_y = " << l2Norm( delta_y ) << std::endl;
+      std::cout << "in_x = " << in_x << "\n out_x = " << out_x << std::endl;
+      std::cout << "in_y = " << in_y << "\n out_y = " << out_y << std::endl;
+      //std::cout << "delta_x = " << delta_x << "\n   delta_y = " << delta_y << std::endl;
+      std::cout << "Movement: dX " << ( delta_x, delta_x ) << " dY " << ( delta_y, delta_y ) << std::endl;
       std::cout << "k: " << this->adaptive_k << " movement : " << movement << " interaction : " << interaction
                 << " step limit : " << max_eta << " new eta: " << new_eta << std::endl;
 #endif
@@ -702,7 +691,33 @@ void
 PDLP< LPProblem_, SolverMonitor >::computeKx( const ConstVectorView& x, VectorView& Kx )
 {
    spmvTimer.start();
-   K.vectorProduct( x, Kx, segmentsReductionKernel );
+   if( this->useCusparse && std::is_same_v< DeviceType, Devices::Cuda > ) {
+      this->cusparseK.vectorProduct( x, Kx );
+   }
+   else
+      K.vectorProduct( x, Kx, segmentsReductionKernel );
+   spmvTimer.stop();
+   this->KxComputations++;
+}
+
+template< typename LPProblem_, typename SolverMonitor >
+void
+PDLP< LPProblem_, SolverMonitor >::computeKx( const ConstVectorView& x1,
+                                              const ConstVectorView& x2,
+                                              VectorView& Kx1,
+                                              VectorView& Kx2 )
+{
+   spmvTimer.start();
+   if( this->useCusparse && std::is_same_v< DeviceType, Devices::Cuda > ) {
+      this->cusparseK.vectorsProduct( x1, x2, Kx1, Kx2 );
+      //this->cusparseK.vectorProduct( x1, Kx1 );
+      //this->cusparseK.vectorProduct( x2, Kx2 );
+   }
+   else {
+      K.vectorsProduct( x1, x2, Kx1, Kx2, 1.0, 0.0, 0, 0, segmentsReductionKernel );
+      //K.vectorProduct( x1, Kx1, segmentsReductionKernel );
+      //K.vectorProduct( x2, Kx2, segmentsReductionKernel );
+   }
    spmvTimer.stop();
    this->KxComputations++;
 }
@@ -712,7 +727,33 @@ void
 PDLP< LPProblem_, SolverMonitor >::computeKTy( const ConstVectorView& y, VectorView& KTy )
 {
    spmvTimer.start();
-   KT.vectorProduct( y, KTy, segmentsReductionKernel );
+   if( this->useCusparse && std::is_same_v< DeviceType, Devices::Cuda > ) {
+      this->cusparseKT.vectorProduct( y, KTy );
+   }
+   else
+      KT.vectorProduct( y, KTy, segmentsReductionKernel );
+   spmvTimer.stop();
+   this->KTyComputations++;
+}
+
+template< typename LPProblem_, typename SolverMonitor >
+void
+PDLP< LPProblem_, SolverMonitor >::computeKTy( const ConstVectorView& y1,
+                                               const ConstVectorView& y2,
+                                               VectorView& KTy1,
+                                               VectorView& KTy2 )
+{
+   spmvTimer.start();
+   if( this->useCusparse && std::is_same_v< DeviceType, Devices::Cuda > ) {
+      this->cusparseKT.vectorsProduct( y1, y2, KTy1, KTy2 );
+      //this->cusparseKT.vectorProduct( y1, KTy1 );
+      //this->cusparseKT.vectorProduct( y2, KTy2 );
+   }
+   else {
+      KT.vectorsProduct( y1, y2, KTy1, KTy2, 1.0, 0.0, 0, 0, segmentsReductionKernel );
+      //KT.vectorProduct( y1, KTy1, segmentsReductionKernel );
+      //KT.vectorProduct( y2, KTy2, segmentsReductionKernel );
+   }
    spmvTimer.stop();
    this->KTyComputations++;
 }
@@ -776,8 +817,7 @@ PDLP< LPProblem_, SolverMonitor >::computeLambda( const VectorType& c,
          }
       } );
 #ifdef PRINTING
-   std::cout << "LAMBDA:      y = " << l2Norm( y )                    //
-             << "\nLAMBDA:c - KTy = " << l2Norm( c_view - KTy_view )  //
+   std::cout << "\nLAMBDA:c - KTy = " << l2Norm( c_view - KTy_view )  //
              << "\nLAMBDA: lambda = " << l2Norm( lambda )             //
              << std::endl;
 #endif
@@ -788,8 +828,7 @@ auto
 PDLP< LPProblem_, SolverMonitor >::computePrimalFeasibility( const VectorType& q, const VectorType& Kx ) -> RealType
 {
 #ifdef PRINTING
-   std::cout << "PRIMAL.FS:      x = " << l2Norm( x )  //
-             << "\nPRIMAL.FS:     Kx = " << l2Norm( Kx ) << std::endl;
+   std::cout << "PRIMAL.FS:     Kx = " << l2Norm( Kx ) << std::endl;
 #endif
 
    // TODO: Rewrite using reduction

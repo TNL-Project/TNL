@@ -7,6 +7,7 @@
 #include <TNL/Solvers/Optimization/LPProblem.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/CSRVectorKernel.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/CSRLightKernel.h>
+#include <TNL/Matrices/CusparseCSRMatrix.h>
 
 namespace TNL::Solvers::Optimization {
 
@@ -148,7 +149,13 @@ protected:
    computeKx( const ConstVectorView& x, VectorView& Kx );
 
    void
+   computeKx( const ConstVectorView& x1, const ConstVectorView& x2, VectorView& Kx1, VectorView& Kx2 );
+
+   void
    computeKTy( const ConstVectorView& y, VectorView& KTy );
+
+   void
+   computeKTy( const ConstVectorView& y1, const ConstVectorView& y2, VectorView& KTy1, VectorView& KTy2 );
 
    void
    computePrimalStep( const ConstVectorView& x, const VectorView& KTy, const RealType& tau, VectorView& x_new );
@@ -248,6 +255,10 @@ protected:
    std::fstream restarts_file;
 
    SegmentsReductionKernel segmentsReductionKernel;
+
+   bool useCusparse = false;  // Use cusparse for matrix-vector product
+   Matrices::CusparseCSRMatrix< MatrixType > cusparseK;
+   Matrices::CusparseCSRMatrix< MatrixType > cusparseKT;
 };
 
 }  // namespace TNL::Solvers::Optimization
