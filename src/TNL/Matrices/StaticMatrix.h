@@ -242,6 +242,29 @@ StaticMatrix< Value, Rows, Columns, Permutation >::print( std::ostream& str ) co
 namespace TNL::Matrices {
 
 template< typename Value, std::size_t Rows, std::size_t Columns, typename Permutation >
+__cuda_callable__
+StaticMatrix< Value, Columns, Rows, Permutation >
+matmul( const StaticMatrix< Value, Rows, Columns, Permutation >& A,
+        const StaticMatrix< Value, Rows, Columns, Permutation >& B )
+{
+   //TODO: Resolve sized, atm works only with square matrices
+   //TODO: Is it worth here to reorder the loops? (swap j, k, load Aik)
+
+   StaticMatrix< Value, Columns, Rows, Permutation > result = 0;
+   for( std::size_t i = 0; i < Rows; ++i ) {
+      for( std::size_t k = 0; k < Columns; ++k ) {
+         const Value Aik = A( i, k );
+         for( std::size_t j = 0; j < Columns; ++j ) {
+            result( i, j ) += Aik * B( k, j );
+         }
+      }
+   }
+
+   return result;
+}
+
+template< typename Value, std::size_t Rows, std::size_t Columns, typename Permutation >
+__cuda_callable__
 StaticMatrix< Value, Columns, Rows, Permutation >
 transpose( const StaticMatrix< Value, Rows, Columns, Permutation >& A )
 {
@@ -433,3 +456,4 @@ solve( const StaticMatrix< Real, 4, 4 >& A, const Containers::StaticVector< 4, R
 }
 
 }  // namespace TNL::Matrices
+
