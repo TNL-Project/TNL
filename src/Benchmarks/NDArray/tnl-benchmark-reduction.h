@@ -80,7 +80,7 @@ benchmark_reduction2D( Benchmark<>& benchmark, index_type size, index_type n )
          TNL_ASSERT_LT( k, n, "fetcher got invalid index k" );
          return v_view[ i + k * size ];
       };
-      Reduction2D< Device >::reduce( (index_type) 0, fetch, std::plus<>{}, size, n, result.getData() );
+      Reduction2D< Device >::reduce( (index_type) 0, fetch, std::plus<>{}, size, n, result.getView() );
    };
 
    const double datasetSize = ( size * n + n ) * sizeof( index_type ) / oneGB;
@@ -100,6 +100,7 @@ benchmark_reduction3D( Benchmark<>& benchmark, index_type size, index_type m, in
    v.setValue( 10 );
 
    auto v_view = v.getView();
+   auto result_view = result.getView();
 
    auto compute = [ & ]()
    {
@@ -110,7 +111,11 @@ benchmark_reduction3D( Benchmark<>& benchmark, index_type size, index_type m, in
          TNL_ASSERT_LT( l, n, "fetcher got invalid index l" );
          return v_view[ i + k * size * n + l * size ];
       };
-      Reduction3D< Device >::reduce( (index_type) 0, fetch, std::plus<>{}, size, m, n, result.getData() );
+      auto output = [ = ] __cuda_callable__( index_type k, index_type l ) mutable -> index_type&
+      {
+         return result_view[ k * n + l ];
+      };
+      Reduction3D< Device >::reduce( (index_type) 0, fetch, std::plus<>{}, size, m, n, output );
    };
 
    const double datasetSize = ( m * n * size + m * n ) * sizeof( index_type ) / oneGB;
