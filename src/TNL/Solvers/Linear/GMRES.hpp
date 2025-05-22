@@ -211,7 +211,7 @@ GMRES< Matrix >::orthogonalize_CGS( const int m, const RealType normb, const Rea
       const int reorthogonalize = ( variant == Variant::CGSR ) ? 2 : 1;
       for( int l = 0; l < reorthogonalize; l++ ) {
          // auxiliary array for the H coefficients of the current l-loop
-         std::unique_ptr< RealType[] > H_l{ new RealType[ i + 1 ] };
+         HostVector H_l( i + 1 );
 
          // CGS part 1: compute projection coefficients
          //         for( int k = 0; k <= i; k++ ) {
@@ -227,7 +227,7 @@ GMRES< Matrix >::orthogonalize_CGS( const int m, const RealType normb, const Rea
          {
             return _V[ idx + k * ldSize ] * _w[ idx ];
          };
-         Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i + 1, H_l.get() );
+         Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i + 1, H_l.getView() );
          for( int k = 0; k <= i; k++ )
             H[ k + i * ( m + 1 ) ] += H_l[ k ];
 
@@ -242,7 +242,7 @@ GMRES< Matrix >::orthogonalize_CGS( const int m, const RealType normb, const Rea
                                                          (RealType) -1.0,
                                                          V.getData(),
                                                          ldSize,
-                                                         H_l.get(),
+                                                         H_l.getData(),
                                                          (RealType) 1.0,
                                                          Traits::getLocalView( w ).getData() );
       }
@@ -508,7 +508,7 @@ GMRES< Matrix >::hauseholder_generate( const int i, VectorViewType y_i, ConstVec
    T[ i + i * ( restarting_max + 1 ) ] = t_i;
    if( i > 0 ) {
       // aux = Y_{i-1}^T * y_i
-      std::unique_ptr< RealType[] > aux{ new RealType[ i ] };
+      HostVector aux( i );
       const RealType* _Y = Y.getData();
       const RealType* _y_i = Traits::getConstLocalView( y_i ).getData();
       const IndexType ldSize = this->ldSize;
@@ -516,9 +516,9 @@ GMRES< Matrix >::hauseholder_generate( const int i, VectorViewType y_i, ConstVec
       {
          return _Y[ idx + k * ldSize ] * _y_i[ idx ];
       };
-      Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i, aux.get() );
+      Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i, aux.getView() );
       // no-op if the problem is not distributed
-      MPI::Allreduce( aux.get(), i, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
+      MPI::Allreduce( aux.getData(), i, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
 
       // [T_i]_{0..i-1} = - T_{i-1} * t_i * aux
       for( int k = 0; k < i; k++ ) {
@@ -600,7 +600,7 @@ void
 GMRES< Matrix >::hauseholder_cwy_transposed( VectorViewType z, const int i, ConstVectorViewType w )
 {
    // aux = Y_i^T * w
-   std::unique_ptr< RealType[] > aux{ new RealType[ i + 1 ] };
+   HostVector aux( i + 1 );
    const RealType* _Y = Y.getData();
    const RealType* _w = Traits::getConstLocalView( w ).getData();
    const IndexType ldSize = this->ldSize;
@@ -608,9 +608,9 @@ GMRES< Matrix >::hauseholder_cwy_transposed( VectorViewType z, const int i, Cons
    {
       return _Y[ idx + k * ldSize ] * _w[ idx ];
    };
-   Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i + 1, aux.get() );
+   Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i + 1, aux.getView() );
    // no-op if the problem is not distributed
-   MPI::Allreduce( aux.get(), i + 1, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
+   MPI::Allreduce( aux.getData(), i + 1, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
 
    // aux = T_i^T * aux
    // Note that T_i^T is lower triangular, so we can overwrite the aux vector with the result in place
@@ -628,7 +628,7 @@ GMRES< Matrix >::hauseholder_cwy_transposed( VectorViewType z, const int i, Cons
                                                    (RealType) -1.0,
                                                    Y.getData(),
                                                    ldSize,
-                                                   aux.get(),
+                                                   aux.getData(),
                                                    (RealType) 1.0,
                                                    Traits::getLocalView( z ).getData() );
 }

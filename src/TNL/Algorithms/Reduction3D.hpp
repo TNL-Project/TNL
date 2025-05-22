@@ -19,9 +19,9 @@
 
 namespace TNL::Algorithms {
 
-template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
+template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
 void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
-                                                           DataFetcher dataFetcher,
+                                                           Fetch fetch,
                                                            Reduction reduction,
                                                            Index size,
                                                            int m,
@@ -47,7 +47,7 @@ void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
       for( int i = 0; i < m; i++ ) {
          for( int j = 0; j < n; j++ ) {
             for( int k = 0; k < block_size; k++ ) {
-               result( i, j ) = reduction( result( i, j ), dataFetcher( offset + k, i, j ) );
+               result( i, j ) = reduction( result( i, j ), fetch( offset + k, i, j ) );
             }
          }
       }
@@ -56,7 +56,7 @@ void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
    for( int i = 0; i < m; i++ ) {
       for( int j = 0; j < n; j++ ) {
          for( int k = blocks * block_size; k < size; k++ ) {
-            result( i, j ) = reduction( result( i, j ), dataFetcher( k, i, j ) );
+            result( i, j ) = reduction( result( i, j ), fetch( k, i, j ) );
          }
       }
    }
@@ -76,10 +76,10 @@ void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
             for( int j = 0; j < n; j++ ) {
                Result* _r = r.get() + ( i * n + j ) * 4;
                for( int k = 0; k < block_size; k += 4 ) {
-                  _r[ 0 ] = reduction( _r[ 0 ], dataFetcher( offset + k, i, j ) );
-                  _r[ 1 ] = reduction( _r[ 1 ], dataFetcher( offset + k + 1, i, j ) );
-                  _r[ 2 ] = reduction( _r[ 2 ], dataFetcher( offset + k + 2, i, j ) );
-                  _r[ 3 ] = reduction( _r[ 3 ], dataFetcher( offset + k + 3, i, j ) );
+                  _r[ 0 ] = reduction( _r[ 0 ], fetch( offset + k, i, j ) );
+                  _r[ 1 ] = reduction( _r[ 1 ], fetch( offset + k + 1, i, j ) );
+                  _r[ 2 ] = reduction( _r[ 2 ], fetch( offset + k + 2, i, j ) );
+                  _r[ 3 ] = reduction( _r[ 3 ], fetch( offset + k + 3, i, j ) );
                }
             }
          }
@@ -91,7 +91,7 @@ void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
          for( int j = 0; j < n; j++ ) {
             Result* _r = r.get() + ( i * n + j ) * 4;
             for( Index k = blocks * block_size; k < size; k++ )
-               _r[ 0 ] = reduction( _r[ 0 ], dataFetcher( k, i, j ) );
+               _r[ 0 ] = reduction( _r[ 0 ], fetch( k, i, j ) );
          }
       }
 
@@ -120,7 +120,7 @@ void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
          for( int i = 0; i < m; i++ ) {
             for( int j = 0; j < n; j++ ) {
                for( int k = 0; k < block_size; k++ ) {
-                  result( i, j ) = reduction( result( i, j ), dataFetcher( offset + k, i, j ) );
+                  result( i, j ) = reduction( result( i, j ), fetch( offset + k, i, j ) );
                }
             }
          }
@@ -129,7 +129,7 @@ void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
       for( int i = 0; i < m; i++ ) {
          for( int j = 0; j < n; j++ ) {
             for( int k = blocks * block_size; k < size; k++ ) {
-               result( i, j ) = reduction( result( i, j ), dataFetcher( k, i, j ) );
+               result( i, j ) = reduction( result( i, j ), fetch( k, i, j ) );
             }
          }
       }
@@ -137,10 +137,10 @@ void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
 #endif
 }
 
-template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
+template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
 void
 Reduction3D< Devices::Host >::reduce( Result identity,
-                                      DataFetcher dataFetcher,
+                                      Fetch fetch,
                                       Reduction reduction,
                                       Index size,
                                       int m,
@@ -185,10 +185,10 @@ Reduction3D< Devices::Host >::reduce( Result identity,
                for( int j = 0; j < n; j++ ) {
                   Result* _r = r.get() + ( i * n + j ) * 4;
                   for( int k = 0; k < block_size; k += 4 ) {
-                     _r[ 0 ] = reduction( _r[ 0 ], dataFetcher( offset + k, i, j ) );
-                     _r[ 1 ] = reduction( _r[ 1 ], dataFetcher( offset + k + 1, i, j ) );
-                     _r[ 2 ] = reduction( _r[ 2 ], dataFetcher( offset + k + 2, i, j ) );
-                     _r[ 3 ] = reduction( _r[ 3 ], dataFetcher( offset + k + 3, i, j ) );
+                     _r[ 0 ] = reduction( _r[ 0 ], fetch( offset + k, i, j ) );
+                     _r[ 1 ] = reduction( _r[ 1 ], fetch( offset + k + 1, i, j ) );
+                     _r[ 2 ] = reduction( _r[ 2 ], fetch( offset + k + 2, i, j ) );
+                     _r[ 3 ] = reduction( _r[ 3 ], fetch( offset + k + 3, i, j ) );
                   }
                }
             }
@@ -201,7 +201,7 @@ Reduction3D< Devices::Host >::reduce( Result identity,
                for( int j = 0; j < n; j++ ) {
                   Result* _r = r.get() + ( i * n + j ) * 4;
                   for( Index k = blocks * block_size; k < size; k++ )
-                     _r[ 0 ] = reduction( _r[ 0 ], dataFetcher( k, i, j ) );
+                     _r[ 0 ] = reduction( _r[ 0 ], fetch( k, i, j ) );
                }
             }
          }
@@ -229,13 +229,13 @@ Reduction3D< Devices::Host >::reduce( Result identity,
    }
    else
 #endif
-      Reduction3D< Devices::Sequential >::reduce( identity, dataFetcher, reduction, size, m, n, result );
+      Reduction3D< Devices::Sequential >::reduce( identity, fetch, reduction, size, m, n, result );
 }
 
-template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
+template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
 void
 Reduction3D< Devices::Cuda >::reduce( Result identity,
-                                      DataFetcher dataFetcher,
+                                      Fetch fetch,
                                       Reduction reduction,
                                       Index size,
                                       int m,
@@ -256,7 +256,7 @@ Reduction3D< Devices::Cuda >::reduce( Result identity,
 #endif
 
    Result* deviceAux1 = nullptr;
-   const dim3 reducedSize = detail::CudaReduction3DKernelLauncher( identity, dataFetcher, reduction, size, m, n, deviceAux1 );
+   const dim3 reducedSize = detail::CudaReduction3DKernelLauncher( identity, fetch, reduction, size, m, n, deviceAux1 );
 
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();
@@ -278,12 +278,11 @@ Reduction3D< Devices::Cuda >::reduce( Result identity,
 #endif
 
    // finish the reduction on the host
-   auto dataFetcherFinish = [ & ]( int x, int i, int j )
+   auto fetchFinish = [ & ]( int x, int i, int j )
    {
       return resultArray[ x + j * reducedSize.x + i * reducedSize.x * n ];
    };
-   Reduction3D< Devices::Sequential >::reduce(
-      identity, dataFetcherFinish, reduction, Index( reducedSize.x ), m, n, hostResult );
+   Reduction3D< Devices::Sequential >::reduce( identity, fetchFinish, reduction, Index( reducedSize.x ), m, n, hostResult );
 
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();

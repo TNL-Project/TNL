@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <functional>  // reduction functions like std::plus, std::logical_and, std::logical_or etc.
-
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
@@ -17,25 +15,25 @@ struct Reduction3D;
 template<>
 struct Reduction3D< Devices::Sequential >
 {
-   template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
+   template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
    static constexpr void
-   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int m, int n, Output result );
+   reduce( Result identity, Fetch fetch, Reduction reduction, Index size, int m, int n, Output result );
 };
 
 template<>
 struct Reduction3D< Devices::Host >
 {
-   template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
+   template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
    static void
-   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int m, int n, Output result );
+   reduce( Result identity, Fetch fetch, Reduction reduction, Index size, int m, int n, Output result );
 };
 
 template<>
 struct Reduction3D< Devices::Cuda >
 {
-   template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
+   template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
    static void
-   reduce( Result identity, DataFetcher dataFetcher, Reduction reduction, Index size, int m, int n, Output hostResult );
+   reduce( Result identity, Fetch fetch, Reduction reduction, Index size, int m, int n, Output hostResult );
 };
 
 }  // namespace TNL::Algorithms
