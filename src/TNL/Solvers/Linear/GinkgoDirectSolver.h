@@ -9,6 +9,7 @@
 
    #include "LinearSolver.h"
    #include <TNL/Matrices/SparseMatrix.h>
+   #include <TNL/Matrices/MatrixInfo.h>
    #include <TNL/Algorithms/Segments/CSR.h>
    #include <TNL/Matrices/GinkgoOperator.h>
    #include <TNL/Containers/GinkgoVector.h>
@@ -18,6 +19,8 @@ namespace TNL::Solvers::Linear {
 template< typename Matrix >
 class GinkgoDirectSolver : public LinearSolver< Matrix >
 {
+   static_assert( Matrices::is_csr_matrix< Matrix >::value, "Umfpack works only with CSR format." );
+
    using Base = LinearSolver< Matrix >;
 
 public:
@@ -79,7 +82,5 @@ public:
 };
 
 }  // namespace TNL::Solvers::Linear
-
-//#include "GinkgoDirectSolver.hpp"
 
 #endif
