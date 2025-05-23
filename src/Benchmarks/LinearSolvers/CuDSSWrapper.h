@@ -90,7 +90,7 @@ public:
    }
 
    bool
-   solved() const
+   succeeded() const
    {
       return this->solver_success;
    }
