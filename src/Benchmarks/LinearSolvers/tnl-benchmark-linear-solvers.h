@@ -519,8 +519,7 @@ struct LinearSolversBenchmark
               const std::shared_ptr< MatrixType >& matrixPointer,
               const VectorType& x0,
               const VectorType& b )
-   {  // direct solvers
-
+   {
       using CSR = TNL::Matrices::
          SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
       auto matrixCopy = std::make_shared< CSR >();
