@@ -537,7 +537,9 @@ struct LinearSolversBenchmark
 #endif
 
 #ifdef HAVE_UMFPACK
-      if constexpr( std::is_same_v< DeviceType, TNL::Devices::Host > || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
+      if constexpr( ( std::is_same_v< DeviceType, TNL::Devices::Host >
+                      || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
+                    && std::is_same_v< RealType, double > && std::is_same_v< IndexType, int > )
          benchmarkDirectSolver< TNL::Solvers::Linear::UmfpackWrapper >( "UMFPACK", benchmark, parameters, matrixCopy, x0, b );
 #endif
 

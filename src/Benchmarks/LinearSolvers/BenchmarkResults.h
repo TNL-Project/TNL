@@ -14,12 +14,12 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
    using RowElements = BenchmarkResult::RowElements;
    using SolverType = Solver< Matrix >;
 
-   Solver< Matrix >& solver;
+   SolverType& solver;
    const std::shared_ptr< Matrix >& matrix;
    const Vector& x;
    const Vector& b;
 
-   BenchmarkResult( Solver< Matrix >& solver, const std::shared_ptr< Matrix >& matrix, const Vector& x, const Vector& b )
+   BenchmarkResult( SolverType& solver, const std::shared_ptr< Matrix >& matrix, const Vector& x, const Vector& b )
    : solver( solver ),
      matrix( matrix ),
      x( x ),
@@ -51,7 +51,7 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
    {
       RowElements elements;
       if constexpr( SolverType::isIterativeSolver() ) {
-         const bool converged = ! std::isnan( solver.getResidue() ) && solver.getResidue() < solver.getConvergenceResidue();
+         const bool converged = solver.checkConvergence();
          const long iterations = solver.getIterations();
          const double residue_precond = solver.getResidue();
 
@@ -70,14 +70,14 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
          elements << ( converged ? "yes" : "no" ) << iterations << residue_precond << residue_true;
       }
       else {  // direct solver
-         const bool solved = solver.solved();
+         const bool succeeded = solver.succeeded();
          elements << time;
          if( speedup != 0 )
             elements << speedup;
          else
             elements << "N/A";
          elements << time_stddev << time_stddev / time;
-         elements << ( solved ? "yes" : "no" ) << "N/A" << "N/A" << "N/A";
+         elements << ( succeeded ? "yes" : "no" ) << "N/A" << "N/A" << "N/A";
       }
       return elements;
    }
