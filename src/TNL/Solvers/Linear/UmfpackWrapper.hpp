@@ -10,40 +10,8 @@
 namespace TNL::Solvers::Linear {
 
 template< typename Matrix, typename SolverMonitor >
-UmfpackWrapper< Matrix, SolverMonitor >::UmfpackWrapper()
-{
-   if( ! is_csr_matrix< Matrix >::value )
-      std::cerr << "The UmfpackWrapper solver is available only for CSR matrices." << std::endl;
-   if( std::is_same_v< typename Matrix::DeviceType, Devices::Cuda > )
-      std::cerr << "The UmfpackWrapper solver is not available on CUDA." << std::endl;
-   if( ! std::is_same_v< RealType, double > )
-      std::cerr << "The UmfpackWrapper solver is available only for double precision." << std::endl;
-   if( ! std::is_same_v< IndexType, int > )
-      std::cerr << "The UmfpackWrapper solver is available only for 'int' index type." << std::endl;
-}
-
-template< typename Matrix, typename SolverMonitor >
 void
 UmfpackWrapper< Matrix, SolverMonitor >::setMatrix( const MatrixPointer& matrix )
-{}
-
-template< typename Matrix, typename SolverMonitor >
-bool
-UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorViewType x )
-{
-   return false;
-}
-
-template< typename Matrix, typename SolverMonitor >
-bool
-UmfpackWrapper< Matrix, SolverMonitor >::solved() const
-{
-   return false;
-}
-
-template< typename SolverMonitor >
-void
-UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::setMatrix( const MatrixPointer& matrix )
 {
 #ifdef HAVE_UMFPACK
    if( matrix->getRows() != matrix->getColumns() )
@@ -109,9 +77,9 @@ UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::setMat
 #endif
 }
 
-template< typename SolverMonitor >
+template< typename Matrix, typename SolverMonitor >
 bool
-UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::solve( ConstVectorViewType b, VectorViewType x )
+UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorViewType x )
 {
 #ifdef HAVE_UMFPACK
    if( this->matrix->getColumns() != x.getSize() )
@@ -158,15 +126,15 @@ UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::solve(
 #endif
 }
 
-template< typename SolverMonitor >
+template< typename Matrix, typename SolverMonitor >
 bool
-UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::solved() const
+UmfpackWrapper< Matrix, SolverMonitor >::succeeded() const
 {
    return this->solver_success;
 }
 
-template< typename SolverMonitor >
-UmfpackWrapper< CSRMatrix< double, Devices::Host, int >, SolverMonitor >::~UmfpackWrapper()
+template< typename Matrix, typename SolverMonitor >
+UmfpackWrapper< Matrix, SolverMonitor >::~UmfpackWrapper()
 {
 #ifdef HAVE_UMFPACK
    if( this->Symbolic )
