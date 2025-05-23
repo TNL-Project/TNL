@@ -4,13 +4,12 @@
 #include <thread>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Sequential.h>
-#include <TNL/Devices/Cuda.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
 #include <TNL/Solvers/DirectSolverMonitor.h>
 
 template< typename Device >
 void
-iterativeLinearSolverExample()
+directLinearSolverExample()
 {
    /***
     * Set the following matrix (dots represent zero matrix elements):
@@ -78,9 +77,9 @@ iterativeLinearSolverExample()
    monitor.setVerbose( 1 );
    monitor.setStage( "Umfpack stage:" );
    solver.setSolverMonitor( monitor );
-   bool solved = solver.solve( b, x );
+   solver.solve( b, x );
    monitor.stopMainLoop();
-   if( solved ) {
+   if( solver.succeeded() ) {
       std::cout << "Solver succeeded." << std::endl;
       std::cout << "Vector x = " << x << std::endl;
    }
@@ -92,5 +91,5 @@ int
 main( int argc, char* argv[] )
 {
    std::cout << "Solving linear system on host: " << std::endl;
-   iterativeLinearSolverExample< TNL::Devices::Sequential >();
+   directLinearSolverExample< TNL::Devices::Sequential >();
 }

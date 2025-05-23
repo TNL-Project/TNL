@@ -2,7 +2,10 @@ set(COMMON_EXAMPLES IterativeLinearSolverExample IterativeLinearSolverWithMonito
                     IterativeLinearSolverWithPreconditionerExample IterativeLinearSolverWithRuntimeTypesExample
 )
 
-set(HOST_EXAMPLES DirectLinearSolverWithMonitorExample DirectLinearSolverWithTimerExample)
+find_package(UMFPACK)
+if(UMFPACK_FOUND)
+    set(UMFPACK_DEPENDING_EXAMPLES DirectLinearSolverWithMonitorExample DirectLinearSolverWithTimerExample)
+endif()
 
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${COMMON_EXAMPLES})
@@ -26,9 +29,10 @@ else()
     endforeach()
 endif()
 
-foreach(target IN ITEMS ${HOST_EXAMPLES})
+foreach(target IN ITEMS ${UMFPACK_DEPENDING_EXAMPLES})
     add_executable(${target} ${target}.cpp)
-    target_link_libraries(${target} PUBLIC TNL::TNL)
+    target_compile_definitions(${target} PUBLIC "-DHAVE_UMFPACK")
+    target_link_libraries(${target} PUBLIC TNL::TNL SuiteSparse::UMFPACK)
     add_custom_command(
         COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
         OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out DEPENDS ${target}

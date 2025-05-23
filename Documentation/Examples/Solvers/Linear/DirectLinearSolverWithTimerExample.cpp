@@ -5,12 +5,10 @@
 #include <TNL/Timer.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Sequential.h>
-#include <TNL/Devices/Cuda.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
 
-template< typename Device >
 void
-iterativeLinearSolverExample()
+directLinearSolverExample()
 {
    /***
     * Set the following matrix (dots represent zero matrix elements):
@@ -21,8 +19,8 @@ iterativeLinearSolverExample()
     *   |  .    .   -1    2.5 -1   |
     *   \  .    .    .   -1    2.5 /
     */
-   using MatrixType = TNL::Matrices::SparseMatrix< double, Device >;
-   using Vector = TNL::Containers::Vector< double, Device >;
+   using MatrixType = TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >;
+   using Vector = TNL::Containers::Vector< double, TNL::Devices::Host, int >;
    const int size( 5 );
    auto matrix_ptr = std::make_shared< MatrixType >();
    matrix_ptr->setDimensions( size, size );
@@ -81,9 +79,9 @@ iterativeLinearSolverExample()
    monitor.setTimer( timer );
    timer.start();
    solver.setSolverMonitor( monitor );
-   bool solved = solver.solve( b, x );
+   solver.solve( b, x );
    monitor.stopMainLoop();
-   if( solved ) {
+   if( solver.succeeded() ) {
       std::cout << "Solver succeeded." << std::endl;
       std::cout << "Vector x = " << x << std::endl;
    }
@@ -94,11 +92,6 @@ iterativeLinearSolverExample()
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Solving linear system on host: " << std::endl;
-   iterativeLinearSolverExample< TNL::Devices::Sequential >();
-
-#ifdef __CUDACC__
-   std::cout << "Solving linear system on CUDA device: " << std::endl;
-   iterativeLinearSolverExample< TNL::Devices::Cuda >();
-#endif
+   std::cout << "Solving linear system using Umfpack wrapper: " << std::endl;
+   directLinearSolverExample();
 }
