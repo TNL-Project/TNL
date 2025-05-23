@@ -120,10 +120,6 @@ protected:
    Real currentResidue = std::numeric_limits< RealType >::max();
 };
 
-template< typename Solver >
-inline constexpr bool
-isDirectSolver();
-
 }  // namespace TNL::Solvers
 
 #include "DirectSolver.hpp"

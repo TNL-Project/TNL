@@ -251,25 +251,6 @@ protected:
    std::ofstream residualHistoryFile;
 };
 
-template< typename Solver >
-struct is_iterative_solver
-{
-   static constexpr bool value = false;
-};
-
-template< typename Real, typename Index, typename SolverMonitor >
-struct is_iterative_solver< IterativeSolver< Real, Index, SolverMonitor > >
-{
-   static constexpr bool value = true;
-};
-
-template< typename Solver >
-inline constexpr bool
-isIterativeSolver()
-{
-   return is_iterative_solver< Solver >::value;
-}
-
 }  // namespace TNL::Solvers
 
 #include <TNL/Solvers/IterativeSolver.hpp>

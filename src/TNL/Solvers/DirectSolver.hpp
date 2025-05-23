@@ -71,23 +71,4 @@ DirectSolver< Real, Index, SolverMonitor >::setSolverMonitor( SolverMonitorType&
    this->solverMonitor->setRefreshRate( this->refreshRate );
 }
 
-template< typename Solver >
-struct is_direct_solver
-{
-   static constexpr bool value = false;
-};
-
-template< typename Real, typename Index, typename SolverMonitor >
-struct is_direct_solver< DirectSolver< Real, Index, SolverMonitor > >
-{
-   static constexpr bool value = true;
-};
-
-template< typename Solver >
-inline constexpr bool
-isDirectSolver()
-{
-   return is_direct_solver< Solver >::value;
-}
-
 }  // namespace TNL::Solvers
