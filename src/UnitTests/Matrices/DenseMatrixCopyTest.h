@@ -54,16 +54,7 @@ setupUnevenRowSizeMatrix( Matrix& m )
    const int rows = 10;
    const int cols = 6;
    m.setDimensions( rows, cols );
-   typename Matrix::RowCapacitiesType rowLengths;
-   rowLengths.setSize( rows );
-   rowLengths.setValue( 5 );
-   rowLengths.setElement( 0, 2 );
-   rowLengths.setElement( 1, 3 );
-   rowLengths.setElement( 2, 3 );
-   rowLengths.setElement( 5, 2 );
-   rowLengths.setElement( 6, 1 );
-   rowLengths.setElement( 7, 1 );
-   rowLengths.setElement( 9, 1 );
+   typename Matrix::RowCapacitiesType rowLengths{ 2, 3, 3, 5, 5, 2, 1, 1, 5, 1 };
    m.setRowCapacities( rowLengths );
 
    int value = 1;
@@ -191,11 +182,7 @@ setupAntiTriDiagMatrix( Matrix& m )
    const int rows = 7;
    const int cols = 6;
    m.setDimensions( rows, cols );
-   typename Matrix::RowCapacitiesType rowLengths;
-   rowLengths.setSize( rows );
-   rowLengths.setValue( 3 );
-   rowLengths.setElement( 0, 4 );
-   rowLengths.setElement( 1, 4 );
+   typename Matrix::RowCapacitiesType rowLengths{ 4, 4, 3, 3, 3, 3, 3 };
    m.setRowCapacities( rowLengths );
 
    int value = 1;
@@ -280,11 +267,7 @@ setupTriDiagMatrix( Matrix& m )
    const int rows = 7;
    const int cols = 6;
    m.setDimensions( rows, cols );
-   typename Matrix::RowCapacitiesType rowLengths;
-   rowLengths.setSize( rows );
-   rowLengths.setValue( 3 );
-   rowLengths.setElement( 0, 4 );
-   rowLengths.setElement( 1, 4 );
+   typename Matrix::RowCapacitiesType rowLengths{ 4, 4, 3, 3, 3, 3, 3 };
    m.setRowCapacities( rowLengths );
 
    int value = 1;
