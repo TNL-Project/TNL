@@ -81,31 +81,17 @@ test_VectorProduct_smallMatrix1()
    const IndexType m_rows_1 = 4;
    const IndexType m_cols_1 = 4;
 
-   Matrix m_1;
-   m_1.reset();
-   m_1.setDimensions( m_rows_1, m_cols_1 );
-   typename Matrix::RowCapacitiesType rowLengths_1{ 1, 2, 1, 1 };
-   m_1.setRowCapacities( rowLengths_1 );
+   // clang-format off
+   Matrix m_1( m_rows_1, m_cols_1,
+   { {0,0,1},
+              {1,1,2},          {1,3,3},
+              {2,1,4},
+                       {3,2,5} } );
+   // clang-format on
 
-   IndexType value_1 = 1;
-   m_1.setElement( 0, 0, value_1++ );  // 0th row
+   VectorType inVector_1( m_cols_1, 2 );
 
-   m_1.setElement( 1, 1, value_1++ );  // 1st row
-   m_1.setElement( 1, 3, value_1++ );
-
-   m_1.setElement( 2, 1, value_1++ );  // 2nd row
-
-   m_1.setElement( 3, 2, value_1++ );  // 3rd row
-
-   VectorType inVector_1;
-   inVector_1.setSize( m_cols_1 );
-   for( IndexType i = 0; i < inVector_1.getSize(); i++ )
-      inVector_1.setElement( i, 2 );
-
-   VectorType outVector_1;
-   outVector_1.setSize( m_rows_1 );
-   for( IndexType j = 0; j < outVector_1.getSize(); j++ )
-      outVector_1.setElement( j, 0 );
+   VectorType outVector_1( m_rows_1, 0 );
 
    Kernel kernel;
    kernel.init( m_1.getSegments() );
@@ -151,31 +137,16 @@ test_VectorProduct_smallMatrix2()
    const IndexType m_rows_2 = 4;
    const IndexType m_cols_2 = 4;
 
-   Matrix m_2( m_rows_2, m_cols_2 );
-   typename Matrix::RowCapacitiesType rowLengths_2{ 3, 1, 3, 1 };
-   m_2.setRowCapacities( rowLengths_2 );
+   // clang-format off
+   Matrix m_2( m_rows_2, m_cols_2,
+   { {0,0,1}, {0,1,2}, {0,2,3},
+              {1,3,4},
+     {2,0,5}, {2,1,6}, {2,2,7},
+              {3,1,8} } );
+   // clang-format on
 
-   IndexType value_2 = 1;
-   for( IndexType i = 0; i < 3; i++ )  // 0th row
-      m_2.setElement( 0, i, value_2++ );
-
-   m_2.setElement( 1, 3, value_2++ );  // 1st row
-
-   for( IndexType i = 0; i < 3; i++ )  // 2nd row
-      m_2.setElement( 2, i, value_2++ );
-
-   for( IndexType i = 1; i < 2; i++ )  // 3rd row
-      m_2.setElement( 3, i, value_2++ );
-
-   VectorType inVector_2;
-   inVector_2.setSize( m_cols_2 );
-   for( IndexType i = 0; i < inVector_2.getSize(); i++ )
-      inVector_2.setElement( i, 2 );
-
-   VectorType outVector_2;
-   outVector_2.setSize( m_rows_2 );
-   for( IndexType j = 0; j < outVector_2.getSize(); j++ )
-      outVector_2.setElement( j, 0 );
+   VectorType inVector_2( m_cols_2, 2 );
+   VectorType outVector_2( m_rows_2, 0 );
 
    Kernel kernel;
    kernel.init( m_2.getSegments() );
@@ -221,32 +192,19 @@ test_VectorProduct_smallMatrix3()
    const IndexType m_rows_3 = 4;
    const IndexType m_cols_3 = 4;
 
-   Matrix m_3( m_rows_3, m_cols_3 );
-   typename Matrix::RowCapacitiesType rowLengths_3{ 3, 3, 3, 3 };
-   m_3.setRowCapacities( rowLengths_3 );
+   //typename Matrix::RowCapacitiesType rowLengths_3{ 3, 3, 3, 3 };
+   //m_3.setRowCapacities( rowLengths_3 );
 
-   IndexType value_3 = 1;
-   for( IndexType i = 0; i < 3; i++ )  // 0th row
-      m_3.setElement( 0, i, value_3++ );
+   // clang-format off
+   Matrix m_3( m_rows_3, m_cols_3,
+   { {0,0,1}, {0,1,2},  {0,2,3},
+              {1,1,4},  {1,2,5},  {1,3,6},
+     {2,0,7}, {2,1,8},  {2,2,9},
+              {3,1,10}, {3,2,11}, {3,3,12} } );
+   // clang-format on
 
-   for( IndexType i = 1; i < 4; i++ )
-      m_3.setElement( 1, i, value_3++ );  // 1st row
-
-   for( IndexType i = 0; i < 3; i++ )  // 2nd row
-      m_3.setElement( 2, i, value_3++ );
-
-   for( IndexType i = 1; i < 4; i++ )  // 3rd row
-      m_3.setElement( 3, i, value_3++ );
-
-   VectorType inVector_3;
-   inVector_3.setSize( m_cols_3 );
-   for( IndexType i = 0; i < inVector_3.getSize(); i++ )
-      inVector_3.setElement( i, 2 );
-
-   VectorType outVector_3;
-   outVector_3.setSize( m_rows_3 );
-   for( IndexType j = 0; j < outVector_3.getSize(); j++ )
-      outVector_3.setElement( j, 0 );
+   VectorType inVector_3( m_cols_3, 2 );
+   VectorType outVector_3( m_rows_3, 0 );
 
    Kernel kernel;
    kernel.init( m_3.getSegments() );
@@ -296,46 +254,23 @@ test_VectorProduct_mediumSizeMatrix1()
    const IndexType m_rows_4 = 8;
    const IndexType m_cols_4 = 8;
 
-   Matrix m_4( m_rows_4, m_cols_4 );
-   typename Matrix::RowCapacitiesType rowLengths_4{ 4, 4, 5, 4, 4, 4, 5, 5 };
-   m_4.setRowCapacities( rowLengths_4 );
+   //typename Matrix::RowCapacitiesType rowLengths_4{ 4, 4, 5, 4, 4, 4, 5, 5 };
+   //m_4.setRowCapacities( rowLengths_4 );
 
-   IndexType value_4 = 1;
-   for( IndexType i = 0; i < 3; i++ )  // 0th row
-      m_4.setElement( 0, i, value_4++ );
+   // clang-format off
+   Matrix m_4( m_rows_4, m_cols_4,
+   { {0,0,1},  {0,1,2},  {0,2,3},                      {0,5,4},
+               {1,1,5},  {1,2,6},  {1,3,7},  {1,4,8},
+     {2,0,9},  {2,1,10}, {2,2,11}, {2,3,12}, {2,4,13},
+               {3,1,14}, {3,2,15}, {3,3,16}, {3,4,17},
+                         {4,2,18}, {4,3,19}, {4,4,20}, {4,5,21},
+                                   {5,3,22}, {5,4,23}, {5,5,24}, {5,6,25},
+     {6,0,26}, {6,1,27}, {6,2,28}, {6,3,29}, {6,4,30},
+     {7,0,31}, {7,1,32}, {7,2,33}, {7,3,34}, {7,4 ,35} } );
+   // clang-format on
 
-   m_4.setElement( 0, 5, value_4++ );
-
-   for( IndexType i = 1; i < 5; i++ )  // 1st row
-      m_4.setElement( 1, i, value_4++ );
-
-   for( IndexType i = 0; i < 5; i++ )  // 2nd row
-      m_4.setElement( 2, i, value_4++ );
-
-   for( IndexType i = 1; i < 5; i++ )  // 3rd row
-      m_4.setElement( 3, i, value_4++ );
-
-   for( IndexType i = 2; i < 6; i++ )  // 4th row
-      m_4.setElement( 4, i, value_4++ );
-
-   for( IndexType i = 3; i < 7; i++ )  // 5th row
-      m_4.setElement( 5, i, value_4++ );
-
-   for( IndexType i = 0; i < 5; i++ )  // 6th row
-      m_4.setElement( 6, i, value_4++ );
-
-   for( IndexType i = 0; i < 5; i++ )  // 7th row
-      m_4.setElement( 7, i, value_4++ );
-
-   VectorType inVector_4;
-   inVector_4.setSize( m_cols_4 );
-   for( IndexType i = 0; i < inVector_4.getSize(); i++ )
-      inVector_4.setElement( i, 2 );
-
-   VectorType outVector_4;
-   outVector_4.setSize( m_rows_4 );
-   for( IndexType j = 0; j < outVector_4.getSize(); j++ )
-      outVector_4.setElement( j, 0 );
+   VectorType inVector_4( m_cols_4, 2 );
+   VectorType outVector_4( m_rows_4, 0 );
 
    Kernel kernel;
    kernel.init( m_4.getSegments() );
@@ -389,51 +324,20 @@ test_VectorProduct_mediumSizeMatrix2()
    const IndexType m_rows_5 = 8;
    const IndexType m_cols_5 = 8;
 
-   Matrix m_5( m_rows_5, m_cols_5 );
-   typename Matrix::RowCapacitiesType rowLengths_5{ 6, 3, 4, 5, 2, 7, 8, 8 };
-   m_5.setRowCapacities( rowLengths_5 );
+   // clang-format off
+   Matrix m_5( m_rows_5, m_cols_5,
+   { {0,0, 1}, {0,1, 2}, {0,2, 3},           {0,4,4},  {0,5, 5},           {0,7, 1},
+               {1,1, 6},           {1,3, 7},                               {1,7, 1},
+               {2,1, 8}, {2,2, 9},           {2,4,10},                     {2,7, 1},
+               {3,1,11}, {3,2,12}, {3,3,13}, {3,4,14},                     {3,7, 1},
+               {4,1,15},                                                   {4,7, 1},
+               {5,1,16}, {5,2,17}, {5,3,18}, {5,4,19}, {5,5,20}, {5,6,21}, {5,7, 1},
+     {6,0,22}, {6,1,23}, {6,2,24}, {6,3,25}, {6,4,26}, {6,5,27}, {6,6,28}, {6,7, 1},
+     {7,0,29}, {7,1,30}, {7,2,31}, {7,3,32}, {7,4,33}, {7,5,34}, {7,6,35}, {7,7,36} } );
+   // clang-format on
 
-   IndexType value_5 = 1;
-   for( IndexType i = 0; i < 3; i++ )  // 0th row
-      m_5.setElement( 0, i, value_5++ );
-
-   m_5.setElement( 0, 4, value_5++ );  // 0th row
-   m_5.setElement( 0, 5, value_5++ );
-
-   m_5.setElement( 1, 1, value_5++ );  // 1st row
-   m_5.setElement( 1, 3, value_5++ );
-
-   for( IndexType i = 1; i < 3; i++ )  // 2nd row
-      m_5.setElement( 2, i, value_5++ );
-
-   m_5.setElement( 2, 4, value_5++ );  // 2nd row
-
-   for( IndexType i = 1; i < 5; i++ )  // 3rd row
-      m_5.setElement( 3, i, value_5++ );
-
-   m_5.setElement( 4, 1, value_5++ );  // 4th row
-
-   for( IndexType i = 1; i < 7; i++ )  // 5th row
-      m_5.setElement( 5, i, value_5++ );
-
-   for( IndexType i = 0; i < 7; i++ )  // 6th row
-      m_5.setElement( 6, i, value_5++ );
-
-   for( IndexType i = 0; i < 8; i++ )  // 7th row
-      m_5.setElement( 7, i, value_5++ );
-
-   for( IndexType i = 0; i < 7; i++ )  // 1s at the end of rows
-      m_5.setElement( i, 7, 1 );
-
-   VectorType inVector_5;
-   inVector_5.setSize( m_cols_5 );
-   for( IndexType i = 0; i < inVector_5.getSize(); i++ )
-      inVector_5.setElement( i, 2 );
-
-   VectorType outVector_5;
-   outVector_5.setSize( m_rows_5 );
-   for( IndexType j = 0; j < outVector_5.getSize(); j++ )
-      outVector_5.setElement( j, 0 );
+   VectorType inVector_5( m_cols_5, 2 );
+   VectorType outVector_5( m_rows_5, 0 );
 
    Kernel kernel;
    kernel.init( m_5.getSegments() );
@@ -471,73 +375,67 @@ test_VectorProduct_largeMatrix()
    using IndexType = typename Matrix::IndexType;
    using OutRealType = std::conditional_t< TNL::is_complex_v< RealType >, RealType, double >;
 
-   /////
-   // Large test
    const IndexType size( 1051 );
-   //for( int size = 1; size < 1000; size++ )
+
+   // Test with large diagonal matrix
+   Matrix m1( size, size );
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowCapacities( size );
+   rowCapacities.forAllElements(
+      [] __cuda_callable__( IndexType i, IndexType & value )
+      {
+         value = 1;
+      } );
+   m1.setRowCapacities( rowCapacities );
+   auto f1 = [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType & column, RealType & value )
    {
-      //std::cerr << " size = " << size << std::endl;
-      // Test with large diagonal matrix
-      Matrix m1( size, size );
-      TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowCapacities( size );
-      rowCapacities.forAllElements(
-         [] __cuda_callable__( IndexType i, IndexType & value )
-         {
-            value = 1;
-         } );
-      m1.setRowCapacities( rowCapacities );
-      auto f1 = [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType & column, RealType & value )
+      if( localIdx == 0 ) {
+         value = row + 1;
+         column = row;
+      }
+   };
+   m1.forAllElements( f1 );
+   // check that the matrix was initialized
+   m1.getCompressedRowLengths( rowCapacities );
+   EXPECT_EQ( rowCapacities, 1 );
+
+   TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 );
+   TNL::Containers::Vector< OutRealType, DeviceType, IndexType > out( size, 0.0 );
+   Kernel kernel;
+   kernel.init( m1.getSegments() );
+   m1.vectorProduct( in, out, kernel );
+   for( IndexType i = 0; i < size; i++ )
+      EXPECT_EQ( out.getElement( i ), OutRealType( i + 1 ) );
+
+   // Test with large triangular matrix
+   const int rows( size );
+   const int columns( size );
+   Matrix m2( rows, columns );
+   rowCapacities.setSize( rows );
+   rowCapacities.forAllElements(
+      [ = ] __cuda_callable__( IndexType i, IndexType & value )
       {
-         if( localIdx == 0 ) {
-            value = row + 1;
-            column = row;
-         }
-      };
-      m1.forAllElements( f1 );
-      // check that the matrix was initialized
-      m1.getCompressedRowLengths( rowCapacities );
-      EXPECT_EQ( rowCapacities, 1 );
+         value = i + 1;
+      } );
+   m2.setRowCapacities( rowCapacities );
+   auto f2 = [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType & column, RealType & value )
+   {
+      if( localIdx <= row ) {
+         value = localIdx + 1;
+         column = localIdx;
+      }
+   };
+   m2.forAllElements( f2 );
+   // check that the matrix was initialized
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowLengths( rows );
+   m2.getCompressedRowLengths( rowLengths );
+   EXPECT_EQ( rowLengths, rowCapacities );
 
-      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 );
-      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > out( size, 0.0 );
-      Kernel kernel;
-      kernel.init( m1.getSegments() );
-      m1.vectorProduct( in, out, kernel );
-      //std::cerr << out << std::endl;
-      for( IndexType i = 0; i < size; i++ )
-         EXPECT_EQ( out.getElement( i ), OutRealType( i + 1 ) );
-
-      // Test with large triangular matrix
-      const int rows( size );
-      const int columns( size );
-      Matrix m2( rows, columns );
-      rowCapacities.setSize( rows );
-      rowCapacities.forAllElements(
-         [ = ] __cuda_callable__( IndexType i, IndexType & value )
-         {
-            value = i + 1;
-         } );
-      m2.setRowCapacities( rowCapacities );
-      auto f2 = [ = ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType & column, RealType & value )
-      {
-         if( localIdx <= row ) {
-            value = localIdx + 1;
-            column = localIdx;
-         }
-      };
-      m2.forAllElements( f2 );
-      // check that the matrix was initialized
-      TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowLengths( rows );
-      m2.getCompressedRowLengths( rowLengths );
-      EXPECT_EQ( rowLengths, rowCapacities );
-
-      out.setSize( rows );
-      out = 0.0;
-      kernel.init( m2.getSegments() );
-      m2.vectorProduct( in, out, kernel );
-      for( IndexType i = 0; i < rows; i++ )
-         EXPECT_EQ( out.getElement( i ), OutRealType( ( i + 1 ) * ( i + 2 ) / 2 ) );
-   }
+   out.setSize( rows );
+   out = 0.0;
+   kernel.init( m2.getSegments() );
+   m2.vectorProduct( in, out, kernel );
+   for( IndexType i = 0; i < rows; i++ )
+      EXPECT_EQ( out.getElement( i ), OutRealType( ( i + 1 ) * ( i + 2 ) / 2 ) );
 }
 
 template< typename Matrix, typename Kernel >
