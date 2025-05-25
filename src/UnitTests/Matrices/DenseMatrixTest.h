@@ -266,106 +266,16 @@ test_SetValue()
       for( IndexType j = 0; j < cols; j++ )
          m.setElement( i, j, value++ );
 
-   EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
-   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 2 } );
-   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 3 } );
-   EXPECT_EQ( m.getElement( 0, 3 ), RealType{ 4 } );
-   EXPECT_EQ( m.getElement( 0, 4 ), RealType{ 5 } );
-   EXPECT_EQ( m.getElement( 0, 5 ), RealType{ 6 } );
-
-   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 7 } );
-   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 8 } );
-   EXPECT_EQ( m.getElement( 1, 2 ), RealType{ 9 } );
-   EXPECT_EQ( m.getElement( 1, 3 ), RealType{ 10 } );
-   EXPECT_EQ( m.getElement( 1, 4 ), RealType{ 11 } );
-   EXPECT_EQ( m.getElement( 1, 5 ), RealType{ 12 } );
-
-   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 13 } );
-   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 14 } );
-   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 15 } );
-   EXPECT_EQ( m.getElement( 2, 3 ), RealType{ 16 } );
-   EXPECT_EQ( m.getElement( 2, 4 ), RealType{ 17 } );
-   EXPECT_EQ( m.getElement( 2, 5 ), RealType{ 18 } );
-
-   EXPECT_EQ( m.getElement( 3, 0 ), RealType{ 19 } );
-   EXPECT_EQ( m.getElement( 3, 1 ), RealType{ 20 } );
-   EXPECT_EQ( m.getElement( 3, 2 ), RealType{ 21 } );
-   EXPECT_EQ( m.getElement( 3, 3 ), RealType{ 22 } );
-   EXPECT_EQ( m.getElement( 3, 4 ), RealType{ 23 } );
-   EXPECT_EQ( m.getElement( 3, 5 ), RealType{ 24 } );
-
-   EXPECT_EQ( m.getElement( 4, 0 ), RealType{ 25 } );
-   EXPECT_EQ( m.getElement( 4, 1 ), RealType{ 26 } );
-   EXPECT_EQ( m.getElement( 4, 2 ), RealType{ 27 } );
-   EXPECT_EQ( m.getElement( 4, 3 ), RealType{ 28 } );
-   EXPECT_EQ( m.getElement( 4, 4 ), RealType{ 29 } );
-   EXPECT_EQ( m.getElement( 4, 5 ), RealType{ 30 } );
-
-   EXPECT_EQ( m.getElement( 5, 0 ), RealType{ 31 } );
-   EXPECT_EQ( m.getElement( 5, 1 ), RealType{ 32 } );
-   EXPECT_EQ( m.getElement( 5, 2 ), RealType{ 33 } );
-   EXPECT_EQ( m.getElement( 5, 3 ), RealType{ 34 } );
-   EXPECT_EQ( m.getElement( 5, 4 ), RealType{ 35 } );
-   EXPECT_EQ( m.getElement( 5, 5 ), RealType{ 36 } );
-
-   EXPECT_EQ( m.getElement( 6, 0 ), RealType{ 37 } );
-   EXPECT_EQ( m.getElement( 6, 1 ), RealType{ 38 } );
-   EXPECT_EQ( m.getElement( 6, 2 ), RealType{ 39 } );
-   EXPECT_EQ( m.getElement( 6, 3 ), RealType{ 40 } );
-   EXPECT_EQ( m.getElement( 6, 4 ), RealType{ 41 } );
-   EXPECT_EQ( m.getElement( 6, 5 ), RealType{ 42 } );
+   value = 1;
+   for( IndexType i = 0; i < rows; i++ )
+      for( IndexType j = 0; j < cols; j++ )
+         EXPECT_EQ( m.getElement( i, j ), (RealType) value++ ) << "i: " << i << " j: " << j;
 
    // Set the values of all elements to a certain number
    m.setValue( 42 );
-
-   EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 0, 3 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 0, 4 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 0, 5 ), RealType{ 42 } );
-
-   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 1, 2 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 1, 3 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 1, 4 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 1, 5 ), RealType{ 42 } );
-
-   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 2, 3 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 2, 4 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 2, 5 ), RealType{ 42 } );
-
-   EXPECT_EQ( m.getElement( 3, 0 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 3, 1 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 3, 2 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 3, 3 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 3, 4 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 3, 5 ), RealType{ 42 } );
-
-   EXPECT_EQ( m.getElement( 4, 0 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 4, 1 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 4, 2 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 4, 3 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 4, 4 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 4, 5 ), RealType{ 42 } );
-
-   EXPECT_EQ( m.getElement( 5, 0 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 5, 1 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 5, 2 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 5, 3 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 5, 4 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 5, 5 ), RealType{ 42 } );
-
-   EXPECT_EQ( m.getElement( 6, 0 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 6, 1 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 6, 2 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 6, 3 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 6, 4 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 6, 5 ), RealType{ 42 } );
+   for( IndexType i = 0; i < rows; i++ )
+      for( IndexType j = 0; j < cols; j++ )
+         EXPECT_EQ( m.getElement( i, j ), RealType{ 42 } ) << "i: " << i << " j: " << j;
 }
 
 template< typename Matrix >
@@ -395,35 +305,10 @@ test_SetElement()
       for( IndexType j = 0; j < cols; j++ )
          m.setElement( i, j, value++ );
 
-   EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
-   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 2 } );
-   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 3 } );
-   EXPECT_EQ( m.getElement( 0, 3 ), RealType{ 4 } );
-   EXPECT_EQ( m.getElement( 0, 4 ), RealType{ 5 } );
-
-   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 6 } );
-   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 7 } );
-   EXPECT_EQ( m.getElement( 1, 2 ), RealType{ 8 } );
-   EXPECT_EQ( m.getElement( 1, 3 ), RealType{ 9 } );
-   EXPECT_EQ( m.getElement( 1, 4 ), RealType{ 10 } );
-
-   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 11 } );
-   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 12 } );
-   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 13 } );
-   EXPECT_EQ( m.getElement( 2, 3 ), RealType{ 14 } );
-   EXPECT_EQ( m.getElement( 2, 4 ), RealType{ 15 } );
-
-   EXPECT_EQ( m.getElement( 3, 0 ), RealType{ 16 } );
-   EXPECT_EQ( m.getElement( 3, 1 ), RealType{ 17 } );
-   EXPECT_EQ( m.getElement( 3, 2 ), RealType{ 18 } );
-   EXPECT_EQ( m.getElement( 3, 3 ), RealType{ 19 } );
-   EXPECT_EQ( m.getElement( 3, 4 ), RealType{ 20 } );
-
-   EXPECT_EQ( m.getElement( 4, 0 ), RealType{ 21 } );
-   EXPECT_EQ( m.getElement( 4, 1 ), RealType{ 22 } );
-   EXPECT_EQ( m.getElement( 4, 2 ), RealType{ 23 } );
-   EXPECT_EQ( m.getElement( 4, 3 ), RealType{ 24 } );
-   EXPECT_EQ( m.getElement( 4, 4 ), RealType{ 25 } );
+   value = 1;
+   for( IndexType i = 0; i < rows; i++ )
+      for( IndexType j = 0; j < cols; j++ )
+         EXPECT_EQ( m.getElement( i, j ), (RealType) value++ ) << "i: " << i << " j: " << j;
 
    TNL::Containers::Vector< RealType, DeviceType, IndexType > v( m.getRows(), 0 );
    auto v_view = v.getView();
@@ -471,41 +356,10 @@ test_AddElement()
          m.setElement( i, j, value++ );
 
    // Check the added elements
-   EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
-   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 2 } );
-   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 3 } );
-   EXPECT_EQ( m.getElement( 0, 3 ), RealType{ 4 } );
-   EXPECT_EQ( m.getElement( 0, 4 ), RealType{ 5 } );
-
-   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 6 } );
-   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 7 } );
-   EXPECT_EQ( m.getElement( 1, 2 ), RealType{ 8 } );
-   EXPECT_EQ( m.getElement( 1, 3 ), RealType{ 9 } );
-   EXPECT_EQ( m.getElement( 1, 4 ), RealType{ 10 } );
-
-   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 11 } );
-   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 12 } );
-   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 13 } );
-   EXPECT_EQ( m.getElement( 2, 3 ), RealType{ 14 } );
-   EXPECT_EQ( m.getElement( 2, 4 ), RealType{ 15 } );
-
-   EXPECT_EQ( m.getElement( 3, 0 ), RealType{ 16 } );
-   EXPECT_EQ( m.getElement( 3, 1 ), RealType{ 17 } );
-   EXPECT_EQ( m.getElement( 3, 2 ), RealType{ 18 } );
-   EXPECT_EQ( m.getElement( 3, 3 ), RealType{ 19 } );
-   EXPECT_EQ( m.getElement( 3, 4 ), RealType{ 20 } );
-
-   EXPECT_EQ( m.getElement( 4, 0 ), RealType{ 21 } );
-   EXPECT_EQ( m.getElement( 4, 1 ), RealType{ 22 } );
-   EXPECT_EQ( m.getElement( 4, 2 ), RealType{ 23 } );
-   EXPECT_EQ( m.getElement( 4, 3 ), RealType{ 24 } );
-   EXPECT_EQ( m.getElement( 4, 4 ), RealType{ 25 } );
-
-   EXPECT_EQ( m.getElement( 5, 0 ), RealType{ 26 } );
-   EXPECT_EQ( m.getElement( 5, 1 ), RealType{ 27 } );
-   EXPECT_EQ( m.getElement( 5, 2 ), RealType{ 28 } );
-   EXPECT_EQ( m.getElement( 5, 3 ), RealType{ 29 } );
-   EXPECT_EQ( m.getElement( 5, 4 ), RealType{ 30 } );
+   value = 1;
+   for( IndexType i = 0; i < rows; i++ )
+      for( IndexType j = 0; j < cols; j++ )
+         EXPECT_EQ( m.getElement( i, j ), (RealType) value++ ) << "i: " << i << " j: " << j;
 
    // Add new elements to the old elements with a multiplying factor applied to the old elements.
    /*
@@ -524,41 +378,10 @@ test_AddElement()
       for( IndexType j = 0; j < cols; j++ )
          m.addElement( i, j, newValue++, multiplicator );
 
-   EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 3 } );
-   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 6 } );
-   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 9 } );
-   EXPECT_EQ( m.getElement( 0, 3 ), RealType{ 12 } );
-   EXPECT_EQ( m.getElement( 0, 4 ), RealType{ 15 } );
-
-   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 18 } );
-   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 21 } );
-   EXPECT_EQ( m.getElement( 1, 2 ), RealType{ 24 } );
-   EXPECT_EQ( m.getElement( 1, 3 ), RealType{ 27 } );
-   EXPECT_EQ( m.getElement( 1, 4 ), RealType{ 30 } );
-
-   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 33 } );
-   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 36 } );
-   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 39 } );
-   EXPECT_EQ( m.getElement( 2, 3 ), RealType{ 42 } );
-   EXPECT_EQ( m.getElement( 2, 4 ), RealType{ 45 } );
-
-   EXPECT_EQ( m.getElement( 3, 0 ), RealType{ 48 } );
-   EXPECT_EQ( m.getElement( 3, 1 ), RealType{ 51 } );
-   EXPECT_EQ( m.getElement( 3, 2 ), RealType{ 54 } );
-   EXPECT_EQ( m.getElement( 3, 3 ), RealType{ 57 } );
-   EXPECT_EQ( m.getElement( 3, 4 ), RealType{ 60 } );
-
-   EXPECT_EQ( m.getElement( 4, 0 ), RealType{ 63 } );
-   EXPECT_EQ( m.getElement( 4, 1 ), RealType{ 66 } );
-   EXPECT_EQ( m.getElement( 4, 2 ), RealType{ 69 } );
-   EXPECT_EQ( m.getElement( 4, 3 ), RealType{ 72 } );
-   EXPECT_EQ( m.getElement( 4, 4 ), RealType{ 75 } );
-
-   EXPECT_EQ( m.getElement( 5, 0 ), RealType{ 78 } );
-   EXPECT_EQ( m.getElement( 5, 1 ), RealType{ 81 } );
-   EXPECT_EQ( m.getElement( 5, 2 ), RealType{ 84 } );
-   EXPECT_EQ( m.getElement( 5, 3 ), RealType{ 87 } );
-   EXPECT_EQ( m.getElement( 5, 4 ), RealType{ 90 } );
+   RealType testValue = 0;
+   for( IndexType i = 0; i < rows; i++ )
+      for( IndexType j = 0; j < cols; j++ )
+         EXPECT_EQ( m.getElement( i, j ), testValue += 3 ) << "i: " << i << " j: " << j;
 }
 
 template< typename Matrix >
@@ -653,41 +476,10 @@ test_AddRow()
          m.setElement( i, j, value++ );
 
    // Check the added elements
-   EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
-   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 2 } );
-   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 3 } );
-   EXPECT_EQ( m.getElement( 0, 3 ), RealType{ 4 } );
-   EXPECT_EQ( m.getElement( 0, 4 ), RealType{ 5 } );
-
-   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 6 } );
-   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 7 } );
-   EXPECT_EQ( m.getElement( 1, 2 ), RealType{ 8 } );
-   EXPECT_EQ( m.getElement( 1, 3 ), RealType{ 9 } );
-   EXPECT_EQ( m.getElement( 1, 4 ), RealType{ 10 } );
-
-   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 11 } );
-   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 12 } );
-   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 13 } );
-   EXPECT_EQ( m.getElement( 2, 3 ), RealType{ 14 } );
-   EXPECT_EQ( m.getElement( 2, 4 ), RealType{ 15 } );
-
-   EXPECT_EQ( m.getElement( 3, 0 ), RealType{ 16 } );
-   EXPECT_EQ( m.getElement( 3, 1 ), RealType{ 17 } );
-   EXPECT_EQ( m.getElement( 3, 2 ), RealType{ 18 } );
-   EXPECT_EQ( m.getElement( 3, 3 ), RealType{ 19 } );
-   EXPECT_EQ( m.getElement( 3, 4 ), RealType{ 20 } );
-
-   EXPECT_EQ( m.getElement( 4, 0 ), RealType{ 21 } );
-   EXPECT_EQ( m.getElement( 4, 1 ), RealType{ 22 } );
-   EXPECT_EQ( m.getElement( 4, 2 ), RealType{ 23 } );
-   EXPECT_EQ( m.getElement( 4, 3 ), RealType{ 24 } );
-   EXPECT_EQ( m.getElement( 4, 4 ), RealType{ 25 } );
-
-   EXPECT_EQ( m.getElement( 5, 0 ), RealType{ 26 } );
-   EXPECT_EQ( m.getElement( 5, 1 ), RealType{ 27 } );
-   EXPECT_EQ( m.getElement( 5, 2 ), RealType{ 28 } );
-   EXPECT_EQ( m.getElement( 5, 3 ), RealType{ 29 } );
-   EXPECT_EQ( m.getElement( 5, 4 ), RealType{ 30 } );
+   value = 1;
+   for( IndexType i = 0; i < rows; i++ )
+      for( IndexType j = 0; j < cols; j++ )
+         EXPECT_EQ( m.getElement( i, j ), (RealType) value++ ) << "i: " << i << " j: " << j;
 
    // Add new elements to the old elements with a multiplying factor applied to the old elements.
    /*
@@ -1118,75 +910,18 @@ test_AddMatrix()
 
    mResult.addMatrix( m2, matrixMultiplicator, thisMatrixMultiplicator );
 
-   EXPECT_EQ( mResult.getElement( 0, 0 ),
-              matrixMultiplicator * m2.getElement( 0, 0 ) + thisMatrixMultiplicator * m.getElement( 0, 0 ) );
-   EXPECT_EQ( mResult.getElement( 0, 1 ),
-              matrixMultiplicator * m2.getElement( 0, 1 ) + thisMatrixMultiplicator * m.getElement( 0, 1 ) );
-   EXPECT_EQ( mResult.getElement( 0, 2 ),
-              matrixMultiplicator * m2.getElement( 0, 2 ) + thisMatrixMultiplicator * m.getElement( 0, 2 ) );
-   EXPECT_EQ( mResult.getElement( 0, 3 ),
-              matrixMultiplicator * m2.getElement( 0, 3 ) + thisMatrixMultiplicator * m.getElement( 0, 3 ) );
+   for( IndexType i = 0; i < rows; i++ )
+      for( IndexType j = 0; j < cols; j++ )
+         EXPECT_EQ( mResult.getElement( i, j ),
+                    matrixMultiplicator * m2.getElement( i, j ) + thisMatrixMultiplicator * m.getElement( i, j ) )
+            << "i: " << i << " j: " << j << " m_ij: " << m.getElement( i, j ) << " m2_ij: " << m2.getElement( i, j );
 
-   EXPECT_EQ( mResult.getElement( 1, 0 ),
-              matrixMultiplicator * m2.getElement( 1, 0 ) + thisMatrixMultiplicator * m.getElement( 1, 0 ) );
-   EXPECT_EQ( mResult.getElement( 1, 1 ),
-              matrixMultiplicator * m2.getElement( 1, 1 ) + thisMatrixMultiplicator * m.getElement( 1, 1 ) );
-   EXPECT_EQ( mResult.getElement( 1, 2 ),
-              matrixMultiplicator * m2.getElement( 1, 2 ) + thisMatrixMultiplicator * m.getElement( 1, 2 ) );
-   EXPECT_EQ( mResult.getElement( 1, 3 ),
-              matrixMultiplicator * m2.getElement( 1, 3 ) + thisMatrixMultiplicator * m.getElement( 1, 3 ) );
-
-   EXPECT_EQ( mResult.getElement( 2, 0 ),
-              matrixMultiplicator * m2.getElement( 2, 0 ) + thisMatrixMultiplicator * m.getElement( 2, 0 ) );
-   EXPECT_EQ( mResult.getElement( 2, 1 ),
-              matrixMultiplicator * m2.getElement( 2, 1 ) + thisMatrixMultiplicator * m.getElement( 2, 1 ) );
-   EXPECT_EQ( mResult.getElement( 2, 2 ),
-              matrixMultiplicator * m2.getElement( 2, 2 ) + thisMatrixMultiplicator * m.getElement( 2, 2 ) );
-   EXPECT_EQ( mResult.getElement( 2, 3 ),
-              matrixMultiplicator * m2.getElement( 2, 3 ) + thisMatrixMultiplicator * m.getElement( 2, 3 ) );
-
-   EXPECT_EQ( mResult.getElement( 3, 0 ),
-              matrixMultiplicator * m2.getElement( 3, 0 ) + thisMatrixMultiplicator * m.getElement( 3, 0 ) );
-   EXPECT_EQ( mResult.getElement( 3, 1 ),
-              matrixMultiplicator * m2.getElement( 3, 1 ) + thisMatrixMultiplicator * m.getElement( 3, 1 ) );
-   EXPECT_EQ( mResult.getElement( 3, 2 ),
-              matrixMultiplicator * m2.getElement( 3, 2 ) + thisMatrixMultiplicator * m.getElement( 3, 2 ) );
-   EXPECT_EQ( mResult.getElement( 3, 3 ),
-              matrixMultiplicator * m2.getElement( 3, 3 ) + thisMatrixMultiplicator * m.getElement( 3, 3 ) );
-
-   EXPECT_EQ( mResult.getElement( 4, 0 ),
-              matrixMultiplicator * m2.getElement( 4, 0 ) + thisMatrixMultiplicator * m.getElement( 4, 0 ) );
-   EXPECT_EQ( mResult.getElement( 4, 1 ),
-              matrixMultiplicator * m2.getElement( 4, 1 ) + thisMatrixMultiplicator * m.getElement( 4, 1 ) );
-   EXPECT_EQ( mResult.getElement( 4, 2 ),
-              matrixMultiplicator * m2.getElement( 4, 2 ) + thisMatrixMultiplicator * m.getElement( 4, 2 ) );
-   EXPECT_EQ( mResult.getElement( 4, 3 ),
-              matrixMultiplicator * m2.getElement( 4, 3 ) + thisMatrixMultiplicator * m.getElement( 4, 3 ) );
-
-   EXPECT_EQ( mResult.getElement( 0, 0 ), RealType{ 3 } );
-   EXPECT_EQ( mResult.getElement( 0, 1 ), RealType{ 6 } );
-   EXPECT_EQ( mResult.getElement( 0, 2 ), RealType{ 9 } );
-   EXPECT_EQ( mResult.getElement( 0, 3 ), RealType{ 12 } );
-
-   EXPECT_EQ( mResult.getElement( 1, 0 ), RealType{ 15 } );
-   EXPECT_EQ( mResult.getElement( 1, 1 ), RealType{ 18 } );
-   EXPECT_EQ( mResult.getElement( 1, 2 ), RealType{ 21 } );
-   EXPECT_EQ( mResult.getElement( 1, 3 ), RealType{ 24 } );
-
-   EXPECT_EQ( mResult.getElement( 2, 0 ), RealType{ 27 } );
-   EXPECT_EQ( mResult.getElement( 2, 1 ), RealType{ 30 } );
-   EXPECT_EQ( mResult.getElement( 2, 2 ), RealType{ 33 } );
-   EXPECT_EQ( mResult.getElement( 2, 3 ), RealType{ 36 } );
-
-   EXPECT_EQ( mResult.getElement( 3, 0 ), RealType{ 39 } );
-   EXPECT_EQ( mResult.getElement( 3, 1 ), RealType{ 42 } );
-   EXPECT_EQ( mResult.getElement( 3, 2 ), RealType{ 45 } );
-   EXPECT_EQ( mResult.getElement( 3, 3 ), RealType{ 48 } );
-
-   EXPECT_EQ( mResult.getElement( 4, 0 ), RealType{ 51 } );
-   EXPECT_EQ( mResult.getElement( 4, 1 ), RealType{ 54 } );
-   EXPECT_EQ( mResult.getElement( 4, 2 ), RealType{ 57 } );
-   EXPECT_EQ( mResult.getElement( 4, 3 ), RealType{ 60 } );
+   RealType testValue = 0;
+   for( IndexType i = 0; i < rows; i++ )
+      for( IndexType j = 0; j < cols; j++ ) {
+         testValue += 3;
+         EXPECT_EQ( mResult.getElement( i, j ), testValue ) << "i: " << i << " j: " << j;
+      }
 
    // clang-format off
    Matrix m3( { {  1,  0, 0,  0 },
