@@ -644,10 +644,10 @@ struct GraphsBenchmark
             digraph, graph, smallest, largest, benchmark, "cuda", "SlicedEllpack" );
          TNLBenchmarks< TNL::Devices::Cuda, BiEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel >(
             digraph, graph, smallest, largest, benchmark, "cuda", "BiEllpack" );
-         /*TNLBenchmarks< TNL::Devices::Cuda,
+         TNLBenchmarks< TNL::Devices::Cuda,
                         ChunkedEllpackSegments,
                         TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel >(
-            digraph, graph, smallest, largest, benchmark, "cuda", "ChunkedEllpack" );*/
+            digraph, graph, smallest, largest, benchmark, "cuda", "ChunkedEllpack" );
       }
 #endif
       if( errors == 0 )
