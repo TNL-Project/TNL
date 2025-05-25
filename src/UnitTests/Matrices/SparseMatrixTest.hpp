@@ -957,24 +957,6 @@ test_AddElement()
                { 5, 2, 1 },
                { 5, 3, 12 },
                { 5, 4, 1 } } );
-   /*typename Matrix::RowCapacitiesType rowLengths( rows, 3 );
-   m.setRowCapacities( rowLengths );
-
-   RealType value = 1;
-   for( IndexType i = 0; i < cols - 2; i++ )     // 0th row
-      m.setElement( 0, i, value++ );
-
-   for( IndexType i = 1; i < cols - 1; i++ )     // 1st row
-      m.setElement( 1, i, value++ );
-
-   for( IndexType i = 2; i < cols; i++ )         // 2nd row
-      m.setElement( 2, i, value++ );
-
-   m.setElement( 3, 0, value++ );      // 3rd row
-
-   m.setElement( 4, 1, value++ );      // 4th row
-
-   m.setElement( 5, 3, value++ );      // 5th row*/
 
    // Check the set elements
    EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
