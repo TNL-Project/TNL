@@ -11,7 +11,7 @@ namespace TNL {
  * \brief Performance counter for measuring CPU cycles.
  *
  * The counter can be paused by calling \ref stop and \ref
- * start methods and reseted by calling \ref reset.
+ * start methods and reset by calling \ref reset.
  *
  * \par Example
  * \include PerformanceCountersExample.cpp

@@ -56,7 +56,7 @@ public:
    setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" );
 
    /**
-    * \brief Settter of the current time of the evolution computed by the solver.
+    * \brief Setter of the current time of the evolution computed by the solver.
     */
    __cuda_callable__
    void

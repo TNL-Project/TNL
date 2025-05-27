@@ -185,7 +185,7 @@ bitonicSortWithShared( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > v
 
    constexpr auto kernel = bitoniSort1stStepSharedMemory< Value, CMP >;
    Backend::launchKernelAsync( kernel, launch_config, view, Cmp );
-   // now alternating monotonic sequences with bitonicLenght of sharedMemLen
+   // now alternating monotonic sequences with bitonicLength of sharedMemLen
 
    // \/ has bitonicLength of 2 * sharedMemLen
    for( int monotonicSeqLen = 2 * sharedMemLen; monotonicSeqLen <= paddedSize; monotonicSeqLen *= 2 ) {

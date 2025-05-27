@@ -138,7 +138,7 @@ void
 quadAdd( const T* a, const T* b, T* s );  // Addition of two quad-doubles
 template< typename T >
 void
-quadAddAccurate( const T* a, const T* b, T* s );  // Addition of two quad-doubles ! slower algorhitm
+quadAddAccurate( const T* a, const T* b, T* s );  // Addition of two quad-doubles ! slower algorithm
 template< typename T >
 void
 quadMul( const T* a, const T* b, T* s );  // Multiplication of two quad-doubles

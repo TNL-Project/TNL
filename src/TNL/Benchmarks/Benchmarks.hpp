@@ -54,7 +54,7 @@ Benchmark< Logger >::setMinTime( double minTime )
 
 template< typename Logger >
 bool
-Benchmark< Logger >::isResetingOn() const
+Benchmark< Logger >::isResettingOn() const
 {
    return reset;
 }

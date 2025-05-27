@@ -48,7 +48,7 @@ setupConfig( Config::ConfigDescription& config )
    config.addEntry< String >(
       "mode",
       "Mode 'couples' compares two subsequent files. Mode 'sequence' compares the input files against the first one. 'halves' "
-      "compares the files from the first and the second half of the intput files.",
+      "compares the files from the first and the second half of the input files.",
       "couples" );
    config.addEntryEnum< String >( "couples" );
    config.addEntryEnum< String >( "sequence" );

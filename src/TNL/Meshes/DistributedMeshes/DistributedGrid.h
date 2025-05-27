@@ -119,7 +119,7 @@ public:
    SetupByCut( DistributedGridType& inputDistributedGrid,
                Containers::StaticVector< Dimension, int > savedDimensions,
                Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, int > reducedDimensions,
-               Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, IndexType > fixedIndexs );
+               Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, IndexType > fixedIndexes );
 
    [[nodiscard]] int
    getRankOfProcCoord( const CoordinatesType& nodeCoordinates ) const;

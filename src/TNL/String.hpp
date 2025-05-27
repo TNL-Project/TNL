@@ -216,16 +216,16 @@ inline String
 String::strip( char strip ) const
 {
    int prefix_cut_off = 0;
-   int sufix_cut_off = 0;
+   int suffix_cut_off = 0;
 
    while( prefix_cut_off < getLength() && ( *this )[ prefix_cut_off ] == strip )
       prefix_cut_off++;
 
-   while( sufix_cut_off < getLength() && ( *this )[ getLength() - 1 - sufix_cut_off ] == strip )
-      sufix_cut_off++;
+   while( suffix_cut_off < getLength() && ( *this )[ getLength() - 1 - suffix_cut_off ] == strip )
+      suffix_cut_off++;
 
-   if( prefix_cut_off + sufix_cut_off < getLength() )
-      return substr( prefix_cut_off, getLength() - prefix_cut_off - sufix_cut_off );
+   if( prefix_cut_off + suffix_cut_off < getLength() )
+      return substr( prefix_cut_off, getLength() - prefix_cut_off - suffix_cut_off );
    return "";
 }
 

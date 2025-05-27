@@ -57,7 +57,7 @@ struct ConfigTagMeshResolve
 };
 
 /****
- * All time discretisations (explicit, semi-impicit and implicit ) are
+ * All time discretisations (explicit, semi-implicit and implicit ) are
  * enabled by default.
  */
 class ExplicitTimeDiscretisationTag

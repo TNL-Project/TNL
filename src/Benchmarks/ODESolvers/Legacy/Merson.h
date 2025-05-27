@@ -109,7 +109,7 @@ public:
    /**
     * \brief Setter of the parameter controlling the adaptive choice of the integration time step.
     *
-    * The smaller the parammeter is the smaller the intergation time step tends to be.
+    * The smaller the parammeter is the smaller the integration time step tends to be.
     * Reasonable values for this parameters are approximately from interval \f$ [10^{-12},10^{-2}] \f$.
     * \param adaptivity new value of the parameter controlling the adaptive choice of
     *    integration time step.

@@ -141,7 +141,7 @@ TEST( StaticNDArrayTest, matrix_addition )
    EXPECT_EQ( C( 2, 2 ), 2.5f );
 }
 
-TEST( StaticNDArrayTest, matrix_substraction )
+TEST( StaticNDArrayTest, matrix_subtraction )
 {
    constexpr int I = 3, J = 3;
    using Permutation = std::index_sequence< 0, 1 >;

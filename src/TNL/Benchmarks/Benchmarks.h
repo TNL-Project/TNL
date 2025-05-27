@@ -120,7 +120,7 @@ public:
    setMinTime( double minTime );
 
    [[nodiscard]] bool
-   isResetingOn() const;
+   isResettingOn() const;
 
    // Sets metadata columns -- values used for all subsequent rows until
    // the next call to this function.

@@ -256,7 +256,7 @@ public:
     * - If the current size is equal to \e size, nothing happens.
     *
     * If the array size changes, the current data will be deallocated, thus
-    * all pointers and views to the array alements will become invalid.
+    * all pointers and views to the array elements will become invalid.
     *
     * Note that this method differs from \ref std::vector::resize with respect
     * to the initialization of array elements:
@@ -284,7 +284,7 @@ public:
     * - If the current size is equal to \e size, nothing happens.
     *
     * If the array size changes, the current data will be deallocated, thus
-    * all pointers and views to the array alements will become invalid.
+    * all pointers and views to the array elements will become invalid.
     *
     * \param size The new size of the array.
     * \param value The value to initialize new elements with.
@@ -318,7 +318,7 @@ public:
     * \brief Sets the same size as the size of an existing array.
     *
     * If the array size changes, the current data will be deallocated, thus
-    * all pointers and views to the array alements will become invalid.
+    * all pointers and views to the array elements will become invalid.
     *
     * Note that this method uses \ref setSize rather than \ref resize.
     *

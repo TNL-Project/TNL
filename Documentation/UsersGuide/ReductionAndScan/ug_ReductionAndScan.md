@@ -22,7 +22,7 @@ We start with simple problem of computing sum of sequence of numbers
 
 \f[ s = \sum_{i=1}^n a_i. \f]
 
-Sequentialy, such sum can be computed very easily as follows:
+Sequentially, such sum can be computed very easily as follows:
 
 \includelineno SequentialSum.cpp
 
@@ -358,7 +358,7 @@ and the result for exclusive segmented prefix sum is
 
 In addition to common scan, we need to encode the segments of the input
 sequence. It is done by auxiliary flags array (it can be array of booleans)
-having `1` at the begining of each segment and `0` on all other positions.
+having `1` at the beginning of each segment and `0` on all other positions.
 In our example, it would be like this:
 
 ```text

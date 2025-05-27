@@ -95,7 +95,7 @@ test_SetDiagonalsOffsets()
 
 template< typename Matrix >
 void
-test_SetDiagonalsOffsets_initalizer_list()
+test_SetDiagonalsOffsets_initializer_list()
 {
    using IndexType = typename Matrix::IndexType;
 

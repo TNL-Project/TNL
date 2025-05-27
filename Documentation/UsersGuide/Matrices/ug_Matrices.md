@@ -376,7 +376,7 @@ Larger matrices can be setup with methods `setElement` and `addElement` (\ref TN
 
 \includelineno DenseMatrixViewExample_addElement.cpp
 
-As we can see, both methods can be called from the host no matter where the matrix is allocated. If it is on GPU, each call of `setElement` or `addElement` (\ref TNL::Matrices::DenseMatrix::setElement, \ref TNL::Matrices::DenseMatrix::addElement) causes slow transfer of tha data between CPU and GPU. Use this approach only if the performance is not a priority. The result looks as follows:
+As we can see, both methods can be called from the host no matter where the matrix is allocated. If it is on GPU, each call of `setElement` or `addElement` (\ref TNL::Matrices::DenseMatrix::setElement, \ref TNL::Matrices::DenseMatrix::addElement) causes slow transfer of the data between CPU and GPU. Use this approach only if the performance is not a priority. The result looks as follows:
 
 \include DenseMatrixViewExample_addElement.out
 
@@ -459,7 +459,7 @@ Major disadvantage of sparse matrices is that there are a lot of different forma
    * \ref TNL::Algorithms::Segments::CSR for [CSR format](https://en.wikipedia.org/wiki/Sparse_matrix#Compressed_sparse_row_(CSR,_CRS_or_Yale_format)).
    * \ref TNL::Algorithms::Segments::Ellpack for [Ellpack format](http://mgarland.org/files/papers/nvr-2008-004.pdf).
    * \ref TNL::Algorithms::Segments::SlicedEllpack for [SlicedEllpack format](https://link.springer.com/chapter/10.1007/978-3-642-11515-8_10) which was also presented as [Row-grouped CSR format](https://arxiv.org/abs/1012.2270).
-   * \ref TNL::Algorithms::Segments::ChunkedEllpack for [ChunkedEllpack format](http://geraldine.fjfi.cvut.cz/~oberhuber/data/vyzkum/publikace/12-heller-oberhuber-improved-rgcsr-format.pdf) which we reffered as Improved Row-grouped CSR and we renamed it to Ellpack format since it uses padding zeros.
+   * \ref TNL::Algorithms::Segments::ChunkedEllpack for [ChunkedEllpack format](http://geraldine.fjfi.cvut.cz/~oberhuber/data/vyzkum/publikace/12-heller-oberhuber-improved-rgcsr-format.pdf) which we referred to as Improved Row-grouped CSR and we renamed it to Ellpack format since it uses padding zeros.
    * \ref TNL::Algorithms::Segments::BiEllpack for [BiEllpack format](https://www.sciencedirect.com/science/article/pii/S0743731514000458?casa_token=2phrEj0Ef1gAAAAA:Lgf6rMBUN6T7TJne6mAgI_CSUJ-jR8jz7Eghdv6L0SJeGm4jfso-x6Wh8zgERk3Si7nFtTAJngg).
 * `ComputeReal` is type which is used for internal computations. By default it is the same as `Real` if `Real` is not `bool`. If `Real` is `bool`, `ComputeReal` is set to `Index` type. This can be changed, of course, by the user.
 * `RealAllocator` is a memory allocator (one from \ref TNL::Allocators) which shall be used for allocation of the matrix elements. By default, it is the default allocator for given `Real` type and `Device` type – see \ref TNL::Allocators::Default.
@@ -492,7 +492,7 @@ See the following example which creates lower triangular matrix like this one
 
 \includelineno SparseMatrixExample_setRowCapacities.cpp
 
-The method \ref TNL::Matrices::SparseMatrix::setRowCapacities reads the required capacities of the matrix rows from a vector (or simmilar container - \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView, \ref TNL::Containers::Vector and \ref TNL::Containers::VectorView) which has the same number of elements as the number of matrix rows and each element defines the capacity of the related row. The result looks as follows:
+The method \ref TNL::Matrices::SparseMatrix::setRowCapacities reads the required capacities of the matrix rows from a vector (or similar container - \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView, \ref TNL::Containers::Vector and \ref TNL::Containers::VectorView) which has the same number of elements as the number of matrix rows and each element defines the capacity of the related row. The result looks as follows:
 
 \include SparseMatrixExample_setRowCapacities.out
 
@@ -568,7 +568,7 @@ Note, however, that the map can be constructed only on CPU and not on GPU. It re
 
 #### Methods `setElement` and `addElement`
 
-Another way of setting the sparse matrix is by means of the methods `setElement` and `addElement` (\ref TNL::Matrices::SparseMatrix::setElement, \ref TNL::Matrices::SparseMatrix::addElement). The method can be called from both host (CPU) and device (GPU) if the matrix is allocated there. Note, however, that if the matrix is allocated on GPU and the methods are called from CPU there will be significant performance drop because the matrix elements will be transferer one-by-one separately. However, if the matrix elements setup is not a critical part of your algorithm this can be an easy way how to do it. See the following example:
+Another way of setting the sparse matrix is by means of the methods `setElement` and `addElement` (\ref TNL::Matrices::SparseMatrix::setElement, \ref TNL::Matrices::SparseMatrix::addElement). The method can be called from both host (CPU) and device (GPU) if the matrix is allocated there. Note, however, that if the matrix is allocated on GPU and the methods are called from CPU there will be significant performance drop because the matrix elements will be transferred one-by-one separately. However, if the matrix elements setup is not a critical part of your algorithm this can be an easy way how to do it. See the following example:
 
 \includelineno SparseMatrixViewExample_setElement.cpp
 
@@ -631,7 +631,7 @@ See the following example:
 
 \includelineno SparseMatrixExample_forElements.cpp
 
-On the line 9, we allocate a lower triangular matrix byt setting the row capacities as `{1,2,3,4,5}`. On the line 11, we prepare lambda function `f` which we execute on the line 22 just by calling the method `forElements` (\ref TNL::Matrices::SparseMatrix::forElements). This method takes the range of matrix rows as the first two parameters and the lambda function as the last parameter. The lambda function receives parameters mentioned above (see the line 11). We first check if the matrix element coordinates (`rowIdx` and `localIdx`) points to an element lying before the matrix diagonal or on the diagonal (line 12). In case of the lower triangular matrix in our example, the local index is in fact the same as the column index
+On the line 9, we allocate a lower triangular matrix by setting the row capacities as `{1,2,3,4,5}`. On the line 11, we prepare lambda function `f` which we execute on the line 22 just by calling the method `forElements` (\ref TNL::Matrices::SparseMatrix::forElements). This method takes the range of matrix rows as the first two parameters and the lambda function as the last parameter. The lambda function receives parameters mentioned above (see the line 11). We first check if the matrix element coordinates (`rowIdx` and `localIdx`) points to an element lying before the matrix diagonal or on the diagonal (line 12). In case of the lower triangular matrix in our example, the local index is in fact the same as the column index
 
 \f[
 \left(
@@ -687,7 +687,7 @@ We encode the same sparse matrix as in the previous example. The essence of the 
 
 #### Symmetric sparse matrices
 
-For sparse [symmetric matrices](https://en.wikipedia.org/wiki/Symmetric_matrix), TNL offers a format storing only a half of the matrix elements. More precisely, ony the matrix diagonal and the elements bellow are stored in the memory. The matrix elements above the diagonal are deduced from those bellow. If such a symmetric format is used on GPU, atomic operations must be used in some matrix operations. For this reason, symmetric matrices can be combined only with matrix elements values expressed in `float` or `double` type. An advantage of the symmetric formats is lower memory consumption. Since less data need to be transferred from the memory, better performance might be observed. In some cases, however, the use of atomic operations on GPU may cause performance drop. Mostly we can see approximately the same performance compared to general formats but we can profit from lower memory requirements which is appreciated especially on GPU. The following example shows how to create symmetric sparse matrix.
+For sparse [symmetric matrices](https://en.wikipedia.org/wiki/Symmetric_matrix), TNL offers a format storing only a half of the matrix elements. More precisely, only the matrix diagonal and the elements bellow are stored in the memory. The matrix elements above the diagonal are deduced from those bellow. If such a symmetric format is used on GPU, atomic operations must be used in some matrix operations. For this reason, symmetric matrices can be combined only with matrix elements values expressed in `float` or `double` type. An advantage of the symmetric formats is lower memory consumption. Since less data need to be transferred from the memory, better performance might be observed. In some cases, however, the use of atomic operations on GPU may cause performance drop. Mostly we can see approximately the same performance compared to general formats but we can profit from lower memory requirements which is appreciated especially on GPU. The following example shows how to create symmetric sparse matrix.
 
 \includelineno SymmetricSparseMatrixExample.cpp
 
@@ -713,7 +713,7 @@ The elements depicted in grey color are not stored in the memory. The main diffe
 
 #### Binary sparse matrices
 
-If the matrix element value type (i.e. `Real` type) is set to `bool` the matrix elements can be only `1` or `0`. So in the sparse matrix formats, where we do not store the zero matrix elements, explicitly stored elements can have only one possible value which is `1`.  Therefore we do not need to store the values, only the positions of the nonzero elements. The array `values`, which usualy stores the matrix elements values, can be completely omitted and we can reduce the memory requirements. The following table shows how much we can reduce the memory consumption when using binary matrix instead of common sparse matrix using `float` or `double` types:
+If the matrix element value type (i.e. `Real` type) is set to `bool` the matrix elements can be only `1` or `0`. So in the sparse matrix formats, where we do not store the zero matrix elements, explicitly stored elements can have only one possible value which is `1`.  Therefore we do not need to store the values, only the positions of the nonzero elements. The array `values`, which usually stores the matrix elements values, can be completely omitted and we can reduce the memory requirements. The following table shows how much we can reduce the memory consumption when using binary matrix instead of common sparse matrix using `float` or `double` types:
 
 |  Real  | Index  | Common sparse matrix | Binary sparse matrix | Ratio |
 | :----: | :----: | :------------------: | :------------------: | :---: |

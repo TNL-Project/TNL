@@ -128,7 +128,7 @@ public:
          return SolverStarterTimeDiscretisationSetter< Problem, ImplicitTimeDiscretisationTag, ConfigTag >::run( problem,
                                                                                                                  parameters );
       }
-      std::cerr << "Uknown time discretisation: " << timeDiscretisation << "." << std::endl;
+      std::cerr << "Unknown time discretisation: " << timeDiscretisation << "." << std::endl;
       return false;
    }
 };

@@ -36,15 +36,15 @@ traverseGrid()
    // Allocate vectors for values stored in particular grid entities.
    VectorType cells( grid.template getEntitiesCount< Dimension >(), 0.0 );
    VectorType faces( grid.template getEntitiesCount< Dimension - 1 >(), 0.0 );
-   VectorType vertexes( grid.template getEntitiesCount< 0 >(), 0.0 );
+   VectorType vertices( grid.template getEntitiesCount< 0 >(), 0.0 );
    //! [allocate vectors]
 
    //! [prepare vector views]
    // Prepare views for the data at the grid entities so that we can
-   // manipulate them in lambda functions runnig eventually on GPU.
+   // manipulate them in lambda functions running eventually on GPU.
    auto cells_view = cells.getView();
    auto faces_view = faces.getView();
-   auto vertexes_view = vertexes.getView();
+   auto vertices_view = vertices.getView();
    //! [prepare vector views]
 
    //! [initialize cells]
@@ -113,8 +113,8 @@ traverseGrid()
    }
    //! [print faces]
 
-   //! [initialize vertexes]
-   // Setup values of all vertexes to an average value of its neighboring cells
+   //! [initialize vertices]
+   // Setup values of all vertices to an average value of its neighboring cells
    grid.template forAllEntities< 0 >(
       [ = ] __cuda_callable__( const GridVertex& vertex ) mutable
       {
@@ -141,22 +141,22 @@ traverseGrid()
             sum += cells_view[ neighbour.getIndex() ];
             count++;
          }
-         vertexes_view[ vertex.getIndex() ] = sum / count;
+         vertices_view[ vertex.getIndex() ] = sum / count;
       } );
-   //! [initialize vertexes]
+   //! [initialize vertices]
 
-   //! [print vertexes]
-   // Print values of all vertexes in the grid.
-   std::cout << "Values of vertexes .... " << std::endl;
+   //! [print vertices]
+   // Print values of all vertices in the grid.
+   std::cout << "Values of vertices .... " << std::endl;
    for( int i = grid_size; i >= 0; i-- ) {
       for( int j = 0; j <= grid_size; j++ ) {
          GridVertex vertex( grid, { j, i } );
          auto idx = vertex.getIndex();
-         std::cout << std::right << std::setw( 12 ) << vertexes.getElement( idx );
+         std::cout << std::right << std::setw( 12 ) << vertices.getElement( idx );
       }
       std::cout << std::endl;
    }
-   //! [print vertexes]
+   //! [print vertices]
 }
 
 int

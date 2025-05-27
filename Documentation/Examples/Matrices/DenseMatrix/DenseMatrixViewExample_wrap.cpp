@@ -28,11 +28,11 @@ wrapMatrixView()
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Wraping matrix view on host: " << std::endl;
+   std::cout << "Wrapping matrix view on host: " << std::endl;
    wrapMatrixView< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Wraping matrix view on CUDA device: " << std::endl;
+   std::cout << "Wrapping matrix view on CUDA device: " << std::endl;
    wrapMatrixView< TNL::Devices::Cuda >();
 #endif
 }

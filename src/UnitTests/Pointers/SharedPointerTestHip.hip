@@ -96,7 +96,7 @@ TEST( SharedPointerHipTest, getDataArrayTest )
    TNL_BACKEND_SAFE_CALL( hipFree( testArray_device ) );
 }
 
-TEST( SharedPointerHipTest, nullptrAssignement )
+TEST( SharedPointerHipTest, nullptrAssignment )
 {
    using TestType = Pointers::SharedPointer< double, Devices::Hip >;
    TestType p1( 5 ), p2( nullptr );

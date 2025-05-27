@@ -33,7 +33,7 @@ public:
    /**
     * \brief Set the time interval between two consecutive calls of \ref SolverMonitor::refresh.
     *
-    * \param refreshRate refresh rate in miliseconds.
+    * \param refreshRate refresh rate in milliseconds.
     */
    void
    setRefreshRate( const int& refreshRate )

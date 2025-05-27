@@ -83,7 +83,7 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setGlobalGrid( const 
       this->setupNeighbors();
    }
 
-   // setting space steps computes the grid proportions as a side efect
+   // setting space steps computes the grid proportions as a side effect
    localGrid.setSpaceSteps( globalGrid.getSpaceSteps() );
 }
 
@@ -97,7 +97,7 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setOverlaps( const Su
    localGrid.setOrigin( this->globalGrid.getOrigin()
                         + this->globalGrid.getSpaceSteps() * ( this->globalBegin - this->lowerOverlap ) );
    localGrid.setDimensions( this->localSize + this->lowerOverlap + this->upperOverlap );
-   // setting space steps computes the grid proportions as a side efect
+   // setting space steps computes the grid proportions as a side effect
    localGrid.setSpaceSteps( globalGrid.getSpaceSteps() );
 
    // update local begin and end
@@ -320,15 +320,15 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::SetupByCut(
    DistributedGridType& inputDistributedGrid,
    Containers::StaticVector< Dimension, int > savedDimensions,
    Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, int > reducedDimensions,
-   Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, IndexType > fixedIndexs )
+   Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, IndexType > fixedIndexes )
 {
    bool isInCut = true;
    const int coDimension = DistributedGridType::getMeshDimension() - Dimension;
    for( int i = 0; i < coDimension; i++ ) {
       auto begin = inputDistributedGrid.getGlobalBegin();
       auto size = inputDistributedGrid.getLocalSize();
-      isInCut &= fixedIndexs[ i ] > begin[ reducedDimensions[ i ] ]
-              && fixedIndexs[ i ] < begin[ reducedDimensions[ i ] ] + size[ reducedDimensions[ i ] ];
+      isInCut &= fixedIndexes[ i ] > begin[ reducedDimensions[ i ] ]
+              && fixedIndexes[ i ] < begin[ reducedDimensions[ i ] ] + size[ reducedDimensions[ i ] ];
    }
 
    // create new communicator with used nodes
@@ -371,7 +371,7 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::SetupByCut(
 
       localGrid.setDimensions( localGridSize );
       localGrid.setOrigin( localOrigin );
-      // setting space steps computes the grid proportions as a side efect
+      // setting space steps computes the grid proportions as a side effect
       localGrid.setSpaceSteps( globalGrid.getSpaceSteps() );
       localGrid.setLocalBegin( localBegin );
       localGrid.setLocalEnd( localBegin + localSize );

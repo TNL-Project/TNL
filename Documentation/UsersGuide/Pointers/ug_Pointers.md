@@ -10,8 +10,8 @@ which is supposed to make objects offloading easier.
 
 ## Unique pointers
 
-Simillar \ref std::unique_ptr from the STL, \ref TNL::Pointers::UniquePointer
-manages certain dynamicaly allocated object. The object is automatically
+Similarly to \ref std::unique_ptr from the STL, \ref TNL::Pointers::UniquePointer
+manages a certain dynamically allocated object. The object is automatically
 deallocated when the pointer goes out of scope. The definition of
 `UniquePointer` reads as:
 
@@ -44,7 +44,7 @@ The result looks as:
 
 \include UniquePointerExample.out
 
-A disadventage of `UniquePointer` is that it cannot be passed to the CUDA
+A disadvantage of `UniquePointer` is that it cannot be passed to the CUDA
 kernel since it requires making a copy of itself. This is, however, from the
 nature of this object, prohibited. For this reason we have to derreference the
 pointer on the host. This is done by a method `getData`. Its template parameter
@@ -54,7 +54,7 @@ device image. The method `getData` returns constant reference on the object.
 
 Non-constant reference is accessible via a method `modifyData`. When this
 method is used to get the reference on the host image, the pointer is marked
-as **potentialy modified**. Note that we need to have non-const reference even
+as **potentially modified**. Note that we need to have non-const reference even
 when we need to change the data (array elements for example) but not the
 meta-data (array size for example). If meta-data do not change there is no need
 to synchronize the object image with the one on the device. To distinguish
@@ -78,7 +78,7 @@ example by checking array bounds when accessing the array elements. It is
 something that, when it is performed even in CUDA kernels, may help
 significantly with finding bugs in a code. To do this, we need to transfer not
 only pointers to the data but also complete metadata on the device. It is
-simple if the structure which is supposed to be transfered on the GPU does not
+simple if the structure which is supposed to be transferred on the GPU does not
 have pointers to metadata. See the following example:
 
 \include codeSnippetSharedPointer-1.cpp
@@ -105,7 +105,7 @@ following example:
 \include codeSnippetSharedPointer-5.cpp
 
 See, that the kernel needs to dereference `tuple.a1` and `tuple.a2`. Therefore
-these pointers must point to the global memoty of the GPU which means that
+these pointers must point to the global memory of the GPU which means that
 arrays `a1` and `a2` must be allocated there using, let's say,
 [cudaMalloc](https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1g37d37965bfb4803b6d4e59ff26856356).
 It means, however, that the arrays `a1` and `a2` cannot be managed (for example
@@ -134,7 +134,7 @@ One of the differences between `UniquePointer` and `SharedPointer` is that the
 and `->` can be done in kernels as well and the result is reference to a proper
 object image i.e. on the host or the device. When these operators are used on
 constant smart pointer, constant reference is returned which is the same as
-calling the method `getData` with appropriate explicitely stated `Device`
+calling the method `getData` with appropriate explicitly stated `Device`
 template parameter. In case of non-constant `SharedPointer` non-constant
 reference is obtained. It has the same effect as calling `modifyData` method.
 On the host system, everything what was mentioned in the section about

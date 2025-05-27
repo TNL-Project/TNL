@@ -127,10 +127,10 @@ public:
    /**
     * \brief Computes the global index of an element managed by the segments.
     *
-    * The global index serves as a refernce on the element in its container.
+    * The global index serves as a reference on the element in its container.
     *
     * \param segmentIdx is index of a segment with the element.
-    * \param localIdx is tha local index of the element within the segment.
+    * \param localIdx is the local index of the element within the segment.
     * \return global index of the element.
     */
    [[nodiscard]] __cuda_callable__
@@ -168,7 +168,7 @@ public:
     * given lambda function.
     *
     * \tparam Function is a type of the lambda function to be performed on each element.
-    * \param begin defines begining of an interval [ \e begin, \e end ) of segments on
+    * \param begin defines beginning of an interval [ \e begin, \e end ) of segments on
     *    elements of which we want to apply the lambda function.
     * \param end defines end of an interval [ \e begin, \e end ) of segments on
     *    elements of which we want to apply the lambda function.
@@ -206,7 +206,7 @@ public:
     * \brief Iterate over all segments in parallel and call given lambda function.
     *
     * \tparam Function is a type of the lambda function to be performed on each segment.
-    * \param begin defines begining of an interval [ \e begin, \e end ) of segments on
+    * \param begin defines beginning of an interval [ \e begin, \e end ) of segments on
     *    elements of which we want to apply the lambda function.
     * \param end defines end of an interval [ \e begin, \e end ) of segments on
     *    elements of which we want to apply the lambda function.
@@ -243,10 +243,10 @@ public:
     * for particular segments.
     *
     * With this method, the given segments are processed sequentially
-    * one-by-one. This is usefull for example for printing of segments based
+    * one-by-one. This is useful for example for printing of segments based
     * data structures or for debugging reasons.
     *
-    * \param begin defines begining of an interval [ \e begin, \e end ) of segments on
+    * \param begin defines beginning of an interval [ \e begin, \e end ) of segments on
     *    elements of which we want to apply the lambda function.
     * \param end defines end of an interval [ \e begin, \e end ) of segments on
     *    elements of which we want to apply the lambda function.

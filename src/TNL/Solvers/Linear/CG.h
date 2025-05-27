@@ -31,7 +31,7 @@ public:
    using RealType = typename Base::RealType;
 
    /**
-    * \brief Device where the solver will run on and auxillary data will alloacted on.
+    * \brief Device where the solver will run on and auxiliary data will alloacted on.
     *
     * See \ref Devices::Host or \ref Devices::Cuda.
     */

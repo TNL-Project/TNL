@@ -17,7 +17,7 @@ template< class >
 class GridEntityCenterGetter;
 
 /**
- * \brief Structure describing a grid entity i.e., grid cells, faces, edges, vertexes and so on.
+ * \brief Structure describing a grid entity i.e., grid cells, faces, edges, vertices and so on.
  *
  * \tparam Grid is a typa of grid the entity belongs to.
  * \tparam EntityDimension is a dimensions of the grid entity.
@@ -74,7 +74,7 @@ public:
    getEntityDimension();
 
    /**
-    * \brief Constructore with a grid reference.
+    * \brief Constructor with a grid reference.
     *
     * \param grid is a reference on a grid the entity belongs to.
     */
@@ -210,7 +210,7 @@ public:
    /**
     * \brief Setter for the packed normals vector of the grid entity.
     *
-    * This vector defines the orienation of the grid entity.
+    * This vector defines the orientation of the grid entity.
     *
     * \param normals is a vector of packed normal vectors to the grid entity.
     */

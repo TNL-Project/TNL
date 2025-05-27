@@ -1,37 +1,37 @@
 # 22: number of vertices
 22
 # vertex coordinates (x,y,z)-order
--1.25 1.1665 1.203 -1.20683 1.16951 1.20537 -1.16843 1.19337 1.17878 -1.21025 1.21901 1.15383 -1.25 1.2128 1.1567 -1.20816 1.25 1.16756 -1.25 1.25 1.18056 -1.14802 1.21553 1.21165 -1.16186 1.25 1.21385 -1.20307 1.17486 1.25 -1.25 1.18056 1.25 -1.15677 1.22115 1.25 -1.18056 1.25 1.25 -1.25 1.25 1.25 -1.09277 1.20806 1.19263 -1.07219 1.22167 1.17994 -1.07215 1.25 1.18679 -1.05697 1.21124 1.19697 -1.04607 1.21508 1.22076 -1.0214 1.25 1.22293 -1.06418 1.22115 1.25 -1.04167 1.25 1.25 
+-1.25 1.1665 1.203 -1.20683 1.16951 1.20537 -1.16843 1.19337 1.17878 -1.21025 1.21901 1.15383 -1.25 1.2128 1.1567 -1.20816 1.25 1.16756 -1.25 1.25 1.18056 -1.14802 1.21553 1.21165 -1.16186 1.25 1.21385 -1.20307 1.17486 1.25 -1.25 1.18056 1.25 -1.15677 1.22115 1.25 -1.18056 1.25 1.25 -1.25 1.25 1.25 -1.09277 1.20806 1.19263 -1.07219 1.22167 1.17994 -1.07215 1.25 1.18679 -1.05697 1.21124 1.19697 -1.04607 1.21508 1.22076 -1.0214 1.25 1.22293 -1.06418 1.22115 1.25 -1.04167 1.25 1.25
 # 16: number of faces
 16
-# the first number means the number of vertices and the rest of numbers in the same line is vertex indicies attached to the face
-5 0 1 2 3 4 
-4 4 3 5 6 
-5 5 3 2 7 8 
-4 9 1 0 10 
-5 11 7 2 1 9 
-4 8 7 11 12 
-5 13 12 11 9 10 
-5 13 10 0 4 6 
-5 13 6 5 8 12 
-5 8 7 14 15 16 
-5 16 15 17 18 19 
-6 20 18 17 14 7 11 
-3 17 15 14 
-4 21 19 18 20 
-4 21 20 11 12 
-5 12 8 16 19 21 
+# the first number means the number of vertices and the rest of numbers in the same line is vertex indices attached to the face
+5 0 1 2 3 4
+4 4 3 5 6
+5 5 3 2 7 8
+4 9 1 0 10
+5 11 7 2 1 9
+4 8 7 11 12
+5 13 12 11 9 10
+5 13 10 0 4 6
+5 13 6 5 8 12
+5 8 7 14 15 16
+5 16 15 17 18 19
+6 20 18 17 14 7 11
+3 17 15 14
+4 21 19 18 20
+4 21 20 11 12
+5 12 8 16 19 21
 # 2: number of cells
 2
-# the first number means the number of faces and the rest of numbers in the same line are face indicies attached to the cell
-9 0 1 2 3 4 5 6 7 8 
-8 9 10 11 12 13 5 14 15 
+# the first number means the number of faces and the rest of numbers in the same line are face indices attached to the cell
+9 0 1 2 3 4 5 6 7 8
+8 9 10 11 12 13 5 14 15
 # Additional information only, does contain topology information
-# 1: The number of special selections, here there is only one selection named by boudary_face
+# 1: The number of special selections, here there is only one selection named by boundary_face
 1
 # boundary_face" is the name
 boundary_face
 # "3" means a boundary and "5" means 5 faces, and the last line is the face indices. You can see these faces in the figure, surrounded by green edges.
 3
 5
-6 7 8 14 15 
+6 7 8 14 15

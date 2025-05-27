@@ -59,7 +59,7 @@ TEST( CutDistributedGridTest_2D, IsInCut )
    }
 }
 
-TEST( CutDistributedGridTest_2D, GloblaGridDimesion )
+TEST( CutDistributedGridTest_2D, GlobalGridDimension )
 {
    typedef Grid< 2, double, Host, int > MeshType;
    typedef typename MeshType::CoordinatesType CoordinatesType;
@@ -146,7 +146,7 @@ TEST( CutDistributedGridTest_3D, IsInCut_1D )
    }
 }
 
-TEST( CutDistributedGridTest_3D, GloblaGridDimesion_1D )
+TEST( CutDistributedGridTest_3D, GlobalGridDimension_1D )
 {
    typedef Grid< 3, double, Host, int > MeshType;
    typedef typename MeshType::CoordinatesType CoordinatesType;
@@ -234,7 +234,7 @@ TEST( CutDistributedGridTest_3D, IsInCut_2D )
    }
 }
 
-TEST( CutDistributedGridTest_3D, GloblaGridDimesion_2D )
+TEST( CutDistributedGridTest_3D, GlobalGridDimension_2D )
 {
    typedef Grid< 3, double, Host, int > MeshType;
    typedef typename MeshType::CoordinatesType CoordinatesType;

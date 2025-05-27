@@ -395,7 +395,7 @@ public:
     *
     * This method is supposed to be called before the first call of the method \ref iterate. It is
     * not necessary to call this method before the method \ref solve is used. Also this methods
-    * neeeds to be called everytime the size of \e u changes.
+    * needs to be called everytime the size of \e u changes.
     *
     * \param u is a variable/dynamic vector representing the solution of the ODE system at current time.
     */

@@ -586,9 +586,9 @@ copySparseMatrix_impl( Matrix1& A, const Matrix2& B )
 
       // set row lengths
       Pointers::synchronizeSmartPointersOnDevice< Devices::Cuda >();
-      constexpr auto kernelRowLenghts =
+      constexpr auto kernelRowLengths =
          SparseMatrixSetRowLengthsVectorKernel< typename Matrix1::RowCapacitiesType::ValueType, Matrix2 >;
-      Backend::launchKernelSync( kernelRowLenghts,
+      Backend::launchKernelSync( kernelRowLengths,
                                  launch_config,
                                  rowLengths.getData(),
                                  &Bpointer.template getData< TNL::Devices::Cuda >(),

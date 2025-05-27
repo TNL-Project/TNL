@@ -82,18 +82,18 @@ public:
 
          sendDimensions[ i ] = localSize;  // send and receive areas have the same dimensions
          sendBegin[ i ] = localBegin;
-         recieveBegin[ i ] = localBegin;
+         receiveBegin[ i ] = localBegin;
 
          for( int j = 0; j < getMeshDimension(); j++ ) {
             if( directions[ j ] == -1 ) {
                sendDimensions[ i ][ j ] = lowerOverlap[ j ];
-               recieveBegin[ i ][ j ] = 0;
+               receiveBegin[ i ][ j ] = 0;
             }
 
             if( directions[ j ] == 1 ) {
                sendDimensions[ i ][ j ] = upperOverlap[ j ];
                sendBegin[ i ][ j ] = localBegin[ j ] + localSize[ j ] - upperOverlap[ j ];
-               recieveBegin[ i ][ j ] = localBegin[ j ] + localSize[ j ];
+               receiveBegin[ i ][ j ] = localBegin[ j ] + localSize[ j ];
             }
 
             sendSize *= sendDimensions[ i ][ j ];
@@ -102,7 +102,7 @@ public:
          sendSizes[ i ] = sendSize;
 
          if( this->periodicBoundariesCopyDirection == OverlapToBoundary && neighbors[ i ] == -1 )
-            swap( sendBegin[ i ], recieveBegin[ i ] );
+            swap( sendBegin[ i ], receiveBegin[ i ] );
       }
    }
 
@@ -124,7 +124,7 @@ public:
       // allocate buffers (setSize does nothing if the array size is already correct)
       for( int i = 0; i < getNeighborsCount(); i++ ) {
          sendBuffers[ i ].setSize( sendSizes[ i ] * sizeof( RealType ) );
-         recieveBuffers[ i ].setSize( sendSizes[ i ] * sizeof( RealType ) );
+         receiveBuffers[ i ].setSize( sendSizes[ i ] * sizeof( RealType ) );
       }
 
       const int* neighbors = distributedGrid->getNeighbors();
@@ -145,7 +145,7 @@ public:
       const MPI::Comm& communicator = distributedGrid->getCommunicator();
       int requestsCount( 0 );
 
-      // send everything, recieve everything
+      // send everything, receive everything
       for( int i = 0; i < getNeighborsCount(); i++ ) {
          /*TNL_MPI_PRINT( "Sending data... " << i << " sizes -> "
             << sendSizes[ i ] << "sendDimensions -> " <<  sendDimensions[ i ]
@@ -155,7 +155,7 @@ public:
             requests[ requestsCount++ ] = MPI::Isend(
                reinterpret_cast< RealType* >( sendBuffers[ i ].getData() ), sendSizes[ i ], neighbors[ i ], 0, communicator );
             // TNL_MPI_PRINT( "Receiving data from node " << neighbors[ i ] );
-            requests[ requestsCount++ ] = MPI::Irecv( reinterpret_cast< RealType* >( recieveBuffers[ i ].getData() ),
+            requests[ requestsCount++ ] = MPI::Irecv( reinterpret_cast< RealType* >( receiveBuffers[ i ].getData() ),
                                                       sendSizes[ i ],
                                                       neighbors[ i ],
                                                       0,
@@ -169,7 +169,7 @@ public:
                                                       1,
                                                       communicator );
             // TNL_MPI_PRINT( "Receiving data to node " << periodicNeighbors[ i ] );
-            requests[ requestsCount++ ] = MPI::Irecv( reinterpret_cast< RealType* >( recieveBuffers[ i ].getData() ),
+            requests[ requestsCount++ ] = MPI::Irecv( reinterpret_cast< RealType* >( receiveBuffers[ i ].getData() ),
                                                       sendSizes[ i ],
                                                       periodicNeighbors[ i ],
                                                       1,
@@ -183,7 +183,7 @@ public:
 
       // copy data from receive buffers
       // TNL_MPI_PRINT( "Copying data ..." )
-      copyBuffers( meshFunction, recieveBuffers, recieveBegin, sendDimensions, false, neighbors, periodicBoundaries, mask );
+      copyBuffers( meshFunction, receiveBuffers, receiveBegin, sendDimensions, false, neighbors, periodicBoundaries, mask );
    }
 
 private:
@@ -218,14 +218,14 @@ private:
 
    Containers::StaticArray< getNeighborsCount(), int > sendSizes;
    Containers::Array< std::uint8_t, Device, Index > sendBuffers[ getNeighborsCount() ];
-   Containers::Array< std::uint8_t, Device, Index > recieveBuffers[ getNeighborsCount() ];
+   Containers::Array< std::uint8_t, Device, Index > receiveBuffers[ getNeighborsCount() ];
 
    PeriodicBoundariesCopyDirection periodicBoundariesCopyDirection = BoundaryToOverlap;
 
    CoordinatesType sendDimensions[ getNeighborsCount() ];
-   CoordinatesType recieveDimensions[ getNeighborsCount() ];
+   CoordinatesType receiveDimensions[ getNeighborsCount() ];
    CoordinatesType sendBegin[ getNeighborsCount() ];
-   CoordinatesType recieveBegin[ getNeighborsCount() ];
+   CoordinatesType receiveBegin[ getNeighborsCount() ];
 
    const DistributedGridType* distributedGrid;
 

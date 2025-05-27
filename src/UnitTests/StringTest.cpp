@@ -346,7 +346,7 @@ TEST( StringTest, endsWith )
    EXPECT_TRUE( str.endsWith( "bracadabra" ) );
    EXPECT_TRUE( str.endsWith( "abracadabra" ) );
    EXPECT_FALSE( str.endsWith( "b" ) );
-   EXPECT_FALSE( str.endsWith( "ba" ) );
+   EXPECT_FALSE( str.endsWith( "ba" ) );  // spellchecker:disable-line
    EXPECT_FALSE( str.endsWith( "ara" ) );
    EXPECT_FALSE( str.endsWith( "bbra" ) );
    EXPECT_FALSE( str.endsWith( "babra" ) );

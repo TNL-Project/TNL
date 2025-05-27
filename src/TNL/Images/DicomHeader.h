@@ -16,9 +16,9 @@ class DicomPatientInfo;
 class DicomImageInfo;
 
 /***
- * Class provides acces to the DICOM file header (contains complete
+ * Class provides access to the DICOM file header (contains complete
  *   information about DICOM file) and stores the information objects
- *   focused on essential data about image, patient and serie.
+ *   focused on essential data about image, patient and series.
  */
 class DicomHeader
 {

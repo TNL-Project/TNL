@@ -89,7 +89,7 @@ resolveReal( TNL::Config::ParameterContainer& parameters )
       return resolveDevice< float >( parameters );
    if( precision == "double" )
       return resolveDevice< double >( parameters );
-   std::cerr << "Unknown precison " << precision << "." << std::endl;
+   std::cerr << "Unknown precision " << precision << "." << std::endl;
    return false;
 }
 

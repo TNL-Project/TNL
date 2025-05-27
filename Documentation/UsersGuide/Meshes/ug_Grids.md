@@ -26,7 +26,7 @@ Grid entities in 1D are as follows:
 | Entities in 1D             | Basis       | Normals     | Unpacked normal vectors |
 |---------------------------:|------------:|:-----------:|:-----------------------:|
 | Cells                      | ( 1 )       | ( 0 )       |  N/a                    |
-| Vertexes                   | ( 0 )       | ( 1 )       |  ( 1 )                  |
+| Vertices                   | ( 0 )       | ( 1 )       |  ( 1 )                  |
 
 Grid entities in 2D are as follows:
 
@@ -35,7 +35,7 @@ Grid entities in 2D are as follows:
 | Cells                      | ( 1, 1 )    | ( 0, 0 )    | N/A                     |
 | Faces along x- axis        | ( 1, 0 )    | ( 0, 1 )    | ( 0, 1 )                |
 | Faces along y- axis        | ( 0, 1 )    | ( 1, 0 )    | ( 1, 0 )                |
-| Vertexes                   | ( 0, 0 )    | ( 1, 1 )    | ( 1, 0 ), ( 0, 1 )      |
+| Vertices                   | ( 0, 0 )    | ( 1, 1 )    | ( 1, 0 ), ( 0, 1 )      |
 
 Grid entities in 3D are as follows:
 
@@ -48,7 +48,7 @@ Grid entities in 3D are as follows:
 | Edges along x-axis         | ( 1, 0, 0 ) | ( 0, 1, 1 ) | ( 0, 1, 0 ), ( 0, 0, 1 )              |
 | Edges along y-axis         | ( 0, 1, 0 ) | ( 1, 0, 1 ) | ( 1, 0, 0 ), ( 0, 0, 1 )              |
 | Edges along z-axis         | ( 0, 0, 1 ) | ( 1, 1, 0 ) | ( 1, 0, 0 ), ( 0, 1, 0 )              |
-| Vertexes                   | ( 0, 0, 0 ) | ( 1, 1, 1 ) | ( 1, 0, 0 ), ( 0, 1, 0 ), ( 0, 0, 1 ) |
+| Vertices                   | ( 0, 0, 0 ) | ( 1, 1, 1 ) | ( 1, 0, 0 ), ( 0, 1, 0 ), ( 0, 0, 1 ) |
 
 The grid entity stores the vector with packed normals, the basis vector is
 always computed on the fly. So whenever it possible, using the normals
@@ -109,7 +109,7 @@ Indexing of faces looks as:
   +-(0,0)-+-(1,0)-+-(2,0)-+-(3,0)-+-(4,0)-+       +-( 0 )-+-( 1 )-+-( 2 )-+-( 3 )-+-( 4 )-+
 ```
 
-And indexing of vertexes looks as follows:
+And indexing of vertices looks as follows:
 
 ```text
 (0,5)--(1,5)--(2,5)--(3,5)--(4,5)--(5,5)      ( 30)--( 31)--( 32)--( 33)--( 34)--( 35)
@@ -206,7 +206,7 @@ The whole example consists of the following steps:
    dimension of the grid entities the number of which we are asking for.
 
 4. In the next step, we prepare vector views (`cells_view`, `faces_view` and
-   `vertexes_view`) which we will need later in lambda functions:
+   `vertices_view`) which we will need later in lambda functions:
 
    \snippet GridExample_traverse.h prepare vector views
 
@@ -278,14 +278,14 @@ The whole example consists of the following steps:
    determines the orientation of the face - `{0, 1}` is the normal of horizontal
    faces and `{1, 0}` is the normal of vertical faces.
 
-9. Finally, we iterate over all vertexes and compute average value of all
-   neighboring cells. The vertexes have no orientation so we do not need to
+9. Finally, we iterate over all vertices and compute average value of all
+   neighboring cells. The vertices have no orientation so we do not need to
    care about the normals. We only check the number of neighbor cells based on
-   the vertex coordinates. To iterate over all vertexes in parallel, we use the
+   the vertex coordinates. To iterate over all vertices in parallel, we use the
    method \ref TNL::Meshes::Grid::forAllEntities with entity dimension set to
    zero:
 
-   \snippet GridExample_traverse.h initialize vertexes
+   \snippet GridExample_traverse.h initialize vertices
 
    The lambda function we perform on each vertex, has the parameter `vertex`
    which represents the vertex that we currently operate on. We just fetch the
@@ -294,10 +294,10 @@ The whole example consists of the following steps:
    its value to the `sum`. Finally, we compute the average value and store it
    in the vector.
 
-10. At the end we print values of all vertexes the same way as we did it with
+10. At the end we print values of all vertices the same way as we did it with
     cells:
 
-   \snippet GridExample_traverse.h print vertexes
+   \snippet GridExample_traverse.h print vertices
 
 The result looks as follows:
 
@@ -313,7 +313,7 @@ grid writers:
 \includelineno GridExample_writer.h
 
 It is a modification of the previous example. As before, we first set values
-linked with the grid cells and vertexes and then we write the into output files.
+linked with the grid cells and vertices and then we write the into output files.
 The values linked with cells are exported to the VTI format, to the VTK format
 and to the Gnuplot format. The writers have the same interface. They have
 constructors which require output stream as a parameter
@@ -327,4 +327,4 @@ mainly for the compatibility with other writers). Finally, we may export data
 linked with the grid cells using a method `writeCellData`
 (\ref TNL::Meshes::Writers::VTIWriter::writeCellData,
 \ref TNL::Meshes::Writers::VTKWriter::writeCellData). In the same way, we
-export data linked with vertexes.
+export data linked with vertices.

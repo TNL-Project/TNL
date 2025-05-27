@@ -67,7 +67,7 @@ public:
 
    template< typename Grid >
    void
-   verifyEntitiesCountByIndiciesGetter(
+   verifyEntitiesCountByIndicesGetter(
       const Grid& grid,
       const TNL::Containers::StaticVector< Grid::getMeshDimension() + 1, typename Grid::IndexType >& entitiesCounts ) const
    {
@@ -138,7 +138,7 @@ public:
    {
       this->verifyEntitiesCountByContainerGetter< Grid >( grid, entitiesCounts );
       this->verifyEntitiesCountByIndexGetter< Grid >( grid, entitiesCounts );
-      this->verifyEntitiesCountByIndiciesGetter< Grid >( grid, entitiesCounts );
+      this->verifyEntitiesCountByIndicesGetter< Grid >( grid, entitiesCounts );
    }
 
    template< typename Grid >
@@ -191,7 +191,7 @@ public:
 
    template< typename Grid >
    void
-   verifyEntitiesCountByIndiciesGetter(
+   verifyEntitiesCountByIndicesGetter(
       const Grid& grid,
       const TNL::Containers::StaticVector< Grid::getMeshDimension() + 1, typename Grid::IndexType >& entitiesCounts ) const
    {
@@ -226,7 +226,7 @@ public:
    {
       this->verifyEntitiesCountByContainerGetter< Grid >( grid, entitiesCount );
       this->verifyEntitiesCountByIndexGetter< Grid >( grid, entitiesCount );
-      this->verifyEntitiesCountByIndiciesGetter< Grid >( grid, entitiesCount );
+      this->verifyEntitiesCountByIndicesGetter< Grid >( grid, entitiesCount );
    }
 
    template< typename Grid >
@@ -343,7 +343,7 @@ public:
 
    template< typename Grid >
    void
-   verifyEntitiesCountByIndiciesGetter(
+   verifyEntitiesCountByIndicesGetter(
       const Grid& grid,
       const TNL::Containers::StaticVector< Grid::getMeshDimension() + 1, typename Grid::IndexType >& entitiesCounts ) const
    {

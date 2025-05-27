@@ -63,10 +63,10 @@ struct SegmentedScan< Devices::Sequential, Type >
     *
     * \tparam Vector type vector being used for the scan.
     * \tparam Reduction lambda function defining the reduction operation
-    * \tparam Flags array type containing zeros and ones defining the segments begining
+    * \tparam Flags array type containing zeros and ones defining the segments beginning
     *
     * \param v input vector, the result of scan is stored in the same vector
-    * \param flags is an array with zeros and ones defining the segments begining
+    * \param flags is an array with zeros and ones defining the segments beginning
     * \param begin the first element in the array to be scanned
     * \param end the last element in the array to be scanned
     * \param reduction lambda function implementing the reduction operation
@@ -106,10 +106,10 @@ struct SegmentedScan< Devices::Host, Type >
     *
     * \tparam Vector type vector being used for the scan.
     * \tparam Reduction lambda function defining the reduction operation
-    * \tparam Flags array type containing zeros and ones defining the segments begining
+    * \tparam Flags array type containing zeros and ones defining the segments beginning
     *
     * \param v input vector, the result of scan is stored in the same vector
-    * \param flags is an array with zeros and ones defining the segments begining
+    * \param flags is an array with zeros and ones defining the segments beginning
     * \param begin the first element in the array to be scanned
     * \param end the last element in the array to be scanned
     * \param reduction lambda function implementing the reduction operation
@@ -149,10 +149,10 @@ struct SegmentedScan< Devices::Cuda, Type >
     *
     * \tparam Vector type vector being used for the scan.
     * \tparam Reduction lambda function defining the reduction operation
-    * \tparam Flags array type containing zeros and ones defining the segments begining
+    * \tparam Flags array type containing zeros and ones defining the segments beginning
     *
     * \param v input vector, the result of scan is stored in the same vector
-    * \param flags is an array with zeros and ones defining the segments begining
+    * \param flags is an array with zeros and ones defining the segments beginning
     * \param begin the first element in the array to be scanned
     * \param end the last element in the array to be scanned
     * \param reduction lambda function implementing the reduction operation
