@@ -50,10 +50,10 @@ public:
         OutDof& outData,
         Containers::StaticVector< outDimension, int > savedDimensions,
         Containers::StaticVector< codimension, int > reducedDimensions,
-        Containers::StaticVector< codimension, typename MeshFunctionType::IndexType > fixedIndexs )
+        Containers::StaticVector< codimension, typename MeshFunctionType::IndexType > fixedIndexes )
    {
       bool inCut;
-      Containers::StaticVector< codimension, typename MeshFunctionType::IndexType > localFixedIndexs;
+      Containers::StaticVector< codimension, typename MeshFunctionType::IndexType > localFixedIndexes;
 
       auto fromData = inputMeshFunction.getData().getData();
       auto fromMesh = inputMeshFunction.getMesh();
@@ -66,11 +66,11 @@ public:
             throw std::logic_error(
                "You are trying cut distributed meshfunction, but output grid is not set up for distribution" );
 
-         inCut = toDistributedGrid->SetupByCut( *fromDistributedGrid, savedDimensions, reducedDimensions, fixedIndexs );
+         inCut = toDistributedGrid->SetupByCut( *fromDistributedGrid, savedDimensions, reducedDimensions, fixedIndexes );
          if( inCut ) {
             toDistributedGrid->setupGrid( outMesh );
             for( int i = 0; i < codimension; i++ )
-               localFixedIndexs[ i ] = fixedIndexs[ i ] - fromDistributedGrid->getGlobalBegin()[ reducedDimensions[ i ] ];
+               localFixedIndexes[ i ] = fixedIndexes[ i ] - fromDistributedGrid->getGlobalBegin()[ reducedDimensions[ i ] ];
          }
       }
       else {
@@ -88,13 +88,13 @@ public:
          outMesh.setDomain( outOrigin, outProportions );
 
          inCut = true;
-         localFixedIndexs = fixedIndexs;
+         localFixedIndexes = fixedIndexes;
       }
 
       // copy data
       if( inCut ) {
          outData.setSize( outMesh.template getEntitiesCount< typename OutMesh::Cell >() );
-         auto kernel = [ &fromData, &fromMesh, &outData, &outMesh, &savedDimensions, &localFixedIndexs, &reducedDimensions ](
+         auto kernel = [ &fromData, &fromMesh, &outData, &outMesh, &savedDimensions, &localFixedIndexes, &reducedDimensions ](
                           typename OutMesh::CoordinatesType index )
          {
             typename MeshFunctionType::MeshType::Cell fromEntity( fromMesh );
@@ -106,7 +106,7 @@ public:
             }
 
             for( int j = 0; j < codimension; j++ )
-               fromEntity.getCoordinates()[ reducedDimensions[ j ] ] = localFixedIndexs[ j ];
+               fromEntity.getCoordinates()[ reducedDimensions[ j ] ] = localFixedIndexes[ j ];
 
             fromEntity.refresh();
             outEntity.refresh();

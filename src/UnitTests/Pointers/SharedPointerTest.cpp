@@ -26,7 +26,7 @@ TEST( SharedPointerTest, ConstructorTest )
    ASSERT_EQ( ptr1->y(), 2 );
 }
 
-TEST( SharedPointerTest, nullptrAssignement )
+TEST( SharedPointerTest, nullptrAssignment )
 {
    using TestType = Pointers::SharedPointer< double, Devices::Host >;
    TestType p1( 5 ), p2( nullptr );

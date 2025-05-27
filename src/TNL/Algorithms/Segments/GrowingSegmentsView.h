@@ -67,14 +67,14 @@ struct GrowingSegmentsView : public SegmentsView_
    void
    sequentialForSegments( IndexType begin, IndexType end, Function&& function ) const
    {
-      Segments::sequentialForSegments( begin, end, function ); // TODO: we need special SegmentView for growing segemnts.
+      Segments::sequentialForSegments( begin, end, function ); // TODO: we need special SegmentView for growing segments.
    }
 
    template< typename Function >
    void
    sequentialForAllSegments( Function&& f ) const
    {
-      Segemnts::sequentialForAllSegments( 0, this->sequentialForSegments(), f );
+      Segments::sequentialForAllSegments( 0, this->sequentialForSegments(), f );
    }*/
 
    template< typename Fetch, typename Reduction, typename ResultKeeper, typename Value >

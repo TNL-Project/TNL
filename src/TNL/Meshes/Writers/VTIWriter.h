@@ -61,7 +61,7 @@ public:
    writeImageData( const Mesh& mesh );
 
    /**
-    * \brief Write mesh entites to the output file.
+    * \brief Write mesh entities to the output file.
     *
     * It is here only for compatibility with VTUWriter - it just calls writeImageData, the EntityDimension is unused.
     *
@@ -72,7 +72,7 @@ public:
    writeEntities( const Mesh& mesh );
 
    /**
-    * \brief Writes data linked with mesh vertexes.
+    * \brief Writes data linked with mesh vertices.
     *
     * \tparam Array type of array holding the data.
     * \param array instance of an array holding the data.

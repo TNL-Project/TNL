@@ -1,1 +1,1 @@
-cuda_array = host_aray;
+cuda_array = host_array;

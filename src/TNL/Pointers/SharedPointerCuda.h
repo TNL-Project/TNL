@@ -466,7 +466,7 @@ public:
 #ifdef TNL_DEBUG_SHARED_POINTERS
          std::cerr << "Synchronizing shared pointer: counter = " << this->pd->counter << ", type: " << getType< ObjectType >()
                    << '\n';
-         std::cerr << "   ( " << sizeof( Object ) << " bytes, CUDA adress " << this->cuda_pointer << " )\n";
+         std::cerr << "   ( " << sizeof( Object ) << " bytes, CUDA address " << this->cuda_pointer << " )\n";
 #endif
          TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
          Backend::memcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), Backend::MemcpyHostToDevice );

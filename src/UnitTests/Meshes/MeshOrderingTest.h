@@ -270,7 +270,7 @@ testMesh( const Mesh< TestTriangleMeshConfig, Devices::Host >& mesh,
    EXPECT_EQ( mesh.getCellNeighborIndex( cellPermutation[ 1 ], 0 ), cellPermutation[ 0 ] );
 }
 
-// hack due to TNL::Containers::Vector not supporting initilizer lists
+// hack due to TNL::Containers::Vector not supporting initializer lists
 const std::array< int, 4 > _vertexIdentity{ { 0, 1, 2, 3 } };
 const std::array< int, 5 > _edgeIdentity{ { 0, 1, 2, 3, 4 } };
 const std::array< int, 2 > _cellIdentity{ { 0, 1 } };

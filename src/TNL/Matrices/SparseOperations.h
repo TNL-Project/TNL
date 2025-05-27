@@ -43,7 +43,7 @@ reorderSparseMatrix( const Matrix1& matrix1, Matrix2& matrix2, const Permutation
 /**
  * \brief Avoids unnecessary zero elements.
  *
- * This method is especially usefull for removing of explicitly coded zero elements but it
+ * This method is especially useful for removing of explicitly coded zero elements but it
  * also removes unnecessary padding elements.
  *
  * \tparam Matrix is the matrix type.

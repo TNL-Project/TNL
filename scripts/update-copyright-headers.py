@@ -60,7 +60,7 @@ def parse_command_line(argv):
       Known extensions: {known_extensions}
 
       If -t/--tmpl is specified, that header is added to (or existing header replaced for) all source files of known type
-      If -t/--tmpl is not specified byt -y/--years is specified, all years in existing header files
+      If -t/--tmpl is not specified by -y/--years is specified, all years in existing header files
         are replaced with the years specified
 
       Examples:

@@ -48,7 +48,7 @@ public:
    writeMetadata( std::int32_t cycle = -1, double time = -1 );
 
    /**
-    * \brief Write mesh entites to the output file.
+    * \brief Write mesh entities to the output file.
     *
     * \tparam EntityDimension is a dimension of entities to be exported.
     * \param mesh is a mesh to be exported.
@@ -58,7 +58,7 @@ public:
    writeEntities( const Mesh& mesh );
 
    /**
-    * \brief Writes data linked with mesh vertexes.
+    * \brief Writes data linked with mesh vertices.
     *
     * \tparam Array type of array holding the data.
     * \param array instance of an array holding the data.

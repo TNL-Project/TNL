@@ -96,7 +96,7 @@ TEST( SharedPointerCudaTest, getDataArrayTest )
    TNL_BACKEND_SAFE_CALL( cudaFree( testArray_device ) );
 }
 
-TEST( SharedPointerCudaTest, nullptrAssignement )
+TEST( SharedPointerCudaTest, nullptrAssignment )
 {
    using TestType = Pointers::SharedPointer< double, Devices::Cuda >;
    TestType p1( 5 ), p2( nullptr );

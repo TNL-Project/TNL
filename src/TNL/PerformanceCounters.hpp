@@ -17,7 +17,7 @@ inline PerformanceCounters::PerformanceCounters()
 {
 #ifdef SPY_OS_IS_MACOS
    if( kperf_init() != 0 )
-      throw std::runtime_error( "Cannot intialize kperf for perfomance counters." );
+      throw std::runtime_error( "Cannot initialize kperf for performance counters." );
 #endif
    reset();
 }

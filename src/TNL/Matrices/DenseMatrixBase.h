@@ -725,7 +725,7 @@ public:
     * \param end is the end of the rows range for which the vector product
     *    is computed. It is number if the matrix rows by default.
     *
-    * Note that the ouput vector dimension must be the same as the number of matrix rows
+    * Note that the output vector dimension must be the same as the number of matrix rows
     * no matter how we set `begin` and `end` parameters. These parameters just say that
     * some matrix rows and the output vector elements are omitted.
     */

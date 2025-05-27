@@ -141,7 +141,7 @@ public:
     *
     * See \ref IterativeSolver::setDivergenceResidue.
     *
-    * \return the residue limit fo the divergence.
+    * \return the residue limit of the divergence.
     */
    [[nodiscard]] const Real&
    getDivergenceResidue() const;
@@ -210,7 +210,7 @@ public:
    /**
     * \brief Checks whether the convergence occurred already.
     *
-    * \return \e true if the convergence already occured.
+    * \return \e true if the convergence already occurred.
     * \return \e false if the convergence did not occur yet.
     */
    [[nodiscard]] bool

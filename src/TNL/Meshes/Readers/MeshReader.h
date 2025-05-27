@@ -161,7 +161,7 @@ public:
          return;
       }
 
-      // check that the cell shape mathes
+      // check that the cell shape matches
       const VTK::EntityShape meshCellShape = VTK::TopologyToEntityShape<
          typename MeshType::template EntityTraits< MeshType::getMeshDimension() >::EntityTopology >::shape;
       if( meshCellShape != cellShape )

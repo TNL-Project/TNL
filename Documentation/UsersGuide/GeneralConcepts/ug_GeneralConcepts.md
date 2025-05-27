@@ -82,7 +82,7 @@ allocated in the appropriate address space. If `Device` is \ref TNL::Devices::Ho
 the lambda function is processed sequentially or in parallel by several OpenMP
 threads on CPU. If `Device` is \ref TNL::Devices::Cuda, the lambda function is
 called from a CUDA kernel (this is why it is annotated with `__cuda_callable__`,
-which expands to `__host__ __device__`) by apropriate number of CUDA threads.
+which expands to `__host__ __device__`) by appropriate number of CUDA threads.
 
 One more example demonstrates use of \ref "TNL::Algorithms::reduce":
 

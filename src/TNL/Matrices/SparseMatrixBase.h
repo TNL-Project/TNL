@@ -384,7 +384,7 @@ public:
 
    /**
     * \brief Method for performing general reduction on matrix rows for constant instances with function object
-    * instead of lamda function for reduction.
+    * instead of lambda function for reduction.
     *
     * \tparam Fetch is a type of lambda function for data fetch declared as
     *

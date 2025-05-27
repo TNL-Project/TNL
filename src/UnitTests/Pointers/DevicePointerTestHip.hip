@@ -100,7 +100,7 @@ TEST( DevicePointerHipTest, getDataArrayTest )
    TNL_BACKEND_SAFE_CALL( hipFree( testArray_device ) );
 }
 
-TEST( DevicePointerHipTest, nullptrAssignement )
+TEST( DevicePointerHipTest, nullptrAssignment )
 {
    using TestType = Pointers::DevicePointer< double, Devices::Hip >;
    double o1 = 5;

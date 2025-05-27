@@ -36,7 +36,7 @@ struct ImagesInfo
 
 /***
  * Class responsible for loading image data and headers of complete
- * DICOM serie (searches the directory of the file). Call isDicomSeriesLoaded()
+ * DICOM series (searches the directory of the file). Call isDicomSeriesLoaded()
  * function to check if the load was successful.
  */
 class DicomSeries : public Image< int >

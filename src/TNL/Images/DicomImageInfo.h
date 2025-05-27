@@ -13,7 +13,7 @@ namespace TNL::Images {
 
 class DicomHeader;
 
-/***ImageInfoObj class stores selected informations about images.
+/***ImageInfoObj class stores selected information about images.
   (accesses information via DicomHeader class)
   ***/
 struct ImagePositionToPatient

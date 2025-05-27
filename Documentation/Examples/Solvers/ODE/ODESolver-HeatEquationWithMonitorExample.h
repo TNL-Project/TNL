@@ -52,7 +52,7 @@ solveHeatEquation( const char* file_name )
    using IterativeSolverMonitorType = TNL::Solvers::IterativeSolverMonitor< Real, Index >;
    IterativeSolverMonitorType monitor;
    TNL::Solvers::SolverMonitorThread monitorThread( monitor );
-   monitor.setRefreshRate( 10 );  // refresh rate in miliseconds
+   monitor.setRefreshRate( 10 );  // refresh rate in milliseconds
    monitor.setVerbose( 1 );
    monitor.setStage( "ODE solver stage:" );
    //! [Monitor setup]

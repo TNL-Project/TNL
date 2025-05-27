@@ -19,7 +19,7 @@ SegmentsExample()
    std::cout << "Segments sizes are: " << segments << std::endl;
 
    /***
-    * Print the elemets mapping using segment view.
+    * Print the elements mapping using segment view.
     */
    std::cout << "Elements mapping:" << std::endl;
    segments.sequentialForAllSegments(

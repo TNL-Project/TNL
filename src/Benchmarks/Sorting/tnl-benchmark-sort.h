@@ -36,7 +36,7 @@ start( ostream& out, const string& delim )
    out << "shuffle" << delim;
    out << "sorted" << delim;
    out << "almost" << delim;
-   out << "decreas" << delim;
+   out << "decreasing" << delim;
    out << "gauss" << delim;
    out << "bucket" << delim;
    out << "stagger" << delim;

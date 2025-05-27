@@ -11,7 +11,7 @@ namespace Algorithms {
 /**
  * \brief Wrapper to ParallelFor which makes it run sequentially.
  *
- *  It is helpfull for debuging or just sequential for loops on GPUs.
+ *  It is helpful for debugging or just sequential for loops on GPUs.
  */
 template< typename Device = Devices::Sequential >
 struct SequentialFor

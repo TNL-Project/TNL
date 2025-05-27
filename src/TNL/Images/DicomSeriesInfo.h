@@ -18,7 +18,7 @@ namespace TNL::Images {
 class DicomHeader;
 
 /***
- * SeriesInfoObj class stores selected informations about DICOM series.
+ * SeriesInfoObj class stores selected information about DICOM series.
  * (accesses information via DicomHeader class)
  */
 class DicomSeriesInfo

@@ -24,7 +24,7 @@ TEST( CutMeshFunction, 2D )
 
    typedef LinearFunction< double, 2 > LinearFunctionType;
 
-   //Original MeshFunciton --filed with linear function
+   // Original MeshFunction --filed with linear function
    Pointers::SharedPointer< MeshType > originalGrid;
    Pointers::SharedPointer< MeshFunctionView< MeshType > > meshFunctionptr;
 
@@ -85,7 +85,7 @@ TEST( CutMeshFunction, 3D_1 )
 
    typedef LinearFunction< double, 3 > LinearFunctionType;
 
-   //Original MeshFunciton --filed with linear function
+   // Original MeshFunction --filed with linear function
    Pointers::SharedPointer< MeshType > originalGrid;
    Pointers::SharedPointer< MeshFunctionView< MeshType > > meshFunctionptr;
 
@@ -147,7 +147,7 @@ TEST( CutMeshFunction, 3D_2 )
 
    typedef LinearFunction< double, 3 > LinearFunctionType;
 
-   //Original MeshFunciton --filed with linear function
+   // Original MeshFunction --filed with linear function
    Pointers::SharedPointer< MeshType > originalGrid;
    Pointers::SharedPointer< MeshFunctionView< MeshType > > meshFunctionptr;
 

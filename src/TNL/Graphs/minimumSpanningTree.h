@@ -12,7 +12,7 @@
 
 namespace TNL::Graphs {
 
-// TODO: replace with std::touple
+// TODO: replace with std::tuple
 template< typename Real = double, typename Index = int >
 struct Aux
 {
@@ -516,7 +516,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
             //std::cout << " Cycle detected: " << i << " -> " << p_i << ". Avoiding edge with weight " << hook_weights_view[ i ]
             //<< std::endl;
             TNL_ASSERT_NE( star_link_source_view[ p_i ], -1, "" );
-            //std::cout << "Erasing new links target at postion: star_link_source_view[ " << p_i << " ]  = " <<
+            //std::cout << "Erasing new links target at position: star_link_source_view[ " << p_i << " ]  = " <<
             //star_link_source_view[ p_i ] << std::endl;
             new_links_target_view[ star_link_source_view[ p_i ] ] = -1;
             p_i = i;

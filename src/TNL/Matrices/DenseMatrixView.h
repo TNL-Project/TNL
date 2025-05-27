@@ -163,7 +163,7 @@ public:
    /**
     * \brief Method for saving the matrix view to a file.
     *
-    * The ouput file can be loaded by \ref DenseMatrix.
+    * The output file can be loaded by \ref DenseMatrix.
     *
     * \param file is the file where the matrix will be saved.
     */

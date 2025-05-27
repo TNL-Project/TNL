@@ -522,7 +522,7 @@ sign( const T& value )
  * It tests whether the number \e v is in \e tolerance, in other words, whether
  * \e v in absolute value is less then or equal to \e tolerance.
  * \param v Real number.
- * \param tolerance Critical value which is set to 0.00001 by defalt.
+ * \param tolerance Critical value which is set to 0.00001 by default.
  */
 template< typename Real >
 constexpr bool

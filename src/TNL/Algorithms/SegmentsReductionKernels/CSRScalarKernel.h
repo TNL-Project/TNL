@@ -44,7 +44,7 @@ struct CSRScalarKernel
     * \tparam ResultKeeper is lambda function for storing results from particular segments.
     *
     * \param segments is the segments data structure to be reduced.
-    * \param begin defines begining of an interval [ \e begin, \e end ) of segments in
+    * \param begin defines beginning of an interval [ \e begin, \e end ) of segments in
     *    which we want to perform the reduction.
     * \param end defines and of an interval [ \e begin, \e end ) of segments in
     *    which we want to perform the reduction.
