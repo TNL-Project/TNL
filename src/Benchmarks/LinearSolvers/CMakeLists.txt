@@ -12,14 +12,9 @@ if(TNL_BUILD_CUDA)
     target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC CUDA::cusparse)
     install(TARGETS tnl-benchmark-linear-solvers-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
 
-    find_path(CUDSS_INCLUDE_DIR NAMES cudss.h PATHS /usr/local/cuda/include /opt/cuda/include)
+    find_package(cudss)
 
-    find_library(CUDSS_LIBRARY NAMES cudss PATHS /usr/local/cuda/lib /opt/cuda/lib)
-
-    include(FindPackageHandleStandardArgs)
-    find_package_handle_standard_args(CUDSS DEFAULT_MSG CUDSS_LIBRARY CUDSS_INCLUDE_DIR)
-
-    if(CUDSS_FOUND)
+    if(cudss_FOUND)
         message(STATUS "Found libcudss: ${CUDSS_LIBRARY}")
         include_directories(${CUDSS_INCLUDE_DIR})
         target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_CUDSS")
@@ -49,8 +44,7 @@ if(TNL_BUILD_CUDA)
 
     if(UMFPACK_FOUND)
         target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_UMFPACK")
-        target_include_directories(tnl-benchmark-linear-solvers-cuda PUBLIC ${UMFPACK_INCLUDE_DIR})
-        target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC -lumfpack)
+        target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC SuiteSparse::UMFPACK)
     endif()
 
     if(Trilinos_FOUND AND Kokkos_ENABLE_CUDA)
@@ -87,8 +81,7 @@ if(TNL_BUILD_CPP_TARGETS)
 
     if(UMFPACK_FOUND)
         target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_UMFPACK")
-        target_include_directories(tnl-benchmark-linear-solvers PUBLIC ${UMFPACK_INCLUDE_DIR})
-        target_link_libraries(tnl-benchmark-linear-solvers PUBLIC -lumfpack)
+        target_link_libraries(tnl-benchmark-linear-solvers PUBLIC SuiteSparse::UMFPACK)
     endif()
 
     if(Trilinos_FOUND)
