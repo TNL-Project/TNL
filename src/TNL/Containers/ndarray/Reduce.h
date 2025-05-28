@@ -10,18 +10,6 @@
 #include <TNL/Algorithms/Reduction2D.h>
 #include <TNL/Algorithms/Reduction3D.h>
 
-/*
-For a given NDArray, the reduction function reduces the array to a scalar value
-by applying a binary operation to all elements of the array. The reduction
-function is called with the following arguments:
-
-- input: the input NDArray
-- reduction: the binary operation to apply to the elements of the array
-- identity: the identity element of the binary operation
-
-The reduction function returns the result of the reduction.
-*/
-
 namespace TNL::Containers {
 /*
 template< typename Result, typename DataFetcher, typename Reduction, typename Index, typename Output >
@@ -59,6 +47,91 @@ void constexpr Reduction4D_sequential( Result identity,
 }
 */
 
+/**
+ * \brief `nd_reduce` implements [(parallel) reduction](https://en.wikipedia.org/wiki/Reduce_(parallel_pattern))
+ * across specified axis of N-dimensional array (\ref NDArray).
+ *
+ * This function reduces an N-dimensional array to a lower-dimensional array by applying a binary operation
+ * along the specified axis. The reduction operation must be associative and commutative for correct results
+ * in parallel execution. The function handles different array dimensions (1D to 6D) with customizable axis
+ * configuration.
+ *
+ * \tparam axis is the dimension index to reduce over (compile-time constant)
+ * \tparam Input is the `NDArray` type providing access to data and dimensions
+ * \tparam Reduction is a binary function object for reduction operation
+ * \tparam Output is the resulting array type with reduced dimensions
+ *
+ * \param input is the input `NDArray` to be reduced
+ * \param reduction is a binary function object defining the reduction operation
+ *                  This can be a user-defined lambda function or an instance of
+ *                  some \ref ReductionFunctionObjects.
+ * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
+ *                 for the reduction operation
+ * \param output is the result array with dimensions reduced by removing the specified axis
+ *
+ * The function handles different dimensions through template specialization:
+ *
+ * - 1D: Direct scalar reduction
+ * - 2D: Reduction along specified axis using 2D reduction kernel
+ * - 3D: Reduction along specified axis using 3D reduction kernel
+ * - 4D-6D: Uses permutation sequences to handle axis ordering with parallel execution
+ *
+ * The reduction operation is applied across all elements along the specified axis.
+ * For higher dimensions (4D+), the implementation uses
+ * \ref TNL::Algorithms::parallelFor "parallelFor" with a kernel that processes sub-ranges
+ * of the output dimensions.
+ *
+ * \par Example (2D Reduction)
+ *
+ * \code
+ * // Create 2D array
+ * using Array = TNL::Containers::NDArray< double,
+ *                                         TNL::Containers::SizesHolder< int, 0, 0 >,
+ *                                         std::index_sequence< 0, 1 >,
+ *                                         TNL::Devices::Host >;
+ * Array array;
+ * array.setSizes( 3, 4 );
+ * // Initialize array with values...
+ *
+ * // Create output 1D array
+ * TNL::Containers::Array< double, TNL::Devices::Host, int > result;
+ *
+ * // Perform reduction along axis 0
+ * TNL::Containers::nd_reduce< 0 >( arr, std::plus<>(), 0.0, result );
+ * \endcode
+ *
+ * \par Example (3D Reduction)
+ *
+ * \code
+ * // Create 3D array
+ * using Array = TNL::Containers::NDArray< float,
+ *                                         TNL::Containers::SizesHolder< int, 0, 0, 0 >,
+ *                                         std::index_sequence< 0, 1, 2 >,
+ *                                         TNL::Devices::Host >;
+ * Array array;
+ * array.setSizes( 3, 4, 5 );
+ *
+ * // Create output 2D array
+ * using OutputArray = TNL::Containers::NDArray< float,
+ *                                               TNL::Containers::SizesHolder< int, 0, 0 >,
+ *                                               std::index_sequence< 0, 1 >,
+ *                                               TNL::Devices::Host >;
+ * OutputArray result;
+ *
+ * // Perform maximum reduction along axis 1 (returns 2D array of size `(3, 5)`)
+ * TNL::Containers::nd_reduce< 1 >( arr, TNL::Max(), -INFINITY, result );
+ * \endcode
+ *
+ * \note The output array dimensions are automatically set based on the input dimensions
+ *       with the specified axis removed. For example, reducing a 3D array with dimensions
+ *       \f$(X,Y,Z)\f$ along axis 1 will produce an output array with dimensions \f$(X,Z)\f$.
+ *
+ * \note The function uses permutation sequences to handle non-contiguous memory access
+ *       patterns when the reduction axis is not the first dimension. This ensures
+ *       correct memory access patterns for performance optimization.
+ *
+ * \see reduce for 1D reduction implementation
+ */
 template< std::size_t axis = 0, typename Input, typename Reduction, typename Output >
 void
 nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType identity, Output& output )
@@ -311,6 +384,72 @@ nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType id
    */
 }
 
+/**
+ * \brief `nd_reduce` implements [(parallel) reduction](https://en.wikipedia.org/wiki/Reduce_(parallel_pattern))
+ * across specified axis of N-dimensional array (\ref NDArray) with automatic output allocation.
+ *
+ * This overloaded version automatically creates and returns a new `NDArray` with dimensions reduced by removing
+ * the specified axis. It wraps the original \ref nd_reduce function that requires an output array parameter.
+ *
+ * \tparam axis is the dimension index to reduce over (compile-time constant)
+ * \tparam Input is the NDArray type providing access to data and dimensions
+ * \tparam Reduction is a binary function object for reduction operation
+ *
+ * \param input is the input `NDArray` to be reduced
+ * \param reduction is a binary function object defining the reduction operation
+ *                  This can be a user-defined lambda function or an instance of
+ *                  some \ref ReductionFunctionObjects.
+ * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
+ *                 for the reduction operation
+ * \return auto-deduced `NDArray` with dimensions reduced by removing the specified axis
+ *
+ * The function creates an output array with dimensions determined by removing the specified axis from the input.
+ * For example, reducing a 3D array with dimensions \f$(X,Y,Z)\f$ along axis 1 will produce a 2D array with dimensions
+ * \f$(X,Z)\f$.
+ *
+ * The reduction operation is applied across all elements along the specified axis using the same logic
+ * as the original \ref nd_reduce function.
+ *
+ * \par Example (2D Reduction)
+ *
+ * \code
+ * // Create 2D array
+ * using Array = TNL::Containers::NDArray< double,
+ *                                         TNL::Containers::SizesHolder< int, 0, 0 >,
+ *                                         std::index_sequence< 0, 1 >,
+ *                                         TNL::Devices::Host >;
+ * Array array;
+ * array.setSizes( 3, 4 );
+ * // Initialize array with values...
+ *
+ * // Perform reduction along axis 0 (returns 1D array of size 4)
+ * auto result = TNL::Containers::nd_reduce< 0 >( array, std::plus<>(), 0.0 );
+ * \endcode
+ *
+ * \par Example (3D Reduction)
+ *
+ * \code
+ * // Create 3D array
+ * using Array = TNL::Containers::NDArray< float,
+ *                                         TNL::Containers::SizesHolder< int, 0, 0, 0 >,
+ *                                         std::index_sequence< 0, 1, 2 >,
+ *                                         TNL::Devices::Host >;
+ * Array array;
+ * array.setSizes( 3, 4, 5 );
+ *
+ * // Perform maximum reduction along axis 1 (returns 2D array of size `(3, 5)`)
+ * auto result = TNL::Containers::nd_reduce< 1 >( array, TNL::Max(), -INFINITY );
+ * \endcode
+ *
+ * \note This overload provides more convenient usage by automatically creating the output array with
+ *       appropriate dimensions. The output array type is deduced based on input dimensionality.
+ *
+ * \note The returned array uses the same device type and memory layout as the input array.
+ *
+ * \note For 1D inputs, this function returns a scalar value rather than an array.
+ *
+ * \see nd_reduce for the original function with explicit output parameter
+ */
 template< std::size_t axis = 0, typename Input, typename Reduction >
 auto
 nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType identity )
