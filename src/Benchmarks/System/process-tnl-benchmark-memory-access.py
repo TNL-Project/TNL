@@ -181,7 +181,7 @@ def get_cpu_cycles(df, threads_count, access, test_type, ordering, element_size)
 
 
 ###
-# Helper function for writting of figures
+# Helper function for writing of figures
 def writeFigure(file_name, data_set, legend, legend_location, sizes, y_lim):
     fig, axs = plt.subplots(1, 1)
     for data in data_set:
@@ -479,7 +479,7 @@ def writeElementSizeComparisonFigures(df):
 #####
 # Parse input files
 parser = argparse.ArgumentParser(
-    description="Scritp for processing TNL benchmark memory access results."
+    description="Script for processing TNL benchmark memory access results."
 )
 parser.add_argument(
     "-i",

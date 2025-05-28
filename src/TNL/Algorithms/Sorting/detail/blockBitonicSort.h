@@ -72,7 +72,7 @@ bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > src,
  * the size of src isn't limited, but for optimal efficiency, no more than 8*blockDim.x should be used
  * Description: sorts src in place using bitonic sort
  * works independently from other concurrent blocks
- * this version doesnt use shared memory and is prefered for Value with big size
+ * this version doesnt use shared memory and is preferred for Value with big size
  * */
 template< typename Value, typename CMP >
 __device__

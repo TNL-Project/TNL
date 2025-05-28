@@ -59,14 +59,14 @@ public:
     *
     * \param parameters is the container for configuration parameters.
     * \param prefix is the prefix of the configuration parameters for this solver.
-    * \return true if the parameters where parsed sucessfuly.
+    * \return true if the parameters where parsed successfully.
     * \return false if the method did not succeed to read the configuration parameters.
     */
    bool
    setup( const Config::ParameterContainer& parameters, const std::string& prefix = "" );
 
    /**
-    * \brief Settter of the current time of the evolution computed by the solver.
+    * \brief Setter of the current time of the evolution computed by the solver.
     */
    void
    setTime( const RealType& t );

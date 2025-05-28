@@ -676,14 +676,14 @@ TYPED_TEST( VectorBinaryOperationsTest, scalarProduct )
    this->reset( VECTOR_TEST_REDUCTION_SIZE );
 
 #ifdef STATIC_VECTOR
-   setOscilatingSequence( this->L1, 1 );
+   setOscillatingSequence( this->L1, 1 );
    setConstantSequence( this->R1, 1 );
 
    const typename TestFixture::Left& L( this->L1 );
    const typename TestFixture::Right& R( this->R1 );
 #else
    // we have to use _L1 and _R1 because L1 and R1 might be a const view
-   setOscilatingSequence( this->_L1, 1 );
+   setOscillatingSequence( this->_L1, 1 );
    setConstantSequence( this->_R1, 1 );
 
    const typename TestFixture::Left L( this->_L1 );

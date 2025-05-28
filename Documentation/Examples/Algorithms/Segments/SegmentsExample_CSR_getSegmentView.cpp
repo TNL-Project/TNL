@@ -20,7 +20,7 @@ SegmentsExample()
    auto view = segments.getView();
 
    /***
-    * Print the elemets mapping using segment view.
+    * Print the elements mapping using segment view.
     */
    std::cout << "Mapping of local indexes to global indexes:" << std::endl;
 

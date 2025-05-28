@@ -567,3 +567,12 @@ python-black:
     script:
         - black --color --diff --check Documentation/ src/
     interruptible: true
+
+typos:
+    stage: lint
+    image: "quay.io/archlinux/archlinux:latest"
+    before_script:
+        - pacman -Syu --needed --noconfirm typos
+    script:
+        - typos --color always --sort
+    interruptible: true

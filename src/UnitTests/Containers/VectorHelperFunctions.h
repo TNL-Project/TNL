@@ -46,7 +46,7 @@ setPerturbedConstantSequence( Vector& deviceVector, Value v, Index perturbation_
 
 template< typename Vector >
 void
-setOscilatingLinearSequence( Vector& deviceVector )
+setOscillatingLinearSequence( Vector& deviceVector )
 {
    using HostVector = typename Vector::template Self< typename Vector::ValueType, TNL::Devices::Host >;
    HostVector a;
@@ -58,7 +58,7 @@ setOscilatingLinearSequence( Vector& deviceVector )
 
 template< typename Vector >
 void
-setOscilatingConstantSequence( Vector& deviceVector )
+setOscillatingConstantSequence( Vector& deviceVector )
 {
    using HostVector = typename Vector::template Self< typename Vector::ValueType, TNL::Devices::Host >;
    HostVector a;
@@ -91,7 +91,7 @@ setNegativeLinearSequence( Vector& deviceVector )
 
 template< typename Vector, typename Value >
 void
-setOscilatingSequence( Vector& deviceVector, Value v )
+setOscillatingSequence( Vector& deviceVector, Value v )
 {
 #ifdef STATIC_VECTOR
    Vector a;

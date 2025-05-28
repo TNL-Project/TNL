@@ -17,7 +17,7 @@ class GridEntity;
  * \brief Orthogonal n-dimensional grid.
  *
  * This data structure represents regular orthogonal numerical mesh. It provides indexing of mesh
- * entities like vertexes, edges, faces or cells together with parallel traversing of all, interior
+ * entities like vertices, edges, faces or cells together with parallel traversing of all, interior
  * or boundary mesh entities.
  *
  * \tparam Dimension is grid dimension.
@@ -47,12 +47,12 @@ public:
    /**
     * \brief Type for indexing of the mesh entities of the grid.
     *
-    * This is for compatiblity with unstructured meshes.
+    * This is for compatibility with unstructured meshes.
     */
    using GlobalIndexType = Index;
 
    /**
-    * \brief Type for grid entities cordinates.
+    * \brief Type for grid entities coordinates.
     */
    using CoordinatesType = Containers::StaticVector< Dimension, Index >;
 
@@ -74,7 +74,7 @@ public:
    using OrientationNormalsContainer = Containers::StaticVector< 1 << Dimension, CoordinatesType >;
 
    /**
-    * \brief Type of grid entity expressing vertexes, i.e. grid entity with dimension equal to zero.
+    * \brief Type of grid entity expressing vertices, i.e. grid entity with dimension equal to zero.
     */
    using Vertex = EntityType< 0 >;
 
@@ -146,10 +146,10 @@ public:
    /**
     * \brief Set the dimensions (or resolution) of the grid.
     *    The resolution must be given in terms on grid cells not grid vertices. The
-    *    mthod accepts as many indexes for the dimensions as the dimension of the grid.
+    *    method accepts as many indexes for the dimensions as the dimension of the grid.
     *
-    * \tparam Dimensions variadic template accepting a serie of indexes.
-    * \param[in] dimensions serie of indexes defining resolution of the grid.
+    * \tparam Dimensions variadic template accepting a series of indexes.
+    * \param[in] dimensions series of indexes defining resolution of the grid.
     */
    template< typename... Dimensions,
              std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
@@ -249,7 +249,7 @@ public:
     * \brief Returns number of entities of specific dimension and orientation given as template parameters.
     *
     * \tparam EntityDimension is dimension of the grid entities.
-    * \tparam EntityOrientation is orientation of the grid entitie.
+    * \tparam EntityOrientation is orientation of the grid entity.
     * \return number of entities of specific dimension and orientation.
     */
    template< int EntityDimension,
@@ -264,7 +264,7 @@ public:
     * \brief Returns normals of the entity with the specific orientation.
     *
     * Normals is integer vector having ones for axis along which the entity has zero length.
-    * For example in 3D grid we have the following posibilities:
+    * For example in 3D grid we have the following possibilities:
     *
     * | Entity                     | Normals        |
     * |---------------------------:|-------------:|
@@ -275,7 +275,7 @@ public:
     * | Edges along x-axis         | ( 0, 1, 1 )  |
     * | Edges along y-axis         | ( 1, 0, 1 )  |
     * | Edges along z-axis         | ( 1, 1, 0 )  |
-    * | Vertexes                   | ( 1, 1, 1 )  |
+    * | Vertices                   | ( 1, 1, 1 )  |
     *
     * \tparam EntityDimension is dimensions of grid entity.
     * \param[in] orientation is orientation of the entity
@@ -290,7 +290,7 @@ public:
     * \brief Returns basis of the entity with the specific orientation.
     *
     * Basis is integer vector having ones for axis along which the entity has non-zero lengths.
-    * For example in 3D grid we have the following posibilities:
+    * For example in 3D grid we have the following possibilities:
     *
     * | Entity                     | Basis       |
     * |---------------------------:|-------------:|
@@ -301,7 +301,7 @@ public:
     * | Edges along x-axis         | ( 1, 0, 0 )  |
     * | Edges along y-axis         | ( 0, 1, 0 )  |
     * | Edges along z-axis         | ( 0, 0, 1 )  |
-    * | Vertexes                   | ( 0, 0, 0 )  |
+    * | Vertices                   | ( 0, 0, 0 )  |
     *
     * \tparam EntityDimension is dimensions of grid entity.
     * \param[in] orientation is orientation of the entity
@@ -497,7 +497,7 @@ public:
     * \brief Grid entity getter based on entity type and entity coordinates.
     *
     * Grid entity orientation is set to the default value. This is especially no problem in
-    * case of cells and vertexes.
+    * case of cells and vertices.
     *
     * \tparam EntityType is type of the grid entity.
     * \param coordinates are coordinates of the grid entity.
@@ -527,7 +527,7 @@ public:
     * \brief Grid entity getter based on entity dimension and entity coordinates.
     *
     * Grid entity orientation is set to the default value. This is especially no problem in
-    * case of cells and vertexes.
+    * case of cells and vertices.
     *
     * \tparam EntityDimension is dimension of the grid entity.
     * \param coordinates are coordinates of the grid entity.
@@ -635,7 +635,7 @@ public:
     * \brief Iterate over all mesh entities with given dimension and perform given lambda function
     *    on each of them.
     *
-    * Entities processed by this method are such that their coordinates \f$c\f$ fullfil \f$ origin \leq c < origin +
+    * Entities processed by this method are such that their coordinates \f$c\f$ fulfil \f$ origin \leq c < origin +
     * proportions\f$.
     *
     * \tparam EntityDimension is dimension of the grid entities.
@@ -658,7 +658,7 @@ public:
     * \brief Iterate over all mesh entities within given region with given dimension and perform given lambda function
     *    on each of them.
     *
-    * Entities processed by this method are such that their coordinates \f$c\f$ fullfil \f$ begin \leq c < end\f$.
+    * Entities processed by this method are such that their coordinates \f$c\f$ fulfil \f$ begin \leq c < end\f$.
     *
     * \tparam EntityDimension is dimension of the grid entities.
     * \param begin is the 'lower left' corner of the region.
@@ -681,7 +681,7 @@ public:
     * \brief Iterate over all interior mesh entities with given dimension and perform given lambda function
     *    on each of them.
     *
-    * Entities processed by this method are such that their coordinates \f$c\f$ fullfil \f$ origin < c < origin + proportions -
+    * Entities processed by this method are such that their coordinates \f$c\f$ fulfil \f$ origin < c < origin + proportions -
     * 1\f$.
     *
     * \tparam EntityDimension is dimension of the grid entities.
@@ -743,7 +743,7 @@ public:
     * \brief Iterate over all mesh entities within the local subdomain with given dimension and perform given lambda function
     *    on each of them.
     *
-    * Entities processed by this method are such that their coordinates \f$c\f$ fullfil \f$ localBegin \leq c < localEnd\f$.
+    * Entities processed by this method are such that their coordinates \f$c\f$ fulfil \f$ localBegin \leq c < localEnd\f$.
     *
     * \tparam EntityDimension is dimension of the grid entities.
     *     It is supposed to have the following form:
@@ -825,7 +825,7 @@ protected:
     * z plane 4, 5, 6 - count of faces in xy, yz, zy plane 7 - count of cells
     * in z y x plane
     *
-    * \warning The ordering of is lexigraphical.
+    * \warning The ordering of is lexicographical.
     */
    Containers::StaticVector< 1 << Dimension, Index > entitiesCountAlongNormals;
 

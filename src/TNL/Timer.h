@@ -14,7 +14,7 @@ class Logger;
  *
  * It measures the elapsed real time and CPU time (in seconds)
  * elapsed on the timer. The timer can be paused by calling \ref stop and \ref
- * start methods and reseted by calling \ref reset.
+ * start methods and reset by calling \ref reset.
  *
  * \par Example
  * \include TimerExample.cpp
@@ -39,7 +39,7 @@ public:
     * \brief Starts timer.
     *
     * Starts the CPU and real-time timers. This method can be used also after using the \ref stop
-    * method. The timer then continues measuring the time without reseting.
+    * method. The timer then continues measuring the time without resetting.
     */
    void
    start();

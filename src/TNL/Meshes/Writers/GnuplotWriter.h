@@ -30,7 +30,7 @@ public:
    GnuplotWriter( std::ostream& str );
 
    /**
-    * \brief This method is for compatinility wirh other writers.
+    * \brief This method is for compatinility with other writers.
     *
     * It just writes a header.
     *
@@ -42,7 +42,7 @@ public:
    writeEntities( const Mesh& mesh );
 
    /**
-    * \brief Writes data linked with mesh vertexes.
+    * \brief Writes data linked with mesh vertices.
     *
     * \tparam Array type of array holding the data.
     * \param mesh instance of the mesh.

@@ -8,28 +8,28 @@
 namespace TNL::Meshes::Templates {
 
 /**
- * One of the possible implementation of the conjuction operator.
+ * One of the possible implementation of the conjunction operator.
  *
  * This one is taken from https://en.cppreference.com/w/cpp/types/conjunction
  */
 
 template< class... >
-struct conjuction : std::true_type
+struct conjunction : std::true_type
 {};
 
 template< class Type >
-struct conjuction< Type > : Type
+struct conjunction< Type > : Type
 {};
 
 template< class Head, class... Tail >
-struct conjuction< Head, Tail... > : std::conditional_t< bool( Head::value ), conjuction< Tail... >, Head >
+struct conjunction< Head, Tail... > : std::conditional_t< bool( Head::value ), conjunction< Tail... >, Head >
 {};
 
 template< class... Types >
-constexpr bool conjunction_v = conjuction< Types... >::value;
+constexpr bool conjunction_v = conjunction< Types... >::value;
 
 /**
- * One of the possible implementation of the conjuction operator.
+ * One of the possible implementation of the conjunction operator.
  *
  * This one is taken from https://en.cppreference.com/w/cpp/types/disjunction
  */

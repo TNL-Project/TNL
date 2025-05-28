@@ -63,7 +63,7 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
    // clang-format off
    GraphType graph(
         10, // number of graph nodes
-        {   // definition fo graph edges
+        {   // definition of graph edges
                        {0, 1, 1},    {0, 2, 1},
                                                 {1, 3, 1},  {1, 4, 1},
                                                                         {2, 5, 1},  {2, 6, 1},

@@ -44,7 +44,7 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
    const IndexType n = graph.getNodeCount();
 
    /////
-   // Check if the number of edges is n - 1, i.e number of vertexes - 1 if we test for tree.
+   // Check if the number of edges is n - 1, i.e number of vertices - 1 if we test for tree.
    if( treeType == TreeType::Tree && graph.getEdgeCount() != n - 1 )
       return false;
 

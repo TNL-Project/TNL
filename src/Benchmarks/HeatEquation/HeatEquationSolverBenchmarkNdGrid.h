@@ -244,7 +244,7 @@ public:
                                                     const Container< Dimension, Index >& dimensionsProducts,
                                                     FunctionArgs... args ) mutable
       {
-         auto entity = grid.makeEntitity(
+         auto entity = grid.makeEntity(
             offset, traverseRectOrigin, traverseRectDimensions, traverseRectDimensionsProducts, dimensionsProducts );
 
          function( entity, args... );
@@ -278,7 +278,7 @@ private:
     *            4, 5, 6 - count of faces in xy, yz, zy plane
     *            7 - count of cells in z y x plane
     *
-    * @warning - The ordering of is lexigraphical.
+    * @warning - The ordering of is lexicographical.
     */
    Container< 1 << Dimension, Index > dimensionMap;
    /**
@@ -319,11 +319,11 @@ private:
 
    __cuda_callable__
    inline GridEntity< Dimension, Index >
-   makeEntitity( const Index& index,
-                 const Container< Dimension, Index >& traverseRectOrigin,
-                 const Container< Dimension, Index >& traverseRectDimensions,
-                 const Container< Dimension, Index >& traverseRectDimensionsProducts,
-                 const Container< Dimension, Index >& dimensionsProducts ) const
+   makeEntity( const Index& index,
+               const Container< Dimension, Index >& traverseRectOrigin,
+               const Container< Dimension, Index >& traverseRectDimensions,
+               const Container< Dimension, Index >& traverseRectDimensionsProducts,
+               const Container< Dimension, Index >& dimensionsProducts ) const
    {
       //Container<Dimension, Index> traverseCoordinates = 0;
       Container< Dimension, Index > traverseCoordinates = getCoordinates( index, traverseRectDimensions );

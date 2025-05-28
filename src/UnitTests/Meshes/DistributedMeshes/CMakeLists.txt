@@ -3,10 +3,10 @@ target_compile_options(DirectionsTest PUBLIC ${CXX_TESTS_FLAGS})
 target_link_libraries(DirectionsTest PUBLIC TNL::TNL ${TESTS_LIBRARIES})
 target_link_options(DirectionsTest PUBLIC ${TESTS_LINKER_FLAGS})
 
-add_executable(CopyEntitesTest CopyEntitiesTest.cpp)
-target_compile_options(CopyEntitesTest PUBLIC ${CXX_TESTS_FLAGS})
-target_link_libraries(CopyEntitesTest PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-target_link_options(CopyEntitesTest PUBLIC ${TESTS_LINKER_FLAGS})
+add_executable(CopyEntitiesTest CopyEntitiesTest.cpp)
+target_compile_options(CopyEntitiesTest PUBLIC ${CXX_TESTS_FLAGS})
+target_link_libraries(CopyEntitiesTest PUBLIC TNL::TNL ${TESTS_LIBRARIES})
+target_link_options(CopyEntitiesTest PUBLIC ${TESTS_LINKER_FLAGS})
 
 # TODO: Fix distributed grid.
 #ADD_EXECUTABLE( CutMeshFunctionTest CutMeshFunctionTest.cpp )
@@ -15,7 +15,7 @@ target_link_options(CopyEntitesTest PUBLIC ${TESTS_LINKER_FLAGS})
 #   target_link_options( CutMeshFunctionTest PUBLIC ${TESTS_LINKER_FLAGS} )
 
 add_test(NAME DirectionsTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DirectionsTest${CMAKE_EXECUTABLE_SUFFIX})
-add_test(NAME CopyEntitesTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CopyEntitesTest${CMAKE_EXECUTABLE_SUFFIX})
+add_test(NAME CopyEntitiesTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CopyEntitiesTest${CMAKE_EXECUTABLE_SUFFIX})
 # ADD_TEST( NAME CutMeshFunctionTest COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CutMeshFunctionTest${CMAKE_EXECUTABLE_SUFFIX} )
 
 if(TNL_BUILD_MPI)

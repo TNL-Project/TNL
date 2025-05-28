@@ -274,7 +274,7 @@ check_Boundary_2D( int rank, const GridType& grid, const DofType& dof, typename 
 /*expecting 9 processes
  * Known BUG of Traversars: Process boundary is writing over overlap.
  * it should be true, true, every where, but we dont check boundary overalp on boundary
- * so boundary overlap is not checked (it is filled incorectly by boundary condition).
+ * so boundary overlap is not checked (it is filled incorrectly by boundary condition).
  */
 template< typename DofType, typename GridType >
 void
@@ -478,7 +478,7 @@ TEST_F( DistributedGridTest_2D, LinearFunctionTest )
       auto entity = localGrid->template getEntity< Cell >( i );
       entity.refresh();
       EXPECT_EQ( meshFunctionPtr->getValue( entity ), ( *linearFunctionPtr )( entity ) )
-         << "Linear function doesnt fit recievd data. " << entity.getCoordinates().x() << " " << entity.getCoordinates().y()
+         << "Linear function does not fit received data. " << entity.getCoordinates().x() << " " << entity.getCoordinates().y()
          << " " << localGrid->getDimensions().x() << " " << localGrid->getDimensions().y();
    }
 }

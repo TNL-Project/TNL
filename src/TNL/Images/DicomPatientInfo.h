@@ -18,7 +18,7 @@ namespace TNL::Images {
 class DicomHeader;
 
 /***
- * PatientInfoObj class stores selected informations about patient.
+ * PatientInfoObj class stores selected information about patient.
  * (accesses information via DicomHeader class)
  */
 class DicomPatientInfo

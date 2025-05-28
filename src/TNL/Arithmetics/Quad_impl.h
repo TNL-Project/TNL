@@ -619,10 +619,10 @@ quadAdd( const T* a, const T* b, T* s )
    twoSum( a[ 1 ], b[ 1 ], m + 2, m + 3 );  // 2
    twoSum( m[ 2 ], m[ 1 ], m + 1, m + 2 );  // 3
    twoSum( a[ 2 ], b[ 2 ], m + 4, m + 5 );  // 4
-   // blok 1							   5
+   // block 1							   5
    threeThreeSum( m[ 4 ], m[ 3 ], m[ 2 ], m + 2, m + 3, m + 4 );
    twoSum( a[ 3 ], b[ 3 ], m + 6, m + 7 );  // 6
-   // blok 2							   7
+   // block 2							   7
    threeTwoSum( m[ 6 ], m[ 5 ], m[ 3 ], m + 3, m + 5 );
    m[ 4 ] += m[ 5 ] + m[ 7 ];  // 8
    renormalize( m, s );

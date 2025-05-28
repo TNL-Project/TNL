@@ -66,7 +66,7 @@ Static solvers are primarily intended for scenarios where \f$ x \in R \f$ is sca
 
 \f[ \frac{d u}{dt} = t \sin ( t )\ \rm{ on }\ (0,T), \f]
 
-with the intial condition
+with the initial condition
 
 \f[ u( 0 )  = 0. \f]
 
@@ -142,7 +142,7 @@ In this example, we demonstrate the application of the static ODE solver in solv
 \f[ \frac{dy}{dt} = x(\rho - z ) - y,\ \rm{ on }\ (0,T),  \f]
 \f[ \frac{dz}{dt} = xy - \beta z,\ \rm{ on }\ (0,T), \f]
 
-with the inital condition
+with the initial condition
 
 \f[ \vec u(0) = (x(0),y(0),z(0)) = \vec u_{ini}. \f]
 
@@ -385,7 +385,7 @@ and initial condition
 u(0,x) = u_{ini}(x)\ \rm{on}\ [0,1].
 \f]
 
-We discretize the equation by the [finite difference method](https://en.wikipedia.org/wiki/Finite_difference_method) for numerical approximation. First, we define set of nodes \f$ x_i = ih \f$ for \f$i=0,\ldots n-1 \f$ where \f$h = 1 / (n-1) \f$ (adopting C++ indexing for consistency). Employing the [method of lines](https://en.wikipedia.org/wiki/Method_of_lines) and approximating the second derivative by the central finite diference
+We discretize the equation by the [finite difference method](https://en.wikipedia.org/wiki/Finite_difference_method) for numerical approximation. First, we define set of nodes \f$ x_i = ih \f$ for \f$i=0,\ldots n-1 \f$ where \f$h = 1 / (n-1) \f$ (adopting C++ indexing for consistency). Employing the [method of lines](https://en.wikipedia.org/wiki/Method_of_lines) and approximating the second derivative by the central finite difference
 
 \f[ \frac{\partial^2 u(t,x)}{\partial^2 x} \approx \frac{u_{i-1} - 2 u_i + u_{i+1}}{h^2}, \f],
 
@@ -607,30 +607,33 @@ TNL allows the implementation of new Runge-Kutta methods simply by specifying th
 
 \includelineno Solvers/ODE/Fehlberg2.h
 
-The method is a templated structure accepting a tempate parameter `Value` indicating the numeric type of the method. To implement a new method, we need to do the following:
+The method is a templated structure accepting a template parameter `Value` indicating the numeric type of the method. To implement a new method, we need to do the following:
 
 1. **Set the Stages of the Method:**
    This is \f$ s \f$ in the definition of the Runge-Kutta method and equals the number of vectors \f$ \vec k_i \f$.
 
    \snippetlineno Solvers/ODE/Fehlberg2.h Stages
+
 2. **Determine Adaptivity:**
    If the Runge-Kutta method allows an adaptive choice of the time step, the method `isAdaptive` shall return `true`, and `false` otherwise.
 
    \snippetlineno Solvers/ODE/Fehlberg2.h Adaptivity
-4. **Define Method for Error Estimation:**
+3. **Define Method for Error Estimation:**
    Adaptive methods need coefficients for error estimation. Typically, these are the differences between coefficients for updates of higher and lower order of accuracy, as seen in `getErrorCoefficients`. However, this method can be altered if there's a different formula for error estimation.
 
    \snippetlineno Solvers/ODE/Fehlberg2.h Error coefficients
-5. **Define Coefficients for Evaluating Vectors** \f$ \vec k_i \f$:
+4. **Define Coefficients for Evaluating Vectors** \f$ \vec k_i \f$:
    The coefficients for the evaluation of the vectors \f$ \vec k_i \f$ need to be defined.
 
    \snippetlineno Solvers/ODE/Fehlberg2.h k coefficients definition
-and
+
+   and
 
    \snippetlineno Solvers/ODE/Fehlberg2.h Time coefficients definition
-Zero coefficients are omitted in the generated formulas at compile time, ensuring no performance drop.
-6. **Define Update Coefficients:**
-   Finaly, the update coefficients must be defined.
+
+   Zero coefficients are omitted in the generated formulas at compile time, ensuring no performance drop.
+5. **Define Update Coefficients:**
+   Finally, the update coefficients must be defined.
 
    \snippetlineno Solvers/ODE/Fehlberg2.h Update coefficients definition
 

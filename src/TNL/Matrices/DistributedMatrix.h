@@ -113,7 +113,7 @@ public:
    updateVectorProductCommunicationPattern();
 
    // multiplication with a distributed vector
-   // (not const because it modifies internal bufers)
+   // (not const because it modifies internal buffers)
    template< typename InVector, typename OutVector >
    std::enable_if_t< HasGetCommunicatorMethod< InVector >::value >
    vectorProduct( const InVector& inVector, OutVector& outVector ) const;

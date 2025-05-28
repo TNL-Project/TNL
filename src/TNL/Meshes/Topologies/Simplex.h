@@ -75,7 +75,7 @@ public:
 
 namespace SimplexDetails {
 
-// Nummber of combinations (n choose k)
+// Number of combinations (n choose k)
 template< unsigned int n >
 class NumCombinations< n, 0 >
 {

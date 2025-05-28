@@ -79,7 +79,7 @@ class StopWatchWin : public StopWatchInterface
                 // convert to type in which it is needed
                 freq = ((double) temp.QuadPart) / 1000.0;
 
-                // rememeber query
+                // remember query
                 freq_set = true;
             }
         };

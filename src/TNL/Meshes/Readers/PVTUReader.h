@@ -272,7 +272,7 @@ protected:
 
    VTUReader localReader;
 
-   // additinal arrays we need to read from the localReader
+   // additional arrays we need to read from the localReader
    VariantVector pointTags, cellTags, pointGlobalIndices, cellGlobalIndices;
 };
 

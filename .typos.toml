@@ -1,0 +1,26 @@
+# Reference: https://github.com/crate-ci/typos/blob/master/docs/reference.md
+
+[files]
+ignore-hidden = false
+extend-exclude = [
+   # Typos-specific ignore globs (gitignore syntax).
+   ".git/",
+   "3rdparty/",
+   "*.vtk",
+   "*.vti",
+   "*.vtu",
+   "*.pvti",
+   "*.pvtu",
+]
+
+[default]
+extend-ignore-re = [
+   # Custom ignore regex patterns: https://github.com/crate-ci/typos/blob/master/docs/reference.md#example-configurations
+   "(?Rm)^.*(#|//)\\s*spellchecker:disable-line$",
+   "(?s)(#|//)\\s*spellchecker:disable-next-line[^\\n]*\\n[^\\n]*",
+]
+
+[default.extend-words]
+EIS = "EIS" # acronym
+HSA = "HSA" # acronym
+ND = "ND"   # ignore "ND" -> "AND" hint

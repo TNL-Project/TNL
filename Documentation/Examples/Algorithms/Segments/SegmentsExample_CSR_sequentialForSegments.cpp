@@ -20,7 +20,7 @@ SegmentsExample()
    SegmentsType segments{ 1, 2, 3, 4, 5 };
 
    /***
-    * Print the elemets mapping using segment view.
+    * Print the elements mapping using segment view.
     */
    std::cout << "Mapping of local indexes to global indexes:" << std::endl;
 

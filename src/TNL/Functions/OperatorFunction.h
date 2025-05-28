@@ -47,7 +47,7 @@ class OperatorFunction< Operator, MeshFunctionT, void, true, IsAnalytic >
 public:
    static_assert( MeshFunctionT::getDomainType() == MeshDomain || MeshFunctionT::getDomainType() == MeshInteriorDomain
                      || MeshFunctionT::getDomainType() == MeshBoundaryDomain,
-                  "Only mesh preimageFnctions may be used in the operator preimageFunction. Use ExactOperatorFunction instead "
+                  "Only mesh preimageFunctions may be used in the operator preimageFunction. Use ExactOperatorFunction instead "
                   "of OperatorFunction." );
    static_assert( std::is_same_v< typename Operator::MeshType, typename MeshFunctionT::MeshType >,
                   "Both, operator and mesh preimageFunction must be defined on the same mesh." );

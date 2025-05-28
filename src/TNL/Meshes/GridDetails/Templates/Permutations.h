@@ -110,7 +110,7 @@ template< class Type, class CountedTypes >
 using push = typename Push< Type, CountedTypes >::type;
 
 /**
- * Removes first occurance of type in the pack
+ * Removes first occurrence of type in the pack
  */
 
 template< class, class >
@@ -154,7 +154,7 @@ template< class Type, class CountedType >
 using pop = typename Pop< Type, CountedType >::type;
 
 /*
- * Builds CountedTypes pack by counting the occurances of the types in input.
+ * Builds CountedTypes pack by counting the occurrences of the types in input.
  */
 template< class Pack, class CountedTypes = pack<> >
 struct CountTypes

@@ -16,7 +16,7 @@ namespace TNL::Config {
 /**
  * \brief Fills in the parameters from the \e parameters.
  *
- * Parameters which were not defined in the command line by user but have their default value are added to the congiguration
+ * Parameters which were not defined in the command line by user but have their default value are added to the configuration
  * description. If there is missing entry with defined default value in the Config::ParameterContainer it is going to be added.
  * \param parameters Name of the ParameterContainer object.
  */
@@ -146,7 +146,7 @@ checkMissingEntries( const ConfigDescription& config,
          missingParameters.push_back( entry_name );
    }
    if( ! missingParameters.empty() ) {
-      std::cerr << "Some mandatory parameters are misssing. They are listed at the end.\n";
+      std::cerr << "Some mandatory parameters are missing. They are listed at the end.\n";
       if( printUsage )
          Config::printUsage( config, programName );
       std::cerr << "Add the following missing parameters to the command line:\n   ";

@@ -30,7 +30,7 @@ public:
    using CoordinatesType = typename DistributedMeshType::CoordinatesType;
 
    // Computes subdomain overlaps
-   /* SubdomainOverlapsType is a touple of the same size as the mesh dimensions.
+   /* SubdomainOverlapsType is a tuple of the same size as the mesh dimensions.
     * lower.x() is overlap of the subdomain at boundary where x = 0,
     * upper.x() is overlap of the subdomain at boundary where x = grid.getDimensions().x() - 1,
     */
@@ -56,7 +56,7 @@ public:
    using CoordinatesType = typename DistributedMeshType::CoordinatesType;
 
    // Computes subdomain overlaps
-   /* SubdomainOverlapsType is a touple of the same size as the mesh dimensions.
+   /* SubdomainOverlapsType is a tuple of the same size as the mesh dimensions.
     * lower.x() is overlap of the subdomain at boundary where x = 0,
     * lower.y() is overlap of the subdomain at boundary where y = 0,
     * upper.x() is overlap of the subdomain at boundary where x = grid.getDimensions().x() - 1,
@@ -84,7 +84,7 @@ public:
    using CoordinatesType = typename DistributedMeshType::CoordinatesType;
 
    // Computes subdomain overlaps
-   /* SubdomainOverlapsType is a touple of the same size as the mesh dimensions.
+   /* SubdomainOverlapsType is a tuple of the same size as the mesh dimensions.
     * lower.x() is overlap of the subdomain at boundary where x = 0,
     * lower.y() is overlap of the subdomain at boundary where y = 0,
     * lower.z() is overlap of the subdomain at boundary where z = 0,

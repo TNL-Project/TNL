@@ -116,7 +116,7 @@ struct EllpackMatrixWrapper
  * \tparam Device  is a device on which the arrays are allocated.
  * \tparam Real is a type of matrix elements values.
  * \tparam Index is a type for matrix elements indexing.
- * \tparam Alignment defines alignment of data. The number of matrix rows is rounded to a multiple of this number. It it usefull
+ * \tparam Alignment defines alignment of data. The number of matrix rows is rounded to a multiple of this number. It it useful
  * mainly for GPUs. \param rows is a number of matrix rows. \param columns is a number of matrix columns. \param nonzerosPerRow
  * is number of nonzero matrix elements in each row. \param values is an array with values of matrix elements. \param
  * columnIndexes is an array with column indexes of matrix elements. \return instance of SparseMatrixView with CSR format.

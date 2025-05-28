@@ -609,7 +609,7 @@ public:
    }
 
    /**
-    * \brief Sets the distribution of the arrray among MPI ranks along the
+    * \brief Sets the distribution of the array among MPI ranks along the
     * given axis.
     *
     * \tparam level Integer specifying the axis of the array to be distributed.
@@ -665,7 +665,7 @@ public:
     * \brief Sets sizes of the array to the sizes of an existing array.
     *
     * If the array size changes, the current data will be deallocated, thus
-    * all pointers and views to the array alements will become invalid.
+    * all pointers and views to the array elements will become invalid.
     */
    void
    setLike( const DistributedNDArray& other )

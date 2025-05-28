@@ -16,13 +16,13 @@ function replace_all()
     local prefix="$1"
     local keywords=("${!2}")
     local pattern="$3"
-    local file_pathes=("${!4}")
+    local file_paths=("${!4}")
 
     # echo "Keywords     : ${keywords[*]}"
     # echo "Pattern      : ${pattern}"
-    # echo "File Path    : ${file_pathes[*]}"
+    # echo "File Path    : ${file_paths[*]}"
 
-    for file_path in "${file_pathes[@]}"; do
+    for file_path in "${file_paths[@]}"; do
         [[ ! -r "$file_path" ]] && continue
         for w in "${keywords[@]}"; do
             # echo "Replace '${prefix}$w' in '$file_path'"
@@ -40,13 +40,13 @@ function re_replace_all()
     local prefix="$1"
     local keywords=("${!2}")
     local pattern="$3"
-    local file_pathes=("${!4}")
+    local file_paths=("${!4}")
 
     # echo "Keywords     : ${keywords[*]}"
     # echo "Anti-Pattern : ${pattern}"
-    # echo "File Path    : ${file_pathes[*]}"
+    # echo "File Path    : ${file_paths[*]}"
 
-    for file_path in "${file_pathes[@]}"; do
+    for file_path in "${file_paths[@]}"; do
         [[ ! -r "$file_path" ]] && continue
         for w in "${keywords[@]}"; do
             # echo "Re:replace '${prefix}$w' in '$file_path'"
@@ -71,7 +71,7 @@ function main()
     # This is the pattern for replacing comments back to original string
     local re_comment_pattern="\/\/ *"
     # The path of files
-    local file_pathes=()
+    local file_paths=()
     # Define the keywords of pragma to be escaped from formatting
     local pragma_prefix="#pragma "
     local pragma_key_words=()
@@ -88,23 +88,23 @@ function main()
     # Find all files in the arguments
     for var in "$@"; do
         if [[ ! "$var" =~ ^-.* ]]; then
-            file_pathes+=("$var")
+            file_paths+=("$var")
         fi
     done
 
     # Create and trap a temporary file
     tmpfile=$(mktemp --tmpdir="${TMPDIR:-/tmp}" p-clang-format.XXXXXXXXXX)
     trap 'rm -f -- "$tmpfile"' INT TERM HUP EXIT
-    # Append the temporary file to file_pathes so pragmas will be replaced in it
+    # Append the temporary file to file_paths so pragmas will be replaced in it
     # (this handles the case when the user did not specify -i to edit files in-place)
-    file_pathes+=("$tmpfile")
+    file_paths+=("$tmpfile")
 
     # Replace "#pragma" -> "//#pragma" in the files
-    replace_all "$pragma_prefix" "pragma_key_words[@]" "$comment_pattern" "file_pathes[@]"
+    replace_all "$pragma_prefix" "pragma_key_words[@]" "$comment_pattern" "file_paths[@]"
     # Run clang-format and redirect its output to the $tmpfile
     format "$@" > "$tmpfile"
     # Replace "//#pragma" -> "#pragma" in the files
-    re_replace_all "$pragma_prefix" "pragma_key_words[@]" "$re_comment_pattern" "file_pathes[@]"
+    re_replace_all "$pragma_prefix" "pragma_key_words[@]" "$re_comment_pattern" "file_paths[@]"
     # Show the clang-format's stdout after replacement
     cat "$tmpfile"
 }

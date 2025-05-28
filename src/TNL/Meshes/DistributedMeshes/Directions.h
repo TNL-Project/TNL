@@ -12,7 +12,7 @@ namespace TNL::Meshes::DistributedMeshes {
 // index of direction can be written as number in 3-base system
 //   -> 1 order x axis, 2 order y axis, 3 order z axis
 //   -> 0 - not used, 1 negative direction, 2 positive direction
-// finaly we subtrackt 1 because we dont need (0,0,0) aka 0 aka no direction
+// finally we subtrackt 1 because we dont need (0,0,0) aka 0 aka no direction
 
 // enum Directions2D { Left = 0 , Right = 1 , Up = 2, UpLeft =3, UpRight=4, Down=5, DownLeft=6, DownRight=7 };
 
@@ -78,7 +78,7 @@ class Directions
 public:
    template< int numerofDriection >
    static int
-   getDirection( Containers::StaticVector< numerofDriection, int > directions )  // takes +/- nuber of ax (i.e. (-2,+3))
+   getDirection( Containers::StaticVector< numerofDriection, int > directions )  // takes +/- number of ax (i.e. (-2,+3))
    {
       int result = 0;
       for( int i = 0; i < directions.getSize(); i++ )
@@ -136,7 +136,7 @@ public:
          return 0;
 
       if( direction > 0 )
-         return 2 * i3pow( direction - 1 );  // positive direction has higer index
+         return 2 * i3pow( direction - 1 );  // positive direction has higher index
       else
          return i3pow( -direction - 1 );
    }

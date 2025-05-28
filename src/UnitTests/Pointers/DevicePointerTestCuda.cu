@@ -100,7 +100,7 @@ TEST( DevicePointerCudaTest, getDataArrayTest )
    TNL_BACKEND_SAFE_CALL( cudaFree( testArray_device ) );
 }
 
-TEST( DevicePointerCudaTest, nullptrAssignement )
+TEST( DevicePointerCudaTest, nullptrAssignment )
 {
    using TestType = Pointers::DevicePointer< double, Devices::Cuda >;
    double o1 = 5;

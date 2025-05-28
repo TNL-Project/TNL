@@ -39,7 +39,7 @@ test_decode_block( const std::string& input, const std::string& expected_output 
 TEST( base64Test, encode )
 {
    test_encode_block( "hello, world", "aGVsbG8sIHdvcmxk" );
-   test_encode_block( "hello, worl", "aGVsbG8sIHdvcmw=" );
+   test_encode_block( "hello, worl", "aGVsbG8sIHdvcmw=" );  // spellchecker:disable-line
    test_encode_block( "hello, wor", "aGVsbG8sIHdvcg==" );
    test_encode_block( "hello, wo", "aGVsbG8sIHdv" );
    test_encode_block( "hello, w", "aGVsbG8sIHc=" );
@@ -47,7 +47,7 @@ TEST( base64Test, encode )
    test_encode_block( "hello,", "aGVsbG8s" );
    test_encode_block( "hello", "aGVsbG8=" );
    test_encode_block( "hell", "aGVsbA==" );
-   test_encode_block( "hel", "aGVs" );
+   test_encode_block( "hel", "aGVs" );  // spellchecker:disable-line
    test_encode_block( "he", "aGU=" );
    test_encode_block( "h", "aA==" );
    test_encode_block( "", "" );
@@ -56,7 +56,7 @@ TEST( base64Test, encode )
 TEST( base64Test, decode )
 {
    test_decode_block( "aGVsbG8sIHdvcmxk", "hello, world" );
-   test_decode_block( "aGVsbG8sIHdvcmw=", "hello, worl" );
+   test_decode_block( "aGVsbG8sIHdvcmw=", "hello, worl" );  // spellchecker:disable-line
    test_decode_block( "aGVsbG8sIHdvcg==", "hello, wor" );
    test_decode_block( "aGVsbG8sIHdv", "hello, wo" );
    test_decode_block( "aGVsbG8sIHc=", "hello, w" );
@@ -64,7 +64,7 @@ TEST( base64Test, decode )
    test_decode_block( "aGVsbG8s", "hello," );
    test_decode_block( "aGVsbG8=", "hello" );
    test_decode_block( "aGVsbA==", "hell" );
-   test_decode_block( "aGVs", "hel" );
+   test_decode_block( "aGVs", "hel" );  // spellchecker:disable-line
    test_decode_block( "aGU=", "he" );
    test_decode_block( "aA==", "h" );
    test_decode_block( "", "" );

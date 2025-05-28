@@ -217,7 +217,7 @@ to manipulate with them. There are three possible ways:
    example), which iterates in parallel over all segments. It is better choice
    when we need to process each segment sequentially are we have significant
    amount of computations common for all elements in each segment.
-3. Method `sequentailForSegments` (\ref TNL::Algorithms::Segments::CSR::sequentialForSegments
+3. Method `sequentialForSegments` (\ref TNL::Algorithms::Segments::CSR::sequentialForSegments
    for example), which iterates over all segments sequentially i.e. using only
    one thread even on GPUs. It is useful for debugging or for printing for example.
 
@@ -342,7 +342,7 @@ same segment and store the result into an array. See the following example:
 
 We first create the segments `segments`, related array `data`, and setup the
 elements using the `forAllElements` method. After printing the segments we are
-ready for the parallel reduction. It requires three lambda fuctions:
+ready for the parallel reduction. It requires three lambda functions:
 
 1. `fetch` which reads data belonging to particular elements of the segments.
    The fetch function can have two different forms - *brief* and *full*:

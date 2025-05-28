@@ -713,7 +713,7 @@ protected:
 TEST_F( DistributedGridTest_3D, evaluateAllEntities )
 {
    //Check Traversars
-   //All entities, witout overlap
+   //All entities, without overlap
    setDof_3D( dof, -1 );
    constFunctionEvaluator.evaluateAllEntities( meshFunctionPtr, constFunctionPtr );
    check_Boundary_3D( rank, *localGrid, dof, rank );
@@ -723,7 +723,7 @@ TEST_F( DistributedGridTest_3D, evaluateAllEntities )
 
 TEST_F( DistributedGridTest_3D, evaluateBoundaryEntities )
 {
-   //Boundary entities, witout overlap
+   //Boundary entities, without overlap
    setDof_3D( dof, -1 );
    constFunctionEvaluator.evaluateBoundaryEntities( meshFunctionPtr, constFunctionPtr );
    check_Boundary_3D( rank, *localGrid, dof, rank );
@@ -733,7 +733,7 @@ TEST_F( DistributedGridTest_3D, evaluateBoundaryEntities )
 
 TEST_F( DistributedGridTest_3D, evaluateInteriorEntities )
 {
-   //Inner entities, witout overlap
+   //Inner entities, without overlap
    setDof_3D( dof, -1 );
    constFunctionEvaluator.evaluateInteriorEntities( meshFunctionPtr, constFunctionPtr );
    check_Boundary_3D( rank, *localGrid, dof, -1 );
@@ -755,7 +755,7 @@ TEST_F( DistributedGridTest_3D, LinearFunctionTest )
       auto entity = localGrid->template getEntity< Cell >( i );
       entity.refresh();
       EXPECT_EQ( meshFunctionPtr->getValue( entity ), ( *linearFunctionPtr )( entity ) )
-         << "Linear function doesnt fit recievd data. " << entity.getCoordinates().x() << " " << entity.getCoordinates().y()
+         << "Linear function does not fit received data. " << entity.getCoordinates().x() << " " << entity.getCoordinates().y()
          << " " << localGrid->getDimensions().x() << " " << localGrid->getDimensions().y();
    }
 }

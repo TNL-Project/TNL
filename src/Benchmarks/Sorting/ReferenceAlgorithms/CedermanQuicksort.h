@@ -386,7 +386,7 @@ part1( unsigned int* data, Params< unsigned int >* params, struct Hist* hist, Le
 }
 
 /**
- * Part Two - Move unsigned ints to their correct position in the auxillary array
+ * Part Two - Move unsigned ints to their correct position in the auxiliary array
  * @param data   unsigned ints to be moved
  * @param data2  Destination for unsigned ints
  * @param params Specifies which data each thread block is responsible for
@@ -425,7 +425,7 @@ part2( unsigned int* data,
       unsigned int d = data[ tx + start ];
 
       if( ! ( tx < coal ) ) {
-         // and writing them to auxillary array
+         // and writing them to auxiliary array
          if( d < pivot ) {
             if( x > 0 )
                data2[ x-- ] = d;
@@ -444,7 +444,7 @@ part2( unsigned int* data,
       // Reading unsigned ints...
       unsigned int d = data[ i ];
 
-      // and writing them to auxillary array
+      // and writing them to auxiliary array
       if( d < pivot ) {
          if( x > 0 )
             data2[ x-- ] = d;
@@ -524,7 +524,7 @@ lqsort( unsigned int* adata, unsigned int* adata2, struct LQSortParams* bs, unsi
    __shared__ unsigned int from;
    __shared__ unsigned int to;
 
-   // Since we switch between the primary and the auxillary buffer,
+   // Since we switch between the primary and the auxiliary buffer,
    // these variables are required to keep track on which role
    // a buffer currently has
    __shared__ unsigned int* data;
@@ -792,7 +792,7 @@ GPUQSort< element >::sort( element* data,
    if( ! errCheck( cudaMemcpy( ddata, data, size * sizeof( element ), cudaMemcpyHostToDevice ) ) )
       return 1;
 
-   // We start with a set containg only the sequence to be sorted
+   // We start with a set containing only the sequence to be sorted
    // This will grow as we partition the data
    workset[ 0 ].beg = 0;
    workset[ 0 ].end = size;

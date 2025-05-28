@@ -513,7 +513,7 @@ int main (int argc, char *argv[])
          printf("\n");
       }
 
-      /* Destory solver and preconditioner */
+      /* Destroy solver and preconditioner */
       HYPRE_ParCSRPCGDestroy(solver);
       HYPRE_ParaSailsDestroy(precond);
    }
@@ -578,7 +578,7 @@ int main (int argc, char *argv[])
          printf("\n");
       }
 
-      /* Destory solver and preconditioner */
+      /* Destroy solver and preconditioner */
       HYPRE_ParCSRFlexGMRESDestroy(solver);
       HYPRE_BoomerAMGDestroy(precond);
 
