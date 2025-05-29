@@ -168,6 +168,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
    {
       if( end <= begin )
          return;
+
       if( launchConfig.blockSize.x == 1 )
          launchConfig.blockSize.x = 256;
       if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
@@ -275,10 +276,18 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
       {
          const IndexType begin = offsetsView[ segmentIdx ];
          const IndexType end = offsetsView[ segmentIdx + 1 ];
-         IndexType localIdx( 0 );
-         if( condition( segmentIdx ) )
-            for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-               function( segmentIdx, localIdx++, globalIdx );
+
+         if( condition( segmentIdx ) ) {
+            if constexpr( argumentCount< Function >() == 3 ) {
+               IndexType localIdx( 0 );
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  function( segmentIdx, localIdx++, globalIdx );
+            }
+            else {  // argumentCount< Function >() == 2
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
+                  function( segmentIdx, globalIdx );
+            }
+         }
       };
       Algorithms::parallelFor< Device >( begin, end, l );
    }
