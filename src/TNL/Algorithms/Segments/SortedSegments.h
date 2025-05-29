@@ -8,17 +8,14 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/TypeTraits.h>
 
-#include "CSRView.h"
+#include "SortedSegmentsView.h"
+#include "CSR.h"
 
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief Data structure for CSR segments.
+ * \brief Data structure sorted segments.
  *
- * CSR segments are inspired by the [Compressed Sparse Row (CSR) format](https://en.wikipedia.org/wiki/Sparse_matrix),
- * which is widely used for storing sparse matrices. It is the most
- * popular format due to its versatility, making it the preferred choice
- * for segment representation.
  *
  * See \ref TNL::Algorithms::Segments for more details about segments.
  *
@@ -26,42 +23,35 @@ namespace TNL::Algorithms::Segments {
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-class CSR : public CSRBase< Device, Index >
+template< typename EmbeddedSegments, typename IndexAllocator = typename EmbeddedSegments::IndexAllocatorType >
+class SortedSegments : public SortedSegmentsBase< typename EmbeddedSegments::ViewType >
 {
-   using Base = CSRBase< Device, Index >;
+   using Base = SortedSegmentsBase< typename EmbeddedSegments::ViewType >;
 
 public:
+   using typename Base::DeviceType;
+
+   using typename Base::IndexType;
+
    //! \brief Type of segments view.
-   using ViewType = CSRView< Device, Index >;
+   using ViewType = SortedSegmentsView< typename EmbeddedSegments::ViewType >;
 
    //! \brief Type of constant segments view.
-   using ConstViewType = CSRView< Device, std::add_const_t< Index > >;
-
-   /**
-    * \brief Templated view type.
-    *
-    * \tparam Device_ is alternative device type for the view.
-    * \tparam Index_ is alternative index type for the view.
-    */
-   template< typename Device_, typename Index_ >
-   using ViewTemplate = CSRView< Device_, Index_ >;
-
-   //! \brief Type of container storing offsets of particular segments.
-   using OffsetsContainer = Containers::Vector< Index, Device, typename Base::IndexType, IndexAllocator >;
+   using ConstViewType = SortedSegmentsView< typename EmbeddedSegments::ConstViewType, std::add_const_t< IndexType > >;
 
    using IndexAllocatorType = IndexAllocator;
 
+   //! \brief Type of container storing offsets of particular segments.
+   using PermutationContainer = Containers::Vector< IndexType, DeviceType, IndexType, IndexAllocatorType >;
+
    //! \brief Constructor with no parameters to create empty segments.
-   CSR();
+   SortedSegments() = default;
 
    //! \brief Copy constructor (makes deep copy).
-   CSR( const CSR& segments );
+   SortedSegments( const SortedSegments& segments );
 
    //! \brief Move constructor.
-   CSR( CSR&& ) noexcept = default;
+   SortedSegments( SortedSegments&& ) noexcept = default;
 
    /**
     * \brief Constructor that initializes segments based on their sizes.
@@ -82,7 +72,7 @@ public:
     * \include SegmentsExample_constructor_1.out
     */
    template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
-   CSR( const SizesContainer& segmentsSizes );
+   SortedSegments( const SizesContainer& segmentsSizes );
 
    /**
     * \brief Constructor that initializes segments using an initializer list.
@@ -102,30 +92,15 @@ public:
     * \include SegmentsExample_constructor_2.out
     */
    template< typename ListIndex >
-   CSR( const std::initializer_list< ListIndex >& segmentsSizes );
+   SortedSegments( const std::initializer_list< ListIndex >& segmentsSizes );
 
    //! \brief Copy-assignment operator (makes a deep copy).
-   CSR&
-   operator=( const CSR& segments );
+   SortedSegments&
+   operator=( const SortedSegments& segments );
 
    //! \brief Move-assignment operator.
-   CSR&
-   operator=( CSR&& ) noexcept( false );
-
-   /**
-    * \brief Assignment operator for segments with different template parameters.
-    *
-    * Performs a deep copy of the source segments.
-    *
-    * \tparam Device_ The device type of the source segments.
-    * \tparam Index_ The index type of the source segments.
-    * \tparam IndexAllocator_ The index allocator type of the source segments.
-    * \param segments The source segments object.
-    * \return A reference to this instance.
-    */
-   template< typename Device_, typename Index_, typename IndexAllocator_ >
-   CSR&
-   operator=( const CSR< Device_, Index_, IndexAllocator_ >& segments );
+   SortedSegments&
+   operator=( SortedSegments&& ) noexcept( false );
 
    //! \brief Returns a view for this instance of segments which can by used
    //! for example in lambda functions running in GPU kernels.
@@ -170,19 +145,20 @@ public:
    load( File& file );
 
 protected:
-   OffsetsContainer offsets;
+   EmbeddedSegments embeddedSegments;
+   PermutationContainer segmentsPermutation, inverseSegmentsPermutation;
 };
 
 template< typename Segments >
-struct isCSRSegments : std::false_type
+struct isSortedSegments : std::false_type
 {};
 
-template< typename Device, typename Index, typename IndexAllocator >
-struct isCSRSegments< CSR< Device, Index, IndexAllocator > > : std::true_type
+template< typename EmbeddedSegments >
+struct isSortedSegments< SortedSegments< EmbeddedSegments > > : std::true_type
 {};
 
-template< typename Device, typename Index >
-struct isCSRSegments< CSRView< Device, Index > > : std::true_type
+template< typename EmbeddedSegments >
+struct isSortedSegments< SortedSegmentsView< EmbeddedSegments > > : std::true_type
 {};
 
 /**
@@ -191,8 +167,13 @@ struct isCSRSegments< CSRView< Device, Index > > : std::true_type
  * \tparam Segments The type of the segments.
  */
 template< typename Segments >
-inline constexpr bool isCSRSegments_v = isCSRSegments< Segments >::value;
+inline constexpr bool isSortedSegments_v = isSortedSegments< Segments >::value;
+
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+using SortedCSR = SortedSegments< CSR< Device, Index, IndexAllocator > >;
 
 }  // namespace TNL::Algorithms::Segments
 
-#include "CSR.hpp"
+#include "SortedSegments.hpp"
