@@ -1,3 +1,6 @@
+add_subdirectory(Reduce)
+add_subdirectory(Traverse)
+
 set(COMMON_TESTS
     SegmentsTest_AdaptiveCSR
     SegmentsTest_BiEllpack
@@ -5,11 +8,9 @@ set(COMMON_TESTS
     SegmentsTest_CSR
     SegmentsTest_Ellpack
     SegmentsTest_SlicedEllpack
+    SegmentsTest_SortedCSR
     GrowingSegmentsTest
 )
-
-add_subdirectory(Reduce)
-add_subdirectory(Traverse)
 
 set(CPP_TESTS)
 set(CUDA_TESTS)
