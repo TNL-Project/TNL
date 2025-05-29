@@ -16,3 +16,4 @@ struct TraversingOperations;
 #include "TraversingOperations_ChunkedEllpack.h"
 #include "TraversingOperations_Ellpack.h"
 #include "TraversingOperations_SlicedEllpack.h"
+#include "TraversingOperations_SortedSegments.h"
