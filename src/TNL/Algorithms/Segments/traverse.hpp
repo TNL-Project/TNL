@@ -117,15 +117,8 @@ void
 forSegments( const Segments& segments, IndexBegin begin, IndexEnd end, Function&& function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
-   using DeviceType = typename Segments::DeviceType;
-   auto segments_view = segments.getConstView();
-   auto f = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
-   {
-      auto segment = segments_view.getSegmentView( segmentIdx );
-      function( segment );
-   };
-   Algorithms::parallelFor< DeviceType >( begin, end, f );  // TODO: Add launchConfig - it seems it does not work with current
-                                                            // implementation of parallelFor
+   detail::TraversingOperations< typename Segments::ConstViewType >::forSegments(
+      segments.getConstView(), (IndexType) 0, segments.getSegmentsCount(), std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Segments, typename Function >
@@ -146,19 +139,8 @@ forSegments( const Segments& segments,
              Function&& function,
              LaunchConfiguration launchConfig )
 {
-   using IndexType = typename Segments::IndexType;
-   using DeviceType = typename Segments::DeviceType;
-   auto segments_view = segments.getConstView();
-   auto segmentIndexes_view = segmentIndexes.getConstView();
-   auto f = [ = ] __cuda_callable__( IndexType segmentIdx_idx ) mutable
-   {
-      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes_view.getSize(), "" );
-      TNL_ASSERT_LT( segmentIndexes_view[ segmentIdx_idx ], segments_view.getSegmentsCount(), "" );
-      auto segment = segments_view.getSegmentView( segmentIndexes_view[ segmentIdx_idx ] );
-      function( segment );
-   };
-   Algorithms::parallelFor< DeviceType >( begin, end, f );  // TODO: Add launchConfig - it seems it does not work with current
-                                                            // implementation of parallelFor
+   detail::TraversingOperations< typename Segments::ConstViewType >::forSegments(
+      segments.getConstView(), segmentIndexes.getConstView(), begin, end, std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Segments, typename Array, typename Function, typename T >
@@ -179,16 +161,13 @@ forSegmentsIf( const Segments& segments,
                Function&& function,
                LaunchConfiguration launchConfig )
 {
-   using IndexType = typename Segments::IndexType;
-   using DeviceType = typename Segments::DeviceType;
-   auto segments_view = segments.getConstView();
-   auto f = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
-   {
-      if( segmentCondition( segmentIdx ) )
-         function( segments_view.getSegmentView( segmentIdx ) );
-   };
-   Algorithms::parallelFor< DeviceType >( begin, end, f );  // TODO: Add launchConfig - it seems it does not work with current
-                                                            // implementation of parallelFor
+   detail::TraversingOperations< typename Segments::ConstViewType >::forSegmentsIf(
+      segments.getConstView(),
+      begin,
+      end,
+      std::forward< SegmentCondition >( segmentCondition ),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Segments, typename SegmentCondition, typename Function >
