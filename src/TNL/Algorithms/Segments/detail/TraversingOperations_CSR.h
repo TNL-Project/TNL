@@ -117,7 +117,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                           Function&& function,
                           LaunchConfiguration launchConfig )
    {
-      const auto offsetsView = segments.getOffsets();
+      q const auto offsetsView = segments.getOffsets();
       auto segmentIndexesView = segmentIndexes.getConstView();
       // TODO: if constexpr could be just inside the lambda function l when nvcc allolws it
       if constexpr( argumentCount< Function >() == 3 ) {
