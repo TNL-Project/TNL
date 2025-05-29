@@ -1,5 +1,5 @@
 set(COMMON_TESTS TraverseSegmentsTest_AdaptiveCSR TraverseSegmentsTest_BiEllpack TraverseSegmentsTest_ChunkedEllpack TraverseSegmentsTest_CSR TraverseSegmentsTest_Ellpack
-    TraverseSegmentsTest_SlicedEllpack
+    TraverseSegmentsTest_SlicedEllpack TraverseSegmentsTest_SortedCSR
 )
 
 set(CPP_TESTS)
