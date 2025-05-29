@@ -255,6 +255,18 @@ public:
    }
 
    /**
+    * \brief Set index of the segment.
+    *
+    * \param index of the segment.
+    */
+   __cuda_callable__
+   void
+   setSegmentIndex( IndexType idx )
+   {
+      this->segmentIdx = idx;
+   }
+
+   /**
     * \brief Returns iterator pointing at the beginning of the segment.
     *
     * \return iterator pointing at the beginning.
