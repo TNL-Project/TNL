@@ -551,151 +551,111 @@ TYPED_TEST( VectorBinaryOperationsTest, modulo )
    }
 }
 
-template< typename Left, typename Right, std::enable_if_t< std::is_const_v< typename Left::RealType >, bool > = true >
-void
-test_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
-{}
-template< typename Left, typename Right, std::enable_if_t< ! std::is_const_v< typename Left::RealType >, bool > = true >
-void
-test_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
-{
-   using RightReal = std::remove_const_t< typename Right::RealType >;
-   // with vector or vector view
-   L1 = R2;
-   EXPECT_EQ( L1, R2 );
-   // with scalar
-   L1 = 1;
-   EXPECT_EQ( L1, 1 );
-   L1 = RightReal( 1 );
-   EXPECT_EQ( L1, 1 );
-   // with expression
-   L1 = R1 + R1;
-   EXPECT_EQ( L1, R1 + R1 );
-}
 TYPED_TEST( VectorBinaryOperationsTest, assignment )
 {
    SETUP_BINARY_TEST_ALIASES;
-   test_assignment( L1, L2, R1, R2 );
+
+   if constexpr( ! std::is_const_v< typename Left::RealType > ) {
+      // with vector or vector view
+      L1 = R2;
+      EXPECT_EQ( L1, R2 );
+      // with scalar
+      L1 = 1;
+      EXPECT_EQ( L1, 1 );
+      L1 = RightReal( 1 );
+      EXPECT_EQ( L1, 1 );
+      // with expression
+      L1 = R1 + R1;
+      EXPECT_EQ( L1, R1 + R1 );
+   }
 }
 
-template< typename Left, typename Right, std::enable_if_t< std::is_const_v< typename Left::RealType >, bool > = true >
-void
-test_add_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
-{}
-template< typename Left, typename Right, std::enable_if_t< ! std::is_const_v< typename Left::RealType >, bool > = true >
-void
-test_add_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
-{
-   using RightReal = std::remove_const_t< typename Right::RealType >;
-   // with vector or vector view
-   L1 += R2;
-   EXPECT_EQ( L1, R1 + R2 );
-   // with scalar
-   L1 = 1;
-   L1 += 2;
-   EXPECT_EQ( L1, 3 );
-   L1 = 1;
-   L1 += RightReal( 2 );
-   EXPECT_EQ( L1, 3 );
-   // with expression
-   L1 = 1;
-   L1 += R1 + R1;
-   EXPECT_EQ( L1, R1 + R1 + R1 );
-}
 TYPED_TEST( VectorBinaryOperationsTest, add_assignment )
 {
    SETUP_BINARY_TEST_ALIASES;
-   test_add_assignment( L1, L2, R1, R2 );
+
+   if constexpr( ! std::is_const_v< typename Left::RealType > ) {
+      // with vector or vector view
+      L1 += R2;
+      EXPECT_EQ( L1, R1 + R2 );
+      // with scalar
+      L1 = 1;
+      L1 += 2;
+      EXPECT_EQ( L1, 3 );
+      L1 = 1;
+      L1 += RightReal( 2 );
+      EXPECT_EQ( L1, 3 );
+      // with expression
+      L1 = 1;
+      L1 += R1 + R1;
+      EXPECT_EQ( L1, R1 + R1 + R1 );
+   }
 }
 
-template< typename Left, typename Right, std::enable_if_t< std::is_const_v< typename Left::RealType >, bool > = true >
-void
-test_subtract_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
-{}
-template< typename Left, typename Right, std::enable_if_t< ! std::is_const_v< typename Left::RealType >, bool > = true >
-void
-test_subtract_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
-{
-   using RightReal = std::remove_const_t< typename Right::RealType >;
-   // with vector or vector view
-   L1 -= R2;
-   EXPECT_EQ( L1, R1 - R2 );
-   // with scalar
-   L1 = 1;
-   L1 -= 2;
-   EXPECT_EQ( L1, -1 );
-   L1 = 1;
-   L1 -= RightReal( 2 );
-   EXPECT_EQ( L1, -1 );
-   // with expression
-   L1 = 1;
-   L1 -= R1 + R1;
-   EXPECT_EQ( L1, -R1 );
-}
 TYPED_TEST( VectorBinaryOperationsTest, subtract_assignment )
 {
    SETUP_BINARY_TEST_ALIASES;
-   test_subtract_assignment( L1, L2, R1, R2 );
+
+   if constexpr( ! std::is_const_v< typename Left::RealType > ) {
+      // with vector or vector view
+      L1 -= R2;
+      EXPECT_EQ( L1, R1 - R2 );
+      // with scalar
+      L1 = 1;
+      L1 -= 2;
+      EXPECT_EQ( L1, -1 );
+      L1 = 1;
+      L1 -= RightReal( 2 );
+      EXPECT_EQ( L1, -1 );
+      // with expression
+      L1 = 1;
+      L1 -= R1 + R1;
+      EXPECT_EQ( L1, -R1 );
+   }
 }
 
-template< typename Left, typename Right, std::enable_if_t< std::is_const_v< typename Left::RealType >, bool > = true >
-void
-test_multiply_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
-{}
-template< typename Left, typename Right, std::enable_if_t< ! std::is_const_v< typename Left::RealType >, bool > = true >
-void
-test_multiply_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
-{
-   using RightReal = std::remove_const_t< typename Right::RealType >;
-   // with vector or vector view
-   L1 *= R2;
-   EXPECT_EQ( L1, R2 );
-   // with scalar
-   L1 = 1;
-   L1 *= 2;
-   EXPECT_EQ( L1, 2 );
-   L1 = 1;
-   L1 *= RightReal( 2 );
-   EXPECT_EQ( L1, 2 );
-   // with expression
-   L1 = 1;
-   L1 *= R1 + R1;
-   EXPECT_EQ( L1, R1 + R1 );
-}
 TYPED_TEST( VectorBinaryOperationsTest, multiply_assignment )
 {
    SETUP_BINARY_TEST_ALIASES;
-   test_multiply_assignment( L1, L2, R1, R2 );
+
+   if constexpr( ! std::is_const_v< typename Left::RealType > ) {
+      // with vector or vector view
+      L1 *= R2;
+      EXPECT_EQ( L1, R2 );
+      // with scalar
+      L1 = 1;
+      L1 *= 2;
+      EXPECT_EQ( L1, 2 );
+      L1 = 1;
+      L1 *= RightReal( 2 );
+      EXPECT_EQ( L1, 2 );
+      // with expression
+      L1 = 1;
+      L1 *= R1 + R1;
+      EXPECT_EQ( L1, R1 + R1 );
+   }
 }
 
-template< typename Left, typename Right, std::enable_if_t< std::is_const_v< typename Left::RealType >, bool > = true >
-void
-test_divide_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
-{}
-template< typename Left, typename Right, std::enable_if_t< ! std::is_const_v< typename Left::RealType >, bool > = true >
-void
-test_divide_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
-{
-   using RightReal = std::remove_const_t< typename Right::RealType >;
-   // with vector or vector view
-   L2 /= R2;
-   EXPECT_EQ( L1, R1 );
-   // with scalar
-   L2 = 2;
-   L2 /= 2;
-   EXPECT_EQ( L1, 1 );
-   L1 = 2;
-   L1 /= RightReal( 2 );
-   EXPECT_EQ( L1, 1 );
-   // with expression
-   L2 = 2;
-   L2 /= R1 + R1;
-   EXPECT_EQ( L1, R1 );
-}
 TYPED_TEST( VectorBinaryOperationsTest, divide_assignment )
 {
    SETUP_BINARY_TEST_ALIASES;
-   test_divide_assignment( L1, L2, R1, R2 );
+
+   if constexpr( ! std::is_const_v< typename Left::RealType > ) {
+      // with vector or vector view
+      L2 /= R2;
+      EXPECT_EQ( L1, R1 );
+      // with scalar
+      L2 = 2;
+      L2 /= 2;
+      EXPECT_EQ( L1, 1 );
+      L1 = 2;
+      L1 /= RightReal( 2 );
+      EXPECT_EQ( L1, 1 );
+      // with expression
+      L2 = 2;
+      L2 /= R1 + R1;
+      EXPECT_EQ( L1, R1 );
+   }
 }
 
 TYPED_TEST( VectorBinaryOperationsTest, modulo_assignment )
