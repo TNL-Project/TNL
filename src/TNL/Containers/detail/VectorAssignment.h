@@ -133,6 +133,12 @@ struct VectorAssignmentWithOperation< Vector, T, true, true >
    {
       VectorAssignmentWithOperation< Vector, typename T::ConstViewType >::division( v, t.getConstView() );
    }
+
+   static void
+   modulo( Vector& v, const T& t )
+   {
+      VectorAssignmentWithOperation< Vector, typename T::ConstViewType >::modulo( v, t.getConstView() );
+   }
 };
 
 /**

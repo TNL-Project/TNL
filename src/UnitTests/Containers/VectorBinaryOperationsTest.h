@@ -524,6 +524,33 @@ TYPED_TEST( VectorBinaryOperationsTest, division )
    EXPECT_EQ( LeftReal( 2 ) / ( R1 + R1 ), 1 );
 }
 
+TYPED_TEST( VectorBinaryOperationsTest, modulo )
+{
+   SETUP_BINARY_TEST_ALIASES;
+
+   if constexpr( std::is_integral_v< typename Left::RealType > ) {
+      // with vector or vector view
+      EXPECT_EQ( L1 % R2, L1 );
+      // with scalar
+      EXPECT_EQ( L1 % 2, L1 );
+      EXPECT_EQ( 1 % L2, L1 );
+      EXPECT_EQ( L1 % LeftReal( 2 ), L1 );
+      EXPECT_EQ( LeftReal( 1 ) % L2, L1 );
+      // with expression
+      EXPECT_EQ( L1 % ( L1 + L1 ), L1 );
+      EXPECT_EQ( ( L2 - L1 ) % L2, L1 );
+      EXPECT_EQ( L1 % ( L1 + R1 ), L1 );
+      EXPECT_EQ( ( L2 - L1 ) % R2, L1 );
+      // with two expressions
+      EXPECT_EQ( ( L2 - L1 ) % ( L1 + L1 ), L1 );
+      // with expression and scalar
+      EXPECT_EQ( ( L2 - L1 ) % 2, 1 );
+      EXPECT_EQ( ( L2 - L1 ) % RightReal( 2 ), 1 );
+      EXPECT_EQ( 1 % ( R1 + R1 ), 1 );
+      EXPECT_EQ( LeftReal( 1 ) % ( R1 + R1 ), 1 );
+   }
+}
+
 template< typename Left, typename Right, std::enable_if_t< std::is_const_v< typename Left::RealType >, bool > = true >
 void
 test_assignment( Left& L1, Left& L2, Right& R1, Right& R2 )
@@ -669,6 +696,28 @@ TYPED_TEST( VectorBinaryOperationsTest, divide_assignment )
 {
    SETUP_BINARY_TEST_ALIASES;
    test_divide_assignment( L1, L2, R1, R2 );
+}
+
+TYPED_TEST( VectorBinaryOperationsTest, modulo_assignment )
+{
+   SETUP_BINARY_TEST_ALIASES;
+
+   if constexpr( ! std::is_const_v< typename Left::RealType > && std::is_integral_v< LeftReal > ) {
+      // with vector or vector view
+      L1 %= R2;
+      EXPECT_EQ( L1, R1 );
+      // with scalar
+      L1 = 1;
+      L1 %= 2;
+      EXPECT_EQ( L1, 1 );
+      L1 = 1;
+      L1 %= RightReal( 2 );
+      EXPECT_EQ( L1, 1 );
+      // with expression
+      L1 = 1;
+      L1 %= R1 + R1;
+      EXPECT_EQ( L1, R1 );
+   }
 }
 
 TYPED_TEST( VectorBinaryOperationsTest, scalarProduct )
