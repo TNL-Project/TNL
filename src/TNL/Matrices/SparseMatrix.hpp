@@ -274,7 +274,6 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
       this->values.setSize( this->segments.getStorageSize() );
       this->values = 0;
    }
-   this->values.setSize( this->segments.getStorageSize() );
    this->columnIndexes.setSize( this->segments.getStorageSize() );
    this->columnIndexes = paddingIndex< Index >;
 
