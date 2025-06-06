@@ -17,3 +17,4 @@ struct ReducingOperations
 #include "ReducingOperations_CSR.h"
 #include "ReducingOperations_Ellpack.h"
 #include "ReducingOperations_SlicedEllpack.h"
+#include "ReducingOperations_SortedSegments.h"

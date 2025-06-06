@@ -6,6 +6,7 @@
 #include <type_traits>
 
 #include <TNL/Containers/VectorView.h>
+#include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
 namespace TNL::Algorithms::Segments {
 
