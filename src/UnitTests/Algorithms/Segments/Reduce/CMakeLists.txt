@@ -1,5 +1,5 @@
 set(COMMON_TESTS ReduceSegmentsTest_AdaptiveCSR ReduceSegmentsTest_BiEllpack ReduceSegmentsTest_ChunkedEllpack ReduceSegmentsTest_CSR ReduceSegmentsTest_Ellpack
-    ReduceSegmentsTest_SlicedEllpack
+    ReduceSegmentsTest_SlicedEllpack ReduceSegmentsTest_SortedCSR
 )
 
 set(CPP_TESTS)
