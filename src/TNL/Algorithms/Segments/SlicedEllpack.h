@@ -189,7 +189,7 @@ protected:
 };
 
 /**
- * \brief Data structure for row-major SlicedEllpack segments.
+ * \brief Alias for row-major SlicedEllpack segments.
  *
  * See \ref TNL::Algorithms::Segments::SlicedEllpack for more details.
  *
@@ -201,70 +201,10 @@ template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
           int SliceSize = 32 >
-struct RowMajorSlicedEllpack : public SlicedEllpack< Device, Index, IndexAllocator, RowMajorOrder, SliceSize >
-{
-   using BaseType = SlicedEllpack< Device, Index, IndexAllocator, RowMajorOrder, SliceSize >;
-
-   //! \brief Constructor with no parameters to create empty segments.
-   __cuda_callable__
-   RowMajorSlicedEllpack() = default;
-
-   //! \brief Copy constructor (makes deep copy).
-   RowMajorSlicedEllpack( const RowMajorSlicedEllpack& segments )
-   : BaseType( segments )
-   {}
-
-   //! \brief Move constructor.
-   RowMajorSlicedEllpack( RowMajorSlicedEllpack&& ) noexcept = default;
-
-   /**
-    * \brief Constructor that initializes segments based on their sizes.
-    *
-    * The number of segments is determined by the size of \e segmentsSizes.
-    * Each element in this container specifies the size of a corresponding segment.
-    *
-    * \tparam SizesContainer The type of container used to store segment sizes.
-    *    It can be, for example, \ref TNL::Containers::Array or \ref TNL::Containers::Vector.
-    * \param segmentsSizes An instance of the container holding the sizes of the segments.
-    *
-    * See the following example:
-    *
-    * \includelineno Algorithms/Segments/SegmentsExample_constructor_1.cpp
-    *
-    * The expected output is:
-    *
-    * \include SegmentsExample_constructor_1.out
-    */
-   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
-   explicit RowMajorSlicedEllpack( const SizesContainer& segmentsSizes )
-   : BaseType( segmentsSizes )
-   {}
-
-   /**
-    * \brief Constructor that initializes segments using an initializer list.
-    *
-    * The number of segments is determined by the size of \e segmentsSizes.
-    * Each element in this initializer list specifies the size of a corresponding segment.
-    *
-    * \tparam ListIndex The type used for indexing elements in the initializer list.
-    * \param segmentsSizes An initializer list defining the sizes of the segments.
-    *
-    * See the following example:
-    *
-    * \includelineno Algorithms/Segments/SegmentsExample_constructor_2.cpp
-    *
-    * The expected output is:
-    *
-    * \include SegmentsExample_constructor_2.out
-    */
-   template< typename ListIndex >
-   RowMajorSlicedEllpack( const std::initializer_list< ListIndex >& segmentsSizes )
-   : BaseType( segmentsSizes )
-   {}
-};
+using RowMajorSlicedEllpack = SlicedEllpack< Device, Index, IndexAllocator, RowMajorOrder, SliceSize >;
 
 /**
- * \brief Data structure for column-major SlicedEllpack segments.
+ * \brief Alias for column-major SlicedEllpack segments.
  *
  * See \ref TNL::Algorithms::Segments::SlicedEllpack for more details.
  *
@@ -276,66 +216,7 @@ template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
           int SliceSize = 32 >
-struct ColumnMajorSlicedEllpack : public SlicedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder, SliceSize >
-{
-   using BaseType = SlicedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder, SliceSize >;
-
-   //! \brief Constructor with no parameters to create empty segments.
-   ColumnMajorSlicedEllpack() = default;
-
-   //! \brief Copy constructor (makes deep copy).
-   ColumnMajorSlicedEllpack( const ColumnMajorSlicedEllpack& segments )
-   : BaseType( segments )
-   {}
-
-   //! \brief Move constructor.
-   ColumnMajorSlicedEllpack( ColumnMajorSlicedEllpack&& ) noexcept = default;
-
-   /**
-    * \brief Constructor that initializes segments based on their sizes.
-    *
-    * The number of segments is determined by the size of \e segmentsSizes.
-    * Each element in this container specifies the size of a corresponding segment.
-    *
-    * \tparam SizesContainer The type of container used to store segment sizes.
-    *    It can be, for example, \ref TNL::Containers::Array or \ref TNL::Containers::Vector.
-    * \param segmentsSizes An instance of the container holding the sizes of the segments.
-    *
-    * See the following example:
-    *
-    * \includelineno Algorithms/Segments/SegmentsExample_constructor_1.cpp
-    *
-    * The expected output is:
-    *
-    * \include SegmentsExample_constructor_1.out
-    */
-   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
-   explicit ColumnMajorSlicedEllpack( const SizesContainer& segmentsSizes )
-   : BaseType( segmentsSizes )
-   {}
-
-   /**
-    * \brief Constructor that initializes segments using an initializer list.
-    *
-    * The number of segments is determined by the size of \e segmentsSizes.
-    * Each element in this initializer list specifies the size of a corresponding segment.
-    *
-    * \tparam ListIndex The type used for indexing elements in the initializer list.
-    * \param segmentsSizes An initializer list defining the sizes of the segments.
-    *
-    * See the following example:
-    *
-    * \includelineno Algorithms/Segments/SegmentsExample_constructor_2.cpp
-    *
-    * The expected output is:
-    *
-    * \include SegmentsExample_constructor_2.out
-    */
-   template< typename ListIndex >
-   ColumnMajorSlicedEllpack( const std::initializer_list< ListIndex >& segmentsSizes )
-   : BaseType( segmentsSizes )
-   {}
-};
+using ColumnMajorSlicedEllpack = SlicedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder, SliceSize >;
 
 template< typename Segments >
 struct isSlicedEllpackSegments : std::false_type
@@ -347,21 +228,6 @@ struct isSlicedEllpackSegments< SlicedEllpack< Device, Index, IndexAllocator, Or
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 struct isSlicedEllpackSegments< SlicedEllpackView< Device, Index, Organization, SliceSize > > : std::true_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator, int SliceSize >
-struct isSlicedEllpackSegments< ColumnMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > > : std::true_type
-{};
-
-template< typename Device, typename Index, int SliceSize >
-struct isSlicedEllpackSegments< ColumnMajorSlicedEllpackView< Device, Index, SliceSize > > : std::true_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator, int SliceSize >
-struct isSlicedEllpackSegments< RowMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > > : std::true_type
-{};
-template< typename Device, typename Index, int SliceSize >
-struct isSlicedEllpackSegments< RowMajorSlicedEllpackView< Device, Index, SliceSize > > : std::true_type
 {};
 
 /**
