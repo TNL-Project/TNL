@@ -219,40 +219,43 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::operator=
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::save( File& file ) const
-{
-   file.save( &this->rows );
-   file.save( &this->columns );
-   file << values;
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-void
-TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::load( File& file )
-{
-   Index rows = 0;
-   Index columns = 0;
-   file.load( &rows );
-   file.load( &columns );
-   file >> values;
-   typename Base::IndexerType indexer;
-   indexer.setDimensions( rows, columns );
-   // update the base
-   Base::bind( values.getView(), indexer );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-void
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::save( const String& fileName ) const
 {
-   Object::save( fileName );
+   File( fileName, std::ios_base::out ) << *this;
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 void
 TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::load( const String& fileName )
 {
-   Object::load( fileName );
+   File( fileName, std::ios_base::in ) >> *this;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+File&
+operator>>( File& file, TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >& matrix )
+{
+   const std::string type = getObjectType( file );
+   if( type != matrix.getSerializationType() )
+      throw Exceptions::FileDeserializationError( file.getFileName(),
+                                                  "object type does not match (expected " + matrix.getSerializationType()
+                                                     + ", found " + type + ")." );
+   std::size_t rows = 0;
+   std::size_t columns = 0;
+   file.load( &rows );
+   file.load( &columns );
+   // setDimensions initializes the internal segments attribute
+   matrix.setDimensions( rows, columns );
+   file >> matrix.getValues();
+   return file;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+File&
+operator>>( File&& file, TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >& matrix )
+{
+   // named r-value is an l-value reference, so this is not recursion
+   return file >> matrix;
 }
 
 }  // namespace TNL::Matrices

@@ -722,6 +722,20 @@ operator<<( std::ostream& str, const TridiagonalMatrixBase< Real, Device, Index,
    return str;
 }
 
+/**
+ * \brief Serialization of tridiagonal matrices into binary files.
+ */
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File& file, const TridiagonalMatrixBase< Real, Device, Index, Organization >& matrix );
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File&& file, const TridiagonalMatrixBase< Real, Device, Index, Organization >& matrix );
+
+// Note: Deserialization is different for TridiagonalMatrix and TridiagonalMatrixView,
+// see the respective files for implementation.
+
 }  // namespace TNL::Matrices
 
 #include "TridiagonalMatrixBase.hpp"

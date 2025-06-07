@@ -189,15 +189,28 @@ public:
    [[nodiscard]] __cuda_callable__
    ConstViewType
    getConstView() const;
-
-   /**
-    * \brief Method for saving the matrix to a file.
-    *
-    * \param file is the output file.
-    */
-   void
-   save( File& file ) const;
 };
+
+/**
+ * \brief Deserialization of sparse matrix views from binary files.
+ */
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename > class SegmentsView,
+          typename ComputeReal >
+File&
+operator>>( File& file, SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix );
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename > class SegmentsView,
+          typename ComputeReal >
+File&
+operator>>( File&& file, SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix );
 
 }  // namespace TNL::Matrices
 

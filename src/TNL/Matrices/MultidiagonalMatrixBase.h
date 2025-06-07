@@ -771,6 +771,20 @@ operator<<( std::ostream& str, const MultidiagonalMatrixBase< Real, Device, Inde
    return str;
 }
 
+/**
+ * \brief Serialization of multidiagonal matrices into binary files.
+ */
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File& file, const MultidiagonalMatrixBase< Real, Device, Index, Organization >& matrix );
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File&& file, const MultidiagonalMatrixBase< Real, Device, Index, Organization >& matrix );
+
+// Note: Deserialization is different for DenseMatrix and DenseMatrixView,
+// see the respective files for implementation.
+
 }  // namespace TNL::Matrices
 
 #include "MultidiagonalMatrixBase.hpp"

@@ -399,48 +399,9 @@ template< typename Real,
           typename RealAllocator,
           typename IndexAllocator >
 void
-MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::save( File& file ) const
-{
-   file.save( &this->rows );
-   file.save( &this->columns );
-   file << values << diagonalOffsets;
-}
-
-template< typename Real,
-          typename Device,
-          typename Index,
-          ElementsOrganization Organization,
-          typename RealAllocator,
-          typename IndexAllocator >
-void
-MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::load( File& file )
-{
-   Index rows = 0;
-   Index columns = 0;
-   file.load( &rows );
-   file.load( &columns );
-   file >> values >> diagonalOffsets;
-
-   hostDiagonalOffsets = diagonalOffsets;
-   const Index minOffset = min( diagonalOffsets );
-   Index nonemptyRows = min( rows, columns );
-   if( rows > columns && minOffset < 0 )
-      nonemptyRows = min( rows, nonemptyRows - minOffset );
-   this->getIndexer().set( rows, columns, diagonalOffsets.getSize(), nonemptyRows );
-   // update the base
-   Base::bind( values.getView(), diagonalOffsets.getView(), hostDiagonalOffsets.getView(), this->getIndexer() );
-}
-
-template< typename Real,
-          typename Device,
-          typename Index,
-          ElementsOrganization Organization,
-          typename RealAllocator,
-          typename IndexAllocator >
-void
 MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::save( const String& fileName ) const
 {
-   Object::save( fileName );
+   File( fileName, std::ios_base::out ) << *this;
 }
 
 template< typename Real,
@@ -452,7 +413,48 @@ template< typename Real,
 void
 MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::load( const String& fileName )
 {
-   Object::load( fileName );
+   File( fileName, std::ios_base::in ) >> *this;
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          ElementsOrganization Organization,
+          typename RealAllocator,
+          typename IndexAllocator >
+File&
+operator>>( File& file, MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >& matrix )
+{
+   const std::string type = getObjectType( file );
+   if( type != matrix.getSerializationType() )
+      throw Exceptions::FileDeserializationError( file.getFileName(),
+                                                  "object type does not match (expected " + matrix.getSerializationType()
+                                                     + ", found " + type + ")." );
+   std::size_t rows = 0;
+   std::size_t columns = 0;
+   file.load( &rows );
+   file.load( &columns );
+   typename MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >::HostDiagonalOffsetsType
+      diagonalOffsets;
+   file >> diagonalOffsets;
+   // setDimensions initializes the internal indexer attribute
+   matrix.setDimensions( rows, columns, diagonalOffsets );
+   diagonalOffsets.reset();
+   file >> matrix.getValues();
+   return file;
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          ElementsOrganization Organization,
+          typename RealAllocator,
+          typename IndexAllocator >
+File&
+operator>>( File&& file, MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >& matrix )
+{
+   // named r-value is an l-value reference, so this is not recursion
+   return file >> matrix;
 }
 
 }  // namespace TNL::Matrices

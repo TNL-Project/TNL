@@ -89,13 +89,42 @@ template< typename Real,
           typename MatrixType,
           template< typename, typename > class SegmentsView,
           typename ComputeReal >
-void
-SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::save( File& file ) const
+File&
+operator>>( File& file, SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix )
 {
-   file.save( &this->rows );
-   file.save( &this->columns );
-   file << this->getValues() << this->getColumnIndexes();
-   this->getSegments().save( file );
+   const std::string type = getObjectType( file );
+   if( type != matrix.getSerializationType() )
+      throw Exceptions::FileDeserializationError( file.getFileName(),
+                                                  "object type does not match (expected " + matrix.getSerializationType()
+                                                     + ", found " + type + ")." );
+   std::size_t rows = 0;
+   std::size_t columns = 0;
+   file.load( &rows );
+   file.load( &columns );
+   if( rows != static_cast< std::size_t >( matrix.getRows() ) )
+      throw Exceptions::FileDeserializationError( file.getFileName(),
+                                                  "invalid number of rows: " + std::to_string( rows ) + " (expected "
+                                                     + std::to_string( matrix.getRows() ) + ")." );
+   if( columns != static_cast< std::size_t >( matrix.getColumns() ) )
+      throw Exceptions::FileDeserializationError( file.getFileName(),
+                                                  "invalid number of columns: " + std::to_string( columns ) + " (expected "
+                                                     + std::to_string( matrix.getColumns() ) + ")." );
+   matrix.getSegments().load( file );
+   file >> matrix.getValues() >> matrix.getColumnIndexes();
+   return file;
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename > class SegmentsView,
+          typename ComputeReal >
+File&
+operator>>( File&& file, SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix )
+{
+   // named r-value is an l-value reference, so this is not recursion
+   return file >> matrix;
 }
 
 }  // namespace TNL::Matrices

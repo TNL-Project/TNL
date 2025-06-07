@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <TNL/Object.h>
 #include <TNL/Containers/Vector.h>
 #include "MultidiagonalMatrixView.h"
 
@@ -60,7 +59,7 @@ template< typename Real = double,
           ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-class MultidiagonalMatrix : public TNL::Object, public MultidiagonalMatrixBase< Real, Device, Index, Organization >
+class MultidiagonalMatrix : public MultidiagonalMatrixBase< Real, Device, Index, Organization >
 {
    using Base = MultidiagonalMatrixBase< Real, Device, Index, Organization >;
 
@@ -336,22 +335,6 @@ public:
    operator=( const MultidiagonalMatrix< Real_, Device_, Index_, Organization_, RealAllocator_, IndexAllocator_ >& matrix );
 
    /**
-    * \brief Method for saving the matrix to a file.
-    *
-    * \param file is the output file.
-    */
-   void
-   save( File& file ) const override;
-
-   /**
-    * \brief Method for loading the matrix from a file.
-    *
-    * \param file is the input file.
-    */
-   void
-   load( File& file ) override;
-
-   /**
     * \brief Method for saving the matrix to the file with given filename.
     *
     * \param fileName is name of the file.
@@ -367,9 +350,6 @@ public:
    void
    load( const String& fileName );
 
-   // FIXME
-   using Base::getSerializationType;
-
 protected:
    //! \brief Vector containing the allocated matrix elements.
    ValuesVectorType values;
@@ -378,6 +358,27 @@ protected:
    DiagonalOffsetsType diagonalOffsets;
    HostDiagonalOffsetsType hostDiagonalOffsets;
 };
+
+/**
+ * \brief Deserialization of multidiagonal matrices from binary files.
+ */
+template< typename Real,
+          typename Device,
+          typename Index,
+          ElementsOrganization Organization,
+          typename RealAllocator,
+          typename IndexAllocator >
+File&
+operator>>( File& file, MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >& matrix );
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          ElementsOrganization Organization,
+          typename RealAllocator,
+          typename IndexAllocator >
+File&
+operator>>( File&& file, MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllocator >& matrix );
 
 }  // namespace TNL::Matrices
 

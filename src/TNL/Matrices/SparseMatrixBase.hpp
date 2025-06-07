@@ -805,4 +805,26 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    return this->columnIndexes;
 }
 
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+File&
+operator<<( File& file, const SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix )
+{
+   saveObjectType( file, matrix.getSerializationType() );
+   const std::size_t rows = matrix.getRows();
+   const std::size_t columns = matrix.getColumns();
+   file.save( &rows );
+   file.save( &columns );
+   matrix.getSegments().save( file );
+   file << matrix.getValues() << matrix.getColumnIndexes();
+   return file;
+}
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+File&
+operator<<( File&& file, const SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix )
+{
+   // named r-value is an l-value reference, so this is not recursion
+   return file << matrix;
+}
+
 }  // namespace TNL::Matrices
