@@ -8,6 +8,7 @@ set(COMMON_TESTS
     SegmentsTest_CSR
     SegmentsTest_Ellpack
     SegmentsTest_SlicedEllpack
+    SegmentsTest_SortedBiEllpack
     SegmentsTest_SortedCSR
     SegmentsTest_SortedEllpack
     SegmentsTest_SortedSlicedEllpack
