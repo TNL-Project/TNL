@@ -42,7 +42,7 @@ TYPED_TEST( BiEllpackSegmentsTest, isSegments )
 
 TYPED_TEST( BiEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 {
-   test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
+   test_setSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( BiEllpackSegmentsTest, findInSegments )
