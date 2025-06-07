@@ -43,7 +43,7 @@ TYPED_TEST( SlicedEllpackSegmentsTest, isSegments )
 
 TYPED_TEST( SlicedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 {
-   test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
+   test_setSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( SlicedEllpackSegmentsTest, findInSegments )

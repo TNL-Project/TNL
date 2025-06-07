@@ -19,7 +19,7 @@ test_isSegments()
 
 template< typename Segments >
 void
-test_SetSegmentsSizes_EqualSizes()
+test_setSegmentsSizes_EqualSizes()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
@@ -99,7 +99,7 @@ test_SetSegmentsSizes_EqualSizes()
 
 template< typename Segments >
 void
-test_SetSegmentsSizes_EqualSizes_EllpackOnly()
+test_setSegmentsSizes_EqualSizes_EllpackOnly()
 {
    using IndexType = typename Segments::IndexType;
 
