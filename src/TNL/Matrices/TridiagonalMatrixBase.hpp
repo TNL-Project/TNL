@@ -493,7 +493,7 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::print( std::ostream&
                str << std::setw( 10 ) << str_.str();
             }
          }
-      str << std::endl;
+      str << '\n';
    }
 }
 
@@ -524,6 +524,27 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::getElementIndex( Ind
    TNL_ASSERT_LT( localIdx, 3, "" );
 
    return this->indexer.getGlobalIndex( row, localIdx );
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File& file, const TridiagonalMatrixBase< Real, Device, Index, Organization >& matrix )
+{
+   saveObjectType( file, matrix.getSerializationType() );
+   const std::size_t rows = matrix.getRows();
+   const std::size_t columns = matrix.getColumns();
+   file.save( &rows );
+   file.save( &columns );
+   file << matrix.getValues();
+   return file;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File&& file, const TridiagonalMatrixBase< Real, Device, Index, Organization >& matrix )
+{
+   // named r-value is an l-value reference, so this is not recursion
+   return file << matrix;
 }
 
 }  // namespace TNL::Matrices

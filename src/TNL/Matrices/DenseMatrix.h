@@ -5,7 +5,6 @@
 
 #include <map>
 
-#include <TNL/Object.h>
 #include <TNL/Allocators/Default.h>
 
 #include "DenseMatrixView.h"
@@ -27,7 +26,7 @@ template< typename Real = double,
           typename Index = int,
           ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real > >
-class DenseMatrix : public TNL::Object, public DenseMatrixBase< Real, Device, Index, Organization >
+class DenseMatrix : public DenseMatrixBase< Real, Device, Index, Organization >
 {
    using Base = DenseMatrixBase< Real, Device, Index, Organization >;
 
@@ -367,25 +366,6 @@ public:
    void
    load( const String& fileName );
 
-   /**
-    * \brief Method for saving the matrix to a file.
-    *
-    * \param file is the file where the matrix will be saved.
-    */
-   void
-   save( File& file ) const override;
-
-   /**
-    * \brief Method for loading the matrix from a file.
-    *
-    * \param file is the file from which the matrix will be loaded.
-    */
-   void
-   load( File& file ) override;
-
-   // FIXME
-   using Base::getSerializationType;
-
 protected:
    //! \brief Vector containing the allocated matrix elements.
    ValuesVectorType values;
@@ -393,6 +373,17 @@ protected:
    //! \brief Instance of the segments used for indexing in the dense matrix.
    typename Base::SegmentsType segments;
 };
+
+/**
+ * \brief Deserialization of dense matrices from binary files.
+ */
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+File&
+operator>>( File& file, DenseMatrix< Real, Device, Index, Organization, RealAllocator >& matrix );
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+File&
+operator>>( File&& file, DenseMatrix< Real, Device, Index, Organization, RealAllocator >& matrix );
 
 }  // namespace TNL::Matrices
 

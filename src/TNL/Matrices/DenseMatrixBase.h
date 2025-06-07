@@ -813,6 +813,20 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 std::ostream&
 operator<<( std::ostream& str, const DenseMatrixBase< Real, Device, Index, Organization >& matrix );
 
+/**
+ * \brief Serialization of dense matrices into binary files.
+ */
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File& file, const DenseMatrixBase< Real, Device, Index, Organization >& matrix );
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File&& file, const DenseMatrixBase< Real, Device, Index, Organization >& matrix );
+
+// Note: Deserialization is different for DenseMatrix and DenseMatrixView,
+// see the respective files for implementation.
+
 [[nodiscard]] constexpr std::false_type
 isDenseMatrix( ... )
 {

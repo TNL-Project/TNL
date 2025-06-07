@@ -952,6 +952,20 @@ operator<<( std::ostream& str, const SparseMatrixBase< Real, Device, Index, Matr
    return str;
 }
 
+/**
+ * \brief Serialization of sparse matrices into binary files.
+ */
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+File&
+operator<<( File& file, const SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix );
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+File&
+operator<<( File&& file, const SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix );
+
+// Note: Deserialization is different for SparseMatrix and SparseMatrixView,
+// see the respective files for implementation.
+
 }  // namespace TNL::Matrices
 
 #include "SparseMatrixBase.hpp"

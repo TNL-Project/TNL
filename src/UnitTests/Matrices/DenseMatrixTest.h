@@ -27,21 +27,21 @@ test_GetSerializationType()
 {
    using namespace TNL::Algorithms::Segments;
    EXPECT_EQ( ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< float, [any_device], int, RowMajorOrder >" ) );
+              TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], RowMajorOrder >" ) );
    EXPECT_EQ( ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< int, [any_device], int, RowMajorOrder >" ) );
+              TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], RowMajorOrder >" ) );
    EXPECT_EQ( ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< float, [any_device], int, RowMajorOrder >" ) );
+              TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], RowMajorOrder >" ) );
    EXPECT_EQ( ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< int, [any_device], int, RowMajorOrder >" ) );
+              TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], RowMajorOrder >" ) );
    EXPECT_EQ( ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< float, [any_device], int, ColumnMajorOrder >" ) );
+              TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], ColumnMajorOrder >" ) );
    EXPECT_EQ( ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< int, [any_device], int, ColumnMajorOrder >" ) );
+              TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], ColumnMajorOrder >" ) );
    EXPECT_EQ( ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< float, [any_device], int, ColumnMajorOrder >" ) );
+              TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], ColumnMajorOrder >" ) );
    EXPECT_EQ( ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< int, [any_device], int, ColumnMajorOrder >" ) );
+              TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], ColumnMajorOrder >" ) );
 }
 
 template< typename Matrix >
