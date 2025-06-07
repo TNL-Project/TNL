@@ -43,12 +43,12 @@ TYPED_TEST( EllpackSegmentsTest, isSegments )
 
 TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 {
-   test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
+   test_setSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes_EllpackOnly )
 {
-   test_SetSegmentsSizes_EqualSizes_EllpackOnly< typename TestFixture::SegmentsType >();
+   test_setSegmentsSizes_EqualSizes_EllpackOnly< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackSegmentsTest, findInSegments )
