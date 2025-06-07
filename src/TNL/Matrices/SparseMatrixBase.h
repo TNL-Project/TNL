@@ -156,9 +156,6 @@ public:
    /**
     * \brief Returns string with serialization type.
     *
-    * The string has a form `Matrices::SparseMatrix< RealType,  [any_device], IndexType, General/Symmetric, Format,
-    * [any_allocator] >`.
-    *
     * \return \ref String with the serialization type.
     *
     * \par Example

@@ -106,11 +106,6 @@ public:
    /**
     * \brief Returns string with serialization type.
     *
-    * The string has a form `Matrices::MultidiagonalMatrix< RealType,  [any_device], IndexType, Organization, [any_allocator],
-    * [any_allocator] >`.
-    *
-    * See \ref MultidiagonalMatrix::getSerializationType.
-    *
     * \return \ref String with the serialization type.
     */
    [[nodiscard]] static std::string
