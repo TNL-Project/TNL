@@ -123,6 +123,18 @@ public:
    }
 
    /**
+    * \brief Set index of the segment.
+    *
+    * \param index of the segment.
+    */
+   __cuda_callable__
+   void
+   setSegmentIndex( IndexType index )
+   {
+      this->segmentIdx = index;
+   }
+
+   /**
     * \brief Get index of the segment.
     *
     * \return index of the segment.

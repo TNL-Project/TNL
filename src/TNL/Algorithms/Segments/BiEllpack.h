@@ -55,6 +55,8 @@ public:
 
    using OffsetsContainer = Containers::Vector< Index, Device, typename Base::IndexType, IndexAllocator >;
 
+   using IndexAllocatorType = IndexAllocator;
+
    //! \brief Constructor with no parameters to create empty segments.
    BiEllpack() = default;
 
