@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <initializer_list>
 #include <type_traits>
 
 #include <TNL/Containers/Vector.h>
@@ -46,6 +47,9 @@ class SlicedEllpack : public SlicedEllpackBase< Device, Index, Organization, Sli
    using Base = SlicedEllpackBase< Device, Index, Organization, SliceSize >;
 
 public:
+   //! \brief Type of allocator for indices.
+   using IndexAllocatorType = IndexAllocator;
+
    //! \brief Type of segments view.
    using ViewType = SlicedEllpackView< Device, Index, Organization, SliceSize >;
 
@@ -202,10 +206,13 @@ struct RowMajorSlicedEllpack : public SlicedEllpack< Device, Index, IndexAllocat
    using BaseType = SlicedEllpack< Device, Index, IndexAllocator, RowMajorOrder, SliceSize >;
 
    //! \brief Constructor with no parameters to create empty segments.
+   __cuda_callable__
    RowMajorSlicedEllpack() = default;
 
    //! \brief Copy constructor (makes deep copy).
-   RowMajorSlicedEllpack( const RowMajorSlicedEllpack& );
+   RowMajorSlicedEllpack( const RowMajorSlicedEllpack& segments )
+   : BaseType( segments )
+   {}
 
    //! \brief Move constructor.
    RowMajorSlicedEllpack( RowMajorSlicedEllpack&& ) noexcept = default;
@@ -277,7 +284,9 @@ struct ColumnMajorSlicedEllpack : public SlicedEllpack< Device, Index, IndexAllo
    ColumnMajorSlicedEllpack() = default;
 
    //! \brief Copy constructor (makes deep copy).
-   ColumnMajorSlicedEllpack( const ColumnMajorSlicedEllpack& );
+   ColumnMajorSlicedEllpack( const ColumnMajorSlicedEllpack& segments )
+   : BaseType( segments )
+   {}
 
    //! \brief Move constructor.
    ColumnMajorSlicedEllpack( ColumnMajorSlicedEllpack&& ) noexcept = default;
