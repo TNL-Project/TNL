@@ -14,25 +14,43 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using SlicedEllpackSegmentsTypes =
-   ::testing::Types< typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, int >::BaseType,
-                     typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, long >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Host, int >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Host, long >::BaseType
+using SlicedEllpackSegmentsTypes = ::testing::Types<
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, int >,
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, long >,
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Host,
+                                             int,
+                                             TNL::Allocators::Default< TNL::Devices::Host >::template Allocator< int >,
+                                             TNL::Algorithms::Segments::ColumnMajorOrder >,
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Host,
+                                             long,
+                                             TNL::Allocators::Default< TNL::Devices::Host >::template Allocator< long >,
+                                             TNL::Algorithms::Segments::ColumnMajorOrder >
 #if defined( __CUDACC__ )
-                     ,
-                     typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Cuda, int >::BaseType,
-                     typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Cuda, long >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Cuda, int >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Cuda, long >::BaseType
+   ,
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Cuda, int >,
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Cuda, long >,
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Cuda,
+                                             int,
+                                             TNL::Allocators::Default< TNL::Devices::Cuda >::template Allocator< int >,
+                                             TNL::Algorithms::Segments::ColumnMajorOrder >,
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Cuda,
+                                             long,
+                                             TNL::Allocators::Default< TNL::Devices::Cuda >::template Allocator< long >,
+                                             TNL::Algorithms::Segments::ColumnMajorOrder >
 #elif defined( __HIP__ )
-                     ,
-                     typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Hip, int >::BaseType,
-                     typename TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Hip, long >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Hip, int >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Hip, long >::BaseType
+   ,
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Hip, int >,
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Hip, long >,
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Hip,
+                                             int,
+                                             TNL::Allocators::Default< TNL::Devices::Hip >::template Allocator< int >,
+                                             TNL::Algorithms::Segments::ColumnMajorOrder >,
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Hip,
+                                             long,
+                                             TNL::Allocators::Default< TNL::Devices::Hip >::template Allocator< long >,
+                                             TNL::Algorithms::Segments::ColumnMajorOrder >
 #endif
-                     >;
+   >;
 
 TYPED_TEST_SUITE( SlicedEllpackReduceSegmentsTest, SlicedEllpackSegmentsTypes );
 
