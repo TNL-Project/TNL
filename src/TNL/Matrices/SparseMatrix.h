@@ -324,7 +324,7 @@ public:
     *
     * \param columns is the number of matrix columns.
     */
-   virtual void
+   void
    setColumnsWithoutReset( Index columns );
 
    /**
