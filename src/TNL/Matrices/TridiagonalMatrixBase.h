@@ -97,10 +97,6 @@ public:
    /**
     * \brief Returns string with serialization type.
     *
-    * The string has a form `Matrices::TridiagonalMatrix< RealType, [any_device], IndexType, Organization >`.
-    *
-    * See \ref TridiagonalMatrix::getSerializationType.
-    *
     * \return \ref String with the serialization type.
     */
    [[nodiscard]] static std::string

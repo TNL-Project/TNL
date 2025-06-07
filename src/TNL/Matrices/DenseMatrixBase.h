@@ -117,8 +117,6 @@ public:
    /**
     * \brief Returns string with serialization type.
     *
-    * The string has a form \e `Matrices::DenseMatrix< RealType,  [any_device], IndexType, [any_allocator], true/false >`.
-    *
     * \return \e String with the serialization type.
     */
    [[nodiscard]] static std::string
