@@ -14,18 +14,25 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using ChunkedEllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Host, int >,
-                                                      TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Host, long >
+using ChunkedEllpackSegmentsTypes =
+   ::testing::Types< TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Host, int >,
+                     TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Host, long >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Host, int >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Host, long >
 #if defined( __CUDACC__ )
-                                                      ,
-                                                      TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Cuda, int >,
-                                                      TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Cuda, long >
+                     ,
+                     TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Cuda, int >,
+                     TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Cuda, long >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Cuda, int >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
-                                                      ,
-                                                      TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Hip, int >,
-                                                      TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Hip, long >
+                     ,
+                     TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Hip, int >,
+                     TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Hip, long >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Hip, int >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Hip, long >
 #endif
-                                                      >;
+                     >;
 
 TYPED_TEST_SUITE( ChunkedEllpackSegmentsTest, ChunkedEllpackSegmentsTypes );
 
