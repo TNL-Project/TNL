@@ -211,7 +211,7 @@ public:
     * \return number of non-zero matrix elements.
     */
    [[nodiscard]] IndexType
-   getNonzeroElementsCount() const override;
+   getNonzeroElementsCount() const;
 
    /**
     * \brief Constant getter of simple structure for accessing given matrix row.

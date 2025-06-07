@@ -123,6 +123,14 @@ public:
    getSerializationType();
 
    /**
+    * \brief Computes a current number of nonzero matrix elements.
+    *
+    * \return number of nonzero matrix elements.
+    */
+   [[nodiscard]] IndexType
+   getNonzeroElementsCount() const;
+
+   /**
     * \brief Computes number of non-zeros in each row.
     *
     * \param rowLengths is a vector into which the number of non-zeros in each row

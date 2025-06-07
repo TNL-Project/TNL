@@ -137,7 +137,7 @@ public:
     * \return number of non-zero matrix elements.
     */
    [[nodiscard]] IndexType
-   getNonzeroElementsCount() const override;
+   getNonzeroElementsCount() const;
 
    /**
     * \brief Comparison operator with another tridiagonal matrix.
