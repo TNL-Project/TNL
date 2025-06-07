@@ -79,6 +79,18 @@ public:
    }
 
    /**
+    * \brief Set index of the segment.
+    *
+    * \param index of the segment.
+    */
+   __cuda_callable__
+   void
+   setSegmentIndex( IndexType idx )
+   {
+      this->segmentIdx = idx;
+   }
+
+   /**
     * \brief Get index of the segment.
     *
     * \return index of the segment.
@@ -170,6 +182,18 @@ public:
       const IndexType chunkIdx = localIdx / chunkSize;
       const IndexType inChunkOffset = localIdx % chunkSize;
       return segmentOffset + inChunkOffset * chunksInSlice + chunkIdx;
+   }
+
+   /**
+    * \brief Set index of the segment.
+    *
+    * \param index of the segment.
+    */
+   __cuda_callable__
+   void
+   setSegmentIndex( IndexType idx )
+   {
+      this->segmentIdx = idx;
    }
 
    /**
