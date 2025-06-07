@@ -12,51 +12,6 @@ namespace TNL {
 
 static constexpr char magic_number[] = "TNLMN";
 
-inline std::string
-Object::getSerializationType()
-{
-   return "Object";
-}
-
-inline std::string
-Object::getSerializationTypeVirtual() const
-{
-   return getSerializationType();
-}
-
-inline void
-Object::save( File& file ) const
-{
-   file.save( magic_number, strlen( magic_number ) );
-   file << this->getSerializationTypeVirtual();
-}
-
-inline void
-Object::load( File& file )
-{
-   const std::string objectType = getObjectType( file );
-   if( objectType != this->getSerializationTypeVirtual() )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "object type does not match (expected " + this->getSerializationTypeVirtual()
-                                                     + ", found " + objectType + ")." );
-}
-
-inline void
-Object::save( const String& fileName ) const
-{
-   File file;
-   file.open( fileName, std::ios_base::out );
-   this->save( file );
-}
-
-inline void
-Object::load( const String& fileName )
-{
-   File file;
-   file.open( fileName, std::ios_base::in );
-   this->load( file );
-}
-
 inline String
 getObjectType( File& file )
 {
