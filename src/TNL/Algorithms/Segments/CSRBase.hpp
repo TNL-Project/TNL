@@ -213,8 +213,6 @@ CSRBase< Device, Index >::forElements( const Array& segmentIndexes, Index begin,
    if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
       const Index segmentsCount = end - begin;
       std::size_t threadsCount;
-      constexpr int ThreadsPerSegment = 16;
-      constexpr int SegmentsPerBlock = 256 / ThreadsPerSegment;
       threadsCount = segmentsCount * Backend::getWarpSize();  // for vector kernel
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
