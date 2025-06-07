@@ -198,7 +198,7 @@ protected:
 };
 
 /**
- * \brief Data structure for column-major BiEllpack segments.
+ * \brief Alias for column-major BiEllpack segments.
  *
  * See \ref TNL::Algorithms::Segments::BiEllpack for more details.
  *
@@ -208,65 +208,24 @@ protected:
  */
 template< typename Device,
           typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-struct ColumnMajorBiEllpack : public BiEllpack< Device, Index, IndexAllocator, ColumnMajorOrder >
-{
-   using BaseType = BiEllpack< Device, Index, IndexAllocator, ColumnMajorOrder >;
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          int WarpSize = Backend::getWarpSize() >
+using RowMajorBiEllpack = BiEllpack< Device, Index, IndexAllocator, RowMajorOrder, WarpSize >;
 
-   //! \brief Constructor with no parameters to create empty segments.
-   ColumnMajorBiEllpack() = default;
-
-   //! \brief Copy constructor (makes deep copy).
-   ColumnMajorBiEllpack( const ColumnMajorBiEllpack& );
-
-   //! \brief Move constructor.
-   ColumnMajorBiEllpack( ColumnMajorBiEllpack&& ) noexcept = default;
-
-   /**
-    * \brief Constructor that initializes segments based on their sizes.
-    *
-    * The number of segments is determined by the size of \e segmentsSizes.
-    * Each element in this container specifies the size of a corresponding segment.
-    *
-    * \tparam SizesContainer The type of container used to store segment sizes.
-    *    It can be, for example, \ref TNL::Containers::Array or \ref TNL::Containers::Vector.
-    * \param segmentsSizes An instance of the container holding the sizes of the segments.
-    *
-    * See the following example:
-    *
-    * \includelineno Algorithms/Segments/SegmentsExample_constructor_1.cpp
-    *
-    * The expected output is:
-    *
-    * \include SegmentsExample_constructor_1.out
-    */
-   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
-   explicit ColumnMajorBiEllpack( const SizesContainer& segmentsSizes )
-   : BaseType( segmentsSizes )
-   {}
-
-   /**
-    * \brief Constructor that initializes segments using an initializer list.
-    *
-    * The number of segments is determined by the size of \e segmentsSizes.
-    * Each element in this initializer list specifies the size of a corresponding segment.
-    *
-    * \tparam ListIndex The type used for indexing elements in the initializer list.
-    * \param segmentsSizes An initializer list defining the sizes of the segments.
-    *
-    * See the following example:
-    *
-    * \includelineno Algorithms/Segments/SegmentsExample_constructor_2.cpp
-    *
-    * The expected output is:
-    *
-    * \include SegmentsExample_constructor_2.out
-    */
-   template< typename ListIndex >
-   ColumnMajorBiEllpack( const std::initializer_list< ListIndex >& segmentsSizes )
-   : BaseType( segmentsSizes )
-   {}
-};
+/**
+ * \brief Alias for column-major BiEllpack segments.
+ *
+ * See \ref TNL::Algorithms::Segments::BiEllpack for more details.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          int WarpSize = Backend::getWarpSize() >
+using ColumnMajorBiEllpack = BiEllpack< Device, Index, IndexAllocator, ColumnMajorOrder, WarpSize >;
 
 template< typename Segments >
 struct isBiEllpackSegments : std::false_type

@@ -14,26 +14,25 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using EllpackSegmentsTypes =
-   ::testing::Types< typename TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Host, int >::BaseType,
-                     typename TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Host, long >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Host, int >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Host, long >::BaseType
+using EllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Host, int >,
+                                               TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Host, long >,
+                                               TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Host, int >,
+                                               TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Host, long >
 
 #if defined( __CUDACC__ )
-                     ,
-                     typename TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Cuda, int >::BaseType,
-                     typename TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Cuda, long >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Cuda, int >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Cuda, long >::BaseType
+                                               ,
+                                               TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Cuda, int >,
+                                               TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Cuda, long >,
+                                               TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Cuda, int >,
+                                               TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
-                     ,
-                     typename TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Hip, int >::BaseType,
-                     typename TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Hip, long >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Hip, int >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Hip, long >::BaseType
+                                               ,
+                                               TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Hip, int >,
+                                               TNL::Algorithms::Segments::RowMajorEllpack< TNL::Devices::Hip, long >,
+                                               TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Hip, int >,
+                                               TNL::Algorithms::Segments::ColumnMajorEllpack< TNL::Devices::Hip, long >
 #endif
-                     >;
+                                               >;
 
 TYPED_TEST_SUITE( EllpackSegmentsTest, EllpackSegmentsTypes );
 

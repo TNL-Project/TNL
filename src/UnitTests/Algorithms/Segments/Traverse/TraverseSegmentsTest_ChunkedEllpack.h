@@ -15,22 +15,22 @@ protected:
 
 // types for which MatrixTest is instantiated
 using ChunkedEllpackSegmentsTypes =
-   ::testing::Types< typename TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Host, int >::BaseType,
-                     typename TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Host, long >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Host, int >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Host, long >::BaseType
+   ::testing::Types< TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Host, int >,
+                     TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Host, long >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Host, int >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Host, long >
 #if defined( __CUDACC__ )
                      ,
-                     typename TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Cuda, int >::BaseType,
-                     typename TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Cuda, long >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Cuda, int >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Cuda, long >::BaseType
+                     TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Cuda, int >,
+                     TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Cuda, long >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Cuda, int >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
                      ,
-                     typename TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Hip, int >::BaseType,
-                     typename TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Hip, long >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Hip, int >::BaseType,
-                     typename TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Hip, long >::BaseType
+                     TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Hip, int >,
+                     TNL::Algorithms::Segments::RowMajorChunkedEllpack< TNL::Devices::Hip, long >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Hip, int >,
+                     TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< TNL::Devices::Hip, long >
 #endif
                      >;
 
