@@ -2,7 +2,7 @@ add_subdirectory(Reduce)
 add_subdirectory(Traverse)
 
 set(COMMON_TESTS SegmentsTest_AdaptiveCSR SegmentsTest_BiEllpack SegmentsTest_ChunkedEllpack SegmentsTest_CSR SegmentsTest_Ellpack
-                 SegmentsTest_SlicedEllpack SegmentsTest_SortedCSR SegmentsTest_SortedEllpack SegmentsTest_SortedSlicedEllpack
+                 SegmentsTest_SlicedEllpack SegmentsTest_SortedBiEllpack SegmentsTest_SortedCSR SegmentsTest_SortedEllpack SegmentsTest_SortedSlicedEllpack
                  GrowingSegmentsTest
 )
 
