@@ -9,20 +9,6 @@ using namespace TNL;
 
 static const char* TEST_FILE_NAME = "test_ObjectTest.tnl";
 
-TEST( ObjectTest, SaveAndLoadTest )
-{
-   Object testObject;
-   File file;
-   ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::out ) );
-   ASSERT_NO_THROW( testObject.save( file ) );
-   ASSERT_NO_THROW( file.close() );
-   ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::in ) );
-   ASSERT_NO_THROW( testObject.load( file ) );
-   ASSERT_NO_THROW( file.close() );
-
-   EXPECT_EQ( std::remove( TEST_FILE_NAME ), 0 );
-}
-
 TEST( ObjectTest, parseObjectTypeTest )
 {
    std::vector< String > parsed;
@@ -66,9 +52,8 @@ TEST( ObjectTest, parseObjectTypeTest )
    EXPECT_EQ( parsed, expected );
 }
 
-TEST( HeaderTest, SaveAndLoadTest )
+TEST( ObjectTest, saveAndGetObjectTypeTest )
 {
-   Object testObject;
    File file;
    ASSERT_NO_THROW( file.open( TEST_FILE_NAME, std::ios_base::out ) );
    ASSERT_NO_THROW( saveObjectType( file, "TYPE" ) );
