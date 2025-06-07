@@ -36,7 +36,7 @@ TYPED_TEST( CSRSegmentsTest, isSegments )
 
 TYPED_TEST( CSRSegmentsTest, setSegmentsSizes_EqualSizes )
 {
-   test_SetSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
+   test_setSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRSegmentsTest, findInSegments )
