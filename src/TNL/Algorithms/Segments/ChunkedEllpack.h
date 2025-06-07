@@ -53,6 +53,8 @@ public:
    //! \brief Type of container storing offsets of particular segments.
    using OffsetsContainer = Containers::Vector< Index, Device, typename Base::IndexType, IndexAllocator >;
 
+   using IndexAllocatorType = IndexAllocator;
+
    using SliceInfoAllocator = typename Allocators::Default< Device >::template Allocator< typename Base::SliceInfoType >;
    using SliceInfoContainer =
       Containers::Array< typename TNL::copy_const< typename Base::SliceInfoType >::template from< Index >::type,
@@ -199,7 +201,7 @@ protected:
 };
 
 /**
- * \brief Data structure for row-major Chunked Ellpack segments.
+ * \brief Alias for row-major Chunked Ellpack segments.
  *
  * See \ref TNL::Algorithms::Segments::ChunkedEllpack for more details.
  *
@@ -210,67 +212,10 @@ protected:
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-struct RowMajorChunkedEllpack : public ChunkedEllpack< Device, Index, IndexAllocator, RowMajorOrder >
-{
-   using BaseType = ChunkedEllpack< Device, Index, IndexAllocator, RowMajorOrder >;
-
-   //! \brief Constructor with no parameters to create empty segments.
-   RowMajorChunkedEllpack() = default;
-
-   //! \brief Copy constructor (makes deep copy).
-   RowMajorChunkedEllpack( const RowMajorChunkedEllpack& );
-
-   //! \brief Move constructor.
-   RowMajorChunkedEllpack( RowMajorChunkedEllpack&& ) noexcept = default;
-
-   /**
-    * \brief Constructor that initializes segments based on their sizes.
-    *
-    * The number of segments is determined by the size of \e segmentsSizes.
-    * Each element in this container specifies the size of a corresponding segment.
-    *
-    * \tparam SizesContainer The type of container used to store segment sizes.
-    *    It can be, for example, \ref TNL::Containers::Array or \ref TNL::Containers::Vector.
-    * \param segmentsSizes An instance of the container holding the sizes of the segments.
-    *
-    * See the following example:
-    *
-    * \includelineno Algorithms/Segments/SegmentsExample_constructor_1.cpp
-    *
-    * The expected output is:
-    *
-    * \include SegmentsExample_constructor_1.out
-    */
-   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
-   explicit RowMajorChunkedEllpack( const SizesContainer& segmentsSizes )
-   : BaseType( segmentsSizes )
-   {}
-
-   /**
-    * \brief Constructor that initializes segments using an initializer list.
-    *
-    * The number of segments is determined by the size of \e segmentsSizes.
-    * Each element in this initializer list specifies the size of a corresponding segment.
-    *
-    * \tparam ListIndex The type used for indexing elements in the initializer list.
-    * \param segmentsSizes An initializer list defining the sizes of the segments.
-    *
-    * See the following example:
-    *
-    * \includelineno Algorithms/Segments/SegmentsExample_constructor_2.cpp
-    *
-    * The expected output is:
-    *
-    * \include SegmentsExample_constructor_2.out
-    */
-   template< typename ListIndex >
-   RowMajorChunkedEllpack( const std::initializer_list< ListIndex >& segmentsSizes )
-   : BaseType( segmentsSizes )
-   {}
-};
+using RowMajorChunkedEllpack = ChunkedEllpack< Device, Index, IndexAllocator, RowMajorOrder >;
 
 /**
- * \brief Data structure for column-major Chunked Ellpack segments.
+ * \brief Alias for column-major Chunked Ellpack segments.
  *
  * See \ref TNL::Algorithms::Segments::ChunkedEllpack for more details.
  *
@@ -281,64 +226,7 @@ struct RowMajorChunkedEllpack : public ChunkedEllpack< Device, Index, IndexAlloc
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-struct ColumnMajorChunkedEllpack : public ChunkedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder >
-{
-   using BaseType = ChunkedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder >;
-
-   //! \brief Constructor with no parameters to create empty segments.
-   ColumnMajorChunkedEllpack() = default;
-
-   //! \brief Copy constructor (makes deep copy).
-   ColumnMajorChunkedEllpack( const ColumnMajorChunkedEllpack& );
-
-   //! \brief Move constructor.
-   ColumnMajorChunkedEllpack( ColumnMajorChunkedEllpack&& ) noexcept = default;
-
-   /**
-    * \brief Constructor that initializes segments based on their sizes.
-    *
-    * The number of segments is determined by the size of \e segmentsSizes.
-    * Each element in this container specifies the size of a corresponding segment.
-    *
-    * \tparam SizesContainer The type of container used to store segment sizes.
-    *    It can be, for example, \ref TNL::Containers::Array or \ref TNL::Containers::Vector.
-    * \param segmentsSizes An instance of the container holding the sizes of the segments.
-    *
-    * See the following example:
-    *
-    * \includelineno Algorithms/Segments/SegmentsExample_constructor_1.cpp
-    *
-    * The expected output is:
-    *
-    * \include SegmentsExample_constructor_1.out
-    */
-   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
-   explicit ColumnMajorChunkedEllpack( const SizesContainer& segmentsSizes )
-   : BaseType( segmentsSizes )
-   {}
-
-   /**
-    * \brief Constructor that initializes segments using an initializer list.
-    *
-    * The number of segments is determined by the size of \e segmentsSizes.
-    * Each element in this initializer list specifies the size of a corresponding segment.
-    *
-    * \tparam ListIndex The type used for indexing elements in the initializer list.
-    * \param segmentsSizes An initializer list defining the sizes of the segments.
-    *
-    * See the following example:
-    *
-    * \includelineno Algorithms/Segments/SegmentsExample_constructor_2.cpp
-    *
-    * The expected output is:
-    *
-    * \include SegmentsExample_constructor_2.out
-    */
-   template< typename ListIndex >
-   ColumnMajorChunkedEllpack( const std::initializer_list< ListIndex >& segmentsSizes )
-   : BaseType( segmentsSizes )
-   {}
-};
+using ColumnMajorChunkedEllpack = ChunkedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder >;
 
 template< typename Segments >
 struct isChunkedEllpackSegments : std::false_type
