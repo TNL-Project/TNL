@@ -15,7 +15,6 @@ set(HOST_EXAMPLES
     FileNameExample
     FileNameExampleDistributedSystemNodeCoordinates
     FileNameExampleDistributedSystemNodeId
-    ObjectExample_getType
     ParseObjectTypeExample
     PerformanceCountersExample
     StringExample

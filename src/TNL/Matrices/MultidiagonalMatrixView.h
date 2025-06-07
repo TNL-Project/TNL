@@ -136,15 +136,18 @@ public:
     */
    [[nodiscard]] ConstViewType
    getConstView() const;
-
-   /**
-    * \brief Method for saving the matrix to a file.
-    *
-    * \param file is the output file.
-    */
-   void
-   save( File& file ) const;
 };
+
+/**
+ * \brief Deserialization of multidiagonal matrix views from binary files.
+ */
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator>>( File& file, MultidiagonalMatrixView< Real, Device, Index, Organization >& matrix );
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator>>( File&& file, MultidiagonalMatrixView< Real, Device, Index, Organization >& matrix );
 
 }  // namespace TNL::Matrices
 

@@ -5,7 +5,6 @@
 
 #include <map>
 
-#include <TNL/Object.h>
 #include <TNL/Allocators/Default.h>
 
 #include "SparseMatrixView.h"
@@ -47,8 +46,7 @@ template< typename Real = double,
           typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-class SparseMatrix : public Object,
-                     public SparseMatrixBase< Real,
+class SparseMatrix : public SparseMatrixBase< Real,
                                               Device,
                                               Index,
                                               MatrixType_,
@@ -306,6 +304,18 @@ public:
    setDimensions( Index rows, Index columns );
 
    /**
+    * \brief Set number of rows and columns of this matrix and performs
+    * full allocation according to the given segments.
+    *
+    * \param rows is the number of matrix rows.
+    * \param columns is the number of matrix columns.
+    * \param segments is the segments instance specifying the storage
+    *    to be allocated.
+    */
+   void
+   setDimensions( Index rows, Index columns, SegmentsType segments );
+
+   /**
     * \brief Set number of columns of this matrix.
     *
     * Unlike \ref setDimensions, the storage is not reset in this operation.
@@ -314,7 +324,7 @@ public:
     *
     * \param columns is the number of matrix columns.
     */
-   virtual void
+   void
    setColumnsWithoutReset( Index columns );
 
    /**
@@ -481,25 +491,6 @@ public:
    void
    load( const String& fileName );
 
-   /**
-    * \brief Method for saving the matrix to a file.
-    *
-    * \param file is the output file.
-    */
-   void
-   save( File& file ) const override;
-
-   /**
-    * \brief Method for loading the matrix from a file.
-    *
-    * \param file is the input file.
-    */
-   void
-   load( File& file ) override;
-
-   // FIXME
-   using Base::getSerializationType;
-
 protected:
    //! \brief Vector containing the allocated matrix elements.
    ValuesVectorType values;
@@ -510,6 +501,33 @@ protected:
    //! \brief Instance of the segments used for indexing in the sparse matrix.
    SegmentsType segments;
 };
+
+/**
+ * \brief Deserialization of sparse matrices from binary files.
+ */
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename, typename > class Segments,
+          typename ComputeReal,
+          typename RealAllocator,
+          typename IndexAllocator >
+File&
+operator>>( File& file,
+            SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix );
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename, typename > class Segments,
+          typename ComputeReal,
+          typename RealAllocator,
+          typename IndexAllocator >
+File&
+operator>>( File&& file,
+            SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix );
 
 }  // namespace TNL::Matrices
 

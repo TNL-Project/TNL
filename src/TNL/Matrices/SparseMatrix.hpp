@@ -220,6 +220,36 @@ template< typename Real,
           typename RealAllocator,
           typename IndexAllocator >
 void
+SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setDimensions(
+   Index rows,
+   Index columns,
+   SegmentsType segments )
+{
+   if( segments.getSegmentsCount() != rows )
+      throw std::invalid_argument( "the number of segments not match the number of matrix rows" );
+
+   this->segments = segments;
+
+   if constexpr( ! Base::isBinary() ) {
+      this->values.setSize( segments.getStorageSize() );
+      this->values = 0;
+   }
+   this->columnIndexes.setSize( segments.getStorageSize() );
+   this->columnIndexes = paddingIndex< Index >;
+
+   // update the base
+   Base::bind( rows, columns, values.getView(), columnIndexes.getView(), segments.getView() );
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename, typename > class Segments,
+          typename ComputeReal,
+          typename RealAllocator,
+          typename IndexAllocator >
+void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setColumnsWithoutReset(
    Index columns )
 {
@@ -274,7 +304,6 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
       this->values.setSize( this->segments.getStorageSize() );
       this->values = 0;
    }
-   this->values.setSize( this->segments.getStorageSize() );
    this->columnIndexes.setSize( this->segments.getStorageSize() );
    this->columnIndexes = paddingIndex< Index >;
 
@@ -551,48 +580,10 @@ template< typename Real,
           typename RealAllocator,
           typename IndexAllocator >
 void
-SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::save( File& file ) const
-{
-   file.save( &this->rows );
-   file.save( &this->columns );
-   file << values << columnIndexes;
-   segments.save( file );
-}
-
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
-void
-SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::load( File& file )
-{
-   Index rows = 0;
-   Index columns = 0;
-   file.load( &rows );
-   file.load( &columns );
-   file >> values >> columnIndexes;
-   segments.load( file );
-   // update the base
-   Base::bind( rows, columns, values.getView(), columnIndexes.getView(), segments.getView() );
-}
-
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
-void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::save(
    const String& fileName ) const
 {
-   Object::save( fileName );
+   File( fileName, std::ios_base::out ) << *this;
 }
 
 template< typename Real,
@@ -607,7 +598,54 @@ void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::load(
    const String& fileName )
 {
-   Object::load( fileName );
+   File( fileName, std::ios_base::in ) >> *this;
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename, typename > class Segments,
+          typename ComputeReal,
+          typename RealAllocator,
+          typename IndexAllocator >
+File&
+operator>>( File& file,
+            SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix )
+{
+   const std::string type = getObjectType( file );
+   if( type != matrix.getSerializationType() )
+      throw Exceptions::FileDeserializationError( file.getFileName(),
+                                                  "object type does not match (expected " + matrix.getSerializationType()
+                                                     + ", found " + type + ")." );
+   std::size_t rows = 0;
+   std::size_t columns = 0;
+   file.load( &rows );
+   file.load( &columns );
+   Segments< Device, Index, IndexAllocator > segments;
+   segments.load( file );
+   // setDimensions initializes the internal segments attribute
+   matrix.setDimensions( rows, columns, segments );
+   file >> matrix.getValues() >> matrix.getColumnIndexes();
+   // update views in the base class
+   matrix.setColumnsWithoutReset( matrix.getColumns() );
+   return file;
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename, typename > class Segments,
+          typename ComputeReal,
+          typename RealAllocator,
+          typename IndexAllocator >
+File&
+operator>>( File&& file,
+            SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix )
+{
+   // named r-value is an l-value reference, so this is not recursion
+   return file >> matrix;
 }
 
 }  // namespace TNL::Matrices

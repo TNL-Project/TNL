@@ -156,9 +156,6 @@ public:
    /**
     * \brief Returns string with serialization type.
     *
-    * The string has a form `Matrices::SparseMatrix< RealType,  [any_device], IndexType, General/Symmetric, Format,
-    * [any_allocator] >`.
-    *
     * \return \ref String with the serialization type.
     *
     * \par Example
@@ -214,7 +211,7 @@ public:
     * \return number of non-zero matrix elements.
     */
    [[nodiscard]] IndexType
-   getNonzeroElementsCount() const override;
+   getNonzeroElementsCount() const;
 
    /**
     * \brief Constant getter of simple structure for accessing given matrix row.
@@ -951,6 +948,20 @@ operator<<( std::ostream& str, const SparseMatrixBase< Real, Device, Index, Matr
    matrix.print( str );
    return str;
 }
+
+/**
+ * \brief Serialization of sparse matrices into binary files.
+ */
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+File&
+operator<<( File& file, const SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix );
+
+template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+File&
+operator<<( File&& file, const SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix );
+
+// Note: Deserialization is different for SparseMatrix and SparseMatrixView,
+// see the respective files for implementation.
 
 }  // namespace TNL::Matrices
 

@@ -175,14 +175,6 @@ public:
    getAllocatedElementsCount() const;
 
    /**
-    * \brief Computes a current number of nonzero matrix elements.
-    *
-    * \return number of nonzero matrix elements.
-    */
-   [[nodiscard]] virtual IndexType
-   getNonzeroElementsCount() const;
-
-   /**
     * \brief Returns number of matrix rows.
     *
     * \return number of matrix row.

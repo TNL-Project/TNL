@@ -159,17 +159,18 @@ public:
    template< int tileDim = 16 >
    void
    getInPlaceTransposition( Real matrixMultiplicator = 1.0 );
-
-   /**
-    * \brief Method for saving the matrix view to a file.
-    *
-    * The output file can be loaded by \ref DenseMatrix.
-    *
-    * \param file is the file where the matrix will be saved.
-    */
-   void
-   save( File& file ) const;
 };
+
+/**
+ * \brief Deserialization of dense matrix views from binary files.
+ */
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator>>( File& file, DenseMatrixView< Real, Device, Index, Organization >& matrix );
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator>>( File&& file, DenseMatrixView< Real, Device, Index, Organization >& matrix );
 
 }  // namespace TNL::Matrices
 

@@ -508,7 +508,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::print( std::ostrea
             }
          }
       }
-      str << std::endl;
+      str << '\n';
    }
 }
 
@@ -543,6 +543,27 @@ auto
 MultidiagonalMatrixBase< Real, Device, Index, Organization >::getDiagonalOffsets() -> DiagonalOffsetsView
 {
    return this->diagonalOffsets;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File& file, const MultidiagonalMatrixBase< Real, Device, Index, Organization >& matrix )
+{
+   saveObjectType( file, matrix.getSerializationType() );
+   const std::size_t rows = matrix.getRows();
+   const std::size_t columns = matrix.getColumns();
+   file.save( &rows );
+   file.save( &columns );
+   file << matrix.getDiagonalOffsets() << matrix.getValues();
+   return file;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File&& file, const MultidiagonalMatrixBase< Real, Device, Index, Organization >& matrix )
+{
+   // named r-value is an l-value reference, so this is not recursion
+   return file << matrix;
 }
 
 }  // namespace TNL::Matrices

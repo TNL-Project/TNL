@@ -6,7 +6,7 @@ using namespace TNL;
 int
 main()
 {
-   auto parsedObjectType = parseObjectType( String( "MyObject< Value, Device, Index >" ) );
+   auto parsedObjectType = parseObjectType( "MyObject< Value, Device, Index >" );
    for( auto& token : parsedObjectType )
-      std::cout << token << std::endl;
+      std::cout << token << '\n';
 }

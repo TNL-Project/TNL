@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <TNL/Object.h>
 #include <TNL/Containers/Vector.h>
 #include "TridiagonalMatrixView.h"
 
@@ -52,7 +51,7 @@ template< typename Real = double,
           typename Index = int,
           ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real > >
-class TridiagonalMatrix : public TNL::Object, public TridiagonalMatrixBase< Real, Device, Index, Organization >
+class TridiagonalMatrix : public TridiagonalMatrixBase< Real, Device, Index, Organization >
 {
    using Base = TridiagonalMatrixBase< Real, Device, Index, Organization >;
 
@@ -246,22 +245,6 @@ public:
    operator=( const TridiagonalMatrix< Real_, Device_, Index_, Organization_, RealAllocator_ >& matrix );
 
    /**
-    * \brief Method for saving the matrix to a file.
-    *
-    * \param file is the output file.
-    */
-   void
-   save( File& file ) const override;
-
-   /**
-    * \brief Method for loading the matrix from a file.
-    *
-    * \param file is the input file.
-    */
-   void
-   load( File& file ) override;
-
-   /**
     * \brief Method for saving the matrix to the file with given filename.
     *
     * \param fileName is name of the file.
@@ -277,13 +260,21 @@ public:
    void
    load( const String& fileName );
 
-   // FIXME
-   using Base::getSerializationType;
-
 protected:
    //! \brief Vector containing the allocated matrix elements.
    ValuesVectorType values;
 };
+
+/**
+ * \brief Deserialization of tridiagonal matrices from binary files.
+ */
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+File&
+operator>>( File& file, TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >& matrix );
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+File&
+operator>>( File&& file, TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >& matrix );
 
 }  // namespace TNL::Matrices
 

@@ -259,38 +259,41 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::save( const String& fileName ) const
 {
-   Object::save( fileName );
+   File( fileName, std::ios_base::out ) << *this;
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::load( const String& fileName )
 {
-   Object::load( fileName );
+   File( fileName, std::ios_base::in ) >> *this;
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-void
-DenseMatrix< Real, Device, Index, Organization, RealAllocator >::save( File& file ) const
+File&
+operator>>( File& file, DenseMatrix< Real, Device, Index, Organization, RealAllocator >& matrix )
 {
-   file.save( &this->rows );
-   file.save( &this->columns );
-   file << values;
-   segments.save( file );
-}
-
-template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-void
-DenseMatrix< Real, Device, Index, Organization, RealAllocator >::load( File& file )
-{
-   Index rows = 0;
-   Index columns = 0;
+   const std::string type = getObjectType( file );
+   if( type != matrix.getSerializationType() )
+      throw Exceptions::FileDeserializationError( file.getFileName(),
+                                                  "object type does not match (expected " + matrix.getSerializationType()
+                                                     + ", found " + type + ")." );
+   std::size_t rows = 0;
+   std::size_t columns = 0;
    file.load( &rows );
    file.load( &columns );
-   file >> values;
-   segments.load( file );
-   // update the base
-   Base::bind( rows, columns, values.getView(), segments.getView() );
+   // setDimensions initializes the internal segments attribute
+   matrix.setDimensions( rows, columns );
+   file >> matrix.getValues();
+   return file;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
+File&
+operator>>( File&& file, DenseMatrix< Real, Device, Index, Organization, RealAllocator >& matrix )
+{
+   // named r-value is an l-value reference, so this is not recursion
+   return file >> matrix;
 }
 
 }  // namespace TNL::Matrices

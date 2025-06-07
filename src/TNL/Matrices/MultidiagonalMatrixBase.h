@@ -106,11 +106,6 @@ public:
    /**
     * \brief Returns string with serialization type.
     *
-    * The string has a form `Matrices::MultidiagonalMatrix< RealType,  [any_device], IndexType, Organization, [any_allocator],
-    * [any_allocator] >`.
-    *
-    * See \ref MultidiagonalMatrix::getSerializationType.
-    *
     * \return \ref String with the serialization type.
     */
    [[nodiscard]] static std::string
@@ -160,7 +155,7 @@ public:
     * \return number of non-zero matrix elements.
     */
    [[nodiscard]] IndexType
-   getNonzeroElementsCount() const override;
+   getNonzeroElementsCount() const;
 
    /**
     * \brief Comparison operator with another multidiagonal matrix.
@@ -770,6 +765,20 @@ operator<<( std::ostream& str, const MultidiagonalMatrixBase< Real, Device, Inde
    matrix.print( str );
    return str;
 }
+
+/**
+ * \brief Serialization of multidiagonal matrices into binary files.
+ */
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File& file, const MultidiagonalMatrixBase< Real, Device, Index, Organization >& matrix );
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File&& file, const MultidiagonalMatrixBase< Real, Device, Index, Organization >& matrix );
+
+// Note: Deserialization is different for DenseMatrix and DenseMatrixView,
+// see the respective files for implementation.
 
 }  // namespace TNL::Matrices
 

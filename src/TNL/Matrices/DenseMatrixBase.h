@@ -117,12 +117,18 @@ public:
    /**
     * \brief Returns string with serialization type.
     *
-    * The string has a form \e `Matrices::DenseMatrix< RealType,  [any_device], IndexType, [any_allocator], true/false >`.
-    *
     * \return \e String with the serialization type.
     */
    [[nodiscard]] static std::string
    getSerializationType();
+
+   /**
+    * \brief Computes a current number of nonzero matrix elements.
+    *
+    * \return number of nonzero matrix elements.
+    */
+   [[nodiscard]] IndexType
+   getNonzeroElementsCount() const;
 
    /**
     * \brief Computes number of non-zeros in each row.
@@ -812,6 +818,20 @@ protected:
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 std::ostream&
 operator<<( std::ostream& str, const DenseMatrixBase< Real, Device, Index, Organization >& matrix );
+
+/**
+ * \brief Serialization of dense matrices into binary files.
+ */
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File& file, const DenseMatrixBase< Real, Device, Index, Organization >& matrix );
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File&& file, const DenseMatrixBase< Real, Device, Index, Organization >& matrix );
+
+// Note: Deserialization is different for DenseMatrix and DenseMatrixView,
+// see the respective files for implementation.
 
 [[nodiscard]] constexpr std::false_type
 isDenseMatrix( ... )

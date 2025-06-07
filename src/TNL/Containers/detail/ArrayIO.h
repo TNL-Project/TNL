@@ -12,7 +12,35 @@
 
 namespace TNL::Containers::detail {
 
-template< typename Value, typename Index, typename Allocator, bool Elementwise = std::is_base_of_v< Object, Value > >
+template< typename Stream, typename Value >
+struct has_shift_ops
+{
+private:
+   // Check if operator<< exists
+   template< typename S, typename V >
+   static auto
+   test_shift_left( int ) -> decltype( std::declval< S& >() << std::declval< const V& >(), std::true_type{} );
+
+   template< typename, typename >
+   static std::false_type
+   test_shift_left( ... );
+
+   // Check if operator>> exists
+   template< typename S, typename V >
+   static auto
+   test_shift_right( int ) -> decltype( std::declval< S& >() >> std::declval< V& >(), std::true_type{} );
+
+   template< typename, typename >
+   static std::false_type
+   test_shift_right( ... );
+
+public:
+   static constexpr bool has_left = decltype( test_shift_left< Stream, Value >( 0 ) )::value;
+   static constexpr bool has_right = decltype( test_shift_right< Stream, Value >( 0 ) )::value;
+   static constexpr bool value = has_left && has_right;
+};
+
+template< typename Value, typename Index, typename Allocator, bool Elementwise = has_shift_ops< TNL::File, Value >::value >
 struct ArrayIO
 {};
 
@@ -31,7 +59,7 @@ struct ArrayIO< Value, Index, Allocator, true >
       Index i;
       try {
          for( i = 0; i < elements; i++ )
-            data[ i ].save( file );
+            file << data[ i ];
       }
       catch( ... ) {
          throw Exceptions::FileSerializationError( file.getFileName(),
@@ -46,7 +74,7 @@ struct ArrayIO< Value, Index, Allocator, true >
       Index i = 0;
       try {
          for( i = 0; i < elements; i++ )
-            data[ i ].load( file );
+            file >> data[ i ];
       }
       catch( ... ) {
          throw Exceptions::FileDeserializationError( file.getFileName(),

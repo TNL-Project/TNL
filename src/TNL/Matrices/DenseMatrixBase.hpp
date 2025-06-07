@@ -171,8 +171,20 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 std::string
 DenseMatrixBase< Real, Device, Index, Organization >::getSerializationType()
 {
-   return "Matrices::DenseMatrix< " + TNL::getSerializationType< RealType >() + ", [any_device], "
-        + TNL::getSerializationType< IndexType >() + ", " + TNL::getSerializationType( Organization ) + " >";
+   return "Matrices::DenseMatrix< " + TNL::getSerializationType< RealType >() + ", [any_device], [any_index], "
+        + TNL::getSerializationType( Organization ) + " >";
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+Index
+DenseMatrixBase< Real, Device, Index, Organization >::getNonzeroElementsCount() const
+{
+   const auto values_view = this->values.getConstView();
+   auto fetch = [ = ] __cuda_callable__( const IndexType i ) -> IndexType
+   {
+      return values_view[ i ] != RealType{ 0 };
+   };
+   return Algorithms::reduce< DeviceType >( (IndexType) 0, this->values.getSize(), fetch, std::plus<>{}, 0 );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -671,6 +683,27 @@ operator<<( std::ostream& str, const DenseMatrixBase< Real, Device, Index, Organ
 {
    matrix.print( str );
    return str;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File& file, const DenseMatrixBase< Real, Device, Index, Organization >& matrix )
+{
+   saveObjectType( file, matrix.getSerializationType() );
+   const std::size_t rows = matrix.getRows();
+   const std::size_t columns = matrix.getColumns();
+   file.save( &rows );
+   file.save( &columns );
+   file << matrix.getValues();
+   return file;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+File&
+operator<<( File&& file, const DenseMatrixBase< Real, Device, Index, Organization >& matrix )
+{
+   // named r-value is an l-value reference, so this is not recursion
+   return file << matrix;
 }
 
 }  // namespace TNL::Matrices
