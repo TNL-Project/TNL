@@ -72,4 +72,14 @@ TYPED_TEST( SortedSlicedEllpackReduceSegmentsTest, reduceSegmentsIfWithArgument_
    test_reduceSegmentsIfWithArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST( SortedSlicedEllpackReduceSegmentsTest, reduce_SumOfMaximums )
+{
+   test_reduce_SumOfMaximums< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( SortedSlicedEllpackReduceSegmentsTest, reduce_ProductOfSums )
+{
+   test_reduce_ProductOfSums< typename TestFixture::SegmentsType >();
+}
+
 #include "../../../main.h"
