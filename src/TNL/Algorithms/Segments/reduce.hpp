@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <TNL/Containers/Array.h>
+#include <TNL/Algorithms/reduce.h>
 #include "reduce.h"
 #include "detail/ReducingOperations.h"
 
@@ -625,6 +627,147 @@ reduceAllSegmentsIfWithArgument( const Segments& segments,
                                  std::forward< ResultKeeper >( keeper ),
                                  Reduction::template getIdentity< Value >(),
                                  launchConfig );
+}
+
+template< typename Segments,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename SegmentFetch,
+          typename SegmentReduction,
+          typename FinalFetch,
+          typename FinalReduction,
+          typename SegmentsReductionValue,
+          typename FinalReductionValue,
+          typename T >
+static FinalReductionValue
+reduce( const Segments& segments,
+        IndexBegin begin,
+        IndexEnd end,
+        SegmentFetch&& segmentFetch,
+        SegmentReduction&& segmentReduction,
+        FinalFetch&& finalFetch,
+        FinalReduction&& finalReduction,
+        const SegmentsReductionValue& segmentsReductionIdentity,
+        const FinalReductionValue& finalReductionIdentity,
+        LaunchConfiguration launchConfig )
+{
+   using IndexType = typename Segments::IndexType;
+   using DeviceType = typename Segments::DeviceType;
+
+   if( end <= begin )
+      return finalReductionIdentity;
+
+   // Allocate array for segment results
+   Containers::Vector< SegmentsReductionValue, DeviceType, IndexType > segmentResults( end - begin );
+   auto segmentResultsView = segmentResults.getView();
+
+   // First reduce within segments
+   reduceSegments(
+      segments,
+      begin,
+      end,
+      std::forward< SegmentFetch >( segmentFetch ),
+      std::forward< SegmentReduction >( segmentReduction ),
+      [ begin, segmentResultsView ] __cuda_callable__( IndexType segmentIdx, const SegmentsReductionValue& value ) mutable
+      {
+         segmentResultsView[ segmentIdx - begin ] = value;
+      },
+      segmentsReductionIdentity,
+      launchConfig );
+
+   // Then reduce segment results using the result fetch and reduction
+   return TNL::Algorithms::reduce< DeviceType >( (IndexType) 0,
+                                                 segmentResults.getSize(),
+                                                 [ segmentResultsView, &finalFetch ] __cuda_callable__( IndexType idx ) mutable
+                                                 {
+                                                    return finalFetch( segmentResultsView[ idx ] );
+                                                 },
+                                                 std::forward< FinalReduction >( finalReduction ),
+                                                 finalReductionIdentity );
+}
+
+template< typename Segments,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename SegmentFetch,
+          typename SegmentReduction,
+          typename FinalFetch,
+          typename FinalReduction,
+          typename T >
+static typename detail::FetchLambdaAdapter< typename Segments::IndexType, SegmentFetch >::ReturnType
+reduce( const Segments& segments,
+        IndexBegin begin,
+        IndexEnd end,
+        SegmentFetch&& segmentFetch,
+        SegmentReduction&& segmentReduction,
+        FinalFetch&& finalFetch,
+        FinalReduction&& finalReduction,
+        LaunchConfiguration launchConfig )
+{
+   using SegmentValue = typename detail::FetchLambdaAdapter< typename Segments::IndexType, SegmentFetch >::ReturnType;
+   using FinalValue = typename detail::FetchLambdaAdapter< typename Segments::IndexType, FinalFetch >::ReturnType;
+   return reduce( segments,
+                  begin,
+                  end,
+                  std::forward< SegmentFetch >( segmentFetch ),
+                  std::forward< SegmentReduction >( segmentReduction ),
+                  std::forward< FinalFetch >( finalFetch ),
+                  std::forward< FinalReduction >( finalReduction ),
+                  SegmentReduction::template getIdentity< SegmentValue >(),
+                  FinalReduction::template getIdentity< FinalValue >(),
+                  launchConfig );
+}
+
+template< typename Segments,
+          typename SegmentFetch,
+          typename SegmentReduction,
+          typename FinalFetch,
+          typename FinalReduction,
+          typename SegmentsReductionValue,
+          typename FinalReductionValue >
+static FinalReductionValue
+reduceAll( const Segments& segments,
+           SegmentFetch&& segmentFetch,
+           SegmentReduction&& segmentReduction,
+           FinalFetch&& finalFetch,
+           FinalReduction&& finalReduction,
+           const SegmentsReductionValue& segmentsReductionIdentity,
+           const FinalReductionValue& finalReductionIdentity,
+           LaunchConfiguration launchConfig )
+{
+   return reduce( segments,
+                  (typename Segments::IndexType) 0,
+                  segments.getSegmentsCount(),
+                  std::forward< SegmentFetch >( segmentFetch ),
+                  std::forward< SegmentReduction >( segmentReduction ),
+                  std::forward< FinalFetch >( finalFetch ),
+                  std::forward< FinalReduction >( finalReduction ),
+                  segmentsReductionIdentity,
+                  finalReductionIdentity,
+                  launchConfig );
+}
+
+template< typename Segments, typename SegmentFetch, typename SegmentReduction, typename FinalFetch, typename FinalReduction >
+static typename detail::FetchLambdaAdapter< typename Segments::IndexType, FinalFetch >::ReturnType
+reduceAll( const Segments& segments,
+           SegmentFetch&& segmentFetch,
+           SegmentReduction&& segmentReduction,
+           FinalFetch&& finalFetch,
+           FinalReduction&& finalReduction,
+           LaunchConfiguration launchConfig )
+{
+   using SegmentValue = typename detail::FetchLambdaAdapter< typename Segments::IndexType, SegmentFetch >::ReturnType;
+   using FinalValue = typename detail::FetchLambdaAdapter< typename Segments::IndexType, FinalFetch >::ReturnType;
+   return reduce( segments,
+                  (typename Segments::IndexType) 0,
+                  segments.getSegmentsCount(),
+                  std::forward< SegmentFetch >( segmentFetch ),
+                  std::forward< SegmentReduction >( segmentReduction ),
+                  std::forward< FinalFetch >( finalFetch ),
+                  std::forward< FinalReduction >( finalReduction ),
+                  SegmentReduction::template getIdentity< SegmentValue >(),
+                  FinalReduction::template getIdentity< FinalValue >(),
+                  launchConfig );
 }
 
 }  // namespace TNL::Algorithms::Segments
