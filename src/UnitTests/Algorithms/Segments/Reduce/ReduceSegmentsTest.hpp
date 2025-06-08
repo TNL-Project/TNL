@@ -625,3 +625,147 @@ test_reduceSegmentsIfWithArgument_MaximumInSegments()
       }
    }
 }
+
+template< typename Segments >
+void
+test_reduce_SumOfMaximums()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+   using ValueType = double;
+
+   const IndexType segmentsCount = 270;
+   const IndexType maxSegmentSize = 50;
+
+   // Initialize segments with equal sizes
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   segmentsSizes.forAllElements(
+      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      {
+         value = idx % maxSegmentSize + 1;
+      } );
+
+   Segments segments( segmentsSizes );
+
+   // Initialize data
+   TNL::Containers::Vector< ValueType, DeviceType, IndexType > v( segments.getStorageSize(), -1 );
+   auto view = v.getView();
+   auto segmentsSizesView = segmentsSizes.getView();
+   auto init =
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable -> bool
+   {
+      TNL_ASSERT_LT( globalIdx, view.getSize(), "" );
+      if( localIdx < segmentsSizesView[ segmentIdx ] )
+         view[ globalIdx ] = segmentIdx + localIdx + 1;
+      return true;
+   };
+   TNL::Algorithms::Segments::forAllElements( segments, init );
+
+   // Test complete reduction: find sum of maximum values in each segment
+   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+      SCOPED_TRACE( tag );
+
+      // Define segment fetch and reduction (find maximum in each segment)
+      auto segmentFetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> ValueType
+      {
+         return view[ globalIdx ] != -1 ? view[ globalIdx ]
+                                        : std::numeric_limits< ValueType >::lowest();  // Ignore padding zeros
+      };
+
+      // Define result fetch and reduction (sum the maximums)
+      auto finalFetch = [ = ] __cuda_callable__( const ValueType& value ) -> ValueType
+      {
+         return value;
+      };
+
+      // Perform complete reduction
+      const ValueType result = reduceAll( segments, segmentFetch, TNL::Max{}, finalFetch, TNL::Plus{}, launch_config );
+
+      TNL::Containers::Vector< ValueType, DeviceType, IndexType > resultVector( segmentsCount );
+      resultVector.forAllElements(
+         [ = ] __cuda_callable__( IndexType segmentIdx, ValueType & value )
+         {
+            value = segmentIdx + segmentIdx % maxSegmentSize + 1;  // Each segment's maximum is (segmentIdx + segmentSize)
+         } );
+      auto expectedResult = TNL::sum( resultVector );
+
+      EXPECT_NEAR( result, expectedResult, 1e-10 );
+
+      const ValueType result2 = reduce( segments, 10, 100, segmentFetch, TNL::Max{}, finalFetch, TNL::Plus{}, launch_config );
+      auto expectedResult2 = TNL::sum( resultVector.getView( 10, 100 ) );
+      EXPECT_NEAR( result2, expectedResult2, 1e-10 );
+   }
+}
+
+template< typename Segments >
+void
+test_reduce_ProductOfSums()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+   using ValueType = double;
+
+   const IndexType segmentsCount = 10;  // Using smaller numbers to avoid overflow
+   const IndexType maxSegmentSize = 5;
+
+   // Initialize segments with equal sizes
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   segmentsSizes.forAllElements(
+      [ = ] __cuda_callable__( IndexType idx, IndexType & value )
+      {
+         value = idx % maxSegmentSize + 1;
+      } );
+   Segments segments( segmentsSizes );
+
+   // Initialize data
+   TNL::Containers::Vector< ValueType, DeviceType, IndexType > v( segments.getStorageSize(), -1 );
+   auto view = v.getView();
+   auto segmentsSizesView = segmentsSizes.getView();
+   auto init =
+      [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable -> bool
+   {
+      TNL_ASSERT_LT( globalIdx, view.getSize(), "" );
+      if( localIdx < segmentsSizesView[ segmentIdx ] )
+         view[ globalIdx ] = segmentIdx + 1.0;  // All elements in a segment have same value
+      return true;
+   };
+   TNL::Algorithms::Segments::forAllElements( segments, init );
+
+   // Test complete reduction: find product of sums in each segment
+   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+      SCOPED_TRACE( tag );
+
+      // Define segment fetch and reduction (sum elements in each segment)
+      auto segmentFetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> ValueType
+      {
+         return view[ globalIdx ] != -1 ? view[ globalIdx ] : 0;
+      };
+
+      // Define result fetch and reduction (multiply the sums)
+      auto finalFetch = [ = ] __cuda_callable__( const ValueType& value ) -> ValueType
+      {
+         return value;
+      };
+
+      // Perform complete reduction
+      const ValueType result = reduceAll( segments, segmentFetch, TNL::Plus{}, finalFetch, TNL::Multiplies{}, launch_config );
+
+      TNL::Containers::Vector< ValueType, DeviceType, IndexType > resultVector( segmentsCount );
+      resultVector.forAllElements(
+         [ = ] __cuda_callable__( IndexType segmentIdx, ValueType & value )
+         {
+            value = ( segmentIdx + 1 )
+                  * ( segmentIdx % maxSegmentSize + 1 );  // Each segment's sum is (segmentIdx + 1) * segmentSize
+         } );
+
+      // Each segment's sum is (segmentIdx + 1) * segmentSize
+      // The product of these sums should be: product((i + 1) * segmentSize) for i in [0, segmentsCount)
+      ValueType expectedResult = TNL::product( resultVector );
+      EXPECT_NEAR( result, expectedResult, 1e-10 );
+
+      const ValueType result2 =
+         reduce( segments, 2, 8, segmentFetch, TNL::Plus{}, finalFetch, TNL::Multiplies{}, launch_config );
+      ValueType expectedResult2 = TNL::product( resultVector.getView( 2, 8 ) );
+      EXPECT_NEAR( result2, expectedResult2, 1e-10 );
+   }
+}
