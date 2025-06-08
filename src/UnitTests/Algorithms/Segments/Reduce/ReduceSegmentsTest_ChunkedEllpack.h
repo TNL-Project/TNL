@@ -71,4 +71,14 @@ TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduceSegmentsIfWithArgument_Maxim
    test_reduceSegmentsIfWithArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduce_SumOfMaximums )
+{
+   test_reduce_SumOfMaximums< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( ChunkedEllpackReduceSegmentsTest, reduce_ProductOfSums )
+{
+   test_reduce_ProductOfSums< typename TestFixture::SegmentsType >();
+}
+
 #include "../../../main.h"
