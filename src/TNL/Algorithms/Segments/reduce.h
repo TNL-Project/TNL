@@ -1879,6 +1879,11 @@ reduceAllSegmentsIfWithArgument( const Segments& segments,
  * \param finalReductionIdentity The initial value for the final reduction operation.
  *
  * \return The final reduction result combining all segment reduction results.
+ *
+ * \par Example
+ * \include Algorithms/Segments/SegmentsExample_reduceAll.cpp
+ * \par Output
+ * \include SegmentsExample_reduceAll.out
  */
 template< typename Segments,
           typename IndexBegin,
