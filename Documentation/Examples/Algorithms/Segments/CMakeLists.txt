@@ -20,6 +20,7 @@ set(COMMON_EXAMPLES
     SegmentsExample_reduceSegmentsWithSegmentIndexes
     SegmentsExample_reduceSegmentsWithArgument
     SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument
+    SegmentsExample_reduceAll
 )
 
 if(TNL_BUILD_CUDA)
