@@ -106,7 +106,7 @@ constexpr StaticArray< Size, Value >::StaticArray( Values&&... values )
 {}
 
 template< int Size, typename Value >
-template< typename OtherValue >
+template< typename OtherValue, std::enable_if_t< std::is_convertible_v< OtherValue, Value >, bool > >
 __cuda_callable__
 constexpr StaticArray< Size, Value >::StaticArray( const std::initializer_list< OtherValue >& elems )
 {
