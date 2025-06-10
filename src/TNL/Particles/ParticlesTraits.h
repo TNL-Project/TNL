@@ -26,7 +26,7 @@ class ParticlesTraits
    using RealType = typename ParticleConfig::RealType;
 
    using PointType = Containers::StaticVector< spaceDimension, RealType >;
-   using PointArrayType = Containers::Array< PointType, Device, GlobalIndexType >;
+   using PointArrayType = Containers::Vector< PointType, Device, GlobalIndexType >;
 
    /* ParticlesLinkedList.h related */
    using IndexVectorType = Containers::StaticVector< spaceDimension, GlobalIndexType >;
