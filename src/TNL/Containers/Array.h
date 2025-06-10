@@ -201,7 +201,7 @@ public:
     * \param list The initializer list containing elements to be copied.
     * \param allocator The allocator to be associated with this array.
     */
-   template< typename InValue >
+   template< typename InValue, std::enable_if_t< std::is_convertible_v< InValue, ValueType >, bool > = true >
    Array( const std::initializer_list< InValue >& list, const AllocatorType& allocator = AllocatorType() );
 
    /**
