@@ -263,6 +263,23 @@ matmul( const StaticMatrix< Value, Rows, Columns, Permutation >& A,
    return result;
 }
 
+//TODO Check types
+template< typename StaticVector >
+__cuda_callable__
+StaticMatrix< typename StaticVector::RealType, StaticVector::getSize(), StaticVector::getSize() >
+cross( const StaticVector& a, const StaticVector& b )
+{
+   StaticMatrix< typename StaticVector::RealType, StaticVector::getSize(), StaticVector::getSize() > result = 0;
+
+   for( std::size_t i = 0; i < StaticVector::getSize(); ++i ) {
+      for( std::size_t j = 0; j < StaticVector::getSize(); ++j ) {
+         result( i, j ) = a[ i ] * b[ j ];
+      }
+   }
+
+   return result;
+}
+
 template< typename Value, std::size_t Rows, std::size_t Columns, typename Permutation >
 __cuda_callable__
 StaticMatrix< Value, Columns, Rows, Permutation >
