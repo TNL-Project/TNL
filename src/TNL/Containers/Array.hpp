@@ -141,13 +141,6 @@ Array< Value, Device, Index, Allocator >::getSerializationType()
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-std::string
-Array< Value, Device, Index, Allocator >::getSerializationTypeVirtual() const
-{
-   return Array::getSerializationType();
-}
-
-template< typename Value, typename Device, typename Index, typename Allocator >
 void
 Array< Value, Device, Index, Allocator >::releaseData()
 {

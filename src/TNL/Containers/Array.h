@@ -238,13 +238,6 @@ public:
    getSerializationType();
 
    /**
-    * \brief Returns a string representation of the array type in C++ style,
-    * with a placeholder in place of \e Device and \e Allocator.
-    */
-   [[nodiscard]] virtual std::string
-   getSerializationTypeVirtual() const;
-
-   /**
     * \brief Method for resizing the array.
     *
     * The method resizes the array to the given size:

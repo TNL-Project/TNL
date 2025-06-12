@@ -107,8 +107,8 @@ workflow:
         #CMAKE_CUDA_FLAGS: "-stdlib=libstdc++"
         #CMAKE_CXX_FLAGS: "-stdlib=libstdc++"
         # HACK: clang 19.1 does not work with stdlib from gcc 15.1
-        CMAKE_CUDA_FLAGS: "-stdlib++-isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/include/c++ -isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/include/c++/x86_64-pc-linux-gnu"
-        CMAKE_CXX_FLAGS: "-stdlib++-isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/include/c++ -isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/include/c++/x86_64-pc-linux-gnu"
+        CMAKE_CUDA_FLAGS: "-stdlib++-isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.3.1/include/c++ -isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.3.1/include/c++/x86_64-pc-linux-gnu"
+        CMAKE_CXX_FLAGS: "-stdlib++-isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.3.1/include/c++ -isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.3.1/include/c++/x86_64-pc-linux-gnu"
         CMAKE_EXE_LINKER_FLAGS: "-fuse-ld=lld"
         CMAKE_SHARED_LINKER_FLAGS: "-fuse-ld=lld"
         USE_CUDA: "yes"
@@ -137,8 +137,6 @@ workflow:
         <<: *default_cmake_flags
         USE_HIP: "yes"
         USE_OPENMP: "no"   # TODO: enabling OpenMP leads to false warnings due to unused variable
-        # HACK: clang 19.1 does not work with stdlib from gcc 15.1
-        CMAKE_HIP_FLAGS: "-stdlib++-isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/include/c++ -isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.2.1/include/c++/x86_64-pc-linux-gnu"
 
 # template for environment setup before build
 .env_setup: &env_setup
