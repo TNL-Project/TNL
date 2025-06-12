@@ -42,7 +42,7 @@ sortSegments( const Segments& segments,
       segments,
       begin,
       end,
-      [ = ] __cuda_callable__( const SegmentView segment ) mutable
+      [ = ] __cuda_callable__( const SegmentView& segment ) mutable
       {
          segmentInsertionSort( segment, fetch, compare, swap );
       },

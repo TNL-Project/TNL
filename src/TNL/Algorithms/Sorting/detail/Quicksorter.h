@@ -8,15 +8,16 @@
 
 namespace TNL::Algorithms::Sorting {
 
-template< typename Value, typename Device >
+template< typename Value, typename Device, typename Index >
 class Quicksorter;
 
-template< typename Value >
-class Quicksorter< Value, Devices::Cuda >
+template< typename Value, typename Index >
+class Quicksorter< Value, Devices::Cuda, Index >
 {
 public:
    using ValueType = Value;
    using DeviceType = Devices::Cuda;
+   using IndexType = Index;
 
    template< typename Array, typename Compare >
    void
@@ -27,7 +28,7 @@ public:
    sort( Array& arr );
 
    void
-   init( Containers::ArrayView< Value, Devices::Cuda > arr,
+   init( Containers::ArrayView< ValueType, Devices::Cuda, IndexType > arr,
          int gridDim,
          int blockDim,
          int desiredElemPerBlock,
@@ -79,29 +80,30 @@ public:
 
 protected:
    // kernel config
-   int maxBlocks, threadsPerBlock, desiredElemPerBlock;
+   IndexType maxBlocks, threadsPerBlock, desiredElemPerBlock;
    std::size_t maxSharable;
 
-   Containers::Array< Value, Devices::Cuda > auxMem;
-   Containers::ArrayView< Value, Devices::Cuda > arr, aux;
+   Containers::Array< ValueType, Devices::Cuda, IndexType > auxMem;
+   Containers::ArrayView< ValueType, Devices::Cuda, IndexType > arr, aux;
 
-   int desired_2ndPhasElemPerBlock;
-   const int g_maxTasks = 1 << 14;
-   int maxTasks;
+   IndexType desired_2ndPhasElemPerBlock;
+   const IndexType g_maxTasks = 1 << 14;
+   IndexType maxTasks;
 
-   Containers::Array< TASK, Devices::Cuda > cuda_tasks, cuda_newTasks,
+   Containers::Array< TASK, Devices::Cuda, IndexType > cuda_tasks, cuda_newTasks,
       cuda_2ndPhaseTasks;  // 1 set of 2 rotating tasks and 2nd phase
-   Containers::Array< int, Devices::Cuda > cuda_newTasksAmount, cuda_2ndPhaseTasksAmount;  // is in reality 1 integer each
+   Containers::Array< IndexType, Devices::Cuda, IndexType > cuda_newTasksAmount,
+      cuda_2ndPhaseTasksAmount;  // is in reality 1 integer each
 
-   Containers::Array< int, Devices::Cuda > cuda_blockToTaskMapping;
-   Containers::Array< int, Devices::Cuda > cuda_reductionTaskInitMem;
+   Containers::Array< IndexType, Devices::Cuda, IndexType > cuda_blockToTaskMapping;
+   Containers::Array< IndexType, Devices::Cuda, IndexType > cuda_reductionTaskInitMem;
 
-   int host_1stPhaseTasksAmount = 0, host_2ndPhaseTasksAmount = 0;
-   int iteration = 0;
+   IndexType host_1stPhaseTasksAmount = 0, host_2ndPhaseTasksAmount = 0;
+   IndexType iteration = 0;
 
-   template< typename T >
-   friend int
-   getSetsNeededFunction( int elemPerBlock, const Quicksorter< T, Devices::Cuda >& quicksort );
+   template< typename ValueType_, typename IndexType_ >
+   friend IndexType
+   getSetsNeededFunction( IndexType elemPerBlock, const Quicksorter< ValueType_, Devices::Cuda, IndexType_ >& quicksort );
 };
 
 }  // namespace TNL::Algorithms::Sorting

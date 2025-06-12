@@ -47,6 +47,18 @@ public:
    using BlocksType = typename ViewType::BlocksType;
    using BlocksView = typename BlocksType::ViewType;
 
+   /**
+    * \brief Templated type for creating AdaptiveCSR segments with different template parameters.
+    *
+    * \tparam Device_ is alternative device type.
+    * \tparam Index_ is alternative index type.
+    * \tparam IndexAllocator_ is alternative index allocator type.
+    */
+   template< typename Device_ = Device,
+             typename Index_ = Index,
+             typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ > >
+   using Self = AdaptiveCSR< Device_, Index_, IndexAllocator_ >;
+
    //! \brief Constructor with no parameters to create empty segments.
    AdaptiveCSR() = default;
 
