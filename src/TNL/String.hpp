@@ -181,7 +181,8 @@ String::operator!=( const String& str ) const
    return ! operator==( str );
 }
 
-inline String::operator bool() const
+inline String::
+operator bool() const
 {
    return ! empty();
 }
