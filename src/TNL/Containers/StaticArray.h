@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <type_traits>
 
 #include <TNL/File.h>
 
@@ -114,7 +115,7 @@ public:
     *
     * \param elems input initializer list
     */
-   template< typename OtherValue >
+   template< typename OtherValue, std::enable_if_t< std::is_convertible_v< OtherValue, ValueType >, bool > = true >
    // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
    __cuda_callable__
    constexpr StaticArray( const std::initializer_list< OtherValue >& elems );

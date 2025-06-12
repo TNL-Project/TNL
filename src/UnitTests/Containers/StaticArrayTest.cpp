@@ -113,6 +113,11 @@ TYPED_TEST( StaticArrayTest, constructors )
    ArrayType u6( a );
    for( int i = 0; i < size; i++ )
       EXPECT_EQ( u6[ i ], i + 1 );
+
+   // this is ambiguous with std::initializer_list< std::array< ... > >
+   ArrayType u7{ a };
+   for( int i = 0; i < size; i++ )
+      EXPECT_EQ( u7[ i ], i + 1 );
 }
 
 TYPED_TEST( StaticArrayTest, getSize )

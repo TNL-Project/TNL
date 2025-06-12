@@ -214,6 +214,12 @@ TYPED_TEST( ArrayTest, constructors )
    EXPECT_EQ( a3.getElement( 0 ), 7 );
    EXPECT_EQ( a3.getElement( 1 ), 8 );
    EXPECT_EQ( a3.getElement( 2 ), 9 );
+
+   // this is ambiguous with std::initializer_list< std::vector< ... > >
+   ArrayType a4{ q };
+   EXPECT_EQ( a3.getElement( 0 ), 7 );
+   EXPECT_EQ( a3.getElement( 1 ), 8 );
+   EXPECT_EQ( a3.getElement( 2 ), 9 );
 }
 
 TYPED_TEST( ArrayTest, constructorsWithAllocators )

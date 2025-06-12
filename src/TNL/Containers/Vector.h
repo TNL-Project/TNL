@@ -83,14 +83,6 @@ public:
    // constructors are inherited from the class Array
    using Array< Real, Device, Index, Allocator >::Array;
 
-#ifdef __NVCC__
-   // workaround for nvcc 11.6 - the constructor from Array is not inherited "properly" because of the optional argument
-   template< typename InValue >
-   Vector( const std::initializer_list< InValue >& list, const AllocatorType& allocator = AllocatorType() )
-   : Array< Real, Device, Index, Allocator >( list, allocator )
-   {}
-#endif
-
    /**
     * \brief Constructs an empty array with zero size.
     */

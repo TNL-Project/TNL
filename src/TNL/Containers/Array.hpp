@@ -97,7 +97,7 @@ Array< Value, Device, Index, Allocator >::Array( const Array< Value_, Device_, I
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-template< typename InValue >
+template< typename InValue, std::enable_if_t< std::is_convertible_v< InValue, Value >, bool > >
 Array< Value, Device, Index, Allocator >::Array( const std::initializer_list< InValue >& list, const AllocatorType& allocator )
 : allocator( allocator )
 {
