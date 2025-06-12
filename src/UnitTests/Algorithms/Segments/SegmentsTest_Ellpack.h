@@ -81,4 +81,19 @@ TYPED_TEST( EllpackSegmentsTest, sortSegmentsIf )
    test_sortSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST( EllpackSegmentsTest, scanSegments )
+{
+   test_scanSegments< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( EllpackSegmentsTest, scanSegmentsWithIndexes )
+{
+   test_scanSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( EllpackSegmentsTest, scanSegmentsIf )
+{
+   test_scanSegmentsIf< typename TestFixture::SegmentsType >();
+}
+
 #include "../../main.h"

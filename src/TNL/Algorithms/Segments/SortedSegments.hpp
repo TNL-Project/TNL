@@ -83,30 +83,31 @@ void
 SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const SizesHolder& sizes )
 {
    // TODO: Reimplement the following when TNL sorters can create the permutation vector itself
-   using Tuple = Containers::StaticArray< 2, IndexType >;
+   using Tuple = int;  //Containers::StaticArray< 2, IndexType >;
 
    // Sort the segments sizes in descending order
-   Containers::Vector< Tuple, DeviceType, IndexType > aux( sizes.getSize() );
+   Containers::Array< Tuple, DeviceType, IndexType > aux( sizes.getSize() );
    auto sizesView = sizes.getConstView();
    aux.forAllElements(
       [ = ] __cuda_callable__( IndexType i, Tuple & tuple )
       {
-         tuple[ 0 ] = sizesView[ i ];
-         tuple[ 1 ] = i;
+         ///tuple[ 0 ] = sizesView[ i ];
+         //tuple[ 1 ] = i;
+         tuple = i;
       } );
 
    //std::cout << "aux before sorting: " << aux << std::endl;
+   auto aux_view = aux.getView();
    typename Algorithms::Sorting::DefaultSorter< DeviceType >::SorterType sorter;
-   sorter.sort( aux,
+   sorter.sort( aux_view,
                 [] __cuda_callable__( const Tuple& a, const Tuple& b )
                 {
-                   return a[ 0 ] > b[ 0 ];  // sort in descending order
+                   //return a[ 0 ] > b[ 0 ];  // sort in descending order
+                   return true;
                 } );
 
-   //std::cout << "aux after sorting: " << aux << std::endl;
-
    // Initialize the embedded segments with the sorted sizes
-   auto auxView = aux.getConstView();
+   /*auto auxView = aux.getConstView();
    SizesHolder sortedSizes( sizes.getSize() );
    sortedSizes.forAllElements(
       [ = ] __cuda_callable__( IndexType i, IndexType & value )
@@ -142,6 +143,7 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
    // update the base
    Base::bind(
       this->embeddedSegments.getView(), this->segmentsPermutation.getView(), this->inverseSegmentsPermutation.getView() );
+      */
 }
 
 template< typename EmbeddedSegments, typename IndexAllocator >

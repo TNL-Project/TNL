@@ -6,6 +6,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/DiscreteMath.h>
+#include <TNL/Containers/Expressions/ExpressionTemplates.h>
 
 #include "BiEllpack.h"
 
