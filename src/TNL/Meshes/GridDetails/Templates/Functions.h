@@ -4,7 +4,6 @@
 #pragma once
 
 #include <TNL/Containers/StaticVector.h>
-#include <type_traits>
 
 namespace TNL::Meshes::Templates {
 
@@ -19,7 +18,7 @@ namespace TNL::Meshes::Templates {
  */
 template< typename Index, int Size >
 constexpr Index
-makeCollapsedIndex( const Index base, const TNL::Containers::StaticVector< Size, Index >& powers )
+makeCollapsedIndex( const int base, const TNL::Containers::StaticVector< Size, Index >& powers )
 {
    Index index = 0;
    Index currentBase = 1;
