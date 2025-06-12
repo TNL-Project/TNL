@@ -1,6 +1,8 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
+#include <TNL/Algorithms/compress.h>
+
 #pragma once
 
 namespace TNL::Algorithms::Segments::detail {

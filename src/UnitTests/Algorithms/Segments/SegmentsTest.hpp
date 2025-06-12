@@ -5,6 +5,7 @@
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Algorithms/Segments/find.h>
 #include <TNL/Algorithms/Segments/sort.h>
+#include <TNL/Algorithms/Segments/scan.h>
 #include <TNL/Math.h>
 
 #include <iostream>
@@ -695,4 +696,275 @@ test_sortSegmentsIf()
             << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx;
       }
    }
+}
+
+template< typename Segments >
+void
+test_scanSegments()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+   using ValueType = double;
+   using HostSegments = typename Segments::template Self< TNL::Devices::Host >;
+
+   // Setup segments with varying sizes
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes{ 1, 2, 3, 4, 5 };
+   Segments segments( segmentsSizes );
+
+   // Setup test data
+   TNL::Containers::Vector< ValueType, DeviceType > inclusive_result( segments.getStorageSize() ),
+      exclusive_result( segments.getStorageSize() ), data( segments.getStorageSize() );
+   auto data_view = data.getView();
+   auto inclusive_result_view = inclusive_result.getView();
+   auto exclusive_result_view = exclusive_result.getView();
+   auto segmentsSizes_view = segmentsSizes.getConstView();
+   data_view = 0.0;
+   exclusive_result = 0.0;
+   inclusive_result = 0.0;
+
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view[ segmentIdx ] ) {
+            data_view[ globalIdx ] = segmentIdx + 1.0;
+            inclusive_result_view[ globalIdx ] = ( segmentIdx + 1.0 ) * ( localIdx + 1.0 );
+            exclusive_result_view[ globalIdx ] = inclusive_result_view[ globalIdx ] - data_view[ globalIdx ];
+         }
+      } );
+
+   // Test inclusive scan
+   auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> ValueType
+   {
+      if( localIdx < segmentsSizes_view[ segmentIdx ] )
+         return data_view[ globalIdx ];
+      else
+         return 0.0;
+   };
+   auto write = [ = ] __cuda_callable__( IndexType globalIdx, ValueType value ) mutable
+   {
+      data_view[ globalIdx ] = value;
+   };
+
+   TNL::Algorithms::Segments::inclusiveScanAllSegments( segments, fetch, TNL::Plus{}, write );
+
+   HostSegments hostSegments;
+   hostSegments = segments;
+   TNL::Algorithms::Segments::forAllElements(
+      hostSegments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view.getElement( segmentIdx ) ) {
+            EXPECT_EQ( data_view.getElement( globalIdx ), inclusive_result_view.getElement( globalIdx ) )
+               << "segmentIdx = " << segmentIdx << ", localIdx = " << localIdx
+               << " segmentSize = " << segmentsSizes_view.getElement( segmentIdx );
+         }
+      } );
+
+   // Reset data for exclusive scan test
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view[ segmentIdx ] ) {
+            data_view[ globalIdx ] = segmentIdx + 1.0;
+         }
+      } );
+   TNL::Algorithms::Segments::exclusiveScanAllSegments( segments, fetch, TNL::Plus{}, write );
+
+   TNL::Algorithms::Segments::forAllElements(
+      hostSegments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view.getElement( segmentIdx ) ) {
+            EXPECT_EQ( data_view.getElement( globalIdx ), exclusive_result_view.getElement( globalIdx ) )
+               << "segmentIdx = " << segmentIdx << ", localIdx = " << localIdx;
+         }
+      } );
+}
+
+template< typename Segments >
+void
+test_scanSegmentsWithSegmentIndexes()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+   using ValueType = double;
+   using HostSegments = typename Segments::template Self< TNL::Devices::Host >;
+
+   // Setup segments with varying sizes
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes{ 1, 2, 3, 4, 5 }, segmentIndexes{ 0, 2, 4 };
+   Segments segments( segmentsSizes );
+
+   // Setup test data
+   TNL::Containers::Vector< ValueType, DeviceType > inclusive_result( segments.getStorageSize() ),
+      exclusive_result( segments.getStorageSize() ), data( segments.getStorageSize() );
+   auto data_view = data.getView();
+   auto inclusive_result_view = inclusive_result.getView();
+   auto exclusive_result_view = exclusive_result.getView();
+   auto segmentsSizes_view = segmentsSizes.getConstView();
+   data_view = 0.0;
+   exclusive_result = 0.0;
+   inclusive_result = 0.0;
+
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view[ segmentIdx ] ) {
+            data_view[ globalIdx ] = segmentIdx + 1.0;
+            if( segmentIdx % 2 == 0 ) {
+               inclusive_result_view[ globalIdx ] = ( segmentIdx + 1.0 ) * ( localIdx + 1.0 );
+               exclusive_result_view[ globalIdx ] = inclusive_result_view[ globalIdx ] - data_view[ globalIdx ];
+            }
+            else {
+               inclusive_result_view[ globalIdx ] = data_view[ globalIdx ];
+               exclusive_result_view[ globalIdx ] = data_view[ globalIdx ];
+            }
+         }
+      } );
+
+   // Test inclusive scan
+   auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> ValueType
+   {
+      if( localIdx < segmentsSizes_view[ segmentIdx ] )
+         return data_view[ globalIdx ];
+      else
+         return 0.0;
+   };
+   auto write = [ = ] __cuda_callable__( IndexType globalIdx, ValueType value ) mutable
+   {
+      data_view[ globalIdx ] = value;
+   };
+
+   TNL::Algorithms::Segments::inclusiveScanSegments( segments, segmentIndexes, fetch, TNL::Plus{}, write );
+
+   HostSegments hostSegments;
+   hostSegments = segments;
+   TNL::Algorithms::Segments::forAllElements(
+      hostSegments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view.getElement( segmentIdx ) ) {
+            EXPECT_EQ( data_view.getElement( globalIdx ), inclusive_result_view.getElement( globalIdx ) )
+               << "segmentIdx = " << segmentIdx << ", localIdx = " << localIdx;
+         }
+      } );
+
+   // Reset data for exclusive scan test
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view[ segmentIdx ] ) {
+            data_view[ globalIdx ] = segmentIdx + 1.0;
+         }
+      } );
+
+   TNL::Algorithms::Segments::exclusiveScanSegments( segments, segmentIndexes, fetch, TNL::Plus{}, write );
+
+   TNL::Algorithms::Segments::forAllElements(
+      hostSegments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view[ segmentIdx ] ) {
+            EXPECT_EQ( data_view.getElement( globalIdx ), exclusive_result_view.getElement( globalIdx ) )
+               << "segmentIdx = " << segmentIdx << ", localIdx = " << localIdx;
+         }
+      } );
+}
+
+template< typename Segments >
+void
+test_scanSegmentsIf()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+   using ValueType = double;
+   using HostSegments = typename Segments::template Self< TNL::Devices::Host >;
+
+   // Setup segments with varying sizes
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes{ 1, 2, 3, 4, 5 };
+   Segments segments( segmentsSizes );
+
+   // Setup test data
+   TNL::Containers::Vector< ValueType, DeviceType > inclusive_result( segments.getStorageSize() ),
+      exclusive_result( segments.getStorageSize() ), data( segments.getStorageSize() );
+   auto data_view = data.getView();
+   auto inclusive_result_view = inclusive_result.getView();
+   auto exclusive_result_view = exclusive_result.getView();
+   auto segmentsSizes_view = segmentsSizes.getConstView();
+   data_view = 0.0;
+   exclusive_result = 0.0;
+   inclusive_result = 0.0;
+
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view[ segmentIdx ] ) {
+            data_view[ globalIdx ] = segmentIdx + 1.0;
+            if( segmentIdx % 2 == 0 ) {
+               inclusive_result_view[ globalIdx ] = ( segmentIdx + 1.0 ) * ( localIdx + 1.0 );
+               exclusive_result_view[ globalIdx ] = inclusive_result_view[ globalIdx ] - data_view[ globalIdx ];
+            }
+            else {
+               inclusive_result_view[ globalIdx ] = data_view[ globalIdx ];
+               exclusive_result_view[ globalIdx ] = data_view[ globalIdx ];
+            }
+         }
+      } );
+
+   // Test inclusive scan
+   auto predicate = [] __cuda_callable__( IndexType segmentIdx ) -> bool
+   {
+      return segmentIdx % 2 == 0;
+   };
+   auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> ValueType
+   {
+      if( localIdx < segmentsSizes_view[ segmentIdx ] )
+         return data_view[ globalIdx ];
+      else
+         return 0.0;
+   };
+   auto write = [ = ] __cuda_callable__( IndexType globalIdx, ValueType value ) mutable
+   {
+      data_view[ globalIdx ] = value;
+   };
+
+   TNL::Algorithms::Segments::inclusiveScanAllSegmentsIf( segments, predicate, fetch, TNL::Plus{}, write );
+
+   HostSegments hostSegments;
+   hostSegments = segments;
+   TNL::Algorithms::Segments::forAllElements(
+      hostSegments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view.getElement( segmentIdx ) ) {
+            EXPECT_EQ( data_view.getElement( globalIdx ), inclusive_result_view.getElement( globalIdx ) )
+               << "segmentIdx = " << segmentIdx << ", localIdx = " << localIdx;
+         }
+      } );
+
+   // Reset data for exclusive scan test
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view[ segmentIdx ] ) {
+            data_view[ globalIdx ] = segmentIdx + 1.0;
+         }
+      } );
+
+   TNL::Algorithms::Segments::exclusiveScanAllSegmentsIf( segments, predicate, fetch, TNL::Plus{}, write );
+
+   TNL::Algorithms::Segments::forAllElements(
+      hostSegments,
+      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+      {
+         if( localIdx < segmentsSizes_view.getElement( segmentIdx ) ) {
+            EXPECT_EQ( data_view.getElement( globalIdx ), exclusive_result_view.getElement( globalIdx ) )
+               << "segmentIdx = " << segmentIdx << ", localIdx = " << localIdx;
+         }
+      } );
 }

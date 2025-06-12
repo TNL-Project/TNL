@@ -69,4 +69,19 @@ TYPED_TEST( AdaptiveCSRSegmentsTest, sortSegmentsIf )
    test_sortSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST( AdaptiveCSRSegmentsTest, scanSegments )
+{
+   test_scanSegments< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, scanSegmentsWithIndexes )
+{
+   test_scanSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( AdaptiveCSRSegmentsTest, scanSegmentsIf )
+{
+   test_scanSegmentsIf< typename TestFixture::SegmentsType >();
+}
+
 #include "../../main.h"

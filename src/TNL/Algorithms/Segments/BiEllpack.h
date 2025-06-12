@@ -50,7 +50,27 @@ public:
    //! \brief Type of constant segments view.
    using ConstViewType = typename ViewType::ConstViewType;
 
-   template< typename Device_, typename Index_ >
+   /**
+    * \brief Templated type for creating BiEllpack segments with different template parameters.
+    *
+    * \tparam Device_ is alternative device type.
+    * \tparam Index_ is alternative index type.
+    * \tparam IndexAllocator_ is alternative index allocator type.
+    */
+   template< typename Device_ = Device,
+             typename Index_ = Index,
+             typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ >,
+             ElementsOrganization Organization_ = Organization,
+             int WarpSize_ = WarpSize >
+   using Self = BiEllpack< Device_, Index_, IndexAllocator_, Organization_, WarpSize_ >;
+
+   /**
+    * \brief Templated view type.
+    *
+    * \tparam Device_ is alternative device type for the view.
+    * \tparam Index_ is alternative index type for the view.
+    */
+   template< typename Device_ = Device, typename Index_ = Index >
    using ViewTemplate = BiEllpackView< Device_, Index_, Organization, WarpSize >;
 
    using OffsetsContainer = Containers::Vector< Index, Device, typename Base::IndexType, IndexAllocator >;

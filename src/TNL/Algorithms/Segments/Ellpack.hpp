@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Containers/Vector.h>
 #include "Ellpack.h"
 
 namespace TNL::Algorithms::Segments {

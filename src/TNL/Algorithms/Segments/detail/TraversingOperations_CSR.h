@@ -272,24 +272,33 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                             LaunchConfiguration launchConfig )
    {
       const auto offsetsView = segments.getOffsets();
-      auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
-      {
-         const IndexType begin = offsetsView[ segmentIdx ];
-         const IndexType end = offsetsView[ segmentIdx + 1 ];
+      if constexpr( argumentCount< Function >() == 3 ) {
+         auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
+         {
+            const IndexType begin = offsetsView[ segmentIdx ];
+            const IndexType end = offsetsView[ segmentIdx + 1 ];
 
-         if( condition( segmentIdx ) ) {
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if( condition( segmentIdx ) ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
             }
-            else {  // argumentCount< Function >() == 2
+         };
+         Algorithms::parallelFor< Device >( begin, end, l );
+      }
+      else {  // argumentCount< Function >() == 2
+         auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
+         {
+            const IndexType begin = offsetsView[ segmentIdx ];
+            const IndexType end = offsetsView[ segmentIdx + 1 ];
+
+            if( condition( segmentIdx ) ) {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, globalIdx );
             }
-         }
-      };
-      Algorithms::parallelFor< Device >( begin, end, l );
+         };
+         Algorithms::parallelFor< Device >( begin, end, l );
+      }
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >

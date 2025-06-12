@@ -56,6 +56,16 @@ public:
    //! \brief Type of constant segments view.
    using ConstViewType = SlicedEllpackView< Device, std::add_const_t< Index >, Organization, SliceSize >;
 
+   //! \brief Type of container storing offsets of particular segments.
+   using OffsetsContainer = Containers::Vector< Index, Device, typename Base::IndexType, IndexAllocator >;
+
+   template< typename Device_ = Device,
+             typename Index_ = Index,
+             typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ >,
+             ElementsOrganization Organization_ = Organization,
+             int SliceSize_ = SliceSize >
+   using Self = SlicedEllpack< Device_, Index_, IndexAllocator_, Organization_, SliceSize_ >;
+
    /**
     * \brief Templated view type.
     *
@@ -64,9 +74,6 @@ public:
     */
    template< typename Device_, typename Index_ >
    using ViewTemplate = SlicedEllpackView< Device_, Index_, Organization, SliceSize >;
-
-   //! \brief Type of container storing offsets of particular segments.
-   using OffsetsContainer = Containers::Vector< Index, Device, typename Base::IndexType, IndexAllocator >;
 
    //! \brief Constructor with no parameters to create empty segments.
    SlicedEllpack() = default;
