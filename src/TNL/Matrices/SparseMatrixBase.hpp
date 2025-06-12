@@ -330,7 +330,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             globalIdx, 0, "Global index must be non-negative. Negative values may appear due to Index type overflow." );
          TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "Global index must be smaller than the number of elements." );
          const IndexType column = columnIndexesView[ globalIdx ];
-         TNL_ASSERT_TRUE( (column >= 0 || column == paddingIndex< Index >), "Wrong column index." );
+         TNL_ASSERT_TRUE( column >= 0 || column == paddingIndex< Index >, "Wrong column index." );
          TNL_ASSERT_LT( column, inVectorView.getSize(), "Wrong column index." );
          if( column == paddingIndex< Index > )
             return 0;
