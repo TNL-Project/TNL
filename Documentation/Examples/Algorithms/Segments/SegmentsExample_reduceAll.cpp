@@ -30,7 +30,6 @@ reduceAllExample()
    using ValueType = double;
 
    // Create segments with different sizes
-   const IndexType segmentsCount = 4;
    Containers::Vector< IndexType, Device, IndexType > segmentsSizes{ 1, 2, 3, 4 };
    CSR< Device, IndexType > segments( segmentsSizes );
 

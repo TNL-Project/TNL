@@ -49,6 +49,20 @@ public:
    using ConstViewType = typename ViewType::ConstViewType;
 
    /**
+    * \brief Templated type for creating Ellpack segments with different template parameters.
+    *
+    * \tparam Device_ is alternative device type.
+    * \tparam Index_ is alternative index type.
+    * \tparam IndexAllocator_ is alternative index allocator type.
+    */
+   template< typename Device_ = Device,
+             typename Index_ = Index,
+             typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ >,
+             ElementsOrganization Organization_ = Organization,
+             int Alignment_ = Alignment >
+   using Self = Ellpack< Device_, Index_, IndexAllocator_, Organization_, Alignment_ >;
+
+   /**
     * \brief Templated view type.
     *
     * \tparam Device_ is alternative device type for the view.

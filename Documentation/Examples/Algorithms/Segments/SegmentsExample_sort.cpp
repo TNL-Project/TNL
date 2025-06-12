@@ -42,11 +42,11 @@ sortExample()
    {
       return dataView[ globalIdx ] != -1 ? dataView[ globalIdx ] : std::numeric_limits< int >::max();
    };
-   auto compare = []( const Value& a, const Value& b ) -> bool
+   auto compare = [] __cuda_callable__( const Value& a, const Value& b ) -> bool
    {
       return a <= b;
    };
-   auto swap = [ = ]( Index globalIdx1, Index globalIdx2 ) mutable
+   auto swap = [ = ] __cuda_callable__( Index globalIdx1, Index globalIdx2 ) mutable
    {
       TNL::swap( dataView[ globalIdx1 ], dataView[ globalIdx2 ] );
    };
@@ -67,7 +67,7 @@ sortExample()
    TNL::Containers::Vector< Index, Device > segmentIndexes{ 1, 3 };
    std::cout << "\nSorting only segments 1 and 3 in descending order:" << std::endl;
 
-   auto compareDesc = []( Index a, Index b ) -> bool
+   auto compareDesc = [] __cuda_callable__( Index a, Index b ) -> bool
    {
       return a >= b;
    };
@@ -84,7 +84,7 @@ sortExample()
 
    // Sort segments conditionally (only even-indexed segments)
    std::cout << "\nSorting even-indexed segments in descending order:" << std::endl;
-   auto condition = []( Index segmentIdx ) -> bool
+   auto condition = [] __cuda_callable__( Index segmentIdx ) -> bool
    {
       return segmentIdx % 2 == 0;
    };

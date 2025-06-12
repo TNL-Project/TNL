@@ -44,8 +44,6 @@ struct TraversingOperationsBaseline
                 Function&& function,
                 LaunchConfiguration launchConfig )
    {
-      using IndexType = typename Segments::IndexType;
-      using DeviceType = typename Segments::DeviceType;
       auto segments_view = segments.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
       {
