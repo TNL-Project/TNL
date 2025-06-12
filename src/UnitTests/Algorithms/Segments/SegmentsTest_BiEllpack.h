@@ -75,4 +75,19 @@ TYPED_TEST( BiEllpackSegmentsTest, sortSegmentsIf )
    test_sortSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST( BiEllpackSegmentsTest, scanSegments )
+{
+   test_scanSegments< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( BiEllpackSegmentsTest, scanSegmentsWithIndexes )
+{
+   test_scanSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( BiEllpackSegmentsTest, scanSegmentsIf )
+{
+   test_scanSegmentsIf< typename TestFixture::SegmentsType >();
+}
+
 #include "../../main.h"

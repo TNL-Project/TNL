@@ -678,7 +678,7 @@ reduce( const Segments& segments,
    // Then reduce segment results using the result fetch and reduction
    return TNL::Algorithms::reduce< DeviceType >( (IndexType) 0,
                                                  segmentResults.getSize(),
-                                                 [ segmentResultsView, &finalFetch ] __cuda_callable__( IndexType idx ) mutable
+                                                 [ segmentResultsView, finalFetch ] __cuda_callable__( IndexType idx ) mutable
                                                  {
                                                     return finalFetch( segmentResultsView[ idx ] );
                                                  },

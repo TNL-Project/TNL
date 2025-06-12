@@ -21,6 +21,7 @@ set(COMMON_EXAMPLES
     SegmentsExample_reduceSegmentsWithArgument
     SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument
     SegmentsExample_reduceAll
+    SegmentsExample_scan
     SegmentsExample_sort
 )
 

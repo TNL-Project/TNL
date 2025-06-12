@@ -76,4 +76,19 @@ TYPED_TEST( SlicedEllpackSegmentsTest, sortSegmentsIf )
    test_sortSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST( SlicedEllpackSegmentsTest, scanSegments )
+{
+   test_scanSegments< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackSegmentsTest, scanSegmentsWithIndexes )
+{
+   test_scanSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( SlicedEllpackSegmentsTest, scanSegmentsIf )
+{
+   test_scanSegmentsIf< typename TestFixture::SegmentsType >();
+}
+
 #include "../../main.h"
