@@ -310,6 +310,8 @@ clang_cuda:
         - .build_template
         - .matrix_template
         - .clang_cuda
+    # FIXME: clang 20 + cuda 19.2.1 fails
+    allow_failure: true
 
 
 hip_rocm:
