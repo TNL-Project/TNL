@@ -133,13 +133,28 @@ VTKWriter< Mesh >::writeDataArray( const Array& array, const std::string& name, 
    if( numberOfComponents != 1 && numberOfComponents != 3 )
       throw std::logic_error( "Unsupported numberOfComponents parameter: " + std::to_string( numberOfComponents ) );
 
+   // data type string identifier - convert from XML type names to legacy
+   std::string datatype;
+   if( VTK::getTypeName( typename Array::ValueType{} ) == "Int32" ) {
+      datatype = "vtktypeint32";
+   }
+   else if( VTK::getTypeName( typename Array::ValueType{} ) == "Int64" ) {
+      datatype = "vtktypeint64";
+   }
+   else {
+      // this should be just float or double
+      datatype = getType< typename Array::ValueType >();
+      if( datatype != "float" && datatype != "double" )
+         throw std::invalid_argument( "found data type which is not implemented in the legacy VTK writer: " + datatype );
+   }
+
    // write DataArray header
    if( numberOfComponents == 1 ) {
-      str << "SCALARS " << name << " " << getType< typename Array::ValueType >() << '\n';
+      str << "SCALARS " << name << " " << datatype << '\n';
       str << "LOOKUP_TABLE default\n";
    }
    else {
-      str << "VECTORS " << name << " " << getType< typename Array::ValueType >() << '\n';
+      str << "VECTORS " << name << " " << datatype << '\n';
    }
 
    using detail::writeValue;
