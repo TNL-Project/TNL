@@ -831,6 +831,10 @@ protected:
 
       if( datatype == "int" )
          return readDataArray< std::int32_t >( inputFile, elements * values_per_element );
+      else if( datatype == "vtktypeint32" )
+         return readDataArray< std::int32_t >( inputFile, elements * values_per_element );
+      else if( datatype == "vtktypeint64" )
+         return readDataArray< std::int64_t >( inputFile, elements * values_per_element );
       else if( datatype == "float" )
          return readDataArray< float >( inputFile, elements * values_per_element );
       else if( datatype == "double" )
