@@ -44,7 +44,7 @@ resolveMeshType( Functor&& functor,
  * Reader reader;
  * using MeshType = [black magic]
  * MeshType mesh;
- * if( ! reader.readMesh( mesh ) )
+ * if( ! reader.loadMesh( mesh ) )
  *    return false;
  * return functor( reader, mesh );
  * \endcode
