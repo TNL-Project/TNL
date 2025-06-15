@@ -208,22 +208,31 @@ index* which serves as an address in the related container.
 ## Iteration over elements of segments
 
 In this section, we show how to iterate over the elements of segments and how
-to manipulate with them. There are three possible ways:
+to manipulate with them. There are two main possible ways:
 
-1. Method `forElements` (\ref TNL::Algorithms::Segments::CSR::forElements for
+1. Functions like `forElements` (\ref TNL::Algorithms::Segments::forElements for
    example), which iterates in parallel over all elements of segments and
    perform given lambda function on each of them.
-2. Method `forSegments` (\ref TNL::Algorithms::Segments::CSR::forSegments for
+2. Functions like `forSegments` (\ref TNL::Algorithms::Segments::forSegments for
    example), which iterates in parallel over all segments. It is better choice
-   when we need to process each segment sequentially are we have significant
+   when we need to process each segment sequentially or we have significant
    amount of computations common for all elements in each segment.
-3. Method `sequentialForSegments` (\ref TNL::Algorithms::Segments::CSR::sequentialForSegments
-   for example), which iterates over all segments sequentially i.e. using only
-   one thread even on GPUs. It is useful for debugging or for printing for example.
 
-Methods iterating over particular segments use a segment view
+Functions iterating over particular segments use a segment view
 (\ref TNL::Algorithms::Segments::SegmentView) to access the elements of given
 segment. The segment view offers iterator for better convenience.
+
+For both of these ways we have several options how to define subset of segments we wish
+to traverse:
+
+1. Traversing all segments - see functions \ref TNL::Algoritms::Segments::forAllElements or
+   \ref TNL::Algorithms::Segments::forAllSegments.
+2. Traversing over range of segments - see functions \ref TNL::Algoritms::Segments::forElements or
+   \ref TNL::Algorithms::Segments::forSegments.
+3. Traversing segments indexes of which are stored in an array - see functions \ref TNL::Algoritms::Segments::forElements or
+   \ref TNL::Algorithms::Segments::forSegments.
+4. Traversing segments indexes of which fullfills certain condition - see functions \ref TNL::Algoritms::Segments::forElementsIf or
+   \ref TNL::Algorithms::Segments::forSegmentsIf.
 
 ### Method forElements
 
@@ -334,73 +343,167 @@ The result looks as follows:
 
 ## Flexible reduction within segments
 
-In this section we will explain an extension of [flexible reduction](
-#ug_ReductionAndScan) to segments. It allows to reduce all elements within the
-same segment and store the result into an array. See the following example:
+In this section we will explain an extension of [flexible reduction](#ug_ReductionAndScan) to segments. It allows to reduce all elements within the same segment and store the result into an array. The reduction operations are optimized for both CPU and GPU execution, with special attention to memory access patterns and thread utilization.
 
-\includelineno Algorithms/Segments/SegmentsExample_reduceSegments.cpp
+### Reduction Function Components
 
-We first create the segments `segments`, related array `data`, and setup the
-elements using the `forAllElements` method. After printing the segments we are
-ready for the parallel reduction. It requires three lambda functions:
+The reduction operation requires three lambda functions:
 
 1. `fetch` which reads data belonging to particular elements of the segments.
    The fetch function can have two different forms - *brief* and *full*:
 
-   - *Brief form* - in this case the lambda function gets only global index and
-     the `compute` flag:
-
+   - *Brief form* - optimized for performance, gets only global index and compute flag:
      ```cpp
      auto fetch = [=] __cuda_callable__ ( int globalIdx, bool& compute ) -> double { ... };
      ```
 
-   - *Full form* - in this case the lambda function receives even the segment
-     index and element index:
-
+   - *Full form* - provides more context, includes segment and local indices:
      ```cpp
      auto fetch = [=] __cuda_callable__ ( int segmentIdx, int localIdx, int globalIdx, bool& compute ) -> double { ... };
      ```
 
-     where `segmentIdx` is the index of the segment, `localIdx` is the rank of
-     the element within the segment, `globalIdx` is index of the element in the
-     related array and `compute` serves for the reduction interruption which
-     means that the remaining elements in the segment can be omitted. Many
-     formats used for segments are optimized for much higher performance if the
-     brief variant is used. The form of the `fetch` lambda function is detected
-     automatically using [SFINAE](https://en.cppreference.com/w/cpp/language/sfinae)
-     and so the use of both is very ease for the user.
+   The brief form is recommended for better performance, especially on GPUs, as it reduces memory access overhead.
 
-2. `reduce` is a function representing the reduction operation, in our case it
-   is defined as follows:
-
+2. `reduce` is a function representing the reduction operation. Common examples include:
    ```cpp
+   // Sum reduction
    auto reduce = [=] __cuda_callable__ ( const double& a, const double& b ) -> double { return a + b; }
+
+   // Min reduction
+   auto reduce = [=] __cuda_callable__ ( const double& a, const double& b ) -> double { return std::min(a, b); }
+
+   // Custom reduction
+   auto reduce = [=] __cuda_callable__ ( const double& a, const double& b ) -> double { return customOperation(a, b); }
    ```
 
-   or, in fact, we can use the function `std::plus`.
-
-3. `keep` is a lambda function responsible for storage of the results. It is
-   supposed to be defined as:
-
+3. `keep` is a lambda function responsible for storing the results:
    ```cpp
    auto keep = [=] __cuda_callable__ ( int segmentIdx, const double& value ) mutable { ... };
    ```
 
-   where `segmentIdx` is an index of the segment of which the reduction result
-   we aim to store and `value` is the result of the reduction in the segment.
+### Performance Considerations
 
-To use reduction within segments, we first create the vector `sums` where we
-will store the results and prepare a view to this vector for later use in the
-lambda functions. We demonstrate use of both fetch function variants - full by
-`fetch_full` and brief by `fetch_brief`. Next we define the lambda function
-`keep` for storing the sums from particular segments into the vector `sums`.
-Finally, we call the method `reduceAllSegments`
-(\ref TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel::reduceAllSegments
-for example) to compute the reductions in the segments - first with `fetch_full`
-and then with `fetch_brief`. In both cases, we use `std::plus` for the reduction
-and we pass zero (the last argument) as the identity element for summation. In
-both cases we print the results which are supposed to be the same.
+When using reduction operations, consider the following:
 
-The result looks as follows:
+1. **Memory Access Patterns**:
+   - Use the brief form of fetch when possible
+   - Ensure coalesced memory access on GPUs
+   - Consider using shared memory for intermediate results
 
-\include SegmentsExample_reduceSegments.out
+2. **Thread Utilization**:
+   - Different segment formats have different thread mapping strategies
+   - Consider segment size distribution for optimal performance
+   - Use appropriate launch configurations
+
+3. **Reduction Interruption**:
+   - The `compute` flag allows early termination of reduction
+   - Useful for conditional reductions or when partial results are sufficient
+
+## Sorting Operations
+
+The segments module provides efficient sorting operations for elements within segments. These operations are particularly useful for:
+- Reordering elements within segments
+- Preparing data for other operations
+- Optimizing memory access patterns
+
+### Basic Sorting
+
+The following example demonstrates basic sorting within segments:
+
+\includelineno Algorithms/Segments/SegmentsExample_sort.cpp
+
+### Sorting with Custom Comparators
+
+You can define custom sorting criteria using comparators:
+
+```cpp
+auto comparator = [=] __cuda_callable__ ( const double& a, const double& b ) -> bool {
+    return customComparison(a, b);
+};
+```
+
+### Performance Tips for Sorting
+
+1. **Choose Appropriate Algorithm**:
+   - Use radix sort for integer keys
+   - Use merge sort for floating-point values
+   - Consider segment size for algorithm selection
+
+2. **Memory Management**:
+   - Use in-place sorting when possible
+   - Consider temporary storage requirements
+   - Optimize for cache locality
+
+## Scanning Operations
+
+Scanning (prefix-sum) operations are essential for many algorithms. The segments module provides both inclusive and exclusive scan operations.
+
+### Inclusive Scan
+
+Inclusive scan computes the prefix sum including the current element:
+
+\includelineno Algorithms/Segments/SegmentsExample_scan.cpp
+
+### Exclusive Scan
+
+Exclusive scan computes the prefix sum excluding the current element:
+
+```cpp
+// Example of exclusive scan
+auto fetch = [=] __cuda_callable__ ( int segmentIdx, int localIdx, int globalIdx ) -> double { ... };
+auto reduce = [=] __cuda_callable__ ( const double& a, const double& b ) -> double { return a + b; };
+auto write = [=] __cuda_callable__ ( int globalIdx, const double& value ) { ... };
+
+exclusiveScanAllSegments(segments, fetch, reduce, write);
+```
+
+### Conditional Scanning
+
+You can perform conditional scans based on predicates:
+
+```cpp
+auto condition = [=] __cuda_callable__ ( int segmentIdx, int localIdx, int globalIdx ) -> bool {
+    return customCondition(segmentIdx, localIdx, globalIdx);
+};
+
+inclusiveScanAllSegmentsIf(segments, condition, fetch, reduce, write);
+```
+
+### Performance Optimization for Scans
+
+1. **Algorithm Selection**:
+   - Use appropriate scan algorithm based on segment size
+   - Consider hardware-specific optimizations
+   - Balance between memory access and computation
+
+2. **Memory Access**:
+   - Ensure coalesced memory access
+   - Use appropriate memory hierarchy
+   - Consider bank conflicts in shared memory
+
+3. **Thread Utilization**:
+   - Optimize thread mapping for different segment formats
+   - Consider segment size distribution
+   - Use appropriate launch configurations
+
+## Best Practices
+
+1. **Format Selection**:
+   - Choose segment format based on data distribution
+   - Consider hardware architecture
+   - Profile different formats for your specific use case
+
+2. **Memory Management**:
+   - Use appropriate memory allocation strategies
+   - Consider memory access patterns
+   - Optimize for cache locality
+
+3. **Performance Tuning**:
+   - Profile your application
+   - Use appropriate launch configurations
+   - Consider hardware-specific optimizations
+
+4. **Error Handling**:
+   - Check for memory allocation failures
+   - Validate input parameters
+   - Handle edge cases appropriately
