@@ -13,12 +13,12 @@ namespace TNL::Algorithms::detail {
 template< int blockSizeX, typename Result, typename DataFetcher, typename Reduction, typename Index >
 __global__
 void
-CudaMultireductionKernel( const Result identity,
-                          DataFetcher dataFetcher,
-                          const Reduction reduction,
-                          const Index size,
-                          const int n,
-                          Result* output )
+CudaReduction2DKernel( const Result identity,
+                       DataFetcher dataFetcher,
+                       const Reduction reduction,
+                       const Index size,
+                       const int n,
+                       Result* output )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    Result* sdata = Backend::getSharedMemory< Result >();
@@ -110,12 +110,12 @@ CudaMultireductionKernel( const Result identity,
 
 template< typename Result, typename DataFetcher, typename Reduction, typename Index >
 int
-CudaMultireductionKernelLauncher( const Result identity,
-                                  DataFetcher dataFetcher,
-                                  const Reduction reduction,
-                                  const Index size,
-                                  const int n,
-                                  Result*& output )
+CudaReduction2DKernelLauncher( const Result identity,
+                               DataFetcher dataFetcher,
+                               const Reduction reduction,
+                               const Index size,
+                               const int n,
+                               Result*& output )
 {
    // must be a power of 2
    static constexpr int maxThreadsPerBlock = 256;
@@ -182,7 +182,7 @@ CudaMultireductionKernelLauncher( const Result identity,
    // Depending on the blockSize we generate appropriate template instance.
    switch( launch_config.blockSize.x ) {
       case 512:
-         Backend::launchKernelSync( CudaMultireductionKernel< 512, Result, DataFetcher, Reduction, Index >,
+         Backend::launchKernelSync( CudaReduction2DKernel< 512, Result, DataFetcher, Reduction, Index >,
                                     launch_config,
                                     identity,
                                     dataFetcher,
@@ -192,9 +192,9 @@ CudaMultireductionKernelLauncher( const Result identity,
                                     output );
          break;
       case 256:
-         Backend::funcSetCacheConfig( CudaMultireductionKernel< 256, Result, DataFetcher, Reduction, Index >,
+         Backend::funcSetCacheConfig( CudaReduction2DKernel< 256, Result, DataFetcher, Reduction, Index >,
                                       Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaMultireductionKernel< 256, Result, DataFetcher, Reduction, Index >,
+         Backend::launchKernelSync( CudaReduction2DKernel< 256, Result, DataFetcher, Reduction, Index >,
                                     launch_config,
                                     identity,
                                     dataFetcher,
@@ -204,9 +204,9 @@ CudaMultireductionKernelLauncher( const Result identity,
                                     output );
          break;
       case 128:
-         Backend::funcSetCacheConfig( CudaMultireductionKernel< 128, Result, DataFetcher, Reduction, Index >,
+         Backend::funcSetCacheConfig( CudaReduction2DKernel< 128, Result, DataFetcher, Reduction, Index >,
                                       Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaMultireductionKernel< 128, Result, DataFetcher, Reduction, Index >,
+         Backend::launchKernelSync( CudaReduction2DKernel< 128, Result, DataFetcher, Reduction, Index >,
                                     launch_config,
                                     identity,
                                     dataFetcher,
@@ -216,9 +216,9 @@ CudaMultireductionKernelLauncher( const Result identity,
                                     output );
          break;
       case 64:
-         Backend::funcSetCacheConfig( CudaMultireductionKernel< 64, Result, DataFetcher, Reduction, Index >,
+         Backend::funcSetCacheConfig( CudaReduction2DKernel< 64, Result, DataFetcher, Reduction, Index >,
                                       Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaMultireductionKernel< 64, Result, DataFetcher, Reduction, Index >,
+         Backend::launchKernelSync( CudaReduction2DKernel< 64, Result, DataFetcher, Reduction, Index >,
                                     launch_config,
                                     identity,
                                     dataFetcher,
@@ -228,9 +228,9 @@ CudaMultireductionKernelLauncher( const Result identity,
                                     output );
          break;
       case 32:
-         Backend::funcSetCacheConfig( CudaMultireductionKernel< 32, Result, DataFetcher, Reduction, Index >,
+         Backend::funcSetCacheConfig( CudaReduction2DKernel< 32, Result, DataFetcher, Reduction, Index >,
                                       Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaMultireductionKernel< 32, Result, DataFetcher, Reduction, Index >,
+         Backend::launchKernelSync( CudaReduction2DKernel< 32, Result, DataFetcher, Reduction, Index >,
                                     launch_config,
                                     identity,
                                     dataFetcher,
@@ -240,9 +240,9 @@ CudaMultireductionKernelLauncher( const Result identity,
                                     output );
          break;
       case 16:
-         Backend::funcSetCacheConfig( CudaMultireductionKernel< 16, Result, DataFetcher, Reduction, Index >,
+         Backend::funcSetCacheConfig( CudaReduction2DKernel< 16, Result, DataFetcher, Reduction, Index >,
                                       Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaMultireductionKernel< 16, Result, DataFetcher, Reduction, Index >,
+         Backend::launchKernelSync( CudaReduction2DKernel< 16, Result, DataFetcher, Reduction, Index >,
                                     launch_config,
                                     identity,
                                     dataFetcher,
@@ -252,9 +252,9 @@ CudaMultireductionKernelLauncher( const Result identity,
                                     output );
          break;
       case 8:
-         Backend::funcSetCacheConfig( CudaMultireductionKernel< 8, Result, DataFetcher, Reduction, Index >,
+         Backend::funcSetCacheConfig( CudaReduction2DKernel< 8, Result, DataFetcher, Reduction, Index >,
                                       Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaMultireductionKernel< 8, Result, DataFetcher, Reduction, Index >,
+         Backend::launchKernelSync( CudaReduction2DKernel< 8, Result, DataFetcher, Reduction, Index >,
                                     launch_config,
                                     identity,
                                     dataFetcher,
@@ -264,9 +264,9 @@ CudaMultireductionKernelLauncher( const Result identity,
                                     output );
          break;
       case 4:
-         Backend::funcSetCacheConfig( CudaMultireductionKernel< 4, Result, DataFetcher, Reduction, Index >,
+         Backend::funcSetCacheConfig( CudaReduction2DKernel< 4, Result, DataFetcher, Reduction, Index >,
                                       Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaMultireductionKernel< 4, Result, DataFetcher, Reduction, Index >,
+         Backend::launchKernelSync( CudaReduction2DKernel< 4, Result, DataFetcher, Reduction, Index >,
                                     launch_config,
                                     identity,
                                     dataFetcher,
@@ -276,9 +276,9 @@ CudaMultireductionKernelLauncher( const Result identity,
                                     output );
          break;
       case 2:
-         Backend::funcSetCacheConfig( CudaMultireductionKernel< 2, Result, DataFetcher, Reduction, Index >,
+         Backend::funcSetCacheConfig( CudaReduction2DKernel< 2, Result, DataFetcher, Reduction, Index >,
                                       Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaMultireductionKernel< 2, Result, DataFetcher, Reduction, Index >,
+         Backend::launchKernelSync( CudaReduction2DKernel< 2, Result, DataFetcher, Reduction, Index >,
                                     launch_config,
                                     identity,
                                     dataFetcher,

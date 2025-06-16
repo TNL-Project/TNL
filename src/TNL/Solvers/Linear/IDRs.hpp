@@ -7,7 +7,7 @@
 
 #include "IDRs.h"
 
-#include <TNL/Algorithms/Multireduction.h>
+#include <TNL/Algorithms/Reduction2D.h>
 #include <TNL/Matrices/MatrixOperations.h>
 #include <TNL/Matrices/Factorization/LUsequential.h>
 
@@ -102,7 +102,7 @@ IDRs< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
       {
          return _P[ idx + i * sizeWithGhosts ] * _r[ idx ];
       };
-      Algorithms::Multireduction< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, s, f.getData() );
+      Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, s, f.getView() );
       // no-op if the problem is not distributed
       MPI::Allreduce( f.getData(), s, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
 
@@ -167,7 +167,7 @@ IDRs< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
          }
 
          // aux[0:s-k] = P[:,k:s] * G[:,k]
-         std::unique_ptr< RealType[] > aux{ new RealType[ s - k ] };
+         HostVector aux( s - k );
          {
             const RealType* _P = P.getData();
             const RealType* _G = G.getData();
@@ -176,9 +176,9 @@ IDRs< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
             {
                return _P[ idx + ( i + k ) * sizeWithGhosts ] * _G[ idx + k * sizeWithGhosts ];
             };
-            Algorithms::Multireduction< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, s - k, aux.get() );
+            Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, s - k, aux.getView() );
             // no-op if the problem is not distributed
-            MPI::Allreduce( aux.get(), s - k, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
+            MPI::Allreduce( aux.getData(), s - k, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
          }
 
          // new column of M = P'*G  (first k entries are zero)
