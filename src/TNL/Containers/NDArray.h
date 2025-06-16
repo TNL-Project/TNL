@@ -527,10 +527,6 @@ public:
 protected:
    //! \brief Underlying one-dimensional array which stores the data.
    StorageArray array;
-
-   //! \brief Object which transforms the multi-dimensional indices to a
-   //! one-dimensional index.
-   IndexerType indexer;
 };
 
 /**
