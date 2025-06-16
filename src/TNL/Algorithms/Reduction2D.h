@@ -16,20 +16,29 @@ template<>
 struct Reduction2D< Devices::Sequential >
 {
    /**
-    * Parameters:
-    *    identity: the [identity element](https://en.wikipedia.org/wiki/Identity_element)
-    *              for the reduction operation, i.e. element which does not
-    *              change the result of the reduction
-    *    fetch: callable object such that `fetch( i, j )` yields the i-th value to be
-    *           reduced from the j-th dataset (i = 0,...,size-1; j = 0,...,n-1)
-    *    reduction: callable object representing the reduction operation
-    *               for example, it can be an instance of std::plus, std::logical_and,
-    *               std::logical_or etc.
-    *    size: the size of each dataset
-    *    n: number of datasets to be reduced
-    *    result: callable object that returns a modifiable reference to the output array,
-    *            it is used as `result( j ) = value` for `j = 0,...,n-1`.
-    *            For example, it can be an `ArrayView` of size `n`.
+    * \brief Performs reduction on a 2D dataset into a 1D output.
+    *
+    * This function applies a reduction operation across all elements along the first dimension
+    * of a 2D dataset, combining values for each position in the second dimension.
+    * The reduction starts with an identity element and aggregates all values along the first dimension.
+    *
+    * \tparam Result Type representing the identity element and result values.
+    * \tparam Fetch Callable type used to fetch values from the 2D dataset.
+    * \tparam Reduction Callable type representing the reduction operation.
+    * \tparam Index Integral type used for the first dimension's size.
+    * \tparam Output Callable type used to store the resulting values.
+    *
+    * \param identity [in] The [identity element](https://en.wikipedia.org/wiki/Identity_element)
+    *                 for the reduction operation. This value does not affect the result of the reduction.
+    * \param fetch [in] Callable object such that `fetch(i, j)` yields a value from the 2D dataset given
+    *              by `i` ranging from `0` to `size-1` and `j` from `0` to `n-1`.
+    * \param reduction [in] Callable object representing the reduction operation. Examples include
+    *                  instances of \ref std::plus, \ref std::logical_and, \ref std::logical_or, etc.
+    * \param size [in] The size of the first dimension (reduction axis) of the 2D dataset.
+    * \param n [in] Number of elements in the second dimension of the 2D dataset.
+    * \param result [out] Callable object returning a modifiable reference to the output array.
+    *               Used as `result(j) = value` for `j` from `0` to `n-1`.
+    *               For example, an \ref TNL::Containers::ArrayView "ArrayView" of size `n`.
     */
    template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
    static constexpr void
@@ -40,20 +49,29 @@ template<>
 struct Reduction2D< Devices::Host >
 {
    /**
-    * Parameters:
-    *    identity: the [identity element](https://en.wikipedia.org/wiki/Identity_element)
-    *              for the reduction operation, i.e. element which does not
-    *              change the result of the reduction
-    *    fetch: callable object such that `fetch( i, j )` yields the i-th value to be
-    *           reduced from the j-th dataset (i = 0,...,size-1; j = 0,...,n-1)
-    *    reduction: callable object representing the reduction operation
-    *               for example, it can be an instance of std::plus, std::logical_and,
-    *               std::logical_or etc.
-    *    size: the size of each dataset
-    *    n: number of datasets to be reduced
-    *    result: callable object that returns a modifiable reference to the output array,
-    *            it is used as `result( j ) = value` for `j = 0,...,n-1`
-    *            For example, it can be an `ArrayView` of size `n`.
+    * \brief Performs reduction on a 2D dataset into a 1D output.
+    *
+    * This function applies a reduction operation across all elements along the first dimension
+    * of a 2D dataset, combining values for each position in the second dimension.
+    * The reduction starts with an identity element and aggregates all values along the first dimension.
+    *
+    * \tparam Result Type representing the identity element and result values.
+    * \tparam Fetch Callable type used to fetch values from the 2D dataset.
+    * \tparam Reduction Callable type representing the reduction operation.
+    * \tparam Index Integral type used for the first dimension's size.
+    * \tparam Output Callable type used to store the resulting values.
+    *
+    * \param identity [in] The [identity element](https://en.wikipedia.org/wiki/Identity_element)
+    *                 for the reduction operation. This value does not affect the result of the reduction.
+    * \param fetch [in] Callable object such that `fetch(i, j)` yields a value from the 2D dataset given
+    *              by `i` ranging from `0` to `size-1` and `j` from `0` to `n-1`.
+    * \param reduction [in] Callable object representing the reduction operation. Examples include
+    *                  instances of \ref std::plus, \ref std::logical_and, \ref std::logical_or, etc.
+    * \param size [in] The size of the first dimension (reduction axis) of the 2D dataset.
+    * \param n [in] Number of elements in the second dimension of the 2D dataset.
+    * \param result [out] Callable object returning a modifiable reference to the output array.
+    *               Used as `result(j) = value` for `j` from `0` to `n-1`.
+    *               For example, an \ref TNL::Containers::ArrayView "ArrayView" of size `n`.
     */
    template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
    static void
@@ -64,20 +82,30 @@ template<>
 struct Reduction2D< Devices::Cuda >
 {
    /**
-    * Parameters:
-    *    identity: the [identity element](https://en.wikipedia.org/wiki/Identity_element)
-    *              for the reduction operation, i.e. element which does not
-    *              change the result of the reduction
-    *    fetch: callable object such that `fetch( i, j )` yields the i-th value to be
-    *           reduced from the j-th dataset (i = 0,...,size-1; j = 0,...,n-1)
-    *    reduction: callable object representing the reduction operation
-    *               for example, it can be an instance of std::plus, std::logical_and,
-    *               std::logical_or etc.
-    *    size: the size of each dataset
-    *    n: number of datasets to be reduced
-    *    hostResult: callable object that returns a modifiable reference to the output array,
-    *                it is used as `hostResult( j ) = value` for `j = 0,...,n-1`
-    *                For example, it can be an `ArrayView` of size `n`.
+    * \brief Performs reduction on a 2D dataset into a 1D output.
+    *
+    * This function applies a reduction operation across all elements along the first dimension
+    * of a 2D dataset, combining values for each position in the second dimension.
+    * The reduction starts with an identity element and aggregates all values along the first dimension.
+    *
+    * \tparam Result Type representing the identity element and result values.
+    * \tparam Fetch Callable type used to fetch values from the 2D dataset.
+    * \tparam Reduction Callable type representing the reduction operation.
+    * \tparam Index Integral type used for the first dimension's size.
+    * \tparam Output Callable type used to store the resulting values.
+    *
+    * \param identity [in] The [identity element](https://en.wikipedia.org/wiki/Identity_element)
+    *                 for the reduction operation. This value does not affect the result of the reduction.
+    * \param fetch [in] Callable object such that `fetch(i, j)` yields a value from the 2D dataset given
+    *              by `i` ranging from `0` to `size-1` and `j` from `0` to `n-1`.
+    * \param reduction [in] Callable object representing the reduction operation. Examples include
+    *                  instances of \ref std::plus, \ref std::logical_and, \ref std::logical_or, etc.
+    * \param size [in] The size of the first dimension (reduction axis) of the 2D dataset.
+    * \param n [in] Number of elements in the second dimension of the 2D dataset.
+    * \param hostResult [out] Callable object returning a modifiable reference to the output array.
+    *                   Used as `result(j) = value` for `j` from `0` to `n-1`.
+    *                   For example, an \ref TNL::Containers::ArrayView "ArrayView" of size `n`.
+    *                   Note that the output array must be allocated on \ref TNL::Devices::Host "Host".
     */
    template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
    static void
