@@ -210,7 +210,7 @@ public:
    template< typename BeginsHolder, typename EndsHolder >
    [[nodiscard]] __cuda_callable__
    bool
-   isContiguousBlock( const BeginsHolder& begins, const EndsHolder& ends )
+   isContiguousBlock( const BeginsHolder& begins, const EndsHolder& ends ) const
    {
       static_assert( BeginsHolder::getDimension() == getDimension(), "invalid dimension of the begins parameter" );
       static_assert( EndsHolder::getDimension() == getDimension(), "invalid dimension of the ends parameter" );
