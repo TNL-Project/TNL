@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include <TNL/Assert.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Algorithms/staticFor.h>
 #include <TNL/Containers/ndarray/Meta.h>
 

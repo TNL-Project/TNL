@@ -126,7 +126,8 @@ public:
    {
       static_assert( std::is_same_v< PermutationType, typename OtherView::PermutationType >,
                      "Arrays must have the same permutation of indices." );
-      static_assert( NDArrayView::isContiguous() && OtherView::isContiguous(),
+      static_assert( getMaxStaticSize( StridesHolderType{} ) == 1
+                        && getMaxStaticSize( typename OtherView::StridesHolderType{} ) == 1,
                      "Non-contiguous array views cannot be assigned." );
       TNL_ASSERT_TRUE( detail::sizesWeakCompare( getSizes(), other.getSizes() ),
                        "The sizes of the array views must be equal, views are not resizable." );
@@ -283,7 +284,7 @@ public:
       using Subpermutation = typename Getter::Subpermutation;
       ValueType* begin = getData() + getStorageIndex( std::forward< IndexTypes >( indices )... );
       auto subarray_sizes = Getter::filterSizes( getSizes(), std::forward< IndexTypes >( indices )... );
-      auto strides = Getter::getStrides( getSizes(), std::forward< IndexTypes >( indices )... );
+      auto strides = Getter::getStrides( getSizes() );
       static_assert( Subpermutation::size() == sizeof...( Dimensions ), "Bug - wrong subpermutation length." );
       static_assert( decltype( subarray_sizes )::getDimension() == sizeof...( Dimensions ),
                      "Bug - wrong dimension of the new sizes." );

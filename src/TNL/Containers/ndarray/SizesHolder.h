@@ -297,6 +297,73 @@ struct SubtractedSizesHolder< SizesHolder< Index, sizes... >, ConstValue >
    using type = SizesHolder< Index, ( ( sizes >= ConstValue ) ? sizes - ConstValue : 0 )... >;
 };
 
+// Helper template to generate the desired SizesHolder
+template< typename Index, std::size_t dimension, Index value, typename Indices >
+struct make_sizes_holder_impl;
+
+// Specialize the helper for the generated index sequence
+template< typename Index, std::size_t dimension, Index value, std::size_t... Indices >
+struct make_sizes_holder_impl< Index, dimension, value, std::index_sequence< Indices... > >
+{
+   using type = TNL::Containers::SizesHolder< Index, ( value + 0 * Indices )... >;
+};
+
 }  // namespace detail
+
+/**
+ * \brief Alias template which simplifies creating a \ref SizesHolder type
+ * with a constant \e value for each \e dimension.
+ *
+ * \tparam Index Integral type used for storing dynamic sizes.
+ * \tparam Dimension Number of values stored in the SizesHolder.
+ * \tparam Value The value to substitute to the \e SizesHolder for each dimension.
+ */
+template< typename Index, std::size_t dimension, Index value = 0 >
+using make_sizes_holder =
+   typename detail::make_sizes_holder_impl< Index, dimension, value, std::make_index_sequence< dimension > >::type;
+
+/**
+ * \brief Returns the maximum dynamic size stored in the given \ref SizesHolder object.
+ */
+template< typename SizesHolderType >
+constexpr typename SizesHolderType::IndexType
+getMaxSize( const SizesHolderType& holder )
+{
+   using IndexType = typename SizesHolderType::IndexType;
+
+   IndexType max_size = 0;
+
+   Algorithms::staticFor< std::size_t, 0, SizesHolderType::getDimension() >(
+      [ & ]( auto level )
+      {
+         const IndexType size = holder.template getSize< level >();
+         if( size > max_size )
+            max_size = size;
+      } );
+
+   return max_size;
+}
+
+/**
+ * \brief Returns the maximum static size stored in the given \ref SizesHolder object.
+ */
+template< typename SizesHolderType >
+constexpr typename SizesHolderType::IndexType
+getMaxStaticSize( const SizesHolderType& holder )
+{
+   using IndexType = typename SizesHolderType::IndexType;
+
+   IndexType max_size = 0;
+
+   Algorithms::staticFor< std::size_t, 0, SizesHolderType::getDimension() >(
+      [ & ]( auto level )
+      {
+         constexpr IndexType size = SizesHolderType::template getStaticSize< level >();
+         if( size > max_size )
+            max_size = size;
+      } );
+
+   return max_size;
+}
 
 }  // namespace TNL::Containers

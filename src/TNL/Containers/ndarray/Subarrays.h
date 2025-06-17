@@ -133,69 +133,6 @@ public:
    }
 };
 
-template< typename Index, std::size_t Dimension >
-struct DummyStrideBase
-{
-   [[nodiscard]] static constexpr std::size_t
-   getDimension()
-   {
-      return Dimension;
-   }
-
-   [[nodiscard]] static constexpr bool
-   isContiguous()
-   {
-      return true;
-   }
-
-   template< std::size_t level >
-   [[nodiscard]] __cuda_callable__
-   constexpr Index
-   getStride( Index i = 0 ) const
-   {
-      return 1;
-   }
-};
-
-template< typename Index, std::size_t... sizes >
-class StridesHolder : private SizesHolder< Index, sizes... >
-{
-   using BaseType = SizesHolder< Index, sizes... >;
-
-public:
-   using BaseType::getDimension;
-
-   [[nodiscard]] static constexpr bool
-   isContiguous()
-   {
-      // a priori not contiguous (otherwise DummyStrideBase would be used)
-      return false;
-   }
-
-   template< std::size_t level >
-   [[nodiscard]] static constexpr std::size_t
-   getStaticStride( Index i = 0 )
-   {
-      return BaseType::template getStaticSize< level >();
-   }
-
-   template< std::size_t level >
-   [[nodiscard]] __cuda_callable__
-   Index
-   getStride( Index i = 0 ) const
-   {
-      return BaseType::template getSize< level >();
-   }
-
-   template< std::size_t level >
-   __cuda_callable__
-   void
-   setStride( Index size )
-   {
-      BaseType::template setSize< level >( size );
-   }
-};
-
 template< typename Base, typename Permutation, std::size_t... Dimensions >
 class SubarrayGetter;
 
@@ -283,37 +220,6 @@ class SubarrayGetter< NDArrayBase< SliceInfo >, Permutation, Dimensions... >
       }
    };
 
-   // helper class for setting dynamic strides
-   template< std::size_t level = 0, typename = void >
-   struct StrideSetterHelper
-   {
-      template< typename StridesHolder, typename SizesHolder >
-      __cuda_callable__
-      static void
-      setStrides( StridesHolder& strides, const SizesHolder& sizes )
-      {
-         static constexpr std::size_t dim = get_from_pack< level >( Dimensions... );
-         if( StridesHolder::template getStaticStride< level >() == 0 )
-            strides.template setStride< level >( DynamicStrideGetter< dim >::get( sizes ) );
-         StrideSetterHelper< level + 1 >::setStrides( strides, sizes );
-      }
-   };
-
-   template< typename _unused >
-   struct StrideSetterHelper< sizeof...( Dimensions ) - 1, _unused >
-   {
-      template< typename StridesHolder, typename SizesHolder >
-      __cuda_callable__
-      static void
-      setStrides( StridesHolder& strides, const SizesHolder& sizes )
-      {
-         static constexpr std::size_t level = sizeof...( Dimensions ) - 1;
-         static constexpr std::size_t dim = get_from_pack< level >( Dimensions... );
-         if( StridesHolder::template getStaticStride< level >() == 0 )
-            strides.template setStride< level >( DynamicStrideGetter< dim >::get( sizes ) );
-      }
-   };
-
 public:
    using Subpermutation = typename SubpermutationGetter< std::index_sequence< Dimensions... >, Permutation >::Subpermutation;
 
@@ -326,20 +232,23 @@ public:
       return Filter::filterSizes( sizes, std::forward< IndexTypes >( indices )... );
    }
 
-   template< typename SizesHolder, typename... IndexTypes >
+   template< typename SizesHolder >
    [[nodiscard]] __cuda_callable__
    static auto
-   getStrides( const SizesHolder& sizes, IndexTypes&&... indices )
+   getStrides( const SizesHolder& sizes )
    {
-      using Strides = StridesHolder< typename SizesHolder::IndexType, StaticStrideGetter< SizesHolder, Dimensions >::get()... >;
+      using Strides =
+         Containers::SizesHolder< typename SizesHolder::IndexType, StaticStrideGetter< SizesHolder, Dimensions >::get()... >;
       Strides strides;
 
       // set dynamic strides
-      // pseudo-python-code:
-      //      for i, d in enumerate(Dimensions):
-      //          if is_dynamic_dimension(d):
-      //              strides.setStride< i >( dynamic_stride(d, sizes) )
-      StrideSetterHelper<>::setStrides( strides, sizes );
+      Algorithms::staticFor< std::size_t, 0, sizeof...( Dimensions ) >(
+         [ & ]( auto level )
+         {
+            static constexpr std::size_t dim = get_from_pack< level >( Dimensions... );
+            if constexpr( Strides::template getStaticSize< level >() == 0 )
+               strides.template setSize< level >( DynamicStrideGetter< dim >::get( sizes ) );
+         } );
 
       return strides;
    }
