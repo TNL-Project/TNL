@@ -151,7 +151,7 @@ struct SlicedIndexer< Permutation, Alignment, SliceInfo, level, false >
       const Index previous = SlicedIndexer< Permutation, Alignment, SliceInfo, level - 1 >::getIndex(
          sizes, strides, overlaps, std::forward< Indices >( indices )... );
 
-      return strides.template getStride< idx >( alpha ) * ( alpha + overlap + size * previous );
+      return strides.template getSize< idx >() * ( alpha + overlap + size * previous );
    }
 };
 
@@ -172,7 +172,7 @@ struct SlicedIndexer< Permutation, Alignment, SliceInfo, level, true >
       const auto alpha = get_from_pack< idx >( std::forward< Indices >( indices )... );
       constexpr Index S = SliceInfo::getSliceSize( idx );
       // TODO: check the calculation with strides and overlaps
-      return strides.template getStride< idx >( alpha )
+      return strides.template getSize< idx >()
               * ( S * ( ( alpha + overlap ) / S )
                      * StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< level - 1 > >::getPermuted(
                         sizes, overlaps, Permutation{} )
@@ -194,7 +194,7 @@ struct SlicedIndexer< Permutation, Alignment, SliceInfo, 0, false >
       constexpr std::size_t idx = get< 0 >( Permutation{} );
       const auto overlap = overlaps.template getSize< idx >();
       const auto alpha = get_from_pack< idx >( std::forward< Indices >( indices )... );
-      return strides.template getStride< idx >( alpha ) * ( alpha + overlap );
+      return strides.template getSize< idx >() * ( alpha + overlap );
    }
 };
 
@@ -209,7 +209,7 @@ struct SlicedIndexer< Permutation, Alignment, SliceInfo, 0, true >
       constexpr std::size_t idx = get< 0 >( Permutation{} );
       const auto overlap = overlaps.template getSize< idx >();
       const auto alpha = get_from_pack< idx >( std::forward< Indices >( indices )... );
-      return strides.template getStride< idx >( alpha ) * ( alpha + overlap );
+      return strides.template getSize< idx >() * ( alpha + overlap );
    }
 };
 

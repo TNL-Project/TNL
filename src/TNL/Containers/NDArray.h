@@ -224,7 +224,7 @@ public:
       using Subpermutation = typename Getter::Subpermutation;
       ValueType* begin = getData() + getStorageIndex( std::forward< IndexTypes >( indices )... );
       auto subarray_sizes = Getter::filterSizes( getSizes(), std::forward< IndexTypes >( indices )... );
-      auto strides = Getter::getStrides( getSizes(), std::forward< IndexTypes >( indices )... );
+      auto strides = Getter::getStrides( getSizes() );
       static_assert( Subpermutation::size() == sizeof...( Dimensions ), "Bug - wrong subpermutation length." );
       static_assert( decltype( subarray_sizes )::getDimension() == sizeof...( Dimensions ),
                      "Bug - wrong dimension of the new sizes." );
@@ -555,20 +555,20 @@ template< typename Value,
           typename Index = typename SizesHolder::IndexType,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
-class NDArray : public NDArrayStorage<
-                   Array< Value, Device, Index, Allocator >,
-                   NDArrayIndexer< SizesHolder,
-                                   Permutation,
-                                   detail::NDArrayBase< SliceInfo< 0, 0 > >,
-                                   detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
-                                   Overlaps > >
+class NDArray
+: public NDArrayStorage< Array< Value, Device, Index, Allocator >,
+                         NDArrayIndexer< SizesHolder,
+                                         Permutation,
+                                         detail::NDArrayBase< SliceInfo< 0, 0 > >,
+                                         make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
+                                         Overlaps > >
 {
    using Base =
       NDArrayStorage< Array< Value, Device, Index, Allocator >,
                       NDArrayIndexer< SizesHolder,
                                       Permutation,
                                       detail::NDArrayBase< SliceInfo< 0, 0 > >,
-                                      detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
+                                      make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
                                       Overlaps > >;
 
 public:
@@ -678,20 +678,19 @@ template< typename Value,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class SlicedNDArray
-: public NDArrayStorage<
-     Array< Value, Device, Index, Allocator >,
-     NDArrayIndexer< SizesHolder,
-                     Permutation,
-                     detail::SlicedNDArrayBase< SliceInfo >,
-                     detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
-                     Overlaps > >
+: public NDArrayStorage< Array< Value, Device, Index, Allocator >,
+                         NDArrayIndexer< SizesHolder,
+                                         Permutation,
+                                         detail::SlicedNDArrayBase< SliceInfo >,
+                                         make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
+                                         Overlaps > >
 {
    using Base =
       NDArrayStorage< Array< Value, Device, Index, Allocator >,
                       NDArrayIndexer< SizesHolder,
                                       Permutation,
                                       detail::SlicedNDArrayBase< SliceInfo >,
-                                      detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
+                                      make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
                                       Overlaps > >;
 
 public:

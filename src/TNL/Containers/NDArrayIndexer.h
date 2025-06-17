@@ -4,9 +4,9 @@
 #pragma once
 
 #include <TNL/Containers/ndarray/Indexing.h>
+#include <TNL/Containers/ndarray/SizesHolder.h>         // make_sizes_holder
 #include <TNL/Containers/ndarray/StaticSizesHolder.h>   // ConstStaticSizesHolder
 #include <TNL/Containers/ndarray/SizesHolderHelpers.h>  // StorageSizeGetter
-#include <TNL/Containers/ndarray/Subarrays.h>           // DummyStrideBase
 
 namespace TNL::Containers {
 
@@ -40,7 +40,7 @@ getDimension()
 template< typename SizesHolder,
           typename Permutation,
           typename Base,
-          typename StridesHolder = detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
+          typename StridesHolder = make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
 class NDArrayIndexer : public StridesHolder, public Overlaps
 {
@@ -134,8 +134,18 @@ public:
       return static_cast< const StridesHolderType& >( *this );
    }
 
-   // method template from base class
-   using StridesHolder::getStride;
+   /**
+    * \brief Returns a specific component of the N-dimensional strides.
+    *
+    * \tparam level Integer specifying the component of the strides to be returned.
+    */
+   template< std::size_t level >
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getStride() const
+   {
+      return getStrides().template getSize< level >();
+   }
 
    //! \brief Returns the N-dimensional overlaps holder instance.
    [[nodiscard]] __cuda_callable__
@@ -200,8 +210,8 @@ public:
       const IndexType result = Base::template getStorageIndex< Permutation >(
          getSizes(), getStrides(), getOverlaps(), std::forward< IndexTypes >( indices )... );
       TNL_ASSERT_GE( result, (IndexType) 0, "storage index out of bounds - either input error or a bug in the indexer" );
-      // upper bound can be checked only for contiguous arrays/views
-      if( StridesHolder::isContiguous() ) {
+      // getStoragetSize() does not consider strides, so the upper bound can be checked only for contiguous arrays/views
+      if( getMaxSize( getStrides() ) == 1 ) {
          TNL_ASSERT_LT( result, getStorageSize(), "storage index out of bounds - either input error or a bug in the indexer" );
       }
       return result;
