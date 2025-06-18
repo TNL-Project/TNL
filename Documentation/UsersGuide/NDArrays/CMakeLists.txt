@@ -1,6 +1,4 @@
-set(CPP_EXAMPLES NDArrayExample_RowMajorArray NDArrayExample_3Dpermutations NDArrayExample_HalfStaticArray
-                 NDArrayExample_SlicedArray
-)
+set(CPP_EXAMPLES NDArrayExample_RowMajorArray NDArrayExample_3Dpermutations NDArrayExample_HalfStaticArray)
 
 foreach(target IN ITEMS ${CPP_EXAMPLES})
     add_executable(${target} ${target}.cpp)

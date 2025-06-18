@@ -184,7 +184,7 @@ public:
    {
       if( getSizes() != other.getSizes() )
          return false;
-      // FIXME: uninitialized data due to alignment in NDArray and padding in SlicedNDArray
+      // FIXME: uninitialized data due to alignment in NDArray
       // TODO: overlaps should be skipped, otherwise it works only after synchronization
       return Algorithms::detail::Equal< Device >::equal( array, other.array, getStorageSize() );
    }
@@ -197,7 +197,7 @@ public:
    {
       if( getSizes() != other.getSizes() )
          return true;
-      // FIXME: uninitialized data due to alignment in NDArray and padding in SlicedNDArray
+      // FIXME: uninitialized data due to alignment in NDArray
       return ! Algorithms::detail::Equal< Device >::equal( array, other.array, getStorageSize() );
    }
 
@@ -280,7 +280,7 @@ public:
       static_assert( detail::is_increasing_sequence( { Dimensions... } ), "specifying permuted dimensions is not supported" );
 #endif
 
-      using Getter = detail::SubarrayGetter< typename Indexer::NDBaseType, PermutationType, Dimensions... >;
+      using Getter = detail::SubarrayGetter< PermutationType, Dimensions... >;
       using Subpermutation = typename Getter::Subpermutation;
       ValueType* begin = getData() + getStorageIndex( std::forward< IndexTypes >( indices )... );
       auto subarray_sizes = Getter::filterSizes( getSizes(), std::forward< IndexTypes >( indices )... );
@@ -290,8 +290,7 @@ public:
                      "Bug - wrong dimension of the new sizes." );
       static_assert( decltype( strides )::getDimension() == sizeof...( Dimensions ), "Bug - wrong dimension of the strides." );
       // TODO: select overlaps for the subarray
-      using Subindexer =
-         NDArrayIndexer< decltype( subarray_sizes ), Subpermutation, typename Indexer::NDBaseType, decltype( strides ) >;
+      using Subindexer = NDArrayIndexer< decltype( subarray_sizes ), Subpermutation, decltype( strides ) >;
       using SubarrayView = NDArrayView< ValueType, Device, Subindexer >;
       return SubarrayView{ begin, subarray_sizes, strides };
    }

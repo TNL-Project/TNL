@@ -133,11 +133,8 @@ public:
    }
 };
 
-template< typename Base, typename Permutation, std::size_t... Dimensions >
-class SubarrayGetter;
-
-template< typename SliceInfo, typename Permutation, std::size_t... Dimensions >
-class SubarrayGetter< NDArrayBase< SliceInfo >, Permutation, Dimensions... >
+template< typename Permutation, std::size_t... Dimensions >
+class SubarrayGetter
 {
    // returns the number of factors in the stride product
    template< std::size_t dim, std::size_t... vals >

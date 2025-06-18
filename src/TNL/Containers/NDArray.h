@@ -21,24 +21,7 @@ namespace TNL::Containers {
  */
 
 /**
- * \brief Describes slicing configuration for \ref SlicedNDArray.
- *
- * \tparam slicedDimension The dimension of the N-dimensional array to be sliced.
- * \tparam sliceSize The number of consecutively stored elements in the sliced dimension.
- */
-template< std::size_t slicedDimension = 0, std::size_t sliceSize = 0 >
-struct SliceInfo
-{
-   // sliceSize == 0 means no slicing
-   [[nodiscard]] static constexpr std::size_t
-   getSliceSize( std::size_t dimension )
-   {
-      return ( dimension == slicedDimension ) ? sliceSize : 0;
-   }
-};
-
-/**
- * \brief Base storage class for \ref NDArray, \ref StaticNDArray and \ref SlicedNDArray.
+ * \brief Base storage class for \ref NDArray and \ref StaticNDArray.
  *
  * \tparam Type of the underlying one-dimensional array for storing the elements.
  * \tparam Type of the N-dimensional indexer, \ref NDArrayIndexer.
@@ -121,7 +104,7 @@ public:
    [[nodiscard]] bool
    operator==( const NDArrayStorage& other ) const
    {
-      // FIXME: uninitialized data due to alignment in NDArray and padding in SlicedNDArray
+      // FIXME: uninitialized data due to alignment in NDArray
       return getSizes() == other.getSizes() && array == other.array;
    }
 
@@ -129,7 +112,7 @@ public:
    [[nodiscard]] bool
    operator!=( const NDArrayStorage& other ) const
    {
-      // FIXME: uninitialized data due to alignment in NDArray and padding in SlicedNDArray
+      // FIXME: uninitialized data due to alignment in NDArray
       return getSizes() != other.getSizes() || array != other.array;
    }
 
@@ -220,7 +203,7 @@ public:
       static_assert( detail::is_increasing_sequence( { Dimensions... } ), "specifying permuted dimensions is not supported" );
 #endif
 
-      using Getter = detail::SubarrayGetter< typename Indexer::NDBaseType, PermutationType, Dimensions... >;
+      using Getter = detail::SubarrayGetter< PermutationType, Dimensions... >;
       using Subpermutation = typename Getter::Subpermutation;
       ValueType* begin = getData() + getStorageIndex( std::forward< IndexTypes >( indices )... );
       auto subarray_sizes = Getter::filterSizes( getSizes(), std::forward< IndexTypes >( indices )... );
@@ -230,8 +213,7 @@ public:
                      "Bug - wrong dimension of the new sizes." );
       static_assert( decltype( strides )::getDimension() == sizeof...( Dimensions ), "Bug - wrong dimension of the strides." );
       // TODO: select overlaps for the subarray
-      using Subindexer =
-         NDArrayIndexer< decltype( subarray_sizes ), Subpermutation, typename Indexer::NDBaseType, decltype( strides ) >;
+      using Subindexer = NDArrayIndexer< decltype( subarray_sizes ), Subpermutation, decltype( strides ) >;
       using SubarrayView = NDArrayView< ValueType, Device, Subindexer >;
       return SubarrayView{ begin, subarray_sizes, strides };
    }
@@ -559,7 +541,6 @@ class NDArray
 : public NDArrayStorage< Array< Value, Device, Index, Allocator >,
                          NDArrayIndexer< SizesHolder,
                                          Permutation,
-                                         detail::NDArrayBase< SliceInfo< 0, 0 > >,
                                          make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
                                          Overlaps > >
 {
@@ -567,7 +548,6 @@ class NDArray
       NDArrayStorage< Array< Value, Device, Index, Allocator >,
                       NDArrayIndexer< SizesHolder,
                                       Permutation,
-                                      detail::NDArrayBase< SliceInfo< 0, 0 > >,
                                       make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
                                       Overlaps > >;
 
@@ -623,13 +603,12 @@ template< typename Value,
           typename SizesHolder,
           typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
           typename Index = typename SizesHolder::IndexType >
-class StaticNDArray
-: public NDArrayStorage< StaticArray< detail::StaticStorageSizeGetter< SizesHolder >::get(), Value >,
-                         NDArrayIndexer< SizesHolder, Permutation, detail::NDArrayBase< SliceInfo< 0, 0 > > >,
-                         Devices::Sequential >
+class StaticNDArray : public NDArrayStorage< StaticArray< detail::StaticStorageSizeGetter< SizesHolder >::get(), Value >,
+                                             NDArrayIndexer< SizesHolder, Permutation >,
+                                             Devices::Sequential >
 {
    using Base = NDArrayStorage< StaticArray< detail::StaticStorageSizeGetter< SizesHolder >::get(), Value >,
-                                NDArrayIndexer< SizesHolder, Permutation, detail::NDArrayBase< SliceInfo< 0, 0 > > >,
+                                NDArrayIndexer< SizesHolder, Permutation >,
                                 Devices::Sequential >;
    static_assert( detail::StaticStorageSizeGetter< SizesHolder >::get() > 0,
                   "All dimensions of a static array must to be positive." );
@@ -646,85 +625,6 @@ public:
    setValue( Value value )
    {
       this->array.setValue( value );
-   }
-};
-
-/**
- * \brief Dynamic N-dimensional array with configurable slicing/tiling.
- *
- * \tparam Value Type of the values stored in the array.
- * \tparam SizesHolder Instance of \ref SizesHolder that will represent the
- *                     array sizes.
- * \tparam Permutation Permutation that will be applied to indices when
- *                     accessing the array elements. The identity permutation
- *                     is used by default.
- * \tparam SliceInfo Type of the \ref SliceInfo "slicing configuration".
- * \tparam Device Type of the \ref TNL::Devices "device" that will be used for
- *                running operations on the array.
- * \tparam Index Type of indices used for addressing the array elements.
- * \tparam Overlaps Sequence of integers representing the overlaps in each
- *                  dimension a distributed N-dimensional array.
- * \tparam Allocator Type of the allocator that will be used for allocating
- *                   elements of the array.
- *
- * See also the \ref ug_NDArrays "Users' Guide".
- */
-template< typename Value,
-          typename SizesHolder,
-          typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
-          typename SliceInfo = SliceInfo<>,                                                // no slicing by default
-          typename Device = Devices::Host,
-          typename Index = typename SizesHolder::IndexType,
-          typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
-          typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
-class SlicedNDArray
-: public NDArrayStorage< Array< Value, Device, Index, Allocator >,
-                         NDArrayIndexer< SizesHolder,
-                                         Permutation,
-                                         detail::SlicedNDArrayBase< SliceInfo >,
-                                         make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
-                                         Overlaps > >
-{
-   using Base =
-      NDArrayStorage< Array< Value, Device, Index, Allocator >,
-                      NDArrayIndexer< SizesHolder,
-                                      Permutation,
-                                      detail::SlicedNDArrayBase< SliceInfo >,
-                                      make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
-                                      Overlaps > >;
-
-public:
-   // inherit all constructors and assignment operators
-   using Base::Base;
-   using Base::operator=;
-
-   //! \brief Constructs an empty array with zero size.
-   SlicedNDArray() = default;
-
-   //! \brief Allocator type used for allocating the array.
-   using AllocatorType = Allocator;
-
-   //! \brief Constructs an empty array and sets the provided allocator.
-   SlicedNDArray( const AllocatorType& allocator )
-   {
-      // set empty array containing the specified allocator
-      this->getStorageArray() = Array< Value, Device, Index, Allocator >( allocator );
-   }
-
-   //! \brief Copy constructor with a specific allocator (makes a deep copy).
-   explicit SlicedNDArray( const SlicedNDArray& other, const AllocatorType& allocator )
-   {
-      // set empty array containing the specified allocator
-      this->array = Array< Value, Device, Index, Allocator >( allocator );
-      // copy the data
-      *this = other;
-   }
-
-   //! \brief Returns the allocator associated with the array.
-   [[nodiscard]] AllocatorType
-   getAllocator() const
-   {
-      return this->array.getAllocator();
    }
 };
 
