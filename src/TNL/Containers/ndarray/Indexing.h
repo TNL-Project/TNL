@@ -15,35 +15,18 @@ template< typename OffsetsHolder, std::size_t... N >
 struct OffsetsHelper< OffsetsHolder, std::index_sequence< N... > >
 {
    template< typename Func >
-   __cuda_callable__
-   static auto
+   static constexpr auto
    apply( const OffsetsHolder& offsets, Func&& f ) -> decltype( auto )
-   {
-      return f( offsets.template getSize< N >()... );
-   }
-
-   template< typename Func >
-   static auto
-   apply_host( const OffsetsHolder& offsets, Func&& f ) -> decltype( auto )
    {
       return f( offsets.template getSize< N >()... );
    }
 };
 
 template< typename OffsetsHolder, typename Func >
-__cuda_callable__
-auto
+constexpr auto
 call_with_offsets( const OffsetsHolder& offsets, Func&& f ) -> decltype( auto )
 {
    return OffsetsHelper< OffsetsHolder, std::make_index_sequence< OffsetsHolder::getDimension() > >::apply(
-      offsets, std::forward< Func >( f ) );
-}
-
-template< typename OffsetsHolder, typename Func >
-auto
-host_call_with_offsets( const OffsetsHolder& offsets, Func&& f ) -> decltype( auto )
-{
-   return OffsetsHelper< OffsetsHolder, std::make_index_sequence< OffsetsHolder::getDimension() > >::apply_host(
       offsets, std::forward< Func >( f ) );
 }
 
@@ -55,35 +38,17 @@ template< typename OffsetsHolder, std::size_t... N >
 struct IndexShiftHelper< OffsetsHolder, std::index_sequence< N... > >
 {
    template< typename Func, typename... Indices >
-   __cuda_callable__
-   static auto
+   static constexpr auto
    apply( const OffsetsHolder& offsets, Func&& f, Indices&&... indices ) -> decltype( auto )
-   {
-      return f( ( std::forward< Indices >( indices ) + offsets.template getSize< N >() )... );
-   }
-
-   template< typename Func, typename... Indices >
-   static auto
-   apply_host( const OffsetsHolder& offsets, Func&& f, Indices&&... indices ) -> decltype( auto )
    {
       return f( ( std::forward< Indices >( indices ) + offsets.template getSize< N >() )... );
    }
 };
 
 template< typename OffsetsHolder, typename Func, typename... Indices >
-__cuda_callable__
-auto
-call_with_shifted_indices( const OffsetsHolder& offsets, Func&& f, Indices&&... indices ) -> decltype( auto )
+auto constexpr call_with_shifted_indices( const OffsetsHolder& offsets, Func&& f, Indices&&... indices ) -> decltype( auto )
 {
    return IndexShiftHelper< OffsetsHolder, std::make_index_sequence< sizeof...( Indices ) > >::apply(
-      offsets, std::forward< Func >( f ), std::forward< Indices >( indices )... );
-}
-
-template< typename OffsetsHolder, typename Func, typename... Indices >
-auto
-host_call_with_shifted_indices( const OffsetsHolder& offsets, Func&& f, Indices&&... indices ) -> decltype( auto )
-{
-   return IndexShiftHelper< OffsetsHolder, std::make_index_sequence< sizeof...( Indices ) > >::apply_host(
       offsets, std::forward< Func >( f ), std::forward< Indices >( indices )... );
 }
 
@@ -95,35 +60,18 @@ template< typename SizesHolder, std::size_t... N >
 struct IndexUnshiftHelper< SizesHolder, std::index_sequence< N... > >
 {
    template< typename Func, typename... Indices >
-   __cuda_callable__
-   static auto
+   static constexpr auto
    apply( const SizesHolder& begins, Func&& f, Indices&&... indices ) -> decltype( auto )
-   {
-      return f( ( std::forward< Indices >( indices ) - begins.template getSize< N >() )... );
-   }
-
-   template< typename Func, typename... Indices >
-   static auto
-   apply_host( const SizesHolder& begins, Func&& f, Indices&&... indices ) -> decltype( auto )
    {
       return f( ( std::forward< Indices >( indices ) - begins.template getSize< N >() )... );
    }
 };
 
 template< typename SizesHolder, typename Func, typename... Indices >
-__cuda_callable__
-auto
+constexpr auto
 call_with_unshifted_indices( const SizesHolder& begins, Func&& f, Indices&&... indices ) -> decltype( auto )
 {
    return IndexUnshiftHelper< SizesHolder, std::make_index_sequence< sizeof...( Indices ) > >::apply(
-      begins, std::forward< Func >( f ), std::forward< Indices >( indices )... );
-}
-
-template< typename SizesHolder, typename Func, typename... Indices >
-auto
-host_call_with_unshifted_indices( const SizesHolder& begins, Func&& f, Indices&&... indices ) -> decltype( auto )
-{
-   return IndexUnshiftHelper< SizesHolder, std::make_index_sequence< sizeof...( Indices ) > >::apply_host(
       begins, std::forward< Func >( f ), std::forward< Indices >( indices )... );
 }
 
