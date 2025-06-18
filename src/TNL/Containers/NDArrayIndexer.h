@@ -39,6 +39,8 @@ template< typename SizesHolder,
           typename Permutation,
           typename StridesHolder = make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
+// TODO: replace base classes with [[no_unique_address]] attributes in C++20 - see
+// https://www.cppstories.com/2021/no-unique-address/
 class NDArrayIndexer : public StridesHolder, public Overlaps
 {
 public:
@@ -252,6 +254,7 @@ protected:
       return sizes;
    }
 
+   // TODO: use [[no_unique_address]] in C++20 - see https://www.cppstories.com/2021/no-unique-address/
    //! \brief Underlying object which represents the sizes of the N-dimensional array.
    SizesHolderType sizes;
 };
