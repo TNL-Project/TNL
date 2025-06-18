@@ -53,7 +53,7 @@ public:
    using RequestsVector = std::vector< MPI_Request >;
    RequestsVector requests;
 
-   enum class AsyncPolicy
+   enum class AsyncPolicy : std::uint8_t
    {
       synchronous,
       deferred,
@@ -72,10 +72,10 @@ public:
    // custom move-constructor that skips moving tp
    DistributedNDArraySynchronizer( DistributedNDArraySynchronizer&& other ) noexcept
    : tp( other.tp.get_thread_count() ),
-     gpu_id( std::move( other.gpu_id ) ),
-     tag_offset( std::move( other.tag_offset ) ),
+     gpu_id( other.gpu_id ),
+     tag_offset( other.tag_offset ),
      array_view( std::move( other.array_view ) ),
-     mask( std::move( other.mask ) ),
+     mask( other.mask ),
      buffers( std::move( other.buffers ) ),
      requests( std::move( other.requests ) )
    {}
