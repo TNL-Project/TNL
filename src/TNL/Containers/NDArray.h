@@ -611,7 +611,7 @@ class StaticNDArray : public NDArrayStorage< StaticArray< detail::StaticStorageS
                                 NDArrayIndexer< SizesHolder, Permutation >,
                                 Devices::Sequential >;
    static_assert( detail::StaticStorageSizeGetter< SizesHolder >::get() > 0,
-                  "All dimensions of a static array must to be positive." );
+                  "All dimensions of a static array must be positive." );
 
 public:
    // inherit all assignment operators
