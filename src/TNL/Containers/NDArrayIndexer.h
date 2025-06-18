@@ -29,7 +29,6 @@ getDimension()
  * \tparam Permutation Permutation that will be applied to indices when
  *                     accessing the array elements. The identity permutation
  *                     is used by default.
- * \tparam Base Either `detail::NDArrayBase` or `detail::SlicedNDArrayBase`.
  * \tparam StridesHolder Type of the base class which represents the strides of
  *                       the N-dimensional array.
  * \tparam Overlaps Sequence of integers representing the overlaps in each
@@ -39,13 +38,12 @@ getDimension()
  */
 template< typename SizesHolder,
           typename Permutation,
-          typename Base,
           typename StridesHolder = make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
 class NDArrayIndexer : public StridesHolder, public Overlaps
 {
 protected:
-   using NDBaseType = Base;
+   using NDBaseType = detail::NDArrayBase;
 
 public:
    //! \brief Type of the underlying object which represents the sizes of the N-dimensional array.
@@ -186,7 +184,7 @@ public:
    IndexType
    getStorageSize() const
    {
-      using Alignment = typename Base::template Alignment< Permutation >;
+      using Alignment = typename NDBaseType::template Alignment< Permutation >;
       return detail::StorageSizeGetter< SizesHolder, Alignment, Overlaps >::get( getSizes(), getOverlaps() );
    }
 
@@ -207,7 +205,7 @@ public:
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
       detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexTypes >( indices )... );
-      const IndexType result = Base::template getStorageIndex< Permutation >(
+      const IndexType result = NDBaseType::template getStorageIndex< Permutation >(
          getSizes(), getStrides(), getOverlaps(), std::forward< IndexTypes >( indices )... );
       TNL_ASSERT_GE( result, (IndexType) 0, "storage index out of bounds - either input error or a bug in the indexer" );
       // getStoragetSize() does not consider strides, so the upper bound can be checked only for contiguous arrays/views

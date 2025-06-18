@@ -12,7 +12,7 @@ namespace TNL::Containers {
  * \brief Distributed N-dimensional array.
  *
  * \tparam NDArray Type of the N-dimensional array which is used to store the local
- *                 elements. It can be \ref NDArray or \ref SlicedNDArray.
+ *                 elements. See \ref NDArray.
  *
  * \par Example:
  * \include Containers/DistributedNDArrayExample.cpp

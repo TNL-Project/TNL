@@ -159,31 +159,6 @@ Output:
 
 \include NDArrayExample_HalfStaticArray.out
 
-## Sliced dynamic N-dimensional array
-
-The \ref TNL::Containers::SlicedNDArray allows to create _sliced_ N-dimensional arrays. The idea of
-slicing is that one particular axis is not indexed contiguously, but after a given number of
-elements the indexing continues with the other dimensions. The slicing is specified using the \ref
-TNL::Containers::SliceInfo class which is specified in the template parameters of `SlicedNDArray`
-after `Permutation`.
-
-In the following example, we create a two-dimensional array with a static number of rows (3),
-dynamic number of columns (10), and slicing size of 4 along the 1-axis. Hence, the array is divided
-into 3 slices, each containing 4 columns (the allocated size of the array is aligned to 12
-columns).
-
-\includelineno NDArrayExample_SlicedArray.cpp
-
-Output:
-
-\include NDArrayExample_SlicedArray.out
-
-Notice how the numbering goes to the second row (starting with the value 10) after numbering 4
-elements of the first row, then to the third row (starting with the value 20) after numbering 4
-elements of the second row, and back to the first row (starting with the value 4) after numbering 4
-elements of the last row. Compare the output with the previous example using a non-sliced array
-with the same sizes.
-
 ## Distributed N-dimensional array
 
 \ref TNL::Containers::DistributedNDArray "DistributedNDArray" extends \ref TNL::Containers::NDArray "NDArray" in a similar way that \ref TNL::Containers::DistributedArray "DistributedArray" extends \ref TNL::Containers::Array "Array".
