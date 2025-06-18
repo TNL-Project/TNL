@@ -4,9 +4,8 @@
 #pragma once
 
 #include <TNL/Containers/ndarray/Indexing.h>
-#include <TNL/Containers/ndarray/SizesHolder.h>         // make_sizes_holder
-#include <TNL/Containers/ndarray/StaticSizesHolder.h>   // ConstStaticSizesHolder
-#include <TNL/Containers/ndarray/SizesHolderHelpers.h>  // StorageSizeGetter
+#include <TNL/Containers/ndarray/SizesHolder.h>        // make_sizes_holder
+#include <TNL/Containers/ndarray/StaticSizesHolder.h>  // ConstStaticSizesHolder
 
 namespace TNL::Containers {
 
@@ -42,9 +41,6 @@ template< typename SizesHolder,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
 class NDArrayIndexer : public StridesHolder, public Overlaps
 {
-protected:
-   using NDBaseType = detail::NDArrayBase;
-
 public:
    //! \brief Type of the underlying object which represents the sizes of the N-dimensional array.
    using SizesHolderType = SizesHolder;
@@ -184,8 +180,7 @@ public:
    IndexType
    getStorageSize() const
    {
-      using Alignment = typename NDBaseType::template Alignment< Permutation >;
-      return detail::StorageSizeGetter< SizesHolder, Alignment, Overlaps >::get( getSizes(), getOverlaps() );
+      return detail::getStorageSize< Permutation >( getSizes(), getOverlaps() );
    }
 
    /**
@@ -205,7 +200,7 @@ public:
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
       detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexTypes >( indices )... );
-      const IndexType result = NDBaseType::template getStorageIndex< Permutation >(
+      const IndexType result = detail::getStorageIndex< Permutation >(
          getSizes(), getStrides(), getOverlaps(), std::forward< IndexTypes >( indices )... );
       TNL_ASSERT_GE( result, (IndexType) 0, "storage index out of bounds - either input error or a bug in the indexer" );
       // getStoragetSize() does not consider strides, so the upper bound can be checked only for contiguous arrays/views

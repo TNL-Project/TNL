@@ -75,73 +75,69 @@ call_with_unshifted_indices( const SizesHolder& begins, Func&& f, Indices&&... i
       begins, std::forward< Func >( f ), std::forward< Indices >( indices )... );
 }
 
-template< typename Permutation, typename Alignment, std::size_t level = Permutation::size() - 1 >
-struct SlicedIndexer
+template< typename Permutation, std::size_t dimension, typename SizesHolder >
+__cuda_callable__
+static typename SizesHolder::IndexType
+getAlignedSize( const SizesHolder& sizes )
 {
-   template< typename SizesHolder, typename StridesHolder, typename Overlaps, typename... Indices >
-   __cuda_callable__
-   static typename SizesHolder::IndexType
-   getIndex( const SizesHolder& sizes, const StridesHolder& strides, const Overlaps& overlaps, Indices&&... indices )
-   {
-      using Index = typename SizesHolder::IndexType;
-      constexpr std::size_t idx = get< level >( Permutation{} );
-      const auto overlap = overlaps.template getSize< idx >();
-      const auto alpha = get_from_pack< idx >( std::forward< Indices >( indices )... );
-      const Index size = Alignment::template getAlignedSize< idx >( sizes ) + 2 * overlap;
-      const Index previous = SlicedIndexer< Permutation, Alignment, level - 1 >::getIndex(
-         sizes, strides, overlaps, std::forward< Indices >( indices )... );
+   const auto size = sizes.template getSize< dimension >();
+   // round up the last dynamic dimension to improve performance
+   // TODO: aligning is good for GPU, but bad for CPU
+   //static constexpr decltype(size) mult = 32;
+   //if( dimension == get< Permutation::size() - 1 >( Permutation{} )
+   //        && SizesHolder::template getStaticSize< dimension >() == 0 )
+   //    return mult * ( size / mult + ( size % mult != 0 ) );
+   return size;
+}
 
-      return strides.template getSize< idx >() * ( alpha + overlap + size * previous );
-   }
-};
-
-template< typename Permutation, typename Alignment >
-struct SlicedIndexer< Permutation, Alignment, 0 >
+template< typename Permutation, typename SizesHolder, typename StridesHolder, typename Overlaps, typename... Indices >
+__cuda_callable__
+static typename SizesHolder::IndexType
+getStorageIndex( const SizesHolder& sizes, const StridesHolder& strides, const Overlaps& overlaps, Indices&&... indices )
 {
-   template< typename SizesHolder, typename StridesHolder, typename Overlaps, typename... Indices >
-   __cuda_callable__
-   static typename SizesHolder::IndexType
-   getIndex( const SizesHolder& sizes, const StridesHolder& strides, const Overlaps& overlaps, Indices&&... indices )
-   {
-      constexpr std::size_t idx = get< 0 >( Permutation{} );
-      const auto overlap = overlaps.template getSize< idx >();
-      const auto alpha = get_from_pack< idx >( std::forward< Indices >( indices )... );
-      return strides.template getSize< idx >() * ( alpha + overlap );
-   }
-};
+   using Index = typename SizesHolder::IndexType;
 
-struct NDArrayBase
-{
-   template< typename Permutation >
-   struct Alignment
-   {
-      template< std::size_t dimension, typename SizesHolder >
-      __cuda_callable__
-      static typename SizesHolder::IndexType
-      getAlignedSize( const SizesHolder& sizes )
+   Index result = 0;
+   TNL::Algorithms::staticFor< std::size_t, 0, Permutation::size() >(
+      [ & ]( auto level )
       {
-         const auto size = sizes.template getSize< dimension >();
-         // round up the last dynamic dimension to improve performance
-         // TODO: aligning is good for GPU, but bad for CPU
-         //static constexpr decltype(size) mult = 32;
-         //if( dimension == get< Permutation::size() - 1 >( Permutation{} )
-         //        && SizesHolder::template getStaticSize< dimension >() == 0 )
-         //    return mult * ( size / mult + ( size % mult != 0 ) );
-         return size;
-      }
-   };
+         constexpr std::size_t idx = get< level >( Permutation{} );
+         const Index overlap = overlaps.template getSize< idx >();
+         const Index alpha = get_from_pack< idx >( std::forward< Indices >( indices )... );
 
-   template< typename Permutation, typename SizesHolder, typename StridesHolder, typename Overlaps, typename... Indices >
-   __cuda_callable__
-   typename SizesHolder::IndexType static getStorageIndex( const SizesHolder& sizes,
-                                                           const StridesHolder& strides,
-                                                           const Overlaps& overlaps,
-                                                           Indices&&... indices )
-   {
-      using Alignment = Alignment< Permutation >;
-      return SlicedIndexer< Permutation, Alignment >::getIndex(
-         sizes, strides, overlaps, std::forward< Indices >( indices )... );
-   }
-};
+         if constexpr( level == 0 ) {
+            result = strides.template getSize< idx >() * ( alpha + overlap );
+         }
+         else {
+            const Index size = getAlignedSize< Permutation, idx >( sizes ) + 2 * overlap;
+            result = strides.template getSize< idx >() * ( alpha + overlap + size * result );
+         }
+      } );
+   return result;
+}
+
+template< typename Permutation, typename SizesHolder, typename Overlaps >
+__cuda_callable__
+static typename SizesHolder::IndexType
+getStorageSize( const SizesHolder& sizes, const Overlaps& overlaps )
+{
+   using Index = typename SizesHolder::IndexType;
+
+   Index result = 0;
+   TNL::Algorithms::staticFor< std::size_t, 0, Permutation::size() >(
+      [ & ]( auto level )
+      {
+         const Index overlap = overlaps.template getSize< level >();
+         const Index size = getAlignedSize< Permutation, level >( sizes );
+
+         if constexpr( level == 0 ) {
+            result = size + 2 * overlap;
+         }
+         else {
+            result *= size + 2 * overlap;
+         }
+      } );
+   return result;
+}
 
 }  // namespace TNL::Containers::detail
