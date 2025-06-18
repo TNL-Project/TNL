@@ -15,6 +15,7 @@
 
 #include "DistributedNDArraySyncDirections.h"
 #include "ndarray/SynchronizerBuffers.h"
+#include "ndarray/Indexing.h"
 
 namespace TNL::Containers {
 
@@ -558,8 +559,8 @@ protected:
 
          if( is_contiguous ) {
             // avoid buffering - bind buffer views directly to the array
-            buffer.send_view.bind( &call_with_offsets( buffer.send_offsets, array_view.getLocalView() ) );
-            buffer.recv_view.bind( &call_with_offsets( buffer.recv_offsets, array_view.getLocalView() ) );
+            buffer.send_view.bind( &detail::call_with_offsets( buffer.send_offsets, array_view.getLocalView() ) );
+            buffer.recv_view.bind( &detail::call_with_offsets( buffer.recv_offsets, array_view.getLocalView() ) );
          }
          else {
             using BufferView = typename Buffer::NDArrayType::ViewType;
@@ -610,9 +611,9 @@ public:
       operator()( Indices... indices )
       {
          if( to_buffer )
-            buffer_view( indices... ) = call_with_shifted_indices( local_array_offsets, local_array_view, indices... );
+            buffer_view( indices... ) = detail::call_with_shifted_indices( local_array_offsets, local_array_view, indices... );
          else
-            call_with_shifted_indices( local_array_offsets, local_array_view, indices... ) = buffer_view( indices... );
+            detail::call_with_shifted_indices( local_array_offsets, local_array_view, indices... ) = buffer_view( indices... );
       }
    };
 };
