@@ -71,7 +71,7 @@ iterativeLinearSolverExample()
    /***
     * Setup monitor of the iterative solver.
     */
-   using IterativeSolverMonitorType = TNL::Solvers::IterativeSolverMonitor< double, int >;
+   using IterativeSolverMonitorType = TNL::Solvers::IterativeSolverMonitor< double >;
    IterativeSolverMonitorType monitor;
    TNL::Solvers::SolverMonitorThread monitorThread( monitor );
    monitor.setRefreshRate( 10 );  // refresh rate in milliseconds

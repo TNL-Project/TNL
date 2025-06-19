@@ -31,7 +31,7 @@ namespace TNL::Solvers {
  *
  * \include IterativeLinearSolverWithTimerExample.out
  */
-template< typename Real = double, typename Index = int >
+template< typename Real = double >
 class IterativeSolverMonitor : public SolverMonitor
 {
 public:
@@ -43,7 +43,7 @@ public:
    /**
     * \brief A type for indexing.
     */
-   using IndexType = Index;
+   using IndexType = std::size_t;
 
    /**
     * \brief Construct with no parameters.

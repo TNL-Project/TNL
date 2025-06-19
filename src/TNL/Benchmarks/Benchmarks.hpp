@@ -12,7 +12,7 @@
 namespace TNL::Benchmarks {
 
 template< typename Logger >
-Benchmark< Logger >::Benchmark( std::ostream& output, int loops, int verbose )
+Benchmark< Logger >::Benchmark( std::ostream& output, std::size_t loops, int verbose )
 : logger( output, verbose ),
   loops( loops )
 {}
@@ -40,7 +40,7 @@ Benchmark< Logger >::setup( const Config::ParameterContainer& parameters )
 
 template< typename Logger >
 void
-Benchmark< Logger >::setLoops( int loops )
+Benchmark< Logger >::setLoops( std::size_t loops )
 {
    this->loops = loops;
 }
@@ -90,7 +90,7 @@ Benchmark< Logger >::setDatasetSize( double datasetSize, double baseTime )
 
 template< typename Logger >
 void
-Benchmark< Logger >::setOperationsPerLoop( long int operationsPerLoop )
+Benchmark< Logger >::setOperationsPerLoop( std::size_t operationsPerLoop )
 {
    this->operations_per_loop = operationsPerLoop;
 }

@@ -29,9 +29,13 @@ namespace TNL::Benchmarks {
 template< typename Device,
           typename ComputeFunction,
           typename ResetFunction,
-          typename Monitor = TNL::Solvers::IterativeSolverMonitor< double, int > >
-std::tuple< int, double, double, double, double >
-timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const double& minTime, Monitor&& monitor = Monitor() )
+          typename Monitor = TNL::Solvers::IterativeSolverMonitor< double > >
+std::tuple< std::size_t, double, double, double, double >
+timeFunction( ComputeFunction compute,
+              ResetFunction reset,
+              std::size_t maxLoops,
+              const double& minTime,
+              Monitor&& monitor = Monitor() )
 {
    // the timer is constructed zero-initialized and stopped
    Timer timer;
@@ -48,7 +52,7 @@ timeFunction( ComputeFunction compute, ResetFunction reset, int maxLoops, const 
    Containers::Vector< double > results_time( maxLoops, 0.0 );
    Containers::Vector< long long int > results_cpu_cycles( maxLoops, 0 );
 
-   int loops;
+   std::size_t loops;
    for( loops = 0; loops < maxLoops || sum( results_time ) < minTime; loops++ ) {
       // abuse the monitor's "time" for loops
       monitor.setTime( loops + 1 );

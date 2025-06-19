@@ -522,9 +522,6 @@ struct LinearSolversBenchmark
    {
       using CSR = TNL::Matrices::
          SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
-      using CudaCSR = TNL::Matrices::
-         SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
-
       auto matrixCopy = std::make_shared< CSR >();
       TNL::Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
 
@@ -555,6 +552,8 @@ struct LinearSolversBenchmark
       benchmark.time< TNL::Devices::Host >( performer, compute, benchmarkResult );
 
    #if defined( HAVE_CUDSS ) || defined( HAVE_GINKGO ) || defined( HAVE_TRILINOS )
+      using CudaCSR = TNL::Matrices::
+         SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
       auto cudaMatrix = std::make_shared< CudaCSR >();
       TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
       TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType > cuda_x0_copy;
