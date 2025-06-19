@@ -322,48 +322,4 @@ template< typename Index, std::size_t dimension, Index value = 0 >
 using make_sizes_holder =
    typename detail::make_sizes_holder_impl< Index, dimension, value, std::make_index_sequence< dimension > >::type;
 
-/**
- * \brief Returns the maximum dynamic size stored in the given \ref SizesHolder object.
- */
-template< typename SizesHolderType >
-constexpr typename SizesHolderType::IndexType
-getMaxSize( const SizesHolderType& holder )
-{
-   using IndexType = typename SizesHolderType::IndexType;
-
-   IndexType max_size = 0;
-
-   Algorithms::staticFor< std::size_t, 0, SizesHolderType::getDimension() >(
-      [ & ]( auto level )
-      {
-         const IndexType size = holder.template getSize< level >();
-         if( size > max_size )
-            max_size = size;
-      } );
-
-   return max_size;
-}
-
-/**
- * \brief Returns the maximum static size stored in the given \ref SizesHolder object.
- */
-template< typename SizesHolderType >
-constexpr typename SizesHolderType::IndexType
-getMaxStaticSize( const SizesHolderType& holder )
-{
-   using IndexType = typename SizesHolderType::IndexType;
-
-   IndexType max_size = 0;
-
-   Algorithms::staticFor< std::size_t, 0, SizesHolderType::getDimension() >(
-      [ & ]( auto level )
-      {
-         constexpr IndexType size = SizesHolderType::template getStaticSize< level >();
-         if( size > max_size )
-            max_size = size;
-      } );
-
-   return max_size;
-}
-
 }  // namespace TNL::Containers

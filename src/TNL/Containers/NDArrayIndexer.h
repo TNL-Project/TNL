@@ -183,10 +183,6 @@ public:
       detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexTypes >( indices )... );
       const IndexType result = detail::getStorageIndex( getStrides(), getOverlaps(), std::forward< IndexTypes >( indices )... );
       TNL_ASSERT_GE( result, (IndexType) 0, "storage index out of bounds - either input error or a bug in the indexer" );
-      // getStoragetSize() does not consider strides, so the upper bound can be checked only for contiguous arrays/views
-      if( getMaxSize( getStrides() ) == 1 ) {
-         TNL_ASSERT_LT( result, getStorageSize(), "storage index out of bounds - either input error or a bug in the indexer" );
-      }
       return result;
    }
 

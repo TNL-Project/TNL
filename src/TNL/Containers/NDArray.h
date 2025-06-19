@@ -216,7 +216,9 @@ public:
    operator()( IndexTypes&&... indices )
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
-      return array[ getStorageIndex( std::forward< IndexTypes >( indices )... ) ];
+      const IndexType storageIndex = getStorageIndex( std::forward< IndexTypes >( indices )... );
+      TNL_ASSERT_LT( storageIndex, array.getSize(), "storage index out of bounds" );
+      return array[ storageIndex ];
    }
 
    /**
@@ -233,7 +235,9 @@ public:
    operator()( IndexTypes&&... indices ) const
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
-      return array[ getStorageIndex( std::forward< IndexTypes >( indices )... ) ];
+      const IndexType storageIndex = getStorageIndex( std::forward< IndexTypes >( indices )... );
+      TNL_ASSERT_LT( storageIndex, array.getSize(), "storage index out of bounds" );
+      return array[ storageIndex ];
    }
 
    /**
@@ -470,7 +474,9 @@ public:
    getElement( IndexTypes&&... indices ) const
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
-      return array.getElement( getStorageIndex( std::forward< IndexTypes >( indices )... ) );
+      const IndexType storageIndex = getStorageIndex( std::forward< IndexTypes >( indices )... );
+      TNL_ASSERT_LT( storageIndex, array.getSize(), "storage index out of bounds" );
+      return array.getElement( storageIndex );
    }
 
    //! \brief Returns a constant reference to the underlying storage array.
