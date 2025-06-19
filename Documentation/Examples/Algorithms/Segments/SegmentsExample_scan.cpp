@@ -1,6 +1,7 @@
 #include <iostream>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/scan.h>
+#include <TNL/Algorithms/Segments/print.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Devices/Host.h>
 
@@ -21,12 +22,12 @@ scanExample()
    auto exclusive_result_view = exclusive_result.getView();
 
    // Initialize data with segment index + 1
-   auto dataView = data.getView();
+   auto data_view = data.getView();
    TNL::Algorithms::Segments::forAllElements(
       segments,
       [ = ] __cuda_callable__( Index segmentIdx, Index localIdx, Index globalIdx ) mutable
       {
-         dataView[ globalIdx ] = segmentIdx + 1;
+         data_view[ globalIdx ] = segmentIdx + 1;
       } );
 
    // Print original data
@@ -34,7 +35,7 @@ scanExample()
    std::cout << TNL::Algorithms::Segments::print( segments,
                                                   [ = ] __cuda_callable__( Index globalIdx ) -> Value
                                                   {
-                                                     return dataView[ globalIdx ];
+                                                     return data_view[ globalIdx ];
                                                   } )
              << std::endl;
 
@@ -42,7 +43,7 @@ scanExample()
    auto fetch = [ = ] __cuda_callable__( Index segmentIdx, Index localIdx, Index globalIdx ) -> Value
    {
       if( localIdx < segmentsSizesView[ segmentIdx ] )
-         return dataView[ globalIdx ];
+         return data_view[ globalIdx ];
       else
          return 0;  // Return 0 for padding elements
    };
@@ -67,7 +68,7 @@ scanExample()
    std::cout << TNL::Algorithms::Segments::print( segments,
                                                   [ = ] __cuda_callable__( Index globalIdx ) -> Value
                                                   {
-                                                     return inclusive_result[ globalIdx ];
+                                                     return inclusive_result_view[ globalIdx ];
                                                   } )
              << std::endl;
 
@@ -75,7 +76,7 @@ scanExample()
    std::cout << TNL::Algorithms::Segments::print( segments,
                                                   [ = ] __cuda_callable__( Index globalIdx ) -> Value
                                                   {
-                                                     return exclusive_result[ globalIdx ];
+                                                     return exclusive_result_view[ globalIdx ];
                                                   } )
              << std::endl;
 
@@ -84,7 +85,7 @@ scanExample()
 
    auto write_partial = [ = ] __cuda_callable__( Index globalIdx, Value value ) mutable
    {
-      dataView[ globalIdx ] = value;  // All segment scan algorithms may work even as inplace scan
+      data_view[ globalIdx ] = value;  // All segment scan algorithms may work even as inplace scan
    };
 
    // Perform inclusive scan on selected segments
@@ -94,7 +95,7 @@ scanExample()
    std::cout << TNL::Algorithms::Segments::print( segments,
                                                   [ = ] __cuda_callable__( Index globalIdx ) -> Value
                                                   {
-                                                     return dataView[ globalIdx ];
+                                                     return data_view[ globalIdx ];
                                                   } )
              << std::endl;
 
@@ -111,7 +112,7 @@ scanExample()
    std::cout << TNL::Algorithms::Segments::print( segments,
                                                   [ = ] __cuda_callable__( Index globalIdx ) -> Value
                                                   {
-                                                     return dataView[ globalIdx ];
+                                                     return data_view[ globalIdx ];
                                                   } )
              << std::endl;
 }
