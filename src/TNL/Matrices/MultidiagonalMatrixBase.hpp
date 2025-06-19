@@ -362,16 +362,24 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const
    auto rowIndexes_view = rowIndexes.getConstView();
    const IndexType diagonalsCount = this->diagonalOffsets.getSize();
    const IndexType columns = this->getColumns();
+   TNL_ASSERT_CMD( const IndexType rows = this->getRows(); )
    const auto indexer = this->indexer;
+   std::cout << rowIndexes_view << std::endl;
    auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
    {
+      TNL_ASSERT_LT( idx, rowIndexes_view.getSize(), "Index out of bounds." );
+      TNL_ASSERT_GE( idx, 0, "Index out of bounds." );
       IndexType rowIdx = rowIndexes_view[ idx ];
       TNL_ASSERT_GE( rowIdx, 0, "" );
-      TNL_ASSERT_LT( rowIdx, this->getRows(), "" );
+      TNL_ASSERT_LT( rowIdx, rows, "" );
       for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
          const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
-         if( columnIdx >= 0 && columnIdx < columns )
+         if( columnIdx >= 0 && columnIdx < columns ) {
+            TNL_ASSERT_LT( indexer.getGlobalIndex( rowIdx, localIdx ),
+                           values_view.getSize(),
+                           "Global index is larger than number of matrix elements." );
             function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
+         }
       }
    };
    Algorithms::parallelFor< DeviceType >( begin, end, f );
