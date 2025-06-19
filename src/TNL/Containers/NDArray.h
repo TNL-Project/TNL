@@ -194,28 +194,7 @@ public:
    auto
    getSubarrayView( IndexTypes&&... indices )
    {
-      static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
-      static_assert( 0 < sizeof...( Dimensions ) && sizeof...( Dimensions ) <= getDimension(),
-                     "got wrong number of dimensions" );
-// FIXME: nvcc chokes on the variadic brace-initialization
-#ifndef __NVCC__
-      static_assert( detail::all_elements_in_range( 0, PermutationType::size(), { Dimensions... } ), "invalid dimensions" );
-      static_assert( detail::is_increasing_sequence( { Dimensions... } ), "specifying permuted dimensions is not supported" );
-#endif
-
-      using Getter = detail::SubarrayGetter< PermutationType, Dimensions... >;
-      using Subpermutation = typename Getter::Subpermutation;
-      ValueType* begin = getData() + getStorageIndex( std::forward< IndexTypes >( indices )... );
-      auto subarray_sizes = Getter::filterSizes( getSizes(), std::forward< IndexTypes >( indices )... );
-      auto strides = Getter::getStrides( getSizes() );
-      static_assert( Subpermutation::size() == sizeof...( Dimensions ), "Bug - wrong subpermutation length." );
-      static_assert( decltype( subarray_sizes )::getDimension() == sizeof...( Dimensions ),
-                     "Bug - wrong dimension of the new sizes." );
-      static_assert( decltype( strides )::getDimension() == sizeof...( Dimensions ), "Bug - wrong dimension of the strides." );
-      // TODO: select overlaps for the subarray
-      using Subindexer = NDArrayIndexer< decltype( subarray_sizes ), Subpermutation, decltype( strides ) >;
-      using SubarrayView = NDArrayView< ValueType, Device, Subindexer >;
-      return SubarrayView{ begin, subarray_sizes, strides };
+      return getView().template getSubarrayView< Dimensions... >( std::forward< IndexTypes >( indices )... );
    }
 
    /**
