@@ -25,9 +25,6 @@ getDimension()
  *
  * \tparam SizesHolder Instance of \ref SizesHolder that will represent the
  *                     array sizes.
- * \tparam Permutation Permutation that will be applied to indices when
- *                     accessing the array elements. The identity permutation
- *                     is used by default.
  * \tparam StridesHolder Type of the base class which represents the strides of
  *                       the N-dimensional array.
  * \tparam Overlaps Sequence of integers representing the overlaps in each
@@ -36,8 +33,7 @@ getDimension()
  * \ingroup ndarray
  */
 template< typename SizesHolder,
-          typename Permutation,
-          typename StridesHolder = detail::make_strides_holder< Permutation, SizesHolder >,
+          typename StridesHolder,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
 class NDArrayIndexer
 {
@@ -47,9 +43,6 @@ public:
 
    //! \brief Type of the underlying object which represents the strides of the N-dimensional array.
    using StridesHolderType = StridesHolder;
-
-   //! \brief Permutation that is applied to indices when accessing the array elements.
-   using PermutationType = Permutation;
 
    //! \brief Type of the underlying object which represents the overlaps in each dimension
    //! of a distributed N-dimensional array.
@@ -62,15 +55,11 @@ public:
 #ifdef _MSC_VER
    static_assert( Containers::getDimension< StridesHolder >() == Containers::getDimension< SizesHolder >(),
                   "Dimension of strides does not match the dimension of sizes." );
-   static_assert( Permutation::size() == Containers::getDimension< SizesHolder >(),
-                  "Dimension of permutation does not match the dimension of sizes." );
    static_assert( Containers::getDimension< Overlaps >() == Containers::getDimension< SizesHolder >(),
                   "Dimension of overlaps does not match the dimension of sizes." );
 #else
    static_assert( StridesHolder::getDimension() == SizesHolder::getDimension(),
                   "Dimension of strides does not match the dimension of sizes." );
-   static_assert( Permutation::size() == SizesHolder::getDimension(),
-                  "Dimension of permutation does not match the dimension of sizes." );
    static_assert( Overlaps::getDimension() == SizesHolder::getDimension(),
                   "Dimension of overlaps does not match the dimension of sizes." );
 #endif

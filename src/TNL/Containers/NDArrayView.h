@@ -26,7 +26,7 @@ namespace TNL::Containers {
  *
  * \ingroup ndarray
  */
-template< typename Value, typename Device, typename Indexer >
+template< typename Value, typename Device, typename Indexer, typename Permutation >
 class NDArrayView : public Indexer
 {
 public:
@@ -45,8 +45,8 @@ public:
    //! \brief Type of the base class which represents the strides of the N-dimensional array.
    using StridesHolderType = typename Indexer::StridesHolderType;
 
-   //! \brief Permutation that is applied to indices when accessing the array elements.
-   using PermutationType = typename Indexer::PermutationType;
+   //! \brief Permutation that determines the internal memory layout of the N-dimensional array.
+   using PermutationType = Permutation;
 
    //! \brief Sequence of integers representing the overlaps in each dimension
    //! of a distributed N-dimensional array.
@@ -56,10 +56,10 @@ public:
    using IndexerType = Indexer;
 
    //! Compatible \ref NDArrayView type.
-   using ViewType = NDArrayView< ValueType, DeviceType, IndexerType >;
+   using ViewType = NDArrayView< ValueType, DeviceType, IndexerType, PermutationType >;
 
    //! Compatible constant \ref NDArrayView type.
-   using ConstViewType = NDArrayView< std::add_const_t< ValueType >, DeviceType, IndexerType >;
+   using ConstViewType = NDArrayView< std::add_const_t< ValueType >, DeviceType, IndexerType, PermutationType >;
 
    //! \brief Constructs an array view with zero size.
    __cuda_callable__
@@ -290,8 +290,8 @@ public:
                      "Bug - wrong dimension of the new sizes." );
       static_assert( decltype( strides )::getDimension() == sizeof...( Dimensions ), "Bug - wrong dimension of the strides." );
       // TODO: select overlaps for the subarray
-      using Subindexer = NDArrayIndexer< decltype( subarray_sizes ), Subpermutation, decltype( strides ) >;
-      using SubarrayView = NDArrayView< ValueType, Device, Subindexer >;
+      using Subindexer = NDArrayIndexer< decltype( subarray_sizes ), decltype( strides ) >;
+      using SubarrayView = NDArrayView< ValueType, Device, Subindexer, Subpermutation >;
       return SubarrayView{ begin, subarray_sizes, strides };
    }
 
