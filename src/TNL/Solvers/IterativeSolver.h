@@ -16,7 +16,7 @@ namespace TNL::Solvers {
  * \tparam Index is an indexing type.
  * \tparam IterativeSolverMonitor< Real, Index > is type of an object used for monitoring of the convergence.
  */
-template< typename Real, typename Index, typename SolverMonitor = IterativeSolverMonitor< double, int > >
+template< typename Real, typename Index, typename SolverMonitor = IterativeSolverMonitor< double > >
 class IterativeSolver
 {
 public:

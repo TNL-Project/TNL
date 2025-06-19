@@ -19,7 +19,7 @@ struct BenchmarkResult
    using HeaderElements = typename Logging::HeaderElements;
    using RowElements = typename Logging::RowElements;
 
-   int loops = 0;
+   std::size_t loops = 0;
    double time = std::numeric_limits< double >::quiet_NaN();
    double time_stddev = std::numeric_limits< double >::quiet_NaN();
    double cpu_cycles = std::numeric_limits< double >::quiet_NaN();
@@ -27,7 +27,7 @@ struct BenchmarkResult
    double bandwidth = std::numeric_limits< double >::quiet_NaN();
    double speedup = std::numeric_limits< double >::quiet_NaN();
    double cpu_cycles_per_operation = 0;
-   long int operations_per_loop = 0;
+   std::size_t operations_per_loop = 0;
 
    [[nodiscard]] virtual HeaderElements
    getTableHeader() const
@@ -103,9 +103,9 @@ class Benchmark
 public:
    using MetadataElement = typename Logger::MetadataElement;
    using MetadataColumns = typename Logger::MetadataColumns;
-   using SolverMonitorType = Solvers::IterativeSolverMonitor< double, int >;
+   using SolverMonitorType = Solvers::IterativeSolverMonitor< double >;
 
-   Benchmark( std::ostream& output, int loops = 10, int verbose = 1 );
+   Benchmark( std::ostream& output, std::size_t loops = 10, int verbose = 1 );
 
    static void
    configSetup( Config::ConfigDescription& config );
@@ -114,7 +114,7 @@ public:
    setup( const Config::ParameterContainer& parameters );
 
    void
-   setLoops( int loops );
+   setLoops( std::size_t loops );
 
    void
    setMinTime( double minTime );
@@ -143,7 +143,7 @@ public:
                    double baseTime = 0.0 );
 
    void
-   setOperationsPerLoop( long int operationsPerLoop );
+   setOperationsPerLoop( std::size_t operationsPerLoop );
 
    // Sets current operation -- operations expand the table vertically
    //  - baseTime should be reset to 0.0 for most operations, but sometimes
@@ -189,9 +189,9 @@ public:
 protected:
    Logger logger;
 
-   int loops = 1;
+   std::size_t loops = 1;
 
-   long int operations_per_loop = 0;
+   std::size_t operations_per_loop = 0;
 
    double minTime = 0.0;
 

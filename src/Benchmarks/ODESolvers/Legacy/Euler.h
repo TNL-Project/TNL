@@ -36,8 +36,7 @@ namespace TNL::Benchmarks {
  * \tparam Vector is type of vector storing \f$ \vec x \in R^n \f$, mostly \ref TNL::Containers::Vector
  *    or \ref TNL::Containers::VectorView.
  */
-template< typename Vector,
-          typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
+template< typename Vector, typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType > >
 class Euler : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
 public:

@@ -11,8 +11,7 @@ namespace TNL::Solvers::Optimization {
  * https://arxiv.org/pdf/1609.04747.pdf
  *
  */
-template< typename Vector,
-          typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
+template< typename Vector, typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType > >
 class AdaGrad : public IterativeSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
 public:

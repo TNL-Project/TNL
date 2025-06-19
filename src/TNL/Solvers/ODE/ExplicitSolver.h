@@ -21,7 +21,7 @@ namespace TNL::Solvers::ODE {
  * \tparam Index is type for indexing.
  * \tparam IterativeSolverMonitor< Real, Index > is
  */
-template< typename Real = double, typename Index = int, typename SolverMonitor = IterativeSolverMonitor< Real, Index > >
+template< typename Real = double, typename Index = int, typename SolverMonitor = IterativeSolverMonitor< Real > >
 class ExplicitSolver : public IterativeSolver< Real, Index, SolverMonitor >
 {
 public:

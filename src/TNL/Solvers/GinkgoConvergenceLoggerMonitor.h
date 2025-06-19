@@ -18,18 +18,18 @@ template< typename ValueType = gko::default_precision, typename IndexType = int 
 class GinkgoConvergenceLoggerMonitor : public gko::log::Convergence< ValueType >
 {
 private:
-   IterativeSolverMonitor< ValueType, IndexType >* solver_monitor = nullptr;
+   IterativeSolverMonitor< ValueType >* solver_monitor = nullptr;
 
 public:
    GinkgoConvergenceLoggerMonitor( std::shared_ptr< const gko::Executor > exec,
                                    const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
-                                   IterativeSolverMonitor< ValueType, IndexType >* solver_monitor = nullptr )
+                                   IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
    : gko::log::Convergence< ValueType >( exec, enabled_events ),
      solver_monitor( solver_monitor )
    {}
 
    GinkgoConvergenceLoggerMonitor( const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
-                                   IterativeSolverMonitor< ValueType, IndexType >* solver_monitor = nullptr )
+                                   IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
    : gko::log::Convergence< ValueType >( enabled_events ),
      solver_monitor( solver_monitor )
    {}
@@ -37,7 +37,7 @@ public:
    static std::unique_ptr< GinkgoConvergenceLoggerMonitor >
    create( std::shared_ptr< const gko::Executor > exec,
            const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
-           IterativeSolverMonitor< ValueType, IndexType >* solver_monitor = nullptr )
+           IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
    {
       return std::unique_ptr< GinkgoConvergenceLoggerMonitor >(
          new GinkgoConvergenceLoggerMonitor( exec, enabled_events, solver_monitor ) );
@@ -45,14 +45,14 @@ public:
 
    static std::unique_ptr< GinkgoConvergenceLoggerMonitor >
    create( const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
-           IterativeSolverMonitor< ValueType, IndexType >* solver_monitor = nullptr )
+           IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
    {
       return std::unique_ptr< GinkgoConvergenceLoggerMonitor >(
          new GinkgoConvergenceLoggerMonitor( enabled_events, solver_monitor ) );
    }
 
    void
-   set_solver_monitor( IterativeSolverMonitor< ValueType, IndexType >* solver_monitor )
+   set_solver_monitor( IterativeSolverMonitor< ValueType >* solver_monitor )
    {
       this->solver_monitor = solver_monitor;
    }

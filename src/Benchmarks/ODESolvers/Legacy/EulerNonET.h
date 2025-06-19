@@ -11,8 +11,7 @@
 
 namespace TNL::Benchmarks {
 
-template< typename Vector,
-          typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
+template< typename Vector, typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType > >
 class EulerNonET : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
 public:
