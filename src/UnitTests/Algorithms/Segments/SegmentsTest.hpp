@@ -11,6 +11,19 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
+template< typename Segments, bool isSorted = TNL::Algorithms::Segments::isSortedSegments_v< Segments > >
+struct HostSegmentsGetter
+{
+   using type = typename Segments::template Self< TNL::Devices::Host >;
+};
+
+template< typename Segments >
+struct HostSegmentsGetter< Segments, true >
+{
+   using type =
+      TNL::Algorithms::Segments::SortedSegments< typename Segments::EmbeddedSegmentsType::template Self< TNL::Devices::Host > >;
+};
+
 template< typename Segments >
 void
 test_isSegments()
@@ -705,7 +718,7 @@ test_scanSegments()
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
    using ValueType = double;
-   using HostSegments = typename Segments::template Self< TNL::Devices::Host >;
+   using HostSegments = typename HostSegmentsGetter< Segments >::type;
 
    // Setup segments with varying sizes
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes{ 1, 2, 3, 4, 5 };
@@ -791,7 +804,7 @@ test_scanSegmentsWithSegmentIndexes()
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
    using ValueType = double;
-   using HostSegments = typename Segments::template Self< TNL::Devices::Host >;
+   using HostSegments = typename HostSegmentsGetter< Segments >::type;
 
    // Setup segments with varying sizes
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes{ 1, 2, 3, 4, 5 };
@@ -870,7 +883,7 @@ test_scanSegmentsWithSegmentIndexes()
       hostSegments,
       [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
       {
-         if( localIdx < segmentsSizes_view[ segmentIdx ] ) {
+         if( localIdx < segmentsSizes_view.getElement( segmentIdx ) ) {
             EXPECT_EQ( data_view.getElement( globalIdx ), exclusive_result_view.getElement( globalIdx ) )
                << "segmentIdx = " << segmentIdx << ", localIdx = " << localIdx;
          }
@@ -884,7 +897,7 @@ test_scanSegmentsIf()
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
    using ValueType = double;
-   using HostSegments = typename Segments::template Self< TNL::Devices::Host >;
+   using HostSegments = typename HostSegmentsGetter< Segments >::type;
 
    // Setup segments with varying sizes
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes{ 1, 2, 3, 4, 5 };

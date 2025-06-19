@@ -18,14 +18,14 @@ sortExample()
    TNL::Containers::Vector< Value, Device, Index > data( segments.getStorageSize(), -1 );
 
    // Initialize data
-   auto dataView = data.getView();
+   auto data_view = data.getView();
    auto segmentsSizesView = segmentsSizes.getView();
    TNL::Algorithms::Segments::forAllElements(
       segments,
       [ = ] __cuda_callable__( Index segmentIdx, Index localIdx, Index globalIdx ) mutable
       {
          if( localIdx < segmentsSizesView[ segmentIdx ] )
-            dataView[ globalIdx ] = segmentsSizesView[ segmentIdx ] - localIdx;
+            data_view[ globalIdx ] = segmentsSizesView[ segmentIdx ] - localIdx;
       } );
 
    // Print original data
@@ -33,14 +33,14 @@ sortExample()
    std::cout << TNL::Algorithms::Segments::print( segments,
                                                   [ = ] __cuda_callable__( Index globalIdx ) -> int
                                                   {
-                                                     return dataView[ globalIdx ];
+                                                     return data_view[ globalIdx ];
                                                   } )
              << std::endl;
 
    // Sort each segment
    auto fetch = [ = ] __cuda_callable__( Index segmentIdx, Index localIdx, Index globalIdx ) -> int
    {
-      return dataView[ globalIdx ] != -1 ? dataView[ globalIdx ] : std::numeric_limits< int >::max();
+      return data_view[ globalIdx ] != -1 ? data_view[ globalIdx ] : std::numeric_limits< int >::max();
    };
    auto compare = [] __cuda_callable__( const Value& a, const Value& b ) -> bool
    {
@@ -48,7 +48,7 @@ sortExample()
    };
    auto swap = [ = ] __cuda_callable__( Index globalIdx1, Index globalIdx2 ) mutable
    {
-      TNL::swap( dataView[ globalIdx1 ], dataView[ globalIdx2 ] );
+      TNL::swap( data_view[ globalIdx1 ], data_view[ globalIdx2 ] );
    };
 
    // Sort all segments
@@ -59,7 +59,7 @@ sortExample()
    std::cout << TNL::Algorithms::Segments::print( segments,
                                                   [ = ] __cuda_callable__( Index globalIdx ) -> int
                                                   {
-                                                     return dataView[ globalIdx ];
+                                                     return data_view[ globalIdx ];
                                                   } )
              << std::endl;
 
@@ -78,7 +78,7 @@ sortExample()
    std::cout << TNL::Algorithms::Segments::print( segments,
                                                   [ = ] __cuda_callable__( Index globalIdx ) -> int
                                                   {
-                                                     return dataView[ globalIdx ];
+                                                     return data_view[ globalIdx ];
                                                   } )
              << std::endl;
 
@@ -95,7 +95,7 @@ sortExample()
    std::cout << TNL::Algorithms::Segments::print( segments,
                                                   [ = ] __cuda_callable__( Index globalIdx ) -> int
                                                   {
-                                                     return dataView[ globalIdx ];
+                                                     return data_view[ globalIdx ];
                                                   } )
              << std::endl;
 }
