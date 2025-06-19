@@ -39,21 +39,19 @@ template< typename SizesHolder,
           typename Permutation,
           typename StridesHolder = detail::make_strides_holder< Permutation, SizesHolder >,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
-// TODO: replace base classes with [[no_unique_address]] attributes in C++20 - see
-// https://www.cppstories.com/2021/no-unique-address/
-class NDArrayIndexer : public StridesHolder, public Overlaps
+class NDArrayIndexer
 {
 public:
    //! \brief Type of the underlying object which represents the sizes of the N-dimensional array.
    using SizesHolderType = SizesHolder;
 
-   //! \brief Type of the base class which represents the strides of the N-dimensional array.
+   //! \brief Type of the underlying object which represents the strides of the N-dimensional array.
    using StridesHolderType = StridesHolder;
 
    //! \brief Permutation that is applied to indices when accessing the array elements.
    using PermutationType = Permutation;
 
-   //! \brief Sequence of integers representing the overlaps in each dimension
+   //! \brief Type of the underlying object which represents the overlaps in each dimension
    //! of a distributed N-dimensional array.
    using OverlapsType = Overlaps;
 
@@ -84,9 +82,9 @@ public:
    //! \brief Creates the indexer with given sizes and strides.
    __cuda_callable__
    NDArrayIndexer( SizesHolderType sizes, StridesHolderType strides, OverlapsType overlaps )
-   : StridesHolder( std::move( strides ) ),
-     Overlaps( std::move( overlaps ) ),
-     sizes( std::move( sizes ) )
+   : sizes( std::move( sizes ) ),
+     strides( std::move( strides ) ),
+     overlaps( std::move( overlaps ) )
    {}
 
    //! \brief Returns the dimension of the \e N-dimensional array, i.e. \e N.
@@ -127,7 +125,7 @@ public:
    const StridesHolderType&
    getStrides() const
    {
-      return static_cast< const StridesHolderType& >( *this );
+      return strides;
    }
 
    /**
@@ -148,15 +146,7 @@ public:
    const OverlapsType&
    getOverlaps() const
    {
-      return static_cast< const OverlapsType& >( *this );
-   }
-
-   //! \brief Returns the N-dimensional overlaps holder instance.
-   [[nodiscard]] __cuda_callable__
-   OverlapsType&
-   getOverlaps()
-   {
-      return static_cast< OverlapsType& >( *this );
+      return overlaps;
    }
 
    /**
@@ -263,12 +253,33 @@ protected:
    StridesHolderType&
    getStrides()
    {
-      return static_cast< StridesHolderType& >( *this );
+      return strides;
+   }
+
+   /**
+    * \brief Returns a non-constant reference to the underlying \ref overlaps.
+    *
+    * The function is not public -- only subclasses like \ref NDArrayStorage
+    * may modify the strides.
+    */
+   [[nodiscard]] __cuda_callable__
+   OverlapsType&
+   getOverlaps()
+   {
+      return overlaps;
    }
 
    // TODO: use [[no_unique_address]] in C++20 - see https://www.cppstories.com/2021/no-unique-address/
    //! \brief Underlying object which represents the sizes of the N-dimensional array.
    SizesHolderType sizes;
+
+   // TODO: use [[no_unique_address]] in C++20 - see https://www.cppstories.com/2021/no-unique-address/
+   //! \brief Underlying object which represents the strides of the N-dimensional array.
+   StridesHolderType strides;
+
+   // TODO: use [[no_unique_address]] in C++20 - see https://www.cppstories.com/2021/no-unique-address/
+   //! \brief Underlying object which represents the overlaps of the N-dimensional array.
+   OverlapsType overlaps;
 };
 
 }  // namespace TNL::Containers
