@@ -80,30 +80,30 @@ public:
 
 protected:
    // kernel config
-   IndexType maxBlocks, threadsPerBlock, desiredElemPerBlock;
+   int maxBlocks, threadsPerBlock, desiredElemPerBlock;
    std::size_t maxSharable;
 
    Containers::Array< ValueType, Devices::Cuda, IndexType > auxMem;
    Containers::ArrayView< ValueType, Devices::Cuda, IndexType > arr, aux;
 
-   IndexType desired_2ndPhasElemPerBlock;
-   const IndexType g_maxTasks = 1 << 14;
-   IndexType maxTasks;
+   int desired_2ndPhasElemPerBlock;
+   const int g_maxTasks = 1 << 14;
+   int maxTasks;
 
-   Containers::Array< TASK, Devices::Cuda, IndexType > cuda_tasks, cuda_newTasks,
+   Containers::Array< TASK, Devices::Cuda > cuda_tasks, cuda_newTasks,
       cuda_2ndPhaseTasks;  // 1 set of 2 rotating tasks and 2nd phase
-   Containers::Array< IndexType, Devices::Cuda, IndexType > cuda_newTasksAmount,
+   Containers::Array< int, Devices::Cuda > cuda_newTasksAmount,
       cuda_2ndPhaseTasksAmount;  // is in reality 1 integer each
 
-   Containers::Array< IndexType, Devices::Cuda, IndexType > cuda_blockToTaskMapping;
-   Containers::Array< IndexType, Devices::Cuda, IndexType > cuda_reductionTaskInitMem;
+   Containers::Array< int, Devices::Cuda > cuda_blockToTaskMapping;
+   Containers::Array< int, Devices::Cuda > cuda_reductionTaskInitMem;
 
-   IndexType host_1stPhaseTasksAmount = 0, host_2ndPhaseTasksAmount = 0;
-   IndexType iteration = 0;
+   int host_1stPhaseTasksAmount = 0, host_2ndPhaseTasksAmount = 0;
+   int iteration = 0;
 
    template< typename ValueType_, typename IndexType_ >
-   friend IndexType
-   getSetsNeededFunction( IndexType elemPerBlock, const Quicksorter< ValueType_, Devices::Cuda, IndexType_ >& quicksort );
+   friend int
+   getSetsNeededFunction( int elemPerBlock, const Quicksorter< ValueType_, Devices::Cuda, IndexType_ >& quicksort );
 };
 
 }  // namespace TNL::Algorithms::Sorting
