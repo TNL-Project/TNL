@@ -586,15 +586,14 @@ template< typename Value,
           typename SizesHolder,
           typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
           typename Index = typename SizesHolder::IndexType >
-class StaticNDArray : public NDArrayStorage< StaticArray< detail::StaticStorageSizeGetter< SizesHolder >::get(), Value >,
+class StaticNDArray : public NDArrayStorage< StaticArray< detail::getStaticStorageSize( SizesHolder{} ), Value >,
                                              NDArrayIndexer< SizesHolder, Permutation >,
                                              Devices::Sequential >
 {
-   using Base = NDArrayStorage< StaticArray< detail::StaticStorageSizeGetter< SizesHolder >::get(), Value >,
+   using Base = NDArrayStorage< StaticArray< detail::getStaticStorageSize( SizesHolder{} ), Value >,
                                 NDArrayIndexer< SizesHolder, Permutation >,
                                 Devices::Sequential >;
-   static_assert( detail::StaticStorageSizeGetter< SizesHolder >::get() > 0,
-                  "All dimensions of a static array must be positive." );
+   static_assert( detail::getStaticStorageSize( SizesHolder{} ) > 0, "All dimensions of a static array must be positive." );
 
 public:
    // inherit all assignment operators
