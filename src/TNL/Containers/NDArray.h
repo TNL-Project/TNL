@@ -31,7 +31,7 @@ namespace TNL::Containers {
  *
  * See also the \ref ug_NDArrays "Users' Guide".
  */
-template< typename Array, typename Indexer, typename Device = typename Array::DeviceType >
+template< typename Array, typename Indexer, typename Permutation, typename Device = typename Array::DeviceType >
 class NDArrayStorage : public Indexer
 {
 public:
@@ -53,8 +53,8 @@ public:
    //! \brief Type of the underlying object which represents the strides of the N-dimensional array.
    using StridesHolderType = typename Indexer::StridesHolderType;
 
-   //! \brief Permutation that is applied to indices when accessing the array elements.
-   using PermutationType = typename Indexer::PermutationType;
+   //! \brief Permutation that determines the internal memory layout of the N-dimensional array.
+   using PermutationType = Permutation;
 
    //! \brief Sequence of integers representing the overlaps in each dimension
    //! of a distributed N-dimensional array.
@@ -64,10 +64,10 @@ public:
    using IndexerType = Indexer;
 
    //! Compatible \ref NDArrayView type.
-   using ViewType = NDArrayView< ValueType, DeviceType, IndexerType >;
+   using ViewType = NDArrayView< ValueType, DeviceType, IndexerType, PermutationType >;
 
    //! Compatible constant \ref NDArrayView type.
-   using ConstViewType = NDArrayView< std::add_const_t< ValueType >, DeviceType, IndexerType >;
+   using ConstViewType = NDArrayView< std::add_const_t< ValueType >, DeviceType, IndexerType, PermutationType >;
 
    //! \brief Constructs an empty storage with zero size.
    NDArrayStorage() = default;
@@ -526,13 +526,14 @@ template< typename Value,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class NDArray
-: public NDArrayStorage<
-     Array< Value, Device, Index, Allocator >,
-     NDArrayIndexer< SizesHolder, Permutation, detail::make_strides_holder< Permutation, SizesHolder >, Overlaps > >
+: public NDArrayStorage< Array< Value, Device, Index, Allocator >,
+                         NDArrayIndexer< SizesHolder, detail::make_strides_holder< Permutation, SizesHolder >, Overlaps >,
+                         Permutation >
 {
-   using Base = NDArrayStorage<
-      Array< Value, Device, Index, Allocator >,
-      NDArrayIndexer< SizesHolder, Permutation, detail::make_strides_holder< Permutation, SizesHolder >, Overlaps > >;
+   using Base =
+      NDArrayStorage< Array< Value, Device, Index, Allocator >,
+                      NDArrayIndexer< SizesHolder, detail::make_strides_holder< Permutation, SizesHolder >, Overlaps >,
+                      Permutation >;
 
 public:
    // inherit all constructors and assignment operators
@@ -586,12 +587,15 @@ template< typename Value,
           typename SizesHolder,
           typename Permutation = std::make_index_sequence< SizesHolder::getDimension() >,  // identity by default
           typename Index = typename SizesHolder::IndexType >
-class StaticNDArray : public NDArrayStorage< StaticArray< detail::getStaticStorageSize( SizesHolder{} ), Value >,
-                                             NDArrayIndexer< SizesHolder, Permutation >,
-                                             Devices::Sequential >
+class StaticNDArray
+: public NDArrayStorage< StaticArray< detail::getStaticStorageSize( SizesHolder{} ), Value >,
+                         NDArrayIndexer< SizesHolder, detail::make_strides_holder< Permutation, SizesHolder > >,
+                         Permutation,
+                         Devices::Sequential >
 {
    using Base = NDArrayStorage< StaticArray< detail::getStaticStorageSize( SizesHolder{} ), Value >,
-                                NDArrayIndexer< SizesHolder, Permutation >,
+                                NDArrayIndexer< SizesHolder, detail::make_strides_holder< Permutation, SizesHolder > >,
+                                Permutation,
                                 Devices::Sequential >;
    static_assert( detail::getStaticStorageSize( SizesHolder{} ) > 0, "All dimensions of a static array must be positive." );
 
