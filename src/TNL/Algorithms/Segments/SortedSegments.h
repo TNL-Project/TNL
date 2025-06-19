@@ -33,6 +33,8 @@ public:
 
    using typename Base::IndexType;
 
+   using EmbeddedSegmentsType = EmbeddedSegments;
+
    //! \brief Type of segments view.
    using ViewType = SortedSegmentsView< typename EmbeddedSegments::ViewType >;
 
@@ -102,6 +104,16 @@ public:
    SortedSegments&
    operator=( SortedSegments&& ) noexcept( false );
 
+   //! \brief Copy-assignment operator for segments with different template parameters.
+   template< typename EmbeddedSegments_, typename IndexAllocator_ >
+   SortedSegments&
+   operator=( const SortedSegments< EmbeddedSegments_, IndexAllocator_ >& segments ) noexcept( false );
+
+   //! \brief Move-assignment operator for segments with different template parameters.
+   template< typename EmbeddedSegments_, typename IndexAllocator_ >
+   SortedSegments&
+   operator=( SortedSegments< EmbeddedSegments_, IndexAllocator_ >&& segments ) noexcept( false );
+
    //! \brief Returns a view for this instance of segments which can by used
    //! for example in lambda functions running in GPU kernels.
    [[nodiscard]] ViewType
@@ -111,6 +123,18 @@ public:
    //! can by used for example in lambda functions running in GPU kernels.
    [[nodiscard]] ConstViewType
    getConstView() const;
+
+   //! \brief Returns a reference on embedded segments.
+   [[nodiscard]] const EmbeddedSegments&
+   getEmbeddedSegments() const;
+
+   //! \brief Returns a reference on segments permutation.
+   [[nodiscard]] const PermutationContainer&
+   getSegmentsPermutation() const;
+
+   //! \brief Returns a reference on inverse segments permutation.
+   [[nodiscard]] const PermutationContainer&
+   getInverseSegmentsPermutation() const;
 
    /**
     * \brief Set sizes of particular segments.
