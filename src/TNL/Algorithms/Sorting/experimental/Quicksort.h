@@ -26,14 +26,14 @@ struct Quicksort
    template< typename Array >
    void static sort( Array& array )
    {
-      detail::Quicksorter< typename Array::ValueType, typename Array::DeviceType > qs;
+      detail::Quicksorter< typename Array::ValueType, typename Array::DeviceType, typename Array::IndexType > qs;
       qs.sort( array );
    }
 
    template< typename Array, typename Compare >
    void static sort( Array& array, const Compare& compare )
    {
-      detail::Quicksorter< typename Array::ValueType, typename Array::DeviceType > qs;
+      detail::Quicksorter< typename Array::ValueType, typename Array::DeviceType, typename Array::IndexType > qs;
       qs.sort( array, compare );
    }
 };
