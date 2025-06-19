@@ -209,24 +209,59 @@ public:
       static_assert( BeginsHolder::getDimension() == getDimension(), "invalid dimension of the begins parameter" );
       static_assert( EndsHolder::getDimension() == getDimension(), "invalid dimension of the ends parameter" );
 
-      bool check = false;
-      bool contiguous = true;
+      constexpr std::size_t dim = getDimension();
+      IndexType sizes[ dim ];
+      IndexType strides[ dim ];
+      int non_degenerate_indices[ dim ] = { 0 };
+      int non_degenerate_count = 0;
 
-      Algorithms::staticFor< std::size_t, 0, getDimension() >(
+      Algorithms::staticFor< std::size_t, 0, dim >(
          [ & ]( auto i )
          {
-            constexpr int dim = TNL::Containers::detail::get< i >( Permutation{} );
-            const IndexType size = getSize< dim >() + 2 * getOverlap< dim >();
-            const IndexType blockSize = ends.template getSize< dim >() - begins.template getSize< dim >();
-            // blockSize can be different from size only in the first dimension,
-            // then the sizes must match in all following dimensions
-            if( check && blockSize != size )
-               contiguous = false;
-            if( blockSize > 1 )
-               check = true;
+            // Collect sizes and strides for each dimension
+            sizes[ i ] = ends.template getSize< i >() - begins.template getSize< i >();
+            strides[ i ] = getStride< i >();
+            // Collect indices of non-degenerate dimensions
+            if( sizes[ i ] > 1 ) {
+               non_degenerate_indices[ non_degenerate_count++ ] = i;
+            }
          } );
 
-      return contiguous;
+      TNL_ASSERT_LE( non_degenerate_count, (int) dim, "collecting indices of non-degenerate dimensions failed" );
+
+      // Sort non-degenerate dimensions by stride (ascending)
+      for( int i = 1; i < non_degenerate_count; i++ ) {
+         // GCC incorrectly detects out-of-bounds index
+#if defined( __GNUC__ ) && ! defined( __clang__ )
+   #pragma GCC diagnostic push
+   #pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
+         int key = non_degenerate_indices[ i ];
+#if defined( __GNUC__ ) && ! defined( __clang__ )
+   #pragma GCC diagnostic pop
+#endif
+         int j = i - 1;
+         while( j >= 0 && strides[ non_degenerate_indices[ j ] ] > strides[ key ] ) {
+            non_degenerate_indices[ j + 1 ] = non_degenerate_indices[ j ];
+            j--;
+         }
+         non_degenerate_indices[ j + 1 ] = key;
+      }
+
+      // Check if the smallest stride is 1
+      if( strides[ non_degenerate_indices[ 0 ] ] != 1 )
+         return false;
+
+      // Check the product condition
+      IndexType product = 1;
+      for( int i = 0; i < non_degenerate_count; i++ ) {
+         int idx = non_degenerate_indices[ i ];
+         if( i > 0 && strides[ idx ] != product )
+            return false;
+         product *= sizes[ idx ];
+      }
+
+      return true;
    }
 
 protected:
