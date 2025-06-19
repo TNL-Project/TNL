@@ -11,14 +11,11 @@ namespace TNL::Algorithms::Sorting {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-template< typename Value, typename Device, typename CMP >
+template< typename Value, typename Index, typename Device, typename CMP >
 __device__
 Value
-pickPivot( TNL::Containers::ArrayView< Value, Device > src, const CMP& Cmp )
+pickPivot( TNL::Containers::ArrayView< Value, Device, Index > src, const CMP& Cmp )
 {
-   // return src[0];
-   // return src[src.getSize()-1];
-
    if( src.getSize() == 1 )
       return src[ 0 ];
 
@@ -46,14 +43,11 @@ pickPivot( TNL::Containers::ArrayView< Value, Device > src, const CMP& Cmp )
    }
 }
 
-template< typename Value, typename Device, typename CMP >
+template< typename Value, typename Index, typename Device, typename CMP >
 __device__
 int
-pickPivotIdx( TNL::Containers::ArrayView< Value, Device > src, const CMP& Cmp )
+pickPivotIdx( TNL::Containers::ArrayView< Value, Device, Index > src, const CMP& Cmp )
 {
-   // return 0;
-   // return src.getSize()-1;
-
    if( src.getSize() <= 1 )
       return 0;
 
@@ -81,12 +75,14 @@ pickPivotIdx( TNL::Containers::ArrayView< Value, Device > src, const CMP& Cmp )
    }
 }
 
-//-----------------------------------------------------------
-
-template< typename Value, typename CMP >
+template< typename Value, typename Index, typename CMP >
 __device__
 void
-countElem( Containers::ArrayView< Value, Devices::Cuda > arr, const CMP& Cmp, int& smaller, int& bigger, const Value& pivot )
+countElem( Containers::ArrayView< Value, Devices::Cuda, Index > arr,
+           const CMP& Cmp,
+           int& smaller,
+           int& bigger,
+           const Value& pivot )
 {
    for( int i = threadIdx.x; i < arr.getSize(); i += blockDim.x ) {
       const Value& data = arr[ i ];
@@ -97,13 +93,11 @@ countElem( Containers::ArrayView< Value, Devices::Cuda > arr, const CMP& Cmp, in
    }
 }
 
-//-----------------------------------------------------------
-
-template< typename Value, typename CMP >
+template< typename Value, typename Index, typename CMP >
 __device__
 void
-copyDataShared( Containers::ArrayView< Value, Devices::Cuda > src,
-                Containers::ArrayView< Value, Devices::Cuda > dst,
+copyDataShared( Containers::ArrayView< Value, Devices::Cuda, Index > src,
+                Containers::ArrayView< Value, Devices::Cuda, Index > dst,
                 const CMP& Cmp,
                 Value* sharedMem,
                 int smallerStart,
@@ -131,11 +125,11 @@ copyDataShared( Containers::ArrayView< Value, Devices::Cuda > src,
    }
 }
 
-template< typename Value, typename CMP >
+template< typename Value, typename Index, typename CMP >
 __device__
 void
-copyData( Containers::ArrayView< Value, Devices::Cuda > src,
-          Containers::ArrayView< Value, Devices::Cuda > dst,
+copyData( Containers::ArrayView< Value, Devices::Cuda, Index > src,
+          Containers::ArrayView< Value, Devices::Cuda, Index > dst,
           const CMP& Cmp,
           int smallerStart,
           int biggerStart,
@@ -162,13 +156,11 @@ copyData( Containers::ArrayView< Value, Devices::Cuda > src,
    }
 }
 
-//----------------------------------------------------------------------------------
-
-template< typename Value, typename CMP, bool useShared >
+template< typename Value, typename Index, typename CMP, bool useShared >
 __device__
 void
-cudaPartition( Containers::ArrayView< Value, Devices::Cuda > src,
-               Containers::ArrayView< Value, Devices::Cuda > dst,
+cudaPartition( Containers::ArrayView< Value, Devices::Cuda, Index > src,
+               Containers::ArrayView< Value, Devices::Cuda, Index > dst,
                const CMP& Cmp,
                Value* sharedMem,
                const Value& pivot,
@@ -182,8 +174,6 @@ cudaPartition( Containers::ArrayView< Value, Devices::Cuda > src,
    int myEnd = TNL::min( myBegin + elemPerBlock, src.getSize() );
 
    auto srcView = src.getView( myBegin, myEnd );
-
-   //-------------------------------------------------------------------------
 
    int smaller = 0;
    int bigger = 0;
@@ -202,7 +192,6 @@ cudaPartition( Containers::ArrayView< Value, Devices::Cuda > src,
    }
    __syncthreads();
 
-   //-----------------------------------------------------------
    if( useShared ) {
       static __shared__ int smallerTotal;
       static __shared__ int biggerTotal;

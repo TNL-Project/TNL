@@ -16,11 +16,11 @@ namespace TNL::Algorithms::Sorting {
  * works independently from other concurrent blocks
  * @param sharedMem sharedMem pointer has to be able to store all of src elements
  * */
-template< typename Value, typename CMP >
+template< typename Value, typename Index, typename CMP >
 __device__
 void
-bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > src,
-                   TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > dst,
+bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src,
+                   TNL::Containers::ArrayView< Value, TNL::Devices::Cuda, Index > dst,
                    Value* sharedMem,
                    const CMP& Cmp )
 {
@@ -60,7 +60,6 @@ bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > src,
       }
    }
 
-   //------------------------------------------
    // writeback to global memory
    for( int i = threadIdx.x; i < dst.getSize(); i += blockDim.x )
       dst[ i ] = sharedMem[ i ];
@@ -74,10 +73,10 @@ bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > src,
  * works independently from other concurrent blocks
  * this version doesnt use shared memory and is preferred for Value with big size
  * */
-template< typename Value, typename CMP >
+template< typename Value, typename Index, typename CMP >
 __device__
 void
-bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > src, const CMP& Cmp )
+bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src, const CMP& Cmp )
 {
    int paddedSize = closestPow2_ptx( src.getSize() );
 

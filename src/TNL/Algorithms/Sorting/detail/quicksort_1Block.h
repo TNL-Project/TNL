@@ -12,26 +12,24 @@ namespace TNL::Algorithms::Sorting {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-template< typename Value, typename CMP >
+template< typename Value, typename Index, typename CMP >
 __device__
 void
-externSort( Containers::ArrayView< Value, TNL::Devices::Cuda > src,
-            Containers::ArrayView< Value, TNL::Devices::Cuda > dst,
+externSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src,
+            Containers::ArrayView< Value, TNL::Devices::Cuda, Index > dst,
             const CMP& Cmp,
             Value* sharedMem )
 {
    bitonicSort_Block( src, dst, sharedMem, Cmp );
 }
 
-template< typename Value, typename CMP >
+template< typename Value, typename Index, typename CMP >
 __device__
 void
-externSort( Containers::ArrayView< Value, TNL::Devices::Cuda > src, const CMP& Cmp )
+externSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src, const CMP& Cmp )
 {
    bitonicSort_Block( src, Cmp );
 }
-
-//---------------------------------------------------------------
 
 template< int stackSize >
 __device__
@@ -46,13 +44,11 @@ stackPush( int stackArrBegin[],
            int end,
            int iteration );
 
-//---------------------------------------------------------------
-
-template< typename Value, typename CMP, int stackSize, bool useShared >
+template< typename Value, typename Index, typename CMP, int stackSize, bool useShared >
 __device__
 void
-singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
-                      Containers::ArrayView< Value, TNL::Devices::Cuda > aux,
+singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > arr,
+                      Containers::ArrayView< Value, TNL::Devices::Cuda, Index > aux,
                       const CMP& Cmp,
                       int _iteration,
                       Value* sharedMem,
@@ -62,9 +58,9 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
    if( arr.getSize() <= maxBitonicSize ) {
       auto& src = ( _iteration & 1 ) == 0 ? arr : aux;
       if( useShared && arr.getSize() <= memSize )
-         externSort< Value, CMP >( src, arr, Cmp, sharedMem );
+         externSort< Value, Index, CMP >( src, arr, Cmp, sharedMem );
       else {
-         externSort< Value, CMP >( src, Cmp );
+         externSort< Value, Index, CMP >( src, Cmp );
          // extern sort without shared memory only works in-place, need to copy into from aux
          if( ( _iteration & 1 ) != 0 )
             for( int i = threadIdx.x; i < arr.getSize(); i += blockDim.x )
@@ -111,9 +107,9 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
       // small enough for for bitonic
       if( size <= maxBitonicSize ) {
          if( useShared && size <= memSize )
-            externSort< Value, CMP >( src.getView( begin, end ), arr.getView( begin, end ), Cmp, sharedMem );
+            externSort< Value, Index, CMP >( src.getView( begin, end ), arr.getView( begin, end ), Cmp, sharedMem );
          else {
-            externSort< Value, CMP >( src.getView( begin, end ), Cmp );
+            externSort< Value, Index, CMP >( src.getView( begin, end ), Cmp );
             // extern sort without shared memory only works in-place, need to copy into from aux
             if( ( iteration & 1 ) != 0 )
                for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x )
@@ -122,8 +118,6 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
          __syncthreads();
          continue;
       }
-
-      //------------------------------------------------------
 
       if( threadIdx.x == 0 )
          *piv = pickPivot( src.getView( begin, end ), Cmp );
@@ -147,7 +141,6 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
       }
       __syncthreads();
 
-      //--------------------------------------------------------------
       /**
        * move elements, either use shared mem for coalesced access or without shared mem if data is too big
        * */
@@ -195,8 +188,6 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
       __syncthreads();  // sync to update stackTop
    }  // ends while loop
 }
-
-//--------------------------------------------------------------
 
 template< int stackSize >
 __device__
