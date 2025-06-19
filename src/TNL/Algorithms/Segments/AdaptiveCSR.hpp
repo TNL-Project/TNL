@@ -8,7 +8,8 @@
 namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator >
-AdaptiveCSR< Device, Index, IndexAllocator >::AdaptiveCSR( const AdaptiveCSR& segments ) : Base( segments )
+AdaptiveCSR< Device, Index, IndexAllocator >::AdaptiveCSR( const AdaptiveCSR& segments )
+: Base( segments )
 {
    for( int i = 0; i < MaxValueSizeLog(); i++ )
       this->blocksArray[ i ] = segments.blocksArray[ i ];
@@ -59,7 +60,7 @@ AdaptiveCSR< Device, Index, IndexAllocator >::operator=( const AdaptiveCSR< Devi
 {
    Base::operator=( segments );
    for( int i = 0; i < MaxValueSizeLog(); i++ )
-      this->blocksArray[ i ] = segments.blocksArray[ i ];
+      this->blocksArray[ i ] = segments.getBlocks()[ i ];
    this->view.bind( Base::getOffsets(), this->blocksArray );
    return *this;
 }

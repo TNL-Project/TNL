@@ -69,4 +69,19 @@ TYPED_TEST( SortedCSRSegmentsTest, sortSegmentsIf )
    test_sortSegmentsIf< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST( SortedCSRSegmentsTest, scanSegments )
+{
+   test_scanSegments< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( SortedCSRSegmentsTest, scanSegmentsWithIndexes )
+{
+   test_scanSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
+}
+
+TYPED_TEST( SortedCSRSegmentsTest, scanSegmentsIf )
+{
+   test_scanSegmentsIf< typename TestFixture::SegmentsType >();
+}
+
 #include "../../main.h"
