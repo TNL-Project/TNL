@@ -18,10 +18,8 @@ TEST( NDArraySubarrayTest, StaticAsserts )
 {
    using namespace TNL::Containers::detail;
 
-   //auto is_even = [](int _in) {return _in % 2 == 0;};
    using expected_type = std::integer_sequence< int, 0, 2, 4, 6, 8 >;
    using test_type = std::integer_sequence< int, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 >;
-   //constexpr auto result = filter_sequence(test_type{}, is_even);
    constexpr auto result = filter_sequence< expected_type >( test_type{} );
    using result_type = std::decay_t< decltype( result ) >;
    static_assert( std::is_same_v< expected_type, result_type >, "Integer sequences should be equal" );

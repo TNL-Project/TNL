@@ -40,7 +40,7 @@ class SizesFilter< std::index_sequence< dims... >, SizesHolder< Index, sizes... 
 {
 private:
    using Dimensions = std::index_sequence< dims... >;
-   using Subsequence = decltype( concat_sequences( std::index_sequence< get_from_pack< dims >( sizes... ) >{}... ) );
+   using Subsequence = std::index_sequence< get_from_pack< dims >( sizes... )... >;
 
    template< std::size_t... v >
    [[nodiscard]] static constexpr auto
