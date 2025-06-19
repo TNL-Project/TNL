@@ -50,6 +50,9 @@ public:
    //! \brief Type of the underlying object which represents the sizes of the N-dimensional array.
    using SizesHolderType = typename Indexer::SizesHolderType;
 
+   //! \brief Type of the underlying object which represents the strides of the N-dimensional array.
+   using StridesHolderType = typename Indexer::StridesHolderType;
+
    //! \brief Permutation that is applied to indices when accessing the array elements.
    using PermutationType = typename Indexer::PermutationType;
 
@@ -91,8 +94,10 @@ public:
    {
       static_assert( std::is_same_v< PermutationType, typename OtherArray::PermutationType >,
                      "Arrays must have the same permutation of indices." );
-      // update sizes
+      // update sizes and strides
       detail::SetSizesCopyHelper< SizesHolderType, typename OtherArray::SizesHolderType >::copy( getSizes(), other.getSizes() );
+      detail::SetSizesCopyHelper< StridesHolderType, typename OtherArray::StridesHolderType >::copy( getStrides(),
+                                                                                                     other.getStrides() );
       // (re)allocate storage if necessary
       array.setSize( getStorageSize() );
       // copy data
@@ -104,16 +109,16 @@ public:
    [[nodiscard]] bool
    operator==( const NDArrayStorage& other ) const
    {
-      // FIXME: uninitialized data due to alignment in NDArray
-      return getSizes() == other.getSizes() && array == other.array;
+      // TODO: contiguity check
+      return getSizes() == other.getSizes() && getStrides() == other.getStrides() && array == other.array;
    }
 
    //! \brief Compares the array with another N-dimensional array.
    [[nodiscard]] bool
    operator!=( const NDArrayStorage& other ) const
    {
-      // FIXME: uninitialized data due to alignment in NDArray
-      return getSizes() != other.getSizes() || array != other.array;
+      // TODO: contiguity check
+      return getSizes() != other.getSizes() || getStrides() != other.getStrides() || array != other.array;
    }
 
    /**
@@ -410,6 +415,7 @@ public:
    setSize( const SizesHolderType& sizes )
    {
       getSizes() = sizes;
+      detail::compute_dynamic_strides< PermutationType >( getStrides(), getSizes(), getOverlaps() );
       array.setSize( getStorageSize() );
    }
 
@@ -420,6 +426,7 @@ public:
    {
       static_assert( sizeof...( sizes ) == getDimension(), "got wrong number of sizes" );
       detail::setSizesHelper( getSizes(), std::forward< IndexTypes >( sizes )... );
+      detail::compute_dynamic_strides< PermutationType >( getStrides(), getSizes(), getOverlaps() );
       array.setSize( getStorageSize() );
    }
 
@@ -433,6 +440,7 @@ public:
    setLike( const NDArrayStorage& other )
    {
       getSizes() = other.getSizes();
+      detail::compute_dynamic_strides< PermutationType >( getStrides(), getSizes(), getOverlaps() );
       array.setSize( getStorageSize() );
    }
 
@@ -446,6 +454,7 @@ public:
    reset()
    {
       getSizes() = SizesHolderType{};
+      detail::compute_dynamic_strides< PermutationType >( getStrides(), getSizes(), getOverlaps() );
       TNL_ASSERT_EQ( getStorageSize(), 0, "Failed to reset the sizes." );
       array.reset();
    }
@@ -517,18 +526,13 @@ template< typename Value,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 >,
           typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class NDArray
-: public NDArrayStorage< Array< Value, Device, Index, Allocator >,
-                         NDArrayIndexer< SizesHolder,
-                                         Permutation,
-                                         make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
-                                         Overlaps > >
+: public NDArrayStorage<
+     Array< Value, Device, Index, Allocator >,
+     NDArrayIndexer< SizesHolder, Permutation, detail::make_strides_holder< Permutation, SizesHolder >, Overlaps > >
 {
-   using Base =
-      NDArrayStorage< Array< Value, Device, Index, Allocator >,
-                      NDArrayIndexer< SizesHolder,
-                                      Permutation,
-                                      make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
-                                      Overlaps > >;
+   using Base = NDArrayStorage<
+      Array< Value, Device, Index, Allocator >,
+      NDArrayIndexer< SizesHolder, Permutation, detail::make_strides_holder< Permutation, SizesHolder >, Overlaps > >;
 
 public:
    // inherit all constructors and assignment operators

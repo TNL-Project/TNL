@@ -37,7 +37,7 @@ getDimension()
  */
 template< typename SizesHolder,
           typename Permutation,
-          typename StridesHolder = make_sizes_holder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 1 >,
+          typename StridesHolder = detail::make_strides_holder< Permutation, SizesHolder >,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
 // TODO: replace base classes with [[no_unique_address]] attributes in C++20 - see
 // https://www.cppstories.com/2021/no-unique-address/
@@ -182,7 +182,7 @@ public:
    IndexType
    getStorageSize() const
    {
-      return detail::getStorageSize< Permutation >( getSizes(), getOverlaps() );
+      return detail::getStorageSize( getSizes(), getOverlaps() );
    }
 
    /**
@@ -202,8 +202,7 @@ public:
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
       detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexTypes >( indices )... );
-      const IndexType result = detail::getStorageIndex< Permutation >(
-         getSizes(), getStrides(), getOverlaps(), std::forward< IndexTypes >( indices )... );
+      const IndexType result = detail::getStorageIndex( getStrides(), getOverlaps(), std::forward< IndexTypes >( indices )... );
       TNL_ASSERT_GE( result, (IndexType) 0, "storage index out of bounds - either input error or a bug in the indexer" );
       // getStoragetSize() does not consider strides, so the upper bound can be checked only for contiguous arrays/views
       if( getMaxSize( getStrides() ) == 1 ) {
@@ -252,6 +251,19 @@ protected:
    getSizes()
    {
       return sizes;
+   }
+
+   /**
+    * \brief Returns a non-constant reference to the underlying \ref strides.
+    *
+    * The function is not public -- only subclasses like \ref NDArrayStorage
+    * may modify the strides.
+    */
+   [[nodiscard]] __cuda_callable__
+   StridesHolderType&
+   getStrides()
+   {
+      return static_cast< StridesHolderType& >( *this );
    }
 
    // TODO: use [[no_unique_address]] in C++20 - see https://www.cppstories.com/2021/no-unique-address/

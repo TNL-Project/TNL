@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Containers/ndarray/SizesHolder.h>
 #include <TNL/Containers/ndarray/SizesHolderHelpers.h>
 
 namespace TNL::Containers::detail {
@@ -75,60 +76,45 @@ call_with_unshifted_indices( const SizesHolder& begins, Func&& f, Indices&&... i
       begins, std::forward< Func >( f ), std::forward< Indices >( indices )... );
 }
 
-template< typename Permutation, std::size_t dimension, typename SizesHolder >
+template< typename StridesHolder, typename Overlaps, typename... Indices >
 __cuda_callable__
-static typename SizesHolder::IndexType
-getAlignedSize( const SizesHolder& sizes )
+typename StridesHolder::IndexType
+getStorageIndex( const StridesHolder& strides, const Overlaps& overlaps, Indices&&... indices )
 {
-   const auto size = sizes.template getSize< dimension >();
-   // round up the last dynamic dimension to improve performance
-   // TODO: aligning is good for GPU, but bad for CPU
-   //static constexpr decltype(size) mult = 32;
-   //if( dimension == get< Permutation::size() - 1 >( Permutation{} )
-   //        && SizesHolder::template getStaticSize< dimension >() == 0 )
-   //    return mult * ( size / mult + ( size % mult != 0 ) );
-   return size;
-}
-
-template< typename Permutation, typename SizesHolder, typename StridesHolder, typename Overlaps, typename... Indices >
-__cuda_callable__
-static typename SizesHolder::IndexType
-getStorageIndex( const SizesHolder& sizes, const StridesHolder& strides, const Overlaps& overlaps, Indices&&... indices )
-{
-   using Index = typename SizesHolder::IndexType;
+   using Index = typename StridesHolder::IndexType;
 
    Index result = 0;
-   TNL::Algorithms::staticFor< std::size_t, 0, Permutation::size() >(
+   TNL::Algorithms::staticFor< std::size_t, 0, StridesHolder::getDimension() >(
       [ & ]( auto level )
       {
-         constexpr std::size_t idx = get< level >( Permutation{} );
-         const Index overlap = overlaps.template getSize< idx >();
-         const Index alpha = get_from_pack< idx >( std::forward< Indices >( indices )... );
+         // calculation based on NumPy's ndarray memory layout
+         // https://numpy.org/doc/stable/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray
+         const Index overlap = overlaps.template getSize< level >();
+         const Index alpha = get_from_pack< level >( std::forward< Indices >( indices )... );
 
          if constexpr( level == 0 ) {
-            result = strides.template getSize< idx >() * ( alpha + overlap );
+            result = strides.template getSize< level >() * ( alpha + overlap );
          }
          else {
-            const Index size = getAlignedSize< Permutation, idx >( sizes ) + 2 * overlap;
-            result = strides.template getSize< idx >() * ( alpha + overlap + size * result );
+            result += strides.template getSize< level >() * ( alpha + overlap );
          }
       } );
    return result;
 }
 
-template< typename Permutation, typename SizesHolder, typename Overlaps >
+template< typename SizesHolder, typename Overlaps >
 __cuda_callable__
-static typename SizesHolder::IndexType
+typename SizesHolder::IndexType
 getStorageSize( const SizesHolder& sizes, const Overlaps& overlaps )
 {
    using Index = typename SizesHolder::IndexType;
 
    Index result = 0;
-   TNL::Algorithms::staticFor< std::size_t, 0, Permutation::size() >(
+   TNL::Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() >(
       [ & ]( auto level )
       {
          const Index overlap = overlaps.template getSize< level >();
-         const Index size = getAlignedSize< Permutation, level >( sizes );
+         const Index size = sizes.template getSize< level >();
 
          if constexpr( level == 0 ) {
             result = size + 2 * overlap;
@@ -139,5 +125,77 @@ getStorageSize( const SizesHolder& sizes, const Overlaps& overlaps )
       } );
    return result;
 }
+
+// Note: If SizesHolder has a dynamic size (i.e. static size = 0), then
+// all strides crossing this axis are also dynamic (i.e. the product yields 0).
+template< typename Permutation, typename SizesHolder, std::size_t idx >
+constexpr typename SizesHolder::IndexType
+compute_static_stride()
+{
+   if constexpr( idx >= SizesHolder::getDimension() - 1 ) {
+      if constexpr( SizesHolder::template getStaticSize< SizesHolder::getDimension() - 1 >() == 0 )
+         return 0;
+      else
+         return 1;
+   }
+   else {
+      constexpr auto product = compute_static_stride< Permutation, SizesHolder, idx + 1 >();
+      // Note: the product starts from `idx + 1`, see NumPy's ndarray memory layout
+      // https://numpy.org/doc/stable/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray
+      constexpr std::size_t perm_idx = get< idx + 1 >( Permutation{} );
+      return product * SizesHolder::template getStaticSize< perm_idx >();
+   }
+}
+
+template< std::size_t idx, typename Permutation, typename SizesHolder, typename Overlaps >
+constexpr typename SizesHolder::IndexType
+compute_dynamic_stride( const SizesHolder& sizes, const Overlaps& overlaps )
+{
+   using Index = typename SizesHolder::IndexType;
+
+   if constexpr( idx >= SizesHolder::getDimension() - 1 ) {
+      return 1;
+   }
+   else {
+      const Index product = compute_dynamic_stride< idx + 1, Permutation >( sizes, overlaps );
+      // Note: the product starts from `idx + 1`, see NumPy's ndarray memory layout
+      // https://numpy.org/doc/stable/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray
+      constexpr std::size_t perm_idx = get< idx + 1 >( Permutation{} );
+      const Index overlap = overlaps.template getSize< perm_idx >();
+      const Index size = sizes.template getSize< perm_idx >();
+      return product * ( size + 2 * overlap );
+   }
+}
+
+template< typename Permutation, typename StridesHolder, typename SizesHolder, typename Overlaps >
+constexpr void
+compute_dynamic_strides( StridesHolder& strides, const SizesHolder& sizes, const Overlaps& overlaps )
+{
+   TNL::Algorithms::staticFor< std::size_t, 0, Permutation::size() >(
+      [ & ]( auto idx ) mutable
+      {
+         if constexpr( StridesHolder::template getStaticSize< idx >() == 0 ) {
+            constexpr std::size_t iperm_idx = get< idx >( inverse_permutation< Permutation >{} );
+            const auto stride = compute_dynamic_stride< iperm_idx, Permutation >( sizes, overlaps );
+            strides.template setSize< idx >( stride );
+         }
+      } );
+}
+
+template< typename Permutation,
+          typename SizesHolder,
+          typename Sequence = std::make_index_sequence< SizesHolder::getDimension() > >
+struct make_strides_impl;
+
+template< typename Permutation, typename SizesHolder, std::size_t... idx >
+struct make_strides_impl< Permutation, SizesHolder, std::index_sequence< idx... > >
+{
+   using type = Containers::SizesHolder<
+      typename SizesHolder::IndexType,
+      compute_static_stride< Permutation, SizesHolder, get< idx >( inverse_permutation< Permutation >{} ) >()... >;
+};
+
+template< typename Permutation, typename SizesHolder >
+using make_strides_holder = typename make_strides_impl< Permutation, SizesHolder >::type;
 
 }  // namespace TNL::Containers::detail

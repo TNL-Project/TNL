@@ -101,6 +101,20 @@ index_in_sequence( V&& value, std::integer_sequence< Index, vals... > )
    return index_in_pack( std::forward< V >( value ), vals... );
 }
 
+// Helper struct to compute the inverse permutation
+template< typename Permutation, typename Sequence = std::make_index_sequence< Permutation::size() > >
+struct make_inverse_permutation;
+
+template< typename Permutation, std::size_t... Is >
+struct make_inverse_permutation< Permutation, std::index_sequence< Is... > >
+{
+   using type = std::index_sequence< index_in_sequence( Is, Permutation{} )... >;
+};
+
+// Alias template for inverse permutation
+template< typename Permutation >
+using inverse_permutation = typename make_inverse_permutation< Permutation >::type;
+
 /*
  * Generic function to concatenate an arbitrary number of std::integer_sequence instances.
  * Useful mainly for getting the type of the resulting sequence with `decltype`.
