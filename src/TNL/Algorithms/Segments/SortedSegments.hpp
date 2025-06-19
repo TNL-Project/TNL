@@ -39,11 +39,13 @@ template< typename EmbeddedSegments, typename IndexAllocator >
 SortedSegments< EmbeddedSegments, IndexAllocator >&
 SortedSegments< EmbeddedSegments, IndexAllocator >::operator=( const SortedSegments& segments_ )
 {
-   this->segments = segments_.segments;
-   this->segmentsPermutaiton = segments_.segmentsPermutation;
+   this->embeddedSegments = segments_.embeddedSegments;
+   this->segmentsPermutation = segments_.segmentsPermutation;
+   this->inverseSegmentsPermutation = segments_.inverseSegmentsPermutation;
 
    // update the base
-   Base::bind( this->segments.getView(), this->segmentsPermutation.getView() );
+   Base::bind(
+      this->embeddedSegments.getView(), this->segmentsPermutation.getView(), this->inverseSegmentsPermutation.getView() );
    return *this;
 }
 
@@ -51,8 +53,42 @@ template< typename EmbeddedSegments, typename IndexAllocator >
 SortedSegments< EmbeddedSegments, IndexAllocator >&
 SortedSegments< EmbeddedSegments, IndexAllocator >::operator=( SortedSegments&& segments_ ) noexcept( false )
 {
-   this->segmentsPermutation = std::move( segments_.segmentsPermutation );
    this->embeddedSegments = std::move( segments_.embeddedSegments );
+   this->segmentsPermutation = std::move( segments_.segmentsPermutation );
+   this->inverseSegmentsPermutation = std::move( segments_.inverseSegmentsPermutation );
+
+   // update the base
+   Base::bind(
+      this->embeddedSegments.getView(), this->segmentsPermutation.getView(), this->inverseSegmentsPermutation.getView() );
+   return *this;
+}
+
+template< typename EmbeddedSegments, typename IndexAllocator >
+template< typename EmbeddedSegments_, typename IndexAllocator_ >
+SortedSegments< EmbeddedSegments, IndexAllocator >&
+SortedSegments< EmbeddedSegments, IndexAllocator >::operator=(
+   const SortedSegments< EmbeddedSegments_, IndexAllocator_ >& segments_ ) noexcept( false )
+{
+   this->embeddedSegments = segments_.getEmbeddedSegments();
+   this->segmentsPermutation = segments_.getSegmentsPermutation();
+   this->inverseSegmentsPermutation = segments_.getInverseSegmentsPermutation();
+
+   // update the base
+   Base::bind(
+      this->embeddedSegments.getView(), this->segmentsPermutation.getView(), this->inverseSegmentsPermutation.getView() );
+   return *this;
+}
+
+template< typename EmbeddedSegments, typename IndexAllocator >
+template< typename EmbeddedSegments_, typename IndexAllocator_ >
+SortedSegments< EmbeddedSegments, IndexAllocator >&
+SortedSegments< EmbeddedSegments, IndexAllocator >::operator=(
+   SortedSegments< EmbeddedSegments_, IndexAllocator_ >&& segments_ ) noexcept( false )
+{
+   this->embeddedSegments = std::move( segments_.getEmbeddedSegments() );
+   this->segmentsPermutation = std::move( segments_.getSegmentsPermutation() );
+   this->inverseSegmentsPermutation = std::move( segments_.getInverseSegmentsPermutation() );
+
    // update the base
    Base::bind(
       this->embeddedSegments.getView(), this->segmentsPermutation.getView(), this->inverseSegmentsPermutation.getView() );
@@ -83,7 +119,11 @@ void
 SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const SizesHolder& sizes )
 {
    // TODO: Reimplement the following when TNL sorters can create the permutation vector itself
-   using Tuple = int;  //Containers::StaticArray< 2, IndexType >;
+   using Tuple = Containers::StaticArray< 2, IndexType >;
+   if( sizes.getSize() == 0 ) {
+      this->reset();
+      return;
+   }
 
    // Sort the segments sizes in descending order
    Containers::Array< Tuple, DeviceType, IndexType > aux( sizes.getSize() );
@@ -91,9 +131,8 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
    aux.forAllElements(
       [ = ] __cuda_callable__( IndexType i, Tuple & tuple )
       {
-         ///tuple[ 0 ] = sizesView[ i ];
-         //tuple[ 1 ] = i;
-         tuple = i;
+         tuple[ 0 ] = sizesView[ i ];
+         tuple[ 1 ] = i;
       } );
 
    //std::cout << "aux before sorting: " << aux << std::endl;
@@ -102,12 +141,11 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
    sorter.sort( aux_view,
                 [] __cuda_callable__( const Tuple& a, const Tuple& b )
                 {
-                   //return a[ 0 ] > b[ 0 ];  // sort in descending order
-                   return true;
+                   return a[ 0 ] > b[ 0 ];  // sort in descending order
                 } );
 
    // Initialize the embedded segments with the sorted sizes
-   /*auto auxView = aux.getConstView();
+   auto auxView = aux.getConstView();
    SizesHolder sortedSizes( sizes.getSize() );
    sortedSizes.forAllElements(
       [ = ] __cuda_callable__( IndexType i, IndexType & value )
@@ -143,7 +181,6 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
    // update the base
    Base::bind(
       this->embeddedSegments.getView(), this->segmentsPermutation.getView(), this->inverseSegmentsPermutation.getView() );
-      */
 }
 
 template< typename EmbeddedSegments, typename IndexAllocator >
@@ -157,6 +194,27 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::reset()
    // update the base
    Base::bind(
       this->embeddedSegments.getView(), this->segmentsPermutation.getView(), this->inverseSegmentsPermutation.getView() );
+}
+
+template< typename EmbeddedSegments, typename IndexAllocator >
+auto
+SortedSegments< EmbeddedSegments, IndexAllocator >::getEmbeddedSegments() const -> const EmbeddedSegments&
+{
+   return this->embeddedSegments;
+}
+
+template< typename EmbeddedSegments, typename IndexAllocator >
+auto
+SortedSegments< EmbeddedSegments, IndexAllocator >::getSegmentsPermutation() const -> const PermutationContainer&
+{
+   return this->segmentsPermutation;
+}
+
+template< typename EmbeddedSegments, typename IndexAllocator >
+auto
+SortedSegments< EmbeddedSegments, IndexAllocator >::getInverseSegmentsPermutation() const -> const PermutationContainer&
+{
+   return this->inverseSegmentsPermutation;
 }
 
 template< typename EmbeddedSegments, typename IndexAllocator >
