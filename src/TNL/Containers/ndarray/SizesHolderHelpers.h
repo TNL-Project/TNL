@@ -12,28 +12,6 @@
 
 namespace TNL::Containers::detail {
 
-// Static storage size without alignment, used in StaticNDArray
-template< typename SizesHolder, typename LevelTag = IndexTag< SizesHolder::getDimension() - 1 > >
-struct StaticStorageSizeGetter
-{
-   [[nodiscard]] constexpr static std::size_t
-   get()
-   {
-      return SizesHolder::template getStaticSize< LevelTag::value >()
-           * StaticStorageSizeGetter< SizesHolder, IndexTag< LevelTag::value - 1 > >::get();
-   }
-};
-
-template< typename SizesHolder >
-struct StaticStorageSizeGetter< SizesHolder, IndexTag< 0 > >
-{
-   [[nodiscard]] constexpr static std::size_t
-   get()
-   {
-      return SizesHolder::template getStaticSize< 0 >();
-   }
-};
-
 template< typename SizesHolder, typename... IndexTypes >
 void
 setSizesHelper( SizesHolder& holder, IndexTypes&&... otherSizes )

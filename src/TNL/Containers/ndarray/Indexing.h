@@ -126,6 +126,24 @@ getStorageSize( const SizesHolder& sizes, const Overlaps& overlaps )
    return result;
 }
 
+// Static storage size without overlaps, used in StaticNDArray
+template< typename SizesHolder >
+constexpr std::size_t
+getStaticStorageSize( const SizesHolder& sizes )
+{
+   std::size_t result = 0;
+   TNL::Algorithms::staticFor< std::size_t, 0, SizesHolder::getDimension() >(
+      [ & ]( auto level )
+      {
+         constexpr std::size_t size = SizesHolder::template getStaticSize< level >();
+         if constexpr( level == 0 )
+            result = size;
+         else
+            result *= size;
+      } );
+   return result;
+}
+
 // Note: If SizesHolder has a dynamic size (i.e. static size = 0), then
 // all strides crossing this axis are also dynamic (i.e. the product yields 0).
 template< typename Permutation, typename SizesHolder, std::size_t idx >
