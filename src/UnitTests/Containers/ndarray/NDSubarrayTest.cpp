@@ -10,7 +10,7 @@ template< typename Permutation, typename ExpectedPermutation >
 void
 check_permutation()
 {
-   static_assert( std::is_same< Permutation, ExpectedPermutation >::value,
+   static_assert( std::is_same_v< Permutation, ExpectedPermutation >,
                   "The permutation is not the same as the expected permutation." );
 }
 
@@ -18,13 +18,13 @@ TEST( NDArraySubarrayTest, StaticAsserts )
 {
    using namespace TNL::Containers::detail;
 
-   //    auto is_even = [](int _in) {return _in % 2 == 0;};
+   //auto is_even = [](int _in) {return _in % 2 == 0;};
    using expected_type = std::integer_sequence< int, 0, 2, 4, 6, 8 >;
    using test_type = std::integer_sequence< int, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 >;
-   //    constexpr auto result = filter_sequence(test_type{}, is_even);
+   //constexpr auto result = filter_sequence(test_type{}, is_even);
    constexpr auto result = filter_sequence< expected_type >( test_type{} );
    using result_type = std::decay_t< decltype( result ) >;
-   static_assert( std::is_same< expected_type, result_type >::value, "Integer sequences should be equal" );
+   static_assert( std::is_same_v< expected_type, result_type >, "Integer sequences should be equal" );
 
    using Permutation = std::integer_sequence< std::size_t, 5, 3, 1, 4, 2, 6, 0 >;
    {
@@ -65,7 +65,12 @@ TEST( NDArraySubarrayTest, StaticAsserts )
 
 TEST( NDArraySubarrayTest, Dynamic_6D )
 {
-   int I = 2, J = 3, K = 4, L = 5, M = 6, N = 7;
+   const int I = 2;
+   const int J = 3;
+   const int K = 4;
+   const int L = 5;
+   const int M = 6;
+   const int N = 7;
    NDArray< int, SizesHolder< int, 0, 0, 0, 0, 0, 0 >, index_sequence< 5, 3, 4, 2, 0, 1 > > a;
    a.setSizes( I, J, K, L, M, N );
    a.setValue( 0 );
@@ -145,7 +150,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    const int stride_ij_1 = s_ij.template getStride< 1 >();
    EXPECT_EQ( size_ij_0, I );
    EXPECT_EQ( size_ij_1, J );
-   EXPECT_EQ( stride_ij_0, 1 );
+   EXPECT_EQ( stride_ij_0, J );
    EXPECT_EQ( stride_ij_1, 1 );
    for( int i = 0; i < I; i++ )
       for( int j = 0; j < J; j++ ) {
@@ -162,7 +167,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_ik_0, I );
    EXPECT_EQ( size_ik_1, K );
    EXPECT_EQ( stride_ik_0, J );
-   EXPECT_EQ( stride_ik_1, 1 );
+   EXPECT_EQ( stride_ik_1, I * J );
    for( int i = 0; i < I; i++ )
       for( int k = 0; k < K; k++ ) {
          s_ik( i, k ) = 1 + k;
@@ -178,7 +183,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_il_0, I );
    EXPECT_EQ( size_il_1, L );
    EXPECT_EQ( stride_il_0, J );
-   EXPECT_EQ( stride_il_1, K * M );
+   EXPECT_EQ( stride_il_1, I * J * K * M );
    for( int i = 0; i < I; i++ )
       for( int l = 0; l < L; l++ ) {
          s_il( i, l ) = 1 + l;
@@ -194,7 +199,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_im_0, I );
    EXPECT_EQ( size_im_1, M );
    EXPECT_EQ( stride_im_0, J );
-   EXPECT_EQ( stride_im_1, K );
+   EXPECT_EQ( stride_im_1, I * J * K );
    for( int i = 0; i < I; i++ )
       for( int m = 0; m < M; m++ ) {
          s_im( i, m ) = 1 + m;
@@ -210,7 +215,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_in_0, I );
    EXPECT_EQ( size_in_1, N );
    EXPECT_EQ( stride_in_0, J );
-   EXPECT_EQ( stride_in_1, K * L * M );
+   EXPECT_EQ( stride_in_1, I * J * K * L * M );
    for( int i = 0; i < I; i++ )
       for( int n = 0; n < N; n++ ) {
          s_in( i, n ) = 1 + n;
@@ -226,7 +231,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_jk_0, J );
    EXPECT_EQ( size_jk_1, K );
    EXPECT_EQ( stride_jk_0, 1 );
-   EXPECT_EQ( stride_jk_1, I );
+   EXPECT_EQ( stride_jk_1, I * J );
    for( int j = 0; j < J; j++ )
       for( int k = 0; k < K; k++ ) {
          s_jk( j, k ) = 1 + k;
@@ -242,7 +247,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_jl_0, J );
    EXPECT_EQ( size_jl_1, L );
    EXPECT_EQ( stride_jl_0, 1 );
-   EXPECT_EQ( stride_jl_1, I * K * M );
+   EXPECT_EQ( stride_jl_1, I * J * K * M );
    for( int j = 0; j < J; j++ )
       for( int l = 0; l < L; l++ ) {
          s_jl( j, l ) = 1 + l;
@@ -258,7 +263,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_jm_0, J );
    EXPECT_EQ( size_jm_1, M );
    EXPECT_EQ( stride_jm_0, 1 );
-   EXPECT_EQ( stride_jm_1, I * K );
+   EXPECT_EQ( stride_jm_1, I * J * K );
    for( int j = 0; j < J; j++ )
       for( int m = 0; m < M; m++ ) {
          s_jm( j, m ) = 1 + m;
@@ -274,7 +279,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_jn_0, J );
    EXPECT_EQ( size_jn_1, N );
    EXPECT_EQ( stride_jn_0, 1 );
-   EXPECT_EQ( stride_jn_1, I * K * L * M );
+   EXPECT_EQ( stride_jn_1, I * J * K * L * M );
    for( int j = 0; j < J; j++ )
       for( int n = 0; n < N; n++ ) {
          s_jn( j, n ) = 1 + n;
@@ -290,7 +295,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_kl_0, K );
    EXPECT_EQ( size_kl_1, L );
    EXPECT_EQ( stride_kl_0, I * J );
-   EXPECT_EQ( stride_kl_1, M );
+   EXPECT_EQ( stride_kl_1, I * J * K * M );
    for( int k = 0; k < K; k++ )
       for( int l = 0; l < L; l++ ) {
          s_kl( k, l ) = 1 + l;
@@ -306,7 +311,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_km_0, K );
    EXPECT_EQ( size_km_1, M );
    EXPECT_EQ( stride_km_0, I * J );
-   EXPECT_EQ( stride_km_1, 1 );
+   EXPECT_EQ( stride_km_1, I * J * K );
    for( int k = 0; k < K; k++ )
       for( int m = 0; m < M; m++ ) {
          s_km( k, m ) = 1 + m;
@@ -322,7 +327,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_kn_0, K );
    EXPECT_EQ( size_kn_1, N );
    EXPECT_EQ( stride_kn_0, I * J );
-   EXPECT_EQ( stride_kn_1, L * M );
+   EXPECT_EQ( stride_kn_1, I * J * K * L * M );
    for( int k = 0; k < K; k++ )
       for( int n = 0; n < N; n++ ) {
          s_kn( k, n ) = 1 + n;
@@ -337,7 +342,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    const int stride_lm_1 = s_lm.template getStride< 1 >();
    EXPECT_EQ( size_lm_0, L );
    EXPECT_EQ( size_lm_1, M );
-   EXPECT_EQ( stride_lm_0, 1 );
+   EXPECT_EQ( stride_lm_0, I * J * K * M );
    EXPECT_EQ( stride_lm_1, I * J * K );
    for( int l = 0; l < L; l++ )
       for( int m = 0; m < M; m++ ) {
@@ -354,7 +359,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_ln_0, L );
    EXPECT_EQ( size_ln_1, N );
    EXPECT_EQ( stride_ln_0, I * J * K * M );
-   EXPECT_EQ( stride_ln_1, 1 );
+   EXPECT_EQ( stride_ln_1, I * J * K * M * L );
    for( int l = 0; l < L; l++ )
       for( int n = 0; n < N; n++ ) {
          s_ln( l, n ) = 1 + n;
@@ -370,7 +375,7 @@ TEST( NDArraySubarrayTest, Dynamic_6D )
    EXPECT_EQ( size_mn_0, M );
    EXPECT_EQ( size_mn_1, N );
    EXPECT_EQ( stride_mn_0, I * J * K );
-   EXPECT_EQ( stride_mn_1, L );
+   EXPECT_EQ( stride_mn_1, I * J * K * M * L );
    for( int m = 0; m < M; m++ )
       for( int n = 0; n < N; n++ ) {
          s_mn( m, n ) = 1 + n;
