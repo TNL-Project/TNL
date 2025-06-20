@@ -15,7 +15,7 @@ find_package(Doxygen)
 if(DOXYGEN_FOUND)
     # warn if Doxygen version does not match what we expect
     set(TNL_EXPECTED_DOXYGEN_VERSION 1.11.0)
-    if(NOT ${DOXYGEN_VERSION} VERSION_EQUAL ${TNL_EXPECTED_DOXYGEN_VERSION})
+    if(NOT ${DOXYGEN_VERSION} VERSION_GREATER_EQUAL ${TNL_EXPECTED_DOXYGEN_VERSION})
         message(WARNING "Found Doxygen version ${DOXYGEN_VERSION}, which does not match the expected version "
                         "${TNL_EXPECTED_DOXYGEN_VERSION}. The generated documentation output may be incorrect due to "
                         "various Doxygen quirks and bugs."
