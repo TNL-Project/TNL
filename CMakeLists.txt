@@ -272,7 +272,7 @@ if(PROJECT_IS_TOP_LEVEL)
     message("   TNL_USE_OPENMP = ${TNL_USE_OPENMP}")
     message("   TNL_USE_MPI = ${TNL_USE_MPI}")
     message("   TNL_USE_GMP = ${TNL_USE_GMP}")
-    message("   TNL_USE_SYSTEM_GTEST= ${TNL_USE_SYSTEM_GTEST}")
+    message("   TNL_USE_SYSTEM_GTEST = ${TNL_USE_SYSTEM_GTEST}")
     message("   TNL_BUILD_COVERAGE = ${TNL_BUILD_COVERAGE}")
     message("   TNL_OFFLINE_BUILD = ${TNL_OFFLINE_BUILD}")
     # Print used compilers
