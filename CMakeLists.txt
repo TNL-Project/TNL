@@ -42,27 +42,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 # the cmake directory in the TNL repository
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# Note that in cmake 3.10 the FindOpenMP and FindMPI modules are broken - they do not work when
-# CMAKE_EXECUTABLE_SUFFIX is not empty, see https://www.mail-archive.com/cmake@cmake.org/msg56886.html
-# and https://gitlab.kitware.com/cmake/cmake/-/issues/23874
-# Hence, we find OpenMP and MPI before setting CMAKE_EXECUTABLE_SUFFIX.
-find_package(OpenMP COMPONENTS CXX)
-find_package(MPI COMPONENTS CXX)
-# workaround for https://github.com/ginkgo-project/ginkgo/issues/1096
-find_package(Ginkgo QUIET)
-# find the std::filesystem library
-find_package(Filesystem REQUIRED COMPONENTS Final)
-
-# Optionally bundled dependencies (system packages are preferred)
-# Reference: https://cmake.org/cmake/help/latest/guide/using-dependencies/index.html#fetchcontent-and-find-package-integration
-include(FetchTinyXML2)
-
-# Settings for debug build
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_EXECUTABLE_SUFFIX "-dbg${CMAKE_EXECUTABLE_SUFFIX}") # suffix for executables
-    set(CMAKE_DEBUG_POSTFIX "-dbg") # suffix for libraries
-endif()
-
 # set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -88,9 +67,6 @@ target_include_directories(
 # add compiler features to the interface
 target_compile_features(TNL INTERFACE cxx_std_17)
 
-# add the std::filesystem library to the interface
-target_link_libraries(TNL INTERFACE std::filesystem)
-
 # set C++ compiler flags
 include(cmake/cxx_flags.cmake)
 
@@ -98,7 +74,13 @@ include(cmake/cxx_flags.cmake)
 include(testing)
 
 ####
-# Check for threads library
+# Find the std::filesystem library
+#
+find_package(Filesystem REQUIRED COMPONENTS Final)
+target_link_libraries(TNL INTERFACE std::filesystem)
+
+####
+# Find the threads library
 #
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
@@ -108,6 +90,7 @@ target_link_libraries(TNL INTERFACE Threads::Threads)
 ####
 # Check for OpenMP
 #
+find_package(OpenMP COMPONENTS CXX)
 if(OPENMP_FOUND AND TNL_USE_OPENMP)
     # NOTE: OpenMP + CUDA/HIP = segfault in matrix tests (the host code built by nvcc is also not optimal)
     target_compile_definitions(TNL INTERFACE $<$<COMPILE_LANGUAGE:CXX>: HAVE_OPENMP>)
@@ -120,6 +103,7 @@ endif()
 ####
 # Check for MPI
 #
+find_package(MPI COMPONENTS CXX)
 if(MPI_CXX_FOUND AND TNL_USE_MPI)
     set(TNL_BUILD_MPI TRUE)
     # NOTE: MPI will be added selectively to the targets that need/can utilize it
@@ -191,6 +175,10 @@ else()
     set(TNL_BUILD_CPP_TARGETS TRUE)
 endif()
 
+# Optionally bundled dependencies (system packages are preferred)
+# Reference: https://cmake.org/cmake/help/latest/guide/using-dependencies/index.html#fetchcontent-and-find-package-integration
+include(FetchTinyXML2)
+
 find_package(DCMTK)
 if(DCMTK_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_DCMTK_H")
@@ -254,6 +242,16 @@ if(TNL_EXPORT_INTERFACE_TARGETS)
     )
     # install necessary modules
     install(FILES cmake/FindFilesystem.cmake DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY}/Modules COMPONENT headers)
+endif()
+
+# Settings for debug build
+# Note that in cmake 3.10 the FindOpenMP and FindMPI modules are broken - they do not work when
+# CMAKE_EXECUTABLE_SUFFIX is not empty, see https://www.mail-archive.com/cmake@cmake.org/msg56886.html
+# and https://gitlab.kitware.com/cmake/cmake/-/issues/23874
+# Hence, we set this after all find_package checks.
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_EXECUTABLE_SUFFIX "-dbg${CMAKE_EXECUTABLE_SUFFIX}") # suffix for executables
+    set(CMAKE_DEBUG_POSTFIX "-dbg") # suffix for libraries
 endif()
 
 # Add all subdirectories

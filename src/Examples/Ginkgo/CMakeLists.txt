@@ -1,7 +1,4 @@
-# workaround for https://github.com/ginkgo-project/ginkgo/issues/1096
-if(NOT Ginkgo_FOUND)
-    find_package(Ginkgo QUIET)
-endif()
+find_package(Ginkgo)
 
 set(CPP_EXAMPLES tnl-ginkgo-converted-ellpack tnl-ginkgo-wrapped-csr tnl-ginkgo-wrapped-operator tnl-ginkgo-PoissonEquation2D
                  tnl-ginkgo-PoissonEquation3D
