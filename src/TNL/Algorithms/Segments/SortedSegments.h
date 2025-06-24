@@ -9,7 +9,6 @@
 #include <TNL/TypeTraits.h>
 
 #include "SortedSegmentsView.h"
-#include "CSR.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -192,11 +191,6 @@ struct isSortedSegments< SortedSegmentsView< EmbeddedSegments > > : std::true_ty
  */
 template< typename Segments >
 inline constexpr bool isSortedSegments_v = isSortedSegments< Segments >::value;
-
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-using SortedCSR = SortedSegments< CSR< Device, Index, IndexAllocator > >;
 
 }  // namespace TNL::Algorithms::Segments
 

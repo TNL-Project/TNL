@@ -4,6 +4,7 @@
 #pragma once
 
 #include "SlicedEllpackBase.h"
+#include "SortedSegmentsView.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -103,79 +104,71 @@ public:
 };
 
 /**
- * \brief Data structure for row-major SlicedEllpack view.
+ * \brief Alias for row-major SlicedEllpack segments view.
  *
  * See \ref TNL::Algorithms::Segments::SlicedEllpackView for more details.
  *
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
- * \tparam SliceSize The size of each slice.
+ * \tparam SliceSize The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
  */
 template< typename Device, typename Index, int SliceSize = 32 >
-struct RowMajorSlicedEllpackView : public SlicedEllpackView< Device, Index, RowMajorOrder, SliceSize >
-{
-   using BaseType = SlicedEllpackView< Device, Index, RowMajorOrder, SliceSize >;
-
-   //! \brief Constructor with no parameters to create empty segments.
-   __cuda_callable__
-   RowMajorSlicedEllpackView() = default;
-
-   //! \brief Copy constructor (makes deep copy).
-   __cuda_callable__
-   RowMajorSlicedEllpackView( const RowMajorSlicedEllpackView& ) = default;
-
-   //! \brief Move constructor.
-   __cuda_callable__
-   RowMajorSlicedEllpackView( RowMajorSlicedEllpackView&& ) noexcept = default;
-
-   //! \brief Constructor that initializes segments based all necessary data.
-   __cuda_callable__
-   RowMajorSlicedEllpackView( Index size,
-                              Index alignedSize,
-                              Index segmentsCount,
-                              typename BaseType::OffsetsView sliceOffsets,
-                              typename BaseType::OffsetsView sliceSegmentSizes )
-   : BaseType( size, alignedSize, segmentsCount, sliceOffsets, sliceSegmentSizes )
-   {}
-};
+using RowMajorSlicedEllpackView = SlicedEllpackView< Device, Index, RowMajorOrder, SliceSize >;
 
 /**
- * \brief Data structure for column-major SlicedEllpack view.
+ * \brief Alias for column-major SlicedEllpack segments view.
  *
  * See \ref TNL::Algorithms::Segments::SlicedEllpackView for more details.
  *
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam SliceSize The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
  */
 template< typename Device, typename Index, int SliceSize = 32 >
-struct ColumnMajorSlicedEllpackView : public SlicedEllpackView< Device, Index, ColumnMajorOrder, SliceSize >
-{
-   using BaseType = SlicedEllpackView< Device, Index, ColumnMajorOrder, SliceSize >;
+using ColumnMajorSlicedEllpackView = SlicedEllpackView< Device, Index, ColumnMajorOrder, SliceSize >;
 
-   //! \brief Constructor with no parameters to create empty segments.
-   __cuda_callable__
-   ColumnMajorSlicedEllpackView() = default;
+/**
+ * \brief Alias for sorted segments based on SlicedEllpackView segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam SliceSize The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
+ */
+template< typename Device,
+          typename Index,
+          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+          int SliceSize = 32 >
+using SortedSlicedEllpackView = SortedSegmentsView< SlicedEllpackView< Device, Index, Organization, SliceSize > >;
 
-   //! \brief Copy constructor (makes deep copy).
-   __cuda_callable__
-   ColumnMajorSlicedEllpackView( const ColumnMajorSlicedEllpackView& ) = default;
+/**
+ * \brief Alias for sorted segments based on row-major SlicedEllpackView segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam SliceSize The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
+ */
+template< typename Device, typename Index, int SliceSize = 32 >
+using SortedRowMajorSlicedEllpackView = SortedSegmentsView< RowMajorSlicedEllpackView< Device, Index, SliceSize > >;
 
-   //! \brief Move constructor.
-   __cuda_callable__
-   ColumnMajorSlicedEllpackView( ColumnMajorSlicedEllpackView&& ) noexcept = default;
-
-   //! \brief Constructor that initializes segments based all necessary data.
-   __cuda_callable__
-   ColumnMajorSlicedEllpackView( Index size,
-                                 Index alignedSize,
-                                 Index segmentsCount,
-                                 typename BaseType::OffsetsView sliceOffsets,
-                                 typename BaseType::OffsetsView sliceSegmentSizes )
-   : BaseType( size, alignedSize, segmentsCount, sliceOffsets, sliceSegmentSizes )
-   {}
-};
+/**
+ * \brief Alias for sorted segments based on column-major SlicedEllpack segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam SliceSize The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
+ */
+template< typename Device, typename Index, int SliceSize = 32 >
+using SortedColumnMajorSlicedEllpackView = SortedSegmentsView< ColumnMajorSlicedEllpackView< Device, Index, SliceSize > >;
 
 }  // namespace TNL::Algorithms::Segments
 
