@@ -4,6 +4,7 @@
 #pragma once
 
 #include "BiEllpackBase.h"
+#include "SortedSegmentsView.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -102,50 +103,65 @@ public:
 };
 
 /**
- * \brief Data structure for row-major BiEllpack segments view.
+ * \brief Alias for row-major BiEllpack segments view.
  *
  * See \ref TNL::Algorithms::Segments::BiEllpackView for more details.
  *
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam Alignment The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
  */
-template< typename Device, typename Index >
-struct RowMajorBiEllpackView : public BiEllpackView< Device, Index, RowMajorOrder >
-{
-   using BaseType = BiEllpackView< Device, Index, RowMajorOrder >;
-
-   //! \brief Constructor with no parameters to create empty segments.
-   RowMajorBiEllpackView() = default;
-
-   //! \brief Copy constructor (makes deep copy).
-   RowMajorBiEllpackView( const RowMajorBiEllpackView& );
-
-   //! \brief Move constructor.
-   RowMajorBiEllpackView( RowMajorBiEllpackView&& ) noexcept = default;
-};
+template< typename Device, typename Index, int WarpSize = Backend::getWarpSize() >
+using RowMajorBiEllpackView = BiEllpackView< Device, Index, RowMajorOrder, WarpSize >;
 
 /**
- * \brief Data structure for column-major BiEllpack segments view.
+ * \brief Alias for column-major BiEllpack segments view.
  *
  * See \ref TNL::Algorithms::Segments::BiEllpackView for more details.
  *
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam Alignment The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
  */
-template< typename Device, typename Index >
-struct ColumnMajorBiEllpackView : public BiEllpackView< Device, Index, ColumnMajorOrder >
-{
-   using BaseType = BiEllpackView< Device, Index, ColumnMajorOrder >;
+template< typename Device, typename Index, int WarpSize = Backend::getWarpSize() >
+using ColumnMajorBiEllpackView = BiEllpackView< Device, Index, ColumnMajorOrder, WarpSize >;
 
-   //! \brief Constructor with no parameters to create empty segments.
-   ColumnMajorBiEllpackView() = default;
+/**
+ * \brief Alias for sorted segments based on BiEllpackView segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+          int WarpSize = Backend::getWarpSize() >
+using SortedBiEllpackView = SortedSegmentsView< BiEllpackView< Device, Index, Organization, WarpSize > >;
 
-   //! \brief Copy constructor (makes deep copy).
-   ColumnMajorBiEllpackView( const ColumnMajorBiEllpackView& );
+/**
+ * \brief Alias for sorted segments based on row-major BiEllpackView segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device, typename Index, int WarpSize = Backend::getWarpSize() >
+using SortedRowMajorBiEllpackView = SortedSegmentsView< RowMajorBiEllpackView< Device, Index, WarpSize > >;
 
-   //! \brief Move constructor.
-   ColumnMajorBiEllpackView( ColumnMajorBiEllpackView&& ) noexcept = default;
-};
+/**
+ * \brief Alias for sorted segments based on column-major BiEllpack segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device, typename Index, int WarpSize = Backend::getWarpSize() >
+using SortedColumnMajorBiEllpackView = SortedSegmentsView< ColumnMajorBiEllpackView< Device, Index, WarpSize > >;
 
 }  // namespace TNL::Algorithms::Segments
 

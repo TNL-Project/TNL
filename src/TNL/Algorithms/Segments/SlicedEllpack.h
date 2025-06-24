@@ -9,6 +9,7 @@
 #include <TNL/Containers/Vector.h>
 
 #include "SlicedEllpackView.h"
+#include "SortedSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -225,6 +226,52 @@ template< typename Device,
           int SliceSize = 32 >
 using ColumnMajorSlicedEllpack = SlicedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder, SliceSize >;
 
+/**
+ * \brief Alias for sorted SlicedEllpack segments.
+ *
+ * See \ref TNL::Algorithms::Segments::SlicedEllpack for more details.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+          int SliceSize = 32 >
+using SortedSlicedEllpack = SortedSegments< SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize > >;
+
+/**
+ * \brief Alias sorted for row-major SlicedEllpack segments.
+ *
+ * See \ref TNL::Algorithms::Segments::SlicedEllpack for more details.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          int SliceSize = 32 >
+using SortedRowMajorSlicedEllpack = SortedSegments< RowMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > >;
+
+/**
+ * \brief Alias for sorted column-major SlicedEllpack segments.
+ *
+ * See \ref TNL::Algorithms::Segments::SlicedEllpack for more details.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          int SliceSize = 32 >
+using SortedColumnMajorSlicedEllpack = SortedSegments< ColumnMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > >;
+
 template< typename Segments >
 struct isSlicedEllpackSegments : std::false_type
 {};
@@ -237,13 +284,94 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 struct isSlicedEllpackSegments< SlicedEllpackView< Device, Index, Organization, SliceSize > > : std::true_type
 {};
 
-/**
- * \brief Returns true if the given type is SlicedEllpack segments.
- *
- * \tparam Segments The type of the segments.
- */
+//! \brief Returns true if the given type is SlicedEllpack segments.
 template< typename Segments >
 inline constexpr bool isSlicedEllpackSegments_v = isSlicedEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isRowMajorSlicedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int SliceSize >
+struct isRowMajorSlicedEllpackSegments< RowMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > > : std::true_type
+{};
+
+template< typename Device, typename Index, int SliceSize >
+struct isRowMajorSlicedEllpackSegments< RowMajorSlicedEllpackView< Device, Index, SliceSize > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is row-major Ellpack segments.
+template< typename Segments >
+inline constexpr bool isRowMajorSlicedEllpackSegments_v = isRowMajorSlicedEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isColumnMajorSlicedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int SliceSize >
+struct isColumnMajorSlicedEllpackSegments< ColumnMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > >
+: std::true_type
+{};
+
+template< typename Device, typename Index, int SliceSize >
+struct isColumnMajorSlicedEllpackSegments< ColumnMajorSlicedEllpackView< Device, Index, SliceSize > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is column-major Ellpack segments.
+template< typename Segments >
+inline constexpr bool isColumnMajorSlicedEllpackSegments_v = isColumnMajorSlicedEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isSortedSlicedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
+struct isSortedSlicedEllpackSegments< SortedSlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize > >
+: std::true_type
+{};
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+struct isSortedSlicedEllpackSegments< SortedSlicedEllpackView< Device, Index, Organization, SliceSize > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is sorted Ellpack segments.
+template< typename Segments >
+inline constexpr bool isSortedSlicedEllpackSegments_v = isSortedSlicedEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isSortedRowMajorSlicedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int SliceSize >
+struct isSortedRowMajorSlicedEllpackSegments< SortedRowMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > >
+: std::true_type
+{};
+
+template< typename Device, typename Index, int SliceSize >
+struct isSortedRowMajorSlicedEllpackSegments< SortedRowMajorSlicedEllpackView< Device, Index, SliceSize > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is sorted row-major Ellpack segments.
+template< typename Segments >
+inline constexpr bool isSortedRowMajorSlicedEllpackSegments_v = isSortedRowMajorSlicedEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isSortedColumnMajorSlicedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int SliceSize >
+struct isSortedColumnMajorSlicedEllpackSegments< SortedColumnMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > >
+: std::true_type
+{};
+
+template< typename Device, typename Index, int SliceSize >
+struct isSortedColumnMajorSlicedEllpackSegments< SortedColumnMajorSlicedEllpackView< Device, Index, SliceSize > >
+: std::true_type
+{};
+
+//! \brief Returns true if the given type is sorted column-major Ellpack segments.
+template< typename Segments >
+inline constexpr bool isSortedColumnMajorSlicedEllpackSegments_v = isSortedColumnMajorSlicedEllpackSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 

@@ -8,6 +8,7 @@
 #include <TNL/Containers/Vector.h>
 
 #include "ChunkedEllpackView.h"
+#include "SortedSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -214,13 +215,15 @@ protected:
 };
 
 /**
- * \brief Alias for row-major Chunked Ellpack segments.
+ * \brief Alias for row-major ChunkedEllpack segments.
  *
  * See \ref TNL::Algorithms::Segments::ChunkedEllpack for more details.
  *
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam Alignment The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
  */
 template< typename Device,
           typename Index,
@@ -228,9 +231,36 @@ template< typename Device,
 using RowMajorChunkedEllpack = ChunkedEllpack< Device, Index, IndexAllocator, RowMajorOrder >;
 
 /**
- * \brief Alias for column-major Chunked Ellpack segments.
+ * \brief Alias for column-major ChunkedEllpack segments.
  *
  * See \ref TNL::Algorithms::Segments::ChunkedEllpack for more details.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam Alignment The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+using ColumnMajorChunkedEllpack = ChunkedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder >;
+
+/**
+ * \brief Alias for sorted segments based on ChunkedEllpack segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization() >
+using SortedChunkedEllpack = SortedSegments< ChunkedEllpack< Device, Index, IndexAllocator, Organization > >;
+
+/**
+ * \brief Alias for sorted segments based on row-major ChunkedEllpack segments.
  *
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
@@ -239,7 +269,19 @@ using RowMajorChunkedEllpack = ChunkedEllpack< Device, Index, IndexAllocator, Ro
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-using ColumnMajorChunkedEllpack = ChunkedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder >;
+using SortedRowMajorChunkedEllpack = SortedSegments< RowMajorChunkedEllpack< Device, Index, IndexAllocator > >;
+
+/**
+ * \brief Alias for sorted segments based on column-major ChunkedEllpack segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+using SortedColumnMajorChunkedEllpack = SortedSegments< ColumnMajorChunkedEllpack< Device, Index, IndexAllocator > >;
 
 template< typename Segments >
 struct isChunkedEllpackSegments : std::false_type
@@ -253,9 +295,91 @@ template< typename Device, typename Index, ElementsOrganization Organization >
 struct isChunkedEllpackSegments< ChunkedEllpackView< Device, Index, Organization > > : std::true_type
 {};
 
-//! \brief Returns true if the given type is Chunked Ellpack segments.
+//! \brief Returns true if the given type is ChunkedEllpack segments.
 template< typename Segments >
 inline constexpr bool isChunkedEllpackSegments_v = isChunkedEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isColumnMajorChunkedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator >
+struct isColumnMajorChunkedEllpackSegments< ColumnMajorChunkedEllpack< Device, Index, IndexAllocator > > : std::true_type
+{};
+
+template< typename Device, typename Index >
+struct isColumnMajorChunkedEllpackSegments< ColumnMajorChunkedEllpackView< Device, Index > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is column-major ChunkedEllpack segments.
+template< typename Segments >
+inline constexpr bool isColumnMajorChunkedEllpackSegments_v = isColumnMajorChunkedEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isRowMajorChunkedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator >
+struct isRowMajorChunkedEllpackSegments< RowMajorChunkedEllpack< Device, Index, IndexAllocator > > : std::true_type
+{};
+
+template< typename Device, typename Index >
+struct isRowMajorChunkedEllpackSegments< RowMajorChunkedEllpackView< Device, Index > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is row-major ChunkedEllpack segments.
+template< typename Segments >
+inline constexpr bool isRowMajorChunkedEllpackSegments_v = isRowMajorChunkedEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isSortedChunkedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
+struct isSortedChunkedEllpackSegments< SortedChunkedEllpack< Device, Index, IndexAllocator, Organization > > : std::true_type
+{};
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+struct isSortedChunkedEllpackSegments< SortedChunkedEllpackView< Device, Index, Organization > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is sorted ChunkedEllpack segments.
+template< typename Segments >
+inline constexpr bool isSortedChunkedEllpackSegments_v = isSortedChunkedEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isSortedRowMajorChunkedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator >
+struct isSortedRowMajorChunkedEllpackSegments< SortedRowMajorChunkedEllpack< Device, Index, IndexAllocator > > : std::true_type
+{};
+
+template< typename Device, typename Index >
+struct isSortedRowMajorChunkedEllpackSegments< SortedRowMajorChunkedEllpackView< Device, Index > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is sorted row-major ChunkedEllpack segments.
+template< typename Segments >
+inline constexpr bool isSortedRowMajorChunkedEllpackSegments_v = isSortedRowMajorChunkedEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isSortedColumnMajorChunkedEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator >
+struct isSortedColumnMajorChunkedEllpackSegments< SortedColumnMajorChunkedEllpack< Device, Index, IndexAllocator > >
+: std::true_type
+{};
+
+template< typename Device, typename Index >
+struct isSortedColumnMajorChunkedEllpackSegments< SortedColumnMajorChunkedEllpackView< Device, Index > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is sorted column-major ChunkedEllpack segments.
+template< typename Segments >
+inline constexpr bool isSortedColumnMajorChunkedEllpackSegments_v =
+   isSortedColumnMajorChunkedEllpackSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 
