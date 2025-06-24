@@ -44,8 +44,9 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType,
-          template< typename Device_, typename Index_ > class SegmentsView >
-struct MatrixInfo< SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView > >
+          template< typename Device_, typename Index_ > class SegmentsView,
+          typename ComputeReal >
+struct MatrixInfo< SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal > >
 {
    [[nodiscard]] static std::string
    getDensity()
@@ -74,11 +75,12 @@ template< typename Real,
           typename Index,
           typename MatrixType,
           template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
+          typename RealCompute,
           typename RealAllocator,
           typename IndexAllocator >
-struct MatrixInfo< SparseMatrix< Real, Device, Index, MatrixType, Segments, RealAllocator, IndexAllocator > >
+struct MatrixInfo< SparseMatrix< Real, Device, Index, MatrixType, Segments, RealCompute, RealAllocator, IndexAllocator > >
 : public MatrixInfo<
-     typename SparseMatrix< Real, Device, Index, MatrixType, Segments, RealAllocator, IndexAllocator >::ViewType >
+     typename SparseMatrix< Real, Device, Index, MatrixType, Segments, RealCompute, RealAllocator, IndexAllocator >::ViewType >
 {};
 
 /// \endcond
