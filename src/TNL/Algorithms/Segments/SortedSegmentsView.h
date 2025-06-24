@@ -5,8 +5,6 @@
 
 #include "SortedSegmentsBase.h"
 
-#include "CSRView.h"
-
 namespace TNL::Algorithms::Segments {
 
 /**
@@ -94,9 +92,6 @@ public:
    void
    load( File& file );
 };
-
-template< typename Device, typename Index >
-using SortedCSRView = SortedSegmentsView< CSRView< Device, Index > >;
 
 }  // namespace TNL::Algorithms::Segments
 
