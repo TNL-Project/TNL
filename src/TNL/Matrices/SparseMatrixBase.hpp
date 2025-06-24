@@ -103,8 +103,11 @@ Index
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getNonzeroElementsCount() const
 {
    if constexpr( ! Base::isSymmetric() )
-      return sum( notEqualTo( this->getColumnIndexes(), paddingIndex< Index > )
-                  && notEqualTo( this->getValues(), RealType{ 0 } ) );
+      if constexpr( Base::isBinary() )
+         return sum( notEqualTo( this->getColumnIndexes(), paddingIndex< Index > ) );
+      else
+         return sum( notEqualTo( this->getColumnIndexes(), paddingIndex< Index > )
+                     && notEqualTo( this->getValues(), RealType{ 0 } ) );
    else {
       const auto rows = this->getRows();
       const auto columns = this->getColumns();
@@ -330,7 +333,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
          TNL_ASSERT_GE( globalIdx, 0, "Global index must be non-negative." );
          TNL_ASSERT_LT( globalIdx, columnIndexesView.getSize(), "Global index must be smaller than the number of elements." );
          const IndexType column = columnIndexesView[ globalIdx ];
-         TNL_ASSERT_TRUE( (column >= 0 || column == paddingIndex< Index >), "Wrong column index." );
+         TNL_ASSERT_TRUE( column >= 0 || column == paddingIndex< Index >, "Wrong column index." );
          TNL_ASSERT_LT( column, inVectorView.getSize(), "Wrong column index." );
          if( column == paddingIndex< Index > )
             return 0;
