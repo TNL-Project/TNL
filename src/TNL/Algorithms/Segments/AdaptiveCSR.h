@@ -5,6 +5,7 @@
 
 #include "CSR.h"
 #include "AdaptiveCSRView.h"
+#include "SortedSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -207,6 +208,18 @@ protected:
    ViewType view;
 };
 
+/**
+ * \brief Alias for sorted segments based on AdaptiveCSR segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+using SortedAdaptiveCSR = SortedSegments< AdaptiveCSR< Device, Index, IndexAllocator > >;
+
 template< typename Segments >
 struct isAdaptiveCSRSegments : std::false_type
 {};
@@ -226,6 +239,22 @@ struct isAdaptiveCSRSegments< AdaptiveCSRView< Device, Index > > : std::true_typ
  */
 template< typename Segments >
 inline constexpr bool isAdaptiveCSRSegments_v = isAdaptiveCSRSegments< Segments >::value;
+
+template< typename Segments >
+struct isSortedAdaptiveCSRSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator >
+struct isSortedAdaptiveCSRSegments< SortedSegments< SortedAdaptiveCSR< Device, Index, IndexAllocator > > > : std::true_type
+{};
+
+template< typename Device, typename Index >
+struct isSortedAdaptiveCSRSegments< SortedAdaptiveCSRView< Device, Index > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is sorted AdaptiveCSR segments.
+template< typename Segments >
+inline constexpr bool isSortedAdaptiveCSRSegments_v = isSortedAdaptiveCSRSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 
