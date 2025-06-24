@@ -8,6 +8,7 @@
 #include <TNL/Containers/Vector.h>
 
 #include "BiEllpackView.h"
+#include "SortedSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -218,13 +219,15 @@ protected:
 };
 
 /**
- * \brief Alias for column-major BiEllpack segments.
+ * \brief Alias for row-major BiEllpack segments.
  *
  * See \ref TNL::Algorithms::Segments::BiEllpack for more details.
  *
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam Alignment The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
  */
 template< typename Device,
           typename Index,
@@ -240,6 +243,8 @@ using RowMajorBiEllpack = BiEllpack< Device, Index, IndexAllocator, RowMajorOrde
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam Alignment The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
  */
 template< typename Device,
           typename Index,
@@ -247,25 +252,142 @@ template< typename Device,
           int WarpSize = Backend::getWarpSize() >
 using ColumnMajorBiEllpack = BiEllpack< Device, Index, IndexAllocator, ColumnMajorOrder, WarpSize >;
 
+/**
+ * \brief Alias for sorted segments based on BiEllpack segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+          int WarpSize = Backend::getWarpSize() >
+using SortedBiEllpack = SortedSegments< BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize > >;
+
+/**
+ * \brief Alias for sorted segments based on row-major BiEllpack segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          int WarpSize = Backend::getWarpSize() >
+using SortedRowMajorBiEllpack = SortedSegments< RowMajorBiEllpack< Device, Index, IndexAllocator, WarpSize > >;
+
+/**
+ * \brief Alias for sorted segments based on column-major BiEllpack segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+          int WarpSize = Backend::getWarpSize() >
+using SortedColumnMajorBiEllpack = SortedSegments< ColumnMajorBiEllpack< Device, Index, IndexAllocator, WarpSize > >;
+
 template< typename Segments >
 struct isBiEllpackSegments : std::false_type
 {};
 
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
-struct isBiEllpackSegments< BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize > > : std::true_type
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize_ >
+struct isBiEllpackSegments< BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize_ > > : std::true_type
 {};
 
-template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
-struct isBiEllpackSegments< BiEllpackView< Device, Index, Organization, WarpSize > > : std::true_type
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize_ >
+struct isBiEllpackSegments< BiEllpackView< Device, Index, Organization, WarpSize_ > > : std::true_type
 {};
 
-/**
- * \brief Returns true if the given type is BiEllpack segments.
- *
- * \tparam Segments The type of the segments.
- */
+//! \brief Returns true if the given type is BiEllpack segments.
 template< typename Segments >
 inline constexpr bool isBiEllpackSegments_v = isBiEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isRowMajorBiEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int WarpSize_ >
+struct isRowMajorBiEllpackSegments< RowMajorBiEllpack< Device, Index, IndexAllocator, WarpSize_ > > : std::true_type
+{};
+
+template< typename Device, typename Index, int WarpSize_ >
+struct isRowMajorBiEllpackSegments< RowMajorBiEllpackView< Device, Index, WarpSize_ > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is row-major BiEllpack segments.
+template< typename Segments >
+inline constexpr bool isRowMajorBiEllpackSegments_v = isRowMajorBiEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isColumnMajorBiEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int WarpSize_ >
+struct isColumnMajorBiEllpackSegments< ColumnMajorBiEllpack< Device, Index, IndexAllocator, WarpSize_ > > : std::true_type
+{};
+
+template< typename Device, typename Index, int WarpSize_ >
+struct isColumnMajorBiEllpackSegments< ColumnMajorBiEllpackView< Device, Index, WarpSize_ > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is column-major BiEllpack segments.
+template< typename Segments >
+inline constexpr bool isColumnMajorBiEllpackSegments_v = isColumnMajorBiEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isSortedBiEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize_ >
+struct isSortedBiEllpackSegments< SortedBiEllpack< Device, Index, IndexAllocator, Organization, WarpSize_ > > : std::true_type
+{};
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize_ >
+struct isSortedBiEllpackSegments< SortedBiEllpackView< Device, Index, Organization, WarpSize_ > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is sorted BiEllpack segments.
+template< typename Segments >
+inline constexpr bool isSortedBiEllpackSegments_v = isSortedBiEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isSortedRowMajorBiEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int WarpSize_ >
+struct isSortedRowMajorBiEllpackSegments< SortedRowMajorBiEllpack< Device, Index, IndexAllocator, WarpSize_ > > : std::true_type
+{};
+
+template< typename Device, typename Index, int WarpSize_ >
+struct isSortedRowMajorBiEllpackSegments< SortedRowMajorBiEllpackView< Device, Index, WarpSize_ > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is sorted row-major BiEllpack segments.
+template< typename Segments >
+inline constexpr bool isSortedRowMajorBiEllpackSegments_v = isSortedRowMajorBiEllpackSegments< Segments >::value;
+
+template< typename Segments >
+struct isSortedColumnMajorBiEllpackSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator, int WarpSize_ >
+struct isSortedColumnMajorBiEllpackSegments< SortedColumnMajorBiEllpack< Device, Index, IndexAllocator, WarpSize_ > >
+: std::true_type
+{};
+
+template< typename Device, typename Index, int WarpSize_ >
+struct isSortedColumnMajorBiEllpackSegments< SortedColumnMajorBiEllpackView< Device, Index, WarpSize_ > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is sorted column-major BiEllpack segments.
+template< typename Segments >
+inline constexpr bool isSortedColumnMajorBiEllpackSegments_v = isSortedColumnMajorBiEllpackSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 

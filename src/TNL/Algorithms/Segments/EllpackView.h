@@ -4,6 +4,7 @@
 #pragma once
 
 #include "EllpackBase.h"
+#include "SortedSegmentsView.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -103,82 +104,65 @@ public:
 };
 
 /**
- * \brief Data structure for row-major Ellpack segments view.
+ * \brief Alias for row-major Ellpack segments view.
  *
  * See \ref TNL::Algorithms::Segments::EllpackView for more details.
  *
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
- * \tparam Alignment The alignment of the number of segments (to optimize data alignment, particularly on GPUs).
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam Alignment The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
  */
 template< typename Device, typename Index, int Alignment = 32 >
-struct RowMajorEllpackView : public EllpackView< Device, Index, RowMajorOrder, Alignment >
-{
-   using Base = EllpackView< Device, Index, RowMajorOrder, Alignment >;
-
-   //! \brief Constructor with no parameters to create empty segments.
-   __cuda_callable__
-   RowMajorEllpackView() = default;
-
-   //! \brief Copy constructor (makes deep copy).
-   __cuda_callable__
-   RowMajorEllpackView( const RowMajorEllpackView& ) = default;
-
-   //! \brief Move constructor.
-   __cuda_callable__
-   RowMajorEllpackView( RowMajorEllpackView&& ) noexcept = default;
-
-   //! \brief Constructor that initializes segments based on their sizes.
-   __cuda_callable__
-   RowMajorEllpackView( Index segmentsCount, Index segmentSize, Index alignedSize )
-   : Base( segmentsCount, segmentSize, alignedSize )
-   {}
-
-   //! \brief Constructor that initializes segments based on their sizes.
-   __cuda_callable__
-   RowMajorEllpackView( Index segmentsCount, Index segmentSize )
-   : Base( segmentsCount, segmentSize )
-   {}
-};
+using RowMajorEllpackView = EllpackView< Device, Index, RowMajorOrder, Alignment >;
 
 /**
- * \brief Data structure for column-major Ellpack segments view.
+ * \brief Alias for column-major Ellpack segments view.
  *
  * See \ref TNL::Algorithms::Segments::EllpackView for more details.
  *
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
- * \tparam Alignment The alignment of the number of segments (to optimize data alignment, particularly on GPUs).
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam Alignment The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
  */
 template< typename Device, typename Index, int Alignment = 32 >
-struct ColumnMajorEllpackView : public EllpackView< Device, Index, ColumnMajorOrder, Alignment >
-{
-   using Base = EllpackView< Device, Index, ColumnMajorOrder, Alignment >;
+using ColumnMajorEllpackView = EllpackView< Device, Index, ColumnMajorOrder, Alignment >;
 
-   //! \brief Constructor with no parameters to create empty segments.
-   __cuda_callable__
-   ColumnMajorEllpackView() = default;
+/**
+ * \brief Alias for sorted segments based on EllpackView segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+          int Alignment = 32 >
+using SortedEllpackView = SortedSegmentsView< EllpackView< Device, Index, Organization, Alignment > >;
 
-   //! \brief Copy constructor (makes deep copy).
-   __cuda_callable__
-   ColumnMajorEllpackView( const ColumnMajorEllpackView& ) = default;
+/**
+ * \brief Alias for sorted segments based on row-major EllpackView segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device, typename Index, int Alignment = 32 >
+using SortedRowMajorEllpackView = SortedSegmentsView< RowMajorEllpackView< Device, Index, Alignment > >;
 
-   //! \brief Move constructor.
-   __cuda_callable__
-   ColumnMajorEllpackView( ColumnMajorEllpackView&& ) noexcept = default;
-
-   //! \brief Constructor that initializes segments based on their sizes.
-   __cuda_callable__
-   ColumnMajorEllpackView( Index segmentsCount, Index segmentSize, Index alignedSize )
-   : Base( segmentsCount, segmentSize, alignedSize )
-   {}
-
-   //! \brief Constructor that initializes segments based on their sizes.
-   __cuda_callable__
-   ColumnMajorEllpackView( Index segmentsCount, Index segmentSize )
-   : Base( segmentsCount, segmentSize )
-   {}
-};
+/**
+ * \brief Alias for sorted segments based on column-major Ellpack segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device, typename Index, int Alignment = 32 >
+using SortedColumnMajorEllpackView = SortedSegmentsView< ColumnMajorEllpackView< Device, Index, Alignment > >;
 
 }  // namespace TNL::Algorithms::Segments
 

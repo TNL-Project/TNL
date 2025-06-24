@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CSRBase.h"
+#include "SortedSegmentsView.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -92,6 +93,15 @@ public:
    void
    load( File& file );
 };
+
+/**
+ * \brief Alias for sorted segments based on CSR segments.
+ *
+ * \tparam Device is type of device where the segments will be operating.
+ * \tparam Index is type for indexing of the elements managed by the segments.
+ */
+template< typename Device, typename Index >
+using SortedCSRView = SortedSegmentsView< CSRView< Device, Index > >;
 
 }  // namespace TNL::Algorithms::Segments
 
