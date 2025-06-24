@@ -11,6 +11,7 @@
 #include <TNL/Allocators/Default.h>
 
 #include "CSRView.h"
+#include "SortedSegments.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -187,6 +188,18 @@ protected:
    OffsetsContainer offsets;
 };
 
+/**
+ * \brief Alias for sorted segments based on CSR segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+using SortedCSR = SortedSegments< CSR< Device, Index, IndexAllocator > >;
+
 template< typename Segments >
 struct isCSRSegments : std::false_type
 {};
@@ -199,13 +212,25 @@ template< typename Device, typename Index >
 struct isCSRSegments< CSRView< Device, Index > > : std::true_type
 {};
 
-/**
- * \brief Returns true if the given type is CSR segments.
- *
- * \tparam Segments The type of the segments.
- */
+//! \brief Returns true if the given type is CSR segments.
 template< typename Segments >
 inline constexpr bool isCSRSegments_v = isCSRSegments< Segments >::value;
+
+template< typename Segments >
+struct isSortedCSRSegments : std::false_type
+{};
+
+template< typename Device, typename Index, typename IndexAllocator >
+struct isSortedCSRSegments< SortedSegments< CSR< Device, Index, IndexAllocator > > > : std::true_type
+{};
+
+template< typename Device, typename Index >
+struct isSortedCSRSegments< SortedCSRView< Device, Index > > : std::true_type
+{};
+
+//! \brief Returns true if the given type is sorted CSR segments.
+template< typename Segments >
+inline constexpr bool isSortedCSRSegments_v = isSortedCSRSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 

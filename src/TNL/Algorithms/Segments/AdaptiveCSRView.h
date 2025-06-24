@@ -144,6 +144,15 @@ protected:
    BlocksView blocksArray[ MaxValueSizeLog() ];
 };
 
+/**
+ * \brief Alias for sorted segments based on CSR segments.
+ *
+ * \tparam Device is type of device where the segments will be operating.
+ * \tparam Index is type for indexing of the elements managed by the segments.
+ */
+template< typename Device, typename Index >
+using SortedAdaptiveCSRView = SortedSegmentsView< AdaptiveCSRView< Device, Index > >;
+
 }  // namespace TNL::Algorithms::Segments
 
 #include "AdaptiveCSRView.hpp"

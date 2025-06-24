@@ -4,6 +4,7 @@
 #pragma once
 
 #include "ChunkedEllpackBase.h"
+#include "SortedSegmentsView.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -106,50 +107,64 @@ public:
 };
 
 /**
- * \brief Data structure for row-major Chunked Ellpack segments view.
+ * \brief Alias for row-major ChunkedEllpack segments view.
  *
  * See \ref TNL::Algorithms::Segments::ChunkedEllpackView for more details.
  *
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam Alignment The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
  */
 template< typename Device, typename Index >
-struct RowMajorChunkedEllpackView : public ChunkedEllpackView< Device, Index, RowMajorOrder >
-{
-   using BaseType = ChunkedEllpackView< Device, Index, RowMajorOrder >;
-
-   //! \brief Constructor with no parameters to create empty segments.
-   RowMajorChunkedEllpackView() = default;
-
-   //! \brief Copy constructor (makes deep copy).
-   RowMajorChunkedEllpackView( const RowMajorChunkedEllpackView& );
-
-   //! \brief Move constructor.
-   RowMajorChunkedEllpackView( RowMajorChunkedEllpackView&& ) noexcept = default;
-};
+using RowMajorChunkedEllpackView = ChunkedEllpackView< Device, Index, RowMajorOrder >;
 
 /**
- * \brief Data structure for column-major Chunked Ellpack segments view.
+ * \brief Alias for column-major ChunkedEllpack segments view.
  *
  * See \ref TNL::Algorithms::Segments::ChunkedEllpackView for more details.
  *
  * \tparam Device The type of device on which the segments will operate.
  * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ * \tparam Alignment The alignment of the number of segments (to optimize data
+ * alignment, particularly on GPUs).
  */
 template< typename Device, typename Index >
-struct ColumnMajorChunkedEllpackView : public ChunkedEllpackView< Device, Index, ColumnMajorOrder >
-{
-   using BaseType = ChunkedEllpackView< Device, Index, ColumnMajorOrder >;
+using ColumnMajorChunkedEllpackView = ChunkedEllpackView< Device, Index, ColumnMajorOrder >;
 
-   //! \brief Constructor with no parameters to create empty segments.
-   ColumnMajorChunkedEllpackView() = default;
+/**
+ * \brief Alias for sorted segments based on ChunkedEllpackView segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device,
+          typename Index,
+          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization() >
+using SortedChunkedEllpackView = SortedSegmentsView< ChunkedEllpackView< Device, Index, Organization > >;
 
-   //! \brief Copy constructor (makes deep copy).
-   ColumnMajorChunkedEllpackView( const ColumnMajorChunkedEllpackView& );
+/**
+ * \brief Alias for sorted segments based on row-major ChunkedEllpackView segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device, typename Index >
+using SortedRowMajorChunkedEllpackView = SortedSegmentsView< RowMajorChunkedEllpackView< Device, Index > >;
 
-   //! \brief Move constructor.
-   ColumnMajorChunkedEllpackView( ColumnMajorChunkedEllpackView&& ) noexcept = default;
-};
+/**
+ * \brief Alias for sorted segments based on column-major ChunkedEllpack segments.
+ *
+ * \tparam Device The type of device on which the segments will operate.
+ * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam IndexAllocator The allocator used for managing index containers.
+ */
+template< typename Device, typename Index >
+using SortedColumnMajorChunkedEllpackView = SortedSegmentsView< ColumnMajorChunkedEllpackView< Device, Index > >;
 
 }  // namespace TNL::Algorithms::Segments
 
