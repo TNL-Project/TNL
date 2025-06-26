@@ -71,7 +71,11 @@ public:
          gko::dim< 2 >{ static_cast< std::size_t >( b.getSize() ), 1 },
          gko::make_array_view( gk_exec, b.getSize(), const_cast< RealType* >( b.getData() ) ),
          1 );
-      auto gko_x = TNL::Containers::GinkgoVector< RealType, DeviceType >::create( gk_exec, x.getView() );
+      auto gko_x = gko::matrix::Dense< RealType >::create(
+         gk_exec,
+         gko::dim< 2 >{ static_cast< std::size_t >( x.getSize() ), 1 },
+         gko::make_array_view( gk_exec, x.getSize(), const_cast< RealType* >( x.getData() ) ),
+         1 );
 
       gk_solver->apply( gko_b, gko_x );
       return true;
