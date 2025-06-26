@@ -45,6 +45,8 @@ void
 DirectSolver< Real, Index, SolverMonitor >::setResidue( const Real& residue )
 {
    this->currentResidue = residue;
+   if( this->solverMonitor )
+      this->solverMonitor->setResidue( this->getResidue() );
 }
 
 template< typename Real, typename Index, typename SolverMonitor >
