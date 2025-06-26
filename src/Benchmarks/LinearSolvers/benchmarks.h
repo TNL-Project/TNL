@@ -95,7 +95,6 @@ benchmarkSolver( TNL::Benchmarks::Benchmark<>& benchmark,
    solver.setup( parameters );
    solver.setMatrix( matrix );
 
-   // FIXME: getMonitor returns solver monitor specialized for double and int
    solver.setSolverMonitor( benchmark.getMonitor() );
 
    auto pre = std::make_shared< Preconditioner< Matrix > >();
@@ -165,8 +164,7 @@ benchmarkDirectSolver( const TNL::String& solverName,
    benchmark.setOperation( solverName + " setup" );
    benchmark.time< typename Matrix::DeviceType >( set_matrix, performer, set_matrix, benchmarkResult );
 
-   // FIXME: getMonitor returns solver monitor specialized for double and int
-   //solver.setSolverMonitor( benchmark.getMonitor() ); // benchmark returns only IterativeSolverMonitor
+   solver.setSolverMonitor( benchmark.getMonitor() );
 
    // reset function
    auto reset = [ & ]()

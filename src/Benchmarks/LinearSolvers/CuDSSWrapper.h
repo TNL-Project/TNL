@@ -13,7 +13,7 @@
 
 namespace TNL::Solvers::Linear {
 
-template< typename Matrix, typename SolverMonitor = DirectSolverMonitor< double, int > >
+template< typename Matrix, typename SolverMonitor = IterativeSolverMonitor< double > >
 class CuDSSWrapper : public DirectSolver< typename Matrix::RealType, typename Matrix::IndexType, SolverMonitor >
 {
    static_assert( std::is_same_v< typename Matrix::DeviceType, Devices::Cuda >, "CuDSSWrapper is available only on CUDA" );
