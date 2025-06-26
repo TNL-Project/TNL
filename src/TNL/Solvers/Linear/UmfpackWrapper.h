@@ -14,7 +14,7 @@
 
 namespace TNL::Solvers::Linear {
 
-template< typename Matrix, typename SolverMonitor = DirectSolverMonitor< double, int > >
+template< typename Matrix, typename SolverMonitor = IterativeSolverMonitor< double > >
 class UmfpackWrapper : public DirectSolver< typename Matrix::RealType, typename Matrix::IndexType, SolverMonitor >
 {
    static_assert( Matrices::is_csr_matrix< Matrix >::value, "Umfpack works only with CSR format." );

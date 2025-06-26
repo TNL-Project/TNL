@@ -6,6 +6,7 @@
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
+#include <TNL/Solvers/IterativeSolverMonitor.h>
 
 void
 directLinearSolverExample()
@@ -13,18 +14,24 @@ directLinearSolverExample()
    /***
     * Set the following matrix (dots represent zero matrix elements):
     *
-    *   /  2.5 -1    .    .    .   \
-    *   | -1    2.5 -1    .    .   |
-    *   |  .   -1    2.5 -1.   .   |
-    *   |  .    .   -1    2.5 -1   |
-    *   \  .    .    .   -1    2.5 /
+    *   /  2.5 -1    .    .    ...  .   \
+    *   | -1    2.5 -1    .    ...  .   |
+    *   |  .   -1    2.5 -1.   ...  .   |
+    *
+    *           ... ...  ...   ...
+    *
+    *   |  .    ... .   -1    2.5 -1   |
+    *   \  .    ... .    .   -1    2.5 /
     */
    using MatrixType = TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >;
    using Vector = TNL::Containers::Vector< double, TNL::Devices::Host, int >;
    const int size( 5 );
    auto matrix_ptr = std::make_shared< MatrixType >();
    matrix_ptr->setDimensions( size, size );
-   matrix_ptr->setRowCapacities( Vector( { 2, 3, 3, 3, 2 } ) );
+   Vector rowCapacities( size, 3 );
+   rowCapacities.setElement( 0, 2 );
+   rowCapacities.setElement( size - 1, 2 );
+   matrix_ptr->setRowCapacities( rowCapacities );
 
    auto f = [ = ] __cuda_callable__( typename MatrixType::RowView & row ) mutable
    {
@@ -48,7 +55,7 @@ directLinearSolverExample()
     * Set the matrix elements.
     */
    matrix_ptr->forAllRows( f );
-   std::cout << *matrix_ptr << std::endl;
+   //std::cout << *matrix_ptr << std::endl;
 
    /***
     * Set the right-hand side vector.
@@ -57,19 +64,19 @@ directLinearSolverExample()
    Vector b( size );
    matrix_ptr->vectorProduct( x, b );
    x = 0.0;
-   std::cout << "Vector b = " << b << std::endl;
+   //std::cout << "Vector b = " << b << std::endl;
 
    /***
     * Setup solver of the linear system.
     */
-   using LinearSolver = TNL::Solvers::Linear::UmfpackWrapper< MatrixType >;
+   using LinearSolver = TNL::Solvers::Linear::UmfpackWrapper< MatrixType, TNL::Solvers::IterativeSolverMonitor< double > >;
    LinearSolver solver;
    solver.setMatrix( matrix_ptr );
 
    /***
     * Setup monitor of the iterative solver.
     */
-   using DirectSolverMonitorType = TNL::Solvers::DirectSolverMonitor< double, int >;
+   using DirectSolverMonitorType = TNL::Solvers::IterativeSolverMonitor< double >;
    DirectSolverMonitorType monitor;
    TNL::Solvers::SolverMonitorThread mmonitorThread( monitor );
    monitor.setRefreshRate( 10 );  // refresh rate in milliseconds
@@ -83,7 +90,7 @@ directLinearSolverExample()
    monitor.stopMainLoop();
    if( solver.succeeded() ) {
       std::cout << "Solver succeeded." << std::endl;
-      std::cout << "Vector x = " << x << std::endl;
+      //std::cout << "Vector x = " << x << std::endl;
    }
    else
       std::cout << "Solver failed." << std::endl;

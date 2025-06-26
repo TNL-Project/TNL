@@ -8,7 +8,7 @@
 
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
-#include <TNL/Solvers/DirectSolverMonitor.h>
+#include <TNL/Solvers/IterativeSolverMonitor.h>
 
 namespace TNL::Solvers {
 
@@ -17,9 +17,9 @@ namespace TNL::Solvers {
  *
  * \tparam Real is a floating point type used for computations.
  * \tparam Index is an indexing type.
- * \tparam DirectSolverMonitor< Real, Index > is type of an object used for monitoring of the convergence.
+ * \tparam IterativeSolverMonitor< Real > is type of an object used for monitoring of the convergence.
  */
-template< typename Real, typename Index, typename SolverMonitor = DirectSolverMonitor< double, int > >
+template< typename Real, typename Index, typename SolverMonitor = IterativeSolverMonitor< double > >
 class DirectSolver
 {
 public:
