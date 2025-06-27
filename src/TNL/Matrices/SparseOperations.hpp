@@ -708,11 +708,14 @@ void
 reorderSparseMatrix( const Matrix1& matrix1, Matrix2& matrix2, const PermutationArray& perm, const PermutationArray& iperm )
 {
    // TODO: implement on GPU
-   static_assert( std::is_same_v< typename Matrix1::DeviceType, Devices::Host >,
+   static_assert( std::is_same_v< typename Matrix1::DeviceType, Devices::Host >
+                     || std::is_same_v< typename Matrix1::DeviceType, Devices::Sequential >,
                   "matrix reordering is implemented only for host" );
-   static_assert( std::is_same_v< typename Matrix2::DeviceType, Devices::Host >,
+   static_assert( std::is_same_v< typename Matrix2::DeviceType, Devices::Host >
+                     || std::is_same_v< typename Matrix2::DeviceType, Devices::Sequential >,
                   "matrix reordering is implemented only for host" );
-   static_assert( std::is_same_v< typename PermutationArray::DeviceType, Devices::Host >,
+   static_assert( std::is_same_v< typename PermutationArray::DeviceType, Devices::Host >
+                     || std::is_same_v< typename PermutationArray::DeviceType, Devices::Sequential >,
                   "matrix reordering is implemented only for host" );
 
    using IndexType = typename Matrix1::IndexType;

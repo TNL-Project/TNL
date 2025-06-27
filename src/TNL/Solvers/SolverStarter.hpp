@@ -234,7 +234,7 @@ SolverStarter< ConfigTag >::runPDESolver( Problem& problem, const Config::Parame
    this->totalTimer.reset();
    this->totalTimer.start();
 
-   using SolverMonitorType = IterativeSolverMonitor< typename Problem::RealType, typename Problem::IndexType >;
+   using SolverMonitorType = IterativeSolverMonitor< typename Problem::RealType >;
    SolverMonitorType solverMonitor, *solverMonitorPointer( &solverMonitor );
 
    /****

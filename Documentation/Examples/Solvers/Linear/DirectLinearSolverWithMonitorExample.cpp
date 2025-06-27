@@ -2,31 +2,36 @@
 #include <memory>
 #include <chrono>
 #include <thread>
-#include <TNL/Timer.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Sequential.h>
-#include <TNL/Devices/Cuda.h>
-#include <TNL/Solvers/Linear/Jacobi.h>
+#include <TNL/Solvers/Linear/UmfpackWrapper.h>
+#include <TNL/Solvers/IterativeSolverMonitor.h>
 
 template< typename Device >
 void
-iterativeLinearSolverExample()
+directLinearSolverExample()
 {
    /***
     * Set the following matrix (dots represent zero matrix elements):
     *
-    *   /  2.5 -1    .    .    .   \
-    *   | -1    2.5 -1    .    .   |
-    *   |  .   -1    2.5 -1.   .   |
-    *   |  .    .   -1    2.5 -1   |
-    *   \  .    .    .   -1    2.5 /
+    *   /  2.5 -1    .    .    ...  .   \
+    *   | -1    2.5 -1    .    ...  .   |
+    *   |  .   -1    2.5 -1.   ...  .   |
+    *
+    *           ... ...  ...   ...
+    *
+    *   |  .    ... .   -1    2.5 -1   |
+    *   \  .    ... .    .   -1    2.5 /
     */
    using MatrixType = TNL::Matrices::SparseMatrix< double, Device >;
    using Vector = TNL::Containers::Vector< double, Device >;
    const int size( 5 );
    auto matrix_ptr = std::make_shared< MatrixType >();
    matrix_ptr->setDimensions( size, size );
-   matrix_ptr->setRowCapacities( Vector( { 2, 3, 3, 3, 2 } ) );
+   Vector rowCapacities( size, 3 );
+   rowCapacities.setElement( 0, 2 );
+   rowCapacities.setElement( size - 1, 2 );
+   matrix_ptr->setRowCapacities( rowCapacities );
 
    auto f = [ = ] __cuda_callable__( typename MatrixType::RowView & row ) mutable
    {
@@ -64,38 +69,33 @@ iterativeLinearSolverExample()
    /***
     * Setup solver of the linear system.
     */
-   using LinearSolver = TNL::Solvers::Linear::Jacobi< MatrixType >;
+   using LinearSolver = TNL::Solvers::Linear::UmfpackWrapper< MatrixType >;
    LinearSolver solver;
    solver.setMatrix( matrix_ptr );
-   solver.setOmega( 0.0005 );
 
    /***
     * Setup monitor of the iterative solver.
     */
    using IterativeSolverMonitorType = TNL::Solvers::IterativeSolverMonitor< double >;
    IterativeSolverMonitorType monitor;
-   TNL::Solvers::SolverMonitorThread mmonitorThread( monitor );
+   TNL::Solvers::SolverMonitorThread monitorThread( monitor );
    monitor.setRefreshRate( 10 );  // refresh rate in milliseconds
    monitor.setVerbose( 1 );
-   monitor.setStage( "Jacobi stage:" );
-   TNL::Timer timer;
-   monitor.setTimer( timer );
-   timer.start();
+   monitor.setStage( "Umfpack stage:" );
    solver.setSolverMonitor( monitor );
-   solver.setConvergenceResidue( 1.0e-6 );
    solver.solve( b, x );
    monitor.stopMainLoop();
-   std::cout << "Vector x = " << x << std::endl;
+   if( solver.succeeded() ) {
+      std::cout << "Solver succeeded." << std::endl;
+      std::cout << "Vector x = " << x << std::endl;
+   }
+   else
+      std::cout << "Solver failed." << std::endl;
 }
 
 int
 main( int argc, char* argv[] )
 {
    std::cout << "Solving linear system on host: " << std::endl;
-   iterativeLinearSolverExample< TNL::Devices::Sequential >();
-
-#ifdef __CUDACC__
-   std::cout << "Solving linear system on CUDA device: " << std::endl;
-   iterativeLinearSolverExample< TNL::Devices::Cuda >();
-#endif
+   directLinearSolverExample< TNL::Devices::Sequential >();
 }

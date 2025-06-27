@@ -17,9 +17,9 @@
 
 namespace TNL::Solvers {
 
-template< typename Real, typename Index >
+template< typename Real >
 void
-IterativeSolverMonitor< Real, Index >::setStage( const std::string& stage )
+IterativeSolverMonitor< Real >::setStage( const std::string& stage )
 {
    // save the items after a complete stage
    if( iterations > 0 ) {
@@ -39,57 +39,57 @@ IterativeSolverMonitor< Real, Index >::setStage( const std::string& stage )
    attributes_changed = true;
 }
 
-template< typename Real, typename Index >
+template< typename Real >
 void
-IterativeSolverMonitor< Real, Index >::setTime( const RealType& time )
+IterativeSolverMonitor< Real >::setTime( const RealType& time )
 {
    this->time = time;
    attributes_changed = true;
 }
 
-template< typename Real, typename Index >
+template< typename Real >
 void
-IterativeSolverMonitor< Real, Index >::setTimeStep( const RealType& timeStep )
+IterativeSolverMonitor< Real >::setTimeStep( const RealType& timeStep )
 {
    this->timeStep = timeStep;
    attributes_changed = true;
 }
 
-template< typename Real, typename Index >
+template< typename Real >
 void
-IterativeSolverMonitor< Real, Index >::setIterations( const Index& iterations )
+IterativeSolverMonitor< Real >::setIterations( const IndexType& iterations )
 {
    this->iterations = iterations;
    attributes_changed = true;
 }
 
-template< typename Real, typename Index >
+template< typename Real >
 void
-IterativeSolverMonitor< Real, Index >::setResidue( const Real& residue )
+IterativeSolverMonitor< Real >::setResidue( const Real& residue )
 {
    this->residue = residue;
    attributes_changed = true;
 }
 
-template< typename Real, typename Index >
+template< typename Real >
 void
-IterativeSolverMonitor< Real, Index >::setVerbose( const Index& verbose )
+IterativeSolverMonitor< Real >::setVerbose( const IndexType& verbose )
 {
    this->verbose = verbose;
    attributes_changed = true;
 }
 
-template< typename Real, typename Index >
+template< typename Real >
 void
-IterativeSolverMonitor< Real, Index >::setNodesPerIteration( const IndexType& nodes )
+IterativeSolverMonitor< Real >::setNodesPerIteration( const IndexType& nodes )
 {
    this->nodesPerIteration = nodes;
    attributes_changed = true;
 }
 
-template< typename Real, typename Index >
+template< typename Real >
 void
-IterativeSolverMonitor< Real, Index >::refresh()
+IterativeSolverMonitor< Real >::refresh()
 {
    // NOTE: We can't check if stdout is attached to a terminal or not, because
    // isatty(STDOUT_FILENO) *always* reports 1 under mpirun, regardless if it
@@ -192,9 +192,9 @@ IterativeSolverMonitor< Real, Index >::refresh()
    }
 }
 
-template< typename Real, typename Index >
+template< typename Real >
 int
-IterativeSolverMonitor< Real, Index >::getLineWidth()
+IterativeSolverMonitor< Real >::getLineWidth()
 {
 #ifndef SPY_OS_IS_WINDOWS
    struct winsize w;

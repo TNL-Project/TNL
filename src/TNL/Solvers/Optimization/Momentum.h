@@ -7,8 +7,7 @@
 
 namespace TNL::Solvers::Optimization {
 
-template< typename Vector,
-          typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
+template< typename Vector, typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType > >
 class Momentum : public IterativeSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
 public:

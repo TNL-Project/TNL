@@ -56,7 +56,7 @@ namespace TNL::Solvers::ODE {
  */
 template< typename Method,
           typename Vector,
-          typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType >,
+          typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType >,
           bool IsStatic = IsStaticArrayType< Vector >() >
 struct ODESolver;
 

@@ -4,76 +4,92 @@
 #pragma once
 
 #ifdef HAVE_UMFPACK
-
    #include <umfpack.h>
+#endif
 
-   #include "LinearSolver.h"
-   #include <TNL/Matrices/CSR.h>
+#include <TNL/Solvers/DirectSolver.h>
+#include <TNL/Matrices/SparseMatrix.h>
+#include <TNL/Matrices/MatrixInfo.h>
+#include <TNL/Algorithms/Segments/CSR.h>
 
 namespace TNL::Solvers::Linear {
 
-template< typename Matrix >
-struct is_csr_matrix
+template< typename Matrix, typename SolverMonitor = IterativeSolverMonitor< double > >
+class UmfpackWrapper : public DirectSolver< typename Matrix::RealType, typename Matrix::IndexType, SolverMonitor >
 {
-   static constexpr bool value = false;
-};
+   static_assert( Matrices::is_csr_matrix< Matrix >::value, "Umfpack works only with CSR format." );
+   static_assert( std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Host >
+                     || std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Sequential >,
+                  "Umfpack is only available on the host." );
+   static_assert( std::is_same_v< typename Matrix::RealType, double >, "Umfpack is only available for double precision." );
+   static_assert( std::is_same_v< typename Matrix::IndexType, int >, "Umfpack is only available for int indexing." );
 
-template< typename Real, typename Device, typename Index >
-struct is_csr_matrix< Matrices::CSR< Real, Device, Index > >
-{
-   static constexpr bool value = true;
-};
-
-template< typename Matrix >
-class UmfpackWrapper : public LinearSolver< Matrix >
-{
-   using Base = LinearSolver< Matrix >;
+   using Base = DirectSolver< typename Matrix::RealType, typename Matrix::IndexType, SolverMonitor >;
 
 public:
-   using RealType = typename Base::RealType;
-   using DeviceType = typename Base::DeviceType;
-   using IndexType = typename Base::IndexType;
-   using VectorViewType = typename Base::VectorViewType;
-   using ConstVectorViewType = typename Base::ConstVectorViewType;
+   /**
+    * \brief Type for floating point numbers.
+    */
+   using RealType = typename Matrix::RealType;
 
-   UmfpackWrapper()
-   {
-      if( ! is_csr_matrix< Matrix >::value )
-         std::cerr << "The UmfpackWrapper solver is available only for CSR matrices." << std::endl;
-      if( std::is_same_v< typename Matrix::DeviceType, Devices::Cuda > )
-         std::cerr << "The UmfpackWrapper solver is not available on CUDA." << std::endl;
-      if( ! std::is_same_v< RealType, double > )
-         std::cerr << "The UmfpackWrapper solver is available only for double precision." << std::endl;
-      if( ! std::is_same_v< IndexType, int > )
-         std::cerr << "The UmfpackWrapper solver is available only for 'int' index type." << std::endl;
-   }
+   /**
+    * \brief Device where the solver will run on and auxiliary data will be allocated on.
+    */
+   using DeviceType = typename Matrix::DeviceType;
+
+   /**
+    * \brief Indexing type.
+    */
+   using IndexType = typename Matrix::IndexType;
+
+   /**
+    * \brief Type of the matrix representing the linear system.
+    */
+   using MatrixType = Matrix;
+
+   /**
+    * \brief Type of shared pointer to the matrix.
+    */
+   using MatrixPointer = std::shared_ptr< std::add_const_t< MatrixType > >;
+
+   /**
+    * \brief Type for vector view.
+    */
+   using VectorViewType = Containers::VectorView< RealType, DeviceType, IndexType >;
+
+   /**
+    * \brief Type for constant vector view.
+    */
+   using ConstVectorViewType = typename VectorViewType::ConstViewType;
+
+   UmfpackWrapper() = default;
+
+   void
+   setMatrix( const MatrixPointer& matrix );
 
    bool
-   solve( ConstVectorViewType b, VectorViewType x ) override
-   {
-      return false;
-   }
-};
-
-template<>
-class UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >
-: public LinearSolver< Matrices::CSR< double, Devices::Host, int > >
-{
-   using Base = LinearSolver< Matrices::CSR< double, Devices::Host, int > >;
-
-public:
-   using RealType = typename Base::RealType;
-   using DeviceType = typename Base::DeviceType;
-   using IndexType = typename Base::IndexType;
-   using VectorViewType = typename Base::VectorViewType;
-   using ConstVectorViewType = typename Base::ConstVectorViewType;
+   solve( ConstVectorViewType b, VectorViewType x );
 
    bool
-   solve( ConstVectorViewType b, VectorViewType x ) override;
+   succeeded() const;
+
+   ~UmfpackWrapper();
+
+protected:
+#ifdef HAVE_UMFPACK
+   // UMFPACK objects
+   void* Symbolic = nullptr;
+   void* Numeric = nullptr;
+   double Control[ UMFPACK_CONTROL ];
+   double Info[ UMFPACK_INFO ];
+
+#endif
+   MatrixPointer matrix;
+
+   bool factorized = false;
+   bool solver_success = false;
 };
 
 }  // namespace TNL::Solvers::Linear
 
-   #include "UmfpackWrapper.hpp"
-
-#endif
+#include "UmfpackWrapper.hpp"

@@ -3,73 +3,108 @@
 
 #pragma once
 
-#ifdef HAVE_UMFPACK
+#include "UmfpackWrapper.h"
 
-   #include "UmfpackWrapper.h"
-
-   #include <TNL/Solvers/Linear/Utils/LinearResidueGetter.h>
+#include <TNL/Solvers/Linear/Utils/LinearResidueGetter.h>
 
 namespace TNL::Solvers::Linear {
 
-bool
-UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >::solve( ConstVectorViewType b, VectorViewType x )
+template< typename Matrix, typename SolverMonitor >
+void
+UmfpackWrapper< Matrix, SolverMonitor >::setMatrix( const MatrixPointer& matrix )
 {
-   if( this->matrix->getRows() != this->matrix->getColumns() )
+#ifdef HAVE_UMFPACK
+   if( matrix->getRows() != matrix->getColumns() )
       throw std::invalid_argument( "UmfpackWrapper::solve: matrix must be square" );
-   if( this->matrix->getColumns() != x.getSize() )
-      throw std::invalid_argument( "UmfpackWrapper::solve: wrong size of the solution vector" );
-   if( this->matrix->getColumns() != b.getSize() )
-      throw std::invalid_argument( "UmfpackWrapper::solve: wrong size of the right hand side" );
+
+   this->matrix = matrix;
 
    const IndexType size = this->matrix->getRows();
 
-   this->resetIterations();
-   this->setResidue( this->getConvergenceResidue() + 1.0 );
-
-   RealType bNorm = b.lpNorm( (RealType) 2.0 );
-
-   // UMFPACK objects
-   void* Symbolic = nullptr;
-   void* Numeric = nullptr;
-
    int status = UMFPACK_OK;
-   double Control[ UMFPACK_CONTROL ];
-   double Info[ UMFPACK_INFO ];
 
-   // umfpack expects Compressed Sparse Column format, we have Compressed Sparse Row
-   // so we need to solve  A^T * x = rhs
-   int system_type = UMFPACK_Aat;
+   // The solver does not work without calling umfpack_di_defaults
+   umfpack_di_defaults( Control );
 
+   bool symbolic_fail = false;
+   bool numeric_fail = false;
+   this->factorized = false;
    // symbolic reordering of the sparse matrix
    status = umfpack_di_symbolic( size,
                                  size,
-                                 this->matrix->getRowPointers().getData(),
+                                 this->matrix->getSegments().getOffsets().getData(),
                                  this->matrix->getColumnIndexes().getData(),
                                  this->matrix->getValues().getData(),
                                  &Symbolic,
                                  Control,
                                  Info );
    if( status != UMFPACK_OK ) {
-      std::cerr << "error: symbolic reordering failed" << std::endl;
-      goto finished;
+      symbolic_fail = true;
    }
 
    // numeric factorization
-   status = umfpack_di_numeric( this->matrix->getRowPointers().getData(),
-                                this->matrix->getColumnIndexes().getData(),
-                                this->matrix->getValues().getData(),
-                                Symbolic,
-                                &Numeric,
-                                Control,
-                                Info );
-   if( status != UMFPACK_OK ) {
-      std::cerr << "error: numeric factorization failed" << std::endl;
-      goto finished;
+   if( ! symbolic_fail ) {
+      status = umfpack_di_numeric( this->matrix->getSegments().getOffsets().getData(),
+                                   this->matrix->getColumnIndexes().getData(),
+                                   this->matrix->getValues().getData(),
+                                   Symbolic,
+                                   &Numeric,
+                                   Control,
+                                   Info );
+      if( status != UMFPACK_OK ) {
+         numeric_fail = true;
+      }
    }
+
+   if( status != UMFPACK_OK ) {
+      // increase print level for reports
+      Control[ UMFPACK_PRL ] = 2;
+      umfpack_di_report_status( Control, status );
+      //        umfpack_di_report_control( Control );
+      //        umfpack_di_report_info( Control, Info );
+      if( symbolic_fail )
+         throw std::runtime_error( "Umfpack symbolic factorization failed." );
+      if( numeric_fail )
+         throw std::runtime_error( "Umfpack numeric factorization failed." );
+      if( this->Symbolic )
+         umfpack_di_free_symbolic( &Symbolic );
+      if( this->Numeric )
+         umfpack_di_free_numeric( &Numeric );
+   }
+   this->factorized = true;
+#else
+   std::cerr << "Umfpack is not available." << std::endl;
+#endif
+}
+
+template< typename Matrix, typename SolverMonitor >
+bool
+UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorViewType x )
+{
+#ifdef HAVE_UMFPACK
+   if( this->matrix->getColumns() != x.getSize() )
+      throw std::invalid_argument( "UmfpackWrapper::solve: wrong size of the solution vector" );
+   if( this->matrix->getColumns() != b.getSize() )
+      throw std::invalid_argument( "UmfpackWrapper::solve: wrong size of the right hand side" );
+
+   if( ! this->factorized ) {
+      std::cerr << "The solver is not ready for solving." << std::endl;
+      return false;
+   }
+
+   int status = UMFPACK_OK;
+
+   this->setResidue( std::numeric_limits< RealType >::max() );
+
+   RealType bNorm = lpNorm( b, (RealType) 2.0 );
+
+   // umfpack expects Compressed Sparse Column format, we have Compressed Sparse Row
+   // so we need to solve  A^T * x = rhs
+   int system_type = UMFPACK_Aat;
 
    // solve with specified right-hand-side
    status = umfpack_di_solve( system_type,
-                              this->matrix->getRowPointers().getData(),
+                              this->matrix->getSegments().getOffsets().getData(),
                               this->matrix->getColumnIndexes().getData(),
                               this->matrix->getValues().getData(),
                               x.getData(),
@@ -78,29 +113,35 @@ UmfpackWrapper< Matrices::CSR< double, Devices::Host, int > >::solve( ConstVecto
                               Control,
                               Info );
    if( status != UMFPACK_OK ) {
-      std::cerr << "error: umfpack_di_solve failed" << std::endl;
-      goto finished;
+      std::cerr << "Umfpack solver failed." << std::endl;
+      return false;
    }
-
-finished:
-   if( status != UMFPACK_OK ) {
-      // increase print level for reports
-      Control[ UMFPACK_PRL ] = 2;
-      umfpack_di_report_status( Control, status );
-      //        umfpack_di_report_control( Control );
-      //        umfpack_di_report_info( Control, Info );
-   }
-
-   if( Symbolic )
-      umfpack_di_free_symbolic( &Symbolic );
-   if( Numeric )
-      umfpack_di_free_numeric( &Numeric );
+   this->solver_success = true;
 
    this->setResidue( LinearResidueGetter::getResidue( *this->matrix, x, b, bNorm ) );
-   this->refreshSolverMonitor( true );
-   return status == UMFPACK_OK;
+   return true;
+#else
+   std::cerr << "Umfpack is not available." << std::endl;
+   return false;
+#endif
+}
+
+template< typename Matrix, typename SolverMonitor >
+bool
+UmfpackWrapper< Matrix, SolverMonitor >::succeeded() const
+{
+   return this->solver_success;
+}
+
+template< typename Matrix, typename SolverMonitor >
+UmfpackWrapper< Matrix, SolverMonitor >::~UmfpackWrapper()
+{
+#ifdef HAVE_UMFPACK
+   if( this->Symbolic )
+      umfpack_di_free_symbolic( &Symbolic );
+   if( this->Numeric )
+      umfpack_di_free_numeric( &Numeric );
+#endif
 }
 
 }  // namespace TNL::Solvers::Linear
-
-#endif

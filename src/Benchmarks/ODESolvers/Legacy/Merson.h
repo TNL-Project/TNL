@@ -33,8 +33,7 @@ namespace TNL::Benchmarks {
  * \tparam Vector is type of vector storing \f$ \vec x \in R^n \f$, mostly \ref TNL::Containers::Vector
  *    or \ref TNL::Containers::VectorView.
  */
-template< class Vector,
-          typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType, typename Vector::IndexType > >
+template< class Vector, typename SolverMonitor = Solvers::IterativeSolverMonitor< typename Vector::RealType > >
 class Merson : public Solvers::ODE::ExplicitSolver< typename Vector::RealType, typename Vector::IndexType, SolverMonitor >
 {
 public:

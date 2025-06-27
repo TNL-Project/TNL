@@ -16,7 +16,7 @@ namespace TNL::Solvers {
  * \tparam Index is an indexing type.
  * \tparam IterativeSolverMonitor< Real, Index > is type of an object used for monitoring of the convergence.
  */
-template< typename Real, typename Index, typename SolverMonitor = IterativeSolverMonitor< Real, Index > >
+template< typename Real, typename Index, typename SolverMonitor = IterativeSolverMonitor< double > >
 class IterativeSolver
 {
 public:
@@ -24,6 +24,18 @@ public:
     * \brief Type of an object used for monitoring of the convergence.
     */
    using SolverMonitorType = SolverMonitor;
+
+   /**
+    * \brief Returns \e true if the solver is an iterative solver.
+    */
+   static constexpr bool
+   isIterativeSolver();
+
+   /**
+    * \brief Returns \e true if the solver is a direct solver.
+    */
+   static constexpr bool
+   isDirectSolver();
 
    /**
     * \brief Default constructor.

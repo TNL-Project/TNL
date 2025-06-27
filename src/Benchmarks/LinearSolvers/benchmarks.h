@@ -7,23 +7,19 @@
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 #include <TNL/Matrices/DistributedMatrix.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <stdexcept>  // std::runtime_error
+#include "BenchmarkResults.h"
 
 #ifdef HAVE_ARMADILLO
    #include <armadillo>
    #include <TNL/Matrices/CSR.h>
 #endif
 
-#include <stdexcept>  // std::runtime_error
-
-using namespace TNL;
-using namespace TNL::Benchmarks;
-
 template< typename Device >
 const char*
 getPerformer()
 {
-   if( std::is_same< Device, Devices::Cuda >::value )
+   if( std::is_same< Device, TNL::Devices::Cuda >::value )
       return "GPU";
    return "CPU";
 }
@@ -35,29 +31,29 @@ barrier( const Matrix& matrix )
 
 template< typename Matrix >
 void
-barrier( const Matrices::DistributedMatrix< Matrix >& matrix )
+barrier( const TNL::Matrices::DistributedMatrix< Matrix >& matrix )
 {
    TNL::MPI::Barrier( matrix.getCommunicator() );
 }
 
 template< typename Device >
 bool
-checkDevice( const Config::ParameterContainer& parameters )
+checkDevice( const TNL::Config::ParameterContainer& parameters )
 {
-   const String device = parameters.getParameter< String >( "devices" );
+   const TNL::String device = parameters.getParameter< TNL::String >( "devices" );
    if( device == "all" )
       return true;
-   if( std::is_same< Device, Devices::Host >::value && device == "host" )
+   if( std::is_same< Device, TNL::Devices::Host >::value && device == "host" )
       return true;
-   if( std::is_same< Device, Devices::Cuda >::value && device == "cuda" )
+   if( std::is_same< Device, TNL::Devices::Cuda >::value && device == "cuda" )
       return true;
    return false;
 }
 
 template< template< typename > class Preconditioner, typename Matrix >
 void
-benchmarkPreconditionerUpdate( Benchmark<>& benchmark,
-                               const Config::ParameterContainer& parameters,
+benchmarkPreconditionerUpdate( TNL::Benchmarks::Benchmark<>& benchmark,
+                               const TNL::Config::ParameterContainer& parameters,
                                const std::shared_ptr< Matrix >& matrix )
 {
    // skip benchmarks on devices which the user did not select
@@ -81,8 +77,8 @@ benchmarkPreconditionerUpdate( Benchmark<>& benchmark,
 
 template< template< typename > class Solver, template< typename > class Preconditioner, typename Matrix, typename Vector >
 void
-benchmarkSolver( Benchmark<>& benchmark,
-                 const Config::ParameterContainer& parameters,
+benchmarkSolver( TNL::Benchmarks::Benchmark<>& benchmark,
+                 const TNL::Config::ParameterContainer& parameters,
                  const std::shared_ptr< Matrix >& matrix,
                  const Vector& x0,
                  const Vector& b )
@@ -99,7 +95,6 @@ benchmarkSolver( Benchmark<>& benchmark,
    solver.setup( parameters );
    solver.setMatrix( matrix );
 
-   // FIXME: getMonitor returns solver monitor specialized for double and int
    solver.setSolverMonitor( benchmark.getMonitor() );
 
    auto pre = std::make_shared< Preconditioner< Matrix > >();
@@ -110,6 +105,10 @@ benchmarkSolver( Benchmark<>& benchmark,
       pre->update( matrix );
    }
    catch( const std::runtime_error& ) {
+   }
+   catch( std::invalid_argument& e ) {
+      std::cerr << e.what() << ". Skipping the benchmark!" << std::endl;
+      return;
    }
 
    Vector x;
@@ -130,57 +129,58 @@ benchmarkSolver( Benchmark<>& benchmark,
          throw std::runtime_error( "solver did not converge" );
    };
 
-   // subclass BenchmarkResult to add extra columns to the benchmark
-   // (iterations, preconditioned residue, true residue)
-   struct MyBenchmarkResult : public BenchmarkResult
+   BenchmarkResult< Vector, Matrix, Solver > benchmarkResult( solver, matrix, x, b );
+   benchmark.time< typename Matrix::DeviceType >( reset, performer, compute, benchmarkResult );
+}
+
+template< template< typename > class Solver, typename Matrix, typename Vector >
+void
+benchmarkDirectSolver( const TNL::String& solverName,
+                       TNL::Benchmarks::Benchmark<>& benchmark,
+                       const TNL::Config::ParameterContainer& parameters,
+                       const std::shared_ptr< Matrix >& matrix,
+                       const Vector& x0,
+                       const Vector& b )
+{
+   // skip benchmarks on devices which the user did not select
+   if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
+      return;
+
+   barrier( matrix );
+   const char* performer = getPerformer< typename Matrix::DeviceType >();
+
+   // setup
+   Solver< Matrix > solver;
+   solver.setup( parameters );
+
+   Vector x( x0.getSize(), 0 );
+
+   BenchmarkResult< Vector, Matrix, Solver > benchmarkResult( solver, matrix, x, b );
+
+   auto set_matrix = [ & ]()
    {
-      using HeaderElements = BenchmarkResult::HeaderElements;
-      using RowElements = BenchmarkResult::RowElements;
-
-      Solver< Matrix >& solver;
-      const std::shared_ptr< Matrix >& matrix;
-      const Vector& x;
-      const Vector& b;
-
-      MyBenchmarkResult( Solver< Matrix >& solver, const std::shared_ptr< Matrix >& matrix, const Vector& x, const Vector& b )
-      : solver( solver ),
-        matrix( matrix ),
-        x( x ),
-        b( b )
-      {}
-
-      virtual HeaderElements
-      getTableHeader() const override
-      {
-         return HeaderElements(
-            { "time", "stddev", "stddev/time", "speedup", "converged", "iterations", "residue_precond", "residue_true" } );
-      }
-
-      virtual RowElements
-      getRowElements() const override
-      {
-         const bool converged = ! std::isnan( solver.getResidue() ) && solver.getResidue() < solver.getConvergenceResidue();
-         const long iterations = solver.getIterations();
-         const double residue_precond = solver.getResidue();
-
-         Vector r;
-         r.setLike( x );
-         matrix->vectorProduct( x, r );
-         r = b - r;
-         const double residue_true = lpNorm( r, 2.0 ) / lpNorm( b, 2.0 );
-
-         RowElements elements;
-         elements << time << time_stddev << time_stddev / time;
-         if( speedup != 0 )
-            elements << speedup;
-         else
-            elements << "N/A";
-         elements << ( converged ? "yes" : "no" ) << iterations << residue_precond << residue_true;
-         return elements;
-      }
+      solver.setMatrix( matrix );
    };
-   MyBenchmarkResult benchmarkResult( solver, matrix, x, b );
+   benchmark.setOperation( solverName + " setup" );
+   benchmark.time< typename Matrix::DeviceType >( set_matrix, performer, set_matrix, benchmarkResult );
 
+   solver.setSolverMonitor( benchmark.getMonitor() );
+
+   // reset function
+   auto reset = [ & ]()
+   {
+      x = x0;
+   };
+
+   // benchmark function
+   auto compute = [ & ]()
+   {
+      const bool solved = solver.solve( b, x );
+      barrier( matrix );
+      if( ! solved )
+         throw std::runtime_error( "solver failed" );
+   };
+   benchmark.setOperation( solverName + " solve" );
    benchmark.time< typename Matrix::DeviceType >( reset, performer, compute, benchmarkResult );
 }
 
@@ -241,10 +241,8 @@ benchmarkArmadillo( const Config::ParameterContainer& parameters,
    arma::vec r = A * arma_x - arma_b;
    //    std::cout << "Converged: " << (time > 0) << ", residue = " << arma::norm( r ) / arma::norm( arma_b ) << " " <<
    //    std::endl; std::cout << "Mean time: " << time / loops << " seconds." << std::endl;
-   std::cout << "Converged: " << std::setw( 5 ) << std::boolalpha << ( time > 0 ) << "   "
-             << "iterations = " << std::setw( 4 ) << "N/A"
-             << "   "
-             << "residue = " << std::setw( 10 ) << arma::norm( r ) / arma::norm( arma_b ) << "   "
+   std::cout << "Converged: " << std::setw( 5 ) << std::boolalpha << ( time > 0 ) << "   " << "iterations = " << std::setw( 4 )
+             << "N/A" << "   " << "residue = " << std::setw( 10 ) << arma::norm( r ) / arma::norm( arma_b ) << "   "
              << "mean time = " << std::setw( 9 ) << time / loops << " seconds." << std::endl;
 }
 #endif

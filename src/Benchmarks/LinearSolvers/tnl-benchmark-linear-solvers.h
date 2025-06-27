@@ -31,10 +31,17 @@
 #include <TNL/Solvers/Linear/BICGStabL.h>
 #include <TNL/Solvers/Linear/IDRs.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
-
+#include <TNL/Solvers/Linear/GinkgoDirectSolver.h>
+#include <TNL/Matrices/SparseMatrix.h>
+#include <TNL/Algorithms/Segments/CSR.h>
+#include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Benchmarks/Benchmarks.h>
 #include "ordering.h"
 #include "benchmarks.h"
+#include "BenchmarkResults.h"
+#include "StrumpackWrapper.h"
+#include "TachoWrapper.h"
+#include "CuDSSWrapper.h"
 
 // FIXME: nvcc 8.0 fails when cusolverSp.h is included (works fine with clang):
 // /opt/cuda/include/cuda_fp16.h(3068): error: more than one instance of overloaded function "isinf" matches the argument list:
@@ -48,15 +55,9 @@
    #define HAVE_CUSOLVER
 #endif
 
-#include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Algorithms/Segments/CSR.h>
-#include <TNL/Algorithms/Segments/SlicedEllpack.h>
-
 template< typename _Device, typename _Index, typename _IndexAlocator >
-using SegmentsType = TNL::Algorithms::Segments::SlicedEllpack< _Device, _Index, _IndexAlocator >;
-
-using namespace TNL;
-using namespace TNL::Benchmarks;
+//using SegmentsType = TNL::Algorithms::Segments::SlicedEllpack< _Device, _Index, _IndexAlocator >;
+using SegmentsType = TNL::Algorithms::Segments::CSR< _Device, _Index, _IndexAlocator >;
 
 static const std::set< std::string > valid_solvers = {
    "gmres", "tfqmr", "bicgstab", "bicgstab-ell", "idrs",
@@ -73,9 +74,11 @@ static const std::set< std::string > valid_preconditioners = {
 };
 
 std::set< std::string >
-parse_comma_list( const Config::ParameterContainer& parameters, const char* parameter, const std::set< std::string >& options )
+parse_comma_list( const TNL::Config::ParameterContainer& parameters,
+                  const char* parameter,
+                  const std::set< std::string >& options )
 {
-   const String param = parameters.getParameter< String >( parameter );
+   const TNL::String param = parameters.getParameter< TNL::String >( parameter );
 
    if( param == "all" )
       return options;
@@ -98,7 +101,7 @@ parse_comma_list( const Config::ParameterContainer& parameters, const char* para
    return set;
 }
 
-// initialize all vector entries with a unioformly distributed random value from the interval [a, b]
+// initialize all vector entries with a uniformly distributed random value from the interval [a, b]
 template< typename Vector >
 void
 set_random_vector( Vector& v, typename Vector::RealType a, typename Vector::RealType b )
@@ -113,7 +116,7 @@ set_random_vector( Vector& v, typename Vector::RealType a, typename Vector::Real
    std::uniform_real_distribution< RealType > dis( a, b );
 
    // create host vector
-   typename Vector::template Self< RealType, Devices::Host > host_v;
+   typename Vector::template Self< RealType, TNL::Devices::Host > host_v;
    host_v.setSize( v.getSize() );
 
    // initialize the host vector
@@ -121,7 +124,7 @@ set_random_vector( Vector& v, typename Vector::RealType a, typename Vector::Real
    {
       host_v[ i ] = dis( gen );
    };
-   Algorithms::parallelFor< Devices::Host >( 0, host_v.getSize(), kernel );
+   TNL::Algorithms::parallelFor< TNL::Devices::Host >( 0, host_v.getSize(), kernel );
 
    // copy the data to the device vector
    v = host_v;
@@ -129,15 +132,15 @@ set_random_vector( Vector& v, typename Vector::RealType a, typename Vector::Real
 
 template< typename Matrix, typename Vector >
 void
-benchmarkIterativeSolvers( Benchmark<>& benchmark,
-                           Config::ParameterContainer parameters,
+benchmarkIterativeSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
+                           TNL::Config::ParameterContainer parameters,
                            const std::shared_ptr< Matrix >& matrixPointer,
                            const Vector& x0,
                            const Vector& b )
 {
 #ifdef __CUDACC__
-   using CudaMatrix = typename Matrix::template Self< typename Matrix::RealType, Devices::Cuda >;
-   using CudaVector = typename Vector::template Self< typename Vector::RealType, Devices::Cuda >;
+   using CudaMatrix = typename Matrix::template Self< typename Matrix::RealType, TNL::Devices::Cuda >;
+   using CudaVector = typename Vector::template Self< typename Vector::RealType, TNL::Devices::Cuda >;
 
    CudaVector cuda_x0, cuda_b;
    cuda_x0 = x0;
@@ -147,8 +150,8 @@ benchmarkIterativeSolvers( Benchmark<>& benchmark,
    *cudaMatrixPointer = *matrixPointer;
 #endif
 
-   using namespace Solvers::Linear;
-   using namespace Solvers::Linear::Preconditioners;
+   using namespace TNL::Solvers::Linear;
+   using namespace TNL::Solvers::Linear::Preconditioners;
 
    const int ell_max = 2;
    const std::set< std::string > solvers = parse_comma_list( parameters, "solvers", valid_solvers );
@@ -168,7 +171,7 @@ benchmarkIterativeSolvers( Benchmark<>& benchmark,
       if( solvers.count( "gmres" ) ) {
          for( auto variant : gmresVariants ) {
             benchmark.setOperation( variant + "-GMRES (Jacobi)" );
-            parameters.template setParameter< String >( "gmres-variant", variant );
+            parameters.template setParameter< TNL::String >( "gmres-variant", variant );
             benchmarkSolver< GMRES, Diagonal >( benchmark, parameters, matrixPointer, x0, b );
 #ifdef __CUDACC__
             benchmarkSolver< GMRES, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
@@ -196,7 +199,7 @@ benchmarkIterativeSolvers( Benchmark<>& benchmark,
          benchmark.setOperation( "BiCGstab (Jacobi)" );
          for( int ell = 1; ell <= ell_max; ell++ ) {
             parameters.template setParameter< int >( "bicgstab-ell", ell );
-            benchmark.setOperation( "BiCGstab(" + convertToString( ell ) + ") (Jacobi)" );
+            benchmark.setOperation( "BiCGstab(" + TNL::convertToString( ell ) + ") (Jacobi)" );
             benchmarkSolver< BICGStabL, Diagonal >( benchmark, parameters, matrixPointer, x0, b );
 #ifdef __CUDACC__
             benchmarkSolver< BICGStabL, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
@@ -225,7 +228,7 @@ benchmarkIterativeSolvers( Benchmark<>& benchmark,
       if( solvers.count( "gmres" ) ) {
          for( auto variant : gmresVariants ) {
             benchmark.setOperation( variant + "-GMRES (ILU0)" );
-            parameters.template setParameter< String >( "gmres-variant", variant );
+            parameters.template setParameter< TNL::String >( "gmres-variant", variant );
             benchmarkSolver< GMRES, ILU0 >( benchmark, parameters, matrixPointer, x0, b );
 #ifdef __CUDACC__
             benchmarkSolver< GMRES, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
@@ -252,7 +255,7 @@ benchmarkIterativeSolvers( Benchmark<>& benchmark,
       if( solvers.count( "bicgstab-ell" ) ) {
          for( int ell = 1; ell <= ell_max; ell++ ) {
             parameters.template setParameter< int >( "bicgstab-ell", ell );
-            benchmark.setOperation( "BiCGstab(" + convertToString( ell ) + ") (ILU0)" );
+            benchmark.setOperation( "BiCGstab(" + TNL::convertToString( ell ) + ") (ILU0)" );
             benchmarkSolver< BICGStabL, ILU0 >( benchmark, parameters, matrixPointer, x0, b );
 #ifdef __CUDACC__
             benchmarkSolver< BICGStabL, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
@@ -281,7 +284,7 @@ benchmarkIterativeSolvers( Benchmark<>& benchmark,
       if( solvers.count( "gmres" ) ) {
          for( auto variant : gmresVariants ) {
             benchmark.setOperation( variant + "-GMRES (ILUT)" );
-            parameters.template setParameter< String >( "gmres-variant", variant );
+            parameters.template setParameter< TNL::String >( "gmres-variant", variant );
             benchmarkSolver< GMRES, ILUT >( benchmark, parameters, matrixPointer, x0, b );
 #ifdef __CUDACC__
             benchmarkSolver< GMRES, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
@@ -308,7 +311,7 @@ benchmarkIterativeSolvers( Benchmark<>& benchmark,
       if( solvers.count( "bicgstab-ell" ) ) {
          for( int ell = 1; ell <= ell_max; ell++ ) {
             parameters.template setParameter< int >( "bicgstab-ell", ell );
-            benchmark.setOperation( "BiCGstab(" + convertToString( ell ) + ") (ILUT)" );
+            benchmark.setOperation( "BiCGstab(" + TNL::convertToString( ell ) + ") (ILUT)" );
             benchmarkSolver< BICGStabL, ILUT >( benchmark, parameters, matrixPointer, x0, b );
 #ifdef __CUDACC__
             benchmarkSolver< BICGStabL, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
@@ -332,35 +335,37 @@ struct LinearSolversBenchmark
    using RealType = typename MatrixType::RealType;
    using DeviceType = typename MatrixType::DeviceType;
    using IndexType = typename MatrixType::IndexType;
-   using VectorType = Containers::Vector< RealType, DeviceType, IndexType >;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
 
-   using DistributedMatrix = Matrices::DistributedMatrix< MatrixType >;
-   using DistributedVector = Containers::DistributedVector< RealType, DeviceType, IndexType >;
+   using DistributedMatrix = TNL::Matrices::DistributedMatrix< MatrixType >;
+   using DistributedVector = TNL::Containers::DistributedVector< RealType, DeviceType, IndexType >;
    using DistributedRowLengths = typename DistributedMatrix::RowCapacitiesType;
 
    static bool
-   run( Benchmark<>& benchmark, const Config::ParameterContainer& parameters )
+   run( TNL::Benchmarks::Benchmark<>& benchmark, const TNL::Config::ParameterContainer& parameters )
    {
-      const String file_matrix = parameters.getParameter< String >( "input-matrix" );
-      const String file_dof = parameters.getParameter< String >( "input-dof" );
-      const String file_rhs = parameters.getParameter< String >( "input-rhs" );
+      const TNL::String file_matrix = parameters.getParameter< TNL::String >( "input-matrix" );
+      const TNL::String file_dof = parameters.getParameter< TNL::String >( "input-dof" );
+      const TNL::String file_rhs = parameters.getParameter< TNL::String >( "input-rhs" );
 
       auto matrixPointer = std::make_shared< MatrixType >();
       VectorType x0, b;
 
       // load the matrix
       if( file_matrix.endsWith( ".mtx" ) ) {
-         Matrices::MatrixReader< MatrixType > reader;
+         TNL::Matrices::MatrixReader< MatrixType > reader;
          reader.readMtx( file_matrix, *matrixPointer );
       }
       else {
          matrixPointer->load( file_matrix );
       }
+      TNL::Matrices::compressSparseMatrix( *matrixPointer );
+      matrixPointer->sortColumnIndexes();
 
       // load the vectors
       if( file_dof && file_rhs ) {
-         File( file_dof, std::ios_base::in ) >> x0;
-         File( file_rhs, std::ios_base::in ) >> b;
+         TNL::File( file_dof, std::ios_base::in ) >> x0;
+         TNL::File( file_rhs, std::ios_base::in ) >> b;
       }
       else {
          // set x0 := 0
@@ -370,7 +375,10 @@ struct LinearSolversBenchmark
          // generate random vector x
          VectorType x;
          x.setSize( matrixPointer->getColumns() );
-         set_random_vector( x, 1e2, 1e3 );
+         if( parameters.getParameter< TNL::String >( "set-rhs" ) == "random" )
+            set_random_vector( x, 1e2, 1e3 );
+         else
+            x = 1;
 
          // set b := A*x
          b.setSize( matrixPointer->getRows() );
@@ -381,57 +389,63 @@ struct LinearSolversBenchmark
       matrixPointer->getCompressedRowLengths( rowLengths );
       const IndexType maxRowLength = max( rowLengths );
 
-      const String title = ( TNL::MPI::GetSize() > 1 ) ? "Distributed linear solvers" : "Linear solvers";
+      const TNL::String title = ( TNL::MPI::GetSize() > 1 ) ? "Distributed linear solvers" : "Linear solvers";
       std::cout << "\n== " << title << " ==\n" << std::endl;
 
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "matrix name", parameters.getParameter< String >( "name" ) },
+      benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
+         { "matrix name", parameters.getParameter< TNL::String >( "name" ) },
          // TODO: strip the device
          //         { "matrix type", matrixPointer->getType() },
-         { "rows", convertToString( matrixPointer->getRows() ) },
-         { "columns", convertToString( matrixPointer->getColumns() ) },
+         { "rows", TNL::convertToString( matrixPointer->getRows() ) },
+         { "columns", TNL::convertToString( matrixPointer->getColumns() ) },
          // FIXME: getMaxRowLengths() returns 0 for matrices loaded from file
          //         { "max elements per row", matrixPointer->getMaxRowLength() },
-         { "max elements per row", convertToString( maxRowLength ) },
+         { "max elements per row", TNL::convertToString( maxRowLength ) },
       } ) );
 
-      const bool reorder = parameters.getParameter< bool >( "reorder-dofs" );
-      if( reorder ) {
-         using PermutationVector = Containers::Vector< IndexType, DeviceType, IndexType >;
-         PermutationVector perm, iperm;
-         getTrivialOrdering( *matrixPointer, perm, iperm );
-         auto matrix_perm = std::make_shared< MatrixType >();
-         VectorType x0_perm, b_perm;
-         x0_perm.setLike( x0 );
-         b_perm.setLike( b );
-         Matrices::reorderSparseMatrix( *matrixPointer, *matrix_perm, perm, iperm );
-         Matrices::reorderArray( x0, x0_perm, perm );
-         Matrices::reorderArray( b, b_perm, perm );
-         if( TNL::MPI::GetSize() > 1 )
-            runDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
-         else
-            runNonDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
-      }
-      else {
-         if( TNL::MPI::GetSize() > 1 )
-            runDistributed( benchmark, parameters, matrixPointer, x0, b );
-         else
-            runNonDistributed( benchmark, parameters, matrixPointer, x0, b );
-      }
+      if( parameters.getParameter< bool >( "with-iterative" ) ) {
+         std::cout << "Iterative solvers:" << std::endl;
 
+         if( parameters.getParameter< bool >( "reorder-dofs" ) ) {
+            using PermutationVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+            PermutationVector perm, iperm;
+            getTrivialOrdering( *matrixPointer, perm, iperm );
+            auto matrix_perm = std::make_shared< MatrixType >();
+            VectorType x0_perm, b_perm;
+            x0_perm.setLike( x0 );
+            b_perm.setLike( b );
+            TNL::Matrices::reorderSparseMatrix( *matrixPointer, *matrix_perm, perm, iperm );
+            TNL::Matrices::reorderArray( x0, x0_perm, perm );
+            TNL::Matrices::reorderArray( b, b_perm, perm );
+            if( TNL::MPI::GetSize() > 1 )
+               runDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
+            else
+               runNonDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
+         }
+         else {
+            if( TNL::MPI::GetSize() > 1 )
+               runDistributed( benchmark, parameters, matrixPointer, x0, b );
+            else
+               runNonDistributed( benchmark, parameters, matrixPointer, x0, b );
+         }
+      }
+      if( parameters.getParameter< bool >( "with-direct" ) ) {
+         std::cout << "Direct solvers:" << std::endl;
+         runDirect( benchmark, parameters, matrixPointer, x0, b );
+      }
       return true;
    }
 
    static void
-   runDistributed( Benchmark<>& benchmark,
-                   const Config::ParameterContainer& parameters,
+   runDistributed( TNL::Benchmarks::Benchmark<>& benchmark,
+                   const TNL::Config::ParameterContainer& parameters,
                    const std::shared_ptr< MatrixType >& matrixPointer,
                    const VectorType& x0,
                    const VectorType& b )
    {
       // set up the distributed matrix
       const auto communicator = MPI_COMM_WORLD;
-      const auto localRange = Containers::splitRange( matrixPointer->getRows(), communicator );
+      const auto localRange = TNL::Containers::splitRange( matrixPointer->getRows(), communicator );
       auto distMatrixPointer = std::make_shared< DistributedMatrix >(
          localRange, matrixPointer->getRows(), matrixPointer->getColumns(), communicator );
       DistributedVector dist_x0( localRange, 0, matrixPointer->getRows(), communicator );
@@ -461,39 +475,16 @@ struct LinearSolversBenchmark
          for( IndexType j = 0; j < global_row.getSize(); j++ )
             local_row.setElement( j, global_row.getColumnIndex( j ), global_row.getValue( j ) );
       }
-
-      std::cout << "Iterative solvers:" << std::endl;
       benchmarkIterativeSolvers( benchmark, parameters, distMatrixPointer, dist_x0, dist_b );
    }
 
    static void
-   runNonDistributed( Benchmark<>& benchmark,
-                      const Config::ParameterContainer& parameters,
+   runNonDistributed( TNL::Benchmarks::Benchmark<>& benchmark,
+                      const TNL::Config::ParameterContainer& parameters,
                       const std::shared_ptr< MatrixType >& matrixPointer,
                       const VectorType& x0,
                       const VectorType& b )
    {
-      // direct solvers
-      if( parameters.getParameter< bool >( "with-direct" ) ) {
-         using CSR = TNL::Matrices::
-            SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
-         auto matrixCopy = std::make_shared< CSR >();
-         Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
-
-#ifdef HAVE_UMFPACK
-         std::cout << "UMFPACK wrapper:" << std::endl;
-         using UmfpackSolver = Solvers::Linear::UmfpackWrapper< CSR >;
-         using Preconditioner = Solvers::Linear::Preconditioners::Preconditioner< CSR >;
-         benchmarkSolver< UmfpackSolver, Preconditioner >( parameters, matrixCopy, x0, b );
-#endif
-
-#ifdef HAVE_ARMADILLO
-         std::cout << "Armadillo wrapper (which wraps SuperLU):" << std::endl;
-         benchmarkArmadillo( parameters, matrixCopy, x0, b );
-#endif
-      }
-
-      std::cout << "Iterative solvers:" << std::endl;
       benchmarkIterativeSolvers( benchmark, parameters, matrixPointer, x0, b );
 
 #ifdef HAVE_CUSOLVER
@@ -521,37 +512,125 @@ struct LinearSolversBenchmark
       }
 #endif
    }
+
+   static void
+   runDirect( TNL::Benchmarks::Benchmark<>& benchmark,
+              const TNL::Config::ParameterContainer& parameters,
+              const std::shared_ptr< MatrixType >& matrixPointer,
+              const VectorType& x0,
+              const VectorType& b )
+   {
+      using CSR = TNL::Matrices::
+         SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
+      auto matrixCopy = std::make_shared< CSR >();
+      TNL::Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
+
+#ifdef HAVE_UMFPACK
+      if constexpr( ( std::is_same_v< DeviceType, TNL::Devices::Host >
+                      || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
+                    && std::is_same_v< RealType, double > && std::is_same_v< IndexType, int > )
+         benchmarkDirectSolver< TNL::Solvers::Linear::UmfpackWrapper >( "UMFPACK", benchmark, parameters, matrixCopy, x0, b );
+#endif
+
+#ifdef HAVE_TRILINOS
+      benchmarkDirectSolver< TachoWrapper >( "Tacho CPU", benchmark, parameters, matrixCopy, x0, b );
+#endif
+
+#ifdef HAVE_GINKGO
+      benchmarkDirectSolver< TNL::Solvers::Linear::GinkgoDirectSolver >(
+         "Ginkgo CPU", benchmark, parameters, matrixCopy, x0, b );
+#endif
+
+#ifdef __CUDACC__
+      const std::string performer = "CPU/GPU";
+      auto compute = [ & ]()
+      {
+         TNL::Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
+      };
+      TNL::Benchmarks::BenchmarkResult benchmarkResult;
+      benchmark.setOperation( "Copy" );
+      benchmark.time< TNL::Devices::Host >( performer, compute, benchmarkResult );
+
+   #if defined( HAVE_CUDSS ) || defined( HAVE_GINKGO ) || defined( HAVE_TRILINOS )
+      using CudaCSR = TNL::Matrices::
+         SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
+      auto cudaMatrix = std::make_shared< CudaCSR >();
+      TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
+      TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType > cuda_x0_copy;
+   #endif
+
+   #ifdef HAVE_CUDSS
+      benchmarkDirectSolver< TNL::Solvers::Linear::CuDSSWrapper >(
+         "CuDSS", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
+      cuda_x0_copy = cuda_x0;
+      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+         std::cout << "Warning: the result of the CuDSS solver is not equal to the result of the CPU solver." << std::endl;
+   #endif
+
+   #ifdef HAVE_GINKGO
+      benchmarkDirectSolver< TNL::Solvers::Linear::GinkgoDirectSolver >(
+         "Ginkgo GPU", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
+      cuda_x0_copy = cuda_x0;
+      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+         std::cout << "Warning: the result of the Ginkgo GPU solver is not equal to the result of the CPU solver." << std::endl;
+   #endif
+
+   #ifdef HAVE_TRILINOS
+      if( ! std::is_same_v< Kokkos::DefaultHostExecutionSpace, Kokkos::DefaultExecutionSpace > ) {
+         benchmarkDirectSolver< TachoWrapper >( "Tacho GPU", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
+         cuda_x0_copy = cuda_x0;
+         if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+            std::cout << "Warning: the result of the Tacho GPU solver is not equal to the result of the CPU solver."
+                      << std::endl;
+      }
+   #endif
+#endif  // __CUDACC__
+
+#ifdef HAVE_STRUMPACK
+      // Strumpack currently support only GPU offloading - https://github.com/pghysels/STRUMPACK/issues/113
+      benchmarkDirectSolver< StrumpackWrapper >( "Strumpack", benchmark, parameters, matrixCopy, x0, b );
+#endif
+
+#ifdef HAVE_ARMADILLO
+      std::cout << "Armadillo wrapper (which wraps SuperLU):" << std::endl;
+      benchmarkArmadillo( parameters, matrixCopy, x0, b );
+#endif
+   }
 };
 
 void
-configSetup( Config::ConfigDescription& config )
+configSetup( TNL::Config::ConfigDescription& config )
 {
    config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-linear-solvers.log" );
-   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
+   config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-linear-solvers.log" );
+   config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "append" );
    config.addEntryEnum( "overwrite" );
    config.addEntry< int >( "loops", "Number of repetitions of the benchmark.", 10 );
-   config.addRequiredEntry< String >( "input-matrix",
-                                      "File name of the input matrix (in binary TNL format or textual MTX format)." );
-   config.addEntry< String >( "input-dof", "File name of the input DOF vector (in binary TNL format).", "" );
-   config.addEntry< String >( "input-rhs", "File name of the input right-hand-side vector (in binary TNL format).", "" );
-   config.addEntry< String >( "name", "Name of the matrix in the benchmark.", "" );
+   config.addRequiredEntry< TNL::String >( "input-matrix",
+                                           "File name of the input matrix (in binary TNL format or textual MTX format)." );
+   config.addEntry< TNL::String >( "input-dof", "File name of the input DOF vector (in binary TNL format).", "" );
+   config.addEntry< TNL::String >( "input-rhs", "File name of the input right-hand-side vector (in binary TNL format).", "" );
+   config.addEntry< TNL::String >( "set-rhs", "Saya how to set the right-hand-side vector if no input file is given.", "ones" );
+   config.addEntryEnum( "ones" );
+   config.addEntryEnum( "random" );
+   config.addEntry< TNL::String >( "name", "Name of the matrix in the benchmark.", "" );
    config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    config.addEntry< bool >( "reorder-dofs", "Reorder matrix entries corresponding to the same DOF together.", false );
-   config.addEntry< bool >( "with-direct", "Includes the 3rd party direct solvers in the benchmark.", false );
-   config.addEntry< String >(
+   config.addEntry< bool >( "with-iterative", "Includes the iterative solvers in the benchmark.", true );
+   config.addEntry< bool >( "with-direct", "Includes the 3rd party direct solvers in the benchmark.", true );
+   config.addEntry< TNL::String >(
       "solvers",
       "Comma-separated list of solvers to run benchmarks for. Options: gmres, tfqmr, bicgstab, bicgstab-ell, idrs.",
       "all" );
-   config.addEntry< String >(
+   config.addEntry< TNL::String >(
       "gmres-variants",
       "Comma-separated list of GMRES variants to run benchmarks for. Options: CGS, CGSR, MGS, MGSR, CWY.",
       "all" );
-   config.addEntry< String >(
+   config.addEntry< TNL::String >(
       "preconditioners", "Comma-separated list of preconditioners to run benchmarks for. Options: jacobi, ilu0, ilut.", "all" );
    config.addEntry< bool >( "with-preconditioner-update", "Run benchmark for the preconditioner update.", true );
-   config.addEntry< String >( "devices", "Run benchmarks on these devices.", "all" );
+   config.addEntry< TNL::String >( "devices", "Run benchmarks on these devices.", "all" );
    config.addEntryEnum( "all" );
    config.addEntryEnum( "host" );
 #ifdef __CUDACC__
@@ -559,43 +638,52 @@ configSetup( Config::ConfigDescription& config )
 #endif
 
    config.addDelimiter( "Device settings:" );
-   Devices::Host::configSetup( config );
-   Devices::Cuda::configSetup( config );
+   TNL::Devices::Host::configSetup( config );
+   TNL::Devices::Cuda::configSetup( config );
    TNL::MPI::configSetup( config );
 
    config.addDelimiter( "Linear solver settings:" );
-   Solvers::IterativeSolver< double, int >::configSetup( config );
-   using Matrix = Matrices::SparseMatrix< double >;
-   using GMRES = Solvers::Linear::GMRES< Matrix >;
+   TNL::Solvers::IterativeSolver< double, int >::configSetup( config );
+   using Matrix = TNL::Matrices::SparseMatrix< double >;
+   using GMRES = TNL::Solvers::Linear::GMRES< Matrix >;
    GMRES::configSetup( config );
-   using BiCGstabL = Solvers::Linear::BICGStabL< Matrix >;
+   using BiCGstabL = TNL::Solvers::Linear::BICGStabL< Matrix >;
    BiCGstabL::configSetup( config );
-   using ILUT = Solvers::Linear::Preconditioners::ILUT< Matrix >;
+   using ILUT = TNL::Solvers::Linear::Preconditioners::ILUT< Matrix >;
    ILUT::configSetup( config );
+
+   config.addEntry< TNL::String >( "precision", "Precision of the solver.", "double" );
+   config.addEntryEnum( "double" );
+   config.addEntryEnum( "float" );
 }
 
 int
 main( int argc, char* argv[] )
 {
 #ifndef NDEBUG
-   Debugging::trackFloatingPointExceptions();
+   TNL::Debugging::trackFloatingPointExceptions();
 #endif
 
-   Config::ParameterContainer parameters;
-   Config::ConfigDescription conf_desc;
+   TNL::Config::ParameterContainer parameters;
+   TNL::Config::ConfigDescription conf_desc;
 
    configSetup( conf_desc );
 
    TNL::MPI::ScopedInitializer mpi( argc, argv );
    const int rank = TNL::MPI::GetRank();
 
+#ifdef HAVE_TRILINOS
+   Kokkos::initialize( argc, argv );
+#endif
+
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
-   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) || ! TNL::MPI::setup( parameters ) )
+   if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Cuda::setup( parameters )
+       || ! TNL::MPI::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String& logFileName = parameters.getParameter< String >( "log-file" );
-   const String& outputMode = parameters.getParameter< String >( "output-mode" );
+   const TNL::String& logFileName = parameters.getParameter< TNL::String >( "log-file" );
+   const TNL::String& outputMode = parameters.getParameter< TNL::String >( "output-mode" );
    const int loops = parameters.getParameter< int >( "loops" );
    const int verbose = ( rank == 0 ) ? parameters.getParameter< int >( "verbose" ) : 0;
 
@@ -608,16 +696,35 @@ main( int argc, char* argv[] )
       logFile.open( logFileName, mode );
 
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
+   TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
 
    // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = getHardwareMetadata();
-   writeMapAsJson( metadata, logFileName, ".metadata.json" );
+   std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
+   TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
 
    // TODO: implement resolveMatrixType
    //   return ! Matrices::resolveMatrixType< MainConfig,
    //                                         Devices::Host,
    //                                         LinearSolversBenchmark >( benchmark, parameters );
-   using MatrixType = TNL::Matrices::SparseMatrix< double, Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
-   return ! LinearSolversBenchmark< MatrixType >::run( benchmark, parameters );
+   auto precision = parameters.getParameter< TNL::String >( "precision" );
+   bool ret_code = false;
+   if( precision == "float" ) {
+      using MatrixType =
+         TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
+      ret_code = LinearSolversBenchmark< MatrixType >::run( benchmark, parameters );
+   }
+
+   if( precision == "double" ) {
+      using MatrixType =
+         TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, SegmentsType >;
+      ret_code = LinearSolversBenchmark< MatrixType >::run( benchmark, parameters );
+   }
+
+#ifdef HAVE_TRILINOS
+   Kokkos::finalize();
+#endif
+
+   if( ret_code )
+      return EXIT_SUCCESS;
+   return EXIT_FAILURE;
 }
