@@ -7,55 +7,89 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
-SortedSegmentsView< EmbeddedSegments, Index >::SortedSegmentsView( typename Base::EmbeddedSegmentsView embeddedSegmentsView,
-                                                                   typename Base::PermutationView segmentsPermutation,
-                                                                   typename Base::PermutationView inverseSegmentsPermutation )
+SortedSegmentsView< EmbeddedSegments >::SortedSegmentsView( typename Base::EmbeddedSegmentsView embeddedSegmentsView,
+                                                            typename Base::PermutationView segmentsPermutation,
+                                                            typename Base::PermutationView inverseSegmentsPermutation )
 {
-   Base::bind( std::move( embeddedSegmentsView ), std::move( segmentsPermutation ), std::move( inverseSegmentsPermutation ) );
+   Base::bind( embeddedSegmentsView, segmentsPermutation, inverseSegmentsPermutation );
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 void
-SortedSegmentsView< EmbeddedSegments, Index >::bind( const SortedSegmentsView& view )
+SortedSegmentsView< EmbeddedSegments >::bind( SortedSegmentsView&& view )
 {
    this->embeddedSegmentsView.bind( view.getEmbeddedSegmentsView() );
-   this->segmentsPermutation.bind( view.getSegmentsPermutationView() );
-   this->inverseSegmentsPermutation.bind( view.getInverseSegmentsPermutationView() );
+   this->segmentsPermutationView.bind( view.getSegmentsPermutationView() );
+   this->inverseSegmentsPermutationView.bind( view.getInverseSegmentsPermutationView() );
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 void
-SortedSegmentsView< EmbeddedSegments, Index >::save( File& file ) const
+SortedSegmentsView< EmbeddedSegments >::save( File& file ) const
 {
-   file << this->embeddedSegmentsView << this->segmentsPermutationView << this->inverseSegmentsPermutationView;
+   this->embeddedSegmentsView.save( file );
+   file << this->segmentsPermutationView << this->inverseSegmentsPermutationView;
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 void
-SortedSegmentsView< EmbeddedSegments, Index >::load( File& file )
+SortedSegmentsView< EmbeddedSegments >::load( File& file )
 {
-   file >> this->embeddedSegmentsView >> this->segmentsPermutationView >> this->inverseSegmentsPermutationView;
+   this->embeddedSegmentsView.load( file );
+   file >> this->segmentsPermutationView >> this->inverseSegmentsPermutationView;
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
+__cuda_callable__
+void
+SortedSegmentsView< EmbeddedSegments >::bind( const EmbeddedSegmentsView& embeddedSegmentsView,
+                                              const PermutationView& segmentsPermutation,
+                                              const PermutationView& inverseSegmentsPermutation )
+{
+   this->embeddedSegmentsView.bind( embeddedSegmentsView );
+   this->segmentsPermutationView.bind( segmentsPermutation );
+   this->inverseSegmentsPermutationView.bind( inverseSegmentsPermutation );
+}
+
+template< typename EmbeddedSegments >
+__cuda_callable__
+void
+SortedSegmentsView< EmbeddedSegments >::bind( const EmbeddedSegmentsConstView& embeddedSegmentsView,
+                                              const ConstPermutationView& segmentsPermutation,
+                                              const ConstPermutationView& inverseSegmentsPermutation )
+{
+   this->embeddedSegmentsView.bind( *(EmbeddedSegmentsView*) ( &embeddedSegmentsView ) );
+   this->segmentsPermutationView.bind( const_cast< IndexType* >( segmentsPermutation.getData() ),
+                                       segmentsPermutation.getSize() );
+   this->inverseSegmentsPermutationView.bind( const_cast< IndexType* >( inverseSegmentsPermutation.getData() ),
+                                              inverseSegmentsPermutation.getSize() );
+}
+
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsView< EmbeddedSegments, Index >::getView() -> ViewType
+SortedSegmentsView< EmbeddedSegments >::getView() -> ViewType
 {
    return { this->getEmbeddedSegmentsView(), this->getSegmentsPermutationView(), this->getInverseSegmentsPermutationView() };
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsView< EmbeddedSegments, Index >::getConstView() const -> ConstViewType
+SortedSegmentsView< EmbeddedSegments >::getConstView() const -> ConstViewType
 {
-   return ConstViewType( this->getEmbeddedSegmentsView().getConstView(),
-                         this->getSegmentsPermutationView().getConstView(),
-                         this->getInverseSegmentsPermutationView().getConstView() );
+   EmbeddedSegmentsConstView embeddedSegmentsView;
+   embeddedSegmentsView.bind( this->getEmbeddedSegmentsView() );
+   ConstPermutationView segmentsPermutation =
+      const_cast< std::remove_const_t< decltype( this ) > >( this )->getSegmentsPermutationView();
+   ConstPermutationView inverseSegmentsPermutation =
+      const_cast< std::remove_const_t< decltype( this ) > >( this )->getInverseSegmentsPermutationView();
+   ViewType view;
+   view.bind( embeddedSegmentsView, segmentsPermutation, inverseSegmentsPermutation );
+   return *(ConstViewType*) &view;
 }
 
 }  // namespace TNL::Algorithms::Segments
