@@ -12,7 +12,7 @@ namespace TNL::Containers {
  * \brief Distributed N-dimensional array.
  *
  * \tparam NDArray Type of the N-dimensional array which is used to store the local
- *                 elements. It can be \ref NDArray or \ref SlicedNDArray.
+ *                 elements. See \ref NDArray.
  *
  * \par Example:
  * \include Containers/DistributedNDArrayExample.cpp
@@ -247,7 +247,7 @@ public:
       {
          return this->localArray.getStorageIndex( std::forward< decltype( indices ) >( indices )... );
       };
-      return detail::host_call_with_unshifted_indices( localBegins, getStorageIndex, std::forward< IndexTypes >( indices )... );
+      return detail::call_with_unshifted_indices( localBegins, getStorageIndex, std::forward< IndexTypes >( indices )... );
    }
 
    //! \brief Returns a raw pointer to the local data.
@@ -709,7 +709,7 @@ public:
       {
          return this->localArray.getElement( std::forward< decltype( indices ) >( indices )... );
       };
-      return detail::host_call_with_unshifted_indices( localBegins, getElement, std::forward< IndexTypes >( indices )... );
+      return detail::call_with_unshifted_indices( localBegins, getElement, std::forward< IndexTypes >( indices )... );
    }
 
    //! \brief Sets all elements of the array to given value.

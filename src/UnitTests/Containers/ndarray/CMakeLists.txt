@@ -1,4 +1,4 @@
-set(CPP_TESTS NDSubarrayTest SlicedNDArrayTest StaticNDArrayTest SyncDirectionsTest)
+set(CPP_TESTS NDSubarrayTest StaticNDArrayTest SyncDirectionsTest)
 set(CUDA_TESTS StaticNDArrayTestCuda)
 set(HIP_TESTS StaticNDArrayTestHip)
 if(TNL_BUILD_CUDA)

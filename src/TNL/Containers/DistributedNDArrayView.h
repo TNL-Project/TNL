@@ -281,7 +281,7 @@ public:
       {
          return this->localView.getStorageIndex( std::forward< decltype( indices ) >( indices )... );
       };
-      return detail::host_call_with_unshifted_indices( localBegins, getStorageIndex, std::forward< IndexTypes >( indices )... );
+      return detail::call_with_unshifted_indices( localBegins, getStorageIndex, std::forward< IndexTypes >( indices )... );
    }
 
    //! \brief Returns a raw pointer to the local data.

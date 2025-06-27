@@ -15,6 +15,7 @@
 
 #include "DistributedNDArraySyncDirections.h"
 #include "ndarray/SynchronizerBuffers.h"
+#include "ndarray/Indexing.h"
 
 namespace TNL::Containers {
 
@@ -53,7 +54,7 @@ public:
    using RequestsVector = std::vector< MPI_Request >;
    RequestsVector requests;
 
-   enum class AsyncPolicy
+   enum class AsyncPolicy : std::uint8_t
    {
       synchronous,
       deferred,
@@ -72,10 +73,10 @@ public:
    // custom move-constructor that skips moving tp
    DistributedNDArraySynchronizer( DistributedNDArraySynchronizer&& other ) noexcept
    : tp( other.tp.get_thread_count() ),
-     gpu_id( std::move( other.gpu_id ) ),
-     tag_offset( std::move( other.tag_offset ) ),
+     gpu_id( other.gpu_id ),
+     tag_offset( other.tag_offset ),
      array_view( std::move( other.array_view ) ),
-     mask( std::move( other.mask ) ),
+     mask( other.mask ),
      buffers( std::move( other.buffers ) ),
      requests( std::move( other.requests ) )
    {}
@@ -558,8 +559,8 @@ protected:
 
          if( is_contiguous ) {
             // avoid buffering - bind buffer views directly to the array
-            buffer.send_view.bind( &call_with_offsets( buffer.send_offsets, array_view.getLocalView() ) );
-            buffer.recv_view.bind( &call_with_offsets( buffer.recv_offsets, array_view.getLocalView() ) );
+            buffer.send_view.bind( &detail::call_with_offsets( buffer.send_offsets, array_view.getLocalView() ) );
+            buffer.recv_view.bind( &detail::call_with_offsets( buffer.recv_offsets, array_view.getLocalView() ) );
          }
          else {
             using BufferView = typename Buffer::NDArrayType::ViewType;
@@ -610,9 +611,9 @@ public:
       operator()( Indices... indices )
       {
          if( to_buffer )
-            buffer_view( indices... ) = call_with_shifted_indices( local_array_offsets, local_array_view, indices... );
+            buffer_view( indices... ) = detail::call_with_shifted_indices( local_array_offsets, local_array_view, indices... );
          else
-            call_with_shifted_indices( local_array_offsets, local_array_view, indices... ) = buffer_view( indices... );
+            detail::call_with_shifted_indices( local_array_offsets, local_array_view, indices... ) = buffer_view( indices... );
       }
    };
 };

@@ -101,6 +101,20 @@ index_in_sequence( V&& value, std::integer_sequence< Index, vals... > )
    return index_in_pack( std::forward< V >( value ), vals... );
 }
 
+// Helper struct to compute the inverse permutation
+template< typename Permutation, typename Sequence = std::make_index_sequence< Permutation::size() > >
+struct make_inverse_permutation;
+
+template< typename Permutation, std::size_t... Is >
+struct make_inverse_permutation< Permutation, std::index_sequence< Is... > >
+{
+   using type = std::index_sequence< index_in_sequence( Is, Permutation{} )... >;
+};
+
+// Alias template for inverse permutation
+template< typename Permutation >
+using inverse_permutation = typename make_inverse_permutation< Permutation >::type;
+
 /*
  * Generic function to concatenate an arbitrary number of std::integer_sequence instances.
  * Useful mainly for getting the type of the resulting sequence with `decltype`.
@@ -247,41 +261,14 @@ count_smaller( T threshold, V&& value, Values&&... vals )
    return count_smaller( threshold, vals... );
 }
 
-// C++17 version using "if constexpr" and a general predicate (lambda function)
-// Reference: https://stackoverflow.com/a/41723705
-// template< typename Index, Index a, typename Predicate >
-// constexpr auto
-// FilterSingle( std::integer_sequence< Index, a >, Predicate pred )
-//{
-//   if constexpr (pred(a))
-//      return std::integer_sequence< Index, a >{};
-//   else
-//      return std::integer_sequence< Index >{};
-//}
-//
-//// empty sequence case
-// template< typename Index, typename Predicate >
-// constexpr auto
-// filter_sequence( std::integer_sequence< Index >, [[maybe_unused]] Predicate pred )
-//{
-//    return std::integer_sequence< Index >{};
-// }
-//
-//// non empty sequence case
-// template< typename Index, Index... vals, typename Predicate >
-// constexpr auto
-// filter_sequence( std::integer_sequence< Index, vals... >, [[maybe_unused]] Predicate pred )
-//{
-//    return concat_sequences( FilterSingle( std::integer_sequence< Index, vals >{}, pred )... );
-// }
-
-// C++14 version, with hard-coded predicate
 template< typename Mask, typename Index, Index val >
 constexpr auto
 FilterSingle( std::integer_sequence< Index, val > )
 {
-   return std::
-      conditional_t< is_in_sequence( val, Mask{} ), std::integer_sequence< Index, val >, std::integer_sequence< Index > >{};
+   if constexpr( is_in_sequence( val, Mask{} ) )
+      return std::integer_sequence< Index, val >{};
+   else
+      return std::integer_sequence< Index >{};
 }
 
 /*
@@ -303,40 +290,5 @@ filter_sequence( std::integer_sequence< Index, vals... > )
 {
    return concat_sequences( FilterSingle< Mask >( std::integer_sequence< Index, vals >{} )... );
 }
-
-/*
- * make_constant_integer_sequence, make_constant_index_sequence - helper
- * templates for the generation of constant sequences like
- * std::make_integer_sequence, std::make_index_sequence
- */
-template< typename T, typename N, T v >
-struct gen_const_seq;
-template< typename T, typename N, T v >
-using gen_const_seq_t = typename gen_const_seq< T, N, v >::type;
-
-template< typename T, typename N, T v >
-struct gen_const_seq
-{
-   using type = decltype( concat_sequences( gen_const_seq_t< T, std::integral_constant< T, N::value / 2 >, v >{},
-                                            gen_const_seq_t< T, std::integral_constant< T, N::value - N::value / 2 >, v >{} ) );
-};
-
-template< typename T, T v >
-struct gen_const_seq< T, std::integral_constant< T, 0 >, v >
-{
-   using type = std::integer_sequence< T >;
-};
-
-template< typename T, T v >
-struct gen_const_seq< T, std::integral_constant< T, 1 >, v >
-{
-   using type = std::integer_sequence< T, v >;
-};
-
-template< typename T, T N, T value >
-using make_constant_integer_sequence = gen_const_seq_t< T, std::integral_constant< T, N >, value >;
-
-template< std::size_t N, std::size_t value >
-using make_constant_index_sequence = gen_const_seq_t< std::size_t, std::integral_constant< std::size_t, N >, value >;
 
 }  // namespace TNL::Containers::detail

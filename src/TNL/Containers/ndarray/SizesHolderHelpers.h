@@ -6,82 +6,11 @@
 #include <algorithm>
 
 #include <TNL/Assert.h>
+#include <TNL/Backend/Macros.h>
 #include <TNL/Algorithms/staticFor.h>
 #include <TNL/Containers/ndarray/Meta.h>
 
 namespace TNL::Containers::detail {
-
-// Dynamic storage size with alignment
-template< typename SizesHolder,
-          typename Alignment,
-          typename Overlaps,
-          typename LevelTag = IndexTag< SizesHolder::getDimension() - 1 > >
-struct StorageSizeGetter
-{
-   [[nodiscard]] static typename SizesHolder::IndexType __cuda_callable__
-   get( const SizesHolder& sizes, const Overlaps& overlaps )
-   {
-      const auto overlap = overlaps.template getSize< LevelTag::value >();
-      const auto size = Alignment::template getAlignedSize< LevelTag::value >( sizes );
-      return ( size + 2 * overlap )
-           * StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< LevelTag::value - 1 > >::get( sizes, overlaps );
-   }
-
-   template< typename Permutation >
-   [[nodiscard]] __cuda_callable__
-   static typename SizesHolder::IndexType
-   getPermuted( const SizesHolder& sizes, const Overlaps& overlaps, Permutation )
-   {
-      static constexpr std::size_t idx = detail::get< LevelTag::value >( Permutation{} );
-      const auto overlap = overlaps.template getSize< idx >();
-      const auto size = Alignment::template getAlignedSize< idx >( sizes );
-      return ( size + 2 * overlap )
-           * StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< LevelTag::value - 1 > >::get( sizes, overlaps );
-   }
-};
-
-template< typename SizesHolder, typename Alignment, typename Overlaps >
-struct StorageSizeGetter< SizesHolder, Alignment, Overlaps, IndexTag< 0 > >
-{
-   [[nodiscard]] static typename SizesHolder::IndexType __cuda_callable__
-   get( const SizesHolder& sizes, const Overlaps& overlaps )
-   {
-      const auto overlap = overlaps.template getSize< 0 >();
-      return Alignment::template getAlignedSize< 0 >( sizes ) + 2 * overlap;
-   }
-
-   template< typename Permutation >
-   [[nodiscard]] __cuda_callable__
-   static typename SizesHolder::IndexType
-   getPermuted( const SizesHolder& sizes, const Overlaps& overlaps, Permutation )
-   {
-      static constexpr std::size_t idx = detail::get< 0 >( Permutation{} );
-      const auto overlap = overlaps.template getSize< idx >();
-      return Alignment::template getAlignedSize< idx >( sizes ) + 2 * overlap;
-   }
-};
-
-// Static storage size without alignment, used in StaticNDArray
-template< typename SizesHolder, typename LevelTag = IndexTag< SizesHolder::getDimension() - 1 > >
-struct StaticStorageSizeGetter
-{
-   [[nodiscard]] constexpr static std::size_t
-   get()
-   {
-      return SizesHolder::template getStaticSize< LevelTag::value >()
-           * StaticStorageSizeGetter< SizesHolder, IndexTag< LevelTag::value - 1 > >::get();
-   }
-};
-
-template< typename SizesHolder >
-struct StaticStorageSizeGetter< SizesHolder, IndexTag< 0 > >
-{
-   [[nodiscard]] constexpr static std::size_t
-   get()
-   {
-      return SizesHolder::template getStaticSize< 0 >();
-   }
-};
 
 template< typename SizesHolder, typename... IndexTypes >
 void

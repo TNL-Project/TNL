@@ -4,9 +4,8 @@
 #pragma once
 
 #include <TNL/Containers/ndarray/Indexing.h>
-#include <TNL/Containers/ndarray/StaticSizesHolder.h>   // ConstStaticSizesHolder
-#include <TNL/Containers/ndarray/SizesHolderHelpers.h>  // StorageSizeGetter
-#include <TNL/Containers/ndarray/Subarrays.h>           // DummyStrideBase
+#include <TNL/Containers/ndarray/SizesHolder.h>        // make_sizes_holder
+#include <TNL/Containers/ndarray/StaticSizesHolder.h>  // ConstStaticSizesHolder
 
 namespace TNL::Containers {
 
@@ -26,10 +25,6 @@ getDimension()
  *
  * \tparam SizesHolder Instance of \ref SizesHolder that will represent the
  *                     array sizes.
- * \tparam Permutation Permutation that will be applied to indices when
- *                     accessing the array elements. The identity permutation
- *                     is used by default.
- * \tparam Base Either `detail::NDArrayBase` or `detail::SlicedNDArrayBase`.
  * \tparam StridesHolder Type of the base class which represents the strides of
  *                       the N-dimensional array.
  * \tparam Overlaps Sequence of integers representing the overlaps in each
@@ -38,26 +33,18 @@ getDimension()
  * \ingroup ndarray
  */
 template< typename SizesHolder,
-          typename Permutation,
-          typename Base,
-          typename StridesHolder = detail::DummyStrideBase< typename SizesHolder::IndexType, SizesHolder::getDimension() >,
+          typename StridesHolder,
           typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
-class NDArrayIndexer : public StridesHolder, public Overlaps
+class NDArrayIndexer
 {
-protected:
-   using NDBaseType = Base;
-
 public:
    //! \brief Type of the underlying object which represents the sizes of the N-dimensional array.
    using SizesHolderType = SizesHolder;
 
-   //! \brief Type of the base class which represents the strides of the N-dimensional array.
+   //! \brief Type of the underlying object which represents the strides of the N-dimensional array.
    using StridesHolderType = StridesHolder;
 
-   //! \brief Permutation that is applied to indices when accessing the array elements.
-   using PermutationType = Permutation;
-
-   //! \brief Sequence of integers representing the overlaps in each dimension
+   //! \brief Type of the underlying object which represents the overlaps in each dimension
    //! of a distributed N-dimensional array.
    using OverlapsType = Overlaps;
 
@@ -68,15 +55,11 @@ public:
 #ifdef _MSC_VER
    static_assert( Containers::getDimension< StridesHolder >() == Containers::getDimension< SizesHolder >(),
                   "Dimension of strides does not match the dimension of sizes." );
-   static_assert( Permutation::size() == Containers::getDimension< SizesHolder >(),
-                  "Dimension of permutation does not match the dimension of sizes." );
    static_assert( Containers::getDimension< Overlaps >() == Containers::getDimension< SizesHolder >(),
                   "Dimension of overlaps does not match the dimension of sizes." );
 #else
    static_assert( StridesHolder::getDimension() == SizesHolder::getDimension(),
                   "Dimension of strides does not match the dimension of sizes." );
-   static_assert( Permutation::size() == SizesHolder::getDimension(),
-                  "Dimension of permutation does not match the dimension of sizes." );
    static_assert( Overlaps::getDimension() == SizesHolder::getDimension(),
                   "Dimension of overlaps does not match the dimension of sizes." );
 #endif
@@ -88,9 +71,9 @@ public:
    //! \brief Creates the indexer with given sizes and strides.
    __cuda_callable__
    NDArrayIndexer( SizesHolderType sizes, StridesHolderType strides, OverlapsType overlaps )
-   : StridesHolder( std::move( strides ) ),
-     Overlaps( std::move( overlaps ) ),
-     sizes( std::move( sizes ) )
+   : sizes( std::move( sizes ) ),
+     strides( std::move( strides ) ),
+     overlaps( std::move( overlaps ) )
    {}
 
    //! \brief Returns the dimension of the \e N-dimensional array, i.e. \e N.
@@ -131,26 +114,28 @@ public:
    const StridesHolderType&
    getStrides() const
    {
-      return static_cast< const StridesHolderType& >( *this );
+      return strides;
    }
 
-   // method template from base class
-   using StridesHolder::getStride;
+   /**
+    * \brief Returns a specific component of the N-dimensional strides.
+    *
+    * \tparam level Integer specifying the component of the strides to be returned.
+    */
+   template< std::size_t level >
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getStride() const
+   {
+      return getStrides().template getSize< level >();
+   }
 
    //! \brief Returns the N-dimensional overlaps holder instance.
    [[nodiscard]] __cuda_callable__
    const OverlapsType&
    getOverlaps() const
    {
-      return static_cast< const OverlapsType& >( *this );
-   }
-
-   //! \brief Returns the N-dimensional overlaps holder instance.
-   [[nodiscard]] __cuda_callable__
-   OverlapsType&
-   getOverlaps()
-   {
-      return static_cast< OverlapsType& >( *this );
+      return overlaps;
    }
 
    /**
@@ -176,8 +161,7 @@ public:
    IndexType
    getStorageSize() const
    {
-      using Alignment = typename Base::template Alignment< Permutation >;
-      return detail::StorageSizeGetter< SizesHolder, Alignment, Overlaps >::get( getSizes(), getOverlaps() );
+      return detail::getStorageSize( getSizes(), getOverlaps() );
    }
 
    /**
@@ -197,42 +181,72 @@ public:
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
       detail::assertIndicesInBounds( getSizes(), getOverlaps(), std::forward< IndexTypes >( indices )... );
-      const IndexType result = Base::template getStorageIndex< Permutation >(
-         getSizes(), getStrides(), getOverlaps(), std::forward< IndexTypes >( indices )... );
+      const IndexType result = detail::getStorageIndex( getStrides(), getOverlaps(), std::forward< IndexTypes >( indices )... );
       TNL_ASSERT_GE( result, (IndexType) 0, "storage index out of bounds - either input error or a bug in the indexer" );
-      // upper bound can be checked only for contiguous arrays/views
-      if( StridesHolder::isContiguous() ) {
-         TNL_ASSERT_LT( result, getStorageSize(), "storage index out of bounds - either input error or a bug in the indexer" );
-      }
       return result;
    }
 
    template< typename BeginsHolder, typename EndsHolder >
    [[nodiscard]] __cuda_callable__
    bool
-   isContiguousBlock( const BeginsHolder& begins, const EndsHolder& ends )
+   isContiguousBlock( const BeginsHolder& begins, const EndsHolder& ends ) const
    {
       static_assert( BeginsHolder::getDimension() == getDimension(), "invalid dimension of the begins parameter" );
       static_assert( EndsHolder::getDimension() == getDimension(), "invalid dimension of the ends parameter" );
 
-      bool check = false;
-      bool contiguous = true;
+      constexpr std::size_t dim = getDimension();
+      IndexType sizes[ dim ];
+      IndexType strides[ dim ];
+      int non_degenerate_indices[ dim ] = { 0 };
+      int non_degenerate_count = 0;
 
-      Algorithms::staticFor< std::size_t, 0, getDimension() >(
+      Algorithms::staticFor< std::size_t, 0, dim >(
          [ & ]( auto i )
          {
-            constexpr int dim = TNL::Containers::detail::get< i >( Permutation{} );
-            const IndexType size = getSize< dim >() + 2 * getOverlap< dim >();
-            const IndexType blockSize = ends.template getSize< dim >() - begins.template getSize< dim >();
-            // blockSize can be different from size only in the first dimension,
-            // then the sizes must match in all following dimensions
-            if( check && blockSize != size )
-               contiguous = false;
-            if( blockSize > 1 )
-               check = true;
+            // Collect sizes and strides for each dimension
+            sizes[ i ] = ends.template getSize< i >() - begins.template getSize< i >();
+            strides[ i ] = getStride< i >();
+            // Collect indices of non-degenerate dimensions
+            if( sizes[ i ] > 1 ) {
+               non_degenerate_indices[ non_degenerate_count++ ] = i;
+            }
          } );
 
-      return contiguous;
+      TNL_ASSERT_LE( non_degenerate_count, (int) dim, "collecting indices of non-degenerate dimensions failed" );
+
+      // Sort non-degenerate dimensions by stride (ascending)
+      for( int i = 1; i < non_degenerate_count; i++ ) {
+         // GCC incorrectly detects out-of-bounds index
+#if defined( __GNUC__ ) && ! defined( __clang__ )
+   #pragma GCC diagnostic push
+   #pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
+         int key = non_degenerate_indices[ i ];
+#if defined( __GNUC__ ) && ! defined( __clang__ )
+   #pragma GCC diagnostic pop
+#endif
+         int j = i - 1;
+         while( j >= 0 && strides[ non_degenerate_indices[ j ] ] > strides[ key ] ) {
+            non_degenerate_indices[ j + 1 ] = non_degenerate_indices[ j ];
+            j--;
+         }
+         non_degenerate_indices[ j + 1 ] = key;
+      }
+
+      // Check if the smallest stride is 1
+      if( strides[ non_degenerate_indices[ 0 ] ] != 1 )
+         return false;
+
+      // Check the product condition
+      IndexType product = 1;
+      for( int i = 0; i < non_degenerate_count; i++ ) {
+         int idx = non_degenerate_indices[ i ];
+         if( i > 0 && strides[ idx ] != product )
+            return false;
+         product *= sizes[ idx ];
+      }
+
+      return true;
    }
 
 protected:
@@ -249,8 +263,43 @@ protected:
       return sizes;
    }
 
+   /**
+    * \brief Returns a non-constant reference to the underlying \ref strides.
+    *
+    * The function is not public -- only subclasses like \ref NDArrayStorage
+    * may modify the strides.
+    */
+   [[nodiscard]] __cuda_callable__
+   StridesHolderType&
+   getStrides()
+   {
+      return strides;
+   }
+
+   /**
+    * \brief Returns a non-constant reference to the underlying \ref overlaps.
+    *
+    * The function is not public -- only subclasses like \ref NDArrayStorage
+    * may modify the strides.
+    */
+   [[nodiscard]] __cuda_callable__
+   OverlapsType&
+   getOverlaps()
+   {
+      return overlaps;
+   }
+
+   // TODO: use [[no_unique_address]] in C++20 - see https://www.cppstories.com/2021/no-unique-address/
    //! \brief Underlying object which represents the sizes of the N-dimensional array.
    SizesHolderType sizes;
+
+   // TODO: use [[no_unique_address]] in C++20 - see https://www.cppstories.com/2021/no-unique-address/
+   //! \brief Underlying object which represents the strides of the N-dimensional array.
+   StridesHolderType strides;
+
+   // TODO: use [[no_unique_address]] in C++20 - see https://www.cppstories.com/2021/no-unique-address/
+   //! \brief Underlying object which represents the overlaps of the N-dimensional array.
+   OverlapsType overlaps;
 };
 
 }  // namespace TNL::Containers
