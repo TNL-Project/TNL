@@ -16,7 +16,7 @@ namespace TNL::Algorithms::Segments {
  *
  * \tparam EmbeddedSegments is a type of segments used to manage the data.
  */
-template< typename EmbeddedSegmentsView_, typename Index = typename EmbeddedSegmentsView_::IndexType >
+template< typename EmbeddedSegmentsView_ >
 class SortedSegmentsBase
 {
 public:
@@ -28,15 +28,12 @@ public:
    using DeviceType = typename EmbeddedSegmentsView::DeviceType;
 
    //! \brief The type used for indexing of segments elements.
-   using IndexType = std::remove_const_t< Index >;
+   using IndexType = typename EmbeddedSegmentsView::IndexType;
 
    //! \brief Accessor type for one particular segment.
    using SegmentViewType = typename EmbeddedSegmentsView::SegmentViewType;
 
-   //! \brief The index type that can hold const in case of const segments view.
-   //using OriginalIndexType = typename EmbeddedSegmentsView::OriginalIndexType;
-
-   using PermutationView = typename Containers::VectorView< Index, DeviceType, IndexType >;
+   using PermutationView = typename Containers::VectorView< IndexType, DeviceType, IndexType >;
 
    using ConstPermutationView = typename Containers::VectorView< std::add_const_t< IndexType >, DeviceType, IndexType >;
 
@@ -189,9 +186,9 @@ protected:
     */
    __cuda_callable__
    void
-   bind( EmbeddedSegmentsView&& embeddedSegmentsView,
-         PermutationView&& segmentsPermutation,
-         PermutationView&& inverseSegmentsPermutation );
+   bind( const EmbeddedSegmentsView& embeddedSegmentsView,
+         const PermutationView& segmentsPermutation,
+         const PermutationView& inverseSegmentsPermutation );
 };
 
 }  // namespace TNL::Algorithms::Segments

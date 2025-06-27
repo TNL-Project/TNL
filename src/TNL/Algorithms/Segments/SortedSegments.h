@@ -32,13 +32,30 @@ public:
 
    using typename Base::IndexType;
 
+   using typename Base::EmbeddedSegmentsView;
+
+   using typename Base::EmbeddedSegmentsConstView;
+
+   using typename Base::PermutationView;
+
+   using typename Base::ConstPermutationView;
+
    using EmbeddedSegmentsType = EmbeddedSegments;
 
    //! \brief Type of segments view.
    using ViewType = SortedSegmentsView< typename EmbeddedSegments::ViewType >;
 
    //! \brief Type of constant segments view.
-   using ConstViewType = SortedSegmentsView< typename EmbeddedSegments::ConstViewType, std::add_const_t< IndexType > >;
+   using ConstViewType = SortedSegmentsView< typename EmbeddedSegments::ConstViewType >;
+
+   /**
+    * \brief Templated view type.
+    *
+    * \tparam Device_ is alternative device type for the view.
+    * \tparam Index_ is alternative index type for the view.
+    */
+   template< typename Device_ = DeviceType, typename Index_ = IndexType >
+   using ViewTemplate = SortedSegmentsView< typename EmbeddedSegments::template ViewTemplate< Device_, Index_ > >;
 
    using IndexAllocatorType = IndexAllocator;
 
