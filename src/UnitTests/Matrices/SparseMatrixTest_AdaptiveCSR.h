@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-const char* saveAndLoadFileName = "test_SparseMatrixTest_CSRLight_segments";
+const char* saveAndLoadFileName = "test_SparseMatrixTest_AdaptiveCSR_segments";
 
 // types for which MatrixTest is instantiated
 using MatrixTypes = ::testing::Types<

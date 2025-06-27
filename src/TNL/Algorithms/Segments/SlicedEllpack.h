@@ -238,7 +238,8 @@ using ColumnMajorSlicedEllpack = SlicedEllpack< Device, Index, IndexAllocator, C
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+          ElementsOrganization Organization =
+             TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
           int SliceSize = 32 >
 using SortedSlicedEllpack = SortedSegments< SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize > >;
 
