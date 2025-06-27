@@ -10,9 +10,9 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< typename EmbeddedSegmentsView_, typename Index >
-struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
-: public TraversingOperationsBaseline< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
+template< typename EmbeddedSegmentsView_ >
+struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
+: public TraversingOperationsBaseline< SortedSegmentsView< EmbeddedSegmentsView_ > >
 {
    using EmbeddedSegmentsView = EmbeddedSegmentsView_;
    using DeviceType = typename EmbeddedSegmentsView::DeviceType;

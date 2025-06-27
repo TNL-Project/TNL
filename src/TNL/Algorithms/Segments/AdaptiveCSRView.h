@@ -24,6 +24,9 @@ class AdaptiveCSRView : public CSRView< Device, Index >
    using Base = CSRView< Device, Index >;
 
 public:
+   using typename Base::DeviceType;
+   using typename Base::IndexType;
+
    //! \brief Type of segments view.
    using ViewType = AdaptiveCSRView< Device, Index >;
 
@@ -41,7 +44,7 @@ public:
 
    using OffsetsView = typename Base::OffsetsView;
 
-   using BlocksType = TNL::Containers::Vector< detail::CSRAdaptiveKernelBlockDescriptor< Index >, Device, Index >;
+   using BlocksType = TNL::Containers::Vector< detail::CSRAdaptiveKernelBlockDescriptor< IndexType >, Device, IndexType >;
    using BlocksView = typename BlocksType::ViewType;
 
    //! \brief Default constructor with no parameters to create empty segments view.

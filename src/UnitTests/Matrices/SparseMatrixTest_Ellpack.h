@@ -5,17 +5,11 @@
 
 const char* saveAndLoadFileName = "test_SparseMatrixTest_Ellpack_segments";
 
-////
-// Row-major format is used for the host system
-template< typename Device, typename Index, typename IndexAllocator >
-using RowMajorEllpack =
-   TNL::Algorithms::Segments::Ellpack< Device, Index, IndexAllocator, TNL::Algorithms::Segments::RowMajorOrder, 32 >;
+template< typename Device, typename Index, typename IndexAlocator >
+using RowMajorEllpack = TNL::Algorithms::Segments::RowMajorEllpack< Device, Index, IndexAlocator >;
 
-////
-// Column-major format is used for GPUs
 template< typename Device, typename Index, typename IndexAllocator >
-using ColumnMajorEllpack =
-   TNL::Algorithms::Segments::Ellpack< Device, Index, IndexAllocator, TNL::Algorithms::Segments::ColumnMajorOrder, 32 >;
+using ColumnMajorEllpack = TNL::Algorithms::Segments::ColumnMajorEllpack< Device, Index, IndexAllocator >;
 
 // types for which MatrixTest is instantiated
 using MatrixTypes = ::testing::Types<

@@ -13,14 +13,14 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< typename EmbeddedSegmentsView_, typename Index >
-struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
-: public ReducingOperationsBaseline< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
+template< typename EmbeddedSegmentsView_ >
+struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
+: public ReducingOperationsBaseline< SortedSegmentsView< EmbeddedSegmentsView_ > >
 {
    using EmbeddedSegmentsView = EmbeddedSegmentsView_;
    using DeviceType = typename EmbeddedSegmentsView::DeviceType;
    using IndexType = typename EmbeddedSegmentsView::IndexType;
-   using ViewType = SortedSegmentsView< EmbeddedSegmentsView_, Index >;
+   using ViewType = SortedSegmentsView< EmbeddedSegmentsView_ >;
    using ConstViewType = typename ViewType::ConstViewType;
 
    template< typename IndexBegin,
@@ -28,7 +28,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+             typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
    reduceSegments( const ConstViewType& segments,
                    IndexBegin begin,
@@ -39,7 +39,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
-      using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+      using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
 
       if( end <= begin )
          return;
@@ -122,7 +122,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+             typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
    reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
                                      const Array& segmentIndexes,
@@ -134,7 +134,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
                                      const Value& identity,
                                      const LaunchConfiguration& launchConfig )
    {
-      using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+      using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
 
       if( end <= begin )
          return;
@@ -190,7 +190,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+             typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
    reduceSegmentsWithArgument( const ConstViewType& segments,
                                IndexBegin begin,
@@ -201,7 +201,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
                                const Value& identity,
                                const LaunchConfiguration& launchConfig )
    {
-      using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+      using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
 
       if( end <= begin )
          return;
@@ -299,7 +299,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
       const Value& identity,
       LaunchConfiguration launchConfig )
    {
-      using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+      using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
 
       if( end <= begin )
          return;
@@ -370,7 +370,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
                      const Value& identity,
                      LaunchConfiguration launchConfig )
    {
-      using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+      using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
 
       if( end <= begin )
@@ -440,7 +440,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_, Index > >
                                  const Value& identity,
                                  LaunchConfiguration launchConfig )
    {
-      using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+      using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
 
       if( end <= begin )

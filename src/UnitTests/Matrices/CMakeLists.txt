@@ -13,6 +13,12 @@ set(COMMON_TESTS
     SparseMatrixTest_SlicedEllpack
     SparseMatrixTest_ChunkedEllpack
     SparseMatrixTest_BiEllpack
+    SparseMatrixTest_SortedAdaptiveCSR
+    SparseMatrixTest_SortedCSR
+    SparseMatrixTest_SortedBiEllpack
+    SparseMatrixTest_SortedChunkedEllpack
+    SparseMatrixTest_SortedEllpack
+    SparseMatrixTest_SortedSlicedEllpack
     SparseMatrixVectorProductTest_CSR
     SparseMatrixVectorProductTest_AdaptiveCSR
     SparseMatrixVectorProductTest_Ellpack
