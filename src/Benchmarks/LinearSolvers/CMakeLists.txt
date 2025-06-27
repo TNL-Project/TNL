@@ -1,3 +1,4 @@
+find_package(Ginkgo)
 find_package(STRUMPACK)
 
 # find_package(Trilinos) # This leads to wrong parameters for linker https://github.com/trilinos/Trilinos/issues/13396
@@ -26,7 +27,7 @@ if(TNL_BUILD_CUDA)
         target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC MPI::MPI_CXX)
 
         # FIXME: we can't link to ginkgo when using LLVM's libc++: https://github.com/ginkgo-project/ginkgo/issues/1571
-        if(Ginkgo_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        if(Ginkgo_FOUND AND CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
             target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_GINKGO")
             target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC Ginkgo::ginkgo)
         endif()
