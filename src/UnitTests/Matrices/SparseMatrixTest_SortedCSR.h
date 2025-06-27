@@ -1,10 +1,11 @@
+#include <iostream>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Arithmetics/Complex.h>
 
 #include <gtest/gtest.h>
 
-const char* saveAndLoadFileName = "test_SparseMatrixTest_CS_segments";
+const char* saveAndLoadFileName = "test_SparseMatrixTest_CSRLight_segments";
 
 // types for which MatrixTest is instantiated
 using MatrixTypes = ::testing::Types<

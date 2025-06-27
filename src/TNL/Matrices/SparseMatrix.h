@@ -96,7 +96,7 @@ public:
     * \brief Templated view type of segments, i.e. sparse matrix format.
     */
    template< typename Device_, typename Index_ >
-   using SegmentsViewTemplate = typename SegmentsType::template ViewTemplate< Device_, Index >;
+   using SegmentsViewTemplate = typename SegmentsType::template ViewTemplate< Device_, Index_ >;
 
    /**
     * \brief The allocator for matrix elements values.

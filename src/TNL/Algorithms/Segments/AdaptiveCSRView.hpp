@@ -65,15 +65,14 @@ AdaptiveCSRView< Index, Device >::setBlocks( BlocksType& blocks, const int idx )
 }
 
 template< typename Device, typename Index >
-[[nodiscard]]
-auto
+[[nodiscard]] auto
 AdaptiveCSRView< Device, Index >::getView() -> ViewType
 {
    return *this;
 }
 
 template< typename Device, typename Index >
-[[nodiscard]]
+[[nodiscard]] __cuda_callable__
 auto
 AdaptiveCSRView< Device, Index >::getConstView() const -> ConstViewType
 {

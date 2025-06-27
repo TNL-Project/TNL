@@ -38,7 +38,7 @@ namespace TNL::Algorithms::Segments {
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+          ElementsOrganization Organization = DefaultElementsOrganization< Device >::getOrganization(),
           int WarpSize = Backend::getWarpSize() >
 class BiEllpack : public BiEllpackBase< Device, Index, Organization, WarpSize >
 {
@@ -262,7 +262,8 @@ using ColumnMajorBiEllpack = BiEllpack< Device, Index, IndexAllocator, ColumnMaj
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+          ElementsOrganization Organization =
+             TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
           int WarpSize = Backend::getWarpSize() >
 using SortedBiEllpack = SortedSegments< BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize > >;
 

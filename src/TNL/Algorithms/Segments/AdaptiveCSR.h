@@ -49,6 +49,15 @@ public:
    using BlocksView = typename BlocksType::ViewType;
 
    /**
+    * \brief Templated view type.
+    *
+    * \tparam Device_ is alternative device type for the view.
+    * \tparam Index_ is alternative index type for the view.
+    */
+   template< typename Device_, typename Index_ >
+   using ViewTemplate = AdaptiveCSRView< Device_, Index_ >;
+
+   /**
     * \brief Templated type for creating AdaptiveCSR segments with different template parameters.
     *
     * \tparam Device_ is alternative device type.
@@ -245,7 +254,7 @@ struct isSortedAdaptiveCSRSegments : std::false_type
 {};
 
 template< typename Device, typename Index, typename IndexAllocator >
-struct isSortedAdaptiveCSRSegments< SortedSegments< SortedAdaptiveCSR< Device, Index, IndexAllocator > > > : std::true_type
+struct isSortedAdaptiveCSRSegments< SortedAdaptiveCSR< Device, Index, IndexAllocator > > : std::true_type
 {};
 
 template< typename Device, typename Index >
