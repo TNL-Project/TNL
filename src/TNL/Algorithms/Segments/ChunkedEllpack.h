@@ -30,7 +30,7 @@ namespace TNL::Algorithms::Segments {
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
+          ElementsOrganization Organization = DefaultElementsOrganization< Device >::getOrganization() >
 class ChunkedEllpack : public ChunkedEllpackBase< Device, Index, Organization >
 {
    using Base = ChunkedEllpackBase< Device, Index, Organization >;
@@ -256,7 +256,8 @@ using ColumnMajorChunkedEllpack = ChunkedEllpack< Device, Index, IndexAllocator,
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization() >
+          ElementsOrganization Organization =
+             TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
 using SortedChunkedEllpack = SortedSegments< ChunkedEllpack< Device, Index, IndexAllocator, Organization > >;
 
 /**

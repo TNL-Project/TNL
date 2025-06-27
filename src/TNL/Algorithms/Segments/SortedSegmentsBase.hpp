@@ -11,32 +11,32 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 std::string
-SortedSegmentsBase< EmbeddedSegments, Index >::getSerializationType()
+SortedSegmentsBase< EmbeddedSegments >::getSerializationType()
 {
    return "SortedSegments< " + EmbeddedSegments::getSerializationType() + " >";
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 std::string
-SortedSegmentsBase< EmbeddedSegments, Index >::getSegmentsType()
+SortedSegmentsBase< EmbeddedSegments >::getSegmentsType()
 {
    return "SortedSegments";
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getSegmentsCount() const -> IndexType
+SortedSegmentsBase< EmbeddedSegments >::getSegmentsCount() const -> IndexType
 {
    return this->embeddedSegmentsView.getSegmentsCount();
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getSegmentSize( IndexType segmentIdx ) const -> IndexType
+SortedSegmentsBase< EmbeddedSegments >::getSegmentSize( IndexType segmentIdx ) const -> IndexType
 {
    if( ! std::is_same_v< DeviceType, Devices::Host > && ! std::is_same_v< DeviceType, Devices::Sequential > ) {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
@@ -48,26 +48,26 @@ SortedSegmentsBase< EmbeddedSegments, Index >::getSegmentSize( IndexType segment
    return embeddedSegmentsView.getSegmentSize( segmentsPermutationView[ segmentIdx ] );
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getSize() const -> IndexType
+SortedSegmentsBase< EmbeddedSegments >::getSize() const -> IndexType
 {
    return this->embeddedSegmentsView.getSize();
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getStorageSize() const -> IndexType
+SortedSegmentsBase< EmbeddedSegments >::getStorageSize() const -> IndexType
 {
    return this->embeddedSegmentsView.getStorageSize();
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getGlobalIndex( const IndexType segmentIdx, const IndexType localIdx ) const
+SortedSegmentsBase< EmbeddedSegments >::getGlobalIndex( const IndexType segmentIdx, const IndexType localIdx ) const
    -> IndexType
 {
    if( ! std::is_same_v< DeviceType, Devices::Host > && ! std::is_same_v< DeviceType, Devices::Sequential > ) {
@@ -80,72 +80,72 @@ SortedSegmentsBase< EmbeddedSegments, Index >::getGlobalIndex( const IndexType s
    return this->embeddedSegmentsView.getGlobalIndex( this->segmentsPermutationView[ segmentIdx ], localIdx );
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getSegmentView( IndexType segmentIdx ) const -> SegmentViewType
+SortedSegmentsBase< EmbeddedSegments >::getSegmentView( IndexType segmentIdx ) const -> SegmentViewType
 {
    return this->embeddedSegmentsView.getSegmentView( this->segmentsPermutationView[ segmentIdx ] );
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getEmbeddedSegmentsView() const -> EmbeddedSegmentsConstView
+SortedSegmentsBase< EmbeddedSegments >::getEmbeddedSegmentsView() const -> EmbeddedSegmentsConstView
 {
    return embeddedSegmentsView.getConstView();
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getEmbeddedSegmentsView() -> EmbeddedSegmentsView
+SortedSegmentsBase< EmbeddedSegments >::getEmbeddedSegmentsView() -> EmbeddedSegmentsView
 {
    return embeddedSegmentsView.getView();
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getSegmentsPermutationView() -> PermutationView
+SortedSegmentsBase< EmbeddedSegments >::getSegmentsPermutationView() -> PermutationView
 {
    return segmentsPermutationView;
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getSegmentsPermutationView() const -> ConstPermutationView
+SortedSegmentsBase< EmbeddedSegments >::getSegmentsPermutationView() const -> ConstPermutationView
 {
    return segmentsPermutationView.getConstView();
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getInverseSegmentsPermutationView() -> PermutationView
+SortedSegmentsBase< EmbeddedSegments >::getInverseSegmentsPermutationView() -> PermutationView
 {
    return inverseSegmentsPermutationView;
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 auto
-SortedSegmentsBase< EmbeddedSegments, Index >::getInverseSegmentsPermutationView() const -> ConstPermutationView
+SortedSegmentsBase< EmbeddedSegments >::getInverseSegmentsPermutationView() const -> ConstPermutationView
 {
    return inverseSegmentsPermutationView.getConstView();
 }
 
-template< typename EmbeddedSegments, typename Index >
+template< typename EmbeddedSegments >
 __cuda_callable__
 void
-SortedSegmentsBase< EmbeddedSegments, Index >::bind( EmbeddedSegmentsView&& embeddedSegments,
-                                                     PermutationView&& segmentsPermutation,
-                                                     PermutationView&& inverseSegmentsPermutation )
+SortedSegmentsBase< EmbeddedSegments >::bind( const EmbeddedSegmentsView& embeddedSegments,
+                                              const PermutationView& segmentsPermutation,
+                                              const PermutationView& inverseSegmentsPermutation )
 {
-   this->embeddedSegmentsView.bind( std::move( embeddedSegments ) );
-   this->segmentsPermutationView.bind( std::move( segmentsPermutation ) );
-   this->inverseSegmentsPermutationView.bind( std::move( inverseSegmentsPermutation ) );
+   this->embeddedSegmentsView.bind( embeddedSegments );
+   this->segmentsPermutationView.bind( segmentsPermutation );
+   this->inverseSegmentsPermutationView.bind( inverseSegmentsPermutation );
 }
 
 }  // namespace TNL::Algorithms::Segments

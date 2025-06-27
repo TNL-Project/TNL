@@ -108,9 +108,15 @@ template< typename EmbeddedSegments, typename IndexAllocator >
 auto
 SortedSegments< EmbeddedSegments, IndexAllocator >::getConstView() const -> ConstViewType
 {
-   return { this->embeddedSegments.getConstView(),
-            this->segmentsPermutation.getConstView(),
-            this->inverseSegmentsPermutation.getConstView() };
+   EmbeddedSegmentsConstView embeddedSegmentsView;
+   embeddedSegmentsView.bind( this->getEmbeddedSegmentsView() );
+   ConstPermutationView segmentsPermutation =
+      const_cast< std::remove_const_t< decltype( this ) > >( this )->getSegmentsPermutationView();
+   ConstPermutationView inverseSegmentsPermutation =
+      const_cast< std::remove_const_t< decltype( this ) > >( this )->getInverseSegmentsPermutationView();
+   ViewType view;
+   view.bind( embeddedSegmentsView, segmentsPermutation, inverseSegmentsPermutation );
+   return *(ConstViewType*) &view;
 }
 
 template< typename EmbeddedSegments, typename IndexAllocator >
@@ -221,14 +227,16 @@ template< typename EmbeddedSegments, typename IndexAllocator >
 void
 SortedSegments< EmbeddedSegments, IndexAllocator >::save( File& file ) const
 {
-   file << this->embeddedSegments << this->segmentsPermutation << this->inverseSegmentsPermutation;
+   this->embeddedSegments.save( file );
+   file << this->segmentsPermutation << this->inverseSegmentsPermutation;
 }
 
 template< typename EmbeddedSegments, typename IndexAllocator >
 void
 SortedSegments< EmbeddedSegments, IndexAllocator >::load( File& file )
 {
-   file >> this->embeddedSegments >> this->segmentsPermutation >> this->inverseSegmentsPermutation;
+   this->embeddedSegments.load( file );
+   file >> this->segmentsPermutation >> this->inverseSegmentsPermutation;
 
    // update the base
    Base::bind(

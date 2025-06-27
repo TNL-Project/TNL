@@ -7,6 +7,7 @@
 
 #include <TNL/Containers/Vector.h>
 
+#include "ElementsOrganization.h"
 #include "EllpackView.h"
 #include "SortedSegments.h"
 
@@ -34,7 +35,7 @@ namespace TNL::Algorithms::Segments {
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+          ElementsOrganization Organization = DefaultElementsOrganization< Device >::getOrganization(),
           int Alignment = 32 >
 class Ellpack : public EllpackBase< Device, Index, Organization, Alignment >
 {
@@ -257,7 +258,8 @@ using ColumnMajorEllpack = Ellpack< Device, Index, IndexAllocator, ColumnMajorOr
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+          ElementsOrganization Organization =
+             TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
           int Alignment = 32 >
 using SortedEllpack = SortedSegments< Ellpack< Device, Index, IndexAllocator, Organization, Alignment > >;
 
