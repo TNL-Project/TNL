@@ -21,7 +21,7 @@ template< typename EmbeddedSegments >
 std::string
 SortedSegmentsBase< EmbeddedSegments >::getSegmentsType()
 {
-   return "SortedSegments";
+   return "Sorted " + EmbeddedSegments::getSegmentsType();
 }
 
 template< typename EmbeddedSegments >
