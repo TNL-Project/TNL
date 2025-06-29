@@ -27,24 +27,23 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
       else
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 2 ), "2 threads per segment" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 4 ), "4 threads per segment" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 8 ), "8 threads per segment" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 16 ), "16 threads per segment" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 32 ), "32 threads per segment" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 64 ), "64 threads per segment" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 128 ), "128 thread per segment" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::WarpPerSegment, 1 ), "WarpPerSegment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 1 ), "UserDefined 1 thread per segment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 2 ), "UserDefined 2 thread per segment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 4 ), "UserDefined 4 thread per segment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 8 ), "UserDefined 8 thread per segment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 16 ), "UserDefined 16 thread per segment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 32 ), "UserDefined 32 thread per segment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 64 ), "UserDefined 64 thread per segment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::UserDefined, 128 ), "UserDefined 128 thread per segment" },
-            { LaunchConfigurationSetter_Default< Segments >::create( segments ), "DefaultLaunchConfiguration" },
-            { LaunchConfigurationSetter_LightCSR< Segments >::create( segments ), "CSRLightLaunchConfiguration" },
-            { LaunchConfigurationSetter_HybridCSR< Segments >::create( segments ), "CSRHybridLaunchConfiguration" }
+            { LaunchConfigurationSetter_Default< Segments >::create( segments ), "Default" },
+            { LaunchConfigurationSetter_LightCSR< Segments >::create( segments ), "CSRLight" },
+            { LaunchConfigurationSetter_HybridCSR< Segments >::create( segments ), "CSRHybrid" }
          };
    }
    else {
       return std::list< std::pair< LaunchConfiguration, std::string > >{
          { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" },
-         { LaunchConfigurationSetter_Default< Segments >::create( segments ), "DefaultLaunchConfiguration" }
+         { LaunchConfigurationSetter_Default< Segments >::create( segments ), "Default" }
       };
    }
 }
