@@ -48,7 +48,7 @@ runTest()
    do
    	for mpi1 in 3 4
 	do
-		echo ${matrix1}"-"${mpi1}	
+		echo ${matrix1}"-"${mpi1}
 		mpirun -n ${mpi1} -oversubscribe tnl-gem-cuda-mpi \
 				--input-matrix ${matrix1}".mtx" \
 				--device GPU \
@@ -59,7 +59,7 @@ runTest()
 				--device GPU \
 				--pivoting no \
 				>> ./results/${matrix1}GPUpivMPI${mpi1}.txt
-				
+
 	done
    done
 

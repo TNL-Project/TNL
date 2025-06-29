@@ -1,8 +1,9 @@
-#ifdef HAVE_CUDA
-   #include <cuda_runtime.h>
-//TODO: Real
+#pragma once
 
-/************************REDUCTION MAX******************************************/
+#ifdef __CUDACC__
+   #include <cuda_runtime.h>
+
+namespace TNL::Solvers::Linear::detail {
 
 template< typename Real >
 __inline__ __device__
@@ -50,19 +51,16 @@ blockReduceArgMax( Real& val, int& index )
    }
 }
 
-/*************************END REDUCTION MAX*************************************/
-/*******************************************************************************/
-
-template< typename Real >
+template< typename MatrixView, typename VectorView, typename IndexVectorView >
 __global__
 void
-findPivot( Matrix< Real, TNL::Devices::Cuda, int >* A,
-           int colPointerMain,
-           TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > outMaximum,
-           TNL::Containers::VectorView< int, TNL::Devices::Cuda, int > outPosition )
+findPivot( MatrixView A, int colPointerMain, VectorView outMaximum, IndexVectorView outPosition )
 {
+   using Real = typename MatrixView::RealType;
+   using Index = typename MatrixView::IndexType;
+
    int rowPointer = threadIdx.x + blockDim.x * blockIdx.x + colPointerMain;
-   Real firstElementInRow = rowPointer >= A->getNumRows() ? 0 : TNL::abs( A->getElement( rowPointer, colPointerMain ) );
+   Real firstElementInRow = rowPointer >= A.getRows() ? 0 : TNL::abs( A.getElement( rowPointer, colPointerMain ) );
    int index = rowPointer;
    blockReduceArgMax( firstElementInRow, index );
    if( threadIdx.x == 0 ) {
@@ -71,13 +69,14 @@ findPivot( Matrix< Real, TNL::Devices::Cuda, int >* A,
    }
 }
 
-template< typename Real >
+template< typename VectorView, typename IndexVectorView >
 __global__
 void
-findRowPivot( TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > outMaximum,
-              TNL::Containers::VectorView< int, TNL::Devices::Cuda, int > outPosition,
-              int* positionPivot )
+findRowPivot( VectorView outMaximum, IndexVectorView outPosition, int* positionPivot )
 {
+   using Real = typename VectorView::RealType;
+   using Index = typename VectorView::IndexType;
+
    int rowPointer = threadIdx.x;
    Real firstElementInRow = rowPointer >= outMaximum.getSize() ? 0 : outMaximum[ rowPointer ];
    int index = rowPointer >= outPosition.getSize() ? 0 : outPosition[ rowPointer ];
@@ -87,22 +86,22 @@ findRowPivot( TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > outMa
    }
 }
 
-template< typename Real >
+template< typename MatrixView, typename VectorView >
 __global__
 void
-swapRows( Matrix< Real, TNL::Devices::Cuda, int >* A,
-          TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b,
-          int colPointerMain,
-          int* positionPivot )
+swapRows( MatrixView A, VectorView b, int colPointerMain, int* positionPivot )
 {
+   using Real = typename MatrixView::RealType;
+   using Index = typename MatrixView::IndexType;
+
    if( *positionPivot > colPointerMain ) {
       int rowPointer1 = colPointerMain;
       int rowPointer2 = *positionPivot;
       int colPointer = threadIdx.x + blockDim.x * blockIdx.x + colPointerMain;
-      if( colPointer < A->getNumColumns() && rowPointer1 < A->getNumRows() ) {
-         Real pom = A->getElement( rowPointer1, colPointer );
-         A->setElement( rowPointer1, colPointer, A->getElement( rowPointer2, colPointer ) );
-         A->setElement( rowPointer2, colPointer, pom );
+      if( colPointer < A.getColumns() && rowPointer1 < A.getRows() ) {
+         Real pom = A.getElement( rowPointer1, colPointer );
+         A.setElement( rowPointer1, colPointer, A.getElement( rowPointer2, colPointer ) );
+         A.setElement( rowPointer2, colPointer, pom );
          if( colPointer == colPointerMain ) {
             pom = b[ rowPointer1 ];
             b[ rowPointer1 ] = b[ rowPointer2 ];
@@ -112,61 +111,60 @@ swapRows( Matrix< Real, TNL::Devices::Cuda, int >* A,
    }
 }
 
-template< typename Real >
+template< typename MatrixView, typename VectorView >
 __global__
 void
-GEMmainKernel( Matrix< Real, TNL::Devices::Cuda, int >* A,
-               TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > b,
-               int colPointerMain )
+GEMmainKernel( MatrixView A, VectorView b, int colPointerMain )
 {
+   using Real = typename MatrixView::RealType;
+   using Index = typename MatrixView::IndexType;
+
    int thread = threadIdx.x + blockIdx.x * blockDim.x;
-   int rowPointer = thread / ( A->getNumRows() - colPointerMain );
-   int colPointer = thread % ( A->getNumRows() - colPointerMain ) + colPointerMain;
+   int rowPointer = thread / ( A.getRows() - colPointerMain );
+   int colPointer = thread % ( A.getRows() - colPointerMain ) + colPointerMain;
    //printf("%d, %d\n",rowPointer, colPointer );
-   if( colPointer > colPointerMain && colPointer < A->getNumColumns() && rowPointer != colPointerMain
-       && rowPointer < A->getNumRows() )
+   if( colPointer > colPointerMain && colPointer < A.getColumns() && rowPointer != colPointerMain && rowPointer < A.getRows() )
    {
-      if( A->getElement( colPointerMain, colPointerMain ) != 0 ) {
-         const Real pivot = A->getElement( colPointerMain, colPointerMain );
-         const Real firstElementInRow = A->getElement( rowPointer, colPointerMain );
+      if( A.getElement( colPointerMain, colPointerMain ) != 0 ) {
+         const Real pivot = A.getElement( colPointerMain, colPointerMain );
+         const Real firstElementInRow = A.getElement( rowPointer, colPointerMain );
          if( firstElementInRow != 0 ) {
-            A->setElement( rowPointer,
-                           colPointer,
-                           A->getElement( rowPointer, colPointer )
-                              - firstElementInRow * A->getElement( colPointerMain, colPointer ) / pivot );
+            A.setElement( rowPointer,
+                          colPointer,
+                          A.getElement( rowPointer, colPointer )
+                             - firstElementInRow * A.getElement( colPointerMain, colPointer ) / pivot );
          }
       }
       else if( colPointer == colPointerMain && rowPointer == colPointerMain )
          printf( "Error, pivot is zero!\n" );
    }
-   if( rowPointer < A->getNumRows() && colPointer < A->getNumColumns() && rowPointer != colPointerMain
-       && colPointer == colPointerMain && A->getElement( colPointerMain, colPointerMain ) != 0
-       && A->getElement( rowPointer, colPointerMain ) != 0 )
+   if( rowPointer < A.getRows() && colPointer < A.getColumns() && rowPointer != colPointerMain && colPointer == colPointerMain
+       && A.getElement( colPointerMain, colPointerMain ) != 0 && A.getElement( rowPointer, colPointerMain ) != 0 )
    {
       b[ rowPointer ] =
          b[ rowPointer ]
-         - A->getElement( rowPointer, colPointerMain ) * b[ colPointerMain ] / A->getElement( colPointerMain, colPointerMain );
+         - A.getElement( rowPointer, colPointerMain ) * b[ colPointerMain ] / A.getElement( colPointerMain, colPointerMain );
    }
 }
 
-template< typename Real >
+template< typename MatrixView, typename ConstVectorView, typename VectorView >
 __global__
 void
-GEMDiagToResult( Matrix< Real, TNL::Devices::Cuda, int >* A,
-                 TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > v,
-                 TNL::Containers::VectorView< Real, TNL::Devices::Cuda, int > out )
+GEMDiagToResult( const MatrixView A, const ConstVectorView v, VectorView out )
 {
    int i = threadIdx.x + blockDim.x * blockIdx.x;
-   if( i < A->getNumRows() )
-      out[ i ] = v[ i ] / A->getElement( i, i );
+   if( i < A.getRows() )
+      out[ i ] = v[ i ] / A.getElement( i, i );
 }
 
-template< typename Real >
+template< typename MatrixView >
 __global__
 void
-showMatrix( Matrix< Real, TNL::Devices::Cuda, int > A )
+showMatrix( MatrixView A )
 {
-   A.showMatrix();
+   //A.showMatrix();
 }
 
-#endif  //HAVE_CUDA
+}  // namespace TNL::Solvers::Linear::detail
+
+#endif

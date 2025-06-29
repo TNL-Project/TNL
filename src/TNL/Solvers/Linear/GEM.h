@@ -27,7 +27,7 @@ struct GEM
    GEM( MatrixGEM& A, VectorType& b );
 
    bool
-   solve( VectorType& x, const TNL::String& pivoting, int verbose = 0 );
+   solve( VectorType& x, int verbose = 0 );
 
    bool
    solveWithoutPivoting( VectorType& x, int verbose = 0 );
@@ -40,11 +40,11 @@ struct GEM
 
 #ifdef HAVE_MPI
    bool
-   GEMdeviceMPI( VectorType& x, const TNL::String& pivoting, int verbose );
+   GEMdeviceMPI( VectorType& x, int verbose );
 #endif
 
    bool
-   GEMdevice( VectorType& x, const TNL::String& pivoting, int verbose );
+   GEMdevice( VectorType& x, int verbose );
 
    bool
    setMatrixVector( MatrixGEM& A, VectorType& b )
@@ -54,6 +54,18 @@ struct GEM
       return true;
    }
 
+   void
+   setPivoting( bool pivoting )
+   {
+      this->pivoting = pivoting;
+   }
+
+   bool
+   getPivoting() const
+   {
+      return this->pivoting;
+   }
+
 protected:
    void
    print( std::ostream& str = std::cout ) const;
@@ -61,6 +73,8 @@ protected:
    MatrixGEM A;
 
    VectorType b;
+
+   bool pivoting = true;
    //typedef GEMDeviceDependentCode< DeviceType > DeviceDependentCode;
    //friend class GEMDeviceDependentCode< DeviceType >;
 };

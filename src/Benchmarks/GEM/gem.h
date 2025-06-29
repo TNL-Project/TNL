@@ -95,7 +95,7 @@ runGEM( const String& matrixName,
       vector = vectorHost;
       vectorResult.setSize( rows );
       vectorResult.setValue( 0 );
-      TNL::Solvers::Linear::GEM< Real, Device, Index > gem( matrix, vector );
+      TNL::Solvers::Linear::GEM< MatrixType > gem( matrix, vector );
 
 #ifdef HAVE_MPI
       Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
@@ -194,7 +194,7 @@ readMatrixVector( TNL::Matrices::DenseMatrix< Real, Devices::Host, Index >& matr
    cutMatrixVectorMPI( matrix, vector );
 #endif
    if( verbose > 2 )
-      std::cout << matrix << std::endl; //matrix.showMatrix();
+      std::cout << matrix << std::endl;  //matrix.showMatrix();
 
    if( verbose > 2 )
       cout << vector << endl;
@@ -253,7 +253,8 @@ readVector( Vector< Real, Devices::Host, Index >& vector_host, const String& vec
 #ifdef HAVE_MPI
 template< typename Real, typename Index >
 void
-cutMatrixVectorMPI( TNL::Matrices::DenseMatrix< Real, Devices::Host, Index >& matrix, Vector< Real, Devices::Host, Index >& vector )
+cutMatrixVectorMPI( TNL::Matrices::DenseMatrix< Real, Devices::Host, Index >& matrix,
+                    Vector< Real, Devices::Host, Index >& vector )
 {
    TNL::Matrices::DenseMatrix< Real, Devices::Host, Index > matrixTemp;
    Vector< Real, Devices::Host, Index > vectorTemp;

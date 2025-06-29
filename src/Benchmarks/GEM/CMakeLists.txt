@@ -1,10 +1,10 @@
 
 if(TNL_BUILD_CUDA)
    add_executable(tnl-benchmark-gem tnl-benchmark-gem.cu)
-   target_link_libraries(tnl-benchmark-gem PUBLIC TNL::TNL_CUDA)
+   target_link_libraries(tnl-benchmark-gem PUBLIC TNL::TNL)
 else()
    add_executable(tnl-benchmark-gem tnl-benchmark-gem.cpp)
-   target_link_libraries(tnl-benchmark-gem PUBLIC TNL::TNL_CXX)
+   target_link_libraries(tnl-benchmark-gem PUBLIC TNL::TNL)
 endif()
 
 install(TARGETS tnl-benchmark-gem RUNTIME DESTINATION bin COMPONENT benchmarks)
