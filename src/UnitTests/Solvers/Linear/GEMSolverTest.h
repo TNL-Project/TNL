@@ -23,27 +23,26 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using MatrixTypes =
-   ::testing::Types< TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >,
-                     TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder > /*,
-                      TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder
-                      >*/
+using MatrixTypes = ::testing::Types<
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder > /*,
+    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder
+    >*/
 #if defined( __CUDACC__ )
-//,
-//TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder
-//>, TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int,
-//TNL::Algorithms::Segments::ColumnMajorOrder >, TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda,
-//long, TNL::Algorithms::Segments::ColumnMajorOrder >,
-// TNL::Matrices::DenseMatrix< TNL::Arithmetics::Complex<float>,  TNL::Devices::Cuda, long,
-// TNL::Algorithms::Segments::ColumnMajorOrder >,
+   ,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+//TNL::Matrices::
+//   DenseMatrix< TNL::Arithmetics::Complex< float >, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
 //   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >
 #elif defined( __HIP__ )
-                     ,
-                     TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
-                     TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
-                     TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::RowMajorOrder >
+   ,
+   TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::RowMajorOrder >
 #endif
-                     >;
+   >;
 
 template< typename Matrix >
 void
@@ -76,7 +75,8 @@ test_diagonalMatrix()
    matrix.vectorProduct( x, b );
 
    TNL::Solvers::Linear::GEM< Matrix > gem( matrix, b );
-   gem.solveWithPivoting( y, 10 );
+   gem.setPivoting( false );
+   gem.solve( y, 10 );
 
    EXPECT_NEAR( maxNorm( x - y ), 0.0, 1.0e-6 );
 }
@@ -91,7 +91,7 @@ test_upperTriangularMatrix()
    using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
 
    /*
-    * Sets up the following 5x5 dense matrix:
+    * Sets up the upper triangular matrix of the following form:
     *
     *    / 1 2 3 4 5 \
     *    | . 1 2 3 4 |
@@ -99,21 +99,22 @@ test_upperTriangularMatrix()
     *    | . . . 1 2 |
     *    \ . . . . 1 /
     */
-   const IndexType size = 4;
+   const IndexType size = 5;
 
    Matrix matrix( size, size );
    matrix.getValues() = 0;
 
    for( IndexType i = 0; i < size; i++ )
-      for( IndexType j = 0; j < size; i++ )
+      for( IndexType j = 0; j < size; j++ )
          if( j >= i )
-            matrix.setElement( i, j, j - i );
+            matrix.setElement( i, j, j - i + 1 );
 
    VectorType x( size, 1.0 ), b( size, 0.0 ), y( size, 0.0 );
    matrix.vectorProduct( x, b );
 
    TNL::Solvers::Linear::GEM< Matrix > gem( matrix, b );
-   gem.solveWithPivoting( y, 10 );
+   gem.setPivoting( true );
+   gem.solve( y, 10 );
 
    EXPECT_NEAR( maxNorm( x - y ), 0.0, 1.0e-6 );
 }
@@ -148,7 +149,8 @@ test_smallMatrix()
    matrix.vectorProduct( x, b );
 
    TNL::Solvers::Linear::GEM< Matrix > gem( matrix, b );
-   gem.solveWithPivoting( y, 10 );
+   gem.setPivoting( true );
+   gem.solve( y, 10 );
 
    std::cout << " y = " << y << std::endl;
 }
@@ -169,11 +171,11 @@ TYPED_TEST( MatrixTest, upperTriangularMatrix )
    test_upperTriangularMatrix< MatrixType >();
 }
 
-/*TYPED_TEST( MatrixTest, smallMatrix )
+TYPED_TEST( MatrixTest, smallMatrix )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
    test_smallMatrix< MatrixType >();
-}*/
+}
 
 #include "../../main.h"
