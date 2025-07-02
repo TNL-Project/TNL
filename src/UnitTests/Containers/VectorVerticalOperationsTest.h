@@ -98,82 +98,49 @@ protected:
    const int size = V1.getSize();                           \
    (void) 0  // dummy statement here enforces ';' after the macro use
 
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+using TestDevice = Devices::GPU;
+#else
+using TestDevice = Devices::Host;
+#endif
+
 // types for which VectorVerticalOperationsTest is instantiated
 #if defined( DISTRIBUTED_VECTOR )
-using VectorTypes = ::testing::Types<
-   #if defined( __CUDACC__ )
-   DistributedVector< double, Devices::Cuda, int >,
-   DistributedVectorView< double, Devices::Cuda, int >,
-   DistributedVectorView< const double, Devices::Cuda, int >,
-   DistributedVector< CustomScalar< double >, Devices::Cuda, int >
-   #elif defined( __HIP__ )
-   DistributedVector< double, Devices::Hip, int >,
-   DistributedVectorView< double, Devices::Hip, int >,
-   DistributedVectorView< const double, Devices::Hip, int >,
-   DistributedVector< CustomScalar< double >, Devices::Hip, int >
-   #else
-   DistributedVector< double, Devices::Host, int >,
-   DistributedVectorView< double, Devices::Host, int >,
-   DistributedVectorView< const double, Devices::Host, int >,
-   DistributedVector< CustomScalar< double >, Devices::Host, int >
-   #endif
-   >;
+using VectorTypes = ::testing::Types<  //
+   DistributedVector< double, TestDevice >,
+   DistributedVectorView< double, TestDevice >,
+   DistributedVectorView< const double, TestDevice >,
+   DistributedVector< CustomScalar< double >, TestDevice > >;
 #elif defined( STATIC_VECTOR )
    #ifdef VECTOR_OF_STATIC_VECTORS
-using VectorTypes = ::testing::Types< StaticVector< 1, StaticVector< 3, double > >,
-                                      StaticVector< 2, StaticVector< 3, double > >,
-                                      StaticVector< 3, StaticVector< 3, double > >,
-                                      StaticVector< 4, StaticVector< 3, double > >,
-                                      StaticVector< 5, StaticVector< 3, CustomScalar< double > > > >;
+using VectorTypes = ::testing::Types<  //
+   StaticVector< 1, StaticVector< 3, double > >,
+   StaticVector< 2, StaticVector< 3, double > >,
+   StaticVector< 3, StaticVector< 3, double > >,
+   StaticVector< 4, StaticVector< 3, double > >,
+   StaticVector< 5, StaticVector< 3, CustomScalar< double > > > >;
    #else
-using VectorTypes = ::testing::Types< StaticVector< 1, double >,
-                                      StaticVector< 2, double >,
-                                      StaticVector< 3, double >,
-                                      StaticVector< 4, double >,
-                                      StaticVector< 5, CustomScalar< double > > >;
+using VectorTypes = ::testing::Types<  //
+   StaticVector< 1, double >,
+   StaticVector< 2, double >,
+   StaticVector< 3, double >,
+   StaticVector< 4, double >,
+   StaticVector< 5, CustomScalar< double > > >;
    #endif
 #else
    #ifdef VECTOR_OF_STATIC_VECTORS
-using VectorTypes = ::testing::Types<
-      #if defined( __CUDACC__ )
-   Vector< StaticVector< 3, double >, Devices::Cuda >,
-   VectorView< StaticVector< 3, double >, Devices::Cuda >
-      #elif defined( __HIP__ )
-   Vector< StaticVector< 3, double >, Devices::Hip >,
-   VectorView< StaticVector< 3, double >, Devices::Hip >
-      #else
-   Vector< StaticVector< 3, double >, Devices::Host >,
-   VectorView< StaticVector< 3, double >, Devices::Host >
-      #endif
-   >;
+using VectorTypes = ::testing::Types<  //
+   Vector< StaticVector< 3, double >, TestDevice >,
+   VectorView< StaticVector< 3, double >, TestDevice > >;
    #else
-using VectorTypes = ::testing::Types<
-      #if defined( __CUDACC__ )
-   Vector< int, Devices::Cuda >,
-   VectorView< int, Devices::Cuda >,
-   VectorView< const int, Devices::Cuda >,
-   Vector< double, Devices::Cuda >,
-   VectorView< double, Devices::Cuda >,
-   Vector< CustomScalar< int >, Devices::Cuda >,
-   VectorView< CustomScalar< int >, Devices::Cuda >
-      #elif defined( __HIP__ )
-   Vector< int, Devices::Hip >,
-   VectorView< int, Devices::Hip >,
-   VectorView< const int, Devices::Hip >,
-   Vector< double, Devices::Hip >,
-   VectorView< double, Devices::Hip >,
-   Vector< CustomScalar< int >, Devices::Hip >,
-   VectorView< CustomScalar< int >, Devices::Hip >
-      #else
-   Vector< int, Devices::Host >,
-   VectorView< int, Devices::Host >,
-   VectorView< const int, Devices::Host >,
-   Vector< double, Devices::Host >,
-   VectorView< double, Devices::Host >,
-   Vector< CustomScalar< int >, Devices::Host >,
-   VectorView< CustomScalar< int >, Devices::Host >
-      #endif
-   >;
+using VectorTypes = ::testing::Types<  //
+   Vector< int, TestDevice >,
+   VectorView< int, TestDevice >,
+   VectorView< const int, TestDevice >,
+   Vector< double, TestDevice >,
+   VectorView< double, TestDevice >,
+   Vector< CustomScalar< int >, TestDevice >,
+   VectorView< CustomScalar< int >, TestDevice > >;
    #endif
 #endif
 
