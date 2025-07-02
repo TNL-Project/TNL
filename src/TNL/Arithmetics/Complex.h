@@ -22,6 +22,7 @@ template< typename Value = double >
 struct Complex
 {
    using ValueType = Value;
+   using value_type = Value;
 
    __cuda_callable__
    constexpr Complex();
@@ -394,6 +395,9 @@ struct is_complex< Arithmetics::Complex< T > > : public std::true_type
 {};
 
 using Arithmetics::abs;
+using Arithmetics::arg;
+using Arithmetics::conj;
+using Arithmetics::norm;
 
 }  // namespace TNL
 
