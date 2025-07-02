@@ -337,6 +337,7 @@ TNL_MAKE_UNARY_EXPRESSION( atanh, TNL::Atanh )
 TNL_MAKE_UNARY_EXPRESSION( floor, TNL::Floor )
 TNL_MAKE_UNARY_EXPRESSION( ceil, TNL::Ceil )
 TNL_MAKE_UNARY_EXPRESSION( sign, TNL::Sign )
+TNL_MAKE_UNARY_EXPRESSION( conj, TNL::Conj )
 
    #undef TNL_MAKE_UNARY_EXPRESSION
    #undef TNL_MAKE_BINARY_EXPRESSION
@@ -367,7 +368,12 @@ template< typename ET1, typename ET2,
 auto
 operator,( const ET1& a, const ET2& b )
 {
-   return Algorithms::reduce( a * b, TNL::Plus{} );
+   if constexpr( is_complex_v< typename ET1::ValueType > ) {
+      return sum( conj( a ) * b );
+   }
+   else {
+      return sum( a * b );
+   }
 }
 
 template< typename ET1, typename ET2, typename..., EnableIfBinaryExpression_t< ET1, ET2, bool > = true >
@@ -655,6 +661,7 @@ using Expressions::atanh;
 using Expressions::cast;
 using Expressions::cbrt;
 using Expressions::ceil;
+using Expressions::conj;
 using Expressions::cos;
 using Expressions::cosh;
 using Expressions::dot;
@@ -700,6 +707,7 @@ using Containers::atanh;
 using Containers::cast;
 using Containers::cbrt;
 using Containers::ceil;
+using Containers::conj;
 using Containers::cos;
 using Containers::cosh;
 using Containers::dot;

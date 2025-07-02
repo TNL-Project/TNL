@@ -145,13 +145,14 @@ public:
  * (in the mathemtatical sense). Not to be confused with \ref std::is_scalar.
  *
  * For example, \ref std::is_arithmetic "arithmetic types" as defined by the STL
- * are scalar types. TNL also provides additional scalar types, e.g. for
- * extended precision arithmetics. Users may also define specializations of this
- * trait class for their custom scalar types.
+ * are scalar types. \ref std::complex is also considered as scalar type.
+ * TNL also provides additional scalar types, e.g. for extended precision
+ * arithmetics. Users may also define specializations of this trait class for
+ * their custom scalar types.
  */
 template< typename T >
 struct IsScalarType
-: public std::is_arithmetic< T >
+: public std::integral_constant< bool, std::is_arithmetic_v< T > || is_complex_v< T > >
 {};
 
 /**
