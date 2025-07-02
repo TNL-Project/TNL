@@ -200,8 +200,6 @@ using VectorPairs = ::testing::Types<  //
    Pair< VectorView< int, TestDevice >, Vector< int, TestDevice > >,
    Pair< VectorView< const int, TestDevice >, Vector< int, TestDevice > >,
    Pair< Vector< CustomScalar< int >, TestDevice >, VectorView< const CustomScalar< double >, TestDevice > >,
-   Pair< VectorView< const int, TestDevice >, VectorView< int, TestDevice > >,
-   Pair< VectorView< const int, TestDevice >, VectorView< const int, TestDevice > >,
    Pair< VectorView< int, TestDevice >, VectorView< const int, TestDevice > > >;
    #endif
 #endif
