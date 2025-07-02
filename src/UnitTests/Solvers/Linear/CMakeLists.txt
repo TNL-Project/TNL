@@ -42,9 +42,10 @@ if(TNL_BUILD_HIP)
     endforeach()
 endif()
 
-find_package(UMFPACK)
-
-if(UMFPACK_FOUND)
+if(NOT TARGET SuiteSparse::UMFPACK)
+    find_package(UMFPACK GLOBAL)
+endif()
+if(TARGET SuiteSparse::UMFPACK)
     target_compile_definitions(UmfpackWrapperTest PUBLIC "-DHAVE_UMFPACK")
     target_link_libraries(UmfpackWrapperTest PUBLIC SuiteSparse::UMFPACK)
 endif()

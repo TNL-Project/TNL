@@ -3,7 +3,9 @@ find_package(STRUMPACK)
 
 # find_package(Trilinos) # This leads to wrong parameters for linker https://github.com/trilinos/Trilinos/issues/13396
 find_package(Kokkos)
-find_package(UMFPACK)
+if(NOT TARGET SuiteSparse::UMFPACK)
+    find_package(UMFPACK GLOBAL)
+endif()
 
 if(TNL_BUILD_CUDA)
     add_executable(tnl-benchmark-linear-solvers-cuda tnl-benchmark-linear-solvers.cu)
@@ -38,7 +40,7 @@ if(TNL_BUILD_CUDA)
         endif()
     endif()
 
-    if(UMFPACK_FOUND)
+    if(TARGET SuiteSparse::UMFPACK)
         target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_UMFPACK")
         target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC SuiteSparse::UMFPACK)
     endif()
@@ -75,7 +77,7 @@ if(TNL_BUILD_CPP_TARGETS)
         endif()
     endif()
 
-    if(UMFPACK_FOUND)
+    if(TARGET SuiteSparse::UMFPACK)
         target_compile_definitions(tnl-benchmark-linear-solvers PUBLIC "-DHAVE_UMFPACK")
         target_link_libraries(tnl-benchmark-linear-solvers PUBLIC SuiteSparse::UMFPACK)
     endif()
