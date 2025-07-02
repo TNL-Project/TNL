@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Complex.h"
+
 namespace TNL::Arithmetics {
 
 template< typename Value >
