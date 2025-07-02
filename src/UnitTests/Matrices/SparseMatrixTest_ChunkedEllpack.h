@@ -1,4 +1,3 @@
-#include <iostream>
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
