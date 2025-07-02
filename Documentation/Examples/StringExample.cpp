@@ -13,7 +13,7 @@ main( int argc, char* argv[] )
    String string3( string2 );
    String string4 = convertToString( 28.4 );
 
-   std::cout << "empytString = " << emptyString << std::endl;
+   std::cout << "emptyString = " << emptyString << std::endl;
    std::cout << "string1 = " << string1 << std::endl;
    std::cout << "string2 = " << string2 << std::endl;
    std::cout << "string3 = " << string3 << std::endl;
