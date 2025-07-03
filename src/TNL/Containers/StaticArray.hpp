@@ -60,6 +60,17 @@ StaticArray< Size, Value >::getSize()
 }
 
 template< int Size, typename Value >
+template< typename T, std::enable_if_t< std::is_same_v< T, int > && ! std::is_same_v< T, Value >, bool > >
+__cuda_callable__
+constexpr StaticArray< Size, Value >::StaticArray( const T& v )
+{
+   if constexpr( getSize() > 0 ) {
+      for( int i = 0; i < getSize(); i++ )
+         data[ i ] = v;
+   }
+}
+
+template< int Size, typename Value >
 template< typename _unused >
 constexpr StaticArray< Size, Value >::StaticArray( const Value v[ Size ] )
 {
