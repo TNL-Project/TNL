@@ -21,6 +21,7 @@ extend-ignore-re = [
 ]
 
 [default.extend-words]
-EIS = "EIS" # acronym
-HSA = "HSA" # acronym
-ND = "ND"   # ignore "ND" -> "AND" hint
+EIS = "EIS"   # acronym
+HSA = "HSA"   # acronym
+ND = "ND"     # ignore "ND" -> "AND" hint
+setp = "setp" # common function name (both C++ and Python (Matplotlib))
