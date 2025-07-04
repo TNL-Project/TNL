@@ -86,17 +86,17 @@ findRowPivot( VectorView outMaximum, IndexVectorView outPosition, int* positionP
    }
 }
 
-template< typename MatrixView, typename VectorView >
+template< typename MatrixView, typename VectorView, typename IndexType >
 __global__
 void
-swapRows( MatrixView A, VectorView b, int colPointerMain, int* positionPivot )
+swapRows( MatrixView A, VectorView b, IndexType colPointerMain, IndexType positionPivot )
 {
    using Real = typename MatrixView::RealType;
    using Index = typename MatrixView::IndexType;
 
-   if( *positionPivot > colPointerMain ) {
+   if( positionPivot > colPointerMain ) {
       int rowPointer1 = colPointerMain;
-      int rowPointer2 = *positionPivot;
+      int rowPointer2 = positionPivot;
       int colPointer = threadIdx.x + blockDim.x * blockIdx.x + colPointerMain;
       if( colPointer < A.getColumns() && rowPointer1 < A.getRows() ) {
          Real pom = A.getElement( rowPointer1, colPointer );
