@@ -316,6 +316,16 @@ TYPED_TEST( VectorVerticalOperationsTest, l2Norm )
    expect_near( l2Norm( -V1 ), expected, epsilon );
    // binary expression
    expect_near( l2Norm( two * V1 - V1 ), expected, epsilon );
+
+   // special test for complex numbers with imaginary part
+   if constexpr( TNL::is_complex_v< ValueType > ) {
+      // we have to use _V1 because V1 might be a const view
+      this->_V1 = ValueType( 1, 1 );
+      const typename TestFixture::VectorOrView& V1( this->_V1 );
+
+      const auto expected = std::sqrt( 2 * size );
+      expect_near( l2Norm( V1 ), expected, epsilon );
+   }
 }
 #endif
 
