@@ -75,9 +75,11 @@ test_diagonalMatrix()
    matrix.vectorProduct( x, b );
 
    TNL::Solvers::Linear::GEM< Matrix > gem( matrix, b );
-   gem.setPivoting( false );
+   gem.setPivoting( true );
    gem.solve( y, 10 );
 
+   std::cout << "x = " << x << std::endl;
+   std::cout << "y = " << y << std::endl;
    EXPECT_NEAR( maxNorm( x - y ), 0.0, 1.0e-6 );
 }
 
@@ -116,6 +118,9 @@ test_upperTriangularMatrix()
    gem.setPivoting( true );
    gem.solve( y, 10 );
 
+   std::cout << "x = " << x << std::endl;
+   std::cout << "y = " << y << std::endl;
+
    EXPECT_NEAR( maxNorm( x - y ), 0.0, 1.0e-6 );
 }
 
@@ -128,22 +133,13 @@ test_smallMatrix()
    using IndexType = typename Matrix::IndexType;
    using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
 
-   /*
-    * Sets up the following 4x4 dense matrix:
-    *
-    *    /  1  2  3  4 \
-    *    |  5  6  7  8 |
-    *    |  9 10 11 12 |
-    *    \ 13 14 15 16 /
-    */
    const IndexType size = 4;
-
-   Matrix matrix( size, size );
-
-   IndexType value = 1;
-   for( IndexType i = 0; i < size; i++ )
-      for( IndexType j = 0; j < size; j++ )
-         matrix.setElement( i, j, value++ );
+   // clang-format off
+   Matrix matrix( { { 2, 1,  0,  3 },
+                    { 4, 1, -1,  2 },
+                    { 0, 1,  3, -1 },
+                    { 1, 0,  2,  1 } } );
+   // clang-format on
 
    VectorType x( size, 1.0 ), b( size, 0.0 ), y( size, 0.0 );
    matrix.vectorProduct( x, b );
@@ -152,7 +148,10 @@ test_smallMatrix()
    gem.setPivoting( true );
    gem.solve( y, 10 );
 
-   std::cout << " y = " << y << std::endl;
+   std::cout << "x = " << x << std::endl;
+   std::cout << "y = " << y << std::endl;
+
+   EXPECT_NEAR( maxNorm( x - y ), 0.0, 1.0e-6 );
 }
 
 TYPED_TEST_SUITE( MatrixTest, MatrixTypes );
