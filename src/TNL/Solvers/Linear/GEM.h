@@ -9,34 +9,27 @@
 
 #include <ostream>
 #include <TNL/Matrices/DenseMatrix.h>
+#include <TNL/Solvers/DirectSolver.h>
+#include <TNL/Solvers/IterativeSolverMonitor.h>
 
 namespace TNL::Solvers::Linear {
 
 template< typename Device >
 class GEMDeviceDependentCode;
 
-template< typename Matrix >
-struct GEM
+template< typename Matrix, typename Real = typename Matrix::RealType, typename SolverMonitor = IterativeSolverMonitor< double > >
+struct GEM : public DirectSolver< Real, typename Matrix::IndexType, SolverMonitor >
 {
-   using RealType = typename Matrix::RealType;
+   using RealType = Real;
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
-   using MatrixGEM = Matrix;                                                       // TODO: Rename to MatrixType
-   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;  // TODO: Rename to VectorType
+   using MatrixType = Matrix;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
 
-   GEM( MatrixGEM& A, VectorType& b );
-
-   bool
-   solve( VectorType& x, int verbose = 0 );
+   GEM( MatrixType& A );
 
    bool
-   solveWithoutPivoting( VectorType& x, int verbose = 0 );
-
-   bool
-   solveWithPivoting( VectorType& x, int verbose = 0 );
-
-   bool
-   computeLUDecomposition( int verbose = 0 );
+   solve( const VectorType& b, VectorType& x );
 
 #ifdef HAVE_MPI
    bool
@@ -44,10 +37,7 @@ struct GEM
 #endif
 
    bool
-   GEMdevice( VectorType& x, int verbose );
-
-   bool
-   setMatrixVector( MatrixGEM& A, VectorType& b )
+   setMatrixVector( MatrixType& A, VectorType& b )
    {
       this->A = A;
       this->b = b;
@@ -55,28 +45,20 @@ struct GEM
    }
 
    void
-   setPivoting( bool pivoting )
-   {
-      this->pivoting = pivoting;
-   }
+   setPivoting( bool pivoting );
 
    bool
-   getPivoting() const
-   {
-      return this->pivoting;
-   }
+   getPivoting() const;
 
 protected:
    void
    print( std::ostream& str = std::cout ) const;
 
-   MatrixGEM A;
+   MatrixType A;
 
    VectorType b;
 
    bool pivoting = true;
-   //typedef GEMDeviceDependentCode< DeviceType > DeviceDependentCode;
-   //friend class GEMDeviceDependentCode< DeviceType >;
 };
 
 }  // namespace TNL::Solvers::Linear

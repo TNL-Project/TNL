@@ -74,9 +74,9 @@ test_diagonalMatrix()
    VectorType x( size, 1.0 ), b( size, 0.0 ), y( size, 0.0 );
    matrix.vectorProduct( x, b );
 
-   TNL::Solvers::Linear::GEM< Matrix > gem( matrix, b );
+   TNL::Solvers::Linear::GEM< Matrix > gem( matrix );
    gem.setPivoting( true );
-   gem.solve( y, 10 );
+   gem.solve( b, y );
 
    std::cout << "x = " << x << std::endl;
    std::cout << "y = " << y << std::endl;
@@ -114,9 +114,9 @@ test_upperTriangularMatrix()
    VectorType x( size, 1.0 ), b( size, 0.0 ), y( size, 0.0 );
    matrix.vectorProduct( x, b );
 
-   TNL::Solvers::Linear::GEM< Matrix > gem( matrix, b );
+   TNL::Solvers::Linear::GEM< Matrix > gem( matrix );
    gem.setPivoting( true );
-   gem.solve( y, 10 );
+   gem.solve( b, y );
 
    std::cout << "x = " << x << std::endl;
    std::cout << "y = " << y << std::endl;
@@ -144,9 +144,9 @@ test_smallMatrix()
    VectorType x( size, 1.0 ), b( size, 0.0 ), y( size, 0.0 );
    matrix.vectorProduct( x, b );
 
-   TNL::Solvers::Linear::GEM< Matrix > gem( matrix, b );
+   TNL::Solvers::Linear::GEM< Matrix > gem( matrix );
    gem.setPivoting( true );
-   gem.solve( y, 10 );
+   gem.solve( b, y );
 
    std::cout << "x = " << x << std::endl;
    std::cout << "y = " << y << std::endl;
