@@ -693,6 +693,22 @@ TYPED_TEST( VectorBinaryOperationsTest, scalarProduct )
    // both expressions
    EXPECT_EQ( dot( two * L - L, two * R - R ), expected );
    EXPECT_EQ( ( two * L - L, two * R - R ), expected );
+
+   // special test for complex numbers with imaginary part
+   if constexpr( TNL::is_complex_v< typename TestFixture::LeftReal > && TNL::is_complex_v< typename TestFixture::RightReal > ) {
+      // we have to use _L1 and _R1 because L1 and R1 might be a const view
+      this->_L1 = typename TestFixture::LeftReal( 1, 1 );
+      this->_R1 = typename TestFixture::RightReal( 2, 2 );
+      const typename TestFixture::Left L( this->_L1 );
+      const typename TestFixture::Right R( this->_R1 );
+
+      const typename TestFixture::LeftReal expected_1( 4 * size, 0 );
+      EXPECT_EQ( dot( L, R ), expected_1 );
+      EXPECT_EQ( dot( R, L ), expected_1 );
+      const typename TestFixture::LeftReal expected_2( 0, 4 * size );
+      EXPECT_EQ( dot( L, conj( R ) ), -expected_2 );
+      EXPECT_EQ( dot( conj( R ), L ), expected_2 );
+   }
 }
 
 // The TNL::Min functional cannot be applied on StaticVector and complex types
