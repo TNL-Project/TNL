@@ -28,9 +28,26 @@
 namespace TNL::Solvers::Linear {
 
 template< typename Matrix, typename Real, typename SolverMonitor >
-GEM< Matrix, Real, SolverMonitor >::GEM( MatrixType& A )
-: A( A )
-{}
+void
+GEM< Matrix, Real, SolverMonitor >::setMatrix( const MatrixPointer& matrix )
+{
+   TNL_ASSERT_EQ( matrix->getRows(), matrix->getColumns(), "The matrix is not square." );
+   this->A = matrix;
+}
+
+template< typename Matrix, typename Real, typename SolverMonitor >
+void
+GEM< Matrix, Real, SolverMonitor >::setPivoting( bool pivoting )
+{
+   this->pivoting = pivoting;
+}
+
+template< typename Matrix, typename Real, typename SolverMonitor >
+bool
+GEM< Matrix, Real, SolverMonitor >::getPivoting() const
+{
+   return this->pivoting;
+}
 
 template< typename Matrix, typename Real, typename SolverMonitor >
 bool
@@ -39,14 +56,14 @@ GEM< Matrix, Real, SolverMonitor >::solve( const VectorType& b, VectorType& x )
    using CoordinateType = typename Containers::StaticVector< 2, IndexType >;
    TNL_ASSERT_EQ( b.getSize(), x.getSize(), "The sizes of of vectors x and b do not match." );
 
-   const int n = this->A.getRows();
-   auto matrix_view = this->A.getView();
+   const int n = this->A->getRows();
+   auto matrix_view = this->A->getView();
    x = b;
    auto x_view = x.getView();
 
    for( int k = 0; k < n; k++ ) {
       // Find the pivot - the largest in k-th row
-      auto [ pivot_value, pivot_position ] = Algorithms::reduceWithArgument< DeviceType >(
+      auto [ pivot_value_, pivot_position_ ] = Algorithms::reduceWithArgument< DeviceType >(
          k,
          n,
          [ = ] __cuda_callable__( const IndexType rowIdx ) -> RealType
@@ -54,6 +71,10 @@ GEM< Matrix, Real, SolverMonitor >::solve( const VectorType& b, VectorType& x )
             return abs( matrix_view( rowIdx, k ) );
          },
          TNL::MaxWithArg{} );
+
+      // The following is to avoid compiler warnings about capturing structured bindings in C++17 later in the lambda functions.
+      RealType pivot_value = pivot_value_;
+      IndexType pivot_position = pivot_position_;
       if( pivot_value == 0.0 )
          throw std::runtime_error( "Zero pivot has appeared in step " + convertToString( k ) + ". GEM has failed." );
 
@@ -128,20 +149,6 @@ GEM< Matrix, Real, SolverMonitor >::solve( const VectorType& b, VectorType& x )
 
 template< typename Matrix, typename Real, typename SolverMonitor >
 void
-GEM< Matrix, Real, SolverMonitor >::setPivoting( bool pivoting )
-{
-   this->pivoting = pivoting;
-}
-
-template< typename Matrix, typename Real, typename SolverMonitor >
-bool
-GEM< Matrix, Real, SolverMonitor >::getPivoting() const
-{
-   return this->pivoting;
-}
-
-template< typename Matrix, typename Real, typename SolverMonitor >
-void
 GEM< Matrix, Real, SolverMonitor >::print( std::ostream& str ) const
 {
    const IndexType n = A.getRows();
@@ -156,7 +163,8 @@ GEM< Matrix, Real, SolverMonitor >::print( std::ostream& str ) const
          else
             str << std::setprecision( precision ) << std::setw( precision + 6 ) << value;
       }
-      str << " | " << std::setprecision( precision ) << std::setw( precision + 6 ) << b.getElement( row ) << " |" << std::endl;
+      //str << " | " << std::setprecision( precision ) << std::setw( precision + 6 ) << b.getElement( row ) << " |" <<
+      //std::endl;
    }
 }
 

@@ -1,5 +1,7 @@
 #include <iostream>
 #include <functional>
+#include <memory>
+
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Solvers/Linear/GEM.h>
@@ -64,17 +66,18 @@ test_diagonalMatrix()
     */
    const IndexType size = 4;
 
-   Matrix matrix( size, size );
-   matrix.getValues() = 0;
+   auto matrix = std::make_shared< Matrix >( size, size );
+   matrix->getValues() = 0;
 
    IndexType value = 1;
    for( IndexType i = 0; i < size; i++ )
-      matrix.setElement( i, i, value++ );
+      matrix->setElement( i, i, value++ );
 
    VectorType x( size, 1.0 ), b( size, 0.0 ), y( size, 0.0 );
-   matrix.vectorProduct( x, b );
+   matrix->vectorProduct( x, b );
 
-   TNL::Solvers::Linear::GEM< Matrix > gem( matrix );
+   TNL::Solvers::Linear::GEM< Matrix > gem;
+   gem.setMatrix( matrix );
    gem.setPivoting( true );
    gem.solve( b, y );
 
@@ -103,18 +106,19 @@ test_upperTriangularMatrix()
     */
    const IndexType size = 5;
 
-   Matrix matrix( size, size );
-   matrix.getValues() = 0;
+   auto matrix = std::make_shared< Matrix >( size, size );
+   matrix->getValues() = 0;
 
    for( IndexType i = 0; i < size; i++ )
       for( IndexType j = 0; j < size; j++ )
          if( j >= i )
-            matrix.setElement( i, j, j - i + 1 );
+            matrix->setElement( i, j, j - i + 1 );
 
    VectorType x( size, 1.0 ), b( size, 0.0 ), y( size, 0.0 );
-   matrix.vectorProduct( x, b );
+   matrix->vectorProduct( x, b );
 
-   TNL::Solvers::Linear::GEM< Matrix > gem( matrix );
+   TNL::Solvers::Linear::GEM< Matrix > gem;
+   gem.setMatrix( matrix );
    gem.setPivoting( true );
    gem.solve( b, y );
 
@@ -135,16 +139,18 @@ test_smallMatrix()
 
    const IndexType size = 4;
    // clang-format off
-   Matrix matrix( { { 2, 1,  0,  3 },
-                    { 4, 1, -1,  2 },
-                    { 0, 1,  3, -1 },
-                    { 1, 0,  2,  1 } } );
+   auto matrix = std::make_shared< Matrix >();
+   matrix->setElements( { { 2, 1,  0,  3 },
+                          { 4, 1, -1,  2 },
+                          { 0, 1,  3, -1 },
+                          { 1, 0,  2,  1 } } );
    // clang-format on
 
    VectorType x( size, 1.0 ), b( size, 0.0 ), y( size, 0.0 );
-   matrix.vectorProduct( x, b );
+   matrix->vectorProduct( x, b );
 
-   TNL::Solvers::Linear::GEM< Matrix > gem( matrix );
+   TNL::Solvers::Linear::GEM< Matrix > gem;
+   gem.setMatrix( matrix );
    gem.setPivoting( true );
    gem.solve( b, y );
 
