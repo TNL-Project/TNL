@@ -2,8 +2,10 @@ set(COMMON_EXAMPLES IterativeLinearSolverExample IterativeLinearSolverWithMonito
                     IterativeLinearSolverWithPreconditionerExample IterativeLinearSolverWithRuntimeTypesExample
 )
 
-find_package(UMFPACK)
-if(UMFPACK_FOUND)
+if(NOT TARGET SuiteSparse::UMFPACK)
+    find_package(UMFPACK GLOBAL)
+endif()
+if(TARGET SuiteSparse::UMFPACK)
     set(UMFPACK_DEPENDING_EXAMPLES DirectLinearSolverWithMonitorExample DirectLinearSolverWithTimerExample)
 endif()
 
