@@ -102,6 +102,11 @@ TYPED_TEST( StaticArrayTest, constructors )
    for( int i = 0; i < size; i++ )
       EXPECT_EQ( u4[ i ], 0 );
 
+   // initialization with 0 of a nested array
+   StaticArray< 5, ArrayType > nested( 0 );
+   for( int i = 0; i < 5; i++ )
+      EXPECT_EQ( nested[ i ], ArrayType( 0 ) );
+
    std::initializer_list< int > il = { 1, 2, 3, 4, 5 };
    ArrayType u5( il );
    for( int i = 0; i < size; i++ )

@@ -139,12 +139,12 @@ public:
    {                                                                                                                  \
       return v1.value op v2.value;                                                                                    \
    }                                                                                                                  \
-   template< class T, class S >                                                                                       \
+   template< class T, class S, std::enable_if_t< IsScalarType< S >::value, bool > = true >                            \
    constexpr auto operator op( const CustomScalar< T >& v1, const S& v2 )->CustomScalar< decltype( v1.value op v2 ) > \
    {                                                                                                                  \
       return v1.value op v2;                                                                                          \
    }                                                                                                                  \
-   template< class S, class T >                                                                                       \
+   template< class S, class T, std::enable_if_t< IsScalarType< S >::value, bool > = true >                            \
    constexpr auto operator op( const S& v1, const CustomScalar< T >& v2 )->CustomScalar< decltype( v1 op v2.value ) > \
    {                                                                                                                  \
       return v1 op v2.value;                                                                                          \

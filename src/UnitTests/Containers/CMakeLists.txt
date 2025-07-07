@@ -4,6 +4,9 @@ set(CPP_TESTS
     MemoryOperationsTest
     ArrayTest
     ArrayViewTest
+    ComplexVectorBinaryOperationsTest
+    ComplexVectorUnaryOperationsTest
+    ComplexVectorVerticalOperationsTest
     StaticArrayTest
     StaticVectorTest
     StaticVectorOperationsTest
@@ -22,6 +25,9 @@ set(CUDA_TESTS
     MemoryOperationsTestCuda
     ArrayTestCuda
     ArrayViewTestCuda
+    ComplexVectorBinaryOperationsTestCuda
+    ComplexVectorUnaryOperationsTestCuda
+    ComplexVectorVerticalOperationsTestCuda
     VectorTestCuda
     VectorEvaluateAndReduceTestCuda
     VectorBinaryOperationsTestCuda
@@ -33,6 +39,9 @@ set(HIP_TESTS
     MemoryOperationsTestHip
     ArrayTestHip
     ArrayViewTestHip
+    ComplexVectorBinaryOperationsTestHip
+    ComplexVectorUnaryOperationsTestHip
+    ComplexVectorVerticalOperationsTestHip
     VectorTestHip
     VectorBinaryOperationsTestHip
     VectorUnaryOperationsTestHip

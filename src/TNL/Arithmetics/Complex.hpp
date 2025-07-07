@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Complex.h"
+
 namespace TNL::Arithmetics {
 
 template< typename Value >
@@ -67,10 +69,10 @@ Complex< Value >::operator=( const Value& v )
 template< typename Value >
 __cuda_callable__
 constexpr Complex< Value >&
-Complex< Value >::operator=( const Complex< Value >& v )
+Complex< Value >::operator=( const Complex< Value >& c )
 {
-   this->real_ = v.real();
-   this->imag_ = v.imag();
+   this->real_ = c.real();
+   this->imag_ = c.imag();
    return *this;
 }
 
@@ -89,10 +91,10 @@ template< typename Value >
 template< typename Value_ >
 __cuda_callable__
 constexpr Complex< Value >&
-Complex< Value >::operator=( const Complex< Value_ >& v )
+Complex< Value >::operator=( const Complex< Value_ >& c )
 {
-   this->real_ = v.real();
-   this->imag_ = v.imag();
+   this->real_ = c.real();
+   this->imag_ = c.imag();
    return *this;
 }
 
@@ -137,7 +139,7 @@ Complex< Value >::operator+=( const Complex< Value >& c )
 template< typename Value >
 template< typename Value_ >
 __cuda_callable__
-Complex< Value >&
+std::enable_if_t< IsScalarType< Value_ >::value && ! is_complex_v< Value_ >, Complex< Value >& >
 Complex< Value >::operator+=( const Value_& v )
 {
    this->real_ += v;
@@ -196,7 +198,7 @@ Complex< Value >::operator-=( const Complex< Value >& c )
 template< typename Value >
 template< typename Value_ >
 __cuda_callable__
-Complex< Value >&
+std::enable_if_t< IsScalarType< Value_ >::value && ! is_complex_v< Value_ >, Complex< Value >& >
 Complex< Value >::operator-=( const Value_& v )
 {
    this->real_ -= v;
@@ -257,7 +259,7 @@ Complex< Value >::operator*=( const Complex< Value >& c )
 template< typename Value >
 template< typename Value_ >
 __cuda_callable__
-Complex< Value >&
+std::enable_if_t< IsScalarType< Value_ >::value && ! is_complex_v< Value_ >, Complex< Value >& >
 Complex< Value >::operator*=( const Value_& v )
 {
    this->real_ *= v;
@@ -324,7 +326,7 @@ Complex< Value >::operator/=( const Complex< Value >& c )
 template< typename Value >
 template< typename Value_ >
 __cuda_callable__
-Complex< Value >&
+std::enable_if_t< IsScalarType< Value_ >::value && ! is_complex_v< Value_ >, Complex< Value >& >
 Complex< Value >::operator/=( const Value_& v )
 {
    this->real_ /= v;
@@ -342,7 +344,7 @@ Complex< Value >::operator/=( const Complex< Value_ >& c )
    Value real_ = this->real_;
    this->real_ = this->real() * c.real() + this->imag() * c.imag();
    this->imag_ = -real_ * c.imag() + this->imag() * c.real();
-   *this /= c.norm();
+   *this /= norm( c );
    return *this;
 }
 
@@ -367,7 +369,7 @@ Complex< Value >::operator/=( const std::complex< Value_ >& c )
    Value real_ = this->real_;
    this->real_ = this->real() * c.real() + this->imag() * c.imag();
    this->imag_ = -real_ * c.imag() + this->imag() * c.real();
-   *this /= c.norm();
+   *this /= std::norm( c );
    return *this;
 }
 
@@ -390,7 +392,7 @@ Complex< Value >::operator==( const Complex< Value >& c ) const
 template< typename Value >
 template< typename Value_ >
 __cuda_callable__
-bool
+std::enable_if_t< IsScalarType< Value_ >::value && ! is_complex_v< Value_ >, bool >
 Complex< Value >::operator==( const Value_& v ) const
 {
    return this->real() == v && this->imag() == (ValueType) 0.0;
@@ -439,7 +441,7 @@ Complex< Value >::operator!=( const Complex< Value >& c ) const
 template< typename Value >
 template< typename Value_ >
 __cuda_callable__
-bool
+std::enable_if_t< IsScalarType< Value_ >::value && ! is_complex_v< Value_ >, bool >
 Complex< Value >::operator!=( const Value_& v ) const
 {
    return ! this->operator==( v );
@@ -550,10 +552,44 @@ Complex< Value >::imag()
 }
 
 ////
+// EQ operators
+template< typename Value, typename Value_ >
+__cuda_callable__
+std::enable_if_t< IsScalarType< Value >::value && ! is_complex_v< Value >, bool >
+operator==( const Value& v, const Complex< Value_ >& c )
+{
+   return c == v;
+}
+
+template< typename Value, typename Value_ >
+bool
+operator==( const std::complex< Value >& c1, const Complex< Value_ >& c2 )
+{
+   return c2 == c1;
+}
+
+////
+// NE operators
+template< typename Value, typename Value_ >
+__cuda_callable__
+std::enable_if_t< IsScalarType< Value >::value && ! is_complex_v< Value >, bool >
+operator!=( const Value& v, const Complex< Value_ >& c )
+{
+   return c != v;
+}
+
+template< typename Value, typename Value_ >
+bool
+operator!=( const std::complex< Value >& c1, const Complex< Value_ >& c2 )
+{
+   return c2 != c1;
+}
+
+////
 // Addition operators
 template< typename Value, typename Value_ >
 __cuda_callable__
-std::enable_if_t< IsScalarType< Value_ >::value, Complex< Value > >
+std::enable_if_t< IsScalarType< Value_ >::value && ! is_complex_v< Value_ >, Complex< Value > >
 operator+( const Complex< Value >& c, const Value_& v )
 {
    return Complex< Value >( c.real() + v, c.imag() );
@@ -561,7 +597,7 @@ operator+( const Complex< Value >& c, const Value_& v )
 
 template< typename Value, typename Value_ >
 __cuda_callable__
-std::enable_if_t< IsScalarType< Value >::value, Complex< Value > >
+std::enable_if_t< IsScalarType< Value >::value && ! is_complex_v< Value >, Complex< Value > >
 operator+( const Value& v, const Complex< Value_ >& c )
 {
    const Value add = v + c.real();
@@ -594,7 +630,7 @@ operator+( const Complex< Value >& c1, const std::complex< Value_ >& c2 )
 // Subtraction operators
 template< typename Value, typename Value_ >
 __cuda_callable__
-std::enable_if_t< IsScalarType< Value_ >::value, Complex< Value > >
+std::enable_if_t< IsScalarType< Value_ >::value && ! is_complex_v< Value_ >, Complex< Value > >
 operator-( const Complex< Value >& c, const Value_& v )
 {
    return Complex< Value >( c.real() - v, c.imag() );
@@ -602,10 +638,10 @@ operator-( const Complex< Value >& c, const Value_& v )
 
 template< typename Value, typename Value_ >
 __cuda_callable__
-std::enable_if_t< IsScalarType< Value >::value, Complex< Value > >
+std::enable_if_t< IsScalarType< Value >::value && ! is_complex_v< Value >, Complex< Value > >
 operator-( const Value& v, const Complex< Value_ >& c )
 {
-   return Complex< Value >( v - c.real(), c.imag() );
+   return Complex< Value >( v - c.real(), -c.imag() );
 }
 
 template< typename Value, typename Value_ >
@@ -634,7 +670,7 @@ operator-( const Complex< Value >& c1, const std::complex< Value_ >& c2 )
 // Multiplication operators
 template< typename Value, typename Value_ >
 __cuda_callable__
-std::enable_if_t< IsScalarType< Value_ >::value, Complex< Value > >
+std::enable_if_t< IsScalarType< Value_ >::value && ! is_complex_v< Value_ >, Complex< Value > >
 operator*( const Complex< Value >& c, const Value_& v )
 {
    return Complex< Value >( c.real() * v, c.imag() * v );
@@ -642,7 +678,7 @@ operator*( const Complex< Value >& c, const Value_& v )
 
 template< typename Value, typename Value_ >
 __cuda_callable__
-std::enable_if_t< IsScalarType< Value >::value, Complex< Value > >
+std::enable_if_t< IsScalarType< Value >::value && ! is_complex_v< Value >, Complex< Value > >
 operator*( const Value& v, const Complex< Value_ >& c )
 {
    return Complex< Value >( v * c.real(), v * c.imag() );
@@ -674,7 +710,7 @@ operator*( const Complex< Value >& c1, const std::complex< Value_ >& c2 )
 // Division operators
 template< typename Value, typename Value_ >
 __cuda_callable__
-std::enable_if_t< IsScalarType< Value_ >::value, Complex< Value > >
+std::enable_if_t< IsScalarType< Value_ >::value && ! is_complex_v< Value_ >, Complex< Value > >
 operator/( const Complex< Value >& c, const Value_& v )
 {
    return Complex< Value >( c.real() / v, c.imag() / v );
@@ -682,10 +718,10 @@ operator/( const Complex< Value >& c, const Value_& v )
 
 template< typename Value, typename Value_ >
 __cuda_callable__
-std::enable_if_t< IsScalarType< Value >::value, Complex< Value > >
+std::enable_if_t< IsScalarType< Value >::value && ! is_complex_v< Value >, Complex< Value > >
 operator/( const Value& v, const Complex< Value_ >& c )
 {
-   return Complex< Value >( v * c.real(), -v * c.imag() ) / c.norm();
+   return Complex< Value >( v * c.real(), -v * c.imag() ) / norm( c );
 }
 
 template< typename Value, typename Value_ >

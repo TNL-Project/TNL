@@ -139,7 +139,13 @@ template<
 void
 expect_near( const T1& arg, const T2& expected, double epsilon )
 {
-   EXPECT_NEAR( arg, expected, epsilon );
+   if constexpr( TNL::is_complex_v< T1 > && TNL::is_complex_v< T2 > ) {
+      EXPECT_NEAR( arg.real(), expected.real(), epsilon );
+      EXPECT_NEAR( arg.imag(), expected.imag(), epsilon );
+   }
+   else {
+      EXPECT_NEAR( arg, expected, epsilon );
+   }
 }
 
 template< typename T1,

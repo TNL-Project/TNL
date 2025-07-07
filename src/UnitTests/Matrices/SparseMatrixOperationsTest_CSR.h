@@ -1,4 +1,3 @@
-#include <iostream>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Arithmetics/Complex.h>

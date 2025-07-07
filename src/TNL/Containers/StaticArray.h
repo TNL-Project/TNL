@@ -43,6 +43,19 @@ public:
    constexpr StaticArray() = default;
 
    /**
+    * \brief Constructor that sets all array components to value \e v.
+    *
+    * \param v Reference to a value.
+    */
+   // NOTE: the template avoids ambiguity of overloaded functions with literal 0 and pointer
+   //       (needed for initializing StaticArray<N, StaticArray<M, T>> with 0)
+   // NOTE: the std::enable_if_t avoids ambiguity with the Value-initializing constructor when Value is int
+   template< typename T, std::enable_if_t< std::is_same_v< T, int > && ! std::is_same_v< T, Value >, bool > = true >
+   // NOTE: without __cuda_callable__, nvcc 11.8 would complain that it is __host__ only, even though it is constexpr
+   __cuda_callable__
+   constexpr StaticArray( const T& v );
+
+   /**
     * \brief Constructor from static array.
     *
     * \param v Input array.

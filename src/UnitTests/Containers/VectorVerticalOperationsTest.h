@@ -18,6 +18,7 @@ using namespace TNL::MPI;
 
 #include "VectorHelperFunctions.h"
 #include "../CustomScalar.h"
+#include <TNL/Arithmetics/Complex.h>
 
 #include "gtest/gtest.h"
 
@@ -98,89 +99,64 @@ protected:
    const int size = V1.getSize();                           \
    (void) 0  // dummy statement here enforces ';' after the macro use
 
+#if defined( __CUDACC__ ) || defined( __HIP__ )
+using TestDevice = Devices::GPU;
+#else
+using TestDevice = Devices::Host;
+#endif
+
+#if defined( COMPLEX_VALUE_TYPE )
+   #if defined( __CUDACC__ ) || defined( __HIP__ )
+using TestValueType = TNL::Arithmetics::Complex< float >;
+   #else
+using TestValueType = std::complex< float >;
+   #endif
+#else
+using TestValueType = double;
+#endif
+
 // types for which VectorVerticalOperationsTest is instantiated
 #if defined( DISTRIBUTED_VECTOR )
-using VectorTypes = ::testing::Types<
-   #if defined( __CUDACC__ )
-   DistributedVector< double, Devices::Cuda, int >,
-   DistributedVectorView< double, Devices::Cuda, int >,
-   DistributedVectorView< const double, Devices::Cuda, int >,
-   DistributedVector< CustomScalar< double >, Devices::Cuda, int >
-   #elif defined( __HIP__ )
-   DistributedVector< double, Devices::Hip, int >,
-   DistributedVectorView< double, Devices::Hip, int >,
-   DistributedVectorView< const double, Devices::Hip, int >,
-   DistributedVector< CustomScalar< double >, Devices::Hip, int >
-   #else
-   DistributedVector< double, Devices::Host, int >,
-   DistributedVectorView< double, Devices::Host, int >,
-   DistributedVectorView< const double, Devices::Host, int >,
-   DistributedVector< CustomScalar< double >, Devices::Host, int >
-   #endif
-   >;
+using VectorTypes = ::testing::Types<  //
+   DistributedVector< TestValueType, TestDevice >,
+   DistributedVectorView< TestValueType, TestDevice >,
+   DistributedVectorView< const TestValueType, TestDevice >,
+   DistributedVector< CustomScalar< double >, TestDevice > >;
 #elif defined( STATIC_VECTOR )
    #ifdef VECTOR_OF_STATIC_VECTORS
-using VectorTypes = ::testing::Types< StaticVector< 1, StaticVector< 3, double > >,
-                                      StaticVector< 2, StaticVector< 3, double > >,
-                                      StaticVector< 3, StaticVector< 3, double > >,
-                                      StaticVector< 4, StaticVector< 3, double > >,
-                                      StaticVector< 5, StaticVector< 3, CustomScalar< double > > > >;
+using VectorTypes = ::testing::Types<  //
+   StaticVector< 1, StaticVector< 3, TestValueType > >,
+   StaticVector< 2, StaticVector< 3, TestValueType > >,
+   StaticVector< 3, StaticVector< 3, TestValueType > >,
+   StaticVector< 4, StaticVector< 3, TestValueType > >,
+   StaticVector< 5, StaticVector< 3, CustomScalar< double > > > >;
    #else
-using VectorTypes = ::testing::Types< StaticVector< 1, double >,
-                                      StaticVector< 2, double >,
-                                      StaticVector< 3, double >,
-                                      StaticVector< 4, double >,
-                                      StaticVector< 5, CustomScalar< double > > >;
+using VectorTypes = ::testing::Types<  //
+   StaticVector< 1, TestValueType >,
+   StaticVector< 2, TestValueType >,
+   StaticVector< 3, TestValueType >,
+   StaticVector< 4, TestValueType >,
+   StaticVector< 5, CustomScalar< double > > >;
    #endif
 #else
    #ifdef VECTOR_OF_STATIC_VECTORS
-using VectorTypes = ::testing::Types<
-      #if defined( __CUDACC__ )
-   Vector< StaticVector< 3, double >, Devices::Cuda >,
-   VectorView< StaticVector< 3, double >, Devices::Cuda >
-      #elif defined( __HIP__ )
-   Vector< StaticVector< 3, double >, Devices::Hip >,
-   VectorView< StaticVector< 3, double >, Devices::Hip >
-      #else
-   Vector< StaticVector< 3, double >, Devices::Host >,
-   VectorView< StaticVector< 3, double >, Devices::Host >
-      #endif
-   >;
+using VectorTypes = ::testing::Types<  //
+   Vector< StaticVector< 3, TestValueType >, TestDevice >,
+   VectorView< StaticVector< 3, TestValueType >, TestDevice > >;
    #else
-using VectorTypes = ::testing::Types<
-      #if defined( __CUDACC__ )
-   Vector< int, Devices::Cuda >,
-   VectorView< int, Devices::Cuda >,
-   VectorView< const int, Devices::Cuda >,
-   Vector< double, Devices::Cuda >,
-   VectorView< double, Devices::Cuda >,
-   Vector< CustomScalar< int >, Devices::Cuda >,
-   VectorView< CustomScalar< int >, Devices::Cuda >
-      #elif defined( __HIP__ )
-   Vector< int, Devices::Hip >,
-   VectorView< int, Devices::Hip >,
-   VectorView< const int, Devices::Hip >,
-   Vector< double, Devices::Hip >,
-   VectorView< double, Devices::Hip >,
-   Vector< CustomScalar< int >, Devices::Hip >,
-   VectorView< CustomScalar< int >, Devices::Hip >
-      #else
-   Vector< int, Devices::Host >,
-   VectorView< int, Devices::Host >,
-   VectorView< const int, Devices::Host >,
-   Vector< double, Devices::Host >,
-   VectorView< double, Devices::Host >,
-   Vector< CustomScalar< int >, Devices::Host >,
-   VectorView< CustomScalar< int >, Devices::Host >
-      #endif
-   >;
+using VectorTypes = ::testing::Types<  //
+   Vector< TestValueType, TestDevice >,
+   VectorView< TestValueType, TestDevice >,
+   VectorView< const TestValueType, TestDevice >,
+   Vector< CustomScalar< double >, TestDevice >,
+   VectorView< CustomScalar< double >, TestDevice > >;
    #endif
 #endif
 
 TYPED_TEST_SUITE( VectorVerticalOperationsTest, VectorTypes );
 
 // FIXME: function does not work for nested vectors - std::numeric_limits does not make sense for vector types
-#ifndef VECTOR_OF_STATIC_VECTORS
+#if ! defined( VECTOR_OF_STATIC_VECTORS ) && ! defined( COMPLEX_VALUE_TYPE )
 TYPED_TEST( VectorVerticalOperationsTest, max )
 {
    SETUP_VERTICAL_TEST_ALIASES;
@@ -195,7 +171,7 @@ TYPED_TEST( VectorVerticalOperationsTest, max )
 #endif
 
 // FIXME: function does not work for nested vectors - the reduction operation expects a scalar type
-#ifndef VECTOR_OF_STATIC_VECTORS
+#if ! defined( VECTOR_OF_STATIC_VECTORS ) && ! defined( COMPLEX_VALUE_TYPE )
 TYPED_TEST( VectorVerticalOperationsTest, argMax )
 {
    SETUP_VERTICAL_TEST_ALIASES;
@@ -211,7 +187,7 @@ TYPED_TEST( VectorVerticalOperationsTest, argMax )
 #endif
 
 // FIXME: function does not work for nested vectors - std::numeric_limits does not make sense for vector types
-#ifndef VECTOR_OF_STATIC_VECTORS
+#if ! defined( VECTOR_OF_STATIC_VECTORS ) && ! defined( COMPLEX_VALUE_TYPE )
 TYPED_TEST( VectorVerticalOperationsTest, min )
 {
    SETUP_VERTICAL_TEST_ALIASES;
@@ -226,7 +202,7 @@ TYPED_TEST( VectorVerticalOperationsTest, min )
 #endif
 
 // FIXME: function does not work for nested vectors - the reduction operation expects a scalar type
-#ifndef VECTOR_OF_STATIC_VECTORS
+#if ! defined( VECTOR_OF_STATIC_VECTORS ) && ! defined( COMPLEX_VALUE_TYPE )
 TYPED_TEST( VectorVerticalOperationsTest, argMin )
 {
    SETUP_VERTICAL_TEST_ALIASES;
@@ -245,16 +221,27 @@ TYPED_TEST( VectorVerticalOperationsTest, sum )
 {
    SETUP_VERTICAL_TEST_ALIASES;
 
+#ifdef COMPLEX_VALUE_TYPE
+   using ValueType = typename TestFixture::VectorOrView::ValueType;
+   const ValueType one = 1;
+   const ValueType expected = 0.5 * size * ( size - 1 );
+   const ValueType expected_2 = 0.5 * size * ( size - 1 ) - size;
+#else
+   const int one = 1;
+   const auto expected = 0.5 * size * ( size - 1 );
+   const auto expected_2 = 0.5 * size * ( size - 1 ) - size;
+#endif
+
    // vector or view
-   EXPECT_EQ( sum( V1 ), 0.5 * size * ( size - 1 ) );
+   EXPECT_EQ( sum( V1 ), expected );
    // unary expression
-   EXPECT_EQ( sum( -V1 ), -0.5 * size * ( size - 1 ) );
+   EXPECT_EQ( sum( -V1 ), -expected );
    // binary expression
-   EXPECT_EQ( sum( V1 - 1 ), 0.5 * size * ( size - 1 ) - size );
+   EXPECT_EQ( sum( V1 - one ), expected_2 );
 }
 
 // FIXME: function does not work for nested vectors - max does not work for nested vectors
-#ifndef VECTOR_OF_STATIC_VECTORS
+#if ! defined( VECTOR_OF_STATIC_VECTORS ) && ! defined( COMPLEX_VALUE_TYPE )
 TYPED_TEST( VectorVerticalOperationsTest, maxNorm )
 {
    SETUP_VERTICAL_TEST_ALIASES;
@@ -280,12 +267,19 @@ TYPED_TEST( VectorVerticalOperationsTest, l1Norm )
 #endif
    const int size = V1.getSize();
 
+#ifdef COMPLEX_VALUE_TYPE
+   using ValueType = typename TestFixture::VectorOrView::ValueType;
+   const ValueType two = 2;
+#else
+   const int two = 2;
+#endif
+
    // vector or vector view
    EXPECT_EQ( l1Norm( V1 ), size );
    // unary expression
    EXPECT_EQ( l1Norm( -V1 ), size );
    // binary expression
-   EXPECT_EQ( l1Norm( 2 * V1 - V1 ), size );
+   EXPECT_EQ( l1Norm( two * V1 - V1 ), size );
 }
 
 // FIXME: l2Norm does not work for nested vectors - dangling references due to Static*ExpressionTemplate
@@ -303,14 +297,35 @@ TYPED_TEST( VectorVerticalOperationsTest, l2Norm )
    #endif
    const int size = V1.getSize();
 
+   using ValueType = typename TestFixture::VectorOrView::ValueType;
+   #ifdef COMPLEX_VALUE_TYPE
+   const ValueType two = 2;
+   #else
+   const int two = 2;
+   #endif
+
    const auto expected = std::sqrt( size );
 
+   auto epsilon = std::numeric_limits< double >::epsilon();
+   if constexpr( is_complex_v< ValueType > )
+      epsilon = 100 * std::numeric_limits< typename ValueType::value_type >::epsilon();
+
    // vector or vector view
-   EXPECT_EQ( l2Norm( V1 ), expected );
+   expect_near( l2Norm( V1 ), expected, epsilon );
    // unary expression
-   EXPECT_EQ( l2Norm( -V1 ), expected );
+   expect_near( l2Norm( -V1 ), expected, epsilon );
    // binary expression
-   EXPECT_EQ( l2Norm( 2 * V1 - V1 ), expected );
+   expect_near( l2Norm( two * V1 - V1 ), expected, epsilon );
+
+   // special test for complex numbers with imaginary part
+   if constexpr( TNL::is_complex_v< ValueType > ) {
+      // we have to use _V1 because V1 might be a const view
+      this->_V1 = ValueType( 1, 1 );
+      const typename TestFixture::VectorOrView& V1( this->_V1 );
+
+      const auto expected = std::sqrt( 2 * size );
+      expect_near( l2Norm( V1 ), expected, epsilon );
+   }
 }
 #endif
 
@@ -328,24 +343,33 @@ TYPED_TEST( VectorVerticalOperationsTest, lpNorm )
    #endif
    const int size = V1.getSize();
 
+   using ValueType = typename TestFixture::VectorOrView::ValueType;
+   #ifdef COMPLEX_VALUE_TYPE
+   const ValueType two = 2;
+   #else
+   const int two = 2;
+   #endif
+
    const auto expectedL1norm = size;
    const auto expectedL2norm = std::sqrt( size );
    const auto expectedL3norm = std::cbrt( size );
 
-   const auto epsilon = 64 * std::numeric_limits< decltype( expectedL3norm ) >::epsilon();
+   auto epsilon = 64 * std::numeric_limits< decltype( expectedL3norm ) >::epsilon();
+   if constexpr( is_complex_v< ValueType > )
+      epsilon = 100 * std::numeric_limits< typename ValueType::value_type >::epsilon();
 
    // vector or vector view
    EXPECT_EQ( lpNorm( V1, 1.0 ), expectedL1norm );
-   EXPECT_EQ( lpNorm( V1, 2.0 ), expectedL2norm );
+   expect_near( lpNorm( V1, 2.0 ), expectedL2norm, epsilon );
    expect_near( lpNorm( V1, 3.0 ), expectedL3norm, epsilon );
    // unary expression
    EXPECT_EQ( lpNorm( -V1, 1.0 ), expectedL1norm );
-   EXPECT_EQ( lpNorm( -V1, 2.0 ), expectedL2norm );
+   expect_near( lpNorm( -V1, 2.0 ), expectedL2norm, epsilon );
    expect_near( lpNorm( -V1, 3.0 ), expectedL3norm, epsilon );
    // binary expression
-   EXPECT_EQ( lpNorm( 2 * V1 - V1, 1.0 ), expectedL1norm );
-   EXPECT_EQ( lpNorm( 2 * V1 - V1, 2.0 ), expectedL2norm );
-   expect_near( lpNorm( 2 * V1 - V1, 3.0 ), expectedL3norm, epsilon );
+   EXPECT_EQ( lpNorm( two * V1 - V1, 1.0 ), expectedL1norm );
+   expect_near( lpNorm( two * V1 - V1, 2.0 ), expectedL2norm, epsilon );
+   expect_near( lpNorm( two * V1 - V1, 3.0 ), expectedL3norm, epsilon );
 }
 #endif
 
@@ -364,16 +388,27 @@ TYPED_TEST( VectorVerticalOperationsTest, product )
 #endif
    const int size = V2.getSize();
 
+#ifdef COMPLEX_VALUE_TYPE
+   using ValueType = typename TestFixture::VectorOrView::ValueType;
+   const ValueType two = 2;
+   const ValueType expected = std::exp2( size );
+   const ValueType expected_2 = std::exp2( size ) * ( ( size % 2 ) ? -1 : 1 );
+#else
+   const int two = 2;
+   const auto expected = std::exp2( size );
+   const auto expected_2 = std::exp2( size ) * ( ( size % 2 != 0 ) ? -1 : 1 );
+#endif
+
    // vector or vector view
-   EXPECT_EQ( product( V2 ), std::exp2( size ) );
+   EXPECT_EQ( product( V2 ), expected );
    // unary expression
-   EXPECT_EQ( product( -V2 ), std::exp2( size ) * ( ( size % 2 ) ? -1 : 1 ) );
+   EXPECT_EQ( product( -V2 ), expected_2 );
    // binary expression
-   EXPECT_EQ( product( 2 * V2 - V2 ), std::exp2( size ) );
+   EXPECT_EQ( product( two * V2 - V2 ), expected );
 }
 
-// StaticVector is not contextually convertible to bool
-#ifndef VECTOR_OF_STATIC_VECTORS
+// StaticVector and complex are not contextually convertible to bool
+#if ! defined( VECTOR_OF_STATIC_VECTORS ) && ! defined( COMPLEX_VALUE_TYPE )
 TYPED_TEST( VectorVerticalOperationsTest, all_const_ones )
 {
    #ifdef STATIC_VECTOR

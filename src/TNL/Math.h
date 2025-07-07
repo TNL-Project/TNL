@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cmath>
+#include <complex>
 #include <type_traits>
 #include <algorithm>
 
@@ -171,17 +172,32 @@ exp( const T& value ) -> decltype( std::exp( value ) )
 }
 
 /**
- * \brief This function returns the square the given \e value.
+ * \brief This function returns the squared magnitude of the given real \e value.
  */
 template< typename T >
 __cuda_callable__
-std::enable_if_t< IsScalarType< T >::value, T >
+std::enable_if_t< IsScalarType< T >::value && ! is_complex_v< T >, T >
 sqr( const T& value )
 {
    if constexpr( std::is_same_v< T, bool > )
       return value;
    else
       return value * value;
+}
+
+/**
+ * \brief This function returns the squared magnitude of the given complex \e value.
+ *
+ * Note that the result is equivalent to `std::norm( value )` which is equivalent to
+ * `std::conj( value ) * value`.
+ */
+template< typename T >
+__cuda_callable__
+std::enable_if_t< is_complex_v< T >, typename T::value_type >
+sqr( const T& value )
+{
+   using std::norm;
+   return norm( value );
 }
 
 /**
@@ -484,6 +500,11 @@ ceil( const T& value ) -> decltype( std::ceil( value ) )
    return std::ceil( value );
 #endif
 }
+
+/**
+ * \brief This function computes the complex conjugate by reversing the sign of the imaginary part.
+ */
+using std::conj;
 
 /**
  * \brief This function swaps values of two parameters.

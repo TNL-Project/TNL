@@ -1,4 +1,3 @@
-#include <iostream>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Matrices/SparseMatrix.h>
 
