@@ -1,7 +1,7 @@
 #include <chrono>
 #include <thread>
 
-//#include "Matrix/Matrix.h"
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Solvers/Linear/GEM.h>
 #include <TNL/Math.h>
 #include <typeinfo>  // type printf
@@ -18,63 +18,79 @@
 
 #define COMPARE_RESULTS true;
 
-using namespace TNL;
-using namespace TNL::Containers;
-using namespace std;
-
 template< typename Real, typename Index >
 void
-calculHostVecOne( Matrices::DenseMatrix< Real, Devices::Host, Index >& matrix,
-                  Vector< Real, Devices::Host, Index >& vector,
-                  const String& vectorName );
+calculHostVecOne( TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host, Index >& matrix,
+                  TNL::Containers::Vector< Real, TNL::Devices::Host, Index >& vector,
+                  const TNL::String& vectorName );
 
 #ifdef HAVE_MPI
 template< typename Real, typename Index >
 void
-cutMatrixVectorMPI( Matrix< Real, Devices::Host, Index >& matrix, Vector< Real, Devices::Host, Index >& vector );
+cutMatrixVectorMPI( TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host, Index >& matrix,
+                    TNL::Containers::Vector< Real, TNL::Devices::Host, Index >& vector );
 #endif
 
 template< typename Real, typename Index >
 void
-readVector( Vector< Real, Devices::Host, Index >& vector_host, const String& vectorName );
+readVector( TNL::Containers::Vector< Real, TNL::Devices::Host, Index >& vector_host, const TNL::String& vectorName );
 
 template< typename Real, typename Index >
 void
-readMatrixVector( TNL::Matrices::DenseMatrix< Real, Devices::Host, Index >& matrix,
-                  Vector< Real, Devices::Host, Index >& vector,
-                  const String& matrixName,
-                  const String& vectorName,
+readMatrixVector( TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host, Index >& matrix,
+                  TNL::Containers::Vector< Real, TNL::Devices::Host, Index >& vector,
+                  const TNL::String& matrixName,
+                  const TNL::String& vectorName,
                   Index& rows,
                   Index& nonzeros,
                   const int verbose );
 
 template< typename Real, typename Index, typename Device >
-Vector< Real, Device, Index >
-runGEM( const String& matrixName,
-        const String& vectorName,
-        const int loops,
-        const int verbose,
-        const String& device,
-        const String& pivoting )
+TNL::Containers::Vector< Real, Device, Index >
+benchmarkGEM( TNL::Config::ParameterContainer& parameters )
 {
-   typedef TNL::Matrices::DenseMatrix< Real, Device, Index > MatrixType;
-   typedef Vector< Real, Device, Index > VectorType;
-   typedef TNL::Matrices::DenseMatrix< Real, Devices::Host, Index > MatrixTypeHost;
-   typedef Vector< Real, Devices::Host, Index > VectorTypeHost;
+   using MatrixType = TNL::Matrices::DenseMatrix< Real, Device, Index >;
+   using VectorType = TNL::Containers::Vector< Real, Device, Index >;
+   using HostMatrixType = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host, Index >;
+   using HostVectorType = TNL::Containers::Vector< Real, TNL::Devices::Host, Index >;
+   using MatrixPointer = std::shared_ptr< MatrixType >;
 
-   int processID = 0;  // MPI processID, without mpi == 0
-#ifdef HAVE_MPI
-   MPI_Comm_rank( MPI_COMM_WORLD, &processID );
-   Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
-#endif
-   MatrixTypeHost matrixHost;
-   VectorTypeHost vectorHost;
-   MatrixType matrix;
-   VectorType vector;
-   VectorType vectorResult;
+   auto inputFile = parameters.getParameter< TNL::String >( "input-file" );
+   const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
+   const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
+   const int loops = parameters.getParameter< int >( "loops" );
+   const int verbose = parameters.getParameter< int >( "verbose" );
 
-   Index rows, nonzeros;
-   readMatrixVector( matrixHost, vectorHost, matrixName, vectorName, rows, nonzeros, verbose );
+   auto mode = std::ios::out;
+   if( outputMode == "append" )
+      mode |= std::ios::app;
+   std::ofstream logFile( logFileName.getString(), mode );
+   TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
+
+   // write global metadata into a separate file
+   std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
+   TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
+
+   //   int processID = 0;  // MPI processID, without mpi == 0
+   //#ifdef HAVE_MPI
+   //   MPI_Comm_rank( MPI_COMM_WORLD, &processID );
+   //   Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
+   //#endif
+
+   HostMatrixType matrixHost;
+   HostVectorType vectorHost;
+   MatrixPointer matrix;
+   VectorType b, x;
+
+   TNL::Matrices::MatrixReader< MatrixType > reader;
+   reader.readMtx( file_matrix, *matrix );
+   x.setSize( matrix->getRows() );
+   x = 1;
+   b.setSize( matrix->getRows() );
+   matrix->vectorProduct( x, b );
+
+   //Index rows, nonzeros;
+   //readMatrixVector( matrixHost, vectorHost, matrixName, vectorName, rows, nonzeros, verbose );
 
    // Computation
    double* time;
@@ -82,7 +98,7 @@ runGEM( const String& matrixName,
    double error = -1;
 
    if( verbose > 1 )
-      cout << "Starting computation on " << device << endl;
+      std::cout << "Starting computation on " << device << std::endl;
 
    for( int i = 0; i < loops; i++ ) {
 #ifdef HAVE_MPI
@@ -90,12 +106,13 @@ runGEM( const String& matrixName,
 #endif
       //readMatrixVector( matrixHost, vectorHost, matrixName, vectorName, rows, nonzeros, verbose );
       matrix.reset();
-      vector.reset();
-      matrix = matrixHost;
-      vector = vectorHost;
-      vectorResult.setSize( rows );
-      vectorResult.setValue( 0 );
-      TNL::Solvers::Linear::GEM< MatrixType > gem( matrix, vector );
+      *matrix = matrixHost;
+      b = vectorHost;
+      x.setSize( rows );
+      x.setValue( 0 );
+      TNL::Solvers::Linear::GEM< MatrixType > gem;
+      gem.setMatrix( matrix );
+      gem.setPivoting( pivoting == "true" );
 
 #ifdef HAVE_MPI
       Communicators::MpiCommunicator::Barrier( MPI_COMM_WORLD );
@@ -104,9 +121,9 @@ runGEM( const String& matrixName,
       std::clock_t start;
       start = std::clock();
       if( verbose > 1 && processID == 0 )
-         cout << "starting computation number " << i + 1 << endl;
+         std::cout << "starting computation number " << i + 1 << std::endl;
 
-      gem.solve( vectorResult, pivoting, verbose );
+      gem.solve( b, x );
 
       duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 
@@ -114,19 +131,20 @@ runGEM( const String& matrixName,
          time[ i ] = duration;
 
          if( vectorName == "none" ) {
-            double l2norm = 0;
+            error = l2Norm( x - 1 );
+            /*double l2norm = 0;
             for( int j = 0; j < vectorResult.getSize(); j++ )
                l2norm += ( vectorResult.getElement( j ) - 1 ) * ( vectorResult.getElement( j ) - 1 );
             l2norm = std::sqrt( l2norm );
-            error = l2norm;
+            error = l2norm;*/
 
             if( verbose > 1 )
-               printf( "Norm in %d calculation is %.4f\n", i + 1, l2norm );
+               std::cout << "Error in " << i + 1 << " calculation is " << error << std::endl;
          }
       }
    }
    if( verbose > 1 && processID == 0 )
-      printf( "\n ... done!\n" );
+      std::cout << "\n ... done!\n";
 
    double timeMean = 0;
    for( int i = 0; i < loops; i++ )
@@ -134,15 +152,10 @@ runGEM( const String& matrixName,
    timeMean /= loops;
 
    if( processID == 0 )
-      printf( "%20s %15s %15s %10d %20s & %15d & %15.3f & %15.3f\n",
-              vectorName == "none" ? "-" : vectorName.c_str(),
-              device.c_str(),
-              typeid( Real ).name() == ( string ) "f" ? "float" : "double",
-              loops,
-              matrixName.c_str(),
-              rows,
-              timeMean,
-              error );
+      //printf( "%20s %15s %15s %10d %20s & %15d & %15.3f & %15.3f\n",
+      std::cout << ( vectorName == "none" ? "-" : vectorName.c_str() ) << " " << device.c_str() << " "
+                << ( typeid( Real ).name() == ( std::string ) "f" ? "float" : "double" ) << " " << loops << " " << matrixName
+                << " " << rows << " " << timeMean << " " << error << std::endl;
 
    delete[] time;
 
@@ -152,29 +165,29 @@ runGEM( const String& matrixName,
    matrix.reset();
    if( processID == 0 ) {
       //printf("%d: returning\n", processID );
-      return vectorResult;
+      return x;
    }
    else {
       //("%d: returning\n", processID );
       //vectorResult.setValue( 0 );
-      return vectorResult;
+      return x;
    }
 }
 
 template< typename Real, typename Index >
 void
-readMatrixVector( TNL::Matrices::DenseMatrix< Real, Devices::Host, Index >& matrix,
-                  Vector< Real, Devices::Host, Index >& vector,
-                  const String& matrixName,
-                  const String& vectorName,
+readMatrixVector( TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host, Index >& matrix,
+                  TNL::Containers::Vector< Real, TNL::Devices::Host, Index >& vector,
+                  const TNL::String& matrixName,
+                  const TNL::String& vectorName,
                   Index& rows,
                   Index& nonzeros,
                   const int verbose )
 {
    if( verbose > 1 )
-      cout << "reading matrix " << matrixName << endl;
+      std::cout << "reading matrix " << matrixName << std::endl;
    // Get matrix
-   Matrices::MatrixReader< TNL::Matrices::DenseMatrix< Real, Devices::Host, Index > > m;
+   TNL::Matrices::MatrixReader< TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host, Index > > m;
    m.readMtx( "./test-matrices/" + matrixName, matrix, verbose );
    rows = matrix.getRows();
    //nonzeros = matrix.getNonzeros();
@@ -187,7 +200,7 @@ readMatrixVector( TNL::Matrices::DenseMatrix< Real, Devices::Host, Index >& matr
    else {
       readVector( vector, vectorName );
       if( verbose > 1 )
-         cout << "reading vector " << vectorName << endl;
+         std::cout << "reading vector " << vectorName << std::endl;
    }
 
 #ifdef HAVE_MPI
@@ -197,14 +210,14 @@ readMatrixVector( TNL::Matrices::DenseMatrix< Real, Devices::Host, Index >& matr
       std::cout << matrix << std::endl;  //matrix.showMatrix();
 
    if( verbose > 2 )
-      cout << vector << endl;
+      std::cout << vector << std::endl;
 }
 
 template< typename Real, typename Index >
 void
-calculHostVecOne( TNL::Matrices::DenseMatrix< Real, Devices::Host, Index >& matrix,
-                  Vector< Real, Devices::Host, Index >& vector,
-                  const String& vectorName )
+calculHostVecOne( TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host, Index >& matrix,
+                  TNL::Containers::Vector< Real, TNL::Devices::Host, Index >& vector,
+                  const TNL::String& vectorName )
 {
    for( int i = 0; i < matrix.getRows(); i++ ) {
       Real pom = 0;
@@ -232,13 +245,13 @@ calculHostVecOne( TNL::Matrices::DenseMatrix< Real, Devices::Host, Index >& matr
 
 template< typename Real, typename Index >
 void
-readVector( Vector< Real, Devices::Host, Index >& vector_host, const String& vectorName )
+readVector( TNL::Containers::Vector< Real, TNL::Devices::Host, Index >& vector_host, const TNL::String& vectorName )
 {
-   ifstream inFile;
+   std::ifstream inFile;
    Real x;
    inFile.open( "./test-matrices/" + vectorName );
    if( ! inFile ) {
-      cout << "Unable to open file" << endl;
+      std::cout << "Unable to open file" << std::endl;
       return;
    }
 
@@ -253,11 +266,11 @@ readVector( Vector< Real, Devices::Host, Index >& vector_host, const String& vec
 #ifdef HAVE_MPI
 template< typename Real, typename Index >
 void
-cutMatrixVectorMPI( TNL::Matrices::DenseMatrix< Real, Devices::Host, Index >& matrix,
-                    Vector< Real, Devices::Host, Index >& vector )
+cutMatrixVectorMPI( TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host, Index >& matrix,
+                    TNL::Containers::Vector< Real, TNL::Devices::Host, Index >& vector )
 {
-   TNL::Matrices::DenseMatrix< Real, Devices::Host, Index > matrixTemp;
-   Vector< Real, Devices::Host, Index > vectorTemp;
+   TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host, Index > matrixTemp;
+   TNL::Containers::Vector< Real, TNL::Devices::Host, Index > vectorTemp;
 
    int processID;
    int numOfProcesses;

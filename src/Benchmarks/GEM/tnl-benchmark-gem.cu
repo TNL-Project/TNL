@@ -1,1 +1,1 @@
-#include "main.h"
+#include "tnl-benchmark-gem.h"
