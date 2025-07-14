@@ -1,9 +1,5 @@
-/*
- * File:   gem.h
- * Author: oberhuber
- *
- * Created on September 28, 2016, 5:30 PM
- */
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
 
 #pragma once
 
@@ -20,7 +16,7 @@ class GEMDeviceDependentCode;
 template< typename Matrix, typename Real = typename Matrix::RealType, typename SolverMonitor = IterativeSolverMonitor< double > >
 struct GEM : public DirectSolver< Real, typename Matrix::IndexType, SolverMonitor >
 {
-   static_assert( Matrices::is_dense_matrix_type_v< Matrix >, "GEM works only with dense matrices." );
+   static_assert( is_dense_matrix_v< Matrix >, "GEM works only with dense matrices." );
 
    //! \brief Type for floating point numbers.
    using RealType = Real;
@@ -54,10 +50,8 @@ struct GEM : public DirectSolver< Real, typename Matrix::IndexType, SolverMonito
    bool
    solve( const VectorType& b, VectorType& x );
 
-#ifdef HAVE_MPI
    bool
-   GEMdeviceMPI( VectorType& x, int verbose );
-#endif
+   succeeded() const;
 
 protected:
    void
@@ -65,8 +59,11 @@ protected:
 
    MatrixPointer A;
 
+   bool success = false;
+
    bool pivoting = true;
 };
 
 }  // namespace TNL::Solvers::Linear
+
 #include "GEM.hpp"
