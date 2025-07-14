@@ -1,8 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+// SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #include <assert.h>
@@ -15,15 +13,7 @@
 
 #include <TNL/Assert.h>
 #include <TNL/Containers/StaticVector.h>
-#include <TNL/Solvers/Linear/detail/GEMdeviceMPI.h>
-#include <TNL/Solvers/Linear/detail/GEMdevice.h>
-#include <TNL/Solvers/Linear/GEM.h>
-#ifdef HAVE_MPI
-   #include "detail/GEMdeviceMPI.h"
-#else
-   #include "detail/GEMdevice.h"
-#endif
-#include "detail/GEMkernels.h"
+#include "GEM.h"
 
 namespace TNL::Solvers::Linear {
 
@@ -60,21 +50,36 @@ GEM< Matrix, Real, SolverMonitor >::solve( const VectorType& b, VectorType& x )
    auto matrix_view = this->A->getView();
    x = b;
    auto x_view = x.getView();
+   this->success = false;
 
    for( int k = 0; k < n; k++ ) {
-      // Find the pivot - the largest in k-th row
-      auto [ pivot_value_, pivot_position_ ] = Algorithms::reduceWithArgument< DeviceType >(
-         k,
-         n,
-         [ = ] __cuda_callable__( const IndexType rowIdx ) -> RealType
-         {
-            return abs( matrix_view( rowIdx, k ) );
-         },
-         TNL::MaxWithArg{} );
+      if( this->solverMonitor )
+         this->solverMonitor->setIterations( k );
 
-      // The following is to avoid compiler warnings about capturing structured bindings in C++17 later in the lambda functions.
-      RealType pivot_value = pivot_value_;
-      IndexType pivot_position = pivot_position_;
+      RealType pivot_value;
+      IndexType pivot_position( k );
+
+      if( this->pivoting ) {
+         // Find the pivot - the largest in k-th row
+         auto [ pivot_value_, pivot_position_ ] = Algorithms::reduceWithArgument< DeviceType >(
+            k,
+            n,
+            [ = ] __cuda_callable__( const IndexType rowIdx ) -> RealType
+            {
+               return abs( matrix_view( rowIdx, k ) );
+            },
+            TNL::MaxWithArg{} );
+
+         // The following is to avoid compiler warnings about capturing structured bindings in C++17 later in the lambda
+         // functions.
+         pivot_position = pivot_position_;
+         pivot_value = matrix_view.getElement( pivot_position, k );  // pivot_value_ is the maximum !!!absolute!!! value
+      }
+      else {
+         pivot_value = matrix_view.getElement( k, k );
+         pivot_position = k;
+      }
+
       if( pivot_value == 0.0 )
          throw std::runtime_error( "Zero pivot has appeared in step " + convertToString( k ) + ". GEM has failed." );
 
@@ -129,22 +134,15 @@ GEM< Matrix, Real, SolverMonitor >::solve( const VectorType& b, VectorType& x )
                                                    matrix_view( i, k ) = 0.0;
                                              } );
    }
+   this->success = true;
    return true;
+}
 
-   /*
-   #ifdef __CUDACC__
-   #ifdef HAVE_MPI
-      if( verbose > 1 )
-         printf( "Starting the computation SolveGEM MPI.\n" );
-      this->GEMdeviceMPI( x, verbose );
-   #else
-      if( verbose > 1 )
-         printf( "Starting the computation SolveGEM on GPU.\n" );
-      this->GEMdevice( x, verbose );
-   #endif
-   #endif
-      return true;
-   }*/
+template< typename Matrix, typename Real, typename SolverMonitor >
+bool
+GEM< Matrix, Real, SolverMonitor >::succeeded() const
+{
+   return this->success;
 }
 
 template< typename Matrix, typename Real, typename SolverMonitor >
@@ -163,8 +161,6 @@ GEM< Matrix, Real, SolverMonitor >::print( std::ostream& str ) const
          else
             str << std::setprecision( precision ) << std::setw( precision + 6 ) << value;
       }
-      //str << " | " << std::setprecision( precision ) << std::setw( precision + 6 ) << b.getElement( row ) << " |" <<
-      //std::endl;
    }
 }
 
