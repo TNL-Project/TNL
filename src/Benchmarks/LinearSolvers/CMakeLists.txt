@@ -12,7 +12,7 @@ if(TNL_BUILD_CUDA)
     target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC TNL::TNL)
     target_compile_definitions(tnl-benchmark-linear-solvers-cuda PUBLIC "-DHAVE_CUSPARSE")
     find_package(CUDAToolkit REQUIRED)
-    target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC CUDA::cusparse)
+    target_link_libraries(tnl-benchmark-linear-solvers-cuda PUBLIC CUDA::cusparse CUDA::cusolver)
     install(TARGETS tnl-benchmark-linear-solvers-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
 
     find_package(cudss)
