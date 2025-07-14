@@ -845,7 +845,6 @@ isDenseMatrix( const DenseMatrixBase< Real, Device, Index, Organization >& )
 {
    return {};
 }
-
 template< typename T >
 constexpr bool is_dense_matrix_type_v = decltype( isDenseMatrix( std::declval< T >() ) )::value;
 
