@@ -3,6 +3,7 @@
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/reduce.h>
 #include <TNL/Algorithms/Segments/print.h>
+#include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
@@ -37,12 +38,12 @@ reduceAllExample()
    Containers::Vector< ValueType, Device, IndexType > values( segments.getStorageSize(), -1 );
    auto valuesView = values.getView();
    auto segmentsSizesView = segmentsSizes.getView();
-   segments.forAllElements(
-      [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
-      {
-         if( localIdx < segmentsSizesView[ segmentIdx ] )
-            valuesView[ globalIdx ] = segmentIdx + localIdx;
-      } );
+   forAllElements( segments,
+                   [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
+                   {
+                      if( localIdx < segmentsSizesView[ segmentIdx ] )
+                         valuesView[ globalIdx ] = segmentIdx + localIdx;
+                   } );
 
    // Print the initial data
    std::cout << "Segments sizes: " << segmentsSizes << "\n";
