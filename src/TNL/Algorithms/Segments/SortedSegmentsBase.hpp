@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Backend.h>
 #include <TNL/TypeTraits.h>
 
