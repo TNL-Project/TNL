@@ -305,42 +305,6 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 struct isBiEllpackSegments< BiEllpackView< Device, Index, Organization, WarpSize_ > > : std::true_type
 {};
 
-//! \brief Returns true if the given type is BiEllpack segments.
-template< typename Segments >
-inline constexpr bool isBiEllpackSegments_v = isBiEllpackSegments< Segments >::value;
-
-template< typename Segments >
-struct isRowMajorBiEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator, int WarpSize_ >
-struct isRowMajorBiEllpackSegments< RowMajorBiEllpack< Device, Index, IndexAllocator, WarpSize_ > > : std::true_type
-{};
-
-template< typename Device, typename Index, int WarpSize_ >
-struct isRowMajorBiEllpackSegments< RowMajorBiEllpackView< Device, Index, WarpSize_ > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is row-major BiEllpack segments.
-template< typename Segments >
-inline constexpr bool isRowMajorBiEllpackSegments_v = isRowMajorBiEllpackSegments< Segments >::value;
-
-template< typename Segments >
-struct isColumnMajorBiEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator, int WarpSize_ >
-struct isColumnMajorBiEllpackSegments< ColumnMajorBiEllpack< Device, Index, IndexAllocator, WarpSize_ > > : std::true_type
-{};
-
-template< typename Device, typename Index, int WarpSize_ >
-struct isColumnMajorBiEllpackSegments< ColumnMajorBiEllpackView< Device, Index, WarpSize_ > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is column-major BiEllpack segments.
-template< typename Segments >
-inline constexpr bool isColumnMajorBiEllpackSegments_v = isColumnMajorBiEllpackSegments< Segments >::value;
-
 template< typename Segments >
 struct isSortedBiEllpackSegments : std::false_type
 {};
@@ -356,39 +320,6 @@ struct isSortedBiEllpackSegments< SortedBiEllpackView< Device, Index, Organizati
 //! \brief Returns true if the given type is sorted BiEllpack segments.
 template< typename Segments >
 inline constexpr bool isSortedBiEllpackSegments_v = isSortedBiEllpackSegments< Segments >::value;
-
-template< typename Segments >
-struct isSortedRowMajorBiEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator, int WarpSize_ >
-struct isSortedRowMajorBiEllpackSegments< SortedRowMajorBiEllpack< Device, Index, IndexAllocator, WarpSize_ > > : std::true_type
-{};
-
-template< typename Device, typename Index, int WarpSize_ >
-struct isSortedRowMajorBiEllpackSegments< SortedRowMajorBiEllpackView< Device, Index, WarpSize_ > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is sorted row-major BiEllpack segments.
-template< typename Segments >
-inline constexpr bool isSortedRowMajorBiEllpackSegments_v = isSortedRowMajorBiEllpackSegments< Segments >::value;
-
-template< typename Segments >
-struct isSortedColumnMajorBiEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator, int WarpSize_ >
-struct isSortedColumnMajorBiEllpackSegments< SortedColumnMajorBiEllpack< Device, Index, IndexAllocator, WarpSize_ > >
-: std::true_type
-{};
-
-template< typename Device, typename Index, int WarpSize_ >
-struct isSortedColumnMajorBiEllpackSegments< SortedColumnMajorBiEllpackView< Device, Index, WarpSize_ > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is sorted column-major BiEllpack segments.
-template< typename Segments >
-inline constexpr bool isSortedColumnMajorBiEllpackSegments_v = isSortedColumnMajorBiEllpackSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 
