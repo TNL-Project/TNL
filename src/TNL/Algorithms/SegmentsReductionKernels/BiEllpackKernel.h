@@ -6,7 +6,7 @@
 #include <TNL/Backend.h>
 #include "isSegmentReductionKernel.h"
 
-#include "detail/FetchLambdaAdapter.h"
+#include "../Segments/detail/FetchLambdaAdapter.h"
 #include "isSegmentsReductionKernel.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
@@ -41,9 +41,8 @@ struct BiEllpackKernel
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
-   [[deprecated( "Use TNL::Algorithms::Segments::reduceSegments instead" )]]
-   static void
+             typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceSegments instead" )]] static void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
                    Index end,
@@ -56,9 +55,8 @@ struct BiEllpackKernel
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
-   [[deprecated( "Use TNL::Algorithms::Segments::reduceAllSegments instead" )]]
-   static void
+             typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceAllSegments instead" )]] static void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,

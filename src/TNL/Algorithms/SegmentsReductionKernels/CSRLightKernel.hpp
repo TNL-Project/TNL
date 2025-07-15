@@ -30,7 +30,7 @@ CSRVectorReduction( OffsetsView offsets,
                     const Index gridID )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index warpID =
       begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
@@ -124,7 +124,7 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
                                          const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
@@ -142,7 +142,8 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
    ReturnType result = identity;
    Index localIdx = laneIdx;
    for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-      result = reduce( result, detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
+      result =
+         reduce( result, Segments::detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
       localIdx += ThreadsPerSegment;
    }
 
@@ -284,7 +285,7 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                  Keep& keep,
                                                  const Value& identity ) const
 {
-   constexpr bool DispatchScalarCSR = detail::CheckFetchLambda< Index, Fetch >::hasAllParameters()
+   constexpr bool DispatchScalarCSR = Segments::detail::CheckFetchLambda< Index, Fetch >::hasAllParameters()
                                    || std::is_same_v< Device, Devices::Host > || ! std::is_fundamental_v< Value >;
    if constexpr( DispatchScalarCSR ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(

@@ -5,7 +5,7 @@
 
 #include <TNL/Backend.h>
 
-#include "detail/FetchLambdaAdapter.h"
+#include "../Segments/detail/FetchLambdaAdapter.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
