@@ -6,8 +6,8 @@
 #include <TNL/Containers/Vector.h>
 #include "isSegmentReductionKernel.h"
 
-#include "detail/CSRAdaptiveKernelBlockDescriptor.h"
-#include "detail/CSRAdaptiveKernelParameters.h"
+#include "../Segments/detail/CSRAdaptiveKernelBlockDescriptor.h"
+#include "../Segments/detail/CSRAdaptiveKernelParameters.h"
 #include "../Segments/detail/FetchLambdaAdapter.h"
 #include "isSegmentsReductionKernel.h"
 
@@ -20,15 +20,15 @@ struct CSRAdaptiveKernelView
    using DeviceType = Device;
    using ViewType = CSRAdaptiveKernelView< Index, Device >;
    using ConstViewType = CSRAdaptiveKernelView< Index, Device >;
-   using BlocksType = TNL::Containers::Vector< detail::CSRAdaptiveKernelBlockDescriptor< Index >, Device, Index >;
+   using BlocksType = TNL::Containers::Vector< Segments::detail::CSRAdaptiveKernelBlockDescriptor< Index >, Device, Index >;
    using BlocksView = typename BlocksType::ViewType;
 
-   static constexpr int MaxValueSizeLog = detail::CSRAdaptiveKernelParameters<>::MaxValueSizeLog;
+   static constexpr int MaxValueSizeLog = Segments::detail::CSRAdaptiveKernelParameters<>::MaxValueSizeLog;
 
    [[nodiscard]] static int
    getSizeValueLog( const int& i )
    {
-      return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
+      return Segments::detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
    }
 
    CSRAdaptiveKernelView() = default;
