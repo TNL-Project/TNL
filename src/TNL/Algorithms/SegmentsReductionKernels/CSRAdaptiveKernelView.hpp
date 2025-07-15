@@ -31,12 +31,12 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   using BlockType = detail::CSRAdaptiveKernelBlockDescriptor< Index >;
-   constexpr int CudaBlockSize = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+   using BlockType = Segments::detail::CSRAdaptiveKernelBlockDescriptor< Index >;
+   constexpr int CudaBlockSize = Segments::detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
    constexpr int WarpSize = Backend::getWarpSize();
-   constexpr int WarpsCount = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::WarpsCount();
+   constexpr int WarpsCount = Segments::detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::WarpsCount();
    constexpr std::size_t StreamedSharedElementsPerWarp =
-      detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::StreamedSharedElementsPerWarp();
+      Segments::detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::StreamedSharedElementsPerWarp();
 
    __shared__ ReturnType streamShared[ WarpsCount ][ StreamedSharedElementsPerWarp ];
    __shared__ ReturnType multivectorShared[ CudaBlockSize / WarpSize ];
@@ -60,7 +60,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
    const Index firstSegmentIdx = block.getFirstSegment();
    const Index begin = offsets[ firstSegmentIdx ];
 
-   if( block.getType() == detail::Type::STREAM )  // Stream kernel - many short segments per warp
+   if( block.getType() == Segments::detail::Type::STREAM )  // Stream kernel - many short segments per warp
    {
       const Index warpIdx = threadIdx.x / Backend::getWarpSize();
       const Index end = begin + block.getSize();
@@ -80,7 +80,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
          keep( i, result );
       }
    }
-   else if( block.getType() == detail::Type::VECTOR )  // Vector kernel - one segment per warp
+   else if( block.getType() == Segments::detail::Type::VECTOR )  // Vector kernel - one segment per warp
    {
       const Index end = begin + block.getSize();
       const Index segmentIdx = block.getFirstSegment();
@@ -207,7 +207,7 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segm
    else {
       using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       Backend::LaunchConfiguration launch_config;
-      launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
+      launch_config.blockSize.x = Segments::detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
       constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();
 
       // Fill blocks
