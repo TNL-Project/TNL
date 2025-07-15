@@ -7,12 +7,12 @@
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "TraversingKernels_CSR.h"
-#include "TraversingOperationsBaseline.h"
+#include "TraversingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index >
-struct TraversingOperations< CSRView< Device, Index > > : public TraversingOperationsBaseline< CSRView< Device, Index > >
+struct TraversingOperations< CSRView< Device, Index > > : public TraversingOperationsBase< CSRView< Device, Index > >
 {
    using ViewType = CSRView< Device, Index >;
    using ConstViewType = typename ViewType::ConstViewType;
