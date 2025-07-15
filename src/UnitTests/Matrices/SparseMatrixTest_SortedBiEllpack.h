@@ -41,7 +41,7 @@ using MatrixTypes = ::testing::Types<
                                 TNL::Devices::Cuda,
                                 long,
                                 TNL::Matrices::GeneralMatrix,
-                                ColumnMajorSortedBiEllpack >
+                                SortedColumnMajorBiEllpack >
 #elif defined( __HIP__ )
    ,
    TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, SortedRowMajorBiEllpack >,
