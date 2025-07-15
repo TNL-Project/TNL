@@ -26,7 +26,7 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
                                     Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index firstSlice = segments.getSegmentToSliceMappingView()[ begin ];
    const Index lastSlice = segments.getSegmentToSliceMappingView()[ end - 1 ];
@@ -46,7 +46,7 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
    const Index sliceOffset = sliceInfo.pointer;
    const Index chunkSize = sliceInfo.chunkSize;
 
-   if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
+   if constexpr( Segments::detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
       const Index chunkIdx = sliceIdx * segments.getChunksInSlice() + threadIdx.x;
       const Index segmentIdx = segments.getChunksToSegmentsMappingView()[ chunkIdx ];
       Index firstChunkOfSegment = 0;
@@ -144,7 +144,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
                                                        ResultKeeper& keeper,
                                                        const Value& identity )
 {
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
          const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
@@ -166,15 +166,17 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
             IndexType end = begin + segmentSize;
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                aux = reduction(
-                  aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
+                  aux,
+                  Segments::detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
          }
          else {
             for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
                IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
                IndexType end = begin + segments.getChunksInSlice() * chunkSize;
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += segments.getChunksInSlice() )
-                  aux = reduction(
-                     aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
+                  aux = reduction( aux,
+                                   Segments::detail::FetchLambdaAdapter< IndexType, Fetch >::call(
+                                      fetch, segmentIdx, localIdx++, globalIdx ) );
             }
          }
          keeper( segmentIdx, aux );

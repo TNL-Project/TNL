@@ -32,7 +32,7 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
                                        Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    const Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
    if( segmentIdx >= end )
       return;
@@ -84,7 +84,7 @@ reduceSegmentsKernel( SegmentsView segments,
                       Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    Index segmentIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
 
    const Index strip = segmentIdx >> SegmentsView::getLogWarpSize();
@@ -202,7 +202,7 @@ BiEllpackreduceSegmentsKernel( SegmentsView segments,
                                ResultKeeper keeper,
                                Value identity )
 {
-   if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() )
+   if constexpr( Segments::detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() )
       reduceSegmentsKernelWithAllParameters< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
    else
       reduceSegmentsKernel< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
@@ -253,7 +253,7 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                   ResultKeeper& keeper,
                                                   const Value& identity )
 {
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       for( IndexType segmentIdx = 0; segmentIdx < segments.getSegmentsCount(); segmentIdx++ ) {
          const IndexType stripIdx = segmentIdx / SegmentsView::getWarpSize();
@@ -279,7 +279,8 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                globalIdx += inStripIdx;
             for( IndexType j = 0; j < groupWidth; j++ ) {
                aux = reduction(
-                  aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
+                  aux,
+                  Segments::detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
                if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
                   globalIdx++;
                else
