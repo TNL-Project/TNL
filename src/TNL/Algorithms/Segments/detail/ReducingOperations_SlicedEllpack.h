@@ -7,13 +7,13 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "FetchLambdaAdapter.h"
-#include "ReducingOperationsBaseline.h"
+#include "ReducingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, SliceSize > >
-: public ReducingOperationsBaseline< SlicedEllpackView< Device, Index, Organization, SliceSize > >
+: public ReducingOperationsBase< SlicedEllpackView< Device, Index, Organization, SliceSize > >
 {
    using SegmentsViewType = SlicedEllpackView< Device, Index, Organization, SliceSize >;
    using ConstViewType = typename SegmentsViewType::ConstViewType;

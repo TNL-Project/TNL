@@ -6,7 +6,7 @@
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Segments >
-struct TraversingOperationsBaseline
+struct TraversingOperationsBase
 {
    using ViewType = typename Segments::ViewType;
    using ConstViewType = typename ViewType::ConstViewType;
