@@ -9,51 +9,9 @@
 
 #include "CSRScalarKernel.h"
 #include "CSRVectorKernel.h"
+#include "../Segments/detail/ReducingKernels_CSR.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
-
-template< typename Offsets, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
-__global__
-void
-reduceSegmentsCSRKernelVector( Index gridIdx,
-                               const Offsets offsets,
-                               Index begin,
-                               Index end,
-                               Fetch fetch,
-                               const Reduction reduction,
-                               ResultKeeper keep,
-                               const Value identity )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-
-   // We map one warp to each segment
-   const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize() + begin;
-   if( segmentIdx >= end )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
-   TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
-   Index endIdx = offsets[ segmentIdx + 1 ];
-
-   Index localIdx = laneIdx;
-   ReturnType result = identity;
-   for( Index globalIdx = offsets[ segmentIdx ] + localIdx; globalIdx < endIdx; globalIdx += Backend::getWarpSize() ) {
-      TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      result = reduction(
-         result, Segments::detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );
-      localIdx += Backend::getWarpSize();
-   }
-
-   // Reduction in each warp which means in each segment.
-   using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< 256, Reduction, ReturnType >;
-   result = BlockReduce::warpReduce( reduction, result );
-
-   // Write the result
-   if( laneIdx == 0 )
-      keep( segmentIdx, result );
-#endif
-}
 
 template< typename Index, typename Device >
 template< typename Segments >
@@ -121,7 +79,8 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
       for( Index gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-         constexpr auto kernel = reduceSegmentsCSRKernelVector< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
+         constexpr auto kernel =
+            Segments::detail::reduceSegmentsCSRVectorKernel< OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
          Backend::launchKernelAsync( kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
       }
       Backend::streamSynchronize( launch_config.stream );
