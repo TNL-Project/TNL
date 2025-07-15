@@ -8,7 +8,7 @@
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Segments >
-struct ReducingOperationsBaseline
+struct ReducingOperationsBase
 {
    using ViewType = typename Segments::ViewType;
    using ConstViewType = typename ViewType::ConstViewType;
