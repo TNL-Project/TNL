@@ -62,14 +62,15 @@ __cuda_callable__
 auto
 CSRBase< Device, Index >::getSegmentSize( IndexType segmentIdx ) const -> IndexType
 {
-   if( ! std::is_same_v< DeviceType, Devices::Host > && ! std::is_same_v< DeviceType, Devices::Sequential > ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return offsets[ segmentIdx + 1 ] - offsets[ segmentIdx ];
 #else
       return offsets.getElement( segmentIdx + 1 ) - offsets.getElement( segmentIdx );
 #endif
    }
-   return offsets[ segmentIdx + 1 ] - offsets[ segmentIdx ];
+   else
+      return offsets[ segmentIdx + 1 ] - offsets[ segmentIdx ];
 }
 
 template< typename Device, typename Index >
@@ -85,14 +86,15 @@ __cuda_callable__
 auto
 CSRBase< Device, Index >::getStorageSize() const -> IndexType
 {
-   if( ! std::is_same_v< DeviceType, Devices::Host > && ! std::is_same_v< DeviceType, Devices::Sequential > ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return offsets[ getSegmentsCount() ];
 #else
       return offsets.getElement( getSegmentsCount() );
 #endif
    }
-   return offsets[ getSegmentsCount() ];
+   else
+      return offsets[ getSegmentsCount() ];
 }
 
 template< typename Device, typename Index >
@@ -100,14 +102,15 @@ __cuda_callable__
 auto
 CSRBase< Device, Index >::getGlobalIndex( const Index segmentIdx, const Index localIdx ) const -> IndexType
 {
-   if( ! std::is_same_v< DeviceType, Devices::Host > ) {
+   if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       return offsets[ segmentIdx ] + localIdx;
 #else
       return offsets.getElement( segmentIdx ) + localIdx;
 #endif
    }
-   return offsets[ segmentIdx ] + localIdx;
+   else
+      return offsets[ segmentIdx ] + localIdx;
 }
 
 template< typename Device, typename Index >
@@ -142,7 +145,7 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
    if( end <= begin )
       return;
 
-   if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+   if constexpr( std::is_same_v< Device, Devices::GPU > ) {
       const Index segmentsCount = end - begin;
       std::size_t threadsCount;
       if constexpr( argumentCount< Function >() == 2 )  // we use scan kernel
@@ -210,7 +213,7 @@ CSRBase< Device, Index >::forElements( const Array& segmentIndexes, Index begin,
    if( end <= begin )
       return;
    auto segmentIndexesView = segmentIndexes.getConstView();
-   if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+   if constexpr( std::is_same_v< Device, Devices::GPU > ) {
       const Index segmentsCount = end - begin;
       std::size_t threadsCount;
       threadsCount = segmentsCount * Backend::getWarpSize();  // for vector kernel
@@ -282,7 +285,7 @@ template< typename Condition, typename Function >
 void
 CSRBase< Device, Index >::forElementsIf( IndexType begin, IndexType end, Condition condition, Function function ) const
 {
-   if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+   if constexpr( std::is_same_v< Device, Devices::GPU > ) {
       if( end <= begin )
          return;
 
