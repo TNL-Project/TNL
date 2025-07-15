@@ -310,38 +310,6 @@ template< typename Segments >
 inline constexpr bool isEllpackSegments_v = isEllpackSegments< Segments >::value;
 
 template< typename Segments >
-struct isRowMajorEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator, int Alignment >
-struct isRowMajorEllpackSegments< RowMajorEllpack< Device, Index, IndexAllocator, Alignment > > : std::true_type
-{};
-
-template< typename Device, typename Index, int Alignment >
-struct isRowMajorEllpackSegments< RowMajorEllpackView< Device, Index, Alignment > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is row-major Ellpack segments.
-template< typename Segments >
-inline constexpr bool isRowMajorEllpackSegments_v = isRowMajorEllpackSegments< Segments >::value;
-
-template< typename Segments >
-struct isColumnMajorEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator, int Alignment >
-struct isColumnMajorEllpackSegments< ColumnMajorEllpack< Device, Index, IndexAllocator, Alignment > > : std::true_type
-{};
-
-template< typename Device, typename Index, int Alignment >
-struct isColumnMajorEllpackSegments< ColumnMajorEllpackView< Device, Index, Alignment > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is column-major Ellpack segments.
-template< typename Segments >
-inline constexpr bool isColumnMajorEllpackSegments_v = isColumnMajorEllpackSegments< Segments >::value;
-
-template< typename Segments >
 struct isSortedEllpackSegments : std::false_type
 {};
 
@@ -356,39 +324,6 @@ struct isSortedEllpackSegments< SortedEllpackView< Device, Index, Organization, 
 //! \brief Returns true if the given type is sorted Ellpack segments.
 template< typename Segments >
 inline constexpr bool isSortedEllpackSegments_v = isSortedEllpackSegments< Segments >::value;
-
-template< typename Segments >
-struct isSortedRowMajorEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator, int Alignment >
-struct isSortedRowMajorEllpackSegments< SortedRowMajorEllpack< Device, Index, IndexAllocator, Alignment > > : std::true_type
-{};
-
-template< typename Device, typename Index, int Alignment >
-struct isSortedRowMajorEllpackSegments< SortedRowMajorEllpackView< Device, Index, Alignment > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is sorted row-major Ellpack segments.
-template< typename Segments >
-inline constexpr bool isSortedRowMajorEllpackSegments_v = isSortedRowMajorEllpackSegments< Segments >::value;
-
-template< typename Segments >
-struct isSortedColumnMajorEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator, int Alignment >
-struct isSortedColumnMajorEllpackSegments< SortedColumnMajorEllpack< Device, Index, IndexAllocator, Alignment > >
-: std::true_type
-{};
-
-template< typename Device, typename Index, int Alignment >
-struct isSortedColumnMajorEllpackSegments< SortedColumnMajorEllpackView< Device, Index, Alignment > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is sorted column-major Ellpack segments.
-template< typename Segments >
-inline constexpr bool isSortedColumnMajorEllpackSegments_v = isSortedColumnMajorEllpackSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 

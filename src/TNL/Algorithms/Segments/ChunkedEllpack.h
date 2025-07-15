@@ -301,38 +301,6 @@ template< typename Segments >
 inline constexpr bool isChunkedEllpackSegments_v = isChunkedEllpackSegments< Segments >::value;
 
 template< typename Segments >
-struct isColumnMajorChunkedEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator >
-struct isColumnMajorChunkedEllpackSegments< ColumnMajorChunkedEllpack< Device, Index, IndexAllocator > > : std::true_type
-{};
-
-template< typename Device, typename Index >
-struct isColumnMajorChunkedEllpackSegments< ColumnMajorChunkedEllpackView< Device, Index > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is column-major ChunkedEllpack segments.
-template< typename Segments >
-inline constexpr bool isColumnMajorChunkedEllpackSegments_v = isColumnMajorChunkedEllpackSegments< Segments >::value;
-
-template< typename Segments >
-struct isRowMajorChunkedEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator >
-struct isRowMajorChunkedEllpackSegments< RowMajorChunkedEllpack< Device, Index, IndexAllocator > > : std::true_type
-{};
-
-template< typename Device, typename Index >
-struct isRowMajorChunkedEllpackSegments< RowMajorChunkedEllpackView< Device, Index > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is row-major ChunkedEllpack segments.
-template< typename Segments >
-inline constexpr bool isRowMajorChunkedEllpackSegments_v = isRowMajorChunkedEllpackSegments< Segments >::value;
-
-template< typename Segments >
 struct isSortedChunkedEllpackSegments : std::false_type
 {};
 
@@ -347,40 +315,6 @@ struct isSortedChunkedEllpackSegments< SortedChunkedEllpackView< Device, Index, 
 //! \brief Returns true if the given type is sorted ChunkedEllpack segments.
 template< typename Segments >
 inline constexpr bool isSortedChunkedEllpackSegments_v = isSortedChunkedEllpackSegments< Segments >::value;
-
-template< typename Segments >
-struct isSortedRowMajorChunkedEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator >
-struct isSortedRowMajorChunkedEllpackSegments< SortedRowMajorChunkedEllpack< Device, Index, IndexAllocator > > : std::true_type
-{};
-
-template< typename Device, typename Index >
-struct isSortedRowMajorChunkedEllpackSegments< SortedRowMajorChunkedEllpackView< Device, Index > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is sorted row-major ChunkedEllpack segments.
-template< typename Segments >
-inline constexpr bool isSortedRowMajorChunkedEllpackSegments_v = isSortedRowMajorChunkedEllpackSegments< Segments >::value;
-
-template< typename Segments >
-struct isSortedColumnMajorChunkedEllpackSegments : std::false_type
-{};
-
-template< typename Device, typename Index, typename IndexAllocator >
-struct isSortedColumnMajorChunkedEllpackSegments< SortedColumnMajorChunkedEllpack< Device, Index, IndexAllocator > >
-: std::true_type
-{};
-
-template< typename Device, typename Index >
-struct isSortedColumnMajorChunkedEllpackSegments< SortedColumnMajorChunkedEllpackView< Device, Index > > : std::true_type
-{};
-
-//! \brief Returns true if the given type is sorted column-major ChunkedEllpack segments.
-template< typename Segments >
-inline constexpr bool isSortedColumnMajorChunkedEllpackSegments_v =
-   isSortedColumnMajorChunkedEllpackSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 
