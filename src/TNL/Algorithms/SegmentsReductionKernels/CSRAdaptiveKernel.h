@@ -30,7 +30,7 @@ struct CSRAdaptiveKernel
    [[nodiscard]] static int
    getSizeValueLog( const int& i )
    {
-      return detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
+      return Segments::detail::CSRAdaptiveKernelParameters<>::getSizeValueLog( i );
    }
 
    [[nodiscard]] static std::string
@@ -80,7 +80,7 @@ struct CSRAdaptiveKernel
 protected:
    template< int SizeOfValue, typename Offsets >
    Index
-   findLimit( Index start, const Offsets& offsets, Index size, detail::Type& type );
+   findLimit( Index start, const Offsets& offsets, Index size, Segments::detail::Type& type );
 
    template< int SizeOfValue, typename Offsets >
    void
