@@ -5,13 +5,13 @@
 
 #include <TNL/Algorithms/Segments/ChunkedEllpackView.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
-#include "TraversingOperationsBaseline.h"
+#include "TraversingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
-: public TraversingOperationsBaseline< ChunkedEllpackView< Device, Index, Organization > >
+: public TraversingOperationsBase< ChunkedEllpackView< Device, Index, Organization > >
 {
    using ViewType = Segments::ChunkedEllpackView< Device, Index, Organization >;
    using ConstViewType = typename ViewType::ConstViewType;

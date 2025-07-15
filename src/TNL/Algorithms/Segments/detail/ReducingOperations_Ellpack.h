@@ -8,13 +8,13 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include "FetchLambdaAdapter.h"
 #include "ReducingKernels_Ellpack.h"
-#include "ReducingOperationsBaseline.h"
+#include "ReducingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment > >
-: public ReducingOperationsBaseline< EllpackView< Device, Index, Organization, Alignment > >
+: public ReducingOperationsBase< EllpackView< Device, Index, Organization, Alignment > >
 {
    using SegmentsViewType = EllpackView< Device, Index, Organization, Alignment >;
    using ConstViewType = typename SegmentsViewType::ConstViewType;

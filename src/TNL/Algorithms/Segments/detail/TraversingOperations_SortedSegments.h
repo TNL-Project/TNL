@@ -6,13 +6,13 @@
 #include <TNL/Algorithms/Segments/SortedSegmentsView.h>
 #include <TNL/Algorithms/Segments/SortedSegments.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
-#include "TraversingOperationsBaseline.h"
+#include "TraversingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename EmbeddedSegmentsView_ >
 struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
-: public TraversingOperationsBaseline< SortedSegmentsView< EmbeddedSegmentsView_ > >
+: public TraversingOperationsBase< SortedSegmentsView< EmbeddedSegmentsView_ > >
 {
    using EmbeddedSegmentsView = EmbeddedSegmentsView_;
    using DeviceType = typename EmbeddedSegmentsView::DeviceType;

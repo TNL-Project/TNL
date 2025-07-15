@@ -4,7 +4,7 @@
 #pragma once
 
 #include "FetchLambdaAdapter.h"
-#include "ReducingOperationsBaseline.h"
+#include "ReducingOperationsBase.h"
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/Algorithms/Segments/SortedSegments.h>
 #include <TNL/Algorithms/Segments/SortedSegmentsView.h>
@@ -15,7 +15,7 @@ namespace TNL::Algorithms::Segments::detail {
 
 template< typename EmbeddedSegmentsView_ >
 struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
-: public ReducingOperationsBaseline< SortedSegmentsView< EmbeddedSegmentsView_ > >
+: public ReducingOperationsBase< SortedSegmentsView< EmbeddedSegmentsView_ > >
 {
    using EmbeddedSegmentsView = EmbeddedSegmentsView_;
    using DeviceType = typename EmbeddedSegmentsView::DeviceType;
