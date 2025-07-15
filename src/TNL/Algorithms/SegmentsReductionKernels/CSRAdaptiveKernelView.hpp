@@ -30,7 +30,7 @@ reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
                                  Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    using BlockType = detail::CSRAdaptiveKernelBlockDescriptor< Index >;
    constexpr int CudaBlockSize = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
    constexpr int WarpSize = Backend::getWarpSize();
@@ -199,13 +199,13 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segm
    }
 
    constexpr bool DispatchScalarCSR =
-      detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same_v< Device, Devices::Host >;
+      Segments::detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() || std::is_same_v< Device, Devices::Host >;
    if constexpr( DispatchScalarCSR ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
          segments, begin, end, fetch, reduction, keeper, identity );
    }
    else {
-      using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+      using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
       constexpr std::size_t maxGridSize = Backend::getMaxGridXSize();

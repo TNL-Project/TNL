@@ -8,7 +8,7 @@
 
 #include "detail/CSRAdaptiveKernelBlockDescriptor.h"
 #include "detail/CSRAdaptiveKernelParameters.h"
-#include "detail/FetchLambdaAdapter.h"
+#include "../Segments/detail/FetchLambdaAdapter.h"
 #include "isSegmentsReductionKernel.h"
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
@@ -51,7 +51,7 @@ struct CSRAdaptiveKernelView
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+             typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
@@ -65,7 +65,7 @@ struct CSRAdaptiveKernelView
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+             typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,

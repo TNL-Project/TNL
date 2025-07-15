@@ -24,7 +24,7 @@ EllpackCudaReductionKernel( Index begin,
                             Index segmentSize )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    constexpr int warpSize = Backend::getWarpSize();
    const int gridIdx = 0;
@@ -39,7 +39,7 @@ EllpackCudaReductionKernel( Index begin,
    end = begin + segmentSize;
 
    // Calculate the result
-   if constexpr( detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
+   if constexpr( Segments::detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
       Index localIdx = laneIdx;
       for( Index i = begin + laneIdx; i < end; i += warpSize, localIdx += warpSize )
          result = reduction( result, fetch( segmentIdx, localIdx, i ) );
@@ -104,7 +104,7 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                 ResultKeeper& keeper,
                                                 const Value& identity )
 {
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
       const IndexType segmentSize = segments.getSegmentSize( 0 );
       if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
@@ -127,7 +127,8 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
             ReturnType aux = identity;
             IndexType localIdx = 0;
             for( IndexType j = begin; j < end; j++ )
-               aux = reduction( aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
+               aux = reduction(
+                  aux, Segments::detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
             keeper( segmentIdx, aux );
          };
          Algorithms::parallelFor< Device >( begin, end, l );
@@ -143,7 +144,8 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
          ReturnType aux = identity;
          IndexType localIdx = 0;
          for( IndexType j = begin; j < end; j += alignedSize )
-            aux = reduction( aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
+            aux = reduction(
+               aux, Segments::detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
          keeper( segmentIdx, aux );
       };
       Algorithms::parallelFor< Device >( begin, end, l );
