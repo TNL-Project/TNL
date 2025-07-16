@@ -12,6 +12,11 @@
 
 namespace TNL::Algorithms::Segments {
 
+/**
+ * \brief Creates default launch configuration for segments.
+ *
+ * \tparam Segments The type of segments for which the launch configuration is created.
+ */
 template< typename Segments >
 struct LaunchConfigurationSetter_Default
 {
