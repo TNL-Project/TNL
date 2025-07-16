@@ -13,6 +13,16 @@
 
 namespace TNL::Algorithms::Segments {
 
+/**
+ * \brief Returns a list of launch configurations for reduction operations on segments.
+ *
+ * This function generates a list of launch configurations suitable for reduction operations
+ * on segments, based on the type of segments provided.
+ *
+ * \tparam Segments The type of segments for which the launch configurations are generated.
+ * \param segments The segments for which the launch configurations are created.
+ * \return A list of pairs containing launch configurations and their descriptions.
+ */
 template< typename Segments >
 static auto
 reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pair< LaunchConfiguration, std::string > >
