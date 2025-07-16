@@ -9,26 +9,20 @@
 
 namespace TNL::Algorithms::Segments {
 
+/**
+ * \brief Traversing launch configurations for segments.
+ *
+ * This struct creates a list of available launch configurations for given segments type.
+ *
+ * \tparam Segments The type of segments for which the launch configurations are created.
+ */
 template< typename Segments >
-struct TraversingLaunchConfigurations
+static auto
+traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pair< LaunchConfiguration, std::string > >
 {
-   template< typename Segments_ >
-   static auto
-   create( const Segments_& segments ) -> std::list< std::pair< LaunchConfiguration, std::string > >
-   {
-      return std::list< std::pair< LaunchConfiguration, std::string > >{
-         { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" }
-      };
-   }
-};
+   using Device = typename Segments::DeviceType;
 
-template< typename Device, typename Index, typename IndexAllocator >
-struct TraversingLaunchConfigurations< CSR< Device, Index, IndexAllocator > >
-{
-   template< typename Segments_ >
-   static auto
-   create( const Segments_& segments ) -> std::list< std::pair< LaunchConfiguration, std::string > >
-   {
+   if constexpr( isCSRSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" }
@@ -47,15 +41,7 @@ struct TraversingLaunchConfigurations< CSR< Device, Index, IndexAllocator > >
               "BlockMergedSegments 8 thread per segment" }
          };
    }
-};
-
-template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
-struct TraversingLaunchConfigurations< SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize > >
-{
-   template< typename Segments_ >
-   static auto
-   create( const Segments_& segments ) -> std::list< std::pair< LaunchConfiguration, std::string > >
-   {
+   if constexpr( isSlicedEllpackSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" }
@@ -69,15 +55,7 @@ struct TraversingLaunchConfigurations< SlicedEllpack< Device, Index, IndexAlloca
 
          };
    }
-};
-
-template< typename Device, typename Index, typename IndexAllocator, Segments::ElementsOrganization Organization >
-struct TraversingLaunchConfigurations< Ellpack< Device, Index, IndexAllocator, Organization > >
-{
-   template< typename Segments_ >
-   static auto
-   create( const Segments_& segments ) -> std::list< std::pair< LaunchConfiguration, std::string > >
-   {
+   if constexpr( isEllpackSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" }
@@ -90,6 +68,10 @@ struct TraversingLaunchConfigurations< Ellpack< Device, Index, IndexAllocator, O
               "BlockMergedSegments 1 thread per segment" }
          };
    }
-};
+
+   return std::list< std::pair< LaunchConfiguration, std::string > >{
+      { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" }
+   };
+}
 
 }  // namespace TNL::Algorithms::Segments
