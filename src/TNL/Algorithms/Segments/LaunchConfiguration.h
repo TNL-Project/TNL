@@ -6,6 +6,12 @@
 
 namespace TNL::Algorithms::Segments {
 
+/**
+ * \brief Enumeration for mapping threads to segments.
+ *
+ * This enumeration defines how threads are mapped to segments during parallel operations.
+ * It includes options for mapping one thread per segment, one warp per segment, and user-defined mappings.
+ */
 enum class ThreadsToSegmentsMapping
 {
    ThreadPerSegment,
@@ -15,12 +21,19 @@ enum class ThreadsToSegmentsMapping
    UserDefined
 };
 
+/**
+ * \brief Launch configuration for segment operations.
+ *
+ * This class encapsulates the configuration for launching segment operations,
+ * including the mapping of threads to segments and the number of threads per segment.
+ */
 struct LaunchConfiguration : public Backend::LaunchConfiguration
 {
    LaunchConfiguration() = default;
 
    LaunchConfiguration( ThreadsToSegmentsMapping threadsToSegmentsMapping, int threadsPerSegmentCount, int blockSize = 1 )
-   : Backend::LaunchConfiguration( blockSize ), threadsToSegmentsMapping( threadsToSegmentsMapping ),
+   : Backend::LaunchConfiguration( blockSize ),
+     threadsToSegmentsMapping( threadsToSegmentsMapping ),
      threadsPerSegmentCount( threadsPerSegmentCount )
    {}
 
