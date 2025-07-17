@@ -80,7 +80,7 @@ struct CudaBlockScan
       // perform the parallel scan on chunkResults inside warps
       const int lane_id = tid % Backend::getWarpSize();
       const int warp_id = tid / Backend::getWarpSize();
-   #pragma unroll
+      #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
          if( lane_id >= stride ) {
             storage.chunkResults[ chunkResultIdx ] = reduction(
@@ -97,7 +97,7 @@ struct CudaBlockScan
 
       // perform the scan of warpResults using one warp
       if( warp_id == 0 )
-   #pragma unroll
+         #pragma unroll
          for( int stride = 1; stride < blockSize / Backend::getWarpSize(); stride *= 2 ) {
             if( lane_id >= stride )
                storage.warpResults[ tid ] = reduction( storage.warpResults[ tid ], storage.warpResults[ tid - stride ] );
@@ -192,8 +192,8 @@ struct CudaBlockScanShfl
    static ValueType
    warpScan( const Reduction& reduction, ValueType identity, ValueType threadValue, int lane_id, ValueType& total )
    {
-   // perform an inclusive scan
-   #pragma unroll
+      // perform an inclusive scan
+      #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
    // TODO: HIP does not have __shfl_up_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
    #ifdef __HIP__
@@ -344,7 +344,7 @@ struct CudaTileScan
       // Perform sequential reduction of the thread's chunk in shared memory.
       const int chunkOffset = threadIdx.x * valuesPerThread;
       ValueType value = storage.data[ chunkOffset ];
-   #pragma unroll
+      #pragma unroll
       for( int i = 1; i < valuesPerThread; i++ )
          value = reduction( value, storage.data[ chunkOffset + i ] );
 
@@ -354,8 +354,8 @@ struct CudaTileScan
       // Apply the global shift.
       value = reduction( value, shift );
 
-   // Downsweep step: scan the chunks and use the result of spine scan as the initial value.
-   #pragma unroll
+      // Downsweep step: scan the chunks and use the result of spine scan as the initial value.
+      #pragma unroll
       for( int i = 0; i < valuesPerThread; i++ ) {
          const ValueType inputValue = storage.data[ chunkOffset + i ];
          if( scanType == ScanType::Exclusive )
