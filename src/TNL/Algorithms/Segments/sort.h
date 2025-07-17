@@ -14,6 +14,7 @@ namespace TNL::Algorithms::Segments {
  * This function sorts elements within segments in the range [\e begin, \e end). Each segment
  * is sorted independently using insertion sort. The sorting is performed based on the
  * provided \e fetch, \e compare, and \e swap functions.
+ * The sorting is done in ascending order based on the comparison function provided.
  *
  * \tparam Segments Type of the segments container.
  * \tparam IndexBegin Type of the begin index.
@@ -60,6 +61,7 @@ sortSegments( const Segments& segments,
  *
  * This is a convenience function that sorts elements in all segments. It internally
  * calls \e sortSegments with the full range of segments.
+ * The sorting is done in ascending order based on the comparison function provided.
  *
  * \tparam Segments Type of the segments container.
  * \tparam Fetch Type of the fetch function.
@@ -87,6 +89,7 @@ sortAllSegments( const Segments& segments,
  *
  * This function sorts elements within segments specified by the \e segmentIndexes array.
  * Each specified segment is sorted independently using insertion sort.
+ * The sorting is done in ascending order based on the comparison function provided.
  *
  * \tparam Segments Type of the segments container.
  * \tparam Array Type of the segment indexes array.
@@ -132,6 +135,7 @@ sortSegments( const Segments& segments,
  * This is a convenience function that sorts elements in all segments specified by
  * the \e segmentIndexes array. It internally calls \e sortSegments with the full range
  * of the \e segmentIndexes array.
+ * The sorting is done in ascending order based on the comparison function provided.
  *
  * \tparam Segments Type of the segments container.
  * \tparam Array Type of the segment indexes array.
@@ -167,6 +171,7 @@ sortSegments( const Segments& segments,
  *
  * This function sorts elements within segments in the range [\e begin, \e end) that satisfy
  * the given condition. Each qualifying segment is sorted independently using insertion sort.
+ * The sorting is done in ascending order based on the comparison function provided.
  *
  * \tparam Segments Type of the segments container.
  * \tparam IndexBegin Type of the begin index.
@@ -211,6 +216,7 @@ sortSegmentsIf( const Segments& segments,
  *
  * This is a convenience function that sorts elements in all segments that satisfy
  * the given condition. It internally calls \e sortSegmentsIf with the full range of segments.
+ * The sorting is done in ascending order based on the comparison function provided.
  *
  * \tparam Segments Type of the segments container.
  * \tparam Condition Type of the condition function.
@@ -235,6 +241,46 @@ sortAllSegmentsIf( const Segments& segments,
                    Compare&& compare,
                    Swap&& swap,
                    LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Sorts a segment using insertion sort.
+ *
+ * This function sorts the elements of a segment using insertion sort algorithm.
+ *
+ * \tparam SegmentView Type of the segment view.
+ * \tparam Fetch Type of the fetch function.
+ * \tparam Compare Type of the comparison function.
+ * \tparam Swap Type of the swap function.
+ *
+ * \param segment The segment view to be sorted.
+ * \param fetch Function to fetch element value at given position. It should have one of the following forms:
+ *
+ * 1. **Full form**
+ *  ```
+ *  auto fetch = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) { ... }
+ *  ```
+ * 2. **Brief form**
+ *  ```
+ *  auto fetch = [=] __cuda_callable__ ( IndexType globalIdx ) { ... }
+ *  ```
+ *
+ * In both variants:
+ * - \e segmentIdx is the index of the segment.
+ * - \e localIdx is the rank of the element within the segment.
+ * - \e globalIdx is the index of the element in the corresponding container.
+ *
+ * \param compare Function to compare two elements.
+ *        Should have signature: `bool compare(ValueType a, ValueType b)` returning true if a <= b.
+ * \param swap Function to swap two elements.
+ *        Should have signature: `void swap(IndexType globalIdx1, IndexType globalIdx2)`.
+ *
+ * This function performs an in-place sort of the segment using the insertion sort algorithm.
+ * The sorting is done in ascending order based on the comparison function provided.
+ */
+template< typename SegmentView, typename Fetch, typename Compare, typename Swap >
+__cuda_callable__
+void
+segmentInsertionSort( SegmentView segment, Fetch&& fetch, Compare&& compare, Swap&& swap );
 
 }  // namespace TNL::Algorithms::Segments
 
