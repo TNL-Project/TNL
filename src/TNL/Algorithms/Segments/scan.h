@@ -530,6 +530,73 @@ exclusiveScanAllSegmentsIf( const Segments& segments,
                             Write&& write,
                             LaunchConfiguration launchConfig = LaunchConfiguration() );
 
+/**
+ * \brief Computes an inclusive scan (or prefix sum) within a segment.
+ *
+ * \tparam SegmentView Type of the segment view.
+ * \tparam Fetch Type of the fetch function.
+ * \tparam Reduce is a type of function performing the reduction.
+ * \tparam Write Type of the write function.
+ *
+ * \param segment The segment view to scan.
+ * \param fetch Function to fetch element value at given position. It should have one of the following forms:
+ *
+ * 1. **Full form**
+ *  ```
+ *  auto fetch = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) { ... }
+ *  ```
+ * 2. **Brief form**
+ *  ```
+ *  auto fetch = [=] __cuda_callable__ ( IndexType globalIdx ) { ... }
+ *  ```
+ *
+ * In both variants:
+ * - \e segmentIdx is the index of the segment.
+ * - \e localIdx is the rank of the element within the segment.
+ * - \e globalIdx is the index of the element in the corresponding container.
+ * \param reduce Function object performing the reduction.
+ * \param write Function to write result at given position. Should have signature:
+ *        `void write(IndexType globalIdx, ValueType value)`.
+ */
+template< typename SegmentView, typename Fetch, typename Reduce, typename Write >
+__cuda_callable__
+void
+inclusiveScanSegment( SegmentView& segment, Fetch&& fetch, Reduce&& reduce, Write&& write );
+
+/**
+ * \brief Computes an exclusive scan (or prefix sum) within a segment.
+ *
+ * \tparam SegmentView Type of the segment view.
+ * \tparam Fetch Type of the fetch function.
+ * \tparam Reduce is a type of function performing the reduction.
+ * \tparam Write Type of the write function.
+ *
+ * \param segment The segment view to scan.
+ * \param fetch Function to fetch element value at given position.  It should have one of the following forms:
+ *
+ * 1. **Full form**
+ *  ```
+ *  auto fetch = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) { ... }
+ *  ```
+ * 2. **Brief form**
+ *  ```
+ *  auto fetch = [=] __cuda_callable__ ( IndexType globalIdx ) { ... }
+ *  ```
+ *
+ * In both variants:
+ * - \e segmentIdx is the index of the segment.
+ * - \e localIdx is the rank of the element within the segment.
+ * - \e globalIdx is the index of the element in the corresponding container.
+ *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
+ * \param reduce Function object performing the reduction.
+ * \param write Function to write result at given position. Should have signature:
+ *        `void write(IndexType globalIdx, ValueType value)`.
+ */
+template< typename SegmentView, typename Fetch, typename Reduce, typename Write >
+__cuda_callable__
+void
+exclusiveScanSegment( SegmentView& segment, Fetch&& fetch, Reduce&& reduce, Write&& write );
+
 }  // namespace TNL::Algorithms::Segments
 
 #include "scan.hpp"
