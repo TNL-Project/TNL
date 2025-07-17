@@ -170,7 +170,7 @@ struct CudaBlockReduceShfl
    static ValueType
    warpReduce( const Reduction& reduction, ValueType threadValue )
    {
-   #pragma unroll
+      #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
          // TODO: HIP does not have __shfl_xor_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
    #ifdef __HIP__
@@ -324,7 +324,7 @@ struct CudaBlockReduceWithArgument
    static std::pair< ValueType, IndexType >
    warpReduceWithArgument( const Reduction& reduction, ValueType threadValue, IndexType threadArgument )
    {
-   #pragma unroll
+      #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
          // TODO: HIP does not have __shfl_xor_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
    #ifdef __HIP__

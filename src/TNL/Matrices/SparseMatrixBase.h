@@ -358,7 +358,7 @@ public:
     * \param identity is the [identity element](https://en.wikipedia.org/wiki/Identity_element)
     *                 for the reduction operation, i.e. element which does not
     *                 change the result of the reduction.
-    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.    *
+    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
     * \par Example
     * \include Matrices/SparseMatrix/SparseMatrixExample_reduceRows.cpp
     * \par Output

@@ -75,7 +75,7 @@ template< typename Real,
           typename Index,
           typename MatrixType,
           template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
-          typename RealCompute,
+          typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
 struct MatrixInfo< SparseMatrix< Real, Device, Index, MatrixType, Segments, RealCompute, RealAllocator, IndexAllocator > >
