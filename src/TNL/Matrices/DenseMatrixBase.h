@@ -7,7 +7,6 @@
 
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
 #include "DenseMatrixRowView.h"
 #include "MatrixBase.h"
 #include "TNL/Matrices/MatrixType.h"
