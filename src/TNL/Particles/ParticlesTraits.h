@@ -36,7 +36,7 @@ class ParticlesTraits
    using PairIndexArrayType = Containers::Array< PairIndexType, DeviceType, GlobalIndexType >;
 
    ///* ParticlesLinkedListWithList.h related */
-   using IndexArrayType = typename Containers::Array< GlobalIndexType, DeviceType, GlobalIndexType >;
+   using IndexArrayType = Containers::Array< GlobalIndexType, DeviceType, GlobalIndexType >;
    //using NeighborListType = typename ParticleConfig::NeighborListType;
    using NeighborListType = typename Algorithms::Segments::Ellpack< DeviceType, int >;
    using NeighborsCountArrayType = Containers::Array< LocalIndexType, Device, GlobalIndexType >;

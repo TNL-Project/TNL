@@ -1,4 +1,5 @@
 #include "Particles.h"
+#include "TNL/Algorithms/parallelFor.h"
 
 namespace TNL {
 namespace ParticleSystem {
@@ -17,7 +18,7 @@ Particles< ParticleConfig, DeviceType >::setSize( const GlobalIndexType& size )
    numberOfAllocatedParticles = size;
    this->points.setSize( size );
    this->points_swap.setSize( size );
-   this->sortPermutations->setSize( size );  //TODO: sort permulation should not be pointer.
+   this->sortPermutations.setSize( size );
 }
 
 template< typename ParticleConfig, typename DeviceType >
@@ -212,19 +213,18 @@ Particles< ParticleConfig, DeviceType >::getPointsSwap()
 }
 
 template< typename ParticleConfig, typename DeviceType >
-const typename Particles< ParticleConfig, DeviceType >::IndexArrayTypePointer&
+const typename Particles< ParticleConfig, DeviceType >::IndexArrayType&
 Particles< ParticleConfig, DeviceType >::getSortPermutations() const
 {
    return this->sortPermutations;
 }
 
 template< typename ParticleConfig, typename DeviceType >
-typename Particles< ParticleConfig, DeviceType >::IndexArrayTypePointer&
+typename Particles< ParticleConfig, DeviceType >::IndexArrayType&
 Particles< ParticleConfig, DeviceType >::getSortPermutations()
 {
    return this->sortPermutations;
 }
-
 
 template< typename ParticleConfig, typename DeviceType >
 template< typename ArrayType >
@@ -232,13 +232,15 @@ void
 Particles< ParticleConfig, DeviceType >::reorderArray( ArrayType& array, ArrayType& arraySwap )
 {
    const GlobalIndexType numberOfParticle = this->getNumberOfParticles();
-   using ThrustDeviceType = TNL::Thrust::ThrustExecutionPolicy< typename ArrayType::DeviceType >;
-   ThrustDeviceType thrustDevice;
-   thrust::gather( thrustDevice,
-                   this->sortPermutations->getArrayData(),
-                   this->sortPermutations->getArrayData() + numberOfParticles,
-                   array.getArrayData(),
-                   arraySwap.getArrayData() );
+   const auto array_view = array.getConstView();
+   auto arraySwap_view = arraySwap.getView();
+   const auto sortPermutations_view = sortPermutations.getConstView();
+
+   auto reorder = [ = ] __cuda_callable__( GlobalIndexType i ) mutable
+   {
+      arraySwap_view[ i ] = array_view[ sortPermutations_view[ i ] ];
+   };
+   Algorithms::parallelFor< Device >( 0, numberOfParticle, reorder );
    array.swap( arraySwap );
 }
 
@@ -340,19 +342,7 @@ template< typename ParticleConfig, typename Device >
 void
 Particles< ParticleConfig, Device >::reorderParticles()
 {
-   //const GlobalIndexType numberOfParticle = this->getNumberOfParticles();
-   //using ThrustDeviceType = TNL::Thrust::ThrustExecutionPolicy< Device >;
-   //ThrustDeviceType thrustDevice;
-   //auto view_map = this->sortPermutations->getView();
-   //auto view_points = this->getPoints().getView();
-   //auto view_points_swap = this->points_swap.getView();
-   //thrust::gather( thrustDevice,
-   //                view_map.getArrayData(),
-   //                view_map.getArrayData() + numberOfParticle,
-   //                view_points.getArrayData(),
-   //                view_points_swap.getArrayData() );
-   //this->getPoints().swap( this->points_swap );
-   //std::cout << "@@@@@@@@@@@@@@@@@@@@@ particles reordered." << std::endl;
+   reorderArray( points, points_swap );
 }
 
 template< typename ParticleConfig, typename DeviceType >

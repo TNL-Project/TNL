@@ -1,8 +1,7 @@
 #include "ParticlesLinkedList.h"
+#include "UnitTests/Particles/ParticleSystemTest.h"
 #include "details/details.h"
 #include <climits>
-#include <limits>
-#include <vector>
 
 namespace TNL {
 namespace ParticleSystem {
@@ -13,11 +12,15 @@ ParticlesLinkedList< ParticleConfig, DeviceType >::setGridDimensions( const Inde
 {
    this->gridDimension = dimensions;
    const IndexVectorType dimensionsWithOverlap = dimensions + 2 * this->getOverlapWidth();
-   if constexpr( ParticleConfig::spaceDimension == 2 )
-      firstLastCellParticle.setSize( dimensionsWithOverlap[ 0 ] * dimensionsWithOverlap[ 1 ] );
-   if constexpr( ParticleConfig::spaceDimension == 3 )
-      firstLastCellParticle.setSize( dimensionsWithOverlap[ 0 ] * dimensionsWithOverlap[ 1 ] * dimensionsWithOverlap[ 2 ] );
+   GlobalIndexType numberOfCells;
 
+   if constexpr( ParticleConfig::spaceDimension == 2 )
+      numberOfCells = dimensionsWithOverlap[ 0 ] * dimensionsWithOverlap[ 1 ];
+   if constexpr( ParticleConfig::spaceDimension == 3 )
+      numberOfCells = dimensionsWithOverlap[ 0 ] * dimensionsWithOverlap[ 1 ] * dimensionsWithOverlap[ 2 ];
+
+   firstLastCellParticle.setSize( numberOfCells );
+   numberOfParticlesInCells.setSize( numberOfCells );
    this->resetListWithIndices();
 }
 
@@ -27,11 +30,15 @@ ParticlesLinkedList< ParticleConfig, DeviceType >::setOverlapWidth( const Global
 {
    this->overlapWidth = width;
    const IndexVectorType dimensionsWithOverlap = this->getGridDimensions() + 2 * width;
-   if constexpr( ParticleConfig::spaceDimension == 2 )
-      firstLastCellParticle.setSize( dimensionsWithOverlap[ 0 ] * dimensionsWithOverlap[ 1 ] );
-   if constexpr( ParticleConfig::spaceDimension == 3 )
-      firstLastCellParticle.setSize( dimensionsWithOverlap[ 0 ] * dimensionsWithOverlap[ 1 ] * dimensionsWithOverlap[ 2 ] );
+   GlobalIndexType numberOfCells;
 
+   if constexpr( ParticleConfig::spaceDimension == 2 )
+      numberOfCells = dimensionsWithOverlap[ 0 ] * dimensionsWithOverlap[ 1 ];
+   if constexpr( ParticleConfig::spaceDimension == 3 )
+      numberOfCells = dimensionsWithOverlap[ 0 ] * dimensionsWithOverlap[ 1 ] * dimensionsWithOverlap[ 2 ];
+
+   firstLastCellParticle.setSize( numberOfCells );
+   numberOfParticlesInCells.setSize( numberOfCells );
    this->resetListWithIndices();
 }
 
@@ -41,9 +48,10 @@ ParticlesLinkedList< ParticleConfig, DeviceType >::setSize( const GlobalIndexTyp
 {
    BaseType::setSize( size );
    this->particleCellInidices.setSize( size );
-   //TODO: is this necessary or not?
-   //particleCellInidices = INT_MAX;
-   //firstLastCellParticle = INT_MAX;
+   this->indicesOfParticlesInCells.setSize( size );
+
+   particleCellInidices = 0;
+   indicesOfParticlesInCells = 0;
 }
 
 template< typename ParticleConfig, typename Device >
@@ -131,6 +139,13 @@ ParticlesLinkedList< ParticleConfig, Device >::computeParticleCellIndices()
    auto view_particeCellIndices = this->particleCellInidices.getView();
    const auto points_view = this->points.getConstView();
 
+   const GlobalIndexType numberOfCells = numberOfParticlesInCells.getSize();
+   auto view_numberOfParticlesInCells = numberOfParticlesInCells.getView();
+   auto view_indicesOfParticlesInCells = indicesOfParticlesInCells.getView();
+
+   // reset the counts of number of particles in cells
+   view_numberOfParticlesInCells = 0;
+
    auto indexParticles = [ = ] __cuda_callable__( GlobalIndexType i ) mutable
    {
       if( points_view[ i ][ 0 ] == FLT_MAX || points_view[ i ][ 1 ] == FLT_MAX ) {
@@ -138,10 +153,21 @@ ParticlesLinkedList< ParticleConfig, Device >::computeParticleCellIndices()
       }
       else {
          const IndexVectorType cellCoords = TNL::floor( ( points_view[ i ] - gridOrigin ) / searchRadius );
-         view_particeCellIndices[ i ] = CellIndexer::EvaluateCellIndex( cellCoords, gridDimension );
+         const CellIndexType cellIndex = CellIndexer::EvaluateCellIndex( cellCoords, gridDimension );
+
+	     // if ( cellIndex < 0 || cellIndex >= numberOfCells ) {
+        //    view_particeCellIndices[ i ] = INT_MAX;
+        // }
+        // else {
+            view_particeCellIndices[ i ] = cellIndex;
+            view_indicesOfParticlesInCells[ i ] = Algorithms::AtomicOperations< DeviceType >::add(
+                  view_numberOfParticlesInCells[ cellIndex ], 1 );
+        //}
       }
    };
    Algorithms::parallelFor< DeviceType >( 0, this->numberOfParticles, indexParticles );
+
+   Algorithms::inplaceExclusiveScan( numberOfParticlesInCells, 0, numberOfCells );
 }
 
 template< typename ParticleConfig, typename Device >
@@ -243,35 +269,27 @@ void
 ParticlesLinkedList< ParticleConfig, Device >::sortParticles()
 {
    const GlobalIndexType numberOfParticle = this->getNumberOfParticles();
-   this->sortPermutations->forAllElements(
-      [] __cuda_callable__( int i, int& value )
-      {
-         value = i;
-      } );
-   using ThrustDeviceType = TNL::Thrust::ThrustExecutionPolicy< Device >;
-   ThrustDeviceType thrustDevice;
-   thrust::sort_by_key( thrustDevice,
-                        this->particleCellInidices.getArrayData(),
-                        this->particleCellInidices.getArrayData() + numberOfParticle,
-                        this->sortPermutations->getArrayData() );
-   thrust::gather( thrustDevice,
-                   this->sortPermutations->getArrayData(),
-                   this->sortPermutations->getArrayData() + numberOfParticle,
-                   this->points.getArrayData(),
-                   this->points_swap.getArrayData() );
-   this->points.swap( this->points_swap );
+   const auto view_particeCellIndices = particleCellInidices.getConstView();
+   const auto view_numberOfParticlesInCells = numberOfParticlesInCells.getConstView();
+   const auto view_indicesOfParticlesInCells = indicesOfParticlesInCells.getConstView();
+   auto view_sortPermutations = this->sortPermutations.getView();
+
+   auto buildPermutations = [ = ] __cuda_callable__ ( GlobalIndexType i ) mutable
+   {
+      const GlobalIndexType cellIndex = view_particeCellIndices[ i ];
+      if( cellIndex != INT_MAX ) {
+         const GlobalIndexType newIndex = view_numberOfParticlesInCells[ cellIndex ] + view_indicesOfParticlesInCells[ i ];
+         view_sortPermutations[ newIndex ] = i;
+      }
+   };
+   Algorithms::parallelFor< Device >( 0, numberOfParticle, buildPermutations );
 }
 
 template< typename ParticleConfig, typename Device >
 void
 ParticlesLinkedList< ParticleConfig, Device >::resetListWithIndices()
 {
-   auto view_firstLastCellParticle = this->firstLastCellParticle.getView();
-   auto init = [ = ] __cuda_callable__( int i ) mutable
-   {
-      view_firstLastCellParticle[ i ] = INT_MAX;
-   };
-   Algorithms::parallelFor< DeviceType >( 0, this->firstLastCellParticle.getSize(), init );
+   this->firstLastCellParticle = INT_MAX;
 }
 
 template< typename ParticleConfig, typename Device >
@@ -279,41 +297,30 @@ void
 ParticlesLinkedList< ParticleConfig, Device >::particlesToCells()
 {
    const GlobalIndexType numberOfParticles = this->getNumberOfParticles();
+   const GlobalIndexType numberOfCells = this->firstLastCellParticle.getSize();
    auto view_firstLastCellParticle = this->firstLastCellParticle.getView();
-   const auto view_particleCellIndex = this->particleCellInidices.getView();
+   const auto view_numberOfParticlesInCells = this->numberOfParticlesInCells.getConstView();
 
+   // no particles, skip
    if( numberOfParticles == 0 ) {
       return;
    }
-   else if( numberOfParticles == 1 ) {
-      view_firstLastCellParticle.setElement( view_particleCellIndex.getElement( 0 ), { 0, 0 } );
-      return;
-   }
 
-   //resolve first particle
-   view_firstLastCellParticle.setElement(
-      view_particleCellIndex.getElement( 0 ),
-      { 0, ( view_particleCellIndex.getElement( 0 ) != view_particleCellIndex.getElement( 0 + 1 ) ) ? 0 : INT_MAX } );
-
-   //[1, N-1]
-   auto init = [ = ] __cuda_callable__( int i ) mutable
+   auto bucketing = [=] __cuda_callable__ ( GlobalIndexType i ) mutable
    {
-      if( view_particleCellIndex[ i ] != view_particleCellIndex[ i - 1 ] )
-         view_firstLastCellParticle[ view_particleCellIndex[ i ] ][ 0 ] = i;
-      if( view_particleCellIndex[ i ] != view_particleCellIndex[ i + 1 ] )
-         view_firstLastCellParticle[ view_particleCellIndex[ i ] ][ 1 ] = i;
+      if( view_numberOfParticlesInCells[ i ] != view_numberOfParticlesInCells[ i + 1 ] ){
+         view_firstLastCellParticle[ i ][ 0 ] = view_numberOfParticlesInCells[ i ];
+         view_firstLastCellParticle[ i ][ 1 ] = view_numberOfParticlesInCells[ i + 1 ] - 1;
+      }
    };
-   Algorithms::parallelFor< DeviceType >( 0 + 1, numberOfParticles - 1, init );
+   Algorithms::parallelFor<DeviceType>( 0 , numberOfCells, bucketing);
 
-   //resolve last partile
-   const PairIndexType lastActiveCellContains =
-      view_firstLastCellParticle.getElement( view_particleCellIndex.getElement( numberOfParticles - 1 ) );
-   view_firstLastCellParticle.setElement( view_particleCellIndex.getElement( numberOfParticles - 1 ),
-                                          { ( view_particleCellIndex.getElement( numberOfParticles - 1 )
-                                              != view_particleCellIndex.getElement( numberOfParticles - 2 ) )
-                                               ? ( numberOfParticles - 1 )
-                                               : lastActiveCellContains[ 0 ],
-                                            ( numberOfParticles - 1 ) } );
+   // -resolve last cell manually
+   const GlobalIndexType numberOfParticlesInLastCell = view_numberOfParticlesInCells.getElement( numberOfCells - 1 );
+   if( numberOfParticlesInLastCell != numberOfParticles )
+      view_firstLastCellParticle.setElement( numberOfCells - 1, { numberOfParticlesInLastCell, numberOfParticles - 1 } );
+   else
+      view_firstLastCellParticle.setElement( numberOfCells - 1, { INT_MAX, INT_MAX } );
 }
 
 template< typename ParticleConfig, typename Device >
@@ -325,12 +332,12 @@ ParticlesLinkedList< ParticleConfig, Device >::searchForNeighbors()
    resetListWithIndices();
    computeParticleCellIndices();
    sortParticles();
-   this->reorderParticles();
    // update number of particles - removed particles with invalid positions are shifted at the end of the array
    if( this->getNumberOfParticlesToRemove() != 0 ) {
       this->setNumberOfParticles( this->getNumberOfParticles() - this->getNumberOfParticlesToRemove() );
       this->setNumberOfParticlesToRemove( 0 );
    }
+   this->reorderParticles();
    particlesToCells();
 }
 

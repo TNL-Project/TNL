@@ -7,12 +7,9 @@
 using namespace TNL;
 using namespace ParticleSystem;
 
-template< typename Device >
 class Particles2DConfig
 {
    public:
-   using DeviceType = Device;
-
    using GlobalIndexType = int;
    using LocalIndexType = int;
    using CellIndexType = int;
@@ -21,15 +18,14 @@ class Particles2DConfig
    static constexpr int spaceDimension = 2;
 
    using UseWithDomainDecomposition = std::false_type;
-   using CoordinatesType = Containers::StaticVector< spaceDimension, int >;
-   using CellIndexerType = SimpleCellIndex< spaceDimension, Particles2DConfig, std::index_sequence< 0, 1 > >;
+   using CellIndexerType = SimpleCellIndex< spaceDimension, std::index_sequence< 0, 1 > >;
 };
 
 template< typename Device >
 class Particles2DSetup
 {
    public:
-   using ParticlesConfig = Particles2DConfig< Device >;
+   using ParticlesConfig = Particles2DConfig;
    using ParticlesTraitsType = ParticlesTraits< ParticlesConfig, Device >;
    using IndexVectorType = typename ParticlesTraitsType::IndexVectorType;
    using PointType = typename ParticlesTraitsType::PointType;
@@ -97,7 +93,7 @@ TEST( GhostZonesConstruction2DTest, CollectParticlesInZoneCuda )
    using Particles = TNL::ParticleSystem::ParticlesLinkedList< ParticlesSetup::ParticlesConfig, Device >;
    using ParticlesPointer = typename Pointers::SharedPointer< Particles, Device >;
 
-   using GhostZone = ParticleZone< ParticlesSetup::ParticlesConfig >;
+   using GhostZone = ParticleZone< ParticlesSetup::ParticlesConfig, Device >;
    using IndexVectorType = typename GhostZone::IndexVectorType;
    using PointType = typename Particles::PointType;
 

@@ -4,11 +4,7 @@
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Algorithms/sort.h>
 
-#include <thrust/sort.h>
-#include <thrust/execution_policy.h>
-#include <thrust/gather.h>
 #include <type_traits>
-#include "details/thrustExecPolicySelector.h"
 
 #include "ParticlesTraits.h"
 
@@ -29,9 +25,8 @@ public:
    using IndexVectorType = typename ParticleTraitsType::IndexVectorType;
    using PointType = typename ParticleTraitsType::PointType;
 
-   using IndexArrayType = typename ParticleTraitsType::CellIndexArrayType;
+   using IndexArrayType = typename ParticleTraitsType::IndexArrayType;
    using PointArrayType = typename ParticleTraitsType::PointArrayType;
-   using IndexArrayTypePointer = typename Pointers::SharedPointer< IndexArrayType, Device >;  //TODO: Do I need this?
 
    static constexpr int spaceDimension = Config::spaceDimension;
 
@@ -238,7 +233,7 @@ public:
     *
     * \return pointer to array with permutations.
     */
-   [[nodiscard]] const IndexArrayTypePointer&
+   [[nodiscard]] const IndexArrayType&
    getSortPermutations() const;
 
    /**
@@ -247,7 +242,7 @@ public:
     *
     * \return pointer to array with permutations.
     */
-   IndexArrayTypePointer&
+   IndexArrayType&
    getSortPermutations();
 
    /**
@@ -402,7 +397,8 @@ protected:
    /**
     * Array to store permutation of new particle ordering during particle sort.
     */
-   IndexArrayTypePointer sortPermutations;
+   //IndexArrayTypePointer sortPermutations;
+   IndexArrayType sortPermutations;
 
    /**
     * Array marking particles (if allocated).

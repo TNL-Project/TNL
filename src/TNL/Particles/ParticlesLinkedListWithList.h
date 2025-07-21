@@ -6,10 +6,6 @@
 
 #include <limits> //UINT_MAX
 
-#include "details/thrustExecPolicySelector.h"
-#include <string_view>
-#include <thrust/sort.h>
-#include <thrust/gather.h>
 #include <type_traits>
 
 #include "ParticlesTraits.h"

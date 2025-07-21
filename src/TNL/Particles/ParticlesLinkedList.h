@@ -1,16 +1,12 @@
 #pragma once
 
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Pointers/SharedPointer.h>
+#include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Algorithms/sort.h>
 
 #include <limits> //UINT_MAX
 
-#include "details/thrustExecPolicySelector.h"
-
 #include <string_view>
-#include <thrust/sort.h>
-#include <thrust/gather.h>
 #include <type_traits>
 
 #include "ParticlesTraits.h"
@@ -226,6 +222,12 @@ protected:
     * computed based on particle position.
     */
    CellIndexArrayType particleCellInidices;
+
+   CellIndexArrayType indicesOfParticlesInCells;
+
+   CellIndexArrayType numberOfParticlesInCells;
+
+
 
    /**
     * Array with size of number of cells pairs storing index of first and last

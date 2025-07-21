@@ -1,10 +1,10 @@
 set( CPP_TESTS
-    #ParticleSystemTest
+    ParticleSystemTest
 )
 
 set( CUDA_TESTS
     ParticleSystemTestCuda
-    GhostZoneTestCuda
+    #GhostZoneTestCuda
 )
 
 foreach( target IN ITEMS ${CPP_TESTS} )
