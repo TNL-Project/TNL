@@ -1,5 +1,4 @@
 #include "ParticlesLinkedList.h"
-#include "UnitTests/Particles/ParticleSystemTest.h"
 #include "details/details.h"
 #include <climits>
 
