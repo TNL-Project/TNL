@@ -401,7 +401,6 @@ debian:
                 - gcc:14
                 - gcc:15
                 # https://hub.docker.com/r/silkeh/clang
-                - silkeh/clang:10
                 - silkeh/clang:11
                 - silkeh/clang:12
                 - silkeh/clang:13

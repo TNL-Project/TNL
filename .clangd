@@ -6,8 +6,6 @@ CompileFlags:
   Add:
     - "-DHAVE_OPENMP"
     - "-DHAVE_MPI"
-    - "-DADIOS2_USE_MPI"
-    - "-DUSE_CUDA"
     - "-xcu"
   Remove:
     # remove all nvcc-specific flags that may appear in the compile_commands.json file
