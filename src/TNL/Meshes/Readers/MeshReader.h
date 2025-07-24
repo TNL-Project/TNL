@@ -137,14 +137,15 @@ public:
     * \brief Method which loads the intermediate mesh representation into a
     * mesh object.
     *
-    * This overload applies to unstructured meshes, i.e. \ref TNL::Meshes::Mesh.
+    * This overload applies to unstructured meshes, i.e. \ref TNL::Meshes::Mesh,
+    * which are allocated on the host.
     *
     * When the method exits, the intermediate mesh representation is destroyed
     * to save memory. However, depending on the specific file format, the mesh
     * file may remain open so that the user can load additional data.
     */
    template< typename MeshType >
-   std::enable_if_t< ! isGrid< MeshType >::value >
+   std::enable_if_t< ! isGrid< MeshType >::value && ! std::is_same_v< typename MeshType::DeviceType, Devices::GPU > >
    loadMesh( MeshType& mesh )
    {
       // check that detectMesh has been called
@@ -263,6 +264,28 @@ public:
          meshBuilder.deduplicateFaces();
 
       meshBuilder.build( mesh );
+   }
+
+   /**
+    * \brief Method which loads the intermediate mesh representation into a
+    * mesh object.
+    *
+    * This overload applies to unstructured meshes, i.e. \ref TNL::Meshes::Mesh,
+    * which are allocated on the GPU.
+    *
+    * When the method exits, the intermediate mesh representation is destroyed
+    * to save memory. However, depending on the specific file format, the mesh
+    * file may remain open so that the user can load additional data.
+    */
+   template< typename MeshType >
+   std::enable_if_t< ! isGrid< MeshType >::value && std::is_same_v< typename MeshType::DeviceType, Devices::GPU > >
+   loadMesh( MeshType& mesh )
+   {
+      // Mesh< Config, Devices::GPU > does not have the init() method
+      using HostMesh = TNL::Meshes::Mesh< typename MeshType::Config, TNL::Devices::Host >;
+      HostMesh hostMesh;
+      loadMesh( hostMesh );
+      mesh = hostMesh;
    }
 
    [[nodiscard]] virtual VariantVector
