@@ -6,7 +6,6 @@
 #include <TNL/Meshes/Writers/VTKWriter.h>
 #include <TNL/Meshes/Writers/detail/VTKOffsetsCountGetter.h>
 #include <TNL/Meshes/Writers/detail/VTKMeshEntitiesWriter.h>
-#include <TNL/Meshes/Grid.h>
 
 namespace TNL::Meshes::Writers {
 
