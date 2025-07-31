@@ -5,6 +5,7 @@
 
 #include <ostream>
 
+#include <TNL/Meshes/Traits.h>
 #include <TNL/Meshes/VTKTraits.h>
 
 //! \brief Namespace for mesh writers.
@@ -18,6 +19,8 @@ namespace TNL::Meshes::Writers {
 template< typename Mesh >
 class VTKWriter
 {
+   static_assert( isGrid< Mesh >::value || ! std::is_same_v< typename Mesh::DeviceType, Devices::GPU >,
+                  "Writers cannot be used with unstructured meshes allocated on GPU." );
    static_assert( Mesh::getMeshDimension() <= 3, "The VTK format supports only 1D, 2D and 3D meshes." );
    // TODO: check also space dimension when grids allow it
    //   static_assert( Mesh::getSpaceDimension() <= 3, "The VTK format supports only 1D, 2D and 3D meshes." );

@@ -6,11 +6,16 @@
 #include <ostream>
 #include <iomanip>
 
+#include <TNL/Meshes/Traits.h>
+
 namespace TNL::Meshes::Writers {
 
 template< typename Mesh >
 class NetgenWriter
 {
+   static_assert( isGrid< Mesh >::value || ! std::is_same_v< typename Mesh::DeviceType, Devices::GPU >,
+                  "Writers cannot be used with unstructured meshes allocated on GPU." );
+
    using GlobalIndexType = typename Mesh::GlobalIndexType;
    using PointType = typename Mesh::PointType;
    using Cell = typename Mesh::Cell;

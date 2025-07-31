@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <TNL/Meshes/Writers/VTUWriter.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedMesh.h>
+#include <TNL/Meshes/VTKTraits.h>
 
 namespace TNL::Meshes::Writers {
 

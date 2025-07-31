@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Meshes/Mesh.h>
+#include <TNL/Meshes/Traits.h>
 #include <TNL/Meshes/VTKTraits.h>
 
 namespace TNL::Meshes::Writers {
@@ -18,6 +19,8 @@ struct MeshEntitiesFPMAWriter;
 template< typename Mesh >
 class FPMAWriter
 {
+   static_assert( isGrid< Mesh >::value || ! std::is_same_v< typename Mesh::DeviceType, Devices::GPU >,
+                  "Writers cannot be used with unstructured meshes allocated on GPU." );
    static_assert( std::is_same_v< typename Mesh::Cell::EntityTopology, Topologies::Polyhedron >,
                   "The FPMA format supports polyhedral meshes." );
 
