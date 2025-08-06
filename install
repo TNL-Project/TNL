@@ -168,20 +168,13 @@ if [[ ${#BUILD_TARGETS[@]} != 0 ]]; then
     export OMP_NUM_THREADS="$TESTS_JOBS"
     export CTEST_PARALLEL_LEVEL="$TESTS_JOBS"
 
-    # we have ctest options set in the preset, but ctest does not allow to override the build directory
-    # https://gitlab.kitware.com/cmake/cmake/-/issues/23982
-    sed 's|"binaryDir": "${sourceDir}/build",|"binaryDir": "${sourceDir}",|' CMakePresets.json > "$BUILD_DIR/CMakePresets.json"
-    pushd "$BUILD_DIR"
-
     if build_targets_contain "all" || build_targets_contain "tests"; then
-        ctest --preset all-tests #--test-dir "$BUILD_DIR"
+        ctest --preset all-tests --test-dir "$BUILD_DIR"
     elif build_targets_contain "matrix-tests"; then
-        ctest --preset matrix-tests #--test-dir "$BUILD_DIR"
+        ctest --preset matrix-tests --test-dir "$BUILD_DIR"
     elif build_targets_contain "non-matrix-tests"; then
-        ctest --preset non-matrix-tests #--test-dir "$BUILD_DIR"
+        ctest --preset non-matrix-tests --test-dir "$BUILD_DIR"
     fi
-
-    popd
 fi
 
 if [[ ! "$PATH" =~ "$PREFIX/bin" ]]; then
