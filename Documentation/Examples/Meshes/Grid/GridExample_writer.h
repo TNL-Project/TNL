@@ -95,7 +95,7 @@ writeGrid()
             sum += cells_view[ vertex.template getEntityIndex< Dimension >( { 0, 0 }, 0 ) ];
             count++;
          }
-         vertexes_view[ vertex.getIndex() ] = sum / count;
+         vertices_view[ vertex.getIndex() ] = sum / count;
       } );
 
    // Write values of all vertices in the grid to a file in VTI format

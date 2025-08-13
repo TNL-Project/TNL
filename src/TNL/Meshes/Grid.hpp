@@ -33,9 +33,6 @@ Grid< Dimension, Real, Device, Index >::Grid( const CoordinatesType& sizes )
    proportions = 0;
    spaceSteps = 0;
    origin = 0;
-
-   // dimensions must be set after proportions
-   setDimensions( dimensions );
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >

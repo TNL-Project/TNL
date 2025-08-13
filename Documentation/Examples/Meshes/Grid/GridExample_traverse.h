@@ -135,7 +135,7 @@ traverseGrid()
             sum += cells_view[ vertex.template getEntityIndex< Dimension >( { 0, 0 }, 0 ) ];
             count++;
          }
-         vertexes_view[ vertex.getIndex() ] = sum / count;
+         vertices_view[ vertex.getIndex() ] = sum / count;
       } );
    //! [initialize vertexes]
 
