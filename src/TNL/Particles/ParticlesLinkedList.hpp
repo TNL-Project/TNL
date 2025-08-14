@@ -312,7 +312,7 @@ ParticlesLinkedList< ParticleConfig, Device >::particlesToCells()
          view_firstLastCellParticle[ i ][ 1 ] = view_numberOfParticlesInCells[ i + 1 ] - 1;
       }
    };
-   Algorithms::parallelFor<DeviceType>( 0 , numberOfCells, bucketing);
+   Algorithms::parallelFor< DeviceType >( 0, numberOfCells - 1, bucketing ); //TODO: range?
 
    // -resolve last cell manually
    const GlobalIndexType numberOfParticlesInLastCell = view_numberOfParticlesInCells.getElement( numberOfCells - 1 );
