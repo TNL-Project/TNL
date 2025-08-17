@@ -561,9 +561,9 @@ public:
     * \param function is an instance of the lambda function to be called for each element.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixViewExample_forElementsWithRowIndexes-2.cpp
     * \par Output
-    * \include DenseMatrixExample_forElementsWithRowIndexes-2.out
+    * \include DenseMatrixViewExample_forElementsWithRowIndexes-2.out
     */
    template< typename Array, typename Function >
    void
@@ -589,9 +589,9 @@ public:
     * \param function is an instance of the lambda function to be called for each element.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixViewExample_forElementsWithRowIndexes-2.cpp
     * \par Output
-    * \include DenseMatrixExample_forElementsWithRowIndexes-2.out
+    * \include DenseMatrixViewExample_forElementsWithRowIndexes-2.out
     */
    template< typename Array, typename Function >
    void
@@ -615,9 +615,9 @@ public:
     * \param function is an instance of the lambda function to be called for each element.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixViewExample_forElementsWithRowIndexes-1.cpp
     * \par Output
-    * \include DenseMatrixExample_forElementsWithRowIndexes-1.out
+    * \include DenseMatrixViewExample_forElementsWithRowIndexes-1.out
     */
    template< typename Array, typename Function >
    void
@@ -641,9 +641,9 @@ public:
     * \param function is an instance of the lambda function to be called for each element.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixViewExample_forElementsWithRowIndexes-1.cpp
     * \par Output
-    * \include DenseMatrixExample_forElementsWithRowIndexes-1.out
+    * \include DenseMatrixViewExample_forElementsWithRowIndexes-1.out
     */
    template< typename Array, typename Function >
    void
@@ -674,9 +674,9 @@ public:
     * \param function is an instance of the lambda function to be called for each matrix element.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsIf.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixViewExample_forElementsIf.cpp
     * \par Output
-    * \include DenseMatrixExample_forElementsIf.out
+    * \include DenseMatrixViewExample_forElementsIf.out
     */
    template< typename Condition, typename Function >
    void
@@ -707,9 +707,9 @@ public:
     * \param function is an instance of the lambda function to be called for each matrix element.
     *
     * \par Example
-    * \include Matrices/DenseMatrix/DenseMatrixExample_forElementsIf.cpp
+    * \include Matrices/DenseMatrix/DenseMatrixViewExample_forElementsIf.cpp
     * \par Output
-    * \include DenseMatrixExample_forElementsIf.out
+    * \include DenseMatrixViewExample_forElementsIf.out
     */
    template< typename Condition, typename Function >
    void

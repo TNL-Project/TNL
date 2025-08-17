@@ -98,13 +98,13 @@ public:
    /**
     * \brief Set index of the segment.
     *
-    * \param index of the segment.
+    * \param index is the of the segment.
     */
    __cuda_callable__
    void
-   setSegmentIndex( IndexType idx )
+   setSegmentIndex( IndexType index )
    {
-      this->segmentIdx = idx;
+      this->segmentIdx = index;
    }
 
    /**
@@ -269,13 +269,13 @@ public:
    /**
     * \brief Set index of the segment.
     *
-    * \param index of the segment.
+    * \param index is index of the segment.
     */
    __cuda_callable__
    void
-   setSegmentIndex( IndexType idx )
+   setSegmentIndex( IndexType index )
    {
-      this->segmentIdx = idx;
+      this->segmentIdx = index;
    }
 
    /**
