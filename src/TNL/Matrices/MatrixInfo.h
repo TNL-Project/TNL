@@ -13,24 +13,6 @@
 
 namespace TNL::Matrices {
 
-/**
- * \brief This checks if the sparse matrix is stored in CSR format.
- */
-template< typename Matrix >
-struct is_csr_matrix : public std::false_type
-{};
-
-template< typename Real, typename Device, typename Index, typename ComputeReal, typename RealAllocator, typename IndexAllocator >
-struct is_csr_matrix< Matrices::SparseMatrix< Real,
-                                              Device,
-                                              Index,
-                                              Matrices::GeneralMatrix,
-                                              Algorithms::Segments::CSR,
-                                              ComputeReal,
-                                              RealAllocator,
-                                              IndexAllocator > > : public std::true_type
-{};
-
 template< typename Matrix >
 struct MatrixInfo
 {};

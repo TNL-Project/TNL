@@ -229,22 +229,6 @@ protected:
    bind( IndexType rows, IndexType columns, ValuesViewType values );
 };
 
-[[nodiscard]] constexpr std::false_type
-isMatrix( ... )
-{
-   return {};
-}
-
-template< typename Real, typename Device, typename Index, typename MatrixType, ElementsOrganization Organization >
-[[nodiscard]] constexpr std::true_type
-isMatrix( const MatrixBase< Real, Device, Index, MatrixType, Organization >& )
-{
-   return {};
-}
-
-template< typename T >
-constexpr bool is_matrix_type_v = decltype( isMatrix( std::declval< T >() ) )::value;
-
 }  // namespace TNL::Matrices
 
 #include "MatrixBase.hpp"

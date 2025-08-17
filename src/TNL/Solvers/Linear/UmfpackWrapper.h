@@ -9,7 +9,7 @@
 
 #include <TNL/Solvers/DirectSolver.h>
 #include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Matrices/MatrixInfo.h>
+#include <TNL/Matrices/TypeTraits.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 
 namespace TNL::Solvers::Linear {
@@ -17,7 +17,7 @@ namespace TNL::Solvers::Linear {
 template< typename Matrix, typename SolverMonitor = IterativeSolverMonitor< double > >
 class UmfpackWrapper : public DirectSolver< typename Matrix::RealType, typename Matrix::IndexType, SolverMonitor >
 {
-   static_assert( Matrices::is_csr_matrix< Matrix >::value, "Umfpack works only with CSR format." );
+   static_assert( Matrices::is_sparse_csr_matrix_v< Matrix >, "Umfpack works only with CSR format." );
    static_assert( std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Host >
                      || std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Sequential >,
                   "Umfpack is only available on the host." );
