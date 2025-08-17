@@ -467,7 +467,6 @@ void
 test_ForElementsIf()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
 
    /*

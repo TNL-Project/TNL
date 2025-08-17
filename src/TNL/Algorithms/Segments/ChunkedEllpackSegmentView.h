@@ -85,9 +85,9 @@ public:
     */
    __cuda_callable__
    void
-   setSegmentIndex( IndexType idx )
+   setSegmentIndex( IndexType index )
    {
-      this->segmentIdx = idx;
+      this->segmentIdx = index;
    }
 
    /**
@@ -169,9 +169,9 @@ public:
    }
 
    /**
-    * \brief Get global index of an element with rank \e localIndex in the segment.
+    * \brief Get global index of an element with rank \e localIdx in the segment.
     *
-    * \param localIndex is the rank of the element in the segment.
+    * \param localIdx is the rank of the element in the segment.
     * \return global index of the element.
     */
    [[nodiscard]] __cuda_callable__
@@ -191,9 +191,9 @@ public:
     */
    __cuda_callable__
    void
-   setSegmentIndex( IndexType idx )
+   setSegmentIndex( IndexType index )
    {
-      this->segmentIdx = idx;
+      this->segmentIdx = index;
    }
 
    /**

@@ -506,9 +506,9 @@ public:
     * \param function is an instance of the lambda function to be called for each element.
     *
     * \par Example
-    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixViewExample_forElementsWithRowIndexes-2.cpp
     * \par Output
-    * \include MultidiagonalMatrixExample_forElementsWithRowIndexes-2.out
+    * \include MultidiagonalMatrixViewExample_forElementsWithRowIndexes-2.out
     */
    template< typename Array, typename Function >
    void
@@ -535,9 +535,9 @@ public:
     * \param function is an instance of the lambda function to be called for each element.
     *
     * \par Example
-    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixViewExample_forElementsWithRowIndexes-2.cpp
     * \par Output
-    * \include MultidiagonalMatrixExample_forElementsWithRowIndexes-2.out
+    * \include MultidiagonalMatrixViewExample_forElementsWithRowIndexes-2.out
     */
    template< typename Array, typename Function >
    void
@@ -562,9 +562,9 @@ public:
     * \param function is an instance of the lambda function to be called for each element.
     *
     * \par Example
-    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixViewExample_forElementsWithRowIndexes-1.cpp
     * \par Output
-    * \include MultidiagonalMatrixExample_forElementsWithRowIndexes-1.out
+    * \include MultidiagonalMatrixViewExample_forElementsWithRowIndexes-1.out
     */
    template< typename Array, typename Function >
    void
@@ -587,12 +587,11 @@ public:
     *
     * \param rowIndexes is an array with row indexes.
     * \param function is an instance of the lambda function to be called for each element.
-    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
     *
     * \par Example
-    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixViewExample_forElementsWithRowIndexes-1.cpp
     * \par Output
-    * \include MultidiagonalMatrixExample_forElementsWithRowIndexes-1.out
+    * \include MultidiagonalMatrixViewExample_forElementsWithRowIndexes-1.out
     */
    template< typename Array, typename Function >
    void
@@ -624,9 +623,9 @@ public:
     * \param function is an instance of the lambda function to be called for each matrix element.
     *
     * \par Example
-    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forElementsIf.cpp
+    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixViewExample_forElementsIf.cpp
     * \par Output
-    * \include MultidiagonalMatrixExample_forElementsIf.out
+    * \include MultidiagonalMatrixViewExample_forElementsIf.out
     */
    template< typename Condition, typename Function >
    void
@@ -658,9 +657,9 @@ public:
     * \param function is an instance of the lambda function to be called for each matrix element.
     *
     * \par Example
-    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixExample_forElementsIf.cpp
+    * \include Matrices/MultidiagonalMatrix/MultidiagonalMatrixViewExample_forElementsIf.cpp
     * \par Output
-    * \include MultidiagonalMatrixExample_forElementsIf.out
+    * \include MultidiagonalMatrixViewExample_forElementsIf.out
     */
    template< typename Condition, typename Function >
    void

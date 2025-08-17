@@ -94,8 +94,8 @@ public:
     *
     * \tparam SizesContainer The type of container used to store segment sizes.
     *    It can be, for example, \ref TNL::Containers::Array or \ref
-    * TNL::Containers::Vector. \param segmentsSizes An instance of the container
-    * holding the sizes of the segments.
+    * TNL::Containers::Vector.
+    * \param sizes An instance of the container holding the sizes of the segments.
     *
     * See the following example:
     *
@@ -151,9 +151,11 @@ public:
     * \tparam Index_ The index type of the source segments.
     * \tparam IndexAllocator_ The index allocator type of the source segments.
     * \tparam Organization_ The organization of the elements in the source
-    * segments. \tparam Alignment_ The alignment of the number of segments in the
-    * source segments. \param segments The source segments object. \return A
-    * reference to this instance.
+    * segments.
+    * \tparam Alignment_ The alignment of the number of segments in the
+    * source segments.
+    * \param segments The source segments object.
+    * \return A reference to this instance.
     */
    template< typename Device_, typename Index_, typename IndexAllocator_, ElementsOrganization Organization_, int Alignment_ >
    Ellpack&
@@ -175,7 +177,7 @@ public:
     * \tparam SizesContainer is a container with segments sizes. It can be
     * \ref TNL::Containers::Array or \ref TNL::Containers::Vector for example.
     *
-    * \param segmentsSizes is an instance of the container with segments sizes.
+    * \param sizes is an instance of the container with segments sizes.
     */
    template< typename SizesContainer >
    void

@@ -167,7 +167,7 @@ public:
     * \tparam SizesContainer is a container with segments sizes. It can be
     * \ref TNL::Containers::Array or \ref TNL::Containers::Vector for example.
     *
-    * \param segmentsSizes is an instance of the container with segments sizes.
+    * \param sizes is an instance of the container with segments sizes.
     */
    template< typename SizesHolder >
    void

@@ -96,9 +96,9 @@ public:
     * \brief Returns string with the serialization type.
     *
     * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_getSerializationType.cpp
+    * \include Algorithms/Segments/SegmentsExample_getSerializationType.cpp
     * \par Output
-    * \include SegmentsExample_CSR_getSerializationType.out
+    * \include SegmentsExample_getSerializationType.out
     */
    [[nodiscard]] static std::string
    getSerializationType();
@@ -107,9 +107,9 @@ public:
     * \brief Returns string with the segments type.
     *
     * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_getSegmentsType.cpp
+    * \include Algorithms/Segments/SegmentsExample_getSegmentsType.cpp
     * \par Output
-    * \include SegmentsExample_CSR_getSegmentsType.out
+    * \include SegmentsExample_getSegmentsType.out
     */
    [[nodiscard]] static std::string
    getSegmentsType();
