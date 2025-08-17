@@ -36,10 +36,6 @@ struct LaunchConfiguration
    constexpr LaunchConfiguration( const LaunchConfiguration& ) = default;
    constexpr LaunchConfiguration( LaunchConfiguration&& ) = default;
 
-   constexpr LaunchConfiguration( dim3 blockSize )
-   : blockSize( blockSize )
-   {}
-
    constexpr LaunchConfiguration( dim3 gridSize,
                                   dim3 blockSize,
                                   std::size_t dynamicSharedMemorySize = 0U,

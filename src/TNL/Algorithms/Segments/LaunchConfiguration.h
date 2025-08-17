@@ -32,7 +32,7 @@ struct LaunchConfiguration : public Backend::LaunchConfiguration
    LaunchConfiguration() = default;
 
    LaunchConfiguration( ThreadsToSegmentsMapping threadsToSegmentsMapping, int threadsPerSegmentCount, int blockSize = 1 )
-   : Backend::LaunchConfiguration( blockSize ),
+   : Backend::LaunchConfiguration( dim3{}, blockSize ),
      threadsToSegmentsMapping( threadsToSegmentsMapping ),
      threadsPerSegmentCount( threadsPerSegmentCount )
    {}
