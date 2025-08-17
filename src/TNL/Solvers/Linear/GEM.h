@@ -5,6 +5,7 @@
 
 #include <ostream>
 #include <TNL/Matrices/DenseMatrix.h>
+#include <TNL/Matrices/TypeTraits.h>
 #include <TNL/Solvers/DirectSolver.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 
@@ -23,7 +24,7 @@ namespace TNL::Solvers::Linear {
 template< typename Matrix, typename Real = typename Matrix::RealType, typename SolverMonitor = IterativeSolverMonitor< double > >
 struct GEM : public DirectSolver< Real, typename Matrix::IndexType, SolverMonitor >
 {
-   static_assert( Matrices::is_dense_matrix_type_v< Matrix >, "GEM works only with dense matrices." );
+   static_assert( Matrices::is_dense_matrix_v< Matrix >, "GEM works only with dense matrices." );
 
    //! \brief Type for floating point numbers.
    using RealType = Real;

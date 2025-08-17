@@ -10,6 +10,7 @@
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Solvers/Linear/LinearSolver.h>
+#include <TNL/Matrices/TypeTraits.h>
 
 namespace TNL::Solvers::Linear {
 

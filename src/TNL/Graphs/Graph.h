@@ -7,7 +7,7 @@
 #include <ostream>
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/reduce.h>
-#include <TNL/Matrices/MatrixBase.h>
+#include <TNL/Matrices/TypeTraits.h>
 
 namespace TNL::Graphs {
 
@@ -20,7 +20,7 @@ enum class GraphTypes
 template< typename Matrix, GraphTypes GraphType = GraphTypes::Directed >
 struct Graph
 {
-   static_assert( Matrices::is_matrix_type_v< Matrix > );
+   static_assert( Matrices::is_matrix_v< Matrix > );
 
    using MatrixType = Matrix;
    using IndexType = typename Matrix::IndexType;
