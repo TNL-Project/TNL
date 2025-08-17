@@ -78,9 +78,9 @@ template< typename Real,
           typename ComputeReal,
           typename RealAllocator,
           typename IndexAllocator >
-struct MatrixInfo< SparseMatrix< Real, Device, Index, MatrixType, Segments, RealCompute, RealAllocator, IndexAllocator > >
+struct MatrixInfo< SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator > >
 : public MatrixInfo<
-     typename SparseMatrix< Real, Device, Index, MatrixType, Segments, RealCompute, RealAllocator, IndexAllocator >::ViewType >
+     typename SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::ViewType >
 {};
 
 /// \endcond
