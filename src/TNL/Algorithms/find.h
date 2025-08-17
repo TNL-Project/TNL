@@ -55,6 +55,7 @@ find( const Container& container, const ValueType& value )
  * \brief Find the first occurrence of a larger element than given value in sorted array.
  *
  * \param array is the array where the value is searched.
+ * \param size is the size of the array.
  * \param value is the upper bound value.
  * \return pair `(found, position)` where \e found is a boolean indicating
  *         if the  upper bound \e value was found and \e position is the

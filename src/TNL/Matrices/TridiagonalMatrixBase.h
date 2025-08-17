@@ -474,9 +474,9 @@ public:
     * \param function is an instance of the lambda function to be called for each element.
     *
     * \par Example
-    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_forElementsWithRowIndexes-2.cpp
     * \par Output
-    * \include TridiagonalMatrixExample_forElementsWithRowIndexes-2.out
+    * \include TridiagonalMatrixViewExample_forElementsWithRowIndexes-2.out
     */
    template< typename Array, typename Function >
    void
@@ -502,9 +502,9 @@ public:
     * \param function is an instance of the lambda function to be called for each element.
     *
     * \par Example
-    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsWithRowIndexes-2.cpp
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_forElementsWithRowIndexes-2.cpp
     * \par Output
-    * \include TridiagonalMatrixExample_forElementsWithRowIndexes-2.out
+    * \include TridiagonalMatrixViewExample_forElementsWithRowIndexes-2.out
     */
    template< typename Array, typename Function >
    void
@@ -528,9 +528,9 @@ public:
     * \param function is an instance of the lambda function to be called for each element.
     *
     * \par Example
-    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_forElementsWithRowIndexes-1.cpp
     * \par Output
-    * \include TridiagonalMatrixExample_forElementsWithRowIndexes-1.out
+    * \include TridiagonalMatrixViewExample_forElementsWithRowIndexes-1.out
     */
    template< typename Array, typename Function >
    void
@@ -552,12 +552,11 @@ public:
     *
     * \param rowIndexes is an array with row indexes.
     * \param function is an instance of the lambda function to be called for each element.
-    * \param launchConfig is a configuration for the kernel launch allowing to control the threads mapping.
     *
     * \par Example
-    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsWithRowIndexes-1.cpp
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_forElementsWithRowIndexes-1.cpp
     * \par Output
-    * \include TridiagonalMatrixExample_forElementsWithRowIndexes-1.out
+    * \include TridiagonalMatrixViewExample_forElementsWithRowIndexes-1.out
     */
    template< typename Array, typename Function >
    void
@@ -588,9 +587,9 @@ public:
     * \param function is an instance of the lambda function to be called for each matrix element.
     *
     * \par Example
-    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsIf.cpp
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_forElementsIf.cpp
     * \par Output
-    * \include TridiagonalMatrixExample_forElementsIf.out
+    * \include TridiagonalMatrixViewExample_forElementsIf.out
     */
    template< typename Condition, typename Function >
    void
@@ -621,9 +620,9 @@ public:
     * \param function is an instance of the lambda function to be called for each matrix element.
     *
     * \par Example
-    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixExample_forElementsIf.cpp
+    * \include Matrices/TridiagonalMatrix/TridiagonalMatrixViewExample_forElementsIf.cpp
     * \par Output
-    * \include TridiagonalMatrixExample_forElementsIf.out
+    * \include TridiagonalMatrixViewExample_forElementsIf.out
     */
    template< typename Condition, typename Function >
    void

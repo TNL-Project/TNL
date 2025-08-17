@@ -39,14 +39,14 @@ public:
       return Alignment;
    }
 
-   //! \brief Returns the data layout for the CSR format (it is always row-major order).
+   //! \brief Returns the data layout.
    [[nodiscard]] static constexpr ElementsOrganization
    getOrganization()
    {
       return Organization;
    }
 
-   //! \brief This function denotes that the CSR format does not use padding elements.
+   //! \brief This function denotes that the Ellpack format uses padding elements.
    [[nodiscard]] static constexpr bool
    havePadding()
    {
@@ -81,9 +81,9 @@ public:
     * \brief Returns string with the serialization type.
     *
     * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_getSerializationType.cpp
+    * \include Algorithms/Segments/SegmentsExample_getSerializationType.cpp
     * \par Output
-    * \include SegmentsExample_CSR_getSerializationType.out
+    * \include SegmentsExample_getSerializationType.out
     */
    [[nodiscard]] static std::string
    getSerializationType();
@@ -92,9 +92,9 @@ public:
     * \brief Returns string with the segments type.
     *
     * \par Example
-    * \include Algorithms/Segments/SegmentsExample_CSR_getSegmentsType.cpp
+    * \include Algorithms/Segments/SegmentsExample_getSegmentsType.cpp
     * \par Output
-    * \include SegmentsExample_CSR_getSegmentsType.out
+    * \include SegmentsExample_getSegmentsType.out
     */
    [[nodiscard]] static std::string
    getSegmentsType();
