@@ -362,7 +362,9 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const
    auto rowIndexes_view = rowIndexes.getConstView();
    const IndexType diagonalsCount = this->diagonalOffsets.getSize();
    const IndexType columns = this->getColumns();
-   TNL_ASSERT_CMD( const IndexType rows = this->getRows(); )
+#ifndef NDEBUG  // we need rows for assertions in the lambda function f
+   const IndexType rows = this->getRows();
+#endif
    const auto indexer = this->indexer;
    std::cout << rowIndexes_view << std::endl;
    auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
