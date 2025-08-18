@@ -357,6 +357,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
             {
                TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+               TNL_ASSERT_LT( row, outVectorView.getSize(), "Row index must be smaller than the number of elements." );
                outVectorView[ row ] = matrixMultiplicator * value;
             };
             Algorithms::Segments::reduceSegments(
@@ -368,6 +369,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
             {
                TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+               TNL_ASSERT_LT( row, outVectorView.getSize(), "Row index must be smaller than the number of elements." );
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + value;
             };
             Algorithms::Segments::reduceSegments(
@@ -377,6 +379,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             auto keep = [ = ] __cuda_callable__( IndexType row, const ComputeRealType& value ) mutable
             {
                TNL_ASSERT_GE( row, 0, "Row index must be non-negative." );
+               TNL_ASSERT_LT( row, outVectorView.getSize(), "Row index must be smaller than the number of elements." );
                outVectorView[ row ] = outVectorMultiplicator * outVectorView[ row ] + matrixMultiplicator * value;
             };
             Algorithms::Segments::reduceSegments(
