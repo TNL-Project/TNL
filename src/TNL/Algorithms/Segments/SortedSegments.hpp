@@ -143,12 +143,23 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
 
    //std::cout << "aux before sorting: " << aux << std::endl;
    auto aux_view = aux.getView();
-   typename Algorithms::Sorting::DefaultSorter< DeviceType >::SorterType sorter;
-   sorter.sort( aux_view,
+   Containers::Array< Tuple, Devices::Host, IndexType > host_aux;
+   host_aux = aux;
+   auto host_aux_view = host_aux.getView();
+   typename Algorithms::Sorting::DefaultSorter< Devices::Host >::SorterType sorter;
+   sorter.sort( host_aux_view,
                 [] __cuda_callable__( const Tuple& a, const Tuple& b )
                 {
                    return a[ 0 ] > b[ 0 ];  // sort in descending order
                 } );
+   // TODO: Quick sort for GPU does not sort properly. Needs to be fixed.
+   // Fails with bcspwr10.mtx matrix and SpMV benchmark for example.
+   /* typename Algorithms::Sorting::DefaultSorter< DeviceType >::SorterType sorter;
+   sorter.sort( aux_view,
+                [] __cuda_callable__( const Tuple& a, const Tuple& b )
+                {
+                   return a[ 0 ] > b[ 0 ];  // sort in descending order
+                } );*/
 
    // Initialize the embedded segments with the sorted sizes
    auto auxView = aux.getConstView();
@@ -168,6 +179,9 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
       {
          value = auxView[ i ][ 1 ];
       } );
+   TNL_ASSERT_EQ( min( inverseSegmentsPermutation ), 0, "Inverse segments permutation does not contain zero." );
+   TNL_ASSERT_EQ(
+      max( inverseSegmentsPermutation ), sizes.getSize() - 1, "Inverse segments permutation does not contain max value." );
    //std::cout << "inverse segments permutation: " << this->inverseSegmentsPermutation << std::endl;
 
    this->segmentsPermutation.setSize( sizes.getSize() );
@@ -182,7 +196,8 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
                                                 inverseSegmentsPermutationView[ i ], segmentsPermutationView.getSize(), "" );
                                              segmentsPermutationView[ inverseSegmentsPermutationView[ i ] ] = i;
                                           } );
-
+   TNL_ASSERT_EQ( min( segmentsPermutationView ), 0, "Segments permutation does not contain zero." );
+   TNL_ASSERT_EQ( max( segmentsPermutationView ), sizes.getSize() - 1, "Segments permutation does not contain max value." );
    //std::cout << "segments permutation: " << this->segmentsPermutation << std::endl;
    // update the base
    Base::bind(
