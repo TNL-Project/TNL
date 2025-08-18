@@ -136,7 +136,7 @@ ParticlesLinkedList< ParticleConfig, Device >::computeParticleCellIndices()
    const PointType gridOrigin = this->gridOrigin;
    const IndexVectorType gridDimension = this->gridDimension;
    auto view_particeCellIndices = this->particleCellInidices.getView();
-   const auto points_view = this->points.getConstView();
+   const auto view_points = this->points.getConstView();
 
    const GlobalIndexType numberOfCells = numberOfParticlesInCells.getSize();
    auto view_numberOfParticlesInCells = numberOfParticlesInCells.getView();
@@ -147,11 +147,12 @@ ParticlesLinkedList< ParticleConfig, Device >::computeParticleCellIndices()
 
    auto indexParticles = [ = ] __cuda_callable__( GlobalIndexType i ) mutable
    {
-      if( points_view[ i ][ 0 ] == FLT_MAX || points_view[ i ][ 1 ] == FLT_MAX ) {
+      const PointType point = view_points[ i ];
+      if( point[ 0 ] == FLT_MAX || point[ 1 ] == FLT_MAX ) {
          view_particeCellIndices[ i ] = INT_MAX;
       }
       else {
-         const IndexVectorType cellCoords = TNL::floor( ( points_view[ i ] - gridOrigin ) / searchRadius );
+         const IndexVectorType cellCoords = TNL::floor( ( point - gridOrigin ) / searchRadius );
          const CellIndexType cellIndex = CellIndexer::EvaluateCellIndex( cellCoords, gridDimension );
 
 	     // if ( cellIndex < 0 || cellIndex >= numberOfCells ) {
@@ -165,7 +166,6 @@ ParticlesLinkedList< ParticleConfig, Device >::computeParticleCellIndices()
       }
    };
    Algorithms::parallelFor< DeviceType >( 0, this->numberOfParticles, indexParticles );
-
    Algorithms::inplaceExclusiveScan( numberOfParticlesInCells, 0, numberOfCells );
 }
 
@@ -174,27 +174,39 @@ template< typename UseWithDomainDecomposition, std::enable_if_t< UseWithDomainDe
 void
 ParticlesLinkedList< ParticleConfig, Device >::computeParticleCellIndices()
 {
-   //FIXME: Global grid origin should be shifted aswell with search radius. Or it should not?
-   const PointType gridRefOrigin = this->gridReferentialOrigin;
    const RealType searchRadius = this->radius;
+   const PointType gridRefOrigin = this->gridReferentialOrigin;
    const IndexVectorType gridOriginGlobalCoordsWithOverlap = this->getGridOriginGlobalCoordsWithOverlap();
    const IndexVectorType gridDimensionWithOverlap = this->getGridDimensionsWithOverlap();
-   const auto view_points = this->points.getConstView();
+
    auto view_particeCellIndices = this->particleCellInidices.getView();
+   const auto view_points = this->points.getConstView();
+
+   const GlobalIndexType numberOfCells = numberOfParticlesInCells.getSize();
+   auto view_numberOfParticlesInCells = numberOfParticlesInCells.getView();
+   auto view_indicesOfParticlesInCells = indicesOfParticlesInCells.getView();
+
+   // reset the counts of number of particles in cells
+   view_numberOfParticlesInCells = 0;
 
    auto indexParticles = [ = ] __cuda_callable__( GlobalIndexType i ) mutable
    {
       const PointType point = view_points[ i ];
-      if( view_points[ i ][ 0 ] == FLT_MAX || view_points[ i ][ 1 ] == FLT_MAX ) {
+      if( point[ 0 ] == FLT_MAX || point[ 1 ] == FLT_MAX ) {
          view_particeCellIndices[ i ] = INT_MAX;
       }
       else {
-         const IndexVectorType cellGlobalCoords = TNL::floor( ( point - gridRefOrigin ) / searchRadius );
-         const IndexVectorType cellCoords = cellGlobalCoords - gridOriginGlobalCoordsWithOverlap;
-         view_particeCellIndices[ i ] = CellIndexer::EvaluateCellIndex( cellCoords, gridDimensionWithOverlap );
+         const IndexVectorType cellCoordsGlobal = TNL::floor( ( point - gridRefOrigin ) / searchRadius );
+         const IndexVectorType cellCoords = cellCoordsGlobal - gridOriginGlobalCoordsWithOverlap;
+         const CellIndexType cellIndex = CellIndexer::EvaluateCellIndex( cellCoords, gridDimensionWithOverlap );
+
+         view_particeCellIndices[ i ] = cellIndex;
+         view_indicesOfParticlesInCells[ i ] = Algorithms::AtomicOperations< DeviceType >::add(
+               view_numberOfParticlesInCells[ cellIndex ], 1 );
       }
    };
    Algorithms::parallelFor< DeviceType >( 0, this->numberOfParticles, indexParticles );
+   Algorithms::inplaceExclusiveScan( numberOfParticlesInCells, 0, numberOfCells );
 }
 
 //FIXME: Temp. function. Remove after resolving the overlaps.
