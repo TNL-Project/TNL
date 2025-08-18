@@ -53,11 +53,27 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                end,
                [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
                {
+                  TNL_ASSERT_GE( segmentIdx, 0, "Segment index is negative." );
+                  TNL_ASSERT_LT(
+                     segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
+                  TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
+                  TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
+                                 inverseSegmentsPermutationView.getSize(),
+                                 "Transformed segment index is larger than number of segments." );
+
                   return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
                },
                reduction,
                [ = ] __cuda_callable__( IndexType segmentIdx, const ReturnType& result ) mutable
                {
+                  TNL_ASSERT_GE( segmentIdx, 0, "Segment index is negative." );
+                  TNL_ASSERT_LT(
+                     segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
+                  TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
+                  TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
+                                 inverseSegmentsPermutationView.getSize(),
+                                 "Transformed segment index is larger than number of segments." );
+
                   keeper( inverseSegmentsPermutationView[ segmentIdx ], result );
                },
                identity,
@@ -72,6 +88,14 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                reduction,
                [ = ] __cuda_callable__( IndexType segmentIdx, const ReturnType& result ) mutable
                {
+                  TNL_ASSERT_GE( segmentIdx, 0, "Segment index is negative." );
+                  TNL_ASSERT_LT(
+                     segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
+                  TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
+                  TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
+                                 inverseSegmentsPermutationView.getSize(),
+                                 "Transformed segment index is larger than number of segments." );
+
                   keeper( inverseSegmentsPermutationView[ segmentIdx ], result );
                },
                identity,
@@ -82,6 +106,14 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          if constexpr( argumentCount< Fetch >() == 3 ) {
             auto fetch_ = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
             {
+               TNL_ASSERT_GE( segmentIdx, 0, "Segment index is negative." );
+               TNL_ASSERT_LT(
+                  segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
+               TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
+               TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
+                              inverseSegmentsPermutationView.getSize(),
+                              "Transformed segment index is larger than number of segments." );
+
                return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
             };
             ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
@@ -93,6 +125,14 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                reduction,
                [ = ] __cuda_callable__( IndexType segmentIdx_idx, IndexType segmentIdx, const ReturnType& result ) mutable
                {
+                  TNL_ASSERT_GE( segmentIdx, 0, "Segment index is negative." );
+                  TNL_ASSERT_LT(
+                     segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
+                  TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
+                  TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
+                                 inverseSegmentsPermutationView.getSize(),
+                                 "Transformed segment index is larger than number of segments." );
+
                   keeper( inverseSegmentsPermutationView[ segmentIdx ], result );
                },
                identity,
@@ -108,6 +148,14 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                reduction,
                [ = ] __cuda_callable__( IndexType segmentdIdx_idx, IndexType segmentIdx, const ReturnType& result ) mutable
                {
+                  TNL_ASSERT_GE( segmentIdx, 0, "Segment index is negative." );
+                  TNL_ASSERT_LT(
+                     segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
+                  TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
+                  TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
+                                 inverseSegmentsPermutationView.getSize(),
+                                 "Transformed segment index is larger than number of segments." );
+
                   keeper( inverseSegmentsPermutationView[ segmentIdx ], result );
                },
                identity,
