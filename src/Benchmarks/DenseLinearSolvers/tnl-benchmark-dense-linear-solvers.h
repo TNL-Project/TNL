@@ -12,7 +12,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/Config/parseCommandLine.h>
 
-#include "gem.h"
+#include "dense-linear-solvers.h"
 
 void
 setupConfig( TNL::Config::ConfigDescription& config )
@@ -20,7 +20,7 @@ setupConfig( TNL::Config::ConfigDescription& config )
    config.addDelimiter( "Benchmark setting:" );
    config.addEntry< int >( "matrix-size", "Size of the randomly generated matrix.", 128 );
    config.addEntry< TNL::String >( "input-file", "Input matrix file name (overrides random matrix generation)." );
-   config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-gem.log" );
+   config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-dense-linear-solvers.log" );
    config.addEntry< bool >( "append-log", "Append to log file.", false );
 
    config.addEntry< TNL::String >( "precision", "Precision of the arithmetics.", "double" );
@@ -32,7 +32,7 @@ setupConfig( TNL::Config::ConfigDescription& config )
    config.addEntryEnum( "cuda" );
    config.addEntryEnum( "hip" );
    config.addEntryEnum( "all" );
-   config.addEntry< TNL::String >( "pivoting", "You can use pivoting in GEM computation.", "yes" );
+   config.addEntry< TNL::String >( "pivoting", "Use pivoting in GEM/LU computation.", "yes" );
    config.addEntryEnum( "yes" );
    config.addEntryEnum( "no" );
    config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
@@ -44,10 +44,10 @@ resolvePrecision( TNL::Config::ParameterContainer& parameters )
 {
    TNL::String precision = parameters.getParameter< TNL::String >( "precision" );
    if( precision == "float" || precision == "all" ) {
-      benchmarkGEM< float, int >( parameters );
+      benchmarkDenseLinearSolvers< float, int >( parameters );
    }
    if( precision == "double" || precision == "all" ) {
-      benchmarkGEM< double, int >( parameters );
+      benchmarkDenseLinearSolvers< double, int >( parameters );
    }
 }
 
