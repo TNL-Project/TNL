@@ -26,18 +26,6 @@ public:
    using SolverMonitorType = SolverMonitor;
 
    /**
-    * \brief Returns \e true if the solver is an iterative solver.
-    */
-   static constexpr bool
-   isIterativeSolver();
-
-   /**
-    * \brief Returns \e true if the solver is a direct solver.
-    */
-   static constexpr bool
-   isDirectSolver();
-
-   /**
     * \brief Default constructor.
     */
    IterativeSolver() = default;

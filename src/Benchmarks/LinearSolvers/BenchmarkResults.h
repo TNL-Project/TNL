@@ -50,35 +50,23 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
    getRowElements() const override
    {
       RowElements elements;
-      if constexpr( SolverType::isIterativeSolver() ) {
-         const bool converged = solver.checkConvergence();
-         const long iterations = solver.getIterations();
-         const double residue_precond = solver.getResidue();
+      const bool converged = solver.checkConvergence();
+      const long iterations = solver.getIterations();
+      const double residue_precond = solver.getResidue();
 
-         Vector r;
-         r.setLike( x );
-         matrix->vectorProduct( x, r );
-         r = b - r;
-         const double residue_true = lpNorm( r, 2.0 ) / lpNorm( b, 2.0 );
+      Vector r;
+      r.setLike( x );
+      matrix->vectorProduct( x, r );
+      r = b - r;
+      const double residue_true = lpNorm( r, 2.0 ) / lpNorm( b, 2.0 );
 
-         elements << time;
-         if( speedup != 0 )
-            elements << speedup;
-         else
-            elements << "N/A";
-         elements << time_stddev << time_stddev / time;
-         elements << ( converged ? "yes" : "no" ) << iterations << residue_precond << residue_true;
-      }
-      else {  // direct solver
-         const bool succeeded = solver.succeeded();
-         elements << time;
-         if( speedup != 0 )
-            elements << speedup;
-         else
-            elements << "N/A";
-         elements << time_stddev << time_stddev / time;
-         elements << ( succeeded ? "yes" : "no" ) << "N/A" << "N/A" << "N/A";
-      }
+      elements << time;
+      if( speedup != 0 )
+         elements << speedup;
+      else
+         elements << "N/A";
+      elements << time_stddev << time_stddev / time;
+      elements << ( converged ? "yes" : "no" ) << iterations << residue_precond << residue_true;
       return elements;
    }
 };

@@ -6,7 +6,7 @@
 #include <ostream>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/TypeTraits.h>
-#include <TNL/Solvers/DirectSolver.h>
+#include <TNL/Solvers/Linear/LinearSolver.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 
 namespace TNL::Solvers::Linear {
@@ -22,27 +22,35 @@ namespace TNL::Solvers::Linear {
  * \tparam SolverMonitor Type of the solver monitor.
  */
 template< typename Matrix, typename Real = typename Matrix::RealType, typename SolverMonitor = IterativeSolverMonitor< double > >
-struct GEM : public DirectSolver< Real, typename Matrix::IndexType, SolverMonitor >
+struct GEM : public LinearSolver< Matrix >
 {
    static_assert( Matrices::is_dense_matrix_v< Matrix >, "GEM works only with dense matrices." );
 
+   using Base = LinearSolver< Matrix >;
+
    //! \brief Type for floating point numbers.
-   using RealType = Real;
+   using RealType = typename Base::RealType;
 
    //! \brief Device where the solver will run.
-   using DeviceType = typename Matrix::DeviceType;
+   using DeviceType = typename Base::DeviceType;
 
    //! \brief Indexing type.
-   using IndexType = typename Matrix::IndexType;
+   using IndexType = typename Base::IndexType;
 
    //! \brief Type of the matrix representing the linear system.
-   using MatrixType = Matrix;
+   using MatrixType = typename Base::MatrixType;
 
    //! \brief Type of shared pointer to the matrix.
    using MatrixPointer = std::shared_ptr< MatrixType >;
 
    //! \brief Type for vector representing the solution and the right-hand side.
    using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   //! \brief Type for vector view.
+   using VectorViewType = typename Base::VectorViewType;
+
+   //! \brief Type for constant vector view.
+   using ConstVectorViewType = typename Base::ConstVectorViewType;
 
    //! \brief Default constructor.
    GEM() = default;
@@ -52,7 +60,8 @@ struct GEM : public DirectSolver< Real, typename Matrix::IndexType, SolverMonito
     * \param matrix Shared pointer to the matrix.
     */
    void
-   setMatrix( const MatrixPointer& matrix );
+   setMatrix( const MatrixPointer&
+                 matrix );  // This does not override LinearSolver::setMatrix since we need to pass non-constant matrix here
 
    /**
     * \brief Enables or disables pivoting in the GEM algorithm.
@@ -75,7 +84,7 @@ struct GEM : public DirectSolver< Real, typename Matrix::IndexType, SolverMonito
     * \return True if the solver succeeded, false otherwise.
     */
    bool
-   solve( const VectorType& b, VectorType& x );
+   solve( ConstVectorViewType b, VectorViewType x ) override;
 
    /**
     * \brief Checks if the last solve operation was successful.

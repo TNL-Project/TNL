@@ -58,6 +58,9 @@ public:
       TNL_ASSERT_EQ( this->matrix->getColumns(), x.getSize(), "wrong size of the solution vector" );
       TNL_ASSERT_EQ( this->matrix->getColumns(), b.getSize(), "wrong size of the right hand side" );
 
+      this->resetIterations();
+      this->setResidue( NAN );
+
       const IndexType n = this->matrix->getRows();
 
       cusolverDnHandle_t handle;
@@ -126,6 +129,7 @@ public:
                                     n,
                                     d_info.getData() );
       cusolverDnDestroy( handle );
+      this->setResidue( 0 );
       return true;
 #else
       throw std::runtime_error( "CuSolverWrapper was not built with CUDA support." );
@@ -146,7 +150,7 @@ public:
       const IndexType size = this->matrix->getRows();
 
       this->resetIterations();
-      this->setResidue( this->getConvergenceResidue() + 1.0 );
+      this->setResidue( NAN );
 
       cusolverSpHandle_t handle;
       cusolverStatus_t status;
@@ -156,7 +160,6 @@ public:
       status = cusolverSpCreate( &handle );
       if( status != CUSOLVER_STATUS_SUCCESS ) {
          std::cerr << "cusolverSpCreate failed: " << status << std::endl;
-         cusparseDestroyMatDescr( mat_descr );
          cusolverSpDestroy( handle );
          return false;
       }
@@ -222,6 +225,7 @@ public:
 
       cusparseDestroyMatDescr( mat_descr );
       cusolverSpDestroy( handle );
+      this->setResidue( 0 );
       return true;
 #else
       throw std::runtime_error( "CuSolverWrapper was not built with CUDA support." );

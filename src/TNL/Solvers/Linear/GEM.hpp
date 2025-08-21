@@ -41,7 +41,7 @@ GEM< Matrix, Real, SolverMonitor >::getPivoting() const
 
 template< typename Matrix, typename Real, typename SolverMonitor >
 bool
-GEM< Matrix, Real, SolverMonitor >::solve( const VectorType& b, VectorType& x )
+GEM< Matrix, Real, SolverMonitor >::solve( ConstVectorViewType b, VectorViewType x )
 {
    using CoordinateType = typename Containers::StaticVector< 2, IndexType >;
    TNL_ASSERT_EQ( b.getSize(), x.getSize(), "The sizes of of vectors x and b do not match." );
@@ -51,10 +51,12 @@ GEM< Matrix, Real, SolverMonitor >::solve( const VectorType& b, VectorType& x )
    x = b;
    auto x_view = x.getView();
    this->success = false;
+   this->setResidue( NAN );
+   this->setMaxIterations( n + 1 );
+   this->resetIterations();
 
    for( int k = 0; k < n; k++ ) {
-      if( this->solverMonitor )
-         this->solverMonitor->setIterations( k );
+      this->nextIteration();
 
       RealType pivot_value;
       IndexType pivot_position( k );
@@ -134,6 +136,7 @@ GEM< Matrix, Real, SolverMonitor >::solve( const VectorType& b, VectorType& x )
                                                    matrix_view( i, k ) = 0.0;
                                              } );
    }
+   this->setResidue( 0 );  // The original matrix is not available anymore and so we cannot compute the true residue.
    this->success = true;
    return true;
 }
