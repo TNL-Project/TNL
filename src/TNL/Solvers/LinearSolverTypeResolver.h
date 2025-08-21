@@ -15,6 +15,7 @@
 #include <TNL/Solvers/Linear/GMRES.h>
 #include <TNL/Solvers/Linear/TFQMR.h>
 #include <TNL/Solvers/Linear/IDRs.h>
+#include <TNL/Solvers/Linear/GEM.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
 #include <TNL/Solvers/Linear/Preconditioners/Diagonal.h>
 #include <TNL/Solvers/Linear/Preconditioners/ILU0.h>
@@ -37,7 +38,8 @@ getLinearSolverOptions()
             "bicgstabl",
             "gmres",
             "tfqmr",
-            "idrs"
+            "idrs",
+            "gem"
 #ifdef HAVE_UMFPACK
             ,
             "umfpack"
@@ -69,6 +71,7 @@ getPreconditionerOptions()
  *    6. `gmres`     - for GMRES solver        - \ref TNL::Solvers::Linear::GMRES.
  *    7. `tfqmr`     - for TFQMR solver        - \ref TNL::Solvers::Linear::TFQMR.
  *    8. `idrs`      - for IDR(s) solver       - \ref TNL::Solvers::Linear::IDRs.
+ *    9. `gem`       - for GEM solver          - \ref TNL::Solvers::Linear::GEM.
  * \return shared pointer with given linear solver.
  *
  * The following example shows how to use this function:
@@ -99,6 +102,8 @@ getLinearSolver( const std::string& name )
       return std::make_shared< Linear::TFQMR< MatrixType > >();
    if( name == "idrs" )
       return std::make_shared< Linear::IDRs< MatrixType > >();
+   if( name == "gem" )
+      return std::make_shared< Linear::GEM< MatrixType > >();
 #ifdef HAVE_UMFPACK
    if( discreteSolver == "umfpack" )
       return std::make_shared< Linear::UmfpackWrapper< MatrixType > >();
@@ -111,7 +116,7 @@ getLinearSolver( const std::string& name )
       else
          options += ", " + o;
 
-   std::cerr << "Unknown semi-implicit discrete solver " << name << ". It can be only: " << options << ".\n";
+   std::cerr << "Unknown linear solver " << name << ". It can be only: " << options << ".\n";
 
    return nullptr;
 }

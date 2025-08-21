@@ -24,8 +24,6 @@ namespace TNL::Solvers::Linear {
 template< typename Matrix, typename Real = typename Matrix::RealType, typename SolverMonitor = IterativeSolverMonitor< double > >
 struct GEM : public LinearSolver< Matrix >
 {
-   static_assert( Matrices::is_dense_matrix_v< Matrix >, "GEM works only with dense matrices." );
-
    using Base = LinearSolver< Matrix >;
 
    //! \brief Type for floating point numbers.
