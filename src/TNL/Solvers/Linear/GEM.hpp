@@ -17,13 +17,13 @@
 
 namespace TNL::Solvers::Linear {
 
-template< typename Matrix, typename Real, typename SolverMonitor >
+/*template< typename Matrix, typename Real, typename SolverMonitor >
 void
 GEM< Matrix, Real, SolverMonitor >::setMatrix( const MatrixPointer& matrix )
 {
    TNL_ASSERT_EQ( matrix->getRows(), matrix->getColumns(), "The matrix is not square." );
    this->A = matrix;
-}
+}*/
 
 template< typename Matrix, typename Real, typename SolverMonitor >
 void
@@ -43,11 +43,24 @@ template< typename Matrix, typename Real, typename SolverMonitor >
 bool
 GEM< Matrix, Real, SolverMonitor >::solve( ConstVectorViewType b, VectorViewType x )
 {
+   auto A = *this->matrix;
+   if( ! solve( A, b, x ) )
+      return false;
+   VectorType Ax( A.getColumns() );
+   this->matrix->vectorProduct( x, Ax );
+   this->setResidue( l2Norm( b - Ax ) );
+   return true;
+}
+
+template< typename Matrix, typename Real, typename SolverMonitor >
+bool
+GEM< Matrix, Real, SolverMonitor >::solve( MatrixType& A, ConstVectorViewType b, VectorViewType x )
+{
    using CoordinateType = typename Containers::StaticVector< 2, IndexType >;
    TNL_ASSERT_EQ( b.getSize(), x.getSize(), "The sizes of of vectors x and b do not match." );
 
-   const int n = this->A->getRows();
-   auto matrix_view = this->A->getView();
+   const int n = A.getRows();
+   auto matrix_view = A.getView();
    x = b;
    auto x_view = x.getView();
    this->success = false;
@@ -152,13 +165,13 @@ template< typename Matrix, typename Real, typename SolverMonitor >
 void
 GEM< Matrix, Real, SolverMonitor >::print( std::ostream& str ) const
 {
-   const IndexType n = A.getRows();
+   const IndexType n = this->matrix.getRows();
    const int precision( 18 );
    const std::string zero( "." );
    for( int row = 0; row < n; row++ ) {
       str << "| ";
       for( int column = 0; column < n; column++ ) {
-         const RealType value = this->A.getElement( row, column );
+         const RealType value = this->matrix.getElement( row, column );
          if( value == 0.0 )
             str << std::setw( precision + 6 ) << zero;
          else

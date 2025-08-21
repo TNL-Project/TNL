@@ -41,7 +41,7 @@ struct GEM : public LinearSolver< Matrix >
    using MatrixType = typename Base::MatrixType;
 
    //! \brief Type of shared pointer to the matrix.
-   using MatrixPointer = std::shared_ptr< MatrixType >;
+   using MatrixPointer = typename Base::MatrixPointer;
 
    //! \brief Type for vector representing the solution and the right-hand side.
    using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
@@ -54,14 +54,6 @@ struct GEM : public LinearSolver< Matrix >
 
    //! \brief Default constructor.
    GEM() = default;
-
-   /**
-    * \brief Sets the matrix representing the linear system.
-    * \param matrix Shared pointer to the matrix.
-    */
-   void
-   setMatrix( const MatrixPointer&
-                 matrix );  // This does not override LinearSolver::setMatrix since we need to pass non-constant matrix here
 
    /**
     * \brief Enables or disables pivoting in the GEM algorithm.
@@ -79,12 +71,29 @@ struct GEM : public LinearSolver< Matrix >
 
    /**
     * \brief Solves the linear system Ax = b.
+    *
+    * This method makes a copy of the matrix A. In case that
+    * it is consuming too much memory use method solve
+    * taking matrix as input parameter.
+    *
     * \param b Right-hand side vector.
     * \param x Solution vector (output).
     * \return True if the solver succeeded, false otherwise.
     */
    bool
    solve( ConstVectorViewType b, VectorViewType x ) override;
+
+   /**
+    * \brief Solves the linear system Ax = b.
+    *
+    * \param A Matrix representing the linear system. This matrix
+    *          is modified during the execution of this method.
+    * \param b Right-hand side vector.
+    * \param x Solution vector (output).
+    * \return True if the solver succeeded, false otherwise.
+    */
+   bool
+   solve( MatrixType& A, ConstVectorViewType b, VectorViewType x );
 
    /**
     * \brief Checks if the last solve operation was successful.
@@ -96,9 +105,6 @@ struct GEM : public LinearSolver< Matrix >
 protected:
    void
    print( std::ostream& str = std::cout ) const;
-
-   /// Shared pointer to the matrix representing the linear system.
-   MatrixPointer A;
 
    /// Indicates whether the last solve operation was successful.
    bool success = false;
