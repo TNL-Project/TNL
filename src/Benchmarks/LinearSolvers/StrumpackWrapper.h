@@ -59,7 +59,6 @@ public:
       return true;
 #else
       throw std::runtime_error( "Strumpack is not available.." );
-      return false;
 #endif
    }
 
