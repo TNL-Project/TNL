@@ -87,7 +87,6 @@ public:
       return true;
 #else
       throw std::runtime_error( "CuDSS is not available.." );
-      return false;
 #endif
    }
 

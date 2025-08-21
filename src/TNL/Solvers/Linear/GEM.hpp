@@ -155,10 +155,8 @@ GEM< Matrix, Real, SolverMonitor >::solve( MatrixType& A, ConstVectorViewType b,
       this->success = true;
       return true;
    }
-   else {
+   else
       throw std::runtime_error( "GEM currently works only with dense matrices." );
-      return false;
-   }
 }
 
 template< typename Matrix, typename Real, typename SolverMonitor >
