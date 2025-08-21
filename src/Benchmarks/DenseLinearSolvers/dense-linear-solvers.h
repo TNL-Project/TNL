@@ -15,7 +15,7 @@
 
 template< typename Real, typename Index >
 void
-benchmarkGEM( TNL::Config::ParameterContainer& parameters )
+benchmarkDenseLinearSolvers( TNL::Config::ParameterContainer& parameters )
 {
    using HostMatrixType = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host, Index >;
    using HostVectorType = TNL::Containers::Vector< Real, TNL::Devices::Host, Index >;

@@ -1,5 +1,5 @@
 add_subdirectory(HeatEquation)
-add_subdirectory(GEM)
+add_subdirectory(DenseLinearSolvers)
 add_subdirectory(Graphs)
 add_subdirectory(Grid)
 add_subdirectory(BLAS)
