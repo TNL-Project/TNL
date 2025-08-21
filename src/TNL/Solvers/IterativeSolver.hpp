@@ -10,20 +10,6 @@
 namespace TNL::Solvers {
 
 template< typename Real, typename Index, typename SolverMonitor >
-constexpr bool
-IterativeSolver< Real, Index, SolverMonitor >::isIterativeSolver()
-{
-   return true;
-}
-
-template< typename Real, typename Index, typename SolverMonitor >
-constexpr bool
-IterativeSolver< Real, Index, SolverMonitor >::isDirectSolver()
-{
-   return false;
-}
-
-template< typename Real, typename Index, typename SolverMonitor >
 void
 IterativeSolver< Real, Index, SolverMonitor >::configSetup( Config::ConfigDescription& config, const std::string& prefix )
 {

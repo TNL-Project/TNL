@@ -75,6 +75,8 @@ public:
    solve( ConstVectorViewType b, VectorViewType x ) override
    {
 #ifdef HAVE_GINKGO
+      this->resetIterations();
+      this->setResidue( NAN );
       auto gko_b = gko::matrix::Dense< RealType >::create(
          gk_exec,
          gko::dim< 2 >{ static_cast< std::size_t >( b.getSize() ), 1 },
@@ -87,6 +89,7 @@ public:
          1 );
 
       gk_solver->apply( gko_b, gko_x );
+      this->setResidue( 0 );
       return true;
 #else
       throw std::runtime_error( "GinkgoDirectSolver was not built with Ginkgo support." );
