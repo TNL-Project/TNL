@@ -27,39 +27,10 @@ class UmfpackWrapper : public LinearSolver< Matrix >
    using Base = LinearSolver< Matrix >;
 
 public:
-   /**
-    * \brief Type for floating point numbers.
-    */
    using RealType = typename Base::RealType;
-
-   /**
-    * \brief Device where the solver will run on and auxiliary data will be allocated on.
-    */
-   using DeviceType = typename Base::DeviceType;
-
-   /**
-    * \brief Indexing type.
-    */
    using IndexType = typename Base::IndexType;
-
-   /**
-    * \brief Type of the matrix representing the linear system.
-    */
-   using MatrixType = typename Base::MatrixType;
-
-   /**
-    * \brief Type of shared pointer to the matrix.
-    */
    using MatrixPointer = typename Base::MatrixPointer;
-
-   /**
-    * \brief Type for vector view.
-    */
    using VectorViewType = typename Base::VectorViewType;
-
-   /**
-    * \brief Type for constant vector view.
-    */
    using ConstVectorViewType = typename Base::ConstVectorViewType;
 
    UmfpackWrapper() = default;
@@ -82,8 +53,8 @@ protected:
    void* Numeric = nullptr;
    double Control[ UMFPACK_CONTROL ];
    double Info[ UMFPACK_INFO ];
-
 #endif
+
    MatrixPointer matrix;
 
    bool factorized = false;

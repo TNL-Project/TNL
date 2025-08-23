@@ -60,20 +60,20 @@ UmfpackWrapper< Matrix, SolverMonitor >::setMatrix( const MatrixPointer& matrix 
       // increase print level for reports
       Control[ UMFPACK_PRL ] = 2;
       umfpack_di_report_status( Control, status );
-      //        umfpack_di_report_control( Control );
-      //        umfpack_di_report_info( Control, Info );
+      // umfpack_di_report_control( Control );
+      // umfpack_di_report_info( Control, Info );
       if( symbolic_fail )
          throw std::runtime_error( "Umfpack symbolic factorization failed." );
       if( numeric_fail )
          throw std::runtime_error( "Umfpack numeric factorization failed." );
-      if( this->Symbolic )
+      if( this->Symbolic != nullptr )
          umfpack_di_free_symbolic( &Symbolic );
-      if( this->Numeric )
+      if( this->Numeric != nullptr )
          umfpack_di_free_numeric( &Numeric );
    }
    this->factorized = true;
 #else
-   std::cerr << "Umfpack is not available." << std::endl;
+   throw std::runtime_error( "UmfpackWrapper was not built with Umfpack support." );
 #endif
 }
 
@@ -90,8 +90,7 @@ UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorVie
    //this->setIterations( 0 );
    this->setResidue( NAN );
    if( ! this->factorized ) {
-      std::cerr << "The solver is not ready for solving." << std::endl;
-      return false;
+      throw std::runtime_error( "The solver is not ready for solving." );
    }
 
    int status = UMFPACK_OK;
@@ -115,8 +114,7 @@ UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorVie
                               Control,
                               Info );
    if( status != UMFPACK_OK ) {
-      std::cerr << "Umfpack solver failed." << std::endl;
-      return false;
+      throw std::runtime_error( "Umfpack solver failed." );
    }
    this->solver_success = true;
 
@@ -124,8 +122,7 @@ UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorVie
    this->setResidue( LinearResidueGetter::getResidue( *this->matrix, x, b, bNorm ) );
    return true;
 #else
-   std::cerr << "Umfpack is not available." << std::endl;
-   return false;
+   throw std::runtime_error( "UmfpackWrapper was not built with Umfpack support." );
 #endif
 }
 
@@ -140,9 +137,9 @@ template< typename Matrix, typename SolverMonitor >
 UmfpackWrapper< Matrix, SolverMonitor >::~UmfpackWrapper()
 {
 #ifdef HAVE_UMFPACK
-   if( this->Symbolic )
+   if( this->Symbolic != nullptr )
       umfpack_di_free_symbolic( &Symbolic );
-   if( this->Numeric )
+   if( this->Numeric != nullptr )
       umfpack_di_free_numeric( &Numeric );
 #endif
 }
