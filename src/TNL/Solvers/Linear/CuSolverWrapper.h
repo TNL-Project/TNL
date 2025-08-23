@@ -14,9 +14,7 @@
 #include <TNL/Matrices/TypeTraits.h>
 #include <TNL/Solvers/Linear/LinearSolver.h>
 
-namespace TNL {
-
-namespace Solvers::Linear {
+namespace TNL::Solvers::Linear {
 
 template< typename Matrix >
 class CuSolverWrapper : public LinearSolver< Matrix >
@@ -66,13 +64,11 @@ public:
       cusolverDnHandle_t handle;
       cusolverStatus_t status = cusolverDnCreate( &handle );
       if( status != CUSOLVER_STATUS_SUCCESS ) {
-         std::cerr << "cusolverDnCreate failed: " << status << std::endl;
          cusolverDnDestroy( handle );
-         return false;
+         throw std::runtime_error( "cusolverDnCreate failed: " + std::to_string( status ) );
       }
 
       x = b;
-      Containers::Vector< int, Devices::Cuda > d_info( 1 );
 
       int lwork = 0;
       if constexpr( std::is_same_v< RealType, float > )
@@ -84,6 +80,7 @@ public:
 
       Containers::Vector< RealType, Devices::Cuda > d_work( lwork );
       Containers::Vector< int, Devices::Cuda > d_pivots( n );
+      Containers::Vector< int, Devices::Cuda > d_info( 1 );
 
       // LU factorization
       if constexpr( std::is_same_v< RealType, float > )
@@ -128,6 +125,7 @@ public:
                                     x.getData(),
                                     n,
                                     d_info.getData() );
+
       cusolverDnDestroy( handle );
       this->setResidue( 0 );
       return true;
@@ -159,17 +157,15 @@ public:
 
       status = cusolverSpCreate( &handle );
       if( status != CUSOLVER_STATUS_SUCCESS ) {
-         std::cerr << "cusolverSpCreate failed: " << status << std::endl;
          cusolverSpDestroy( handle );
-         return false;
+         throw std::runtime_error( "cusolverSpCreate failed: " + std::to_string( status ) );
       }
 
       cusparse_status = cusparseCreateMatDescr( &mat_descr );
       if( cusparse_status != CUSPARSE_STATUS_SUCCESS ) {
-         std::cerr << "cusparseCreateMatDescr failed: " << cusparse_status << std::endl;
          cusparseDestroyMatDescr( mat_descr );
          cusolverSpDestroy( handle );
-         return false;
+         throw std::runtime_error( "cusparseCreateMatDescr failed: " + std::to_string( cusparse_status ) );
       }
 
       cusparseSetMatType( mat_descr, CUSPARSE_MATRIX_TYPE_GENERAL );
@@ -179,7 +175,7 @@ public:
       const int reorder = 0;
       int singularity = 0;
 
-      if( std::is_same_v< typename Matrix::RealType, float > ) {
+      if constexpr( std::is_same_v< typename Matrix::RealType, float > ) {
          status = cusolverSpScsrlsvqr( handle,
                                        size,
                                        this->matrix->getValues().getSize(),
@@ -192,16 +188,8 @@ public:
                                        reorder,
                                        (float*) x.getData(),
                                        &singularity );
-
-         if( status != CUSOLVER_STATUS_SUCCESS ) {
-            std::cerr << "cusolverSpScsrlsvqr failed: " << status << std::endl;
-            cusparseDestroyMatDescr( mat_descr );
-            cusolverSpDestroy( handle );
-            return false;
-         }
       }
-
-      if( std::is_same_v< typename Matrix::RealType, double > ) {
+      else if constexpr( std::is_same_v< typename Matrix::RealType, double > ) {
          status = cusolverSpDcsrlsvqr( handle,
                                        size,
                                        this->matrix->getValues().getSize(),
@@ -214,13 +202,12 @@ public:
                                        reorder,
                                        (double*) x.getData(),
                                        &singularity );
+      }
 
-         if( status != CUSOLVER_STATUS_SUCCESS ) {
-            std::cerr << "cusolverSpDcsrlsvqr failed: " << status << std::endl;
-            cusparseDestroyMatDescr( mat_descr );
-            cusolverSpDestroy( handle );
-            return false;
-         }
+      if( status != CUSOLVER_STATUS_SUCCESS ) {
+         cusparseDestroyMatDescr( mat_descr );
+         cusolverSpDestroy( handle );
+         throw std::runtime_error( "cusolverSpDcsrlsvqr failed: " + std::to_string( status ) );
       }
 
       cusparseDestroyMatDescr( mat_descr );
@@ -233,5 +220,4 @@ public:
    }
 };
 
-}  // namespace Solvers::Linear
-}  // namespace TNL
+}  // namespace TNL::Solvers::Linear
