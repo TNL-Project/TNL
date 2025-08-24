@@ -21,13 +21,13 @@ is orders of magnitude slower compared to the speed of the GPU global memory.
 Therefore, the communication between CPU and GPU must be reduced as much as
 possible. As a result, the programmer needs to consider two different address
 spaces, one for CPU and one for GPU. To distinguish between the address spaces,
-each data structure requiring dynamic memory allocation needs to now on what
+each data structure requiring dynamic memory allocation needs to know on what
 device it resides. This is done by a template parameter `Device`. For example
 the following code creates two arrays, one on CPU and the other on GPU:
 
 \includelineno snippet_devices_and_allocators_arrays_example.cpp
 
-Since now, [C++ template sepcialization](https://en.wikipedia.org/wiki/Partial_template_specialization)
+Since now, [C++ template specialization](https://en.wikipedia.org/wiki/Partial_template_specialization)
 takes care of using the right methods for given device (in meaning hardware
 architecture and so the  device can be even CPU). For example, calling a method
 `setSize`
@@ -141,8 +141,8 @@ _by value_ or _by reference_. The first case would be as follows:
 
 \includelineno snippet_shared_pointers_and_views_capture_value.cpp
 
-However, in this case a __deep copy__ of the array `a` will be made and so
-there will be no effect of what we do with the array `a` in the lambda function.
+However, in this case a __deep copy__ of the array `a` will be made and so any
+modifications to `a` inside the lambda will have no effect.
 Capturing _by reference_ may look as follows:
 
 \includelineno snippet_shared_pointers_and_views_capture_reference.cpp
