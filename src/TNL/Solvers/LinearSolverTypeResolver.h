@@ -102,8 +102,9 @@ getLinearSolver( const std::string& name )
       return std::make_shared< Linear::TFQMR< MatrixType > >();
    if( name == "idrs" )
       return std::make_shared< Linear::IDRs< MatrixType > >();
-   if( name == "gem" )
-      return std::make_shared< Linear::GEM< MatrixType > >();
+   if constexpr( Matrices::is_dense_matrix_v< MatrixType > )
+      if( name == "gem" )
+         return std::make_shared< Linear::GEM< MatrixType > >();
 #ifdef HAVE_UMFPACK
    if( discreteSolver == "umfpack" )
       return std::make_shared< Linear::UmfpackWrapper< MatrixType > >();
