@@ -160,13 +160,6 @@ GEM< Matrix, Real, SolverMonitor >::solve( MatrixType& A, ConstVectorViewType b,
 }
 
 template< typename Matrix, typename Real, typename SolverMonitor >
-bool
-GEM< Matrix, Real, SolverMonitor >::succeeded() const
-{
-   return this->success;
-}
-
-template< typename Matrix, typename Real, typename SolverMonitor >
 void
 GEM< Matrix, Real, SolverMonitor >::print( std::ostream& str ) const
 {

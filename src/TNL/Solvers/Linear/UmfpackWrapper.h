@@ -41,9 +41,6 @@ public:
    bool
    solve( ConstVectorViewType b, VectorViewType x ) override;
 
-   bool
-   succeeded() const;
-
    ~UmfpackWrapper();
 
 protected:
