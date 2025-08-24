@@ -93,13 +93,6 @@ struct GEM : public LinearSolver< Matrix >
    bool
    solve( MatrixType& A, ConstVectorViewType b, VectorViewType x );
 
-   /**
-    * \brief Checks if the last solve operation was successful.
-    * \return True if the solver succeeded, false otherwise.
-    */
-   [[nodiscard]] bool
-   succeeded() const;
-
 protected:
    void
    print( std::ostream& str = std::cout ) const;

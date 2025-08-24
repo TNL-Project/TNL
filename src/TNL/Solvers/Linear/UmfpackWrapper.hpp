@@ -127,13 +127,6 @@ UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorVie
 }
 
 template< typename Matrix, typename SolverMonitor >
-bool
-UmfpackWrapper< Matrix, SolverMonitor >::succeeded() const
-{
-   return this->solver_success;
-}
-
-template< typename Matrix, typename SolverMonitor >
 UmfpackWrapper< Matrix, SolverMonitor >::~UmfpackWrapper()
 {
 #ifdef HAVE_UMFPACK

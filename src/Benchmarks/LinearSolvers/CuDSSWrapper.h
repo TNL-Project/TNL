@@ -91,12 +91,6 @@ public:
    }
 
    bool
-   succeeded() const
-   {
-      return this->solver_success;
-   }
-
-   bool
    factorized() const
    {
       return this->factorisation_success;
