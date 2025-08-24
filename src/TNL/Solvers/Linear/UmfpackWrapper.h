@@ -28,7 +28,9 @@ class UmfpackWrapper : public LinearSolver< Matrix >
 
 public:
    using RealType = typename Base::RealType;
+   using DeviceType = typename Base::DeviceType;
    using IndexType = typename Base::IndexType;
+   using MatrixType = typename Base::MatrixType;
    using MatrixPointer = typename Base::MatrixPointer;
    using VectorViewType = typename Base::VectorViewType;
    using ConstVectorViewType = typename Base::ConstVectorViewType;
@@ -55,7 +57,6 @@ protected:
    MatrixPointer matrix;
 
    bool factorized = false;
-   bool solver_success = false;
 };
 
 }  // namespace TNL::Solvers::Linear

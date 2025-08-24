@@ -82,7 +82,6 @@ public:
 
       cudssExecute( handle, CUDSS_PHASE_SOLVE, solverConfig, solverData, A, x, b );
       TNL_CHECK_CUDA_DEVICE;
-      this->solver_success = true;
       this->setResidue( 0 );
       return true;
 #else
@@ -106,7 +105,6 @@ protected:
    cudssMatrix_t x, b;
    IndexType size;
    bool factorisation_success = false;
-   bool solver_success = false;
 #endif
 };
 

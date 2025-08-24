@@ -28,29 +28,15 @@ struct GEM : public LinearSolver< Matrix >
 
 private:
    using Base = LinearSolver< Matrix >;
+   using VectorType = typename Traits< Matrix >::VectorType;
 
-   //! \brief Type for floating point numbers.
+public:
    using RealType = typename Base::RealType;
-
-   //! \brief Device where the solver will run.
    using DeviceType = typename Base::DeviceType;
-
-   //! \brief Indexing type.
    using IndexType = typename Base::IndexType;
-
-   //! \brief Type of the matrix representing the linear system.
    using MatrixType = typename Base::MatrixType;
-
-   //! \brief Type of shared pointer to the matrix.
    using MatrixPointer = typename Base::MatrixPointer;
-
-   //! \brief Type for vector representing the solution and the right-hand side.
-   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
-
-   //! \brief Type for vector view.
    using VectorViewType = typename Base::VectorViewType;
-
-   //! \brief Type for constant vector view.
    using ConstVectorViewType = typename Base::ConstVectorViewType;
 
    //! \brief Default constructor.
@@ -97,12 +83,6 @@ private:
    solve( MatrixType& A, ConstVectorViewType b, VectorViewType x );
 
 protected:
-   void
-   print( std::ostream& str = std::cout ) const;
-
-   /// Indicates whether the last solve operation was successful.
-   bool success = false;
-
    /// Indicates whether pivoting is enabled.
    bool pivoting = true;
 };
