@@ -375,15 +375,15 @@ struct LinearSolversBenchmark
 
          // generate random vector x
          VectorType x;
-         x0.setSize( matrixPointer->getColumns() );
+         x.setSize( matrixPointer->getColumns() );
          if( parameters.getParameter< TNL::String >( "set-rhs" ) == "random" )
-            set_random_vector( x0, 1e2, 1e3 );
+            set_random_vector( x, 1e2, 1e3 );
          else
-            x0 = 1;
+            x = 1;
 
          // set b := A*x
          b.setSize( matrixPointer->getRows() );
-         matrixPointer->vectorProduct( x0, b );
+         matrixPointer->vectorProduct( x, b );
       }
 
       typename MatrixType::RowCapacitiesType rowLengths;

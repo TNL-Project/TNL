@@ -68,8 +68,6 @@ public:
          throw std::runtime_error( "cusolverDnCreate failed: " + std::to_string( status ) );
       }
 
-      x = b;
-
       int lwork = 0;
       if constexpr( std::is_same_v< RealType, float > )
          status =

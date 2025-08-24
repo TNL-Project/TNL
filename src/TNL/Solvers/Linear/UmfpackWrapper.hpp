@@ -87,7 +87,6 @@ UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorVie
    if( this->matrix->getColumns() != b.getSize() )
       throw std::invalid_argument( "UmfpackWrapper::solve: wrong size of the right hand side" );
 
-   //this->setIterations( 0 );
    this->setResidue( NAN );
    if( ! this->factorized ) {
       throw std::runtime_error( "The solver is not ready for solving." );
@@ -116,9 +115,7 @@ UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorVie
    if( status != UMFPACK_OK ) {
       throw std::runtime_error( "Umfpack solver failed." );
    }
-   this->solver_success = true;
 
-   //this->setIterations( 1 );
    this->setResidue( LinearResidueGetter::getResidue( *this->matrix, x, b, bNorm ) );
    return true;
 #else

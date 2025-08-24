@@ -17,14 +17,6 @@
 
 namespace TNL::Solvers::Linear {
 
-/*template< typename Matrix, typename Real, typename SolverMonitor >
-void
-GEM< Matrix, Real, SolverMonitor >::setMatrix( const MatrixPointer& matrix )
-{
-   TNL_ASSERT_EQ( matrix->getRows(), matrix->getColumns(), "The matrix is not square." );
-   this->A = matrix;
-}*/
-
 template< typename Matrix, typename Real, typename SolverMonitor >
 void
 GEM< Matrix, Real, SolverMonitor >::setPivoting( bool pivoting )
@@ -64,7 +56,6 @@ GEM< Matrix, Real, SolverMonitor >::solve( MatrixType& A, ConstVectorViewType b,
    auto matrix_view = A.getView();
    x = b;
    auto x_view = x.getView();
-   this->success = false;
    this->setResidue( NAN );
    this->setMaxIterations( n + 1 );
    this->resetIterations();
@@ -151,27 +142,7 @@ GEM< Matrix, Real, SolverMonitor >::solve( MatrixType& A, ConstVectorViewType b,
                                              } );
    }
    this->setResidue( 0 );  // The original matrix is not available anymore and so we cannot compute the true residue.
-   this->success = true;
    return true;
-}
-
-template< typename Matrix, typename Real, typename SolverMonitor >
-void
-GEM< Matrix, Real, SolverMonitor >::print( std::ostream& str ) const
-{
-   const IndexType n = this->matrix.getRows();
-   const int precision( 18 );
-   const std::string zero( "." );
-   for( int row = 0; row < n; row++ ) {
-      str << "| ";
-      for( int column = 0; column < n; column++ ) {
-         const RealType value = this->matrix.getElement( row, column );
-         if( value == 0.0 )
-            str << std::setw( precision + 6 ) << zero;
-         else
-            str << std::setprecision( precision ) << std::setw( precision + 6 ) << value;
-      }
-   }
 }
 
 }  // namespace TNL::Solvers::Linear
