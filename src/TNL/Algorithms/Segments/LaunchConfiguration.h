@@ -14,11 +14,10 @@ namespace TNL::Algorithms::Segments {
  */
 enum class ThreadsToSegmentsMapping
 {
-   ThreadPerSegment,
-   WarpPerSegment,
-   BlockPerSegment,
-   BlockMergedSegments,
-   UserDefined
+   Fixed,
+   Warp,
+   Block,
+   BlockMerged
 };
 
 /**
@@ -68,7 +67,7 @@ struct LaunchConfiguration : public Backend::LaunchConfiguration
    }
 
 protected:
-   ThreadsToSegmentsMapping threadsToSegmentsMapping = ThreadsToSegmentsMapping::WarpPerSegment;
+   ThreadsToSegmentsMapping threadsToSegmentsMapping = ThreadsToSegmentsMapping::Warp;
    int threadsPerSegmentCount = 1;
 };
 
