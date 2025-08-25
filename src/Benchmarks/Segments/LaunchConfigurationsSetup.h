@@ -16,7 +16,7 @@ struct LaunchConfigurationsSetup
    create() -> std::list< std::pair< LaunchConfiguration, std::string > >
    {
       return std::list< std::pair< LaunchConfiguration, std::string > >{
-         { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" }
+         { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
       };
    }
 };
@@ -29,22 +29,16 @@ struct LaunchConfigurationsSetup< TNL::Algorithms::Segments::CSR< Device, Index,
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::Host > || std::is_same_v< Device, TNL::Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::ThreadPerSegment, 1 ),
-              "ThreadPerSegment" }
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
       else
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::ThreadPerSegment, 1 ),
-              "ThreadPerSegment" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::WarpPerSegment, 1 ), "WarpPerSegment" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMergedSegments, 1 ),
-              "BlockMergedSegments 1 thread per segment" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMergedSegments, 2 ),
-              "BlockMergedSegments 2 thread per segment" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMergedSegments, 4 ),
-              "BlockMergedSegments 4 thread per segment" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMergedSegments, 8 ),
-              "BlockMergedSegments 8 thread per segment" }
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Warp, 1 ), "Warp per segment" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 2 ), "BlockMerged 2 TPS" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 4 ), "BlockMerged 4 TPS" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 8 ), "BlockMerged 8 TPS" }
          };
    }
 };
@@ -62,22 +56,19 @@ struct LaunchConfigurationsSetup<
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::Host > || std::is_same_v< Device, TNL::Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::ThreadPerSegment, 1 ),
-              "ThreadPerSegment" }
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
       else
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::ThreadPerSegment, 1 ),
-              "ThreadPerSegment" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::WarpPerSegment, 1 ), "WarpPerSegment" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMergedSegments, 1 ),
-              "BlockMergedSegments 1 thread per segment" },
-            /*{ LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMergedSegments, 2 ),
-              "BlockMergedSegments 2 thread per segment" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMergedSegments, 4 ),
-              "BlockMergedSegments 4 thread per segment" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMergedSegments, 8 ),
-              "BlockMergedSegments 8 thread per segment" }*/
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Warp, 1 ), "Warp per segment" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" },
+            /*{ LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 2 ),
+              "BlockMerged 2 TPS" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 4 ),
+              "BlockMerged 4 TPS" },
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 8 ),
+              "BlockMerged 8 TPS" }*/
          };
    }
 };
