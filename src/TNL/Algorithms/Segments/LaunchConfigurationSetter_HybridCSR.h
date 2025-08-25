@@ -39,7 +39,7 @@ struct LaunchConfigurationSetter_HybridCSR
       if( segmentsCount <= 0 )
          return launchConfig;
 
-      launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::UserDefined );
+      launchConfig.setThreadsToSegmentsMapping( ThreadsToSegmentsMapping::Fixed );
       const Index elementsInSegment = roundUpDivision( segments.getStorageSize(), segmentsCount );
       if( elementsInSegment <= 2 )
          launchConfig.setThreadsPerSegmentCount( 2 );

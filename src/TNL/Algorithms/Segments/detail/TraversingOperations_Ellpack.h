@@ -94,13 +94,14 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             std::size_t threadsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount = ( end - begin ) * Backend::getWarpSize();
-            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMergedSegments
+            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged
                threadsCount = ( end - begin ) * segments.getSegmentSize();
 
             dim3 blocksCount;
@@ -109,7 +110,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             const IndexType totalThreadsCount = blocksCount.x * launchConfig.blockSize.x;
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = forElementsKernel_Ellpack< ViewType, IndexType, Function, Organization >;
                   Backend::launchKernelAsync(
                      kernel, launchConfig, gridIdx, totalThreadsCount, segments, begin, end, function );
@@ -210,14 +211,15 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
             std::size_t threadsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount = ( end - begin ) * Backend::getWarpSize();
-            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMergedSegments
+            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged
                threadsCount = segments.getSegmentSize() * ( end - begin );
 
             dim3 blocksCount;
@@ -226,7 +228,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             const IndexType totalThreadsCount = blocksCount.x * launchConfig.blockSize.x;
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = forElementsWithSegmentIndexesKernel_Ellpack< ViewType,
                                                                                        typename Array::ConstViewType,
                                                                                        IndexType,
@@ -341,12 +343,13 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          if( end <= begin )
             return;
 
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
          else {
             const Index warpsCount = end - begin;
             std::size_t threadsCount = warpsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount = warpsCount * Backend::getWarpSize();
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -357,7 +360,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = forElementsIfKernel_Ellpack< ViewType, IndexType, Condition, Function, Organization >;
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, totalThreadsCount, segments, begin, end, condition, function );
