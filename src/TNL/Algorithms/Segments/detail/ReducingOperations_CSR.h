@@ -91,15 +91,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                    const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment
-             || ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined
-                  && launchConfig.getThreadsPerSegmentCount() == 1 ) )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsSequential( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
          else {
             std::size_t threadsCount = 0;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount = ( end - begin ) * Backend::getWarpSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
                threadsCount = ( end - begin ) * launchConfig.getThreadsPerSegmentCount();
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -108,13 +107,13 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
             for( IndexType gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel =
                      reduceSegmentsCSRVectorKernel< ConstViewType, IndexType, Fetch, Reduction, ResultKeeper, Value >;
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, keeper, identity );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined ) {
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
@@ -358,16 +357,15 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
    {
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment
-             || ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined
-                  && launchConfig.getThreadsPerSegmentCount() == 1 ) )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsWithIndexesSequential(
                segments, segmentIndexes, begin, end, fetch, reduction, keeper, identity, launchConfig );
          else {
             std::size_t threadsCount = 0;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount = ( end - begin ) * Backend::getWarpSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
                threadsCount = ( end - begin ) * launchConfig.getThreadsPerSegmentCount();
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -376,7 +374,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
             for( IndexType gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = reduceSegmentsCSRVectorKernelWithIndexes< ConstViewType,
                                                                                     ArrayView,
                                                                                     IndexType,
@@ -396,7 +394,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               keeper,
                                               identity );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined ) {
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
@@ -647,15 +645,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment
-             || ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined
-                  && launchConfig.getThreadsPerSegmentCount() == 1 ) )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
          else {
             std::size_t threadsCount = 0;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount = ( end - begin ) * Backend::getWarpSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
                threadsCount = ( end - begin ) * launchConfig.getThreadsPerSegmentCount();
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -664,7 +661,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
             for( IndexType gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = reduceSegmentsCSRVectorKernelWithArgument< ConstViewType,
                                                                                      IndexType,
                                                                                      Fetch,
@@ -674,7 +671,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, keeper, identity );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined ) {
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
@@ -919,16 +916,15 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
    {
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment
-             || ( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined
-                  && launchConfig.getThreadsPerSegmentCount() == 1 ) )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsWithIndexesAndArgumentSequential(
                segments, segmentIndexes, begin, end, fetch, reduction, keeper, identity, launchConfig );
          else {
             std::size_t threadsCount = 0;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount = ( end - begin ) * Backend::getWarpSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
                threadsCount = ( end - begin ) * launchConfig.getThreadsPerSegmentCount();
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -937,7 +933,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
             for( IndexType gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = reduceSegmentsCSRVectorKernelWithIndexesAndArgument< ConstViewType,
                                                                                                ArrayView,
                                                                                                IndexType,
@@ -957,7 +953,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               keeper,
                                               identity );
                }
-               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::UserDefined ) {
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {

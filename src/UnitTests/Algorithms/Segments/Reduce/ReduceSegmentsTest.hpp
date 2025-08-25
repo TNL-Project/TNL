@@ -161,7 +161,7 @@ test_reduceSegmentsWithArgument_MaximumInSegments()
 
       if( std::is_same_v< DeviceType, TNL::Devices::Cuda > && std::is_same_v< IndexType, long >
           && TNL::Algorithms::Segments::isCSRSegments_v< Segments >
-          && launch_config.getThreadsToSegmentsMapping() == TNL::Algorithms::Segments::ThreadsToSegmentsMapping::UserDefined
+          && launch_config.getThreadsToSegmentsMapping() == TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed
           && launch_config.getThreadsPerSegmentCount() > 32 )
          continue;  // TODO: Multivector in CSR does not work for long int on CUDA. Really don't know why. Needs to be fixed.
 
@@ -254,7 +254,7 @@ test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
 
       if( std::is_same_v< DeviceType, TNL::Devices::Cuda > && std::is_same_v< IndexType, long >
           && TNL::Algorithms::Segments::isCSRSegments_v< Segments >
-          && launch_config.getThreadsToSegmentsMapping() == TNL::Algorithms::Segments::ThreadsToSegmentsMapping::UserDefined
+          && launch_config.getThreadsToSegmentsMapping() == TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed
           && launch_config.getThreadsPerSegmentCount() > 32 )
          continue;  // TODO: Multivector in CSR does not work for long int on CUDA. Really don't know why. Needs to be fixed.
 
@@ -349,7 +349,7 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
 
       if( std::is_same_v< DeviceType, TNL::Devices::Cuda > && std::is_same_v< IndexType, long >
           && TNL::Algorithms::Segments::isCSRSegments_v< Segments >
-          && launch_config.getThreadsToSegmentsMapping() == TNL::Algorithms::Segments::ThreadsToSegmentsMapping::UserDefined
+          && launch_config.getThreadsToSegmentsMapping() == TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed
           && launch_config.getThreadsPerSegmentCount() > 32 )
          continue;  // TODO: Multivector in CSR does not work for long int on CUDA. Really don't know why. Needs to be fixed.
 
@@ -451,7 +451,7 @@ test_reduceSegmentsIf_MaximumInSegments()
 
       if( std::is_same_v< DeviceType, TNL::Devices::Cuda > && std::is_same_v< IndexType, long >
           && TNL::Algorithms::Segments::isCSRSegments_v< Segments >
-          && launch_config.getThreadsToSegmentsMapping() == TNL::Algorithms::Segments::ThreadsToSegmentsMapping::UserDefined
+          && launch_config.getThreadsToSegmentsMapping() == TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed
           && launch_config.getThreadsPerSegmentCount() > 32 )
          continue;  // TODO: Multivector in CSR does not work for long int on CUDA. Really don't know why. Needs to be fixed.
 
@@ -544,7 +544,7 @@ test_reduceSegmentsIfWithArgument_MaximumInSegments()
 
       if( std::is_same_v< DeviceType, TNL::Devices::Cuda > && std::is_same_v< IndexType, long >
           && TNL::Algorithms::Segments::isCSRSegments_v< Segments >
-          && launch_config.getThreadsToSegmentsMapping() == TNL::Algorithms::Segments::ThreadsToSegmentsMapping::UserDefined
+          && launch_config.getThreadsToSegmentsMapping() == TNL::Algorithms::Segments::ThreadsToSegmentsMapping::Fixed
           && launch_config.getThreadsPerSegmentCount() > 32 )
          continue;  // TODO: Multivector in CSR does not work for long int on CUDA. Really don't know why. Needs to be fixed.
 

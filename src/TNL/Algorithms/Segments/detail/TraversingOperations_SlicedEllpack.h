@@ -120,16 +120,17 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             std::size_t threadsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                const Index segmentsCount = end - begin;
                const IndexType slicesCount = roundUpDivision( segmentsCount, SliceSize );
                threadsCount = slicesCount * SliceSize * Backend::getWarpSize();
             }
-            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMergedSegments
+            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged
             {
                const IndexType firstSegmentIdx = ( begin / SliceSize ) * SliceSize;
                const IndexType lastSegmentIdx = roundUpDivision( end, SliceSize ) * SliceSize;
@@ -143,7 +144,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel =
                      forElementsKernel_SlicedEllpack< ConstViewType, IndexType, Function, Organization, SliceSize >;
                   Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
@@ -273,16 +274,17 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
             std::size_t threadsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                const Index segmentsCount = end - begin;
                threadsCount = segmentsCount * Backend::getWarpSize();
             }
-            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMergedSegments
+            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged
             {
                const Index segmentsCount = end - begin;
                threadsCount = segmentsCount;  // * Backend::getWarpSize();
@@ -294,7 +296,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = forElementsWithSegmentIndexesKernel_SlicedEllpack< ConstViewType,
                                                                                              typename Array::ConstViewType,
                                                                                              IndexType,
@@ -436,12 +438,13 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          if( end <= begin )
             return;
 
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
          else {
             const Index warpsCount = end - begin;
             std::size_t threadsCount = warpsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount = warpsCount * Backend::getWarpSize();
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -451,7 +454,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel =
                      forElementsIfKernel_SlicedEllpack< ConstViewType, IndexType, Condition, Function, Organization, SliceSize >;
                   Backend::launchKernelAsync( kernel, launch_config, gridIdx, segments, begin, end, condition, function );

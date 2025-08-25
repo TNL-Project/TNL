@@ -69,15 +69,16 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          launchConfig.blockSize.x = 256;
 
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() != ThreadsToSegmentsMapping::ThreadPerSegment )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             const Index segmentsCount = end - begin;
             std::size_t threadsCount = segmentsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount = segmentsCount * Backend::getWarpSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMergedSegments ) {
-               threadsCount = segmentsCount / launchConfig.getThreadsPerSegmentCount();
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
+               threadsCount = segmentsCount;  // / launchConfig.getThreadsPerSegmentCount();
                launchConfig.blockSize.x = 256;
             }
 
@@ -86,18 +87,13 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = forElementsKernel_CSR< ConstOffsetsView, IndexType, Function >;
                   Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
                }
                else {  // This mapping is currently the default one
-                  switch( launchConfig.getThreadsPerSegmentCount() ) {
-                     case 1:
-                        constexpr auto kernel = forElementsBlockMergeKernel_CSR< ConstOffsetsView, IndexType, Function >;
-                        Backend::launchKernelAsync(
-                           kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
-                        break;
-                  }
+                  constexpr auto kernel = forElementsBlockMergeKernel_CSR< ConstOffsetsView, IndexType, Function >;
+                  Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments.getOffsets(), begin, end, function );
                }
             }
             Backend::streamSynchronize( launchConfig.stream );
@@ -172,13 +168,14 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
       if( launchConfig.blockSize.x == 1 )
          launchConfig.blockSize.x = 256;
       if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
             const Index segmentsCount = end - begin;
             std::size_t threadsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount = segmentsCount * Backend::getWarpSize();
             else {  // This mapping is currently the default one
                launchConfig.blockSize.x = 256;
@@ -190,7 +187,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             Backend::setupThreads( launchConfig.blockSize, blocksCount, gridsCount, threadsCount );
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = detail::forElementsWithSegmentIndexesKernel_CSR< ConstOffsetsView,
                                                                                            typename Array::ConstViewType,
                                                                                            IndexType,
@@ -314,12 +311,13 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          if( end <= begin )
             return;
 
-         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::ThreadPerSegment )
+         if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+             && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
          else {
             const Index warpsCount = end - begin;
             std::size_t threadsCount = warpsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount = warpsCount * Backend::getWarpSize();
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -328,7 +326,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::WarpPerSegment ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
                   constexpr auto kernel = forElementsIfKernel_CSR< ConstOffsetsView, IndexType, Condition, Function >;
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, segments.getOffsets(), begin, end, condition, function );
