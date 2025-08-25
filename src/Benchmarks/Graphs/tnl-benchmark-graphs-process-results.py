@@ -33,12 +33,12 @@ threads_mappings_translation = {
     "": "",
     "Single": "Single",
     "N/A": "N/A",
-    "ThreadPerSegment": "Single",
-    "WarpPerSegment": "Warp",
-    "BlockMergedSegments 1 thread per segment": "Block Merge 1",
-    "BlockMergedSegments 2 thread per segment": "Block Merge 2",
-    "BlockMergedSegments 4 thread per segment": "Block Merge 4",
-    "BlockMergedSegments 8 thread per segment": "Block Merge 8",
+    "1 TPS": "Single",
+    "Warp per segment": "Warp",
+    "BlockMerged 1 TPS": "Block Merge 1",
+    "BlockMerged 2 TPS": "Block Merge 2",
+    "BlockMerged 4 TPS": "Block Merge 4",
+    "BlockMerged 8 TPS": "Block Merge 8",
 }
 
 

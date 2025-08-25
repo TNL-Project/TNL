@@ -25,52 +25,46 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
    if constexpr( isCSRSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" }
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
       else
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::WarpPerSegment, 1 ), "WarpPerSegment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMergedSegments, 1 ),
-              "BlockMergedSegments 1 thread per segment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMergedSegments, 2 ),
-              "BlockMergedSegments 2 thread per segment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMergedSegments, 4 ),
-              "BlockMergedSegments 4 thread per segment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMergedSegments, 8 ),
-              "BlockMergedSegments 8 thread per segment" }
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Warp, 1 ), "Warp per segment" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 2 ), "BlockMerged 2 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 4 ), "BlockMerged 4 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 8 ), "BlockMerged 8 TPS" }
          };
    }
    if constexpr( isSlicedEllpackSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" }
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
       else
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::WarpPerSegment, 1 ), "WarpPerSegment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMergedSegments, 1 ),
-              "BlockMergedSegments 1 thread per segment" }
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Warp, 1 ), "Warp per segment" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" }
 
          };
    }
    if constexpr( isEllpackSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" }
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
       else
          return std::list< std::pair< LaunchConfiguration, std::string > >{
-            { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::WarpPerSegment, 1 ), "WarpPerSegment" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMergedSegments, 1 ),
-              "BlockMergedSegments 1 thread per segment" }
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Warp, 1 ), "Warp per segment" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" }
          };
    }
 
    return std::list< std::pair< LaunchConfiguration, std::string > >{
-      { LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 ), "ThreadPerSegment" }
+      { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
    };
 }
 
