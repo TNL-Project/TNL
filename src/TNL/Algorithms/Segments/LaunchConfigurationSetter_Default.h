@@ -23,10 +23,13 @@ struct LaunchConfigurationSetter_Default
    static LaunchConfiguration
    create( const Segments& segments )
    {
-      if constexpr( isCSRSegments_v< Segments > ) {
-         return LaunchConfiguration( ThreadsToSegmentsMapping::WarpPerSegment, 1 );
+      if constexpr( isCSRSegments_v< Segments >
+                    && (std::is_same_v< typename Segments::DeviceType, Devices::Cuda >
+                        || std::is_same_v< typename Segments::DeviceType, Devices::Hip >) )
+      {
+         return LaunchConfiguration( ThreadsToSegmentsMapping::Warp, 1 );
       }
-      return LaunchConfiguration( ThreadsToSegmentsMapping::ThreadPerSegment, 1 );
+      return LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 );
    }
 };
 
