@@ -134,9 +134,7 @@ getHardwareMetadata()
       { "GPU name", Backend::getDeviceName( activeGPU ) },
       { "GPU architecture", deviceArch },
       { "GPU CUDA cores", std::to_string( Backend::getDeviceCores( activeGPU ) ) },
-      { "GPU clock rate (MHz)", std::to_string( (double) Backend::getClockRate( activeGPU ) / 1e3 ) },
       { "GPU global memory (GB)", std::to_string( (double) Backend::getGlobalMemorySize( activeGPU ) / 1e9 ) },
-      { "GPU memory clock rate (MHz)", std::to_string( (double) Backend::getMemoryClockRate( activeGPU ) / 1e3 ) },
       { "GPU memory ECC enabled", TNL::convertToString( Backend::getECCEnabled( activeGPU ) ) },
 #endif
    };
