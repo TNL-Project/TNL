@@ -59,22 +59,6 @@ getArchitectureMinor( int deviceNum )
 #endif
 }
 
-[[nodiscard]] inline int
-getClockRate( int deviceNum )
-{
-#if defined( __CUDACC__ )
-   cudaDeviceProp properties;
-   TNL_BACKEND_SAFE_CALL( cudaGetDeviceProperties( &properties, deviceNum ) );
-   return properties.clockRate;
-#elif defined( __HIP__ )
-   hipDeviceProp_t properties;
-   TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
-   return properties.clockRate;
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
-}
-
 [[nodiscard]] inline std::size_t
 getGlobalMemorySize( int deviceNum )
 {
@@ -104,22 +88,6 @@ getFreeGlobalMemory()
    std::size_t total = 0;
    TNL_BACKEND_SAFE_CALL( hipMemGetInfo( &free, &total ) );
    return free;
-#else
-   throw Exceptions::BackendSupportMissing();
-#endif
-}
-
-[[nodiscard]] inline int
-getMemoryClockRate( int deviceNum )
-{
-#if defined( __CUDACC__ )
-   cudaDeviceProp properties;
-   TNL_BACKEND_SAFE_CALL( cudaGetDeviceProperties( &properties, deviceNum ) );
-   return properties.memoryClockRate;
-#elif defined( __HIP__ )
-   hipDeviceProp_t properties;
-   TNL_BACKEND_SAFE_CALL( hipGetDeviceProperties( &properties, deviceNum ) );
-   return properties.memoryClockRate;
 #else
    throw Exceptions::BackendSupportMissing();
 #endif
