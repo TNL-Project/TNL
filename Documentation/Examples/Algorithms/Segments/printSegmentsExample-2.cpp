@@ -13,13 +13,16 @@ SegmentsExample()
 {
    using Device = typename Segments::DeviceType;
 
+   //! [segments setup]
    /***
     * Create segments with given segments sizes.
     */
    TNL::Containers::Vector< int, Device > sizes{ 1, 2, 3, 4, 5 };
    Segments segments( sizes );
-   std::cout << "Segments sizes are: " << segments << '\n';
+   std::cout << "Segments sizes are: " << segments << std::endl;
+   //! [segments setup]
 
+   //! [data setup]
    /***
     * Allocate array for the segments;
     */
@@ -29,7 +32,9 @@ SegmentsExample()
       {
          value = idx;
       } );
+   //! [data setup]
 
+   //! [data print]
    /***
     * Print the data managed by the segments.
     */
@@ -39,6 +44,7 @@ SegmentsExample()
       return data_view[ globalIdx ];
    };
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   //! [data print]
 }
 
 int
