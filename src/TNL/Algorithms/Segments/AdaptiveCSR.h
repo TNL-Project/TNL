@@ -142,6 +142,28 @@ public:
    AdaptiveCSR&
    operator=( const AdaptiveCSR< Device_, Index_, IndexAllocator_ >& segments );
 
+   /**
+    * \brief Returns string with the serialization type.
+    *
+    * \par Example
+    * \include Algorithms/Segments/SegmentsExample_getSerializationType.cpp
+    * \par Output
+    * \include SegmentsExample_getSerializationType.out
+    */
+   [[nodiscard]] static std::string
+   getSerializationType();
+
+   /**
+    * \brief Returns string with the segments type.
+    *
+    * \par Example
+    * \include Algorithms/Segments/SegmentsExample_getSegmentsType.cpp
+    * \par Output
+    * \include SegmentsExample_getSegmentsType.out
+    */
+   [[nodiscard]] static std::string
+   getSegmentsType();
+
    //! \brief Returns a view for this instance of segments which can by used
    //! for example in lambda functions running in GPU kernels.
    [[nodiscard]] ViewType
