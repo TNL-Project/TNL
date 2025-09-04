@@ -39,6 +39,7 @@ scanExample()
                                                   } )
              << std::endl;
 
+   //! [scan]
    // Define fetch, reduce and write functions
    auto fetch = [ = ] __cuda_callable__( Index segmentIdx, Index localIdx, Index globalIdx ) -> Value
    {
@@ -62,6 +63,7 @@ scanExample()
 
    // Perform exclusive scan
    TNL::Algorithms::Segments::exclusiveScanAllSegments( segments, fetch, TNL::Plus{}, write_exclusive );
+   //! [scan]
 
    // Print results
    std::cout << "\nInclusive scan results:" << std::endl;

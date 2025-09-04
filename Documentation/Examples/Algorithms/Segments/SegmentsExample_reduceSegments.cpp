@@ -46,6 +46,7 @@ SegmentsExample()
    };
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
 
+   //! [reduction]
    /***
     * Compute sums of elements in each segment.
     */
@@ -71,6 +72,7 @@ SegmentsExample()
    std::cout << "The sums with full fetch form are: " << sums << std::endl;
    TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_brief, TNL::Plus{}, keep );
    std::cout << "The sums with brief fetch form are: " << sums << std::endl << std::endl;
+   //! [reduction]
 }
 
 int

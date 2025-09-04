@@ -47,7 +47,7 @@ SegmentsExample()
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
 
    /***
-    * Find the largest element in each segment.
+    * Find the maximum element in each segment.
     */
    TNL::Containers::Vector< double, Device > sums( size ), compressedSums( size ), positions( size );
    auto sums_view = sums.getView();

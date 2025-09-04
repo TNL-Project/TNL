@@ -52,7 +52,7 @@ SegmentsExample()
    TNL::Containers::Array< int, Device > segmentIndexes{ 0, 2, 4 };
 
    /***
-    * Find the largest element in each segment.
+    * Find the maximum element in each segment.
     */
    TNL::Containers::Vector< double, Device > sums( size ), compressedSums( size ), positions( size );
    auto sums_view = sums.getView();
