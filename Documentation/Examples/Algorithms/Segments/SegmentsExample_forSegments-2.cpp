@@ -42,6 +42,7 @@ SegmentsExample()
    };
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
 
+   //! [traversing]
    /***
     * Divide elements in each segment by a sum of all elements in the segment
     */
@@ -59,6 +60,7 @@ SegmentsExample()
                                                     if( element.localIndex() <= element.segmentIndex() )
                                                        data_view[ element.globalIndex() ] /= sum;
                                               } );
+   //! [traversing]
 
    /***
     * Print the data managed by the segments.

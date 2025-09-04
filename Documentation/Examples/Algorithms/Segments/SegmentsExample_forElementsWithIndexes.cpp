@@ -12,6 +12,7 @@ SegmentsExample()
 {
    using Device = typename Segments::DeviceType;
 
+   //! [setup]
    /***
     * Create segments with given segments sizes.
     */
@@ -21,7 +22,9 @@ SegmentsExample()
     * Allocate array for the segments;
     */
    TNL::Containers::Array< double, Device > data( segments.getStorageSize(), 0.0 );
+   //! [setup]
 
+   //! [traversing]
    /***
     * Create array with the indexes of segments we want to iterate over.
     */
@@ -35,36 +38,19 @@ SegmentsExample()
                                            segmentIndexes,
                                            [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
                                            {
-                                              data_view[ globalIdx ] = segmentIdx;
+                                              if( localIdx <= segmentIdx )
+                                                 data_view[ globalIdx ] = segmentIdx;
                                            } );
+   //! [traversing]
 
    /***
     * Print the data managed by the segments.
     */
-   std::cout << "Data setup with no check ... " << std::endl;
    std::cout << "Array: " << data << std::endl;
    auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];
    };
-   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
-
-   /***
-    * Insert data into particular segments.
-    */
-   data = 0.0;
-   TNL::Algorithms::Segments::forAllElements( segments,
-                                              [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-                                              {
-                                                 if( localIdx <= segmentIdx )
-                                                    data_view[ globalIdx ] = segmentIdx;
-                                              } );
-
-   /***
-    * Print the data managed by the segments.
-    */
-   std::cout << "Data setup with check for padding elements..." << std::endl;
-   std::cout << "Array: " << data << std::endl;
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
 }
 

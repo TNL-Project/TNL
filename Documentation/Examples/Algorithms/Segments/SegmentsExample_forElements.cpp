@@ -12,6 +12,7 @@ SegmentsExample()
 {
    using Device = typename Segments::DeviceType;
 
+   //! [setup]
    /***
     * Create segments with given segments sizes.
     */
@@ -21,7 +22,9 @@ SegmentsExample()
     * Allocate array for the segments;
     */
    TNL::Containers::Array< double, Device > data( segments.getStorageSize(), 0.0 );
+   //! [setup]
 
+   //! [traversing-1]
    /***
     * Insert data into particular segments with no check.
     */
@@ -31,7 +34,9 @@ SegmentsExample()
                                               {
                                                  data_view[ globalIdx ] = segmentIdx;
                                               } );
+   //! [traversing-1]
 
+   //! [printing-1]
    /***
     * Print the data managed by the segments.
     */
@@ -42,7 +47,9 @@ SegmentsExample()
       return data_view[ globalIdx ];
    };
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   //! [printing-1]
 
+   //! [traversing-2]
    /***
     * Insert data into particular segments.
     */
@@ -53,13 +60,16 @@ SegmentsExample()
                                                  if( localIdx <= segmentIdx )
                                                     data_view[ globalIdx ] = segmentIdx;
                                               } );
+   //! [traversing-2]
 
+   //! [printing-2]
    /***
     * Print the data managed by the segments.
     */
    std::cout << "Data setup with check for padding elements..." << std::endl;
    std::cout << "Array: " << data << std::endl;
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   //! [printing-2]
 }
 
 int
