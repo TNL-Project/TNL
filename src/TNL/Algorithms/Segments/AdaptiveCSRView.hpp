@@ -65,6 +65,20 @@ AdaptiveCSRView< Index, Device >::setBlocks( BlocksType& blocks, const int idx )
 }
 
 template< typename Device, typename Index >
+std::string
+AdaptiveCSRView< Device, Index >::getSerializationType()
+{
+   return "AdaptiveCSR< " + TNL::getSerializationType< Index >() + " >";
+}
+
+template< typename Device, typename Index >
+std::string
+AdaptiveCSRView< Device, Index >::getSegmentsType()
+{
+   return "Adaptive CSR";
+}
+
+template< typename Device, typename Index >
 [[nodiscard]] auto
 AdaptiveCSRView< Device, Index >::getView() -> ViewType
 {
