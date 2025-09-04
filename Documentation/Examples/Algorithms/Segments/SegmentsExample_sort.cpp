@@ -37,6 +37,7 @@ sortExample()
                                                   } )
              << std::endl;
 
+   //! [ascending sort]
    // Sort each segment
    auto fetch = [ = ] __cuda_callable__( Index segmentIdx, Index localIdx, Index globalIdx ) -> int
    {
@@ -62,7 +63,9 @@ sortExample()
                                                      return data_view[ globalIdx ];
                                                   } )
              << std::endl;
+   //! [ascending sort]
 
+   //! [descending sort]
    // Sort only specific segments using segmentIndexes
    TNL::Containers::Vector< Index, Device > segmentIndexes{ 1, 3 };
    std::cout << "\nSorting only segments 1 and 3 in descending order:" << std::endl;
@@ -81,6 +84,7 @@ sortExample()
                                                      return data_view[ globalIdx ];
                                                   } )
              << std::endl;
+   //! [descending sort]
 
    // Sort segments conditionally (only even-indexed segments)
    std::cout << "\nSorting even-indexed segments in descending order:" << std::endl;

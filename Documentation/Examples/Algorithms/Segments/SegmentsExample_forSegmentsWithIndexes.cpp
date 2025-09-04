@@ -23,14 +23,34 @@ SegmentsExample()
    TNL::Containers::Array< double, Device > data( segments.getStorageSize(), 0.0 );
 
    /***
+    * Insert data into particular segments.
+    */
+   auto data_view = data.getView();
+   TNL::Algorithms::Segments::forAllElements( segments,
+                                              [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+                                              {
+                                                 data_view[ globalIdx ] = localIdx + 1;
+                                              } );
+
+   /***
+    * Print the data by the segments.
+    */
+   std::cout << "Values of elements after initial setup: " << std::endl;
+   auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
+   {
+      return data_view[ globalIdx ];
+   };
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+
+   //! [traversing]
+   /***
     * Create array with the indexes of segments we want to iterate over.
     */
    TNL::Containers::Array< int, Device > segmentIndexes{ 0, 2, 4 };
 
    /***
-    * Insert data into particular segments.
+    * Compute cumulative sums in particular segments.
     */
-   auto data_view = data.getView();
    using SegmentViewType = typename Segments::SegmentViewType;
    TNL::Algorithms::Segments::forSegments( segments,
                                            segmentIndexes,
@@ -43,14 +63,11 @@ SegmentsExample()
                                                     data_view[ element.globalIndex() ] = sum;
                                                  }
                                            } );
+   //! [traversing]
 
    /***
     * Print the data managed by the segments.
     */
-   auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
-   {
-      return data_view[ globalIdx ];
-   };
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
 }
 

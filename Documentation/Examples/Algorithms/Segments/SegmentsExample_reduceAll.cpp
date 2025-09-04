@@ -54,6 +54,7 @@ reduceAllExample()
                                  } )
              << "\n";
 
+   //! [reduction]
    // Perform complete reduction:
    // 1. Find maximum in each segment
    // 2. Sum up all the maximums
@@ -68,13 +69,14 @@ reduceAllExample()
       },
       // Reduction operation for segments (maximum)
       TNL::Max{},
-      // Fetch function for final reduction (identity - returns segment result as is)
+      // Fetch function for global reduction (identity - returns segment result as is)
       [] __cuda_callable__( const ValueType& segmentValue )
       {
          return segmentValue;
       },
-      // Final reduction operation (sum)
+      // Global reduction operation (sum)
       TNL::Plus{} );
+   //! [reduction]
 
    // Print the result
    std::cout << "Sum of maximums = " << result << "\n";

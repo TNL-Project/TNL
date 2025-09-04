@@ -22,48 +22,34 @@ SegmentsExample()
     */
    TNL::Containers::Array< double, Device > data( segments.getStorageSize(), 0.0 );
 
+   //! [traversing]
    /***
     * Insert data into particular segments with no check.
     */
    auto data_view = data.getView();
    TNL::Algorithms::Segments::forAllElementsIf(
       segments,
+      //! [condition]
       [ = ] __cuda_callable__( int segmentIdx ) -> bool
       {
-         return segmentIdx % 2 == 0;  // Iterate only over even segments.
+         return segmentIdx % 2 == 0;  // Iterate only over even-indexed segments.
       },
+      //! [condition]
       [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
       {
-         data_view[ globalIdx ] = segmentIdx;
+         if( localIdx <= segmentIdx )
+            data_view[ globalIdx ] = segmentIdx;
       } );
+   //! [traversing]
 
    /***
     * Print the data managed by the segments.
     */
-   std::cout << "Data setup with no check ... " << std::endl;
    std::cout << "Array: " << data << std::endl;
    auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];
    };
-   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
-
-   /***
-    * Insert data into particular segments.
-    */
-   data = 0.0;
-   TNL::Algorithms::Segments::forAllElements( segments,
-                                              [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-                                              {
-                                                 if( localIdx <= segmentIdx )
-                                                    data_view[ globalIdx ] = segmentIdx;
-                                              } );
-
-   /***
-    * Print the data managed by the segments.
-    */
-   std::cout << "Data setup with check for padding elements..." << std::endl;
-   std::cout << "Array: " << data << std::endl;
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
 }
 
