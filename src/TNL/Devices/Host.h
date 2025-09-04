@@ -62,7 +62,7 @@ public:
          return omp_get_max_threads();
       return maxThreadsCount();
 #else
-      return 0;
+      return 1;
 #endif
    }
 
