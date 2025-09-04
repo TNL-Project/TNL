@@ -10,6 +10,7 @@ template< typename Segments >
 void
 SegmentsExample()
 {
+   //! [config]
    using Device = typename Segments::DeviceType;
 
    /***
@@ -21,7 +22,9 @@ SegmentsExample()
     * Allocate array for the segments;
     */
    TNL::Containers::Array< double, Device > data( segments.getStorageSize(), 0.0 );
+   //! [config]
 
+   //! [traversing]
    /***
     * Insert data into particular segments.
     */
@@ -37,7 +40,9 @@ SegmentsExample()
                                                        data_view[ element.globalIndex() ] = sum;
                                                     }
                                               } );
+   //! [traversing]
 
+   //! [printing]
    /***
     * Print the data managed by the segments.
     */
@@ -46,6 +51,7 @@ SegmentsExample()
       return data_view[ globalIdx ];
    };
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   //! [printing]
 }
 
 int

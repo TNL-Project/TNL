@@ -46,6 +46,7 @@ SegmentsExample()
    };
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
 
+   //! [reduction]
    /***
     * Compute sums of elements in segments with given indexes.
     */
@@ -80,8 +81,9 @@ SegmentsExample()
    sums = 0;
    compressedSums = 0;
    TNL::Algorithms::Segments::reduceAllSegmentsIf( segments, condition, fetch_brief, TNL::Plus{}, keep );
-   std::cout << "The sums with brief fetch form are: " << sums << std::endl << std::endl;
-   std::cout << "The compressed sums with brief fetch form are: " << compressedSums << std::endl << std::endl;
+   std::cout << "The sums with brief fetch form are: " << sums << std::endl;
+   std::cout << "The compressed sums with brief fetch form are: " << compressedSums << std::endl;
+   //! [reduction]
 }
 
 int
