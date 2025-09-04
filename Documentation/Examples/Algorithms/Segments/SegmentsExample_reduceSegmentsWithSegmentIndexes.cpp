@@ -46,6 +46,7 @@ SegmentsExample()
    };
    std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
 
+   //! [reduction]
    /***
     * Create array with the indexes of segments we want to iterate over.
     */
@@ -54,7 +55,7 @@ SegmentsExample()
    /***
     * Compute sums of elements in segments with given indexes.
     */
-   TNL::Containers::Vector< double, Device > sums( size ), compressedSums( size );
+   TNL::Containers::Vector< double, Device > sums( size ), compressedSums( segmentIndexes.getSize() );
    auto sums_view = sums.getView();
    auto compressedSums_view = compressedSums.getView();
    auto fetch_full = [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) -> double
@@ -81,8 +82,9 @@ SegmentsExample()
    sums = 0;
    compressedSums = 0;
    TNL::Algorithms::Segments::reduceSegments( segments, segmentIndexes, fetch_brief, TNL::Plus{}, keep );
-   std::cout << "The sums with brief fetch form are: " << sums << std::endl << std::endl;
-   std::cout << "The compressed sums with brief fetch form are: " << compressedSums << std::endl << std::endl;
+   std::cout << "The sums with brief fetch form are: " << sums << std::endl;
+   std::cout << "The compressed sums with brief fetch form are: " << compressedSums << std::endl;
+   //! [reduction]
 }
 
 int

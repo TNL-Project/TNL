@@ -9,8 +9,6 @@ template< typename Segments >
 void
 SegmentsExample()
 {
-   using Device = typename Segments::DeviceType;
-
    /***
     * Create segments and print the segments type.
     */
