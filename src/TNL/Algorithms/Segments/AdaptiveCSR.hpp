@@ -66,6 +66,20 @@ AdaptiveCSR< Device, Index, IndexAllocator >::operator=( const AdaptiveCSR< Devi
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
+std::string
+AdaptiveCSR< Device, Index, IndexAllocator >::getSerializationType()
+{
+   return "AdaptiveCSR< " + TNL::getSerializationType< Index >() + " >";
+}
+
+template< typename Device, typename Index, typename IndexAllocator >
+std::string
+AdaptiveCSR< Device, Index, IndexAllocator >::getSegmentsType()
+{
+   return "Adaptive CSR";
+}
+
+template< typename Device, typename Index, typename IndexAllocator >
 auto
 AdaptiveCSR< Device, Index, IndexAllocator >::getView() -> ViewType
 {
