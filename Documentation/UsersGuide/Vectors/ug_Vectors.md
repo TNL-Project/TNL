@@ -160,7 +160,7 @@ template parameters:
 1. `Size` is the vector size.
 2. `Real` is type of elements stored in the vector.
 
-The interface of `StaticVector` is smilar to `Vector`. `StaticVector` also
+The interface of `StaticVector` is similar to `Vector`. `StaticVector` also
 supports expression templates, which make the use of static vectors simple and
 efficient at the same time, and [lexicographic comparison][lexicographic order]
 by operators `<`, `<=`, `>` and `>=`.
