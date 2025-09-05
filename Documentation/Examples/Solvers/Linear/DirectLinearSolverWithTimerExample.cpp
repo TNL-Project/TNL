@@ -88,9 +88,9 @@ directLinearSolverExample()
    solver.setSolverMonitor( monitor );
    solver.solve( b, x );
    monitor.stopMainLoop();
-   if( solver.succeeded() ) {
+   if( solver.checkConvergence() ) {
       std::cout << "Solver succeeded." << std::endl;
-      //std::cout << "Vector x = " << x << std::endl;
+      std::cout << "Vector x = " << x << std::endl;
    }
    else
       std::cout << "Solver failed." << std::endl;

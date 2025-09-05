@@ -7,71 +7,41 @@
    #include <umfpack.h>
 #endif
 
-#include <TNL/Solvers/DirectSolver.h>
+#include <TNL/Solvers/Linear/LinearSolver.h>
 #include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Matrices/MatrixInfo.h>
+#include <TNL/Matrices/TypeTraits.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 
 namespace TNL::Solvers::Linear {
 
 template< typename Matrix, typename SolverMonitor = IterativeSolverMonitor< double > >
-class UmfpackWrapper : public DirectSolver< typename Matrix::RealType, typename Matrix::IndexType, SolverMonitor >
+class UmfpackWrapper : public LinearSolver< Matrix >
 {
-   static_assert( Matrices::is_csr_matrix< Matrix >::value, "Umfpack works only with CSR format." );
+   static_assert( Matrices::is_sparse_csr_matrix_v< Matrix >, "Umfpack works only with CSR format." );
    static_assert( std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Host >
                      || std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Sequential >,
                   "Umfpack is only available on the host." );
    static_assert( std::is_same_v< typename Matrix::RealType, double >, "Umfpack is only available for double precision." );
    static_assert( std::is_same_v< typename Matrix::IndexType, int >, "Umfpack is only available for int indexing." );
 
-   using Base = DirectSolver< typename Matrix::RealType, typename Matrix::IndexType, SolverMonitor >;
+   using Base = LinearSolver< Matrix >;
 
 public:
-   /**
-    * \brief Type for floating point numbers.
-    */
-   using RealType = typename Matrix::RealType;
-
-   /**
-    * \brief Device where the solver will run on and auxiliary data will be allocated on.
-    */
-   using DeviceType = typename Matrix::DeviceType;
-
-   /**
-    * \brief Indexing type.
-    */
-   using IndexType = typename Matrix::IndexType;
-
-   /**
-    * \brief Type of the matrix representing the linear system.
-    */
-   using MatrixType = Matrix;
-
-   /**
-    * \brief Type of shared pointer to the matrix.
-    */
-   using MatrixPointer = std::shared_ptr< std::add_const_t< MatrixType > >;
-
-   /**
-    * \brief Type for vector view.
-    */
-   using VectorViewType = Containers::VectorView< RealType, DeviceType, IndexType >;
-
-   /**
-    * \brief Type for constant vector view.
-    */
-   using ConstVectorViewType = typename VectorViewType::ConstViewType;
+   using RealType = typename Base::RealType;
+   using DeviceType = typename Base::DeviceType;
+   using IndexType = typename Base::IndexType;
+   using MatrixType = typename Base::MatrixType;
+   using MatrixPointer = typename Base::MatrixPointer;
+   using VectorViewType = typename Base::VectorViewType;
+   using ConstVectorViewType = typename Base::ConstVectorViewType;
 
    UmfpackWrapper() = default;
 
    void
-   setMatrix( const MatrixPointer& matrix );
+   setMatrix( const MatrixPointer& matrix ) override;
 
    bool
-   solve( ConstVectorViewType b, VectorViewType x );
-
-   bool
-   succeeded() const;
+   solve( ConstVectorViewType b, VectorViewType x ) override;
 
    ~UmfpackWrapper();
 
@@ -82,12 +52,11 @@ protected:
    void* Numeric = nullptr;
    double Control[ UMFPACK_CONTROL ];
    double Info[ UMFPACK_INFO ];
-
 #endif
+
    MatrixPointer matrix;
 
    bool factorized = false;
-   bool solver_success = false;
 };
 
 }  // namespace TNL::Solvers::Linear

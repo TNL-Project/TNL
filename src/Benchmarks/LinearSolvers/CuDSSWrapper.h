@@ -10,11 +10,12 @@
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Solvers/Linear/LinearSolver.h>
+#include <TNL/Matrices/TypeTraits.h>
 
 namespace TNL::Solvers::Linear {
 
 template< typename Matrix, typename SolverMonitor = IterativeSolverMonitor< double > >
-class CuDSSWrapper : public DirectSolver< typename Matrix::RealType, typename Matrix::IndexType, SolverMonitor >
+class CuDSSWrapper : public LinearSolver< Matrix >
 {
    static_assert( std::is_same_v< typename Matrix::DeviceType, Devices::Cuda >, "CuDSSWrapper is available only on CUDA" );
    static_assert( std::is_same_v< typename Matrix::RealType, float > || std::is_same_v< typename Matrix::RealType, double >,
@@ -81,18 +82,11 @@ public:
 
       cudssExecute( handle, CUDSS_PHASE_SOLVE, solverConfig, solverData, A, x, b );
       TNL_CHECK_CUDA_DEVICE;
-      this->solver_success = true;
+      this->setResidue( 0 );
       return true;
 #else
-      std::cerr << "CuDSS is not available." << std::endl;
-      return false;
+      throw std::runtime_error( "CuDSS is not available.." );
 #endif
-   }
-
-   bool
-   succeeded() const
-   {
-      return this->solver_success;
    }
 
    bool
@@ -111,7 +105,6 @@ protected:
    cudssMatrix_t x, b;
    IndexType size;
    bool factorisation_success = false;
-   bool solver_success = false;
 #endif
 };
 

@@ -53,11 +53,12 @@ public:
    solve( ConstVectorViewType b, VectorViewType x ) override
    {
 #ifdef HAVE_STRUMPACK
+      this->setResidue( NAN );
       this->solver.solve( b.getData(), x.getData() );
+      this->setResidue( 0 );
       return true;
 #else
-      std::cerr << "Strumpack is not available." << std::endl;
-      return false;
+      throw std::runtime_error( "Strumpack is not available.." );
 #endif
    }
 

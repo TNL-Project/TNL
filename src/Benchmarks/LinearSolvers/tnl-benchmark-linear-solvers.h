@@ -30,6 +30,7 @@
 #include <TNL/Solvers/Linear/BICGStab.h>
 #include <TNL/Solvers/Linear/BICGStabL.h>
 #include <TNL/Solvers/Linear/IDRs.h>
+#include <TNL/Solvers/Linear/CuSolverWrapper.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
 #include <TNL/Solvers/Linear/GinkgoDirectSolver.h>
 #include <TNL/Matrices/SparseMatrix.h>
@@ -551,13 +552,18 @@ struct LinearSolversBenchmark
       benchmark.setOperation( "Copy" );
       benchmark.time< TNL::Devices::Host >( performer, compute, benchmarkResult );
 
-   #if defined( HAVE_CUDSS ) || defined( HAVE_GINKGO ) || defined( HAVE_TRILINOS )
       using CudaCSR = TNL::Matrices::
          SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
       auto cudaMatrix = std::make_shared< CudaCSR >();
       TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
       TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType > cuda_x0_copy;
-   #endif
+      *cudaMatrix = *matrixPointer;
+
+      benchmarkDirectSolver< TNL::Solvers::Linear::CuSolverWrapper >(
+         "CuSolver", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
+      cuda_x0_copy = cuda_x0;
+      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+         std::cout << "Warning: the result of the CuSolver solver is not equal to the result of the CPU solver." << std::endl;
 
    #ifdef HAVE_CUDSS
       benchmarkDirectSolver< TNL::Solvers::Linear::CuDSSWrapper >(
