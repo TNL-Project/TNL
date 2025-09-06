@@ -6,7 +6,7 @@
 
 In this section, we describe solvers of [ordinary differential equations](https://en.wikipedia.org/wiki/Ordinary_differential_equation) (ODE) characterized by the following equation:
 
-\f[ \frac{d \vec u(t)}{dt} = \vec f( t, \vec u(t)) \text{ on } (0,T), \f]
+\f[ \frac{\mathrm{d} \vec u(t)}{\mathrm{d}t} = \vec f( t, \vec u(t)) \text{ on } (0,T), \f]
 
 and the initial condition
 
@@ -64,7 +64,7 @@ The vector \f$ \vec u(t) \f$ in ODE solvers can be represented using different t
 
 Static solvers are primarily intended for scenarios where \f$ x \in R \f$ is scalar or \f$ \vec x \in R^n \f$ is vector with a relatively small dimension. We will demonstrate this through a scalar problem defined as follows:
 
-\f[ \frac{d u}{dt} = t \sin ( t )\ \rm{ on }\ (0,T), \f]
+\f[ \frac{\mathrm{d}u}{\mathrm{d}t} = t \sin ( t ) \text{ on } (0,T), \f]
 
 with the initial condition
 
@@ -138,9 +138,9 @@ The graph depicting the solution of the scalar ODE problem is illustrated below:
 
 In this example, we demonstrate the application of the static ODE solver in solving a system of ODEs, specifically the [Lorenz system](https://en.wikipedia.org/wiki/Lorenz_system). The Lorenz system is a set of three coupled, nonlinear differential equations defined as follows:
 
-\f[ \frac{dx}{dt} = \sigma( x - y),\ \rm{ on }\ (0,T), \f]
-\f[ \frac{dy}{dt} = x(\rho - z ) - y,\ \rm{ on }\ (0,T),  \f]
-\f[ \frac{dz}{dt} = xy - \beta z,\ \rm{ on }\ (0,T), \f]
+\f[ \frac{\mathrm{d}x}{\mathrm{d}t} = \sigma( x - y), \text{ on } (0,T), \f]
+\f[ \frac{\mathrm{d}y}{\mathrm{d}t} = x(\rho - z ) - y, \text{ on } (0,T),  \f]
+\f[ \frac{\mathrm{d}z}{\mathrm{d}t} = xy - \beta z, \text{ on } (0,T), \f]
 
 with the initial condition
 
@@ -199,7 +199,7 @@ Static solvers can be effectively utilized within lambda functions in conjunctio
 
 The first example addresses an ODE defined by the following equation
 
-\f[ \frac{d u}{dt} = t \sin ( c t )\ \rm{ on }\ (0,T), \f]
+\f[ \frac{\mathrm{d}u}{\mathrm{d}t} = t \sin ( c t ) \text{ on } (0,T), \f]
 
 and the initial condition
 
@@ -280,9 +280,9 @@ The result of this example looks as follows:
 
 The second example is a parametric analysis of the Lorenz model
 
-\f[ \frac{dx}{dt} = \sigma( x - y),\ \rm{ on }\ (0,T) \f]
-\f[ \frac{dy}{dt} = x(\rho - z ) - y,\ \rm{ on }\ (0,T) \f]
-\f[ \frac{dz}{dt} = xy - \beta z,\ \rm{ on }\ (0,T) \f]
+\f[ \frac{\mathrm{d}x}{\mathrm{d}t} = \sigma( x - y), \text{ on } (0,T) \f]
+\f[ \frac{\mathrm{d}y}{\mathrm{d}t} = x(\rho - z ) - y, \text{ on } (0,T) \f]
+\f[ \frac{\mathrm{d}z}{\mathrm{d}t} = xy - \beta z, \text{ on } (0,T) \f]
 
 with the initial condition
 
@@ -366,7 +366,7 @@ The results are visualized in the following images:
 In this section, we demonstrate how to solve the simple 1D [heat equation](https://en.wikipedia.org/wiki/Heat_equation), a [parabolic partial differential equation](https://en.wikipedia.org/wiki/Parabolic_partial_differential_equation) expressed as:
 
 \f[
-\frac{\partial u(t,x)}{\partial t} - \frac{\partial^2 u(t,x)}{\partial^2 x} = 0\ \rm{on}\ (0,T) \times (0,1),
+\frac{\partial u(t,x)}{\partial t} - \frac{\partial^2 u(t,x)}{\partial^2 x} = 0 \text{ on } (0,T) \times (0,1),
 \f]
 
 with boundary conditions
@@ -382,23 +382,25 @@ u(t,0) = 1,
 and initial condition
 
 \f[
-u(0,x) = u_{ini}(x)\ \rm{on}\ [0,1].
+u(0,x) = u_{ini}(x) \text{ on } [0,1].
 \f]
 
 We discretize the equation by the [finite difference method](https://en.wikipedia.org/wiki/Finite_difference_method) for numerical approximation. First, we define set of nodes \f$ x_i = ih \f$ for \f$i=0,\ldots n-1 \f$ where \f$h = 1 / (n-1) \f$ (adopting C++ indexing for consistency). Employing the [method of lines](https://en.wikipedia.org/wiki/Method_of_lines) and approximating the second derivative by the central finite difference
 
-\f[ \frac{\partial^2 u(t,x)}{\partial^2 x} \approx \frac{u_{i-1} - 2 u_i + u_{i+1}}{h^2}, \f],
+\f[
+\frac{\partial^2 u(t,x)}{\partial^2 x} \approx \frac{u_{i-1} - 2 u_i + u_{i+1}}{h^2},
+\f]
 
 we derive system of ODEs:
 
 \f[
-\frac{\rm{d}u_i(t)}{\rm{d} t} = \frac{u_{i-1} - 2 u_i + u_{i+1}}{h^2}\ \rm{for}\ i = 1, \ldots, n-2,
+\frac{\mathrm{d} u_i(t)}{\mathrm{d}t} = \frac{u_{i-1} - 2 u_i + u_{i+1}}{h^2} \text{ for } i = 1, \ldots, n-2,
 \f]
 
 where \f$ u_i(t) = u(t,ih) \f$ represents the function value at node \f$ i \f$ and \f$ h \f$ is the spatial step between two adjacent nodes of the numerical mesh. The boundary conditions are set as:
 
 \f[
-u_0(t) = u_{n-1}(t) = 0\ \rm{on}\ [0,T].
+u_0(t) = u_{n-1}(t) = 0 \text{ on } [0,T].
 \f]
 
 
@@ -446,9 +448,9 @@ The initial condition \f$ u_{ini} \f$ is set as:
 \f[
 u_{ini}(x) = \left\{
    \begin{array}{rl}
-   0 & \rm{for}\ x < 0.4, \\
-   1 & \rm{for}\ 0.4 \leq x \leq 0.6, \\
-   0 & \rm{for}\ x > 0. \\
+   0 & \text{ for } x < 0.4, \\
+   1 & \text{ for } 0.4 \leq x \leq 0.6, \\
+   0 & \text{ for } x > 0. \\
    \end{array}
 \right.
 \f]
