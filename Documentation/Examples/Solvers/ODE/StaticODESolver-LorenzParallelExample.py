@@ -67,7 +67,7 @@ for sigma in sigma_lst:
     beta_n = len(beta_lst)
 
     fig, ax = plt.subplots(rho_n, beta_n, figsize=(8, 8), sharey=True, sharex=True)
-    fig.suptitle(f"$\sigma={sigma}$")
+    fig.suptitle(rf"$\sigma={sigma}$")
     # ax = Axes3D(fig)  does not work with ax indexing
     rho_idx = 0
     beta_idx = 0
@@ -77,9 +77,9 @@ for sigma in sigma_lst:
             data_tuple = data[parameters_tuple]
             ax[rho_idx, beta_idx].plot(data_tuple[1], data_tuple[2], linewidth=1.0)
             if beta_idx == 0:
-                ax[rho_idx, beta_idx].set_ylabel(f"$\\rho={rho}$")
+                ax[rho_idx, beta_idx].set_ylabel(rf"$\rho={rho}$")
             if rho_idx == rho_n - 1:
-                ax[rho_idx, beta_idx].set_xlabel(f"$\\beta={beta}$")
+                ax[rho_idx, beta_idx].set_xlabel(rf"$\beta={beta}$")
             beta_idx = beta_idx + 1
         beta_idx = 0
         rho_idx = rho_idx + 1
