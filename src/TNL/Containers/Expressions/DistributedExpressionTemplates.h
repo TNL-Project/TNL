@@ -936,130 +936,125 @@ using Containers::tanh;
 
 ////
 // Evaluation with reduction
-template< typename Vector, typename T1, typename T2, typename Operation, typename Reduction, typename Result >
+template< typename Vector,
+          typename ET1,
+          typename Reduction,
+          typename Result,
+          std::enable_if_t< Containers::Expressions::HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value,
+                            bool > = true >
 Result
-evaluateAndReduce( Vector& lhs,
-                   const Containers::Expressions::DistributedBinaryExpressionTemplate< T1, T2, Operation >& expression,
-                   const Reduction& reduction,
-                   const Result& zero )
+evaluateAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
-   using RealType = typename Vector::RealType;
    using IndexType = typename Vector::IndexType;
-   using DeviceType = typename Vector::DeviceType;
 
-   RealType* lhs_data = lhs.getData();
-   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> RealType
-   {
-      return lhs_data[ i ] = expression[ i ];
-   };
-   return Algorithms::reduce< DeviceType >( lhs.getSize(), fetch, reduction, zero );
-}
+   Result result = zero;
+   const MPI::Comm& communicator = expression.getCommunicator();
+   if( communicator != MPI_COMM_NULL ) {
+      // compute local result
+      auto local_lhs = lhs.getConstLocalView();
+      Result localResult = evaluateAndReduce( local_lhs, expression.getConstLocalView(), reduction, zero );
 
-template< typename Vector, typename T1, typename Operation, typename Reduction, typename Result >
-Result
-evaluateAndReduce( Vector& lhs,
-                   const Containers::Expressions::DistributedUnaryExpressionTemplate< T1, Operation >& expression,
-                   const Reduction& reduction,
-                   const Result& zero )
-{
-   using RealType = typename Vector::RealType;
-   using IndexType = typename Vector::IndexType;
-   using DeviceType = typename Vector::DeviceType;
+      // scatter local result to all processes and gather their results
+      const int nproc = MPI::GetSize( communicator );
+      std::unique_ptr< Result[] > dataForScatter{ new Result[ nproc ] };
+      for( int i = 0; i < nproc; i++ )
+         dataForScatter[ i ] = localResult;
+      std::unique_ptr< Result[] > gatheredResults{ new Result[ nproc ] };
+      // NOTE: exchanging general data types does not work with MPI
+      // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
+      MPI::Alltoall(
+         (char*) dataForScatter.get(), sizeof( Result ), (char*) gatheredResults.get(), sizeof( Result ), communicator );
 
-   RealType* lhs_data = lhs.getData();
-   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> RealType
-   {
-      return lhs_data[ i ] = expression[ i ];
-   };
-   return Algorithms::reduce< DeviceType >( lhs.getSize(), fetch, reduction, zero );
-}
-
-////
-// Addition and reduction
-template< typename Vector, typename T1, typename T2, typename Operation, typename Reduction, typename Result >
-Result
-addAndReduce( Vector& lhs,
-              const Containers::Expressions::DistributedBinaryExpressionTemplate< T1, T2, Operation >& expression,
-              const Reduction& reduction,
-              const Result& zero )
-{
-   using RealType = typename Vector::RealType;
-   using IndexType = typename Vector::IndexType;
-   using DeviceType = typename Vector::DeviceType;
-
-   RealType* lhs_data = lhs.getData();
-   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> RealType
-   {
-      const RealType aux = expression[ i ];
-      lhs_data[ i ] += aux;
-      return aux;
-   };
-   return Algorithms::reduce< DeviceType >( lhs.getSize(), fetch, reduction, zero );
-}
-
-template< typename Vector, typename T1, typename Operation, typename Reduction, typename Result >
-Result
-addAndReduce( Vector& lhs,
-              const Containers::Expressions::DistributedUnaryExpressionTemplate< T1, Operation >& expression,
-              const Reduction& reduction,
-              const Result& zero )
-{
-   using RealType = typename Vector::RealType;
-   using IndexType = typename Vector::IndexType;
-   using DeviceType = typename Vector::DeviceType;
-
-   RealType* lhs_data = lhs.getData();
-   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> RealType
-   {
-      const RealType aux = expression[ i ];
-      lhs_data[ i ] += aux;
-      return aux;
-   };
-   return Algorithms::reduce< DeviceType >( lhs.getSize(), fetch, reduction, zero );
+      // compute the global reduction over MPI ranks
+      auto fetch = [ &gatheredResults ]( IndexType i )
+      {
+         return gatheredResults[ i ];
+      };
+      result = Algorithms::reduce< Devices::Host >( (IndexType) 0, (IndexType) nproc, fetch, reduction, zero );
+   }
+   return result;
 }
 
 ////
 // Addition and reduction
-template< typename Vector, typename T1, typename T2, typename Operation, typename Reduction, typename Result >
+template< typename Vector,
+          typename ET1,
+          typename Reduction,
+          typename Result,
+          std::enable_if_t< Containers::Expressions::HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value,
+                            bool > = true >
 Result
-addAndReduceAbs( Vector& lhs,
-                 const Containers::Expressions::DistributedBinaryExpressionTemplate< T1, T2, Operation >& expression,
-                 const Reduction& reduction,
-                 const Result& zero )
+addAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
-   using RealType = typename Vector::RealType;
    using IndexType = typename Vector::IndexType;
-   using DeviceType = typename Vector::DeviceType;
 
-   RealType* lhs_data = lhs.getData();
-   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> RealType
-   {
-      const RealType aux = expression[ i ];
-      lhs_data[ i ] += aux;
-      return TNL::abs( aux );
-   };
-   return Algorithms::reduce< DeviceType >( lhs.getSize(), fetch, reduction, zero );
+   Result result = zero;
+   const MPI::Comm& communicator = expression.getCommunicator();
+   if( communicator != MPI_COMM_NULL ) {
+      // compute local result
+      auto local_lhs = lhs.getConstLocalView();
+      Result localResult = addAndReduce( local_lhs, expression.getConstLocalView(), reduction, zero );
+
+      // scatter local result to all processes and gather their results
+      const int nproc = MPI::GetSize( communicator );
+      std::unique_ptr< Result[] > dataForScatter{ new Result[ nproc ] };
+      for( int i = 0; i < nproc; i++ )
+         dataForScatter[ i ] = localResult;
+      std::unique_ptr< Result[] > gatheredResults{ new Result[ nproc ] };
+      // NOTE: exchanging general data types does not work with MPI
+      // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
+      MPI::Alltoall(
+         (char*) dataForScatter.get(), sizeof( Result ), (char*) gatheredResults.get(), sizeof( Result ), communicator );
+
+      // compute the global reduction over MPI ranks
+      auto fetch = [ &gatheredResults ]( IndexType i )
+      {
+         return gatheredResults[ i ];
+      };
+      result = Algorithms::reduce< Devices::Host >( (IndexType) 0, (IndexType) nproc, fetch, reduction, zero );
+   }
+   return result;
 }
 
-template< typename Vector, typename T1, typename Operation, typename Reduction, typename Result >
+////
+// Addition and reduction
+template< typename Vector,
+          typename ET1,
+          typename Reduction,
+          typename Result,
+          std::enable_if_t< Containers::Expressions::HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value,
+                            bool > = true >
 Result
-addAndReduceAbs( Vector& lhs,
-                 const Containers::Expressions::DistributedUnaryExpressionTemplate< T1, Operation >& expression,
-                 const Reduction& reduction,
-                 const Result& zero )
+addAndReduceAbs( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
-   using RealType = typename Vector::RealType;
    using IndexType = typename Vector::IndexType;
-   using DeviceType = typename Vector::DeviceType;
 
-   RealType* lhs_data = lhs.getData();
-   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> RealType
-   {
-      const RealType aux = expression[ i ];
-      lhs_data[ i ] += aux;
-      return TNL::abs( aux );
-   };
-   return Algorithms::reduce< DeviceType >( lhs.getSize(), fetch, reduction, zero );
+   Result result = zero;
+   const MPI::Comm& communicator = expression.getCommunicator();
+   if( communicator != MPI_COMM_NULL ) {
+      // compute local result
+      auto local_lhs = lhs.getLocalView();
+      Result localResult = addAndReduceAbs( local_lhs, expression.getConstLocalView(), reduction, zero );
+
+      // scatter local result to all processes and gather their results
+      const int nproc = MPI::GetSize( communicator );
+      std::unique_ptr< Result[] > dataForScatter{ new Result[ nproc ] };
+      for( int i = 0; i < nproc; i++ )
+         dataForScatter[ i ] = localResult;
+      std::unique_ptr< Result[] > gatheredResults{ new Result[ nproc ] };
+      // NOTE: exchanging general data types does not work with MPI
+      // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
+      MPI::Alltoall(
+         (char*) dataForScatter.get(), sizeof( Result ), (char*) gatheredResults.get(), sizeof( Result ), communicator );
+
+      // compute the global reduction over MPI ranks
+      auto fetch = [ &gatheredResults ]( IndexType i )
+      {
+         return gatheredResults[ i ];
+      };
+      result = Algorithms::reduce< Devices::Host >( (IndexType) 0, (IndexType) nproc, fetch, reduction, zero );
+   }
+   return result;
 }
 
 }  // namespace TNL
