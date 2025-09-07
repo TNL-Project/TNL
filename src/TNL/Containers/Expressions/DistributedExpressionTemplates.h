@@ -239,7 +239,7 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
 
 protected:
    const T1& op1;
-   const T2& op2;
+   const T2 op2;
 };
 
 template< typename T1, typename T2, typename Operation >
@@ -332,7 +332,7 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, ArithmeticVariabl
    }
 
 protected:
-   const T1& op1;
+   const T1 op1;
    const T2& op2;
 };
 
