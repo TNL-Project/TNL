@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Containers/DistributedVector.h>
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
@@ -281,7 +282,10 @@ public:
     * Note, \e VectorType can be \ref TNL::Containers::VectorView but
     * \e DofVectorType is always \ref TNL::Containers::Vector.
     */
-   using DofVectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+   using DofVectorType = std::conditional_t<  //
+      HasGetCommunicatorMethod< Vector >::value,
+      TNL::Containers::DistributedVector< RealType, DeviceType, IndexType >,
+      TNL::Containers::Vector< RealType, DeviceType, IndexType > >;
 
    /**
     * \brief Type of object used for monitoring the convergence.
