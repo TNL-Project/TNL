@@ -4,6 +4,10 @@ set(COMMON_EXAMPLES StaticODESolver-SineParallelExample StaticODESolver-LorenzPa
                     ODESolver-HeatEquationWithMonitorExample
 )
 
+set(MPI_EXAMPLES DistributedODESolver-HeatEquationExample)
+
+set(mpirun_parameters -np 4 -H localhost:4)
+
 foreach(target IN ITEMS ${HOST_EXAMPLES})
     add_executable(${target} ${target}.cpp)
     target_link_libraries(${target} PUBLIC TNL::TNL)
@@ -32,6 +36,30 @@ else()
         add_custom_command(
             COMMAND ${target} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH} >
                     ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out DEPENDS ${target}
+        )
+        set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
+    endforeach()
+endif()
+
+if(TNL_BUILD_MPI)
+    foreach(target IN ITEMS ${MPI_EXAMPLES})
+        if(TNL_BUILD_CUDA)
+            add_executable(${target} ${target}.cu)
+        else()
+            add_executable(${target} ${target}.cpp)
+        endif()
+
+        target_link_libraries(${target} PUBLIC TNL::TNL)
+
+        # enable MPI support in TNL
+        target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
+        # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
+        target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
+
+        add_custom_command(
+            COMMAND "mpirun" ${mpirun_parameters} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+                    ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
             OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out DEPENDS ${target}
         )
         set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
@@ -118,9 +146,9 @@ if(TNL_PYTHON3_MATPLOTLIB_FOUND)
         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-1.png
         ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
     )
-
-    add_custom_target(RunODESolversExamples ALL DEPENDS ${DOC_OUTPUTS})
-
-    # add the dependency to the main target
-    add_dependencies(run-doc-examples RunODESolversExamples)
 endif()
+
+add_custom_target(RunODESolversExamples ALL DEPENDS ${DOC_OUTPUTS})
+
+# add the dependency to the main target
+add_dependencies(run-doc-examples RunODESolversExamples)
