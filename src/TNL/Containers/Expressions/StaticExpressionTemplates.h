@@ -760,27 +760,15 @@ using Containers::tanh;
 
 ////
 // Evaluation with reduction
-template< typename Vector, typename T1, typename T2, typename Operation, typename Reduction, typename Result >
+template< typename Vector,
+          typename ET1,
+          typename Reduction,
+          typename Result,
+          std::enable_if_t< Containers::Expressions::HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value, bool > =
+             true >
 __cuda_callable__
 Result
-evaluateAndReduce( Vector& lhs,
-                   const Containers::Expressions::StaticBinaryExpressionTemplate< T1, T2, Operation >& expression,
-                   const Reduction& reduction,
-                   const Result& zero )
-{
-   Result result( zero );
-   for( int i = 0; i < Vector::getSize(); i++ )
-      result = reduction( result, lhs[ i ] = expression[ i ] );
-   return result;
-}
-
-template< typename Vector, typename T1, typename Operation, typename Reduction, typename Result >
-__cuda_callable__
-Result
-evaluateAndReduce( Vector& lhs,
-                   const Containers::Expressions::StaticUnaryExpressionTemplate< T1, Operation >& expression,
-                   const Reduction& reduction,
-                   const Result& zero )
+evaluateAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
    Result result( zero );
    for( int i = 0; i < Vector::getSize(); i++ )
@@ -790,30 +778,15 @@ evaluateAndReduce( Vector& lhs,
 
 ////
 // Addition with reduction
-template< typename Vector, typename T1, typename T2, typename Operation, typename Reduction, typename Result >
+template< typename Vector,
+          typename ET1,
+          typename Reduction,
+          typename Result,
+          std::enable_if_t< Containers::Expressions::HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value, bool > =
+             true >
 __cuda_callable__
 Result
-addAndReduce( Vector& lhs,
-              const Containers::Expressions::StaticBinaryExpressionTemplate< T1, T2, Operation >& expression,
-              const Reduction& reduction,
-              const Result& zero )
-{
-   Result result( zero );
-   for( int i = 0; i < Vector::getSize(); i++ ) {
-      const Result aux = expression[ i ];
-      lhs[ i ] += aux;
-      result = reduction( result, aux );
-   }
-   return result;
-}
-
-template< typename Vector, typename T1, typename Operation, typename Reduction, typename Result >
-__cuda_callable__
-Result
-addAndReduce( Vector& lhs,
-              const Containers::Expressions::StaticUnaryExpressionTemplate< T1, Operation >& expression,
-              const Reduction& reduction,
-              const Result& zero )
+addAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
    Result result( zero );
    for( int i = 0; i < Vector::getSize(); i++ ) {
@@ -826,30 +799,15 @@ addAndReduce( Vector& lhs,
 
 ////
 // Addition with reduction of abs
-template< typename Vector, typename T1, typename T2, typename Operation, typename Reduction, typename Result >
+template< typename Vector,
+          typename ET1,
+          typename Reduction,
+          typename Result,
+          std::enable_if_t< Containers::Expressions::HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value, bool > =
+             true >
 __cuda_callable__
 Result
-addAndReduceAbs( Vector& lhs,
-                 const Containers::Expressions::StaticBinaryExpressionTemplate< T1, T2, Operation >& expression,
-                 const Reduction& reduction,
-                 const Result& zero )
-{
-   Result result( zero );
-   for( int i = 0; i < Vector::getSize(); i++ ) {
-      const Result aux = expression[ i ];
-      lhs[ i ] += aux;
-      result = reduction( result, TNL::abs( aux ) );
-   }
-   return result;
-}
-
-template< typename Vector, typename T1, typename Operation, typename Reduction, typename Result >
-__cuda_callable__
-Result
-addAndReduceAbs( Vector& lhs,
-                 const Containers::Expressions::StaticUnaryExpressionTemplate< T1, Operation >& expression,
-                 const Reduction& reduction,
-                 const Result& zero )
+addAndReduceAbs( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
    Result result( zero );
    for( int i = 0; i < Vector::getSize(); i++ ) {
