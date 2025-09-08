@@ -80,7 +80,7 @@ public:
             log << ", ";
          log << "\"error\": \"" << escape_json( errorMessage ) << "\"";
       }
-      log << "}\n";
+      log << "}\n" << std::flush;
       if( verbose > 0 )
          std::cout << '\n';
    }
