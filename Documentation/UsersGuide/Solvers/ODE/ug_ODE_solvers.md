@@ -551,6 +551,106 @@ We have to setup the solver monitor:
 
  First, we define the monitor type `IterativeSolverMonitorType ` and we create an instance of the monitor. A separate thread (`monitorThread`) is created for the monitor. The refresh rate of the monitor is set to 10 milliseconds with `setRefreshRate` and verbose mode is enabled with `setVerbose` for detailed monitoring. The solver stage name is specified with `setStage`. The monitor is connected to the solver using \ref TNL::Solvers::IterativeSolver::setSolverMonitor. Subsequently, the numerical computation is performed and after it finishes, the monitor is stopped by calling \ref TNL::Solvers::IterativeSolverMonitor::stopMainLoop.
 
+## Distributed ODE Solvers
+
+Distributed ODE solvers in TNL extend the capabilities of single-node dynamic
+ODE solvers to handle problems that are too large for single-memory systems by
+distributing the computational workload across multiple processes or nodes in a
+cluster.
+
+### Key differences from dynamic ODE solvers
+
+The two approaches differ fundamentally in their approach to memory management
+and parallelization:
+
+**Dynamic ODE Solvers:**
+
+* **Local memory**: All data resides in the memory space of a single process
+* **Limited scale**: Constrained by available RAM on the host system
+* **No data exchange**: No inter-process communication required for data exchange
+
+**Distributed ODE Solvers:**
+
+* **Memory Distribution**: The solution vector is distributed across multiple
+  processes using MPI (Message Passing Interface)
+* **Scalability**: Can handle problems that exceed the memory capacity of
+  individual nodes
+* **Communication overhead**: Requires explicit synchronization and communication
+  between processes
+
+### Distributed ODE Solver Example
+
+The distributed implementation requires several key modifications compared to
+the standard approach. The following example illustrates these modifications:
+
+\includelineno Solvers/ODE/DistributedODESolver-HeatEquationExample.h
+
+The example demonstrates how to set up a distributed ODE solver for solving the
+heat equation. Below we explain the key differences from the standard approach.
+
+**MPI Initialization:**
+
+First, the example uses `TNL::MPI::ScopedInitializer` to initialize MPI correctly
+at program startup, ensuring all processes are properly synchronized for
+distributed execution. This is demonstrated in the `main` function with the line
+
+```cpp
+   TNL::MPI::ScopedInitializer mpi( argc, argv );
+```
+
+**Distributed Data Structures:**
+
+The core difference lies in the vector type: \ref TNL::Containers::DistributedVector
+replaces the standard \ref TNL::Containers::Vector. This new type manages memory
+distribution across processes and includes ghost zones for data communicated from
+neighboring processes. We also define a type alias for the
+\ref TNL::Containers::DistributedArraySynchronizer that will handle communication
+between processes during synchronization.
+
+\snippetlineno Solvers/ODE/DistributedODESolver-HeatEquationExample.h Types definition
+
+**Domain Decomposition:**
+
+The global vector is split across processes using \ref TNL::Containers::splitRange,
+which computes each process's local range. The distributed vector is initialized
+using the local range, number of ghost elements, global size `n`, and the MPI
+communicator. After initialization, an instance of the `Synchronizer` is set to the
+vector.
+
+\snippetlineno Solvers/ODE/DistributedODESolver-HeatEquationExample.h Domain decomposition
+
+The initial condition and solver setup are the same as in the standard approach.
+
+**Time Loop:**
+
+The main difference lies in how boundary conditions are handled and ensuring data
+synchronization between processes for consistency during the time loop.
+
+First, the lambda function `f` is modified to handle access to boundary elements
+that may reside on different processes. In case of subdomain interface, the element
+is retrieved from the neighboring process using the synchronizer and stored locally
+in the *ghost zone* that is allocated *after* the local elements of the array. In
+the 1D example, the element from the left neighbor is stored at position
+`localRange.getSize()` and the element from the right neighbor is stored at position
+`localRange.getSize() + 1`.
+
+\snippetlineno Solvers/ODE/DistributedODESolver-HeatEquationExample.h Lambda function f
+
+Secondly, explicit synchronization is added to ensure data consistency across
+subdomain boundaries during the computation.
+
+\snippetlineno Solvers/ODE/DistributedODESolver-HeatEquationExample.h Lambda function time_stepping
+
+**2D/3D Considerations:**
+
+While this 1D example handles boundary communication through ghost zones, 2D/3D
+implementations would require additional complexity in domain decomposition and
+synchronization patterns (e.g., halo exchanges across multiple dimensions).
+TNL provides advanced functionality in
+\ref TNL::Meshes::DistributedMeshes::DistributedMeshSynchronizer that can be
+used for mapping structured as well as unstructured meshes across processes
+using the same principle of distributed vectors with ghost zones.
+
 ## Use of the iterate method
 
 The ODE solvers in TNL provide an `iterate` method for performing just one iteration. This is particularly useful when there is a need for enhanced control over the time loop, or when developing a hybrid solver that combines multiple integration methods. The usage of this method is demonstrated in the following example:
