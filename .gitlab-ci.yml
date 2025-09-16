@@ -319,6 +319,8 @@ hip_rocm:
         - .build_template
         - .matrix_template
         - .hip_rocm
+    # FIXME: rocm-llvm 6.4.3 fails in Debug mode
+    allow_failure: true
 
 
 gcc:
