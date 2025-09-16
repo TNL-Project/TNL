@@ -6,7 +6,7 @@
 
 In this section, we describe solvers of [ordinary differential equations](https://en.wikipedia.org/wiki/Ordinary_differential_equation) (ODE) characterized by the following equation:
 
-\f[ \frac{d \vec u(t)}{dt} = \vec f( t, \vec u(t)) \text{ on } (0,T), \f]
+\f[ \frac{\mathrm{d} \vec u(t)}{\mathrm{d}t} = \vec f( t, \vec u(t)) \text{ on } (0,T), \f]
 
 and the initial condition
 
@@ -64,7 +64,7 @@ The vector \f$ \vec u(t) \f$ in ODE solvers can be represented using different t
 
 Static solvers are primarily intended for scenarios where \f$ x \in R \f$ is scalar or \f$ \vec x \in R^n \f$ is vector with a relatively small dimension. We will demonstrate this through a scalar problem defined as follows:
 
-\f[ \frac{d u}{dt} = t \sin ( t )\ \rm{ on }\ (0,T), \f]
+\f[ \frac{\mathrm{d}u}{\mathrm{d}t} = t \sin ( t ) \text{ on } (0,T), \f]
 
 with the initial condition
 
@@ -138,9 +138,9 @@ The graph depicting the solution of the scalar ODE problem is illustrated below:
 
 In this example, we demonstrate the application of the static ODE solver in solving a system of ODEs, specifically the [Lorenz system](https://en.wikipedia.org/wiki/Lorenz_system). The Lorenz system is a set of three coupled, nonlinear differential equations defined as follows:
 
-\f[ \frac{dx}{dt} = \sigma( x - y),\ \rm{ on }\ (0,T), \f]
-\f[ \frac{dy}{dt} = x(\rho - z ) - y,\ \rm{ on }\ (0,T),  \f]
-\f[ \frac{dz}{dt} = xy - \beta z,\ \rm{ on }\ (0,T), \f]
+\f[ \frac{\mathrm{d}x}{\mathrm{d}t} = \sigma( x - y), \text{ on } (0,T), \f]
+\f[ \frac{\mathrm{d}y}{\mathrm{d}t} = x(\rho - z ) - y, \text{ on } (0,T),  \f]
+\f[ \frac{\mathrm{d}z}{\mathrm{d}t} = xy - \beta z, \text{ on } (0,T), \f]
 
 with the initial condition
 
@@ -199,7 +199,7 @@ Static solvers can be effectively utilized within lambda functions in conjunctio
 
 The first example addresses an ODE defined by the following equation
 
-\f[ \frac{d u}{dt} = t \sin ( c t )\ \rm{ on }\ (0,T), \f]
+\f[ \frac{\mathrm{d}u}{\mathrm{d}t} = t \sin ( c t ) \text{ on } (0,T), \f]
 
 and the initial condition
 
@@ -280,9 +280,9 @@ The result of this example looks as follows:
 
 The second example is a parametric analysis of the Lorenz model
 
-\f[ \frac{dx}{dt} = \sigma( x - y),\ \rm{ on }\ (0,T) \f]
-\f[ \frac{dy}{dt} = x(\rho - z ) - y,\ \rm{ on }\ (0,T) \f]
-\f[ \frac{dz}{dt} = xy - \beta z,\ \rm{ on }\ (0,T) \f]
+\f[ \frac{\mathrm{d}x}{\mathrm{d}t} = \sigma( x - y), \text{ on } (0,T) \f]
+\f[ \frac{\mathrm{d}y}{\mathrm{d}t} = x(\rho - z ) - y, \text{ on } (0,T) \f]
+\f[ \frac{\mathrm{d}z}{\mathrm{d}t} = xy - \beta z, \text{ on } (0,T) \f]
 
 with the initial condition
 
@@ -366,7 +366,7 @@ The results are visualized in the following images:
 In this section, we demonstrate how to solve the simple 1D [heat equation](https://en.wikipedia.org/wiki/Heat_equation), a [parabolic partial differential equation](https://en.wikipedia.org/wiki/Parabolic_partial_differential_equation) expressed as:
 
 \f[
-\frac{\partial u(t,x)}{\partial t} - \frac{\partial^2 u(t,x)}{\partial^2 x} = 0\ \rm{on}\ (0,T) \times (0,1),
+\frac{\partial u(t,x)}{\partial t} - \frac{\partial^2 u(t,x)}{\partial^2 x} = 0 \text{ on } (0,T) \times (0,1),
 \f]
 
 with boundary conditions
@@ -382,23 +382,25 @@ u(t,0) = 1,
 and initial condition
 
 \f[
-u(0,x) = u_{ini}(x)\ \rm{on}\ [0,1].
+u(0,x) = u_{ini}(x) \text{ on } [0,1].
 \f]
 
 We discretize the equation by the [finite difference method](https://en.wikipedia.org/wiki/Finite_difference_method) for numerical approximation. First, we define set of nodes \f$ x_i = ih \f$ for \f$i=0,\ldots n-1 \f$ where \f$h = 1 / (n-1) \f$ (adopting C++ indexing for consistency). Employing the [method of lines](https://en.wikipedia.org/wiki/Method_of_lines) and approximating the second derivative by the central finite difference
 
-\f[ \frac{\partial^2 u(t,x)}{\partial^2 x} \approx \frac{u_{i-1} - 2 u_i + u_{i+1}}{h^2}, \f],
+\f[
+\frac{\partial^2 u(t,x)}{\partial^2 x} \approx \frac{u_{i-1} - 2 u_i + u_{i+1}}{h^2},
+\f]
 
 we derive system of ODEs:
 
 \f[
-\frac{\rm{d}u_i(t)}{\rm{d} t} = \frac{u_{i-1} - 2 u_i + u_{i+1}}{h^2}\ \rm{for}\ i = 1, \ldots, n-2,
+\frac{\mathrm{d} u_i(t)}{\mathrm{d}t} = \frac{u_{i-1} - 2 u_i + u_{i+1}}{h^2} \text{ for } i = 1, \ldots, n-2,
 \f]
 
 where \f$ u_i(t) = u(t,ih) \f$ represents the function value at node \f$ i \f$ and \f$ h \f$ is the spatial step between two adjacent nodes of the numerical mesh. The boundary conditions are set as:
 
 \f[
-u_0(t) = u_{n-1}(t) = 0\ \rm{on}\ [0,T].
+u_0(t) = u_{n-1}(t) = 0 \text{ on } [0,T].
 \f]
 
 
@@ -446,9 +448,9 @@ The initial condition \f$ u_{ini} \f$ is set as:
 \f[
 u_{ini}(x) = \left\{
    \begin{array}{rl}
-   0 & \rm{for}\ x < 0.4, \\
-   1 & \rm{for}\ 0.4 \leq x \leq 0.6, \\
-   0 & \rm{for}\ x > 0. \\
+   0 & \text{ for } x < 0.4, \\
+   1 & \text{ for } 0.4 \leq x \leq 0.6, \\
+   0 & \text{ for } x > 0. \\
    \end{array}
 \right.
 \f]
@@ -548,6 +550,106 @@ We have to setup the solver monitor:
 \snippetlineno Solvers/ODE/ODESolver-HeatEquationWithMonitorExample.h Monitor setup
 
  First, we define the monitor type `IterativeSolverMonitorType ` and we create an instance of the monitor. A separate thread (`monitorThread`) is created for the monitor. The refresh rate of the monitor is set to 10 milliseconds with `setRefreshRate` and verbose mode is enabled with `setVerbose` for detailed monitoring. The solver stage name is specified with `setStage`. The monitor is connected to the solver using \ref TNL::Solvers::IterativeSolver::setSolverMonitor. Subsequently, the numerical computation is performed and after it finishes, the monitor is stopped by calling \ref TNL::Solvers::IterativeSolverMonitor::stopMainLoop.
+
+## Distributed ODE Solvers
+
+Distributed ODE solvers in TNL extend the capabilities of single-node dynamic
+ODE solvers to handle problems that are too large for single-memory systems by
+distributing the computational workload across multiple processes or nodes in a
+cluster.
+
+### Key differences from dynamic ODE solvers
+
+The two approaches differ fundamentally in their approach to memory management
+and parallelization:
+
+**Dynamic ODE Solvers:**
+
+* **Local memory**: All data resides in the memory space of a single process
+* **Limited scale**: Constrained by available RAM on the host system
+* **No data exchange**: No inter-process communication required for data exchange
+
+**Distributed ODE Solvers:**
+
+* **Memory Distribution**: The solution vector is distributed across multiple
+  processes using MPI (Message Passing Interface)
+* **Scalability**: Can handle problems that exceed the memory capacity of
+  individual nodes
+* **Communication overhead**: Requires explicit synchronization and communication
+  between processes
+
+### Distributed ODE Solver Example
+
+The distributed implementation requires several key modifications compared to
+the standard approach. The following example illustrates these modifications:
+
+\includelineno Solvers/ODE/DistributedODESolver-HeatEquationExample.h
+
+The example demonstrates how to set up a distributed ODE solver for solving the
+heat equation. Below we explain the key differences from the standard approach.
+
+**MPI Initialization:**
+
+First, the example uses `TNL::MPI::ScopedInitializer` to initialize MPI correctly
+at program startup, ensuring all processes are properly synchronized for
+distributed execution. This is demonstrated in the `main` function with the line
+
+```cpp
+   TNL::MPI::ScopedInitializer mpi( argc, argv );
+```
+
+**Distributed Data Structures:**
+
+The core difference lies in the vector type: \ref TNL::Containers::DistributedVector
+replaces the standard \ref TNL::Containers::Vector. This new type manages memory
+distribution across processes and includes ghost zones for data communicated from
+neighboring processes. We also define a type alias for the
+\ref TNL::Containers::DistributedArraySynchronizer that will handle communication
+between processes during synchronization.
+
+\snippetlineno Solvers/ODE/DistributedODESolver-HeatEquationExample.h Types definition
+
+**Domain Decomposition:**
+
+The global vector is split across processes using \ref TNL::Containers::splitRange,
+which computes each process's local range. The distributed vector is initialized
+using the local range, number of ghost elements, global size `n`, and the MPI
+communicator. After initialization, an instance of the `Synchronizer` is set to the
+vector.
+
+\snippetlineno Solvers/ODE/DistributedODESolver-HeatEquationExample.h Domain decomposition
+
+The initial condition and solver setup are the same as in the standard approach.
+
+**Time Loop:**
+
+The main difference lies in how boundary conditions are handled and ensuring data
+synchronization between processes for consistency during the time loop.
+
+First, the lambda function `f` is modified to handle access to boundary elements
+that may reside on different processes. In case of subdomain interface, the element
+is retrieved from the neighboring process using the synchronizer and stored locally
+in the *ghost zone* that is allocated *after* the local elements of the array. In
+the 1D example, the element from the left neighbor is stored at position
+`localRange.getSize()` and the element from the right neighbor is stored at position
+`localRange.getSize() + 1`.
+
+\snippetlineno Solvers/ODE/DistributedODESolver-HeatEquationExample.h Lambda function f
+
+Secondly, explicit synchronization is added to ensure data consistency across
+subdomain boundaries during the computation.
+
+\snippetlineno Solvers/ODE/DistributedODESolver-HeatEquationExample.h Lambda function time_stepping
+
+**2D/3D Considerations:**
+
+While this 1D example handles boundary communication through ghost zones, 2D/3D
+implementations would require additional complexity in domain decomposition and
+synchronization patterns (e.g., halo exchanges across multiple dimensions).
+TNL provides advanced functionality in
+\ref TNL::Meshes::DistributedMeshes::DistributedMeshSynchronizer that can be
+used for mapping structured as well as unstructured meshes across processes
+using the same principle of distributed vectors with ghost zones.
 
 ## Use of the iterate method
 

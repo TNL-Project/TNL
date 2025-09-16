@@ -17,7 +17,7 @@ template< typename Device, typename Index >
 class ByteArraySynchronizer
 {
 private:
-   BS::thread_pool_light tp;
+   BS::thread_pool_light tp = 1;
 
    int gpu_id = 0;
 
@@ -33,9 +33,7 @@ public:
       async,
    };
 
-   ByteArraySynchronizer()
-   : tp( 1 )
-   {}
+   ByteArraySynchronizer() = default;
 
    /**
     * \brief Main synchronization function.

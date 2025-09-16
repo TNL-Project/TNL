@@ -743,31 +743,9 @@ using Containers::tanh;
 
 ////
 // Evaluation with reduction
-template< typename Vector, typename T1, typename T2, typename Operation, typename Reduction, typename Result >
-Result
-evaluateAndReduce( Vector& lhs,
-                   const Containers::Expressions::BinaryExpressionTemplate< T1, T2, Operation >& expression,
-                   const Reduction& reduction,
-                   const Result& zero )
-{
-   using RealType = typename Vector::RealType;
-   using IndexType = typename Vector::IndexType;
-   using DeviceType = typename Vector::DeviceType;
-
-   RealType* lhs_data = lhs.getData();
-   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> RealType
-   {
-      return lhs_data[ i ] = expression[ i ];
-   };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, lhs.getSize(), fetch, reduction, zero );
-}
-
-template< typename Vector, typename T1, typename Operation, typename Reduction, typename Result >
-Result
-evaluateAndReduce( Vector& lhs,
-                   const Containers::Expressions::UnaryExpressionTemplate< T1, Operation >& expression,
-                   const Reduction& reduction,
-                   const Result& zero )
+template< typename Vector, typename ET1, typename Reduction, typename Result >
+std::enable_if_t< Containers::Expressions::HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value, Result >
+evaluateAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
    using RealType = typename Vector::RealType;
    using IndexType = typename Vector::IndexType;
@@ -783,33 +761,9 @@ evaluateAndReduce( Vector& lhs,
 
 ////
 // Addition and reduction
-template< typename Vector, typename T1, typename T2, typename Operation, typename Reduction, typename Result >
-Result
-addAndReduce( Vector& lhs,
-              const Containers::Expressions::BinaryExpressionTemplate< T1, T2, Operation >& expression,
-              const Reduction& reduction,
-              const Result& zero )
-{
-   using RealType = typename Vector::RealType;
-   using IndexType = typename Vector::IndexType;
-   using DeviceType = typename Vector::DeviceType;
-
-   RealType* lhs_data = lhs.getData();
-   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> RealType
-   {
-      const RealType aux = expression[ i ];
-      lhs_data[ i ] += aux;
-      return aux;
-   };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, lhs.getSize(), fetch, reduction, zero );
-}
-
-template< typename Vector, typename T1, typename Operation, typename Reduction, typename Result >
-Result
-addAndReduce( Vector& lhs,
-              const Containers::Expressions::UnaryExpressionTemplate< T1, Operation >& expression,
-              const Reduction& reduction,
-              const Result& zero )
+template< typename Vector, typename ET1, typename Reduction, typename Result >
+std::enable_if_t< Containers::Expressions::HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value, Result >
+addAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
    using RealType = typename Vector::RealType;
    using IndexType = typename Vector::IndexType;
@@ -827,33 +781,9 @@ addAndReduce( Vector& lhs,
 
 ////
 // Addition and reduction
-template< typename Vector, typename T1, typename T2, typename Operation, typename Reduction, typename Result >
-Result
-addAndReduceAbs( Vector& lhs,
-                 const Containers::Expressions::BinaryExpressionTemplate< T1, T2, Operation >& expression,
-                 const Reduction& reduction,
-                 const Result& zero )
-{
-   using RealType = typename Vector::RealType;
-   using IndexType = typename Vector::IndexType;
-   using DeviceType = typename Vector::DeviceType;
-
-   RealType* lhs_data = lhs.getData();
-   auto fetch = [ = ] __cuda_callable__( IndexType i ) -> RealType
-   {
-      const RealType aux = expression[ i ];
-      lhs_data[ i ] += aux;
-      return TNL::abs( aux );
-   };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, lhs.getSize(), fetch, reduction, zero );
-}
-
-template< typename Vector, typename T1, typename Operation, typename Reduction, typename Result >
-Result
-addAndReduceAbs( Vector& lhs,
-                 const Containers::Expressions::UnaryExpressionTemplate< T1, Operation >& expression,
-                 const Reduction& reduction,
-                 const Result& zero )
+template< typename Vector, typename ET1, typename Reduction, typename Result >
+std::enable_if_t< Containers::Expressions::HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value, Result >
+addAndReduceAbs( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
    using RealType = typename Vector::RealType;
    using IndexType = typename Vector::IndexType;
