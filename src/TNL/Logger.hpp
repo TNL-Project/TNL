@@ -66,12 +66,8 @@ Logger::writeSystemInformation( bool printGPUInfo )
          std::to_string( Backend::getArchitectureMajor( i ) ) + "." + std::to_string( Backend::getArchitectureMinor( i ) );
       writeParameter< std::string >( "Architecture", deviceArch, 1 );
       writeParameter< int >( "GPU cores", Backend::getDeviceCores( i ), 1 );
-      const double clockRate = Backend::getClockRate( i ) / 1.0e3;
-      writeParameter< double >( "Clock rate (in MHz)", clockRate, 1 );
       const double globalMemory = Backend::getGlobalMemorySize( i ) / 1.0e9;
       writeParameter< double >( "Global memory (in GB)", globalMemory, 1 );
-      const double memoryClockRate = Backend::getMemoryClockRate( i ) / 1.0e3;
-      writeParameter< double >( "Memory clock rate (in Mhz)", memoryClockRate, 1 );
       writeParameter< bool >( "ECC enabled", Backend::getECCEnabled( i ), 1 );
    }
    return true;
