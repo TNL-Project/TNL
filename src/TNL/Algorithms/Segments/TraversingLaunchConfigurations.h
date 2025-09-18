@@ -22,6 +22,10 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
 {
    using Device = typename Segments::DeviceType;
 
+   if constexpr( isSortedSegments_v< Segments > ) {
+      return traversingLaunchConfigurations( segments.getEmbeddedSegmentsView() );
+   }
+
    if constexpr( isCSRSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
          return std::list< std::pair< LaunchConfiguration, std::string > >{
