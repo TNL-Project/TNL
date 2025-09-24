@@ -51,7 +51,7 @@ public:
    /**
     * \brief Constructor with no parameters to create empty segments.
     */
-   CSR() = default;
+   CSR();
 
    /**
     * \brief Copy constructor (makes deep copy).
