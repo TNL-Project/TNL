@@ -10,6 +10,14 @@
 namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator >
+CSR< Device, Index, IndexAllocator >::CSR()
+: offsets( 1 )
+{
+   this->offsets.setElement( 0, 0 );
+   Base::bind( this->offsets.getView() );
+}
+
+template< typename Device, typename Index, typename IndexAllocator >
 CSR< Device, Index, IndexAllocator >::CSR( const CSR& segments )
 : offsets( segments.offsets )
 {
