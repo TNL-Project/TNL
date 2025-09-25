@@ -147,4 +147,20 @@ SortedSegmentsBase< EmbeddedSegments >::bind( const EmbeddedSegmentsView& embedd
    this->inverseSegmentsPermutationView.bind( inverseSegmentsPermutation );
 }
 
+template< typename EmbeddedSegments >
+__cuda_callable__
+void
+SortedSegmentsBase< EmbeddedSegments >::setSigma( IndexType value )
+{
+   sigma = value;
+}
+
+template< typename EmbeddedSegments >
+[[nodiscard]] __cuda_callable__
+auto
+SortedSegmentsBase< EmbeddedSegments >::getSigma() const -> IndexType
+{
+   return sigma;
+}
+
 }  // namespace TNL::Algorithms::Segments
