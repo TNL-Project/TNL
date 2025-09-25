@@ -14,6 +14,12 @@ namespace TNL::Algorithms::Segments {
  * \brief \e SortedSegmentsBase serves as a base class for \ref TNL::Algorithms::Segments::SortedSegments
  * and \ref TNL::Algorithms::Segments::SortedSegmentsView.
  *
+ * The sorted segments are inspired by SELL-C-sigma sparse matrix storage format:
+ *
+ * Kreutzer, Moritz, et al. "A unified sparse matrix data format for efficient general
+ * sparse matrix-vector multiplication on modern processors with wide SIMD units."
+ * SIAM Journal on Scientific Computing 36.5 (2014): C401-C423.
+ *
  * \tparam EmbeddedSegments is a type of segments used to manage the data.
  */
 template< typename EmbeddedSegmentsView_ >
@@ -170,11 +176,23 @@ public:
    ConstPermutationView
    getInverseSegmentsPermutationView() const;
 
+   //! \brief Sets the value of sigma.
+   __cuda_callable__
+   void
+   setSigma( IndexType value );
+
+   //! \brief Gets the value of sigma.
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getSigma() const;
+
 protected:
    EmbeddedSegmentsView embeddedSegmentsView;
 
    //! \brief Vector view with the segments permutation.
    PermutationView segmentsPermutationView, inverseSegmentsPermutationView;
+
+   IndexType sigma = -1;
 
    /**
     * \brief Re-initializes the internal attributes of the base class.
