@@ -133,10 +133,14 @@ currently implemented sparse matrix formats in TNL:
    This further improves memory access patterns and computational efficiency
    on parallel architectures.
 
-TODO: Finish sorted segments and add example
-Inspired by ()[], TNL also offers *sorted segments*. Here, the segments are first
-sorted by their size in descending order. After that they are stored using the underlying segments.
 
+Inspired by the paper [SELL-C-σ](https://arxiv.org/abs/1307.6209), TNL also offers *sorted segments*.
+In this type of segments, the segments are first sorted by their size in descending
+order and then stored using an underlying segment type. The underlying segments can
+be of any type, not only \ref TNL::Algorithms::Segments::SlicedEllpack as in the SELL-C-σ format.
+Using sorted segments can be particularly beneficial when the sizes of
+individual segments vary significantly. This has the greatest performance
+impact on GPUs.
 
 Especially in the case of GPUs, the performance of each format strongly depends
 on the distribution of segment sizes. Therefore, we cannot claim that any one of
@@ -241,7 +245,25 @@ different mappings from an element identified by its *segment index* and
 *local index* (i.e., the rank of the element within the segment) to a *global index*,
 which serves as an address in the associated container.
 
-TODO: Example for construction of sorted segments
+### Setup of sorted segments
+
+The main difference in the setup of the sorted segments is showcased
+in the following code:
+
+\snippet Algorithms/Segments/SortedSegmentsExample_constructor.cpp sorted-segments-definition
+
+Instead of using \ref TNL::Algorithms::Segments::CSR "CSR" or
+\ref TNL::Algorithms::Segments::Ellpack "Ellpack" directly,
+we embed them as the underlying segment type into
+\ref TNL::Algorithms::Segments::SortedSegments "SortedSegments".
+
+The complete example is shown below:
+
+\includelineno Algorithms/Segments/SortedSegmentsExample_constructor.cpp
+
+The output of this example is as follows:
+
+\include SortedSegmentsExample_constructor.out
 
 ## Iteration over elements of segments
 
