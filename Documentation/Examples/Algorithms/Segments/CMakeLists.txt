@@ -24,6 +24,7 @@ set(COMMON_EXAMPLES
     SegmentsExample_find
     SegmentsExample_scan
     SegmentsExample_sort
+    SortedSegmentsExample_constructor
 )
 
 if(TNL_BUILD_CUDA)
