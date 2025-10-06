@@ -40,6 +40,11 @@ TYPED_TEST( BiEllpackSegmentsTest, isSegments )
    test_isSegments< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST( BiEllpackSegmentsTest, getView )
+{
+   test_getView< typename TestFixture::SegmentsType >();
+}
+
 TYPED_TEST( BiEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 {
    test_setSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();

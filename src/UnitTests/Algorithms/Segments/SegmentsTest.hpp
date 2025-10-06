@@ -33,6 +33,19 @@ test_isSegments()
 
 template< typename Segments >
 void
+test_getView()
+{
+   Segments segments;
+
+   auto view = segments.getView();
+   EXPECT_EQ( view.getSegmentsCount(), 0 );
+
+   auto const_view = segments.getConstView();
+   EXPECT_EQ( const_view.getSegmentsCount(), 0 );
+}
+
+template< typename Segments >
+void
 test_setSegmentsSizes_EqualSizes()
 {
    using DeviceType = typename Segments::DeviceType;
