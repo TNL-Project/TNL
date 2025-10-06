@@ -41,6 +41,11 @@ TYPED_TEST( EllpackSegmentsTest, isSegments )
    test_isSegments< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST( EllpackSegmentsTest, getView )
+{
+   test_getView< typename TestFixture::SegmentsType >();
+}
+
 TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 {
    test_setSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
