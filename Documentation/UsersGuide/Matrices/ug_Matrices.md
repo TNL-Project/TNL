@@ -1243,7 +1243,7 @@ where the parameters can be described as follows:
 
 The lambda function is supposed to return just the number of the nonzero matrix elements in given matrix row.
 
-#### Lambda matrix inititation
+#### Lambda matrix initiation
 
 How to put the lambda functions together with the lambda matrix is demonstrated in the following example:
 

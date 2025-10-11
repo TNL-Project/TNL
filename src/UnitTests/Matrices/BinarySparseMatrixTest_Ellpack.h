@@ -16,9 +16,9 @@ protected:
 
 ////
 // Row-major format is used for the host system
-template< typename Device, typename Index, typename IndexAlocator >
+template< typename Device, typename Index, typename IndexAllocator >
 using RowMajorEllpack =
-   TNL::Algorithms::Segments::Ellpack< Device, Index, IndexAlocator, TNL::Algorithms::Segments::RowMajorOrder, 32 >;
+   TNL::Algorithms::Segments::Ellpack< Device, Index, IndexAllocator, TNL::Algorithms::Segments::RowMajorOrder, 32 >;
 
 ////
 // Column-major format is used for GPUs

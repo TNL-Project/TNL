@@ -56,9 +56,9 @@
    #define HAVE_CUSOLVER
 #endif
 
-template< typename _Device, typename _Index, typename _IndexAlocator >
-//using SegmentsType = TNL::Algorithms::Segments::SlicedEllpack< _Device, _Index, _IndexAlocator >;
-using SegmentsType = TNL::Algorithms::Segments::CSR< _Device, _Index, _IndexAlocator >;
+template< typename _Device, typename _Index, typename _IndexAllocator >
+//using SegmentsType = TNL::Algorithms::Segments::SlicedEllpack< _Device, _Index, _IndexAllocator >;
+using SegmentsType = TNL::Algorithms::Segments::CSR< _Device, _Index, _IndexAllocator >;
 
 static const std::set< std::string > valid_solvers = {
    "gmres", "tfqmr", "bicgstab", "bicgstab-ell", "idrs",
