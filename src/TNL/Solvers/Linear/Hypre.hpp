@@ -25,10 +25,14 @@ HypreSolver::setup( const Containers::HypreParVector& b, Containers::HypreParVec
 
    const HYPRE_Int err_flag = setupFcn()( *this, *A, b, x );
    if( err_flag != 0 ) {
+      char buffer[ 256 ];
+      HYPRE_DescribeError( err_flag, buffer );
       if( error_mode == WARN_HYPRE_ERRORS )
-         std::cout << "Error during setup! Error code: " << err_flag << std::endl;
-      else if( error_mode == ABORT_HYPRE_ERRORS )
-         throw std::runtime_error( "Error during setup! Error code: " + std::to_string( err_flag ) );
+         std::cout << "HypreSolver::setup(...) : error code " << err_flag << " : " << std::string( buffer ) << '\n';
+      else if( error_mode == ABORT_HYPRE_ERRORS ) {
+         throw std::runtime_error( "HypreSolver::setup(...) : error code " + std::to_string( err_flag ) + " : "
+                                   + std::string( buffer ) );
+      }
    }
    hypre_error_flag = 0;
 
@@ -46,10 +50,13 @@ HypreSolver::solve( const Containers::HypreParVector& b, Containers::HypreParVec
 
    const HYPRE_Int err_flag = solveFcn()( *this, *A, b, x );
    if( err_flag != 0 ) {
+      char buffer[ 256 ];
+      HYPRE_DescribeError( err_flag, buffer );
       if( error_mode == WARN_HYPRE_ERRORS )
-         std::cout << "Error during solve! Error code: " << err_flag << std::endl;
+         std::cout << "HypreSolver::solve(...) : error code " << err_flag << " : " << std::string( buffer ) << '\n';
       else if( error_mode == ABORT_HYPRE_ERRORS )
-         throw std::runtime_error( "Error during solve! Error code: " + std::to_string( err_flag ) );
+         throw std::runtime_error( "HypreSolver::solve(...) : error code " + std::to_string( err_flag ) + " : "
+                                   + std::string( buffer ) );
    }
    hypre_error_flag = 0;
 
@@ -113,8 +120,8 @@ HyprePCG::postSolveHook() const
 
       const MPI_Comm comm = A->getCommunicator();
       if( MPI::GetRank( comm ) == 0 ) {
-         std::cout << "PCG Iterations = " << num_iterations << std::endl
-                   << "Final PCG Relative Residual Norm = " << final_res_norm << std::endl;
+         std::cout << "PCG Iterations = " << num_iterations << '\n'
+                   << "Final PCG Relative Residual Norm = " << final_res_norm << '\n';
       }
    }
 }
@@ -164,8 +171,8 @@ HypreBiCGSTAB::postSolveHook() const
 
       const MPI_Comm comm = A->getCommunicator();
       if( MPI::GetRank( comm ) == 0 ) {
-         std::cout << "BiCGSTAB Iterations = " << num_iterations << std::endl
-                   << "Final BiCGSTAB Relative Residual Norm = " << final_res_norm << std::endl;
+         std::cout << "BiCGSTAB Iterations = " << num_iterations << '\n'
+                   << "Final BiCGSTAB Relative Residual Norm = " << final_res_norm << '\n';
       }
    }
 }
@@ -217,8 +224,8 @@ HypreGMRES::postSolveHook() const
 
       const MPI_Comm comm = A->getCommunicator();
       if( MPI::GetRank( comm ) == 0 ) {
-         std::cout << "GMRES Iterations = " << num_iterations << std::endl
-                   << "Final GMRES Relative Residual Norm = " << final_res_norm << std::endl;
+         std::cout << "GMRES Iterations = " << num_iterations << '\n'
+                   << "Final GMRES Relative Residual Norm = " << final_res_norm << '\n';
       }
    }
 }
@@ -270,8 +277,8 @@ HypreFlexGMRES::postSolveHook() const
 
       const MPI_Comm comm = A->getCommunicator();
       if( MPI::GetRank( comm ) == 0 ) {
-         std::cout << "FlexGMRES Iterations = " << num_iterations << std::endl
-                   << "Final FlexGMRES Relative Residual Norm = " << final_res_norm << std::endl;
+         std::cout << "FlexGMRES Iterations = " << num_iterations << '\n'
+                   << "Final FlexGMRES Relative Residual Norm = " << final_res_norm << '\n';
       }
    }
 }
@@ -504,8 +511,8 @@ HypreBoomerAMG::postSolveHook() const
 
       const MPI_Comm comm = A->getCommunicator();
       if( MPI::GetRank( comm ) == 0 ) {
-         std::cout << "BoomerAMG Iterations = " << num_iterations << std::endl
-                   << "Final BoomerAMG Relative Residual Norm = " << final_res_norm << std::endl;
+         std::cout << "BoomerAMG Iterations = " << num_iterations << '\n'
+                   << "Final BoomerAMG Relative Residual Norm = " << final_res_norm << '\n';
       }
    }
 }
