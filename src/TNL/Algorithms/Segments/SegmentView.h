@@ -40,7 +40,7 @@ public:
    using IteratorType = SegmentViewIterator< SegmentView >;
 
    /**
-    * \brief Conctructor with all parameters.
+    * \brief Constructor with all parameters.
     *
     * \param segmentIdx is an index of segment the segment view will point to.
     * \param offset is an offset of the segment in the parent segments.
@@ -189,7 +189,7 @@ public:
    using IteratorType = SegmentViewIterator< SegmentView >;
 
    /**
-    * \brief Conctructor with all parameters.
+    * \brief Constructor with all parameters.
     *
     * \param segmentIdx is an index of segment the segment view will point to.
     * \param offset is an offset of the segment in the parent segments.

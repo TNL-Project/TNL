@@ -108,7 +108,7 @@ public:
    /**
     * \brief Setter of the parameter controlling the adaptive choice of the integration time step.
     *
-    * The smaller the parammeter is the smaller the integration time step tends to be.
+    * The smaller the parameter is the smaller the integration time step tends to be.
     * Reasonable values for this parameters are approximately from interval \f$ [10^{-12},10^{-2}] \f$.
     * \param adaptivity new value of the parameter controlling the adaptive choice of
     *    integration time step.
@@ -134,7 +134,7 @@ public:
     * auto f = [=] ( const Real& t, const Real& tau, const VectorType& u, VectorType& fu ) {...}
     * ```
     * where `t` is the current time of the evolution, `tau` is the current time step, `u` is the solution at the current time,
-    * `fu` is variable/static vector into which the lambda function is suppsed to evaluate the function \f$ f(t, \vec x) \f$ at
+    * `fu` is variable/static vector into which the lambda function is supposed to evaluate the function \f$ f(t, \vec x) \f$ at
     * the current time \f$ t \f$.
     * \param u is a variable/static vector representing the solution of the ODE system at current time.
     * \param f is the lambda function representing the right-hand side of the ODE system.

@@ -76,9 +76,9 @@ enum Directions3D : std::uint8_t
 class Directions
 {
 public:
-   template< int numerofDriection >
+   template< int numerofDirection >
    static int
-   getDirection( Containers::StaticVector< numerofDriection, int > directions )  // takes +/- number of ax (i.e. (-2,+3))
+   getDirection( Containers::StaticVector< numerofDirection, int > directions )  // takes +/- number of ax (i.e. (-2,+3))
    {
       int result = 0;
       for( int i = 0; i < directions.getSize(); i++ )

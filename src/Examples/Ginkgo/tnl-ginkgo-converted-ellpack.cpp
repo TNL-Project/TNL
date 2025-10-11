@@ -10,8 +10,8 @@
 #include "PoissonEquation2D.h"
 #include "utils.h"
 
-template< typename Device, typename Index, typename IndexAlocator >
-using EllpackSegments = TNL::Algorithms::Segments::Ellpack< Device, Index, IndexAlocator >;
+template< typename Device, typename Index, typename IndexAllocator >
+using EllpackSegments = TNL::Algorithms::Segments::Ellpack< Device, Index, IndexAllocator >;
 
 int
 main( int argc, char* argv[] )

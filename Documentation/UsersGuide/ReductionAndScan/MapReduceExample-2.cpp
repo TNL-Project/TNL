@@ -35,7 +35,7 @@ main( int argc, char* argv[] )
    timer.start();
    double result = mapReduce( host_u );
    timer.stop();
-   std::cout << "Host tesult is:" << result << ". It took " << timer.getRealTime() << " seconds." << std::endl;
+   std::cout << "Host result is:" << result << ". It took " << timer.getRealTime() << " seconds." << std::endl;
 #ifdef __CUDACC__
    Vector< double, Devices::Cuda > cuda_u( 100000 );
    cuda_u = 1.0;

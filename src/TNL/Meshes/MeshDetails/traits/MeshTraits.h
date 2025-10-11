@@ -52,10 +52,10 @@ template< typename MeshConfig, typename Device, typename MeshEntity, int Superdi
 class MeshSuperentityTraits;
 
 // helper templates (must be public because nvcc sucks, and outside of MeshTraits to avoid duplicate code generation)
-template< typename Device, typename Index, typename IndexAlocator >
-using EllpackSegments = Algorithms::Segments::Ellpack< Device, Index, IndexAlocator >;
-template< typename Device, typename Index, typename IndexAlocator >
-using SlicedEllpackSegments = Algorithms::Segments::SlicedEllpack< Device, Index, IndexAlocator >;
+template< typename Device, typename Index, typename IndexAllocator >
+using EllpackSegments = Algorithms::Segments::Ellpack< Device, Index, IndexAllocator >;
+template< typename Device, typename Index, typename IndexAllocator >
+using SlicedEllpackSegments = Algorithms::Segments::SlicedEllpack< Device, Index, IndexAllocator >;
 
 template< typename MeshConfig, typename Device = Devices::Host >
 class MeshTraits

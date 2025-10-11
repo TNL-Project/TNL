@@ -177,7 +177,7 @@ public:
     * auto f = [=] ( const Real& t, const Real& tau, const VectorType& u, VectorType& fu ) {...}
     * ```
     * where `t` is the current time of the evolution, `tau` is the current time step, `u` is the solution at the current time,
-    * `fu` is variable/static vector into which the lambda function is suppsed to evaluate the function \f$ f(t, \vec x) \f$ at
+    * `fu` is variable/static vector into which the lambda function is supposed to evaluate the function \f$ f(t, \vec x) \f$ at
     * the current time \f$ t \f$.
     * \param u is a variable/static vector representing the solution of the ODE system at current time.
     * \param rhsFunction is the lambda function representing the right-hand side of the ODE system.
@@ -378,7 +378,7 @@ public:
     * auto f = [=] ( const Real& t, const Real& tau, const VectorType& u, VectorType& fu ) {...}
     * ```
     * where `t` is the current time of the evolution, `tau` is the current time step, `u` is the solution at the current time,
-    * `fu` is variable/static vector into which the lambda function is suppsed to evaluate the function \f$ f(t, \vec x) \f$ at
+    * `fu` is variable/static vector into which the lambda function is supposed to evaluate the function \f$ f(t, \vec x) \f$ at
     * the current time \f$ t \f$.
     * \param u is a variable/static vector representing the solution of the ODE system at current time.
     * \param rhsFunction is the lambda function representing the right-hand side of the ODE system.
