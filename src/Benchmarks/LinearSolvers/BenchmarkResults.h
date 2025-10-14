@@ -30,7 +30,7 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
    getTableHeader() const override
    {
       return HeaderElements(
-         { "time", "speedup", "stddev", "stddev/time", "solved", "iterations", "residue_precond", "residue_true" } );
+         { "time", "speedup", "time_stddev", "time_stddev/time", "solved", "iterations", "residue_precond", "residue_true" } );
    }
 
    [[nodiscard]] virtual std::vector< int >

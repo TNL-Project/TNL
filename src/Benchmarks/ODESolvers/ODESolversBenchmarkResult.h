@@ -46,7 +46,8 @@ struct ODESolversBenchmarkResult : public BenchmarkResult
    HeaderElements
    getTableHeader() const override
    {
-      return HeaderElements( { "time", "stddev", "stddev/time", "loops", "bandwidth", "speed-up", "error", "EOC", "iters" } );
+      return HeaderElements(
+         { "time", "time_stddev", "time_stddev/time", "loops", "bandwidth", "speedup", "error", "EOC", "iters" } );
    }
 
    std::vector< int >
