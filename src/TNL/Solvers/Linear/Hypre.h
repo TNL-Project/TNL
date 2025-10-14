@@ -16,7 +16,7 @@ class HypreSolver
 {
 public:
    //! \brief How to treat errors returned by Hypre function calls
-   enum ErrorMode
+   enum ErrorMode : std::uint8_t
    {
       IGNORE_HYPRE_ERRORS,  ///< Ignore Hypre errors
       WARN_HYPRE_ERRORS,    ///< Issue warnings on Hypre errors
