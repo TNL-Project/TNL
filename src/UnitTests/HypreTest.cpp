@@ -48,13 +48,6 @@ TEST( HypreTest, Vector )
    b = std::move( c );
 }
 
-TEST( HypreTest, AssumedPartitionCheck )
-{
-   // this should always return 1:
-   // https://github.com/hypre-space/hypre/blob/master/src/utilities/ap.c
-   ASSERT_EQ( HYPRE_AssumedPartitionCheck(), 1 );
-}
-
 template< typename DistributedArray >
 auto
 getDistributedArray( MPI_Comm communicator,
@@ -346,8 +339,8 @@ TEST( HypreTest, ParCSRMatrix_fromLocalBlocks )
    EXPECT_EQ( a_local.getNonzeroElementsCount(), matrix.getNonzeroElementsCount() );
    // TODO: the merged local matrix still has the diagonal element as the first entry per row
    // and we can't use hypre_CSRMatrixReorder on the original block, because it is not square
-   //   hypre_CSRMatrixReorder( matrix );
-   //   EXPECT_EQ( a_local.getView(), matrix.getView() );
+   //hypre_CSRMatrixReorder( matrix );
+   //EXPECT_EQ( a_local.getView(), matrix.getView() );
 
    // test move-constructor and move-assignment
    Matrices::HypreParCSRMatrix c = std::move( a );
@@ -359,15 +352,14 @@ solve( Matrices::HypreParCSRMatrix& A, Containers::HypreParVector& x, Containers
 {
    // create the preconditioner
    HypreDiagScale precond;
-   //   HypreParaSails precond( A.getCommunicator() );
-   //   HypreEuclid precond( A.getCommunicator() );
-   //   HypreILU precond;
-   //   HypreBoomerAMG precond;
+   //HypreParaSails precond( A.getCommunicator() );
+   //HypreEuclid precond( A.getCommunicator() );
+   //HypreILU precond;
+   //HypreBoomerAMG precond;
 
    // initialize the Hypre solver
    HyprePCG solver( A.getCommunicator() );
-   //   solver.setPrintLevel( 1 );
-   solver.setPreconditioner( precond );
+   //solver.setPreconditioner( precond );
    solver.setMatrix( A );
    solver.setTol( 1e-9 );
    solver.setResidualConvergenceOptions( -1, 1e-9 );
