@@ -55,11 +55,12 @@ forElementsBlockMergeKernel_Ellpack( Index gridIdx, SegmentsView segments, Index
 template< typename SegmentsView, typename Index, typename Function, ElementsOrganization Organization >
 __global__
 void
-forElementsKernel_Ellpack( Index gridIdx,
-                           Index totalThreadsCount,
+forElementsKernel_Ellpack( const Index gridIdx,
+                           const Index totalThreadsCount,
+                           const Index threadsPerSegment,
                            SegmentsView segments,
-                           Index begin,
-                           Index end,
+                           const Index begin,
+                           const Index end,
                            Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -69,25 +70,24 @@ forElementsKernel_Ellpack( Index gridIdx,
       segmentSize = segments.getSegmentSize();
    __syncthreads();
    if constexpr( Organization == RowMajorOrder ) {
-      // We map one warp to each segment
-      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize();
+      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
       if( segmentIdx >= end )
          return;
 
-      const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+      const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
 
       if constexpr( argumentCount< Function >() == 3 ) {
          Index globalIdx = segmentIdx * segmentSize + laneIdx;
-         for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += Backend::getWarpSize() ) {
+         for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += threadsPerSegment ) {
             TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
             function( segmentIdx, localIdx, globalIdx );
-            globalIdx += Backend::getWarpSize();
+            globalIdx += threadsPerSegment;
          }
       }
       else {  // argumentCount< Function >() == 2
          const Index endIdx = ( segmentIdx + 1 ) * segmentSize;
-         for( Index globalIdx = segmentIdx * segmentSize + laneIdx; globalIdx < endIdx; globalIdx += Backend::getWarpSize() ) {
+         for( Index globalIdx = segmentIdx * segmentSize + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
             function( segmentIdx, globalIdx );
          }
@@ -115,12 +115,13 @@ forElementsKernel_Ellpack( Index gridIdx,
 template< typename SegmentsView, typename ArrayView, typename Index, typename Function, ElementsOrganization Organization >
 __global__
 void
-forElementsWithSegmentIndexesKernel_Ellpack( Index gridIdx,
-                                             Index totalThreadsCount,
+forElementsWithSegmentIndexesKernel_Ellpack( const Index gridIdx,
+                                             const Index totalThreadsCount,
+                                             const Index threadsPerSegment,
                                              SegmentsView segments,
                                              ArrayView segmentIndexes,
-                                             Index begin,
-                                             Index end,
+                                             const Index begin,
+                                             const Index end,
                                              Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -130,26 +131,25 @@ forElementsWithSegmentIndexesKernel_Ellpack( Index gridIdx,
       segmentSize = segments.getSegmentSize();
    __syncthreads();
    if constexpr( Organization == RowMajorOrder ) {
-      // We map one warp to each segment
-      const Index segmentIdx_idx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize();
+      const Index segmentIdx_idx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
       if( segmentIdx_idx >= end )
          return;
 
       const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-      const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+      const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
 
       if constexpr( argumentCount< Function >() == 3 ) {
          Index globalIdx = segmentIdx * segmentSize + laneIdx;
-         for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += Backend::getWarpSize() ) {
+         for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += threadsPerSegment ) {
             TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
             function( segmentIdx, localIdx, globalIdx );
-            globalIdx += Backend::getWarpSize();
+            globalIdx += threadsPerSegment;
          }
       }
       else {  // argumentCount< Function >() == 2
          const Index endIdx = ( segmentIdx + 1 ) * segmentSize;
-         for( Index globalIdx = segmentIdx * segmentSize + laneIdx; globalIdx < endIdx; globalIdx += Backend::getWarpSize() ) {
+         for( Index globalIdx = segmentIdx * segmentSize + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
             function( segmentIdx, globalIdx );
          }
@@ -237,11 +237,12 @@ template< typename SegmentsView,
           int BlockSize = 256 >
 __global__
 void
-forElementsIfKernel_Ellpack( Index gridIdx,
-                             Index totalThreadsCount,
+forElementsIfKernel_Ellpack( const Index gridIdx,
+                             const Index totalThreadsCount,
+                             const Index threadsPerSegment,
                              SegmentsView segments,
-                             Index begin,
-                             Index end,
+                             const Index begin,
+                             const Index end,
                              Condition condition,
                              Function function )
 {
@@ -252,25 +253,24 @@ forElementsIfKernel_Ellpack( Index gridIdx,
       segmentSize = segments.getSegmentSize();
    __syncthreads();
    if constexpr( Organization == RowMajorOrder ) {
-      // We map one warp to each segment
-      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize();
+      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
       if( segmentIdx >= end || ! condition( segmentIdx ) )
          return;
 
-      const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+      const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
 
       if constexpr( argumentCount< Function >() == 3 ) {
          Index globalIdx = segmentIdx * segmentSize + laneIdx;
-         for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += Backend::getWarpSize() ) {
+         for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += threadsPerSegment ) {
             TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
             function( segmentIdx, localIdx, globalIdx );
-            globalIdx += Backend::getWarpSize();
+            globalIdx += threadsPerSegment;
          }
       }
       else {  // argumentCount< Function >() == 2
          const Index endIdx = ( segmentIdx + 1 ) * segmentSize;
-         for( Index globalIdx = segmentIdx * segmentSize + laneIdx; globalIdx < endIdx; globalIdx += Backend::getWarpSize() ) {
+         for( Index globalIdx = segmentIdx * segmentSize + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
             function( segmentIdx, globalIdx );
          }
