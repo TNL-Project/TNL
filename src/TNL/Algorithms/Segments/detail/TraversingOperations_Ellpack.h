@@ -99,9 +99,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             std::size_t threadsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount = ( end - begin ) * Backend::getWarpSize();
-            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
+               threadsCount = ( end - begin ) * launchConfig.getThreadsPerSegmentCount();
+            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged )
                threadsCount = ( end - begin ) * segments.getSegmentSize();
 
             dim3 blocksCount;
@@ -110,20 +110,34 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             const IndexType totalThreadsCount = blocksCount.x * launchConfig.blockSize.x;
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   constexpr auto kernel = forElementsKernel_Ellpack< ViewType, IndexType, Function, Organization >;
-                  Backend::launchKernelAsync(
-                     kernel, launchConfig, gridIdx, totalThreadsCount, segments, begin, end, function );
+                  Backend::launchKernelAsync( kernel,
+                                              launchConfig,
+                                              gridIdx,
+                                              totalThreadsCount,
+                                              launchConfig.getThreadsPerSegmentCount(),
+                                              segments,
+                                              begin,
+                                              end,
+                                              function );
                }
-               else {  // This mapping is currently the default one
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
+                  constexpr auto kernel =
+                     forElementsBlockMergeKernel_Ellpack< ViewType, IndexType, Function, Organization, 256 >;
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 1:
-                        constexpr auto kernel =
-                           forElementsBlockMergeKernel_Ellpack< ViewType, IndexType, Function, Organization, 256 >;
                         Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, begin, end, function );
+                        break;
+                     default:
+                        throw std::invalid_argument( "Unsupported threads per segment ( "
+                                                     + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                                                     + " ) count for Ellpack segments." );
                         break;
                   }
                }
+               else
+                  throw std::invalid_argument( "Unsupported threads to segments mapping for Ellpack segments." );
             }
             Backend::streamSynchronize( launchConfig.stream );
          }
@@ -217,9 +231,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
             std::size_t threadsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount = ( end - begin ) * Backend::getWarpSize();
-            else  // launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
+               threadsCount = ( end - begin ) * launchConfig.getThreadsPerSegmentCount();
+            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged )
                threadsCount = segments.getSegmentSize() * ( end - begin );
 
             dim3 blocksCount;
@@ -228,31 +242,46 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             const IndexType totalThreadsCount = blocksCount.x * launchConfig.blockSize.x;
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   constexpr auto kernel = forElementsWithSegmentIndexesKernel_Ellpack< ViewType,
                                                                                        typename Array::ConstViewType,
                                                                                        IndexType,
                                                                                        Function,
                                                                                        Organization >;
-                  Backend::launchKernelAsync(
-                     kernel, launchConfig, gridIdx, totalThreadsCount, segments, segmentIndexesView, begin, end, function );
+                  Backend::launchKernelAsync( kernel,
+                                              launchConfig,
+                                              gridIdx,
+                                              totalThreadsCount,
+                                              launchConfig.getThreadsPerSegmentCount(),
+                                              segments,
+                                              segmentIndexesView,
+                                              begin,
+                                              end,
+                                              function );
                }
-               else {  // This mapping is currently the default one
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
+                  constexpr auto kernel = forElementsWithSegmentIndexesBlockMergeKernel_Ellpack< ViewType,
+                                                                                                 typename Array::ConstViewType,
+                                                                                                 IndexType,
+                                                                                                 Function,
+                                                                                                 Organization,
+                                                                                                 256,    // SegmentsPerBlock
+                                                                                                 256 >;  // BlockSize
+
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 1:
-                        constexpr auto kernel =
-                           forElementsWithSegmentIndexesBlockMergeKernel_Ellpack< ViewType,
-                                                                                  typename Array::ConstViewType,
-                                                                                  IndexType,
-                                                                                  Function,
-                                                                                  Organization,
-                                                                                  256,    // SegmentsPerBlock
-                                                                                  256 >;  // BlockSize
                         Backend::launchKernelAsync(
                            kernel, launchConfig, gridIdx, segments, segmentIndexesView, begin, end, function );
                         break;
+                     default:
+                        throw std::invalid_argument( "Unsupported threads per segment ( "
+                                                     + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                                                     + " ) count for Ellpack segments." );
+                        break;
                   }
                }
+               else
+                  throw std::invalid_argument( "Unsupported threads to segments mapping for Ellpack segments." );
             }
             Backend::streamSynchronize( launchConfig.stream );
          }
@@ -347,10 +376,10 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
          else {
-            const Index warpsCount = end - begin;
-            std::size_t threadsCount = warpsCount;
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount = warpsCount * Backend::getWarpSize();
+            const Index segmentsCount = end - begin;
+            std::size_t threadsCount = segmentsCount;
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
+               threadsCount = segmentsCount * launchConfig.getThreadsPerSegmentCount();
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             dim3 blocksCount;
@@ -360,10 +389,18 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 
-               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
+               if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   constexpr auto kernel = forElementsIfKernel_Ellpack< ViewType, IndexType, Condition, Function, Organization >;
-                  Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, totalThreadsCount, segments, begin, end, condition, function );
+                  Backend::launchKernelAsync( kernel,
+                                              launch_config,
+                                              gridIdx,
+                                              totalThreadsCount,
+                                              launchConfig.getThreadsPerSegmentCount(),
+                                              segments,
+                                              begin,
+                                              end,
+                                              condition,
+                                              function );
                }
                else {  // BlockMerge mapping - this mapping is currently the default one
                   constexpr auto kernel =

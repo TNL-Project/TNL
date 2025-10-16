@@ -32,9 +32,10 @@ struct LaunchConfiguration : public Backend::LaunchConfiguration
 
    LaunchConfiguration( ThreadsToSegmentsMapping threadsToSegmentsMapping, int threadsPerSegmentCount, int blockSize = 1 )
    : Backend::LaunchConfiguration( dim3{}, blockSize ),
-     threadsToSegmentsMapping( threadsToSegmentsMapping ),
-     threadsPerSegmentCount( threadsPerSegmentCount )
-   {}
+     threadsToSegmentsMapping( threadsToSegmentsMapping )
+   {
+      this->setThreadsPerSegmentCount( threadsPerSegmentCount );
+   }
 
    ThreadsToSegmentsMapping
    getThreadsToSegmentsMapping() const
@@ -45,7 +46,16 @@ struct LaunchConfiguration : public Backend::LaunchConfiguration
    void
    setThreadsPerSegmentCount( int threadsPerSegmentCount )
    {
-      this->threadsPerSegmentCount = threadsPerSegmentCount;
+      if( threadsPerSegmentCount > 0 && ( threadsPerSegmentCount & ( threadsPerSegmentCount - 1 ) ) == 0 )
+         this->threadsPerSegmentCount = threadsPerSegmentCount;
+      else
+         throw std::invalid_argument( "Threads per segment count must be a positive power of two." );
+   }
+
+   void
+   setThreadsPerSegmentCountToWarpSize()
+   {
+      this->threadsPerSegmentCount = Backend::getWarpSize();
    }
 
    int
@@ -67,7 +77,7 @@ struct LaunchConfiguration : public Backend::LaunchConfiguration
    }
 
 protected:
-   ThreadsToSegmentsMapping threadsToSegmentsMapping = ThreadsToSegmentsMapping::Warp;
+   ThreadsToSegmentsMapping threadsToSegmentsMapping = ThreadsToSegmentsMapping::Fixed;
    int threadsPerSegmentCount = 1;
 };
 
