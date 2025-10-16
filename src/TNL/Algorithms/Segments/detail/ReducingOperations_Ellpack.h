@@ -44,14 +44,95 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             if( end <= begin )
                return;
             const Index segmentsCount = end - begin;
-            const Index threadsCount = segmentsCount * Backend::getWarpSize();
+            const Index threadsCount = segmentsCount * launchConfig.getThreadsPerSegmentCount();
             const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             launch_config.gridSize.x = blocksCount;
-            constexpr auto kernel =
-               EllpackCudaReductionKernel< ConstViewType, IndexBegin, IndexEnd, Fetch, Reduction, ResultKeeper, ReturnType >;
-            Backend::launchKernelSync( kernel, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
+               constexpr auto kernel1 = EllpackCudaReductionKernel< 1,
+                                                                    ConstViewType,
+                                                                    IndexBegin,
+                                                                    IndexEnd,
+                                                                    Fetch,
+                                                                    Reduction,
+                                                                    ResultKeeper,
+                                                                    ReturnType >;
+               constexpr auto kernel2 = EllpackCudaReductionKernel< 2,
+                                                                    ConstViewType,
+                                                                    IndexBegin,
+                                                                    IndexEnd,
+                                                                    Fetch,
+                                                                    Reduction,
+                                                                    ResultKeeper,
+                                                                    ReturnType >;
+               constexpr auto kernel4 = EllpackCudaReductionKernel< 4,
+                                                                    ConstViewType,
+                                                                    IndexBegin,
+                                                                    IndexEnd,
+                                                                    Fetch,
+                                                                    Reduction,
+                                                                    ResultKeeper,
+                                                                    ReturnType >;
+               constexpr auto kernel8 = EllpackCudaReductionKernel< 8,
+                                                                    ConstViewType,
+                                                                    IndexBegin,
+                                                                    IndexEnd,
+                                                                    Fetch,
+                                                                    Reduction,
+                                                                    ResultKeeper,
+                                                                    ReturnType >;
+               constexpr auto kernel16 = EllpackCudaReductionKernel< 16,
+                                                                     ConstViewType,
+                                                                     IndexBegin,
+                                                                     IndexEnd,
+                                                                     Fetch,
+                                                                     Reduction,
+                                                                     ResultKeeper,
+                                                                     ReturnType >;
+               constexpr auto kernel32 = EllpackCudaReductionKernel< 32,
+                                                                     ConstViewType,
+                                                                     IndexBegin,
+                                                                     IndexEnd,
+                                                                     Fetch,
+                                                                     Reduction,
+                                                                     ResultKeeper,
+                                                                     ReturnType >;
+
+               switch( launchConfig.getThreadsPerSegmentCount() ) {
+                  case 1:
+                     Backend::launchKernelSync(
+                        kernel1, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                     break;
+                  case 2:
+                     Backend::launchKernelSync(
+                        kernel2, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                     break;
+                  case 4:
+                     Backend::launchKernelSync(
+                        kernel4, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                     break;
+                  case 8:
+                     Backend::launchKernelSync(
+                        kernel8, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                     break;
+                  case 16:
+                     Backend::launchKernelSync(
+                        kernel16, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                     break;
+                  case 32:
+                     Backend::launchKernelSync(
+                        kernel32, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                     break;
+                  default:
+                     throw std::invalid_argument( "Unsupported threads per segment ( "
+                                                  + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                                                  + " ) count for Ellpack segments." );
+                     break;
+               }
+            }
+            else
+               throw std::invalid_argument( "Unsupported threads to segments mapping for Ellpack segments." );
          }
          else {  // CPU
             const IndexType segmentSize = segments.getSegmentSize();
@@ -112,21 +193,144 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             if( end <= begin )
                return;
             const Index segmentsCount = end - begin;
-            const Index threadsCount = segmentsCount * Backend::getWarpSize();
+            const Index threadsCount = segmentsCount * launchConfig.getThreadsPerSegmentCount();
             const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             launch_config.gridSize.x = blocksCount;
-            constexpr auto kernel = EllpackCudaReductionKernelWithSegmentIndexes< ConstViewType,
-                                                                                  ArrayView,
-                                                                                  IndexBegin,
-                                                                                  IndexEnd,
-                                                                                  Fetch,
-                                                                                  Reduction,
-                                                                                  ResultKeeper,
-                                                                                  ReturnType >;
-            Backend::launchKernelSync(
-               kernel, launch_config, segments, segmentIndexes.getConstView(), begin, end, fetch, reduction, keeper, identity );
+            constexpr auto kernel1 = EllpackCudaReductionKernelWithSegmentIndexes< 1,
+                                                                                   ConstViewType,
+                                                                                   ArrayView,
+                                                                                   IndexBegin,
+                                                                                   IndexEnd,
+                                                                                   Fetch,
+                                                                                   Reduction,
+                                                                                   ResultKeeper,
+                                                                                   ReturnType >;
+            constexpr auto kernel2 = EllpackCudaReductionKernelWithSegmentIndexes< 2,
+                                                                                   ConstViewType,
+                                                                                   ArrayView,
+                                                                                   IndexBegin,
+                                                                                   IndexEnd,
+                                                                                   Fetch,
+                                                                                   Reduction,
+                                                                                   ResultKeeper,
+                                                                                   ReturnType >;
+            constexpr auto kernel4 = EllpackCudaReductionKernelWithSegmentIndexes< 4,
+                                                                                   ConstViewType,
+                                                                                   ArrayView,
+                                                                                   IndexBegin,
+                                                                                   IndexEnd,
+                                                                                   Fetch,
+                                                                                   Reduction,
+                                                                                   ResultKeeper,
+                                                                                   ReturnType >;
+            constexpr auto kernel8 = EllpackCudaReductionKernelWithSegmentIndexes< 8,
+                                                                                   ConstViewType,
+                                                                                   ArrayView,
+                                                                                   IndexBegin,
+                                                                                   IndexEnd,
+                                                                                   Fetch,
+                                                                                   Reduction,
+                                                                                   ResultKeeper,
+                                                                                   ReturnType >;
+            constexpr auto kernel16 = EllpackCudaReductionKernelWithSegmentIndexes< 16,
+                                                                                    ConstViewType,
+                                                                                    ArrayView,
+                                                                                    IndexBegin,
+                                                                                    IndexEnd,
+                                                                                    Fetch,
+                                                                                    Reduction,
+                                                                                    ResultKeeper,
+                                                                                    ReturnType >;
+            constexpr auto kernel32 = EllpackCudaReductionKernelWithSegmentIndexes< 32,
+                                                                                    ConstViewType,
+                                                                                    ArrayView,
+                                                                                    IndexBegin,
+                                                                                    IndexEnd,
+                                                                                    Fetch,
+                                                                                    Reduction,
+                                                                                    ResultKeeper,
+                                                                                    ReturnType >;
+            switch( launchConfig.getThreadsPerSegmentCount() ) {
+               case 1:
+                  Backend::launchKernelSync( kernel1,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               case 2:
+                  Backend::launchKernelSync( kernel2,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               case 4:
+                  Backend::launchKernelSync( kernel4,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               case 8:
+                  Backend::launchKernelSync( kernel8,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               case 16:
+                  Backend::launchKernelSync( kernel16,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               case 32:
+                  Backend::launchKernelSync( kernel32,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               default:
+                  throw std::invalid_argument( "Unsupported threads per segment ( "
+                                               + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                                               + " ) count for Ellpack segments." );
+                  break;
+            }
          }
          else {  // CPU
             const IndexType segmentSize = segments.getSegmentSize();
@@ -188,19 +392,86 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             if( end <= begin )
                return;
             const Index segmentsCount = end - begin;
-            const Index threadsCount = segmentsCount * Backend::getWarpSize();
+            const Index threadsCount = segmentsCount * launchConfig.getThreadsPerSegmentCount();
             const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             launch_config.gridSize.x = blocksCount;
-            constexpr auto kernel = EllpackCudaReductionKernelWithArgument< ConstViewType,
-                                                                            IndexBegin,
-                                                                            IndexEnd,
-                                                                            Fetch,
-                                                                            Reduction,
-                                                                            ResultKeeper,
-                                                                            ReturnType >;
-            Backend::launchKernelSync( kernel, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+            constexpr auto kernel1 = EllpackCudaReductionKernelWithArgument< 1,
+                                                                             ConstViewType,
+                                                                             IndexBegin,
+                                                                             IndexEnd,
+                                                                             Fetch,
+                                                                             Reduction,
+                                                                             ResultKeeper,
+                                                                             ReturnType >;
+            constexpr auto kernel2 = EllpackCudaReductionKernelWithArgument< 2,
+                                                                             ConstViewType,
+                                                                             IndexBegin,
+                                                                             IndexEnd,
+                                                                             Fetch,
+                                                                             Reduction,
+                                                                             ResultKeeper,
+                                                                             ReturnType >;
+            constexpr auto kernel4 = EllpackCudaReductionKernelWithArgument< 4,
+                                                                             ConstViewType,
+                                                                             IndexBegin,
+                                                                             IndexEnd,
+                                                                             Fetch,
+                                                                             Reduction,
+                                                                             ResultKeeper,
+                                                                             ReturnType >;
+            constexpr auto kernel8 = EllpackCudaReductionKernelWithArgument< 8,
+                                                                             ConstViewType,
+                                                                             IndexBegin,
+                                                                             IndexEnd,
+                                                                             Fetch,
+                                                                             Reduction,
+                                                                             ResultKeeper,
+                                                                             ReturnType >;
+            constexpr auto kernel16 = EllpackCudaReductionKernelWithArgument< 16,
+                                                                              ConstViewType,
+                                                                              IndexBegin,
+                                                                              IndexEnd,
+                                                                              Fetch,
+                                                                              Reduction,
+                                                                              ResultKeeper,
+                                                                              ReturnType >;
+            constexpr auto kernel32 = EllpackCudaReductionKernelWithArgument< 32,
+                                                                              ConstViewType,
+                                                                              IndexBegin,
+                                                                              IndexEnd,
+                                                                              Fetch,
+                                                                              Reduction,
+                                                                              ResultKeeper,
+                                                                              ReturnType >;
+            switch( launchConfig.getThreadsPerSegmentCount() ) {
+               case 1:
+                  Backend::launchKernelSync( kernel1, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                  break;
+               case 2:
+                  Backend::launchKernelSync( kernel2, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                  break;
+               case 4:
+                  Backend::launchKernelSync( kernel4, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                  break;
+               case 8:
+                  Backend::launchKernelSync( kernel8, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                  break;
+               case 16:
+                  Backend::launchKernelSync(
+                     kernel16, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                  break;
+               case 32:
+                  Backend::launchKernelSync(
+                     kernel32, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                  break;
+               default:
+                  throw std::invalid_argument( "Unsupported threads per segment ( "
+                                               + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                                               + " ) count for Ellpack segments." );
+                  break;
+            }
          }
          else {  // CPU
             const IndexType segmentSize = segments.getSegmentSize();
@@ -268,21 +539,144 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             if( end <= begin )
                return;
             const Index segmentsCount = end - begin;
-            const Index threadsCount = segmentsCount * Backend::getWarpSize();
+            const Index threadsCount = segmentsCount * launchConfig.getThreadsPerSegmentCount();
             const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             launch_config.gridSize.x = blocksCount;
-            constexpr auto kernel = EllpackCudaReductionKernelWithSegmentIndexesAndArgument< ConstViewType,
-                                                                                             ArrayView,
-                                                                                             IndexBegin,
-                                                                                             IndexEnd,
-                                                                                             Fetch,
-                                                                                             Reduction,
-                                                                                             ResultKeeper,
-                                                                                             ReturnType >;
-            Backend::launchKernelSync(
-               kernel, launch_config, segments, segmentIndexes.getConstView(), begin, end, fetch, reduction, keeper, identity );
+            constexpr auto kernel1 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 1,
+                                                                                              ConstViewType,
+                                                                                              ArrayView,
+                                                                                              IndexBegin,
+                                                                                              IndexEnd,
+                                                                                              Fetch,
+                                                                                              Reduction,
+                                                                                              ResultKeeper,
+                                                                                              ReturnType >;
+            constexpr auto kernel2 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 2,
+                                                                                              ConstViewType,
+                                                                                              ArrayView,
+                                                                                              IndexBegin,
+                                                                                              IndexEnd,
+                                                                                              Fetch,
+                                                                                              Reduction,
+                                                                                              ResultKeeper,
+                                                                                              ReturnType >;
+            constexpr auto kernel4 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 4,
+                                                                                              ConstViewType,
+                                                                                              ArrayView,
+                                                                                              IndexBegin,
+                                                                                              IndexEnd,
+                                                                                              Fetch,
+                                                                                              Reduction,
+                                                                                              ResultKeeper,
+                                                                                              ReturnType >;
+            constexpr auto kernel8 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 8,
+                                                                                              ConstViewType,
+                                                                                              ArrayView,
+                                                                                              IndexBegin,
+                                                                                              IndexEnd,
+                                                                                              Fetch,
+                                                                                              Reduction,
+                                                                                              ResultKeeper,
+                                                                                              ReturnType >;
+            constexpr auto kernel16 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 16,
+                                                                                               ConstViewType,
+                                                                                               ArrayView,
+                                                                                               IndexBegin,
+                                                                                               IndexEnd,
+                                                                                               Fetch,
+                                                                                               Reduction,
+                                                                                               ResultKeeper,
+                                                                                               ReturnType >;
+            constexpr auto kernel32 = EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 32,
+                                                                                               ConstViewType,
+                                                                                               ArrayView,
+                                                                                               IndexBegin,
+                                                                                               IndexEnd,
+                                                                                               Fetch,
+                                                                                               Reduction,
+                                                                                               ResultKeeper,
+                                                                                               ReturnType >;
+            switch( launchConfig.getThreadsPerSegmentCount() ) {
+               case 1:
+                  Backend::launchKernelSync( kernel1,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               case 2:
+                  Backend::launchKernelSync( kernel2,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               case 4:
+                  Backend::launchKernelSync( kernel4,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               case 8:
+                  Backend::launchKernelSync( kernel8,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               case 16:
+                  Backend::launchKernelSync( kernel16,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               case 32:
+                  Backend::launchKernelSync( kernel32,
+                                             launch_config,
+                                             segments,
+                                             segmentIndexes.getConstView(),
+                                             begin,
+                                             end,
+                                             fetch,
+                                             reduction,
+                                             keeper,
+                                             identity );
+                  break;
+               default:
+                  throw std::invalid_argument( "Unsupported threads per segment ( "
+                                               + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                                               + " ) count for Ellpack segments." );
+                  break;
+            }
          }
          else {  // CPU
             const IndexType segmentSize = segments.getSegmentSize();
