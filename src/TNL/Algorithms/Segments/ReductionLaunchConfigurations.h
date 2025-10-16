@@ -48,9 +48,38 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 128 ), "128 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Warp, 1 ), "Warp per segment" },
             { LaunchConfigurationSetter_LightCSR< Segments >::create( segments ), "Light CSR" },
             { LaunchConfigurationSetter_HybridCSR< Segments >::create( segments ), "Hybrid CSR" }
+         };
+   }
+   else if constexpr( isSlicedEllpackSegments_v< Segments > ) {
+      if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
+         return std::list< std::pair< LaunchConfiguration, std::string > >{
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
+         };
+      else
+         return std::list< std::pair< LaunchConfiguration, std::string > >{
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" }
+         };
+   }
+   else if constexpr( isEllpackSegments_v< Segments > ) {
+      if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
+         return std::list< std::pair< LaunchConfiguration, std::string > >{
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
+         };
+      else
+         return std::list< std::pair< LaunchConfiguration, std::string > >{
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" }
          };
    }
    else {
