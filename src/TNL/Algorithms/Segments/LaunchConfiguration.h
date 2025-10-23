@@ -17,7 +17,8 @@ enum class ThreadsToSegmentsMapping
    Fixed,
    Warp,
    Block,
-   BlockMerged
+   BlockMerged,
+   DynamicGrouping
 };
 
 /**
