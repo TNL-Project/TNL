@@ -43,7 +43,7 @@ public:
       return *this;                                                  \
    }                                                                 \
    template< typename S >                                            \
-   constexpr CustomScalar& operator op( const S & v )                \
+   constexpr CustomScalar& operator op( const S& v )                 \
    {                                                                 \
       value op v;                                                    \
       return *this;                                                  \

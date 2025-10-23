@@ -51,13 +51,15 @@ Vector< Real, Device, Index, Allocator >::getConstView( IndexType begin, IndexTy
 }
 
 template< typename Real, typename Device, typename Index, typename Allocator >
-Vector< Real, Device, Index, Allocator >::operator ViewType()
+Vector< Real, Device, Index, Allocator >::
+operator ViewType()
 {
    return getView();
 }
 
 template< typename Real, typename Device, typename Index, typename Allocator >
-Vector< Real, Device, Index, Allocator >::operator ConstViewType() const
+Vector< Real, Device, Index, Allocator >::
+operator ConstViewType() const
 {
    return getConstView();
 }

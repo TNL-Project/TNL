@@ -283,13 +283,15 @@ Array< Value, Device, Index, Allocator >::getConstView( IndexType begin, IndexTy
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-Array< Value, Device, Index, Allocator >::operator ViewType()
+Array< Value, Device, Index, Allocator >::
+operator ViewType()
 {
    return getView();
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-Array< Value, Device, Index, Allocator >::operator ConstViewType() const
+Array< Value, Device, Index, Allocator >::
+operator ConstViewType() const
 {
    return getConstView();
 }
