@@ -1,1 +1,1 @@
-auto fetch = [=] __cuda_callable__( Index rowIdx, Index columnIdx, const Real& value ) -> Real;
+auto fetch = [=] __cuda_callable__( Index rowIdx, Index columnIdx, const Real& value )->Real;
