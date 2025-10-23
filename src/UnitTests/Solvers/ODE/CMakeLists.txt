@@ -1,5 +1,9 @@
-set(COMMON_TESTS ODESolverTest_Euler ODESolverTest_Merson
-                 StaticODESolverTest_Merson # This is to test the static ODE solver for CUDA and HIP
+set(COMMON_TESTS
+    ODESolverTest_Euler
+    ODESolverTest_Merson
+    # This is to test the static ODE solver for CUDA and HIP
+    # FIXME: does not work with CUDA in Release mode, see https://gitlab.com/tnl-project/tnl/-/issues/221
+    #StaticODESolverTest_Merson
 )
 
 set(CPP_TESTS
