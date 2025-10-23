@@ -34,11 +34,19 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
       else
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Warp, 1 ), "Warp per segment" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 128 ), "128 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 256 ), "256 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 2 ), "BlockMerged 2 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 4 ), "BlockMerged 4 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 8 ), "BlockMerged 8 TPS" }
+            { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 8 ), "BlockMerged 8 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::DynamicGrouping, 1 ), "1 TPS" },
          };
    }
 
