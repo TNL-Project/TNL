@@ -141,27 +141,40 @@ test_forElements()
    for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) ) {
       SCOPED_TRACE( tag );
 
-      VectorType v( segments.getStorageSize() );
-      HostVectorType host_v;
-      auto v_view = v.getView();
+      VectorType localIdx_v( segments.getStorageSize(), -1 );
+      VectorType globalIdx_v( segments.getStorageSize(), -1 );
+      HostVectorType host_localIdx_v, host_globalIdx_v;
+      auto localIdx_view = localIdx_v.getView();
+      auto globalIdx_view = globalIdx_v.getView();
       TNL::Algorithms::Segments::forAllElements(
          segments,
          [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
          {
-            v_view[ globalIdx ] = segmentIdx + localIdx;
+            localIdx_view[ globalIdx ] = localIdx;
+            globalIdx_view[ globalIdx ] = globalIdx;
          },
          launch_config );
 
-      host_v = v;
+      host_localIdx_v = localIdx_v;
+      host_globalIdx_v = globalIdx_v;
       for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
-         for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
-            EXPECT_EQ( host_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], segmentIdx + localIdx )
+         for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ ) {
+            EXPECT_EQ( host_localIdx_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ], localIdx )
                << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
-               << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx );
+               << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx )
+               << " segment size = " << segments.getSegmentSize( segmentIdx );
+            EXPECT_EQ( host_globalIdx_v[ segments.getGlobalIndex( segmentIdx, localIdx ) ],
+                       segments.getGlobalIndex( segmentIdx, localIdx ) )
+               << "segmentIdx = " << segmentIdx << " localIdx = " << localIdx
+               << " globalIdx = " << segments.getGlobalIndex( segmentIdx, localIdx )
+               << " segment size = " << segments.getSegmentSize( segmentIdx );
+         }
       }
 
       // Test with segments view and just part of segments
-      v = 0;
+      VectorType v( segments.getStorageSize(), 0 );
+      HostVectorType host_v;
+      auto v_view = v.getView();
       TNL::Algorithms::Segments::forElements(
          segments.getView(),
          3,
