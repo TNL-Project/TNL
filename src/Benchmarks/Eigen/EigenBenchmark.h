@@ -17,7 +17,7 @@ struct EigenBenchmarkResult : TNL::Benchmarks::BenchmarkResult
    [[nodiscard]] HeaderElements
    getTableHeader() const override
    {
-      return HeaderElements( { "time", "stddev", "stddev/time", "loops", "epsilon", "iterations", "error" } );
+      return HeaderElements( { "time", "time_stddev", "time_stddev/time", "loops", "epsilon", "iterations", "error" } );
    }
 
    [[nodiscard]] std::vector< int >

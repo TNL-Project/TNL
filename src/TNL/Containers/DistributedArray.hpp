@@ -179,13 +179,15 @@ DistributedArray< Value, Device, Index, Allocator >::getConstView() const
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-DistributedArray< Value, Device, Index, Allocator >::operator ViewType()
+DistributedArray< Value, Device, Index, Allocator >::
+operator ViewType()
 {
    return getView();
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-DistributedArray< Value, Device, Index, Allocator >::operator ConstViewType() const
+DistributedArray< Value, Device, Index, Allocator >::
+operator ConstViewType() const
 {
    return getConstView();
 }

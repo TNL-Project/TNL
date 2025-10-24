@@ -330,7 +330,8 @@ Quad< T >::operator<=( const Quad< T >& rhs ) const
 }
 
 template< class T >
-Quad< T >::operator T() const
+Quad< T >::
+operator T() const
 {
    return data[ 0 ];
 }

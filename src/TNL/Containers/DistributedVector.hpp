@@ -56,13 +56,15 @@ DistributedVector< Value, Device, Index, Allocator >::getConstView() const
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-DistributedVector< Value, Device, Index, Allocator >::operator ViewType()
+DistributedVector< Value, Device, Index, Allocator >::
+operator ViewType()
 {
    return getView();
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-DistributedVector< Value, Device, Index, Allocator >::operator ConstViewType() const
+DistributedVector< Value, Device, Index, Allocator >::
+operator ConstViewType() const
 {
    return getConstView();
 }
