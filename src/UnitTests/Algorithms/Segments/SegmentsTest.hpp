@@ -12,6 +12,23 @@ test_SetSegmentsSizes_EqualSizes()
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
 
+   // Test default-initialized segment acts the same as an empty segment
+   Segments defaultSegments;
+
+   EXPECT_EQ( defaultSegments.getSegmentsCount(), 0 );
+   EXPECT_EQ( defaultSegments.getSize(), 0 );
+   EXPECT_LE( defaultSegments.getSize(), defaultSegments.getStorageSize() );
+
+   // Test with one segment
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > oneSegmentsSizes( 1 );
+   oneSegmentsSizes = 1;
+
+   Segments oneSegments( oneSegmentsSizes );
+
+   EXPECT_EQ( oneSegments.getSegmentsCount(), 1 );
+   EXPECT_EQ( oneSegments.getSize(), 1 );
+   EXPECT_LE( oneSegments.getSize(), oneSegments.getStorageSize() );
+
    // Test setup with empty segments
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > emptySegmentsSizes( 0 );
    emptySegmentsSizes = 0;
