@@ -32,17 +32,27 @@ public:
    using ConstVectorViewType = typename Base::ConstVectorViewType;
    using MatrixPointer = typename Base::MatrixPointer;
 
-   void
-   setMatrix( const MatrixPointer& matrix )
+   CuDSSWrapper()
    {
 #ifdef HAVE_CUDSS
-      this->size = matrix->getRows();
+      A = nullptr;
+      x = nullptr;
+      b = nullptr;
       cudssCreate( &handle );
       TNL_CHECK_CUDA_DEVICE;
       cudssConfigCreate( &solverConfig );
       TNL_CHECK_CUDA_DEVICE;
       cudssDataCreate( handle, &solverData );
       TNL_CHECK_CUDA_DEVICE;
+#endif
+   }
+
+   void
+   setMatrix( const MatrixPointer& matrix )
+   {
+#ifdef HAVE_CUDSS
+      this->destroy();
+      this->size = matrix->getRows();
       if( std::is_same< RealType, float >::value )
          valueType = CUDA_R_32F;
       if( std::is_same< RealType, double >::value )
@@ -93,6 +103,35 @@ public:
    factorized() const
    {
       return this->factorisation_success;
+   }
+
+   void
+   destroy()
+   {
+#ifdef HAVE_CUDSS
+      if( A ) {
+         cudssMatrixDestroy( A );
+         A = nullptr;
+      }
+      if( x ) {
+         cudssMatrixDestroy( x );
+         x = nullptr;
+      }
+      if( b ) {
+         cudssMatrixDestroy( b );
+         b = nullptr;
+      }
+#endif
+   }
+
+   ~CuDSSWrapper()
+   {
+#ifdef HAVE_CUDSS
+      this->destroy();
+      cudssConfigDestroy( solverConfig );
+      cudssDataDestroy( handle, solverData );
+      cudssDestroy( handle );
+#endif
    }
 
 protected:
