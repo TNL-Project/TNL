@@ -70,7 +70,7 @@ public:
    using Self = AdaptiveCSR< Device_, Index_, IndexAllocator_ >;
 
    //! \brief Constructor with no parameters to create empty segments.
-   AdaptiveCSR() = default;
+   AdaptiveCSR();
 
    //! \brief Copy constructor (makes deep copy).
    AdaptiveCSR( const AdaptiveCSR& segments );
