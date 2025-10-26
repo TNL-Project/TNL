@@ -126,9 +126,11 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          else {
             std::size_t threadsCount;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-               const Index segmentsCount = end - begin;
-               const IndexType slicesCount = roundUpDivision( segmentsCount, SliceSize );
-               threadsCount = slicesCount * SliceSize * launchConfig.getThreadsPerSegmentCount();
+               const std::size_t segmentsCount = end - begin;
+               const std::size_t slicesCount = roundUpDivision( segmentsCount, SliceSize );
+               threadsCount = slicesCount * (std::size_t) SliceSize * (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               if( threadsCount > std::numeric_limits< IndexType >::max() )
+                  throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             }
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
                const IndexType firstSegmentIdx = ( begin / SliceSize ) * SliceSize;
@@ -286,16 +288,15 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
-            std::size_t threadsCount;
+            std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-               const Index segmentsCount = end - begin;
-               threadsCount = segmentsCount * launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
             }
-            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
-               const Index segmentsCount = end - begin;
-               threadsCount = segmentsCount;
+            else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged )
                launchConfig.blockSize.x = 256;
-            }
+
+            if( threadsCount > std::numeric_limits< IndexType >::max() )
+               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
 
             dim3 blocksCount;
             dim3 gridsCount;
@@ -460,10 +461,12 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsIfSequential( segments, begin, end, std::forward< Condition >( condition ), function, launchConfig );
          else {
-            const Index segmentsCount = end - begin;
-            std::size_t threadsCount = segmentsCount;
+            std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
-               threadsCount = segmentsCount * launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            if( threadsCount > std::numeric_limits< IndexType >::max() )
+               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
+
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             dim3 blocksCount;

@@ -95,11 +95,13 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsSequential( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
          else {
-            std::size_t threadsCount = 0;
+            std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount = ( end - begin ) * Backend::getWarpSize();
+               threadsCount *= (std::size_t) Backend::getWarpSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
-               threadsCount = ( end - begin ) * launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            if( threadsCount > std::numeric_limits< IndexType >::max() )
+               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             dim3 blocksCount;
@@ -362,11 +364,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             reduceSegmentsWithIndexesSequential(
                segments, segmentIndexes, begin, end, fetch, reduction, keeper, identity, launchConfig );
          else {
-            std::size_t threadsCount = 0;
+            std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount = ( end - begin ) * Backend::getWarpSize();
+               threadsCount *= (std::size_t) Backend::getWarpSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
-               threadsCount = ( end - begin ) * launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            if( threadsCount > std::numeric_limits< IndexType >::max() )
+               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
+
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             dim3 blocksCount;
@@ -649,11 +654,13 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
          else {
-            std::size_t threadsCount = 0;
+            std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount = ( end - begin ) * Backend::getWarpSize();
+               threadsCount *= (std::size_t) Backend::getWarpSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
-               threadsCount = ( end - begin ) * launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            if( threadsCount > std::numeric_limits< IndexType >::max() )
+               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             dim3 blocksCount;
@@ -921,11 +928,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             reduceSegmentsWithIndexesAndArgumentSequential(
                segments, segmentIndexes, begin, end, fetch, reduction, keeper, identity, launchConfig );
          else {
-            std::size_t threadsCount = 0;
+            std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
-               threadsCount = ( end - begin ) * Backend::getWarpSize();
+               threadsCount *= (std::size_t) Backend::getWarpSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
-               threadsCount = ( end - begin ) * launchConfig.getThreadsPerSegmentCount();
+               threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            if( threadsCount > std::numeric_limits< IndexType >::max() )
+               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
+
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             dim3 blocksCount;
