@@ -10,6 +10,13 @@
 namespace TNL::Algorithms::Segments {
 
 template< typename EmbeddedSegments, typename IndexAllocator >
+SortedSegments< EmbeddedSegments, IndexAllocator >::SortedSegments()
+{
+   Base::bind(
+      this->embeddedSegments.getView(), this->segmentsPermutation.getView(), this->inverseSegmentsPermutation.getView() );
+}
+
+template< typename EmbeddedSegments, typename IndexAllocator >
 SortedSegments< EmbeddedSegments, IndexAllocator >::SortedSegments( const SortedSegments& segments_ )
 : embeddedSegments( segments_.embeddedSegments ),
   segmentsPermutation( segments_.segmentsPermutation ),

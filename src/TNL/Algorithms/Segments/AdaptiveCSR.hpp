@@ -8,6 +8,12 @@
 namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator >
+AdaptiveCSR< Device, Index, IndexAllocator >::AdaptiveCSR()
+{
+   this->view.bind( Base::getOffsets().getView(), this->blocksArray );
+}
+
+template< typename Device, typename Index, typename IndexAllocator >
 AdaptiveCSR< Device, Index, IndexAllocator >::AdaptiveCSR( const AdaptiveCSR& segments )
 : Base( segments )
 {
