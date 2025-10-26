@@ -36,6 +36,7 @@ void
 test_getView()
 {
    Segments segments;
+   EXPECT_EQ( segments.getSegmentsCount(), 0 );
 
    auto view = segments.getView();
    EXPECT_EQ( view.getSegmentsCount(), 0 );
