@@ -63,7 +63,7 @@ public:
    using PermutationContainer = Containers::Vector< IndexType, DeviceType, IndexType, IndexAllocatorType >;
 
    //! \brief Constructor with no parameters to create empty segments.
-   SortedSegments() = default;
+   SortedSegments();
 
    //! \brief Copy constructor (makes deep copy).
    SortedSegments( const SortedSegments& segments );
