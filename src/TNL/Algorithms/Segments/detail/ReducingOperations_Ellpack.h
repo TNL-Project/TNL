@@ -43,8 +43,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
             if( end <= begin )
                return;
-            const Index segmentsCount = end - begin;
-            const Index threadsCount = segmentsCount * launchConfig.getThreadsPerSegmentCount();
+            const std::size_t threadsCount =
+               (std::size_t) ( end - begin ) * (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            if( threadsCount > std::numeric_limits< IndexType >::max() )
+               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -192,8 +194,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
             if( end <= begin )
                return;
-            const Index segmentsCount = end - begin;
-            const Index threadsCount = segmentsCount * launchConfig.getThreadsPerSegmentCount();
+            const std::size_t threadsCount =
+               (std::size_t) ( end - begin ) * (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            if( threadsCount > std::numeric_limits< IndexType >::max() )
+               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -391,8 +395,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
             if( end <= begin )
                return;
-            const Index segmentsCount = end - begin;
-            const Index threadsCount = segmentsCount * launchConfig.getThreadsPerSegmentCount();
+            const std::size_t threadsCount =
+               (std::size_t) ( end - begin ) * (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            if( threadsCount > std::numeric_limits< IndexType >::max() )
+               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
@@ -538,9 +544,11 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
          if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
             if( end <= begin )
                return;
-            const Index segmentsCount = end - begin;
-            const Index threadsCount = segmentsCount * launchConfig.getThreadsPerSegmentCount();
-            const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
+            const std::size_t threadsCount =
+               (std::size_t) ( end - begin ) * (std::size_t) launchConfig.getThreadsPerSegmentCount();
+            if( threadsCount > std::numeric_limits< IndexType >::max() )
+               throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
+            const std::size_t blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = 256;
             launch_config.gridSize.x = blocksCount;
