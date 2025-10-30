@@ -175,14 +175,14 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
+   constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
 
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
       return;
 
    __shared__ ReturnType shared[ BlockSize / Backend::getWarpSize() ];
-   if( threadIdx.x < BlockSize / Backend::getWarpSize() )
-      shared[ threadIdx.x ] = identity;  // (*) we sychronize threads later
 
    const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
    const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
@@ -211,13 +211,13 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
    #endif
 
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
-   __syncthreads();  // Synchronize before writing to shared memory at (*)
+   __syncthreads();
    if( inWarpLaneIdx == 0 )
       shared[ warpIdx ] = result;
 
    __syncthreads();
    // Reduction in shared memory
-   if( warpIdx == 0 && inWarpLaneIdx < 16 ) {
+   if( warpIdx == 0 && inWarpLaneIdx < BlockSize / Backend::getWarpSize() ) {
       constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
       if constexpr( warpsPerSegment >= 32 ) {
          shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 16 ] );
@@ -239,9 +239,11 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
          shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 1 ] );
          __syncwarp();
       }
-      constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
-      if( inWarpLaneIdx < segmentsCount && segmentIdx + inWarpLaneIdx < end ) {
-         keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
+      if( warpIdx == 0                      // first warp stores the results
+          && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
+          && segmentIdx + inWarpLaneIdx < end )
+      {
+         keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * warpsPerSegment ] );
       }
    }
 #endif
@@ -683,6 +685,8 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
+   constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
 
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
@@ -690,8 +694,6 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
 
    __shared__ ReturnType shared_results[ BlockSize / Backend::getWarpSize() ];
    __shared__ Index shared_arguments[ BlockSize / Backend::getWarpSize() ];
-   if( threadIdx.x < BlockSize / Backend::getWarpSize() )
-      shared_results[ threadIdx.x ] = identity;  // (*) we sychronize threads later
 
    const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
    const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
@@ -699,23 +701,15 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
    const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
 
    ReturnType result = identity;
-   Index localIdx = laneIdx;
    Index argument = 0;
+   Index localIdx = laneIdx;
    for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-      /*printf( "threadIdx:  %d segmentIdx: %ld, localIdx: %ld, globalIdx: %ld fetch: %ld\n",
-              threadIdx.x,
-              segmentIdx,
-              localIdx,
-              globalIdx,
-              detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ) );*/
       reduce( result,
               detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
               argument,
               localIdx );
       localIdx += ThreadsPerSegment;
    }
-   //__syncwarp();
-   //printf( "##### threadIdx.x: %d result: %ld, argument: %ld\n", threadIdx.x, result, argument );
 
    #if defined( __HIP__ )
    reduce( result, __shfl_down( result, 16 ), argument, __shfl_down( argument, 16 ) );
@@ -731,53 +725,16 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
    reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ), argument, __shfl_down_sync( 0xFFFFFFFF, argument, 1 ) );
    #endif
 
-   /*__syncthreads();
-   if( threadIdx.x == 0 ) {
-      printf( "=======================\n" );
-      for( int i = 0; i < BlockSize / Backend::getWarpSize(); i++ )
-         printf( "BlockId: %d:shared_results[%d]: %ld, shared_arguments[%d]: %ld\n",
-                 blockIdx.x,
-                 i,
-                 shared_results[ i ],
-                 i,
-                 shared_arguments[ i ] );
-   }
-   __syncthreads();*/
-
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
-   __syncthreads();  // Synchronize before writing to shared memory at (*)
+   __syncthreads();
    if( inWarpLaneIdx == 0 ) {
-      /*printf( "TO SHARED: blockIdx.x: %d threadIdx.x: %d warpIdx: %ld, result: %ld, argument: %ld\n",
-              blockIdx.x,
-              threadIdx.x,
-              warpIdx,
-              result,
-              argument );*/
       shared_results[ warpIdx ] = result;
       shared_arguments[ warpIdx ] = argument;
    }
 
    __syncthreads();
    // Reduction in shared memory
-   if( warpIdx == 0 && inWarpLaneIdx < 16 ) {
-      // constexpr int totalWarps = BlockSize / Backend::getWarpSize();
-      constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
-      //if( threadIdx.x == 0 )
-      //   printf( "Warps per segment: %d\n", warpsPerSegment );
-
-      /*__syncthreads();
-      if( threadIdx.x == 0 && blockIdx.x == 1 ) {
-         printf( "======================= Before reduction\n" );
-         for( int i = 0; i < BlockSize / Backend::getWarpSize(); i++ )
-            printf( "BlockId: %d:shared_results[%d]: %ld, shared_arguments[%d]: %ld\n",
-                    blockIdx.x,
-                    i,
-                    shared_results[ i ],
-                    i,
-                    shared_arguments[ i ] );
-      }
-      __syncthreads();*/
-
+   if( warpIdx == 0 && inWarpLaneIdx < BlockSize / Backend::getWarpSize() ) {
       if constexpr( warpsPerSegment >= 32 ) {
          reduce( shared_results[ inWarpLaneIdx ],
                  shared_results[ inWarpLaneIdx + 16 ],
@@ -800,54 +757,13 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
          __syncwarp();
       }
       if constexpr( warpsPerSegment >= 4 ) {
-         /*printf( "REDUCE: blockIdx.x %d threadIdx.x: %d shared idx: %ld && %ld, result: %ld && %ld , argument: %ld && %ld\n",
-                 blockIdx.x,
-                 threadIdx.x,
-                 inWarpLaneIdx,
-                 inWarpLaneIdx + 2,
-                 shared_results[ inWarpLaneIdx ],
-                 shared_results[ inWarpLaneIdx + 2 ],
-                 shared_arguments[ inWarpLaneIdx ],
-                 shared_arguments[ inWarpLaneIdx + 2 ] );*/
          reduce( shared_results[ inWarpLaneIdx ],
                  shared_results[ inWarpLaneIdx + 2 ],
                  shared_arguments[ inWarpLaneIdx ],
                  shared_arguments[ inWarpLaneIdx + 2 ] );
          __syncwarp();
       }
-      ////
-      // The kernel fails at this point if IndexType is long.
-      // This can be reproduced by running test_reduceAllSegments_MaximumInSegmentsWithArgument()
-      // even for just 2 or 4 very short segments.
-      //
-      /*__syncthreads();
-      if( threadIdx.x == 0 && blockIdx.x == 1 ) {
-         printf( "=======================\n" );
-         for( int i = 0; i < BlockSize / Backend::getWarpSize(); i++ )
-            printf( "BlockId: %d:shared_results[%d]: %ld, shared_arguments[%d]: %ld\n",
-                    blockIdx.x,
-                    i,
-                    shared_results[ i ],
-                    i,
-                    shared_arguments[ i ] );
-      }
-      __syncthreads();*/
-
-      /*__syncthreads();
-      if( threadIdx.x == 0 )
-         printf( "=======================\n" );
-      __syncthreads();*/
-      if( warpsPerSegment >= 2 ) {
-         /*if( blockIdx.x == 1 )
-            printf( "REDUCE: blockIdx.x %d threadIdx.x: %d shared idx: %ld && %ld, result: %ld && %ld , argument: %ld && %ld\n",
-                    blockIdx.x,
-                    threadIdx.x,
-                    inWarpLaneIdx,
-                    inWarpLaneIdx + 1,
-                    shared_results[ inWarpLaneIdx ],
-                    shared_results[ inWarpLaneIdx + 1 ],
-                    shared_arguments[ inWarpLaneIdx ],
-                    shared_arguments[ inWarpLaneIdx + 1 ] );*/
+      if constexpr( warpsPerSegment >= 2 ) {
          reduce( shared_results[ inWarpLaneIdx ],
                  shared_results[ inWarpLaneIdx + 1 ],
                  shared_arguments[ inWarpLaneIdx ],
@@ -855,32 +771,14 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
          __syncwarp();
       }
 
-      /*__syncthreads();
-      if( threadIdx.x == 0 && blockIdx.x == 1 ) {
-         printf( "=======================\n" );
-         printf( "=======================\n" );
-         for( int i = 0; i < BlockSize / Backend::getWarpSize(); i++ )
-            printf( "BlockId: %d:shared_results[%d]: %ld, shared_arguments[%d]: %ld\n",
-                    blockIdx.x,
-                    i,
-                    shared_results[ i ],
-                    i,
-                    shared_arguments[ i ] );
-      }
-      __syncthreads();*/
-
-      constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
       __syncthreads();
-      if( inWarpLaneIdx < segmentsCount && segmentIdx + inWarpLaneIdx < end ) {
-         /*printf( "KEEP: blockIdx.x %d threadIdx.x: %d segmentIdx: %ld, result: %ld, argument: %ld\n",
-                 blockIdx.x,
-                 threadIdx.x,
-                 segmentIdx + inWarpLaneIdx,
-                 shared_results[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ],
-                 shared_arguments[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );*/
+      if( warpIdx == 0                      // first warp stores the results
+          && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
+          && segmentIdx + inWarpLaneIdx < end )
+      {
          keep( segmentIdx + inWarpLaneIdx,
-               shared_arguments[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ],
-               shared_results[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
+               shared_arguments[ inWarpLaneIdx * warpsPerSegment ],
+               shared_results[ inWarpLaneIdx * warpsPerSegment ] );
       }
    }
 #endif
@@ -1075,6 +973,8 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
+   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
+   constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
 
    const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx_idx >= end )
@@ -1082,8 +982,6 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
 
    __shared__ ReturnType shared_results[ BlockSize / Backend::getWarpSize() ];
    __shared__ Index shared_arguments[ BlockSize / Backend::getWarpSize() ];
-   if( threadIdx.x < BlockSize / Backend::getWarpSize() )
-      shared_results[ threadIdx.x ] = identity;  // (*) we sychronize threads later
 
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
    const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
@@ -1118,7 +1016,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
    #endif
 
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
-   __syncthreads();  // Synchronize before writing to shared memory at (*)
+   __syncthreads();
    if( inWarpLaneIdx == 0 ) {
       shared_results[ warpIdx ] = result;
       shared_arguments[ warpIdx ] = argument;
@@ -1126,8 +1024,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
 
    __syncthreads();
    // Reduction in shared memory
-   if( warpIdx == 0 && inWarpLaneIdx < 16 ) {
-      constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
+   if( warpIdx == 0 && inWarpLaneIdx < BlockSize / Backend::getWarpSize() ) {
       if constexpr( warpsPerSegment >= 32 ) {
          reduce( shared_results[ inWarpLaneIdx ],
                  shared_results[ inWarpLaneIdx + 16 ],
@@ -1163,12 +1060,14 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
                  shared_arguments[ inWarpLaneIdx + 1 ] );
          __syncwarp();
       }
-      constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
-      if( inWarpLaneIdx < segmentsCount && segmentIdx_idx + inWarpLaneIdx < end ) {
+      if( warpIdx == 0                      // first warp stores the results
+          && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
+          && segmentIdx_idx + inWarpLaneIdx < end )
+      {
          keep( segmentIdx_idx,
                segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
-               shared_arguments[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ],
-               shared_results[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
+               shared_arguments[ inWarpLaneIdx * warpsPerSegment ],
+               shared_results[ inWarpLaneIdx * warpsPerSegment ] );
       }
    }
 #endif
