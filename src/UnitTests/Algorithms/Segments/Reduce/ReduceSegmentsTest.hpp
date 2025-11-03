@@ -68,7 +68,8 @@ test_reduceSegments_MaximumInSegments()
       TNL::Algorithms::Segments::reduceAllSegments(
          segments.getView(), fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize );
+         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i << " value = " << result.getElement( i )
+            << " expected = " << ( 5 * i + segmentSize );
    }
 }
 
