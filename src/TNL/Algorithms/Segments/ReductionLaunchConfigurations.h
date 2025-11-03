@@ -48,6 +48,7 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 64 ), "64 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 128 ), "128 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::DynamicGrouping, 256 ), "DynamicGrouping" },
             { LaunchConfigurationSetter_LightCSR< Segments >::create( segments ), "Light CSR" },
             { LaunchConfigurationSetter_HybridCSR< Segments >::create( segments ), "Hybrid CSR" }
          };

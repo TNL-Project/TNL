@@ -274,6 +274,20 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         break;
                   }
                }
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
+                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernel< ConstViewType,
+                                                                                  IndexType,
+                                                                                  Fetch,
+                                                                                  Reduction,
+                                                                                  ResultKeeper,
+                                                                                  Value,
+                                                                                  256 >;
+                  Backend::launchKernelAsync(
+                     kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, keeper, identity );
+               }
+               else {
+                  throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
+               }
             }
             Backend::streamSynchronize( launch_config.stream );
          }
@@ -572,6 +586,30 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         break;
                   }
                }
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
+                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernelWithIndexes< ConstViewType,
+                                                                                             ArrayView,
+                                                                                             IndexType,
+                                                                                             Fetch,
+                                                                                             Reduction,
+                                                                                             ResultKeeper,
+                                                                                             Value,
+                                                                                             256 >;
+                  Backend::launchKernelAsync( kernel,
+                                              launch_config,
+                                              gridIdx,
+                                              segments.getConstView(),
+                                              segmentIndexes.getConstView(),
+                                              begin,
+                                              end,
+                                              fetch,
+                                              reduction,
+                                              keeper,
+                                              identity );
+               }
+               else {
+                  throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
+               }
             }
             Backend::streamSynchronize( launch_config.stream );
          }
@@ -837,8 +875,22 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         break;
                   }
                }
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
+                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernelWithArgument< ConstViewType,
+                                                                                              IndexType,
+                                                                                              Fetch,
+                                                                                              Reduction,
+                                                                                              ResultKeeper,
+                                                                                              Value,
+                                                                                              256 >;
+                  Backend::launchKernelAsync(
+                     kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, keeper, identity );
+               }
+               else {
+                  throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
+               }
+               Backend::streamSynchronize( launch_config.stream );
             }
-            Backend::streamSynchronize( launch_config.stream );
          }
       }
       else
@@ -1135,6 +1187,30 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                   + ". It can be only 2, 4, 8, 16 or 32." );
                         break;
                   }
+               }
+               else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
+                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument< ConstViewType,
+                                                                                                        ArrayView,
+                                                                                                        IndexType,
+                                                                                                        Fetch,
+                                                                                                        Reduction,
+                                                                                                        ResultKeeper,
+                                                                                                        Value,
+                                                                                                        256 >;
+                  Backend::launchKernelAsync( kernel,
+                                              launch_config,
+                                              gridIdx,
+                                              segments.getConstView(),
+                                              segmentIndexes.getConstView(),
+                                              begin,
+                                              end,
+                                              fetch,
+                                              reduction,
+                                              keeper,
+                                              identity );
+               }
+               else {
+                  throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
                }
             }
             Backend::streamSynchronize( launch_config.stream );
