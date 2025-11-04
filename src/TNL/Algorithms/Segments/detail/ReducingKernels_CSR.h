@@ -259,6 +259,7 @@ template< typename Segments,
 __global__
 void
 reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
+                                        const Index threadsPerSegment,
                                         const Segments segments,
                                         Index begin,
                                         Index end,
@@ -275,8 +276,11 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
-   bool reduce_segment = ( segmentIdx < end );
+   const Index segmentIdx =
+      threadIdx.x < ( BlockSize / threadsPerSegment )
+         ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+         : -1;
+   bool reduce_segment = ( segmentIdx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
    __shared__ Index scheduled_segment[ 1 ];
@@ -670,6 +674,7 @@ template< typename Segments,
 __global__
 void
 reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
+                                                   const Index threadsPerSegment,
                                                    const Segments segments,
                                                    const ArrayView segmentIndexes,
                                                    Index begin,
@@ -687,8 +692,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
-   const Index segmentIdx_idx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
-   bool reduce_segment = ( segmentIdx_idx < end );
+   const Index segmentIdx_idx =
+      threadIdx.x < ( BlockSize / threadsPerSegment )
+         ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+         : -1;
+   bool reduce_segment = ( segmentIdx_idx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
    __shared__ Index scheduled_segment_idx[ 1 ];
@@ -1102,6 +1110,7 @@ template< typename Segments,
 __global__
 void
 reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
+                                                    const Index threadsPerSegment,
                                                     const Segments segments,
                                                     Index begin,
                                                     Index end,
@@ -1118,8 +1127,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
-   bool reduce_segment = ( segmentIdx < end );
+   const Index segmentIdx =
+      threadIdx.x < ( BlockSize / threadsPerSegment )
+         ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+         : -1;
+   bool reduce_segment = ( segmentIdx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
    __shared__ Index scheduled_segment[ 1 ];
@@ -1534,6 +1546,7 @@ template< typename Segments,
 __global__
 void
 reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
+                                                              const Index threadsPerSegment,
                                                               const Segments segments,
                                                               const ArrayView segmentIndexes,
                                                               Index begin,
@@ -1551,8 +1564,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
-   const Index segmentIdx_idx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
-   bool reduce_segment = ( segmentIdx_idx < end );
+   const Index segmentIdx_idx =
+      threadIdx.x < ( BlockSize / threadsPerSegment )
+         ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+         : -1;
+   bool reduce_segment = ( segmentIdx_idx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
    __shared__ Index scheduled_segment_idx[ 1 ];

@@ -98,7 +98,8 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount *= (std::size_t) Backend::getWarpSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
@@ -282,8 +283,17 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                   ResultKeeper,
                                                                                   Value,
                                                                                   256 >;
-                  Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, keeper, identity );
+                  Backend::launchKernelAsync( kernel,
+                                              launch_config,
+                                              gridIdx,
+                                              launchConfig.getThreadsPerSegmentCount(),
+                                              segments.getConstView(),
+                                              begin,
+                                              end,
+                                              fetch,
+                                              reduction,
+                                              keeper,
+                                              identity );
                }
                else {
                   throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
@@ -381,7 +391,8 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount *= (std::size_t) Backend::getWarpSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
@@ -598,6 +609,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   Backend::launchKernelAsync( kernel,
                                               launch_config,
                                               gridIdx,
+                                              launchConfig.getThreadsPerSegmentCount(),
                                               segments.getConstView(),
                                               segmentIndexes.getConstView(),
                                               begin,
@@ -695,7 +707,8 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount *= (std::size_t) Backend::getWarpSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
@@ -883,8 +896,17 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                               ResultKeeper,
                                                                                               Value,
                                                                                               256 >;
-                  Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, keeper, identity );
+                  Backend::launchKernelAsync( kernel,
+                                              launch_config,
+                                              gridIdx,
+                                              launchConfig.getThreadsPerSegmentCount(),
+                                              segments.getConstView(),
+                                              begin,
+                                              end,
+                                              fetch,
+                                              reduction,
+                                              keeper,
+                                              identity );
                }
                else {
                   throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
@@ -983,7 +1005,8 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount *= (std::size_t) Backend::getWarpSize();
-            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
+            if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
+                || launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
@@ -1200,6 +1223,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   Backend::launchKernelAsync( kernel,
                                               launch_config,
                                               gridIdx,
+                                              launchConfig.getThreadsPerSegmentCount(),
                                               segments.getConstView(),
                                               segmentIndexes.getConstView(),
                                               begin,
