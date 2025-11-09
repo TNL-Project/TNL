@@ -20,6 +20,10 @@ struct dim3
    dim3() = default;
    constexpr dim3( const dim3& ) = default;
    constexpr dim3( dim3&& ) = default;
+   constexpr dim3&
+   operator=( const dim3& ) = default;
+   constexpr dim3&
+   operator=( dim3&& ) = default;
 
    constexpr dim3( unsigned int x, unsigned int y = 1, unsigned int z = 1 )
    : x( x ),
