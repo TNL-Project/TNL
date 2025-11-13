@@ -163,6 +163,13 @@ if(TNL_USE_HIP)
     unset(executable_suffix_backup)
 endif()
 
+# Both CUDA and HIP compilers can be detected at the same time, but we cannot (do not want to)
+# build both at the same time. Some CMake targets for CUDA and HIP have the same name and conflict.
+if(TNL_BUILD_CUDA AND TNL_BUILD_HIP)
+    message(WARNING "CUDA is enabled, disabling HIP.")
+    set(TNL_BUILD_HIP FALSE)
+endif()
+
 # skip building host-only targets in CUDA-enabled CI jobs
 if(DEFINED ENV{GITLAB_CI} AND (TNL_BUILD_CUDA OR TNL_BUILD_HIP))
     set(TNL_BUILD_CPP_TARGETS FALSE)
