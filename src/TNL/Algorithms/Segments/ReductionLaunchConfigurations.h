@@ -62,15 +62,49 @@ reductionLaunchConfigurations( const Segments& segments ) -> std::list< std::pai
          return std::list< std::pair< LaunchConfiguration, std::string > >{
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" }
          };
-      else
-         return std::list< std::pair< LaunchConfiguration, std::string > >{
+      else {
+         std::list< std::pair< LaunchConfiguration, std::string > > launchConfigs{
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" }
          };
+         if constexpr( Segments::getOrganization() == RowMajorOrder ) {
+            return std::list< std::pair< LaunchConfiguration, std::string > >{
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "16 TPS" },
+               { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "32 TPS" }
+            };
+         }
+         else {
+            // For the column major ordering we have to ensure that:
+            // 1. there are enough threads to cover the slice size
+            // 2. TPS * SliceSize >= warp size
+            std::list< std::pair< LaunchConfiguration, std::string > > launchConfigs;
+            if constexpr( Segments::getSliceSize() * 1 <= 256 && Segments::getSliceSize() * 1 >= Backend::getWarpSize() ) {
+               launchConfigs.push_back( { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 ), "1 TPS" } );
+            }
+            if constexpr( Segments::getSliceSize() * 2 <= 256 && Segments::getSliceSize() * 2 >= Backend::getWarpSize() ) {
+               launchConfigs.push_back( { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 2 ), "2 TPS" } );
+            }
+            if constexpr( Segments::getSliceSize() * 4 <= 256 && Segments::getSliceSize() * 4 >= Backend::getWarpSize() ) {
+               launchConfigs.push_back( { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 4 ), "4 TPS" } );
+            }
+            if constexpr( Segments::getSliceSize() * 8 <= 256 && Segments::getSliceSize() * 8 >= Backend::getWarpSize() ) {
+               launchConfigs.push_back( { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 8 ), "8 TPS" } );
+            }
+            if constexpr( Segments::getSliceSize() * 16 <= 256 && Segments::getSliceSize() * 16 >= Backend::getWarpSize() ) {
+               launchConfigs.push_back( { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 16 ), "16 TPS" } );
+            }
+            if constexpr( Segments::getSliceSize() * 32 <= 256 && Segments::getSliceSize() * 32 >= Backend::getWarpSize() ) {
+               launchConfigs.push_back( { LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 32 ), "32 TPS" } );
+            }
+            return launchConfigs;
+         }
+      }
    }
    else if constexpr( isEllpackSegments_v< Segments > ) {
       if constexpr( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential > )
