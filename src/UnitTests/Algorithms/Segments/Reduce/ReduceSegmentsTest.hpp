@@ -62,14 +62,19 @@ test_reduceSegments_MaximumInSegments()
          segments, fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
 
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize );
+         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i;
 
       result_view = 0;
       TNL::Algorithms::Segments::reduceAllSegments(
          segments.getView(), fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
       for( IndexType i = 0; i < segmentsCount; i++ )
-         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i << " value = " << result.getElement( i )
-            << " expected = " << ( 5 * i + segmentSize );
+         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i;
+
+      TNL::Algorithms::Segments::reduceSegments(
+         segments, 29, 193, fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
+
+      for( IndexType i = 29; i < 193; i++ )
+         EXPECT_EQ( result.getElement( i ), 5 * i + segmentSize ) << "segmentIdx = " << i;
    }
 }
 
