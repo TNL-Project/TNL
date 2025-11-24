@@ -34,9 +34,9 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
    reduceSegments( const ConstViewType& segments,
                    IndexBegin begin,
                    IndexEnd end,
-                   Fetch fetch,          // TODO Fetch&& fetch does not work here with CUDA
-                   Reduction reduction,  // TODO Reduction&& reduction does not work here with CUDA
-                   ResultKeeper keeper,  // TODO ResultKeeper&& keeper does not work here with CUDA
+                   Fetch&& fetch,
+                   Reduction&& reduction,
+                   ResultKeeper&& keeper,
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
@@ -74,8 +74,13 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
                using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
                using BlocksView = typename SegmentsViewType::BlocksView;
 
-               constexpr auto kernel =
-                  reduceSegmentsCSRAdaptiveKernel< BlocksView, OffsetsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
+               constexpr auto kernel = reduceSegmentsCSRAdaptiveKernel< BlocksView,
+                                                                        OffsetsView,
+                                                                        IndexType,
+                                                                        std::remove_reference_t< Fetch >,
+                                                                        std::remove_reference_t< Reduction >,
+                                                                        std::remove_reference_t< ResultKeeper >,
+                                                                        Value >;
                Backend::launchKernelAsync(
                   kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, keeper, identity );
             }
@@ -96,9 +101,9 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
    reduceSegmentsWithArgument( const ConstViewType& segments,
                                IndexBegin begin,
                                IndexEnd end,
-                               Fetch fetch,          // TODO Fetch&& fetch does not work here with CUDA
-                               Reduction reduction,  // TODO Reduction&& reduction does not work here with CUDA
-                               ResultKeeper keeper,  // TODO ResultKeeper&& keeper does not work here with CUDA
+                               Fetch&& fetch,
+                               Reduction&& reduction,
+                               ResultKeeper&& keeper,
                                const Value& identity,
                                const LaunchConfiguration& launchConfig )
    {
@@ -142,9 +147,9 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
                constexpr auto kernel = reduceSegmentsCSRAdaptiveKernelWithArgument< BlocksView,
                                                                                     OffsetsView,
                                                                                     IndexType,
-                                                                                    Fetch,
-                                                                                    Reduction,
-                                                                                    ResultKeeper,
+                                                                                    std::remove_reference_t< Fetch >,
+                                                                                    std::remove_reference_t< Reduction >,
+                                                                                    std::remove_reference_t< ResultKeeper >,
                                                                                     Value >;
                Backend::launchKernelAsync(
                   kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, keeper, identity );

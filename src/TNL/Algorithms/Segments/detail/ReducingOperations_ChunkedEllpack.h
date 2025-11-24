@@ -32,9 +32,9 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    reduceSegments( const ConstViewType& segments,
                    IndexBegin begin,
                    IndexEnd end,
-                   Fetch fetch,          // TODO Fetch&& does not work with nvcc
-                   Reduction reduction,  // TODO Reduction&& does not work with nvcc
-                   ResultKeeper keeper,  // TODO ResultKeeper&& does not work with nvcc
+                   Fetch&& fetch,          // TODO Fetch&& does not work with nvcc
+                   Reduction&& reduction,  // TODO Reduction&& does not work with nvcc
+                   ResultKeeper&& keeper,  // TODO ResultKeeper&& does not work with nvcc
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
@@ -88,8 +88,12 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel =
-               ChunkedEllpackReduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value >;
+            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernel< ConstSegmentsView,
+                                                                        IndexType,
+                                                                        std::remove_reference_t< Fetch >,
+                                                                        std::remove_reference_t< Reduction >,
+                                                                        std::remove_reference_t< ResultKeeper >,
+                                                                        Value >;
             Backend::launchKernelAsync(
                kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
          }
@@ -109,9 +113,9 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                      const Array& segmentIndexes,
                                      IndexBegin begin,
                                      IndexEnd end,
-                                     Fetch fetch,          // TODO Fetch&& does not work with nvcc
-                                     Reduction reduction,  // TODO Reduction&& does not work with nvcc
-                                     ResultKeeper keeper,  // TODO ResultKeeper&& does not work with nvcc
+                                     Fetch&& fetch,          // TODO Fetch&& does not work with nvcc
+                                     Reduction&& reduction,  // TODO Reduction&& does not work with nvcc
+                                     ResultKeeper&& keeper,  // TODO ResultKeeper&& does not work with nvcc
                                      const Value& identity,
                                      const LaunchConfiguration& launchConfig )
    {
@@ -172,9 +176,9 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithIndexes< ConstSegmentsView,
                                                                                    ArrayView,
                                                                                    IndexType,
-                                                                                   Fetch,
-                                                                                   Reduction,
-                                                                                   ResultKeeper,
+                                                                                   std::remove_reference_t< Fetch >,
+                                                                                   std::remove_reference_t< Reduction >,
+                                                                                   std::remove_reference_t< ResultKeeper >,
                                                                                    Value >;
             Backend::launchKernelAsync( kernel,
                                         launch_config,
@@ -202,9 +206,9 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    reduceSegmentsWithArgument( const ConstViewType& segments,
                                IndexBegin begin,
                                IndexEnd end,
-                               Fetch fetch,          // TODO Fetch&& does not work with nvcc
-                               Reduction reduction,  // TODO Reduction&& does not work with nvcc
-                               ResultKeeper keeper,  // TODO ResultKeeper&& does not work with nvcc
+                               Fetch&& fetch,          // TODO Fetch&& does not work with nvcc
+                               Reduction&& reduction,  // TODO Reduction&& does not work with nvcc
+                               ResultKeeper&& keeper,  // TODO ResultKeeper&& does not work with nvcc
                                const Value& identity,
                                const LaunchConfiguration& launchConfig )
    {
@@ -265,9 +269,9 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
             constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithArgument< ConstSegmentsView,
                                                                                     IndexType,
-                                                                                    Fetch,
-                                                                                    Reduction,
-                                                                                    ResultKeeper,
+                                                                                    std::remove_reference_t< Fetch >,
+                                                                                    std::remove_reference_t< Reduction >,
+                                                                                    std::remove_reference_t< ResultKeeper >,
                                                                                     Value >;
             Backend::launchKernelAsync(
                kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
@@ -288,9 +292,9 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                                 const Array& segmentIndexes,
                                                 IndexBegin begin,
                                                 IndexEnd end,
-                                                Fetch fetch,          // TODO Fetch&& does not work with nvcc
-                                                Reduction reduction,  // TODO Reduction&& does not work with nvcc
-                                                ResultKeeper keeper,  // TODO ResultKeeper&& does not work with nvcc
+                                                Fetch&& fetch,          // TODO Fetch&& does not work with nvcc
+                                                Reduction&& reduction,  // TODO Reduction&& does not work with nvcc
+                                                ResultKeeper&& keeper,  // TODO ResultKeeper&& does not work with nvcc
                                                 const Value& identity,
                                                 const LaunchConfiguration& launchConfig )
    {
@@ -352,13 +356,14 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument< ConstSegmentsView,
-                                                                                              ArrayView,
-                                                                                              IndexType,
-                                                                                              Fetch,
-                                                                                              Reduction,
-                                                                                              ResultKeeper,
-                                                                                              Value >;
+            constexpr auto kernel =
+               ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument< ConstSegmentsView,
+                                                                         ArrayView,
+                                                                         IndexType,
+                                                                         std::remove_reference_t< Fetch >,
+                                                                         std::remove_reference_t< Reduction >,
+                                                                         std::remove_reference_t< ResultKeeper >,
+                                                                         Value >;
             Backend::launchKernelAsync( kernel,
                                         launch_config,
                                         segments.getConstView(),

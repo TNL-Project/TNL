@@ -140,8 +140,8 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
    forElementsIf( const ConstViewType& segments,
                   IndexBegin begin,
                   IndexEnd end,
-                  Condition condition,
-                  Function function,
+                  Condition&& condition,
+                  Function&& function,
                   const LaunchConfiguration& launchConfig )
    {
       const auto segmentsPermutationView = segments.getSegmentsPermutationView();
