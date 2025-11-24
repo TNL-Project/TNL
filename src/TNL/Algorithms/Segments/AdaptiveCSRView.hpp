@@ -79,14 +79,16 @@ AdaptiveCSRView< Device, Index >::getSegmentsType()
 }
 
 template< typename Device, typename Index >
-[[nodiscard]] auto
+[[nodiscard]] __cuda_callable__
+auto
 AdaptiveCSRView< Device, Index >::getView() -> ViewType
 {
    return *this;
 }
 
 template< typename Device, typename Index >
-[[nodiscard]] auto
+[[nodiscard]] __cuda_callable__
+auto
 AdaptiveCSRView< Device, Index >::getConstView() const -> ConstViewType
 {
    using BaseConstViewType = typename Base::ConstViewType;

@@ -373,7 +373,6 @@ void
 test_ForElements()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
@@ -443,7 +442,6 @@ void
 test_ForElementsWithArray()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
@@ -520,7 +518,6 @@ void
 test_ForElementsIf()
 {
    using RealType = typename Matrix::RealType;
-   using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
    using DiagonalOffsetsType = typename Matrix::DiagonalOffsetsType;
 
