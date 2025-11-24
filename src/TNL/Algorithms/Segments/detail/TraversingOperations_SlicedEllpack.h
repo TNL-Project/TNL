@@ -110,7 +110,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
    forElements( const ConstViewType& segments,
                 IndexBegin begin,
                 IndexEnd end,
-                Function function,  // TODO: Function&& does not work here - why???
+                Function&& function,
                 LaunchConfiguration launchConfig )
    {
       if( end <= begin )
@@ -146,15 +146,18 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-                  constexpr auto kernel =
-                     forElementsKernel_SlicedEllpack< ConstViewType, IndexType, Function, Organization, SliceSize >;
+                  constexpr auto kernel = forElementsKernel_SlicedEllpack< ConstViewType,
+                                                                           IndexType,
+                                                                           std::remove_reference_t< Function >,
+                                                                           Organization,
+                                                                           SliceSize >;
                   Backend::launchKernelAsync(
                      kernel, launchConfig, gridIdx, launchConfig.getThreadsPerSegmentCount(), segments, begin, end, function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
                   constexpr auto kernel = forElementsBlockMergeKernel_SlicedEllpack< ConstViewType,
                                                                                      IndexType,
-                                                                                     Function,
+                                                                                     std::remove_reference_t< Function >,
                                                                                      Organization,
                                                                                      SliceSize,
                                                                                      256 >;
@@ -276,7 +279,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                 const Array& segmentIndexes,
                 IndexBegin begin,
                 IndexEnd end,
-                Function function,  // TODO: Function&& does not work here - why???
+                Function&& function,
                 LaunchConfiguration launchConfig )
    {
       if( launchConfig.blockSize.x == 1 )
@@ -304,12 +307,13 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-                  constexpr auto kernel = forElementsWithSegmentIndexesKernel_SlicedEllpack< ConstViewType,
-                                                                                             typename Array::ConstViewType,
-                                                                                             IndexType,
-                                                                                             Function,
-                                                                                             Organization,
-                                                                                             SliceSize >;
+                  constexpr auto kernel =
+                     forElementsWithSegmentIndexesKernel_SlicedEllpack< ConstViewType,
+                                                                        typename Array::ConstViewType,
+                                                                        IndexType,
+                                                                        std::remove_reference_t< Function >,
+                                                                        Organization,
+                                                                        SliceSize >;
                   Backend::launchKernelAsync( kernel,
                                               launchConfig,
                                               gridIdx,
@@ -325,7 +329,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                      forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack< ConstViewType,
                                                                                   typename Array::ConstViewType,
                                                                                   IndexType,
-                                                                                  Function,
+                                                                                  std::remove_reference_t< Function >,
                                                                                   Organization,
                                                                                   SliceSize,
                                                                                   256,    // SegmentsPerBlock
@@ -358,8 +362,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
    forElementsIfSequential( const ConstViewType& segments,
                             IndexBegin begin,
                             IndexEnd end,
-                            Condition condition,
-                            Function function,
+                            Condition&& condition,
+                            Function&& function,
                             const LaunchConfiguration& launchConfig )
    {
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
@@ -449,8 +453,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
    forElementsIf( const ConstViewType& segments,
                   IndexBegin begin,
                   IndexEnd end,
-                  Condition condition,
-                  Function function,
+                  Condition&& condition,
+                  Function&& function,
                   LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
@@ -476,8 +480,12 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
 
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-                  constexpr auto kernel =
-                     forElementsIfKernel_SlicedEllpack< ConstViewType, IndexType, Condition, Function, Organization, SliceSize >;
+                  constexpr auto kernel = forElementsIfKernel_SlicedEllpack< ConstViewType,
+                                                                             IndexType,
+                                                                             std::remove_reference_t< Condition >,
+                                                                             std::remove_reference_t< Function >,
+                                                                             Organization,
+                                                                             SliceSize >;
                   Backend::launchKernelAsync( kernel,
                                               launch_config,
                                               gridIdx,
@@ -491,8 +499,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
                   constexpr auto kernel = forElementsIfBlockMergeKernel_SlicedEllpack< ConstViewType,
                                                                                        IndexType,
-                                                                                       Condition,
-                                                                                       Function,
+                                                                                       std::remove_reference_t< Condition >,
+                                                                                       std::remove_reference_t< Function >,
                                                                                        Organization,
                                                                                        SliceSize,
                                                                                        256,
