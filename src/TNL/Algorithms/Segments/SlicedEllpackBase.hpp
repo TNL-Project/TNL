@@ -51,7 +51,8 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 std::string
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentsType()
 {
-   return "SlicedEllpack";
+   return ( getOrganization() == RowMajorOrder ? "RowMajor " : "ColumnMajor " ) + std::string( "SlicedEllpack " )
+        + std::to_string( SliceSize );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
