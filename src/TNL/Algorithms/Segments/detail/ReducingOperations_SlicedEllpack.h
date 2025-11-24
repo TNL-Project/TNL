@@ -94,9 +94,9 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    reduceSegments( const ConstViewType& segments,
                    IndexBegin begin,
                    IndexEnd end,
-                   Fetch fetch,          // TODO: && does not work here for some reason
-                   Reduction reduction,  // TODO: && does not work here for some reason
-                   ResultKeeper keeper,  // TODO: && does not work here for some reason
+                   Fetch&& fetch,
+                   Reduction&& reduction,
+                   ResultKeeper&& keeper,
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
@@ -155,9 +155,9 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                       ConstViewType,
                                                                                       IndexType,
                                                                                       IndexType,
-                                                                                      Fetch,
-                                                                                      Reduction,
-                                                                                      ResultKeeper,
+                                                                                      std::remove_reference_t< Fetch >,
+                                                                                      std::remove_reference_t< Reduction >,
+                                                                                      std::remove_reference_t< ResultKeeper >,
                                                                                       Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -190,9 +190,9 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                       ConstViewType,
                                                                                       IndexType,
                                                                                       IndexType,
-                                                                                      Fetch,
-                                                                                      Reduction,
-                                                                                      ResultKeeper,
+                                                                                      std::remove_reference_t< Fetch >,
+                                                                                      std::remove_reference_t< Reduction >,
+                                                                                      std::remove_reference_t< ResultKeeper >,
                                                                                       Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -226,9 +226,9 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                       ConstViewType,
                                                                                       IndexType,
                                                                                       IndexType,
-                                                                                      Fetch,
-                                                                                      Reduction,
-                                                                                      ResultKeeper,
+                                                                                      std::remove_reference_t< Fetch >,
+                                                                                      std::remove_reference_t< Reduction >,
+                                                                                      std::remove_reference_t< ResultKeeper >,
                                                                                       Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -262,9 +262,9 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                       ConstViewType,
                                                                                       IndexType,
                                                                                       IndexType,
-                                                                                      Fetch,
-                                                                                      Reduction,
-                                                                                      ResultKeeper,
+                                                                                      std::remove_reference_t< Fetch >,
+                                                                                      std::remove_reference_t< Reduction >,
+                                                                                      std::remove_reference_t< ResultKeeper >,
                                                                                       Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -298,9 +298,9 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                       ConstViewType,
                                                                                       IndexType,
                                                                                       IndexType,
-                                                                                      Fetch,
-                                                                                      Reduction,
-                                                                                      ResultKeeper,
+                                                                                      std::remove_reference_t< Fetch >,
+                                                                                      std::remove_reference_t< Reduction >,
+                                                                                      std::remove_reference_t< ResultKeeper >,
                                                                                       Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
