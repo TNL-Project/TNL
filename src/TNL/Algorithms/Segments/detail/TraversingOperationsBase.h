@@ -18,8 +18,8 @@ struct TraversingOperationsBase
    forElementsIfSparse( const ConstViewType& segments,
                         IndexBegin begin,
                         IndexEnd end,
-                        Condition condition,
-                        Function function,
+                        Condition&& condition,
+                        Function&& function,
                         LaunchConfiguration launchConfig )
    {
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;

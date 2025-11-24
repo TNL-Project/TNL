@@ -33,9 +33,9 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
    reduceSegments( const ConstViewType& segments,
                    IndexBegin begin,
                    IndexEnd end,
-                   Fetch fetch,          // TODO Fetch&& does not work with nvcc
-                   Reduction reduction,  // TODO Reduction&& does not work with nvcc
-                   ResultKeeper keeper,  // TODO ResultKeeper&& does not work with nvcc
+                   Fetch&& fetch,
+                   Reduction&& reduction,
+                   ResultKeeper&& keeper,
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
@@ -176,9 +176,9 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                                      const Array& segmentIndexes,
                                      IndexBegin begin,
                                      IndexEnd end,
-                                     Fetch fetch,          // TODO Fetch&& does not work with nvcc
-                                     Reduction reduction,  // TODO Reduction&& does not work with nvcc
-                                     ResultKeeper keeper,  // TODO ResultKeeper&& does not work with nvcc
+                                     Fetch&& fetch,
+                                     Reduction&& reduction,
+                                     ResultKeeper&& keeper,
                                      const Value& identity,
                                      const LaunchConfiguration& launchConfig )
    {
@@ -243,9 +243,9 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
    reduceSegmentsWithArgument( const ConstViewType& segments,
                                IndexBegin begin,
                                IndexEnd end,
-                               Fetch fetch,          // TODO Fetch&& fetch does not work here with CUDA
-                               Reduction reduction,  // TODO Reduction&& reduction does not work here with CUDA
-                               ResultKeeper keeper,  // TODO ResultKeeper&& keeper does not work here with CUDA
+                               Fetch&& fetch,
+                               Reduction&& reduction,
+                               ResultKeeper&& keeper,
                                const Value& identity,
                                const LaunchConfiguration& launchConfig )
    {
@@ -336,16 +336,15 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
              typename ResultKeeper,
              typename Value >
    static void
-   reduceSegmentsWithSegmentIndexesAndArgument(
-      const ConstViewType& segments,
-      const Array& segmentIndexes,
-      IndexBegin begin,
-      IndexEnd end,
-      Fetch fetch,          // TODO: Fetch&& fetch does not work here with CUDA
-      Reduction reduction,  // TODO: Reduction&& reduction does not work here with CUDA
-      ResultKeeper keeper,  // TODO: ResultKeeper&& keeper does not work here with CUDA
-      const Value& identity,
-      LaunchConfiguration launchConfig )
+   reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
+                                                const Array& segmentIndexes,
+                                                IndexBegin begin,
+                                                IndexEnd end,
+                                                Fetch&& fetch,
+                                                Reduction&& reduction,
+                                                ResultKeeper&& keeper,
+                                                const Value& identity,
+                                                LaunchConfiguration launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
 
