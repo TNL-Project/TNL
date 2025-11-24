@@ -9,9 +9,9 @@ namespace TNL::Algorithms::Segments {
 
 template< typename EmbeddedSegments >
 __cuda_callable__
-SortedSegmentsView< EmbeddedSegments >::SortedSegmentsView( typename Base::EmbeddedSegmentsView embeddedSegmentsView,
-                                                            typename Base::PermutationView segmentsPermutation,
-                                                            typename Base::PermutationView inverseSegmentsPermutation )
+SortedSegmentsView< EmbeddedSegments >::SortedSegmentsView( EmbeddedSegmentsView embeddedSegmentsView,
+                                                            PermutationView segmentsPermutation,
+                                                            PermutationView inverseSegmentsPermutation )
 {
    Base::bind( embeddedSegmentsView, segmentsPermutation, inverseSegmentsPermutation );
 }

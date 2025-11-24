@@ -279,7 +279,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
    const Index segmentIdx =
       threadIdx.x < ( BlockSize / threadsPerSegment )
          ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
-         : -1;
+         : (Index) -1;
    bool reduce_segment = ( segmentIdx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
@@ -695,7 +695,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
    const Index segmentIdx_idx =
       threadIdx.x < ( BlockSize / threadsPerSegment )
          ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
-         : -1;
+         : (Index) -1;
    bool reduce_segment = ( segmentIdx_idx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
