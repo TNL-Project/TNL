@@ -32,9 +32,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
    reduceSegments( const ConstViewType& segments,
                    IndexBegin begin,
                    IndexEnd end,
-                   Fetch fetch,          // TODO Fetch&& does not work with nvcc
-                   Reduction reduction,  // TODO Reduction&& does not work with nvcc
-                   ResultKeeper keeper,  // TODO ResultKeeper&& does not work with nvcc
+                   Fetch&& fetch,
+                   Reduction&& reduction,
+                   ResultKeeper&& keeper,
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
@@ -96,8 +96,13 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel =
-               BiEllpackReduceSegmentsKernel< ConstSegmentsView, IndexType, Fetch, Reduction, ResultKeeper, Value, BlockDim >;
+            constexpr auto kernel = BiEllpackReduceSegmentsKernel< ConstSegmentsView,
+                                                                   IndexType,
+                                                                   std::remove_reference_t< Fetch >,
+                                                                   std::remove_reference_t< Reduction >,
+                                                                   std::remove_reference_t< ResultKeeper >,
+                                                                   Value,
+                                                                   BlockDim >;
             Backend::launchKernelAsync(
                kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
          }
@@ -117,9 +122,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
                                      const Array& segmentIndexes,
                                      IndexBegin begin,
                                      IndexEnd end,
-                                     Fetch fetch,          // TODO Fetch&& does not work with nvcc
-                                     Reduction reduction,  // TODO Reduction&& does not work with nvcc
-                                     ResultKeeper keeper,  // TODO ResultKeeper&& does not work with nvcc
+                                     Fetch&& fetch,
+                                     Reduction&& reduction,
+                                     ResultKeeper&& keeper,
                                      const Value& identity,
                                      const LaunchConfiguration& launchConfig )
    {
@@ -187,9 +192,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             constexpr auto kernel = BiEllpackReduceSegmentsKernelWithIndexes< ConstSegmentsView,
                                                                               ArrayView,
                                                                               IndexType,
-                                                                              Fetch,
-                                                                              Reduction,
-                                                                              ResultKeeper,
+                                                                              std::remove_reference_t< Fetch >,
+                                                                              std::remove_reference_t< Reduction >,
+                                                                              std::remove_reference_t< ResultKeeper >,
                                                                               Value,
                                                                               BlockDim >;
             Backend::launchKernelAsync( kernel,
@@ -218,9 +223,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
    reduceSegmentsWithArgument( const ConstViewType& segments,
                                IndexBegin begin,
                                IndexEnd end,
-                               Fetch fetch,          // TODO Fetch&& does not work with nvcc
-                               Reduction reduction,  // TODO Reduction&& does not work with nvcc
-                               ResultKeeper keeper,  // TODO ResultKeeper&& does not work with nvcc
+                               Fetch&& fetch,
+                               Reduction&& reduction,
+                               ResultKeeper&& keeper,
                                const Value& identity,
                                const LaunchConfiguration& launchConfig )
    {
@@ -288,9 +293,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
             constexpr auto kernel = BiEllpackReduceSegmentsKernelWithArgument< ConstSegmentsView,
                                                                                IndexType,
-                                                                               Fetch,
-                                                                               Reduction,
-                                                                               ResultKeeper,
+                                                                               std::remove_reference_t< Fetch >,
+                                                                               std::remove_reference_t< Reduction >,
+                                                                               std::remove_reference_t< ResultKeeper >,
                                                                                Value,
                                                                                BlockDim >;
             Backend::launchKernelAsync(
@@ -312,9 +317,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
                                                 const Array& segmentIndexes,
                                                 IndexBegin begin,
                                                 IndexEnd end,
-                                                Fetch fetch,          // TODO Fetch&& does not work with nvcc
-                                                Reduction reduction,  // TODO Reduction&& does not work with nvcc
-                                                ResultKeeper keeper,  // TODO ResultKeeper&& does not work with nvcc
+                                                Fetch&& fetch,
+                                                Reduction&& reduction,
+                                                ResultKeeper&& keeper,
                                                 const Value& identity,
                                                 const LaunchConfiguration& launchConfig )
    {
@@ -383,14 +388,15 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = BiEllpackReduceSegmentsKernelWithIndexesAndArgument< ConstSegmentsView,
-                                                                                         ArrayView,
-                                                                                         IndexType,
-                                                                                         Fetch,
-                                                                                         Reduction,
-                                                                                         ResultKeeper,
-                                                                                         Value,
-                                                                                         BlockDim >;
+            constexpr auto kernel =
+               BiEllpackReduceSegmentsKernelWithIndexesAndArgument< ConstSegmentsView,
+                                                                    ArrayView,
+                                                                    IndexType,
+                                                                    std::remove_reference_t< Fetch >,
+                                                                    std::remove_reference_t< Reduction >,
+                                                                    std::remove_reference_t< ResultKeeper >,
+                                                                    Value,
+                                                                    BlockDim >;
             Backend::launchKernelAsync( kernel,
                                         launch_config,
                                         segments.getConstView(),

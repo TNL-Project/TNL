@@ -196,8 +196,8 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
    forElementsIf( const ConstViewType& segments,
                   IndexBegin begin,
                   IndexEnd end,
-                  Condition condition,
-                  Function function,
+                  Condition&& condition,
+                  Function&& function,
                   const LaunchConfiguration& launchConfig )
    {
       const IndexType chunksInSlice = segments.getChunksInSlice();

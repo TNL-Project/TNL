@@ -90,7 +90,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                 const Array& segmentIndexes,
                 IndexBegin begin,
                 IndexEnd end,
-                Function function,  // TODO: Function&& function does not work here
+                Function&& function,
                 LaunchConfiguration launchConfig )
    {
       if( end <= begin )
@@ -138,8 +138,8 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
    forElementsIf( const ConstViewType& segments,
                   IndexBegin begin,
                   IndexEnd end,
-                  Condition condition,
-                  Function function,
+                  Condition&& condition,
+                  Function&& function,
                   LaunchConfiguration launchConfig )
    {
       if( end <= begin )
@@ -186,8 +186,8 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
    forElementsIfSparse( const ConstViewType& segments,
                         IndexBegin begin,
                         IndexEnd end,
-                        Condition condition,
-                        Function function,
+                        Condition&& condition,
+                        Function&& function,
                         LaunchConfiguration launchConfig )
    {
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
