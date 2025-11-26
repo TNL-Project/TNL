@@ -36,6 +36,11 @@ TYPED_TEST( SortedAdaptiveCSRReduceSegmentsTest, reduceSegments_MaximumInSegment
    test_reduceSegments_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST( SortedAdaptiveCSRReduceSegmentsTest, reduceSegments_MaximumInTriangularSegments )
+{
+   test_reduceSegments_MaximumInTriangularSegments< typename TestFixture::SegmentsType >();
+}
+
 TYPED_TEST( SortedAdaptiveCSRReduceSegmentsTest, reduceSegments_MaximumInSegments_short_fetch )
 {
    test_reduceSegments_MaximumInSegments_short_fetch< typename TestFixture::SegmentsType >();

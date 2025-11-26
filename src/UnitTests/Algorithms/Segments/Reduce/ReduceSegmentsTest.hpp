@@ -80,6 +80,78 @@ test_reduceSegments_MaximumInSegments()
 
 template< typename Segments >
 void
+test_reduceSegments_MaximumInTriangularSegments()
+{
+   using DeviceType = typename Segments::DeviceType;
+   using IndexType = typename Segments::IndexType;
+
+   const IndexType segmentsCount = 270;
+
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes( segmentsCount );
+   segmentsSizes.forAllElements(
+      [] __cuda_callable__( IndexType i, IndexType & value )
+      {
+         value = i + 1;
+      } );
+
+   Segments segments( segmentsSizes );
+
+   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+      SCOPED_TRACE( tag );
+
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
+
+      auto view = v.getView();
+      auto init = [ = ] __cuda_callable__(
+                     const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable -> bool
+      {
+         TNL_ASSERT_LT( globalIdx, view.getSize(), "" );
+         view[ globalIdx ] = localIdx + 1;
+         return true;
+      };
+      TNL::Algorithms::Segments::forAllElements( segments, init );
+
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount );
+
+      const auto v_view = v.getConstView();
+      auto result_view = result.getView();
+      auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> IndexType
+      {
+         // some segments may use padding zeros and their size may be greater than the original segment size
+         if( localIdx <= segmentIdx )
+            return v_view[ globalIdx ];
+         return 0;
+      };
+      auto reduce = [] __cuda_callable__( IndexType & a, const IndexType b ) -> IndexType
+      {
+         return TNL::max( a, b );
+      };
+      auto keep = [ = ] __cuda_callable__( const IndexType i, const IndexType a ) mutable
+      {
+         result_view[ i ] = a;
+      };
+      TNL::Algorithms::Segments::reduceAllSegments(
+         segments, fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
+
+      for( IndexType i = 0; i < segmentsCount; i++ )
+         EXPECT_EQ( result.getElement( i ), i + 1 ) << "segmentIdx = " << i;
+
+      result_view = 0;
+      TNL::Algorithms::Segments::reduceAllSegments(
+         segments.getView(), fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
+      for( IndexType i = 0; i < segmentsCount; i++ )
+         EXPECT_EQ( result.getElement( i ), i + 1 ) << "segmentIdx = " << i;
+
+      TNL::Algorithms::Segments::reduceSegments(
+         segments, 29, 193, fetch, reduce, keep, std::numeric_limits< IndexType >::min(), launch_config );
+
+      for( IndexType i = 29; i < 193; i++ )
+         EXPECT_EQ( result.getElement( i ), i + 1 ) << "segmentIdx = " << i;
+   }
+}
+
+template< typename Segments >
+void
 test_reduceSegments_MaximumInSegments_short_fetch()
 {
    // This test calls the fetch function only with the globalIdx parameter.
