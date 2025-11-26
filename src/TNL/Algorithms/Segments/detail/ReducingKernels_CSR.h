@@ -284,7 +284,6 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
 
    // Processing segments larger than BlockSize
    __shared__ Index scheduled_segment[ 1 ];
-   ReturnType result = identity;
 
    Index segment_size = -1;
    if( reduce_segment ) {
@@ -292,23 +291,23 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
    }
 
    if( threadIdx.x == 0 )
-      scheduled_segment[ 0 ] = none_scheduled;
+      *scheduled_segment = none_scheduled;
    __syncthreads();
    while( true ) {
       if( reduce_segment && segment_size > BlockSize ) {
-         AtomicOperations< Devices::GPU >::CAS( scheduled_segment[ 0 ], scheduled_segment[ 0 ], segmentIdx );
+         AtomicOperations< Devices::GPU >::CAS( *scheduled_segment, *scheduled_segment, segmentIdx );
       }
       __syncthreads();
-      if( scheduled_segment[ 0 ] == none_scheduled )
+      if( *scheduled_segment == none_scheduled )
          break;
 
-      Index globalIdx = offsets[ scheduled_segment[ 0 ] ];
-      const Index endIdx = offsets[ scheduled_segment[ 0 ] + 1 ];
-
+      ReturnType result = identity;
+      Index globalIdx = offsets[ *scheduled_segment ] + threadIdx.x;
+      const Index endIdx = offsets[ *scheduled_segment + 1 ];
       if constexpr( argumentCount< Fetch >() == 3 ) {
          Index localIdx = threadIdx.x;
          while( globalIdx < endIdx ) {
-            result = reduce( result, fetch( scheduled_segment[ 0 ], localIdx, globalIdx ) );
+            result = reduce( result, fetch( *scheduled_segment, localIdx, globalIdx ) );
             localIdx += BlockSize;
             globalIdx += BlockSize;
          }
@@ -318,11 +317,6 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
             result = reduce( result, fetch( globalIdx ) );
             globalIdx += BlockSize;
          }
-      if( segmentIdx == scheduled_segment[ 0 ] ) {
-         reduce_segment = false;
-         scheduled_segment[ 0 ] = none_scheduled;
-      }
-      __syncthreads();
 
       // Reduction in each warp which means in each segment.
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
@@ -331,8 +325,18 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
       result = BlockReduce::reduce( reduce, identity, result, threadIdx.x, storage );
 
       // Write the result
-      if( threadIdx.x == 0 )
-         keep( scheduled_segment[ 0 ], result );
+      if( threadIdx.x == 0 ) {
+         TNL_ASSERT_NE( *scheduled_segment, none_scheduled, "" );
+         keep( *scheduled_segment, result );
+      }
+      __syncthreads();
+
+      // Mark segment as processed
+      if( segmentIdx == *scheduled_segment ) {
+         reduce_segment = false;
+         *scheduled_segment = none_scheduled;
+      }
+      __syncthreads();
    }
 
    // Processing segments smaller than BlockSize and larger the warp size
@@ -355,7 +359,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
       Index scheduled_segment = warps_scheduler[ warp_idx ];
       Index globalIdx = offsets[ scheduled_segment ] + ( threadIdx.x & ( warpSize - 1 ) );  // & is cheaper than %
       const Index endIdx = offsets[ scheduled_segment + 1 ];
-      result = identity;
+      ReturnType result = identity;
       if constexpr( argumentCount< Fetch >() == 3 ) {
          Index localIdx = threadIdx.x & ( warpSize - 1 );  // & is cheaper than %
          for( ; globalIdx < endIdx; globalIdx += warpSize ) {
@@ -374,8 +378,10 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
       result = BlockReduce::warpReduce( reduce, result );
 
       // Write the result
-      if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 )  // first lane in the warp
+      if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 ) {  // first lane in the warp
+         TNL_ASSERT_NE( scheduled_segment, none_scheduled, "" );
          keep( scheduled_segment, result );
+      }
       warp_idx += warpsPerBlock;
    }
 
@@ -383,7 +389,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
    if( reduce_segment ) {
       Index globalIdx = offsets[ segmentIdx ];
       const Index endIdx = offsets[ segmentIdx + 1 ];
-      result = identity;
+      ReturnType result = identity;
       if constexpr( argumentCount< Fetch >() == 3 ) {
          Index localIdx = 0;
          for( ; globalIdx < endIdx; globalIdx++ ) {
@@ -397,6 +403,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
          }
       }
       // Write the result
+      TNL_ASSERT_NE( segmentIdx, none_scheduled, "" );
       keep( segmentIdx, result );
    }
 #endif
