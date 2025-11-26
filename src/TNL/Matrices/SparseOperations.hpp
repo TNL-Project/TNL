@@ -143,8 +143,9 @@ copySparseToDenseMatrix( Matrix1& A, const Matrix2& B )
             for( RHSIndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
                const RHSIndexType columnIndex = row.getColumnIndex( localIdx );
                const RHSRealType value = row.getValue( localIdx );
-               if( columnIndex != paddingIndex< Index > && columnIndex >= 0 && columnIndex < B_view.getColumns() )
-               {  // columnIndex >= 0 && columnIndex < A_view.getColumns() is necessary because of the tridiagonal and
+               if( columnIndex != paddingIndex< Index > && columnIndex >= 0
+                   && columnIndex < B_view.getColumns() ) {  // columnIndex >= 0 && columnIndex < A_view.getColumns() is
+                                                             // necessary because of the tridiagonal and
                   // multidiagonal matrices
                   const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + localIdx;
                   matrixColumnsBuffer_view[ bufferIdx ] = columnIndex;
@@ -258,6 +259,10 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
          // zero matrix elements.
          const Index matrix_columns = A.getColumns();
          auto A_view = A.getView();
+         constexpr Index padding_index = paddingIndex< Index >;  // this is just to avoid nvcc error: identifier
+                                                                 // "TNL::Matrices::paddingIndex<int> " is undefined in device
+                                                                 // code From src/UnitTests/Matrices/SparseMatrixCopyTest.cu
+
          auto f2 = [ = ] __cuda_callable__( const Index rowIdx ) mutable
          {
             auto row = A_view.getRow( rowIdx );
@@ -270,9 +275,7 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
                }
                rowLocalIndexes_view[ rowIdx ] = column;
                if( inValue == Real{ 0 } ) {
-                  row.setColumnIndex( localIdx, -1 );  //paddingIndex< Index > );
-                  // TODO:: Fix - SparseOperations.hpp(532): error: identifier "TNL::Matrices::paddingIndex<int> " is undefined
-                  // in device code From src/UnitTests/Matrices/SparseMatrixCopyTest.cu
+                  row.setColumnIndex( localIdx, padding_index );
                   row.setValue( localIdx, 0 );
                }
                else {
@@ -331,6 +334,9 @@ copyBuffersToMatrixElements( Matrix& m,
                              IndexVectorView rowLocalIndexes_view )
 {
    using Real = typename Matrix::RealType;
+   constexpr Index padding_index = paddingIndex< Index >;  // this is just to avoid nvcc error: identifier
+                                                           // "TNL::Matrices::paddingIndex<int> " is undefined in device
+                                                           // code From src/UnitTests/Matrices/SparseMatrixCopyTest.cu
 
    auto thisRowLengths_view = thisRowLengths.getView();
    auto m_view = m.getView();
@@ -343,14 +349,11 @@ copyBuffersToMatrixElements( Matrix& m,
          Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
          while( inValue == Real{ 0 } && localIdx < thisRowLengths_view[ rowIdx ] ) {
             bufferIdx = ( rowIdx - baseRow ) * maxRowLength + bufferLocalIdx++;
-            //TNL_ASSERT_LT( bufferIdx, bufferSize, "" );
             inValue = thisValuesBuffer_view[ bufferIdx ];
          }
          rowLocalIndexes_view[ rowIdx ] = bufferLocalIdx;
          if( inValue == Real{ 0 } ) {
-            row.setColumnIndex( localIdx, -1 );  //paddingIndex< Index > );
-            // TODO:: Fix - SparseOperations.hpp(532): error: identifier "TNL::Matrices::paddingIndex<int> " is undefined
-            // in device code From Documentation/Examples/Matrices/MatrixWriterReaderExample.cu
+            row.setColumnIndex( localIdx, padding_index );
             row.setValue( localIdx, 0 );
          }
          else {
@@ -403,8 +406,6 @@ copySparseToSparseMatrix( Matrix1& A, const Matrix2& B )
                TNL_ASSERT_GE( thisGlobalIdx,
                               0,
                               "Global index must be non-negative. Negative values may appear due to Index type overflow." );
-               //printf( "rowIdx = %d A:localIdx = %d columnIdx = %d B:localIdx = %d value = %d \n", rowIdx, bLocalIdx,
-               //columnIdx, aLocalIdx, row.getValue( bLocalIdx) );
                columns_view[ thisGlobalIdx ] = columnIdx;
                if( ! Matrix1::isBinary() )
                   values_view[ thisGlobalIdx ] = row.getValue( bLocalIdx );
