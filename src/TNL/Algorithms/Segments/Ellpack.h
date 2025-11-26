@@ -35,7 +35,7 @@ namespace TNL::Algorithms::Segments {
 template< typename Device,
           typename Index,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = DefaultElementsOrganization< Device >::getOrganization(),
+          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
           int Alignment = 32 >
 class Ellpack : public EllpackBase< Device, Index, Organization, Alignment >
 {
