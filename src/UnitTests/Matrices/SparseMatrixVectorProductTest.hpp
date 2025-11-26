@@ -490,7 +490,7 @@ test_VectorProduct_largeMatrix()
       TNL::Containers::Vector< OutRealType, DeviceType, IndexType > out( size, 0.0 );
       m2.vectorProduct( in, out, launch_config );
       for( IndexType i = 0; i < rows; i++ )
-         EXPECT_EQ( out.getElement( i ), OutRealType( ( i + 1 ) * ( i + 2 ) / 2 ) );
+         EXPECT_EQ( out.getElement( i ), OutRealType( ( i + 1 ) * ( i + 2 ) / 2 ) ) << " at row " << i;
    }
 }
 
