@@ -41,6 +41,11 @@ TYPED_TEST( EllpackReduceSegmentsTest, reduceSegments_MaximumInSegments )
    test_reduceSegments_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
+TYPED_TEST( EllpackReduceSegmentsTest, reduceSegments_MaximumInTriangularSegments )
+{
+   test_reduceSegments_MaximumInTriangularSegments< typename TestFixture::SegmentsType >();
+}
+
 TYPED_TEST( EllpackReduceSegmentsTest, reduceSegments_MaximumInSegments_short_fetch )
 {
    test_reduceSegments_MaximumInSegments_short_fetch< typename TestFixture::SegmentsType >();
