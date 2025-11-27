@@ -43,7 +43,7 @@
    #include "hipblasWrappers.h"
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
    #include <thrust/reduce.h>
    #include <thrust/transform_reduce.h>
    #include <thrust/inner_product.h>
@@ -304,7 +304,7 @@ public:
       verify( "GPU ET", resultDevice, 1.0 );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          resultHost = *thrust::max_element( thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize() );
@@ -369,7 +369,7 @@ public:
       verify( "GPU ET", resultDevice, 1.0 );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          resultHost = *thrust::min_element( thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize() );
@@ -462,7 +462,7 @@ public:
       verify( gpuBlasName, resultDevice, 1.0 );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          resultHost = *thrust::max_element( thrust::host,
@@ -567,7 +567,7 @@ public:
       verify( gpuBlasName, resultDevice, 1.0 );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          resultHost = *thrust::min_element( thrust::host,
@@ -642,7 +642,7 @@ public:
       verify( "GPU ET", resultDevice, size );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          resultHost = thrust::reduce( thrust::host, hostVector.getData(), hostVector.getData() + hostVector.getSize() );
@@ -732,7 +732,7 @@ public:
       verify( gpuBlasName, resultDevice, size );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          resultHost = thrust::transform_reduce(
@@ -839,7 +839,7 @@ public:
       verify( gpuBlasName, resultDevice, std::sqrt( size ) );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          const auto sum = thrust::transform_reduce(
@@ -928,7 +928,7 @@ public:
       verify( "GPU ET", resultDevice, std::cbrt( size ) );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          const auto sum = thrust::transform_reduce(
@@ -1034,7 +1034,7 @@ public:
       verify( gpuBlasName, resultDevice, size );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          resultHost = thrust::inner_product( thrust::host,
@@ -1432,7 +1432,7 @@ public:
       verify( "GPU ET", deviceVector.getElement( size - 1 ), size );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          thrust::inclusive_scan(
@@ -1497,7 +1497,7 @@ public:
       verify( "GPU ET", deviceVector2.getElement( size - 1 ), size );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          thrust::inclusive_scan(
@@ -1612,7 +1612,7 @@ public:
       verify( "GPU ET", deviceVector.getElement( size - 1 ), size - 1 );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          thrust::exclusive_scan(
@@ -1669,7 +1669,7 @@ public:
       verify( "GPU ET", deviceVector2.getElement( size - 1 ), size - 1 );
 #endif
 
-#ifdef HAVE_THRUST
+#if ( defined HAVE_THRUST ) && ( defined __CUDACC__ )
       auto computeThrust = [ & ]()
       {
          thrust::exclusive_scan(
