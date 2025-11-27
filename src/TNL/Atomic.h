@@ -97,6 +97,7 @@ atomicMax( float* address, float value )
    return __int_as_float( old );
 }
 
+   #ifndef __HIP__  // HIP has its own atomicMin for float
 __device__
 static float
 atomicMin( float* address, float value )
@@ -110,6 +111,7 @@ atomicMin( float* address, float value )
    } while( expected != old );
    return __int_as_float( old );
 }
+   #endif
 
 }  // namespace
 #endif

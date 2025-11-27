@@ -26,7 +26,6 @@ reduceSegmentsCSRAdaptiveKernel( int gridIdx,
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   using BlockType = detail::CSRAdaptiveKernelBlockDescriptor< Index >;
    constexpr int CudaBlockSize = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
    constexpr int WarpSize = Backend::getWarpSize();
    constexpr int WarpsCount = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::WarpsCount();
@@ -158,7 +157,6 @@ reduceSegmentsCSRAdaptiveKernelWithArgument( int gridIdx,
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   using BlockType = detail::CSRAdaptiveKernelBlockDescriptor< Index >;
    constexpr int CudaBlockSize = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::CudaBlockSize();
    constexpr int WarpSize = Backend::getWarpSize();
    constexpr int WarpsCount = detail::CSRAdaptiveKernelParameters< sizeof( ReturnType ) >::WarpsCount();

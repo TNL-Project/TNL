@@ -74,7 +74,9 @@ struct SegmentsBenchmark
       config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    }
 
-   SegmentsBenchmark( const TNL::Config::ParameterContainer& parameters_ ) : parameters( parameters_ ) {}
+   SegmentsBenchmark( const TNL::Config::ParameterContainer& parameters_ )
+   : parameters( parameters_ )
+   {}
 
    template< typename Device,
              template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
@@ -104,6 +106,7 @@ struct SegmentsBenchmark
       for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
          benchmark.setMetadataElement( { "threads mapping", tag } );
          auto segmentsView = segments.getView();
+         auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
          auto f = [ & ]() mutable
          {
             TNL::Algorithms::Segments::forAllElements(
@@ -113,7 +116,7 @@ struct SegmentsBenchmark
                {
                   dataView[ globalIdx ] = segmentIdx + localIdx;
                },
-               launchConfig );
+               launchConfig_ );
          };
          benchmark.time< Device >( device, f );
          HostVector dataHost( data );
@@ -145,6 +148,7 @@ struct SegmentsBenchmark
          for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
+            auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
             auto f = [ & ]() mutable
             {
                TNL::Algorithms::Segments::forElements(
@@ -155,7 +159,7 @@ struct SegmentsBenchmark
                   {
                      dataView[ globalIdx ] = 1;
                   },
-                  launchConfig );
+                  launchConfig_ );
             };
             benchmark.time< Device >( device, f );
          }
@@ -176,6 +180,7 @@ struct SegmentsBenchmark
          for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
+            auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
             auto f = [ & ]() mutable
             {
                TNL::Algorithms::Segments::forAllElementsIf(
@@ -189,7 +194,7 @@ struct SegmentsBenchmark
                   {
                      dataView[ globalIdx ] = 1;
                   },
-                  launchConfig );
+                  launchConfig_ );
             };
             benchmark.time< Device >( device, f );
          }
@@ -198,6 +203,7 @@ struct SegmentsBenchmark
          for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
+            auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
             auto f = [ & ]() mutable
             {
                TNL::Algorithms::Segments::forAllElementsIfSparse(
@@ -211,7 +217,7 @@ struct SegmentsBenchmark
                   {
                      dataView[ globalIdx ] = 1;
                   },
-                  launchConfig );
+                  launchConfig_ );
             };
             benchmark.time< Device >( device, f );
          }
@@ -234,6 +240,7 @@ struct SegmentsBenchmark
       for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
          benchmark.setMetadataElement( { "threads mapping", tag } );
          auto segmentsView = segments.getView();
+         auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
          auto f = [ & ]() mutable
          {
             TNL::Algorithms::Segments::reduceAllSegments(
@@ -247,7 +254,7 @@ struct SegmentsBenchmark
                {
                   resultView[ segmentIdx ] = result;
                },
-               launchConfig );
+               launchConfig_ );
          };
          benchmark.time< Device >( device, f );
          HostVector resultHost( result );
@@ -279,6 +286,7 @@ struct SegmentsBenchmark
          for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
+            auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
             auto f = [ & ]() mutable
             {
                TNL::Algorithms::Segments::reduceSegments(
@@ -294,7 +302,7 @@ struct SegmentsBenchmark
                   {
                      resultView[ segmentIdx ] = result;
                   },
-                  launchConfig );
+                  launchConfig_ );
             };
             benchmark.time< Device >( device, f );
             HostVector resultHost( result );
@@ -326,6 +334,7 @@ struct SegmentsBenchmark
          for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
+            auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
             auto f = [ & ]() mutable
             {
                TNL::Algorithms::Segments::reduceAllSegmentsIf(
@@ -344,7 +353,7 @@ struct SegmentsBenchmark
                   {
                      resultView[ segmentIdx ] = result;
                   },
-                  launchConfig );
+                  launchConfig_ );
             };
             benchmark.time< Device >( device, f );
             HostVector resultHost( result );
