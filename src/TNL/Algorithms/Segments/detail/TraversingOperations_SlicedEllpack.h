@@ -124,7 +124,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
          else {
-            std::size_t threadsCount;
+            std::size_t threadsCount( 0 );
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                const std::size_t segmentsCount = end - begin;
                const std::size_t slicesCount = roundUpDivision( segmentsCount, SliceSize );
