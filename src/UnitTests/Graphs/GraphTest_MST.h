@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdint>
 
+#include <TNL/Graphs/GraphOperations.h>
 #include <TNL/Graphs/minimumSpanningTree.h>
 #include <TNL/Graphs/trees.h>
 #include <TNL/Graphs/Writers/EdgeListWriter.h>
@@ -163,7 +164,7 @@ TYPED_TEST( GraphTest, test_MST_large_2 )
    TNL::Graphs::minimumSpanningTree( graph, minimum_tree, roots );
    TNL::Graphs::Writers::EdgeListWriter< GraphType >::write( "graph-10-30-mst.lst", minimum_tree );
    ASSERT_TRUE( TNL::Graphs::isTree( minimum_tree ) );
-   ASSERT_NEAR( minimum_tree.getTotalWeight(), 3.1, 0.0001 );
+   ASSERT_NEAR( TNL::Graphs::getTotalWeight( minimum_tree ), 3.1, 0.0001 );
 }
 
 TYPED_TEST( GraphTest, test_MST_large_3 )
