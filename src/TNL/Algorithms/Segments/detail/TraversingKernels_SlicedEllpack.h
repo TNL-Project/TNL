@@ -49,7 +49,6 @@ forElementsBlockMergeKernel_SlicedEllpack( const Index gridIdx,
    const Index segmentIdx = firstSegmentIdx + Backend::getGlobalThreadIdx_x( gridIdx );
    const Index segmentInSliceIdx = segmentIdx % SliceSize;
    const Index sliceIdx = segmentIdx / SliceSize;
-   const Index inSliceIdx = segmentIdx % SliceSize;
    if( threadIdx.x == 0 ) {
       firstSegmentInBlock = segmentIdx;
       firstSliceInBlockIdx = firstSegmentInBlock / SliceSize;
@@ -71,7 +70,6 @@ forElementsBlockMergeKernel_SlicedEllpack( const Index gridIdx,
    }
    __syncthreads();
 
-   const Index last_segment_in_block = min( end, firstSegmentInBlock + BlockSize );
    const Index last_idx = shared_offsets[ slicesInBlockCount ];
 
    Index idx = threadIdx.x;
@@ -82,7 +80,6 @@ forElementsBlockMergeKernel_SlicedEllpack( const Index gridIdx,
 
          const Index inSliceIdx = idx - shared_offsets[ local_sliceIdx ];
 
-         const Index segmentSize = shared_segments_size[ local_sliceIdx ];
          const Index local_segmentIdx = local_sliceIdx * SliceSize + inSliceIdx / shared_segments_size[ local_sliceIdx ];
 
          const Index globalIdx = firstSegmentInBlockOffset + idx;

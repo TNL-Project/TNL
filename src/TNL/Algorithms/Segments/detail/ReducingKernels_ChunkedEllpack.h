@@ -111,8 +111,6 @@ ChunkedEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
                                                Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-
    const Index segmentIdx_idx = begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
    if( segmentIdx_idx >= end )
       return;
@@ -253,8 +251,6 @@ ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
                                                           Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-
    const Index segmentIdx_idx = begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
    if( segmentIdx_idx >= end )
       return;

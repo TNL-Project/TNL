@@ -176,7 +176,6 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
-   constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
 
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
