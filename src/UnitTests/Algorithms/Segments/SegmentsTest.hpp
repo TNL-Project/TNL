@@ -14,14 +14,14 @@
 template< typename Segments, bool isSorted = TNL::Algorithms::Segments::isSortedSegments_v< Segments > >
 struct HostSegmentsGetter
 {
-   using type = typename Segments::Self< TNL::Devices::Host >;
+   using type = typename Segments::template Self< TNL::Devices::Host >;
 };
 
 template< typename Segments >
 struct HostSegmentsGetter< Segments, true >
 {
    using type =
-      TNL::Algorithms::Segments::SortedSegments< typename Segments::EmbeddedSegmentsType::Self< TNL::Devices::Host > >;
+      TNL::Algorithms::Segments::SortedSegments< typename Segments::EmbeddedSegmentsType::template Self< TNL::Devices::Host > >;
 };
 
 template< typename Segments >

@@ -264,7 +264,7 @@ forElementsWithSegmentIndexesDynamicGroupingKernel_CSR( const Index gridIdx,
 
    const Index segmentIdx_ptr = begin + Backend::getGlobalThreadIdx_x( gridIdx );
 
-   Index segmentIdx;
+   Index segmentIdx( 0 );
    bool traverse_segment( false );
    if( segmentIdx_ptr < end ) {
       TNL_ASSERT_GE( segmentIdx_ptr, 0, "" );

@@ -5,6 +5,7 @@
 
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Graphs/GraphOperations.h>
 #include <TNL/Graphs/Readers/EdgeListReader.h>
 #include <TNL/Graphs/Readers/MtxReader.h>
 #include <TNL/Graphs/Writers/EdgeListWriter.h>
@@ -547,7 +548,7 @@ struct GraphsBenchmark
             this->errors++;
          }
 #ifdef HAVE_BOOST
-         Real mstTotalWeight = mstGraph.getTotalWeight();
+         Real mstTotalWeight = TNL::Graphs::getTotalWeight( mstGraph );
          if( mstTotalWeight != boostMSTTotalWeight ) {
             std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!" << std::endl;
             std::cout << "Boost MST total weight: " << boostMSTTotalWeight << std::endl;
