@@ -91,7 +91,7 @@ struct Graph
     */
    Graph( IndexType nodesCount,
           const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
-          Matrices::SymmetricMatrixEncoding encoding = Matrices::SymmetricMatrixEncoding::LowerPart );
+          Matrices::MatrixElementsEncoding encoding = Matrices::MatrixElementsEncoding::Complete );
 
    /**
     * \brief Constructor with number of nodes and edges given as a map.
@@ -109,7 +109,7 @@ struct Graph
    template< typename MapIndex, typename MapValue >
    Graph( IndexType nodesCount,
           const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-          Matrices::SymmetricMatrixEncoding encoding = Matrices::SymmetricMatrixEncoding::LowerPart );
+          Matrices::MatrixElementsEncoding encoding = Matrices::MatrixElementsEncoding::Complete );
 
    //! \brief Copy-assignment operator.
    Graph&
@@ -170,10 +170,12 @@ struct Graph
    getAdjacencyMatrix();
 
    //! \brief Sets the adjacency matrix of the graph.
-   void setAdjacencyMatrix( const MatrixType& matrix );
+   void
+   setAdjacencyMatrix( const MatrixType& matrix );
 
    //! \brief Sets the adjacency matrix of the graph.
-   void setAdjacencyMatrix( MatrixType&& matrix );
+   void
+   setAdjacencyMatrix( MatrixType&& matrix );
 
    /**
     * \brief Sets the adjacency matrix of the graph.

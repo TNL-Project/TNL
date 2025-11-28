@@ -18,7 +18,8 @@ symmetricSparseMatrixExample()
          { 3, 0, 4.0 }, { 3, 3, 1.0 },
          { 4, 0, 5.0 }, { 4, 4, 1.0 },
          // clang-format on
-      } );
+      },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
 
    std::cout << "Symmetric sparse matrix:\n" << symmetricMatrix << '\n';
 

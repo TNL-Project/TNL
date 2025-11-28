@@ -49,7 +49,7 @@ TYPED_TEST( GraphTest, test_isTree_small )
                                                                                                {3, 7, 1},
                                                                                                            {4, 8, 1},
                                                                                                                        {5, 9, 1}
-        }, TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
+        }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    // clang-format on
 
    ASSERT_TRUE( TNL::Graphs::isTree( graph ) );
@@ -70,7 +70,7 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
                                                                                                {3, 7, 1},
                                                                                                            {4, 8, 1},
             { 5, 0, 1 },                                                                                              {5, 9, 1}
-        }, TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
+        }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    // clang-format on
 
    ASSERT_FALSE( TNL::Graphs::isTree( graph ) );
@@ -86,7 +86,7 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
                                                                                                {3, 7, 1},
                                                                                                            {4, 8, 1},
             { 5, 0, 1 }
-        }, TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
+        }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    // clang-format on
 
    ASSERT_FALSE( TNL::Graphs::isTree( graph2 ) );
@@ -102,7 +102,7 @@ TYPED_TEST( GraphTest, test_large_tree )
                      { 18, 25, 1.0 }, { 25, 20, 1.0 }, { 3, 10, 2.0 },  { 4, 12, 2.0 },  { 1, 25, 2.0 },  { 7, 19, 2.0 },
                      { 10, 12, 2.0 }, { 10, 23, 2.0 }, { 14, 18, 2.0 }, { 27, 28, 2.0 }, { 24, 28, 2.0 }, { 0, 22, 3.0 },
                      { 6, 11, 3.0 },  { 9, 17, 3.0 },  { 21, 23, 3.0 }, { 8, 27, 4.0 } },
-                   TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
+                   TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    ASSERT_TRUE( TNL::Graphs::isTree( tree ) );
 }
@@ -111,7 +111,7 @@ TYPED_TEST( GraphTest, test_small_forest )
 {
    using GraphType = typename TestFixture::GraphType;
 
-   GraphType graph( 5, { { 0, 3, 1.0 }, { 0, 4, 1.0 } }, TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
+   GraphType graph( 5, { { 0, 3, 1.0 }, { 0, 4, 1.0 } }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    ASSERT_FALSE( TNL::Graphs::isTree( graph ) );
    ASSERT_TRUE( TNL::Graphs::isForest( graph ) );
