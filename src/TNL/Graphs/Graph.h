@@ -169,6 +169,12 @@ struct Graph
    MatrixType&
    getAdjacencyMatrix();
 
+   //! \brief Sets the adjacency matrix of the graph.
+   void setAdjacencyMatrix( const MatrixType& matrix );
+
+   //! \brief Sets the adjacency matrix of the graph.
+   void setAdjacencyMatrix( MatrixType&& matrix );
+
    /**
     * \brief Sets the adjacency matrix of the graph.
     *
@@ -182,7 +188,7 @@ struct Graph
     */
    template< typename Matrix_ >
    void
-   setAdjacencyMatrix( Matrix_ matrix );
+   setAdjacencyMatrix( const Matrix_& matrix );
 
    //! \brief Destructor.
    ~Graph() = default;
