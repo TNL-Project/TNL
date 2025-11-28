@@ -27,15 +27,16 @@ template< typename Index >
 constexpr Index paddingIndex = static_cast< Index >( -1 );
 
 /**
- * \brief Encoding of the matrix elements of the symmetric matrix.
+ * \brief Encoding of the matrix elements in initializer lists
+ * or STL maps.
  */
-enum class SymmetricMatrixEncoding : std::uint8_t
+enum class MatrixElementsEncoding : std::uint8_t
 {
-   Complete,    //!<  All elements of the matrix are stored.
-   LowerPart,   //!<  Only lower part of the matrix is stored.
-   UpperPart,   //!<  Only upper part of the matrix is stored.
-   SparseMixed  //!<  For each couple of non-zero elements a_ij and a_ji, at least one is encoded. It is handy for example for
-                //!<  adjacency matrices of undirected graphs.
+   Complete,        //!<  All elements of the matrix are provided.
+   SymmetricLower,  //!<  Only lower part of the matrix is provided.
+   SymmetricUpper,  //!<  Only upper part of the matrix is provided.
+   SymmetricMixed   //!<  For each couple of non-zero elements a_ij and a_ji, at least one is provided. It is handy for example
+                    //!<  for adjacency matrices of undirected graphs.
 };
 
 /**
