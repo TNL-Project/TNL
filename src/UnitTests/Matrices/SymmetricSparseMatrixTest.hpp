@@ -201,16 +201,16 @@ test_SetElements()
 
    Matrix m1( 4, 4, map_lower_part ), m2( 4, 4 );
    EXPECT_THROW( m2.setElements( map_complete_non_symmetric ), std::logic_error );
-   EXPECT_THROW( m2.setElements( map_complete, TNL::Matrices::SymmetricMatrixEncoding::LowerPart ), std::logic_error );
-   EXPECT_THROW( m2.setElements( map_complete, TNL::Matrices::SymmetricMatrixEncoding::UpperPart ), std::logic_error );
+   EXPECT_THROW( m2.setElements( map_complete, TNL::Matrices::MatrixElementsEncoding::SymmetricLower ), std::logic_error );
+   EXPECT_THROW( m2.setElements( map_complete, TNL::Matrices::MatrixElementsEncoding::SymmetricUpper ), std::logic_error );
 
-   m2.setElements( map_lower_part, TNL::Matrices::SymmetricMatrixEncoding::LowerPart );
+   m2.setElements( map_lower_part, TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
    EXPECT_EQ( m1, m2 );
 
-   m2.setElements( map_upper_part, TNL::Matrices::SymmetricMatrixEncoding::UpperPart );
+   m2.setElements( map_upper_part, TNL::Matrices::MatrixElementsEncoding::SymmetricUpper );
    EXPECT_EQ( m1, m2 );
 
-   m2.setElements( map_mixed, TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
+   m2.setElements( map_mixed, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    EXPECT_EQ( m1, m2 );
 }
 
@@ -817,7 +817,7 @@ test_VectorProduct()
                  { 2, 2, 6 },
                  { 3, 0, 4 },
                  { 3, 3, 7 } },
-               TNL::Matrices::SymmetricMatrixEncoding::Complete );
+               TNL::Matrices::MatrixElementsEncoding::Complete );
 
    VectorType inVector_3( { 0, 1, 2, 3 } );
    VectorType outVector_3( m_rows_3, 0 );

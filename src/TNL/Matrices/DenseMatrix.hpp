@@ -83,9 +83,10 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 template< typename MapIndex, typename MapValue >
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
-   const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map )
+   const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+   MatrixElementsEncoding encoding )
 {
-   if constexpr( ! std::is_same_v< Device, Devices::Host > ) {
+   if constexpr( ! std::is_same_v< Device, Devices::Host > && ! std::is_same_v< Device, Devices::Sequential > ) {
       DenseMatrix< Real, Devices::Host, Index, Organization > hostMatrix( this->getRows(), this->getColumns() );
       hostMatrix.setElements( map );
       *this = hostMatrix;
@@ -97,7 +98,18 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
             throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
          if( columnIdx >= this->getColumns() )
             throw std::logic_error( "Wrong column index " + std::to_string( columnIdx ) + " in the input data structure." );
+         if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
+            auto query = map.find( { columnIdx, rowIdx } );
+            if( query == map.end() || query->second != value )
+               throw std::logic_error( "The input data are supposed to be symmetric (matrix elements encoding equals "
+                                       "SymmetricMixed) but it is not." );
+         }
+
          this->setElement( rowIdx, columnIdx, value );
+         if( ( encoding == MatrixElementsEncoding::SymmetricMixed || encoding == MatrixElementsEncoding::SymmetricLower
+               || encoding == MatrixElementsEncoding::SymmetricUpper )
+             && rowIdx != columnIdx )
+            this->setElement( columnIdx, rowIdx, value );
       }
    }
 }

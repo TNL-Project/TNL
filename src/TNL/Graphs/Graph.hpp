@@ -56,7 +56,7 @@ Graph< Matrix, GraphType >::Graph( const OtherGraph&& other )
 template< typename Matrix, GraphTypes GraphType >
 Graph< Matrix, GraphType >::Graph( IndexType nodesCount,
                                    const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
-                                   Matrices::SymmetricMatrixEncoding encoding )
+                                   Matrices::MatrixElementsEncoding encoding )
 {
    if( isUndirected() && ! MatrixType::isSymmetric() ) {
       std::map< std::pair< IndexType, IndexType >, ValueType > symmetric_map;
@@ -91,7 +91,7 @@ template< typename Matrix, GraphTypes GraphType >
 template< typename MapIndex, typename MapValue >
 Graph< Matrix, GraphType >::Graph( IndexType nodesCount,
                                    const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-                                   Matrices::SymmetricMatrixEncoding encoding )
+                                   Matrices::MatrixElementsEncoding encoding )
 {
    if( isUndirected() && ! MatrixType::isSymmetric() ) {
       std::map< std::pair< MapIndex, MapIndex >, MapValue > symmetric_map;
