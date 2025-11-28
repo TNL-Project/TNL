@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Matrices/SparseMatrix.h>
 #include "Graph.h"
 
 namespace TNL::Graphs {
@@ -63,12 +64,26 @@ Graph< Matrix, GraphType >::Graph( IndexType nodesCount,
          symmetric_map[ { source, target } ] = weight;
          symmetric_map[ { target, source } ] = weight;
       }
-      this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
-      this->adjacencyMatrix.setElements( symmetric_map );
+      if constexpr( Matrices::is_dense_matrix< MatrixType >::value ) {
+         Matrices::SparseMatrix< ValueType, typename MatrixType::DeviceType, IndexType > tempMatrix(
+            nodesCount, nodesCount, symmetric_map );
+         this->adjacencyMatrix = tempMatrix;
+      }
+      else {
+         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
+         this->adjacencyMatrix.setElements( symmetric_map );
+      }
    }
    else {
-      this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
-      this->adjacencyMatrix.setElements( data, encoding );
+      if constexpr( Matrices::is_dense_matrix< MatrixType >::value ) {
+         Matrices::SparseMatrix< ValueType, typename MatrixType::DeviceType, IndexType > tempMatrix(
+            nodesCount, nodesCount, data, encoding );
+         this->adjacencyMatrix = tempMatrix;
+      }
+      else {
+         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
+         this->adjacencyMatrix.setElements( data, encoding );
+      }
    }
 }
 
@@ -154,13 +169,31 @@ Graph< Matrix, GraphType >::getAdjacencyMatrix() -> MatrixType&
 }
 
 template< typename Matrix, GraphTypes GraphType >
-template< typename Matrix_ >
 void
-Graph< Matrix, GraphType >::setAdjacencyMatrix( Matrix_ matrix )
+Graph< Matrix, GraphType >::setAdjacencyMatrix( const MatrixType& matrix )
 {
    if( matrix.getRows() != matrix.getColumns() )
       throw std::logic_error( "Graph: adjacency matrix must be square matrix." );
-   adjacencyMatrix = std::move( matrix );
+   adjacencyMatrix = matrix;
+}
+
+template< typename Matrix, GraphTypes GraphType >
+void
+Graph< Matrix, GraphType >::setAdjacencyMatrix( MatrixType&& matrix )
+{
+   if( matrix.getRows() != matrix.getColumns() )
+      throw std::logic_error( "Graph: adjacency matrix must be square matrix." );
+   adjacencyMatrix = std::forward< MatrixType >( matrix );
+}
+
+template< typename Matrix, GraphTypes GraphType >
+template< typename Matrix_ >
+void
+Graph< Matrix, GraphType >::setAdjacencyMatrix( const Matrix_& matrix )
+{
+   if( matrix.getRows() != matrix.getColumns() )
+      throw std::logic_error( "Graph: adjacency matrix must be square matrix." );
+   adjacencyMatrix = matrix;
 }
 
 template< typename Matrix, GraphTypes GraphType >
