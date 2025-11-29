@@ -395,7 +395,9 @@ void
 test_SetElements()
 {
    using Index = typename Matrix::IndexType;
+   using Device = typename Matrix::DeviceType;
    using Real = typename Matrix::RealType;
+   using SymmetricMatrix = TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::SymmetricMatrix >;
 
    std::map< std::pair< Index, Index >, Real > map{
       { { 0, 0 }, 1 }, { { 0, 1 }, 2 }, { { 0, 2 }, 3 }, { { 1, 0 }, 4 }, { { 1, 1 }, 5 },
@@ -412,6 +414,105 @@ test_SetElements()
    EXPECT_EQ( m.getElement( 2, 0 ), Real{ 7 } );
    EXPECT_EQ( m.getElement( 2, 1 ), Real{ 8 } );
    EXPECT_EQ( m.getElement( 2, 2 ), Real{ 9 } );
+
+   // Test with reading symmetric matrix to general one - map provides only the lower part
+   // clang-format off
+   std::map< std::pair< Index, Index >, Real > symmetric_map_lower{
+      { { 0, 0 }, 1 },
+      { { 1, 0 }, 2 }, { { 1, 1 }, 3 },
+      { { 2, 0 }, 4 }, { { 2, 1 }, 5 }, { { 2, 2 }, 6 },
+   };
+   // clang-format on
+   Matrix m_lower( 3, 3 );
+   m_lower.setElements( symmetric_map_lower, TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+   EXPECT_EQ( m_lower.getElement( 0, 0 ), Real{ 1 } );
+   EXPECT_EQ( m_lower.getElement( 0, 1 ), Real{ 2 } );
+   EXPECT_EQ( m_lower.getElement( 0, 2 ), Real{ 4 } );
+   EXPECT_EQ( m_lower.getElement( 1, 0 ), Real{ 2 } );
+   EXPECT_EQ( m_lower.getElement( 1, 1 ), Real{ 3 } );
+   EXPECT_EQ( m_lower.getElement( 1, 2 ), Real{ 5 } );
+   EXPECT_EQ( m_lower.getElement( 2, 0 ), Real{ 4 } );
+   EXPECT_EQ( m_lower.getElement( 2, 1 ), Real{ 5 } );
+   EXPECT_EQ( m_lower.getElement( 2, 2 ), Real{ 6 } );
+   // Test with reading symmetric matrix to general one - map provides only the upper part
+   // clang-format off
+   std::map< std::pair< Index, Index >, Real > symmetric_map_upper{
+      { { 0, 0 }, 1 }, { { 0, 1 }, 2 }, { { 0, 2 }, 4 },
+                       { { 1, 1 }, 3 }, { { 1, 2 }, 5 },
+                                        { { 2, 2 }, 6 },
+   };
+   // clang-format on
+   Matrix m_upper( 3, 3 );
+   m_upper.setElements( symmetric_map_upper, TNL::Matrices::MatrixElementsEncoding::SymmetricUpper );
+   EXPECT_EQ( m_upper.getElement( 0, 0 ), Real{ 1 } );
+   EXPECT_EQ( m_upper.getElement( 0, 1 ), Real{ 2 } );
+   EXPECT_EQ( m_upper.getElement( 0, 2 ), Real{ 4 } );
+   EXPECT_EQ( m_upper.getElement( 1, 0 ), Real{ 2 } );
+   EXPECT_EQ( m_upper.getElement( 1, 1 ), Real{ 3 } );
+   EXPECT_EQ( m_upper.getElement( 1, 2 ), Real{ 5 } );
+   EXPECT_EQ( m_upper.getElement( 2, 0 ), Real{ 4 } );
+   EXPECT_EQ( m_upper.getElement( 2, 1 ), Real{ 5 } );
+   EXPECT_EQ( m_upper.getElement( 2, 2 ), Real{ 6 } );
+
+   // Test with reading symmetric matrix to general one - map provides mixed matrix elements in both lower and upper parts
+   // clang-format off
+   std::map< std::pair< Index, Index >, Real > symmetric_map_mixed{
+      { { 0, 0 }, 1 }, { { 0, 1 }, 2 }, 
+                       { { 1, 1 }, 3 },
+      { { 2, 0 }, 4 }, { { 2, 1 }, 5 }, { { 2, 2 }, 6 },
+   };
+   // clang-format on
+   Matrix m_mixed( 3, 3 );
+   m_mixed.setElements( symmetric_map_mixed, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   EXPECT_EQ( m_mixed.getElement( 0, 0 ), Real{ 1 } );
+   EXPECT_EQ( m_mixed.getElement( 0, 1 ), Real{ 2 } );
+   EXPECT_EQ( m_mixed.getElement( 0, 2 ), Real{ 4 } );
+   EXPECT_EQ( m_mixed.getElement( 1, 0 ), Real{ 2 } );
+   EXPECT_EQ( m_mixed.getElement( 1, 1 ), Real{ 3 } );
+   EXPECT_EQ( m_mixed.getElement( 1, 2 ), Real{ 5 } );
+   EXPECT_EQ( m_mixed.getElement( 2, 0 ), Real{ 4 } );
+   EXPECT_EQ( m_mixed.getElement( 2, 1 ), Real{ 5 } );
+   EXPECT_EQ( m_mixed.getElement( 2, 2 ), Real{ 6 } );
+
+
+   // Test with reading symmetric matrix to symmetric one - map provides only the lower part
+   SymmetricMatrix sm_lower( 3, 3 );
+   sm_lower.setElements( symmetric_map_lower, TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+   EXPECT_EQ( sm_lower.getElement( 0, 0 ), Real{ 1 } );
+   EXPECT_EQ( sm_lower.getElement( 0, 1 ), Real{ 2 } );
+   EXPECT_EQ( sm_lower.getElement( 0, 2 ), Real{ 4 } );
+   EXPECT_EQ( sm_lower.getElement( 1, 0 ), Real{ 2 } );
+   EXPECT_EQ( sm_lower.getElement( 1, 1 ), Real{ 3 } );
+   EXPECT_EQ( sm_lower.getElement( 1, 2 ), Real{ 5 } );
+   EXPECT_EQ( sm_lower.getElement( 2, 0 ), Real{ 4 } );
+   EXPECT_EQ( sm_lower.getElement( 2, 1 ), Real{ 5 } );
+   EXPECT_EQ( sm_lower.getElement( 2, 2 ), Real{ 6 } );
+
+   // Test with reading symmetric matrix to symmetric one - map provides only the upper part
+   SymmetricMatrix sm_upper( 3, 3 );
+   sm_upper.setElements( symmetric_map_upper, TNL::Matrices::MatrixElementsEncoding::SymmetricUpper );
+   EXPECT_EQ( sm_upper.getElement( 0, 0 ), Real{ 1 } );
+   EXPECT_EQ( sm_upper.getElement( 0, 1 ), Real{ 2 } );
+   EXPECT_EQ( sm_upper.getElement( 0, 2 ), Real{ 4 } );
+   EXPECT_EQ( sm_upper.getElement( 1, 0 ), Real{ 2 } );
+   EXPECT_EQ( sm_upper.getElement( 1, 1 ), Real{ 3 } );
+   EXPECT_EQ( sm_upper.getElement( 1, 2 ), Real{ 5 } );
+   EXPECT_EQ( sm_upper.getElement( 2, 0 ), Real{ 4 } );
+   EXPECT_EQ( sm_upper.getElement( 2, 1 ), Real{ 5 } );
+   EXPECT_EQ( sm_upper.getElement( 2, 2 ), Real{ 6 } );
+
+   // Test with reading symmetric matrix to symmetric one - map provides mixed matrix elements in both lower and upper parts 
+   SymmetricMatrix sm_mixed( 3, 3 );
+   sm_mixed.setElements( symmetric_map_mixed, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
+   EXPECT_EQ( sm_mixed.getElement( 0, 0 ), Real{ 1 } );
+   EXPECT_EQ( sm_mixed.getElement( 0, 1 ), Real{ 2 } );
+   EXPECT_EQ( sm_mixed.getElement( 0, 2 ), Real{ 4 } );
+   EXPECT_EQ( sm_mixed.getElement( 1, 0 ), Real{ 2 } );
+   EXPECT_EQ( sm_mixed.getElement( 1, 1 ), Real{ 3 } );
+   EXPECT_EQ( sm_mixed.getElement( 1, 2 ), Real{ 5 } );
+   EXPECT_EQ( sm_mixed.getElement( 2, 0 ), Real{ 4 } );
+   EXPECT_EQ( sm_mixed.getElement( 2, 1 ), Real{ 5 } );
+   EXPECT_EQ( sm_mixed.getElement( 2, 2 ), Real{ 6 } );
 }
 
 template< typename Matrix >
@@ -1198,7 +1299,7 @@ test_ForElementsIf()
    m.forAllElementsIf(
       [] __cuda_callable__( IndexType rowIdx )
       {
-         return ( rowIdx % 2 == 1 );
+         return rowIdx % 2 == 1;
       },
       [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
       {
