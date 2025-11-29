@@ -100,9 +100,10 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
             throw std::logic_error( "Wrong column index " + std::to_string( columnIdx ) + " in the input data structure." );
          if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
             auto query = map.find( { columnIdx, rowIdx } );
-            if( query == map.end() || query->second != value )
+            if( query != map.end() && query->second != value )
                throw std::logic_error( "The input data are supposed to be symmetric (matrix elements encoding equals "
-                                       "SymmetricMixed) but it is not." );
+                                       "SymmetricMixed) but it is not. The matrix elements at position ("
+                                       + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
          }
 
          this->setElement( rowIdx, columnIdx, value );
