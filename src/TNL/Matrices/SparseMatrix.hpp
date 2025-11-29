@@ -359,14 +359,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
             throw std::logic_error( "Wrong column index " + std::to_string( columnIdx ) + " in the input data structure." );
          if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
             auto query = map.find( { columnIdx, rowIdx } );
-            if( query == map.end() || query->second != value )
+            if( query != map.end() && query->second != value )
                throw std::logic_error( "The input data are supposed to be symmetric (matrix elements encoding equals "
-                                       "SymmetricMixed) but it is not." );
+                                       "SymmetricMixed) but it is not. The matrix elements at position ("
+                                       + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
          }
          if( Base::isSymmetric() ) {
             if( encoding == MatrixElementsEncoding::Complete ) {
                auto query = map.find( { columnIdx, rowIdx } );
-               if( query == map.end() || query->second != value )
+               if( query != map.end() && query->second != value )
                   throw std::logic_error( "SparseMatrix is configured as symmetric, but the input data is not symmetric. The "
                                           "matrix elements at position ("
                                           + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
@@ -396,7 +397,10 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
       }
       this->setRowCapacities( capacities );
 
-      if( Base::isSymmetric() ) {
+      if( ( ! Base::isSymmetric() && encoding == MatrixElementsEncoding::Complete )
+          || ( Base::isSymmetric()
+               && ( encoding == MatrixElementsEncoding::Complete || encoding == MatrixElementsEncoding::SymmetricLower ) ) )
+      {
          // The following algorithm is based on the fact that the matrix elements in std::map
          // are sorted in a row-major order and that row capacities were already
          // set. It is much more efficient than calling setElement over and over again,
@@ -406,12 +410,8 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
          Index localIdx = 0;
          for( const auto& [ coordinates, value ] : map ) {
             auto [ rowIdx, columnIdx ] = coordinates;
-            if( encoding == MatrixElementsEncoding::Complete && rowIdx < columnIdx )
+            if( Base::isSymmetric() && encoding == MatrixElementsEncoding::Complete && rowIdx < columnIdx )
                continue;
-            if( ( encoding == MatrixElementsEncoding::SymmetricUpper || encoding == MatrixElementsEncoding::SymmetricMixed )
-                && rowIdx < columnIdx )
-               swap( rowIdx, columnIdx );
-            TNL_ASSERT_LE( columnIdx, rowIdx, "Only lower part of the symmetric matrix is expected." );
             auto row = this->getRow( rowIdx );
             if( rowIdx != lastRowIdx )
                localIdx = 0;
@@ -419,17 +419,23 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
             lastRowIdx = rowIdx;
          }
       }
-      else {  // non-symmetric matrix
-         if( encoding == MatrixElementsEncoding::Complete ) {
-            for( const auto& [ coordinates, value ] : map ) {
-               const auto& [ rowIdx, columnIdx ] = coordinates;
-               this->setElement( rowIdx, columnIdx, value );
-               if( ( encoding == MatrixElementsEncoding::SymmetricMixed || encoding == MatrixElementsEncoding::SymmetricLower
+      else {
+         for( const auto& [ coordinates, value ] : map ) {
+            auto [ rowIdx, columnIdx ] = coordinates;
+            if( Base::isSymmetric()
+                && ( encoding == MatrixElementsEncoding::SymmetricUpper
+                     || encoding == MatrixElementsEncoding::SymmetricMixed ) )
+            {
+               if( rowIdx < columnIdx )
+                  swap( rowIdx, columnIdx );
+            }
+            this->setElement( rowIdx, columnIdx, value );
+            if( ! Base::isSymmetric()
+                && ( encoding == MatrixElementsEncoding::SymmetricMixed || encoding == MatrixElementsEncoding::SymmetricLower
                      || encoding == MatrixElementsEncoding::SymmetricUpper )
-                   && rowIdx != columnIdx )
-               {
-                  this->setElement( columnIdx, rowIdx, value );
-               }
+                && rowIdx != columnIdx )
+            {
+               this->setElement( columnIdx, rowIdx, value );
             }
          }
       }
