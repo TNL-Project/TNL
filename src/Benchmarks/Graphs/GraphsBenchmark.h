@@ -40,8 +40,8 @@ struct GraphsBenchmark
    using RealType = Real;
    using IndexType = Index;
    using HostMatrix = TNL::Matrices::SparseMatrix< Real, TNL::Devices::Host, Index >;
-   using HostGraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::GraphTypes::Undirected >;
-   using HostDigraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::GraphTypes::Directed >;
+   using HostGraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::UndirectedGraph >;
+   using HostDigraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::DirectedGraph >;
    using HostIndexVector = TNL::Containers::Vector< Index, TNL::Devices::Host, Index >;
    using HostRealVector = TNL::Containers::Vector< Real, TNL::Devices::Host, Index >;
 
@@ -94,8 +94,8 @@ struct GraphsBenchmark
                     TNL::Benchmarks::Benchmark<>& benchmark )
    {
 #ifdef HAVE_BOOST
-      BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Directed > boostDigraph( digraph );
-      BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Undirected > boostGraph( graph );
+      BoostGraph< Index, Real, TNL::Graphs::DirectedGraph > boostDigraph( digraph );
+      BoostGraph< Index, Real, TNL::Graphs::UndirectedGraph > boostGraph( graph );
       benchmark.setMetadataElement( { "solver", "Boost" } );
 
       if( this->withBfs ) {
@@ -192,7 +192,7 @@ struct GraphsBenchmark
          benchmark.setMetadataElement( { "format", "N/A" } );
          benchmark.setMetadataElement( { "threads mapping", "" } );
 
-         using BoostEdge = typename BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Undirected >::Edge;
+         using BoostEdge = typename BoostGraph< Index, Real, TNL::Graphs::UndirectedGraph >::Edge;
          std::vector< BoostEdge > boostMstEdges;
          auto mst_boost = [ & ]() mutable
          {
@@ -384,9 +384,9 @@ struct GraphsBenchmark
                   const TNL::String& segments )
    {
       using Matrix = TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
-      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Undirected >;
-      using Digraph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Directed >;
-      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Undirected >;
+      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::UndirectedGraph >;
+      using Digraph = TNL::Graphs::Graph< Matrix, TNL::Graphs::DirectedGraph >;
+      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::UndirectedGraph >;
       using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
       using RealVector = TNL::Containers::Vector< Real, Device, Index >;
       using SegmentsType = typename Matrix::SegmentsType;
