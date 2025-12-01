@@ -17,7 +17,7 @@
 
 namespace TNL::Benchmarks::Graphs {
 
-template< typename Value = double, TNL::Graphs::GraphTypes GraphType = TNL::Graphs::GraphTypes::Directed >
+template< typename Value = double, typename GraphType = TNL::Graphs::DirectedGraph >
 struct BoostAdjacencyList
 {
    using type = boost::adjacency_list< boost::vecS,
@@ -28,7 +28,7 @@ struct BoostAdjacencyList
 };
 
 template< typename Value >
-struct BoostAdjacencyList< Value, TNL::Graphs::GraphTypes::Undirected >
+struct BoostAdjacencyList< Value, TNL::Graphs::UndirectedGraph >
 {
    using type = boost::adjacency_list< boost::vecS,
                                        boost::vecS,
@@ -37,7 +37,7 @@ struct BoostAdjacencyList< Value, TNL::Graphs::GraphTypes::Undirected >
                                        boost::property< boost::edge_weight_t, Value > >;
 };
 
-template< typename Index = int, typename Real = double, TNL::Graphs::GraphTypes GraphType = TNL::Graphs::GraphTypes::Directed >
+template< typename Index = int, typename Real = double, typename GraphType = TNL::Graphs::DirectedGraph >
 struct BoostGraph
 {
    using IndexType = Index;
@@ -49,12 +49,12 @@ struct BoostGraph
    static constexpr bool
    isDirected()
    {
-      return GraphType == TNL::Graphs::GraphTypes::Directed;
+      return std::is_same_v< GraphType, TNL::Graphs::DirectedGraph >;
    }
    static constexpr bool
    isUndirected()
    {
-      return GraphType == TNL::Graphs::GraphTypes::Undirected;
+      return std::is_same_v< GraphType, TNL::Graphs::UndirectedGraph >;
    }
 
    BoostGraph() = default;
@@ -62,7 +62,7 @@ struct BoostGraph
    template< typename TNLGraph >
    BoostGraph( const TNLGraph& graph )
    {
-      static_assert( TNLGraph::getGraphType() == GraphType, "Graph types must match." );
+      static_assert( std::is_same_v< typename TNLGraph::GraphType, GraphType >, "Graph types must match." );
 
       for( Index rowIdx = 0; rowIdx < graph.getNodeCount(); rowIdx++ ) {
          const auto row = graph.getAdjacencyMatrix().getRow( rowIdx );

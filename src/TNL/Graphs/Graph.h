@@ -7,16 +7,11 @@
 #include <ostream>
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/reduce.h>
+#include <TNL/Graphs/TypeTraits.h>
+#include <TNL/Graphs/GraphType.h>
 #include <TNL/Matrices/TypeTraits.h>
 
 namespace TNL::Graphs {
-
-//! Enumeration of supported graph types - directed or undirected.
-enum class GraphTypes : std::uint8_t
-{
-   Directed,   //!< Directed graphs.
-   Undirected  //!< Undirected graphs.
-};
 
 /**
  * \brief \e Graph class represents a mathematical graph using an adjacency matrix.
@@ -24,7 +19,7 @@ enum class GraphTypes : std::uint8_t
  * \tparam Matrix is type of matrix used to store the adjacency matrix of the graph.
  * \tparam GraphType is type of the graph - directed or undirected.
  */
-template< typename Matrix, GraphTypes GraphType = GraphTypes::Directed >
+template< typename Matrix, typename GraphType_ = Graphs::DirectedGraph >
 struct Graph
 {
    static_assert( Matrices::is_matrix_v< Matrix > );
@@ -41,6 +36,9 @@ struct Graph
    //! \brief Type for weights of the graph edges.
    using ValueType = typename Matrix::RealType;
 
+   //! \brief Type of the graph - directed or undirected.
+   using GraphType = GraphType_;
+
    //! \brief Checks if the graph is directed.
    static constexpr bool
    isDirected();
@@ -48,10 +46,6 @@ struct Graph
    //! \brief Checks if the graph is undirected.
    static constexpr bool
    isUndirected();
-
-   //! \brief Returns the type of the graph.
-   static constexpr GraphTypes
-   getGraphType();
 
    //! \brief Default constructor.
    Graph() = default;
@@ -114,6 +108,10 @@ struct Graph
    //! \brief Copy-assignment operator.
    Graph&
    operator=( const Graph& ) = default;
+
+   template< typename OtherGraph, std::enable_if_t< isGraph< OtherGraph >( std::declval< OtherGraph >() ) > >
+   Graph&
+   operator=( const OtherGraph& other );
 
    //! \brief Move-assignment operator.
    Graph&
@@ -200,9 +198,9 @@ protected:
 };
 
 //! \brief Output stream operator for the \e Graph class.
-template< typename Matrix, GraphTypes GraphType >
+template< typename Matrix, typename GraphType_ >
 std::ostream&
-operator<<( std::ostream& os, const Graph< Matrix, GraphType >& graph );
+operator<<( std::ostream& os, const Graph< Matrix, GraphType_ >& graph );
 
 }  // namespace TNL::Graphs
 
