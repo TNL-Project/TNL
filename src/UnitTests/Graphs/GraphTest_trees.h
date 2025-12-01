@@ -13,7 +13,7 @@ class GraphTest : public ::testing::Test
 {
 protected:
    using MatrixType = Matrix;
-   using GraphType = TNL::Graphs::Graph< MatrixType, TNL::Graphs::GraphTypes::Undirected >;
+   using GraphType = TNL::Graphs::Graph< MatrixType, TNL::Graphs::UndirectedGraph >;
 };
 
 // types for which MatrixTest is instantiated
@@ -52,6 +52,7 @@ TYPED_TEST( GraphTest, test_isTree_small )
         }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    // clang-format on
 
+   std::cout << graph << std::endl;
    ASSERT_TRUE( TNL::Graphs::isTree( graph ) );
 }
 
