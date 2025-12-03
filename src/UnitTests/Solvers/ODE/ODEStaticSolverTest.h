@@ -46,12 +46,14 @@ ODEStaticSolverTest_LinearFunctionTest()
    solver.setConvergenceResidue( 0.0 );
 
    DofContainerType u( 0.0 );
-   solver.solve(
+   EXPECT_TRUE( solver.solve(
       u,
       [] __cuda_callable__( const RealType& time, const RealType& tau, const StaticVectorType& u, StaticVectorType& fu )
       {
          fu = time;
-      } );
+      } ) );
+
+   EXPECT_EQ( solver.getTime(), final_time );
 
    RealType exact_solution = 0.5 * final_time * final_time;
    EXPECT_NEAR( TNL::max( TNL::abs( u - exact_solution ) ), (RealType) 0.0, 0.1 );
@@ -89,7 +91,8 @@ ODEStaticSolverTest_ParallelLinearFunctionTest()
       solver.setStopTime( final_time );
       solver.setTau( 0.005 );
       solver.setConvergenceResidue( 0.0 );
-      solver.solve( u_view[ idx ], inner_f );
+      EXPECT_TRUE( solver.solve( u_view[ idx ], inner_f ) );
+      EXPECT_EQ( solver.getTime(), final_time );
    };
    TNL::Algorithms::parallelFor< Device >( 0, size, f );
 
@@ -147,11 +150,13 @@ ODEStaticSolverTest_EOCTest()
 
    solver.setTime( 0.0 );
    solver.setTau( 0.1 );
-   solver.solve( u1, f );
+   EXPECT_TRUE( solver.solve( u1, f ) );
+   EXPECT_EQ( solver.getTime(), final_time );
 
    solver.setTime( 0.0 );
    solver.setTau( 0.05 );
-   solver.solve( u2, f );
+   EXPECT_TRUE( solver.solve( u2, f ) );
+   EXPECT_EQ( solver.getTime(), final_time );
 
    const RealType exact_solution = exp( 1.0 ) - exp( 0.0 );
    const RealType error_1 = TNL::max( TNL::abs( u1 - exact_solution ) );

@@ -53,11 +53,14 @@ TYPED_TEST( ODESolverTest, LinearFunctionTest )
    solver.setConvergenceResidue( 0.0 );
 
    DofContainerType u( 5, 0.0 );
-   solver.solve( u,
-                 []( const Real& time, const Real& tau, const auto& u, auto& fu )
-                 {
-                    fu = time;
-                 } );
+   EXPECT_TRUE( solver.solve(
+      u,
+      []( const Real& time, const Real& tau, const auto& u, auto& fu )
+      {
+         fu = time;
+      } ) );
+
+   EXPECT_EQ( solver.getTime(), final_time );
 
    Real exact_solution = 0.5 * final_time * final_time;
    EXPECT_NEAR( TNL::max( TNL::abs( u - exact_solution ) ), (Real) 0.0, 0.1 );
