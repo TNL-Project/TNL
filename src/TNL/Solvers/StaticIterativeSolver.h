@@ -176,9 +176,8 @@ public:
    /**
     * \brief Proceeds to the next iteration.
     *
-    * \return \e true if the solver is allowed to do the next iteration.
-    * \return \e false if the solver is \b not allowed to do the next iteration. This may
-    *    happen because the divergence occurred.
+    * \return \e true if the solver is allowed to do the next iteration, and \e false otherwise.
+    * This may happen because the divergence occurred.
     */
    [[nodiscard]] __cuda_callable__
    bool
@@ -187,23 +186,21 @@ public:
    /**
     * \brief Checks if the solver is allowed to do the next iteration.
     *
-    * \return true \e true if the solver is allowed to do the next iteration.
-    * \return \e false if the solver is \b not allowed to do the next iteration. This may
-    *    happen because the divergence occurred.
+    * \return \e true if the solver is allowed to do the next iteration, and \e false otherwise.
+    * This may happen because the divergence occurred.
     */
    [[nodiscard]] __cuda_callable__
    bool
-   checkNextIteration();
+   checkNextIteration() const;
 
    /**
     * \brief Checks whether the convergence occurred already.
     *
-    * \return \e true if the convergence already occurred.
-    * \return \e false if the convergence did not occur yet.
+    * \return \e true if the convergence already occurred, and \e false otherwise.
     */
    [[nodiscard]] __cuda_callable__
    bool
-   checkConvergence();
+   checkConvergence() const;
 
 protected:
    Index maxIterations = 1000000000;

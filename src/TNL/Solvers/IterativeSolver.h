@@ -190,31 +190,30 @@ public:
    /**
     * \brief Proceeds to the next iteration.
     *
-    * \return \e true if the solver is allowed to do the next iteration.
-    * \return \e false if the solver is \b not allowed to do the next iteration. This may
-    *    happen because the divergence occurred.
+    * \return \e true if the solver is allowed to do the next iteration, and \e false otherwise.
+    * This may happen because the divergence occurred.
     */
-   bool
+   virtual bool
    nextIteration();
 
    /**
     * \brief Checks if the solver is allowed to do the next iteration.
     *
-    * \return true \e true if the solver is allowed to do the next iteration.
-    * \return \e false if the solver is \b not allowed to do the next iteration. This may
-    *    happen because the divergence occurred.
+    * \return \e true if the solver is allowed to do the next iteration, and \e false otherwise.
+    * This may happen because the divergence occurred.
     */
-   [[nodiscard]] bool
-   checkNextIteration();
+   [[nodiscard]] virtual bool
+   checkNextIteration() const;
 
    /**
     * \brief Checks whether the convergence occurred already.
     *
-    * \return \e true if the convergence already occurred.
-    * \return \e false if the convergence did not occur yet.
+    * If the convergence did not occur yet, a message is printed to the \e stderr output.
+    *
+    * \return \e true if the convergence already occurred, and \e false otherwise.
     */
-   [[nodiscard]] bool
-   checkConvergence();
+   [[nodiscard]] virtual bool
+   checkConvergence() const;
 
 protected:
    Index maxIterations = 1000000000;
