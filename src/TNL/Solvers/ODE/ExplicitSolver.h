@@ -127,14 +127,32 @@ public:
    refreshSolverMonitor( bool force = false );
 
    /**
+    * \brief Proceeds to the next iteration.
+    *
+    * \return \e true if the solver is allowed to do the next iteration, and \e false otherwise.
+    * This may happen because the divergence occurred.
+    */
+   bool
+   nextIteration() override;
+
+   /**
     * \brief Checks if the solver is allowed to do the next iteration.
     *
-    * \return true \e true if the solver is allowed to do the next iteration.
-    * \return \e false if the solver is \b not allowed to do the next iteration. This may
-    *    happen because the divergence occurred.
+    * \return \e true if the solver is allowed to do the next iteration, and \e false otherwise.
+    * This may happen because the divergence occurred.
     */
    [[nodiscard]] bool
-   checkNextIteration();
+   checkNextIteration() const override;
+
+   /**
+    * \brief Checks whether the convergence occurred already.
+    *
+    * If the convergence did not occur yet, a message is printed to the \e stderr output.
+    *
+    * \return \e true if the convergence already occurred, and \e false otherwise.
+    */
+   [[nodiscard]] bool
+   checkConvergence() const override;
 
    void
    setTestingMode( bool testingMode );

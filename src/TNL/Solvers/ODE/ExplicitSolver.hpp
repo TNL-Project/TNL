@@ -95,12 +95,40 @@ ExplicitSolver< Real, Index, SolverMonitor >::refreshSolverMonitor( bool force )
 
 template< typename Real, typename Index, typename SolverMonitor >
 bool
-ExplicitSolver< Real, Index, SolverMonitor >::checkNextIteration()
+ExplicitSolver< Real, Index, SolverMonitor >::nextIteration()
 {
-   return ! ( std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
-              || ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() >= this->getMinIterations() )
-              || ( this->getResidue() < this->getConvergenceResidue() && this->getIterations() >= this->getMinIterations()
-                   && this->stopOnSteadyState ) );
+   // the base class must be used first because it calls checkNextIteration() which checks the current time
+   bool result = IterativeSolver< RealType, IndexType, SolverMonitor >::nextIteration();
+   this->setTime( this->getTime() + this->getTau() );
+   if( this->solverMonitor ) {
+      this->solverMonitor->setTime( this->getTime() );
+   }
+   return result;
+}
+
+template< typename Real, typename Index, typename SolverMonitor >
+bool
+ExplicitSolver< Real, Index, SolverMonitor >::checkNextIteration() const
+{
+   if( this->getTime() >= this->getStopTime() )
+      return false;
+   if( this->stopOnSteadyState )
+      // the base class checks the residue and the number of iterations
+      return IterativeSolver< RealType, IndexType, SolverMonitor >::checkNextIteration();
+   return true;
+}
+
+template< typename Real, typename Index, typename SolverMonitor >
+bool
+ExplicitSolver< Real, Index, SolverMonitor >::checkConvergence() const
+{
+   if( this->getTime() >= this->getStopTime() )
+      return true;
+   if( this->stopOnSteadyState )
+      if( IterativeSolver< RealType, IndexType, SolverMonitor >::checkConvergence() )
+         return true;
+   std::cerr << "\nThe solver has not reached the stop time.\n";
+   return false;
 }
 
 template< typename Real, typename Index, typename SolverMonitor >
