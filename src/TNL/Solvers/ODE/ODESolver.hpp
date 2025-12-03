@@ -76,43 +76,16 @@ __cuda_callable__
 bool
 ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFunction&& rhsFunction, Params&&... params )
 {
-   TNL_ASSERT_GT( this->getTau(), 0.0, "The time step for the ODE solver is zero." );
-
    this->init( u );
 
    // Set necessary parameters
-   RealType time = this->time;
-   RealType currentTau = min( this->getTau(), this->getMaxTau() );
-   if( time + currentTau > this->getStopTime() )
-      currentTau = this->getStopTime() - time;
-   if( currentTau == 0.0 )
-      return true;
    this->resetIterations();
    this->setResidue( this->getConvergenceResidue() + 1.0 );
 
-   RealType restoreTau = 0;
-
    // Start the main loop
    while( this->checkNextIteration() ) {
-      this->iterate( u, time, currentTau, rhsFunction, params... );
-
-      // Go to the next time step using the old tau (before the iterate method changed it)
-      // FIXME: the nextIteration method adds just 1 iteration to the counter,
-      //        but the iterate method may perform more iterations
-      if( ! this->nextIteration() )
-         return false;
-
-      // Tune the new time step size
-      if( this->getTime() + currentTau > this->getStopTime() ) {
-         currentTau = this->getStopTime() - this->getTime();
-         // we don't want to keep such tau
-         restoreTau = this->getTau();
-      }
-      this->setTau( currentTau );
+      this->iterate( u, rhsFunction, params... );
    }
-
-   if( restoreTau > 0 )
-      this->setTau( restoreTau );
 
    return this->checkConvergence();
 }
@@ -131,45 +104,76 @@ template< typename Method, typename Value, typename SolverMonitor >
 template< typename RHSFunction, typename... Params >
 __cuda_callable__
 void
-ODESolver< Method, Value, SolverMonitor, true >::iterate( VectorType& u,
-                                                          RealType& time,
-                                                          RealType& currentTau,
-                                                          RHSFunction&& rhsFunction,
-                                                          Params&&... params )
+ODESolver< Method, Value, SolverMonitor, true >::iterate( VectorType& u, RHSFunction&& rhsFunction, Params&&... params )
 {
    using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
    using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
    using Containers::linearCombination;
 
-   RealType error( 0.0 );
-   bool compute( true );
-   while( compute ) {
+   TNL_ASSERT_GT( this->getTau(), 0, "The time step for the ODE solver must be positive." );
+
+   RealType currentTau = min( this->getTau(), this->getMaxTau() );
+   RealType finalTau = currentTau;
+   if( this->getTime() + currentTau > this->getStopTime() )
+      currentTau = this->getStopTime() - this->getTime();
+   if( currentTau <= 0 )
+      return;
+   RealType residue = this->getResidue();
+
+   auto updateSolutionAndResidue = [ & ]()
+   {
+      residue = addAndReduceAbs( u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
+              / ( currentTau * u.getSize() );
+
+      // Go to the next time step with the step size used in the update
+      this->setTau( currentTau );
+      this->nextIteration();
+      // Restore the larger step size for next iterations
+      this->setTau( finalTau );
+   };
+
+   // Adaptivity works by estimating the error of a single iteration using two
+   // interweaved methods of order p and p-1, repeating the iteration with
+   // smaller time step if the error is too large, and increasing the time step
+   // if the error is small enough.
+   while( true ) {
       detail::StaticODESolverEvaluator< Method >::computeKVectors(
-         k_vectors, time, currentTau, u, kAux, rhsFunction, params... );
-      if constexpr( Method::isAdaptive() )
-         if( this->adaptivity )
+         k_vectors, this->getTime(), currentTau, u, kAux, rhsFunction, params... );
+
+      if constexpr( Method::isAdaptive() ) {
+         RealType error = 0;
+
+         if( this->adaptivity > 0 )
             error = currentTau * max( abs( linearCombination< ErrorCoefficients >( k_vectors ) ) );
 
-      if( this->adaptivity == 0.0 || error < this->adaptivity ) {
-         RealType lastResidue = this->getResidue();
+         if( this->adaptivity == 0 || error < this->adaptivity ) {
+            // Update the solution vector and compute the residue
+            updateSolutionAndResidue();
+         }
 
-         this->setResidue(
-            addAndReduceAbs( u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
-            / currentTau );
-         time += currentTau;
+         if( this->adaptivity > 0 && error > 0 ) {
+            // Compute the new time step
+            const RealType newTau = currentTau * 0.8 * TNL::pow( this->adaptivity / error, 0.2 );
+            finalTau = currentTau = min( newTau, this->getMaxTau() );
+            if( this->getTime() + currentTau > this->getStopTime() )
+               // keep finalTau unchanged, we don't want to keep such tau
+               currentTau = this->getStopTime() - this->getTime();
+         }
 
-         // When time is close to stopTime the new residue may be inaccurate significantly.
-         if( abs( time - this->stopTime ) < 1.0e-7 )
-            this->setResidue( lastResidue );
-         compute = false;
+         if( this->adaptivity == 0 || error < this->adaptivity )
+            break;
       }
-
-      // Compute the new time step.
-      RealType newTau = currentTau;
-      if( this->adaptivity != 0.0 && error != 0.0 )
-         newTau = currentTau * 0.8 * TNL::pow( this->adaptivity / error, 0.2 );
-      currentTau = min( newTau, this->getMaxTau() );
+      else {
+         // Update the solution vector and compute the residue
+         updateSolutionAndResidue();
+         break;
+      }
    }
+
+   // When time is close to stopTime the new residue may be inaccurate significantly.
+   // In that case we do not update the residue and keep the old value.
+   if( TNL::abs( this->getTime() - this->getStopTime() ) >= 1.0e-7 )
+      this->setResidue( residue );
 }
 
 template< typename Method, typename Value, typename SolverMonitor >
@@ -226,46 +230,16 @@ template< typename RHSFunction, typename... Params >
 bool
 ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunction&& rhsFunction, Params&&... params )
 {
-   if( this->getTau() == 0.0 ) {
-      std::cerr << "The time step for the ODE solver is zero.\n";
-      return false;
-   }
-
    this->init( u );
 
    // Set necessary parameters
-   RealType time = this->getTime();
-   RealType currentTau = min( this->getTau(), this->getMaxTau() );
-   if( time + currentTau > this->getStopTime() )
-      currentTau = this->getStopTime() - time;
-   if( currentTau == 0.0 )
-      return true;
    this->resetIterations();
    this->setResidue( this->getConvergenceResidue() + 1.0 );
 
-   RealType restoreTau = 0;
-
    // Start the main loop
    while( this->checkNextIteration() ) {
-      this->iterate( u, time, currentTau, rhsFunction, params... );
-
-      // Go to the next time step using the old tau (before the iterate method changed it)
-      // FIXME: the nextIteration method adds just 1 iteration to the counter,
-      //        but the iterate method may perform more iterations
-      if( ! this->nextIteration() )
-         return this->checkConvergence();
-
-      // Tune the new time step size
-      if( this->getTime() + currentTau > this->getStopTime() ) {
-         currentTau = this->getStopTime() - this->getTime();
-         // we don't want to keep such tau
-         restoreTau = this->getTau();
-      }
-      this->setTau( currentTau );
+      this->iterate( u, rhsFunction, params... );
    }
-
-   if( restoreTau > 0 )
-      this->setTau( restoreTau );
 
    return this->checkConvergence();
 }
@@ -285,54 +259,84 @@ ODESolver< Method, Vector, SolverMonitor, false >::init( const VectorType& u )
 template< typename Method, typename Vector, typename SolverMonitor >
 template< typename RHSFunction, typename... Params >
 void
-ODESolver< Method, Vector, SolverMonitor, false >::iterate( VectorType& u,
-                                                            RealType& time,
-                                                            RealType& currentTau,
-                                                            RHSFunction&& rhsFunction,
-                                                            Params&&... params )
+ODESolver< Method, Vector, SolverMonitor, false >::iterate( VectorType& u, RHSFunction&& rhsFunction, Params&&... params )
 {
    using ErrorCoefficients = detail::ErrorCoefficientsProxy< Method >;
    using UpdateCoefficients = detail::UpdateCoefficientsProxy< Method >;
    using Containers::linearCombination;
 
+   if( this->getTau() <= 0 )
+      throw std::logic_error( "The time step for the ODE solver must be positive." );
+
+   // Set up the supporting vectors views which will be passed to rhsFunction
    using VectorView = typename Vector::ViewType;
    std::array< VectorView, Stages > k_views;
-
-   // Setup the supporting vectors views which will be passed to rhsFunction
    for( int i = 0; i < Stages; i++ ) {
       k_views[ i ].bind( k_vectors[ i ] );
    }
 
-   RealType error( 0.0 );
-   bool compute( true );
-   while( compute ) {
-      detail::ODESolverEvaluator< Method >::computeKVectors(
-         k_views, time, currentTau, u.getView(), kAux.getView(), rhsFunction, params... );
+   RealType currentTau = min( this->getTau(), this->getMaxTau() );
+   RealType finalTau = currentTau;
+   if( this->getTime() + currentTau > this->getStopTime() )
+      currentTau = this->getStopTime() - this->getTime();
+   if( currentTau <= 0 )
+      return;
+   RealType residue = this->getResidue();
 
-      if constexpr( Method::isAdaptive() )
-         if( this->adaptivity )
+   auto updateSolutionAndResidue = [ & ]()
+   {
+      residue = addAndReduceAbs( u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
+              / ( currentTau * u.getSize() );
+
+      // Go to the next time step with the step size used in the update
+      this->setTau( currentTau );
+      this->nextIteration();
+      // Restore the larger step size for next iterations
+      this->setTau( finalTau );
+   };
+
+   // Adaptivity works by estimating the error of a single iteration using two
+   // interweaved methods of order p and p-1, repeating the iteration with
+   // smaller time step if the error is too large, and increasing the time step
+   // if the error is small enough.
+   while( true ) {
+      detail::ODESolverEvaluator< Method >::computeKVectors(
+         k_views, this->getTime(), currentTau, u.getView(), kAux.getView(), rhsFunction, params... );
+
+      if constexpr( Method::isAdaptive() ) {
+         RealType error = 0;
+
+         if( this->adaptivity > 0 )
             error = currentTau * max( abs( linearCombination< ErrorCoefficients >( k_vectors ) ) );
 
-      if( this->adaptivity == 0.0 || error < this->adaptivity ) {
-         RealType lastResidue = this->getResidue();
+         if( this->adaptivity == 0 || error < this->adaptivity ) {
+            // Update the solution vector and compute the residue
+            updateSolutionAndResidue();
+         }
 
-         this->setResidue(
-            addAndReduceAbs( u, currentTau * linearCombination< UpdateCoefficients >( k_vectors ), TNL::Plus{}, 0.0 )
-            / ( currentTau * (RealType) u.getSize() ) );
-         time += currentTau;
+         if( this->adaptivity > 0 && error > 0 ) {
+            // Compute the new time step
+            const RealType newTau = currentTau * 0.8 * TNL::pow( this->adaptivity / error, 0.2 );
+            finalTau = currentTau = min( newTau, this->getMaxTau() );
+            if( this->getTime() + currentTau > this->getStopTime() )
+               // keep finalTau unchanged, we don't want to keep such tau
+               currentTau = this->getStopTime() - this->getTime();
+         }
 
-         // When time is close to stopTime the new residue may be inaccurate significantly.
-         if( abs( time - this->stopTime ) < 1.0e-7 )
-            this->setResidue( lastResidue );
-         compute = false;
+         if( this->adaptivity == 0 || error < this->adaptivity )
+            break;
       }
-
-      // Compute the new time step.
-      RealType newTau = currentTau;
-      if( this->adaptivity != 0.0 && error != 0.0 )
-         newTau = currentTau * 0.8 * TNL::pow( this->adaptivity / error, 0.2 );
-      currentTau = min( newTau, this->getMaxTau() );
+      else {
+         // Update the solution vector and compute the residue
+         updateSolutionAndResidue();
+         break;
+      }
    }
+
+   // When time is close to stopTime the new residue may be inaccurate significantly.
+   // In that case we do not update the residue and keep the old value.
+   if( TNL::abs( this->getTime() - this->getStopTime() ) >= 1.0e-7 )
+      this->setResidue( residue );
 }
 
 template< typename Method, typename Vector, typename SolverMonitor >

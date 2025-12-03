@@ -194,22 +194,19 @@ ODEStaticSolverTest_EOCTest_iterate()
    StaticVectorType u2( 0.0 );
    SolverType solver;
    solver.init( u1 );
+   solver.setStopTime( final_time );
    solver.setConvergenceResidue( 0.0 );
    solver.setAdaptivity( 0.0 );
 
-   RealType time = 0.0;
-   RealType tau = 0.1;
-   while( time < final_time ) {
-      solver.iterate( u1, time, tau, f );
-      if( time + tau > final_time )
-         tau = final_time - time;
+   solver.setTime( 0.0 );
+   solver.setTau( 0.1 );
+   while( solver.getTime() < final_time ) {
+      solver.iterate( u1, f );
    }
-   time = 0.0;
-   tau = 0.05;
-   while( time < final_time ) {
-      solver.iterate( u2, time, tau, f );
-      if( time + tau > final_time )
-         tau = final_time - time;
+   solver.setTime( 0.0 );
+   solver.setTau( 0.05 );
+   while( solver.getTime() < final_time ) {
+      solver.iterate( u2, f );
    }
    solver.reset();
 

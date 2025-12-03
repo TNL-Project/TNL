@@ -210,14 +210,18 @@ public:
    /**
     * \brief Performs one iteration of the solver.
     *
+    * The method updates the solution vector \e u, but also attributes of this class:
+    * - iteration counter
+    * - time
+    * - tau (if the method is adaptive and adaptive time step control is used)
+    * - residue
+    *
     * This method can be used for hybrid solvers which combine various ODE solvers. Otherwise, use of \ref solve
     * is recommended. Before the first call of this method, the method \ref init has to be called.
     *
     * \tparam RHSFunction is type of a lambda function representing the right-hand side of the ODE system.
     * \tparam Params are the parameters which are supposed to be passed to the lambda function \e f.
     * \param u is a variable/static vector representing the solution of the ODE system at current time.
-    * \param time is the current time of the evolution. The variable is increased by \e tau.
-    * \param currentTau is the current time step. It can be changed by the solver if the adaptive time step control is used.
     * \param rhsFunction is the lambda function representing the right-hand side of the ODE system.  The definition of the
     * lambda function is the same as in the method \ref solve.
     * \param params are the parameters which are supposed to be passed to the lambda function \e f.
@@ -227,7 +231,7 @@ public:
     */
    template< typename RHSFunction, typename... Params >
    void __cuda_callable__
-   iterate( VectorType& u, RealType& time, RealType& currentTau, RHSFunction&& rhsFunction, Params&&... params );
+   iterate( VectorType& u, RHSFunction&& rhsFunction, Params&&... params );
 
    /**
     * \brief This method is just for consistency with the ODE solver for dynamic vectors.
@@ -409,14 +413,18 @@ public:
    /**
     * \brief Performs one iteration of the solver.
     *
+    * The method updates the solution vector \e u, but also attributes of this class:
+    * - iteration counter
+    * - time
+    * - tau (if the method is adaptive and adaptive time step control is used)
+    * - residue
+    *
     * This method can be used for hybrid solvers which combine various ODE solvers. Otherwise, use of \ref solve
     * is recommended. Before the first call of this method, the method \ref init has to be called.
     *
     * \tparam RHSFunction is type of a lambda function representing the right-hand side of the ODE system.
     * \tparam Params are the parameters which are supposed to be passed to the lambda function \e f.
     * \param u is a variable/static vector representing the solution of the ODE system at current time.
-    * \param time is the current time of the evolution. The variable is increased by \e tau.
-    * \param currentTau is the current time step. It can be changed by the solver if the adaptive time step control is used.
     * \param rhsFunction is the lambda function representing the right-hand side of the ODE system. The definition of the lambda
     * function is the same as in the method \ref solve.
     * \param params are the parameters which are supposed to be passed to the lambda function \e f.
@@ -426,7 +434,7 @@ public:
     */
    template< typename RHSFunction, typename... Params >
    void
-   iterate( VectorType& u, RealType& time, RealType& currentTau, RHSFunction&& rhsFunction, Params&&... params );
+   iterate( VectorType& u, RHSFunction&& rhsFunction, Params&&... params );
 
    /**
     * \brief Resets the solver.
