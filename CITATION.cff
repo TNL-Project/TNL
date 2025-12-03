@@ -1,0 +1,69 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata from this file."
+title: "Template Numerical Library"
+repository-code: "https://gitlab.com/tnl-project/tnl"
+license: "MIT"
+
+authors:
+  - family-names: "Oberhuber"
+    given-names: "Tomáš"
+    orcid: "https://orcid.org/0000-0001-8374-6892"
+  - family-names: "Klinkovský"
+    given-names: "Jakub"
+    orcid: "https://orcid.org/0000-0001-7941-3913"
+  - family-names: "Halada"
+    given-names: "Tomáš"
+    orcid: "https://orcid.org/0000-0003-0292-1439"
+  - family-names: "Fučík"
+    given-names: "Radek"
+    orcid: "https://orcid.org/0000-0001-7040-9184"
+  - family-names: "Eichler"
+    given-names: "Pavel"
+    orcid: "https://orcid.org/0000-0001-6736-7323"
+
+
+preferred-citation:
+  type: article
+  title: "TNL: Numerical library for modern parallel architectures"
+  authors:
+    - family-names: "Oberhuber"
+      given-names: "Tomáš"
+      orcid: "https://orcid.org/0000-0001-8374-6892"
+    - family-names: "Klinkovský"
+      given-names: "Jakub"
+      orcid: "https://orcid.org/0000-0001-7941-3913"
+    - family-names: "Fučík"
+      given-names: "Radek"
+      orcid: "https://orcid.org/0000-0001-7040-9184"
+  journal: "Acta Polytechnica"
+  volume: "61"
+  issue: "SI"
+  pages: "122-134"
+  year: "2020"
+  doi: "10.14311/AP.2021.61.0122"
+  url: "https://www.ojs.cvut.cz/ojs/index.php/ap/article/view/6075"
+
+references:
+  - type: article
+    title: "Configurable open-source data structure for distributed conforming unstructured homogeneous meshes with GPU support"
+    authors:
+      - family-names: "Klinkovský"
+        given-names: "Jakub"
+        orcid: "https://orcid.org/0000-0001-7941-3913"
+      - family-names: "Oberhuber"
+        given-names: "Tomáš"
+        orcid: "https://orcid.org/0000-0001-8374-6892"
+      - family-names: "Fučík"
+        given-names: "Radek"
+        orcid: "https://orcid.org/0000-0001-7040-9184"
+      - family-names: "Žabka"
+        given-names: "Vítězslav"
+    journal: "ACM Transactions on Mathematical Software"
+    year: "2022"
+    volume: "48"
+    issue: "3"
+    pages: "1-33"
+    doi: "10.1145/3536164"
+    url: "https://dl.acm.org/doi/10.1145/3536164"
+
+
