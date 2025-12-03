@@ -81,7 +81,7 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
    this->init( u );
 
    // Set necessary parameters
-   RealType& time = this->time;
+   RealType time = this->time;
    RealType currentTau = min( this->getTau(), this->getMaxTau() );
    if( time + currentTau > this->getStopTime() )
       currentTau = this->getStopTime() - time;
@@ -90,23 +90,30 @@ ODESolver< Method, Value, SolverMonitor, true >::solve( VectorType& u, RHSFuncti
    this->resetIterations();
    this->setResidue( this->getConvergenceResidue() + 1.0 );
 
+   RealType restoreTau = 0;
+
    // Start the main loop
    while( this->checkNextIteration() ) {
       this->iterate( u, time, currentTau, rhsFunction, params... );
+
+      // Go to the next time step using the old tau (before the iterate method changed it)
+      // FIXME: the nextIteration method adds just 1 iteration to the counter,
+      //        but the iterate method may perform more iterations
       if( ! this->nextIteration() )
          return false;
 
-      // Tune the new time step.
-      if( time + currentTau > this->getStopTime() )
-         currentTau = this->getStopTime() - time;  // we don't want to keep such tau
-      else
-         this->tau = currentTau;
-
-      // Check stop conditions.
-      if( time >= this->getStopTime()
-          || ( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() ) )
-         return true;
+      // Tune the new time step size
+      if( this->getTime() + currentTau > this->getStopTime() ) {
+         currentTau = this->getStopTime() - this->getTime();
+         // we don't want to keep such tau
+         restoreTau = this->getTau();
+      }
+      this->setTau( currentTau );
    }
+
+   if( restoreTau > 0 )
+      this->setTau( restoreTau );
+
    return this->checkConvergence();
 }
 
@@ -227,7 +234,7 @@ ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunc
    this->init( u );
 
    // Set necessary parameters
-   RealType& time = this->time;
+   RealType time = this->getTime();
    RealType currentTau = min( this->getTau(), this->getMaxTau() );
    if( time + currentTau > this->getStopTime() )
       currentTau = this->getStopTime() - time;
@@ -236,23 +243,30 @@ ODESolver< Method, Vector, SolverMonitor, false >::solve( VectorType& u, RHSFunc
    this->resetIterations();
    this->setResidue( this->getConvergenceResidue() + 1.0 );
 
+   RealType restoreTau = 0;
+
    // Start the main loop
    while( this->checkNextIteration() ) {
       this->iterate( u, time, currentTau, rhsFunction, params... );
+
+      // Go to the next time step using the old tau (before the iterate method changed it)
+      // FIXME: the nextIteration method adds just 1 iteration to the counter,
+      //        but the iterate method may perform more iterations
       if( ! this->nextIteration() )
-         return false;
+         return this->checkConvergence();
 
-      // Tune the new time step.
-      if( time + currentTau > this->getStopTime() )
-         currentTau = this->getStopTime() - time;  // we don't want to keep such tau
-      else
-         this->tau = currentTau;
-
-      // Check stop conditions.
-      if( time >= this->getStopTime()
-          || ( this->getConvergenceResidue() != 0.0 && this->getResidue() < this->getConvergenceResidue() ) )
-         return true;
+      // Tune the new time step size
+      if( this->getTime() + currentTau > this->getStopTime() ) {
+         currentTau = this->getStopTime() - this->getTime();
+         // we don't want to keep such tau
+         restoreTau = this->getTau();
+      }
+      this->setTau( currentTau );
    }
+
+   if( restoreTau > 0 )
+      this->setTau( restoreTau );
+
    return this->checkConvergence();
 }
 
