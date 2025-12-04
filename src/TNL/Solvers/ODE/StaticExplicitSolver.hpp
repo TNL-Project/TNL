@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <limits>
-
 #include <TNL/Solvers/ODE/StaticExplicitSolver.h>
 
 namespace TNL::Solvers::ODE {

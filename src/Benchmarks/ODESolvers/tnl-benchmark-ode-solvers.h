@@ -43,7 +43,6 @@
 
 using namespace TNL;
 using namespace TNL::Benchmarks;
-using namespace TNL::Pointers;
 
 template< typename Real, typename Index >
 void
