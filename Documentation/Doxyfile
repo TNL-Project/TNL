@@ -902,6 +902,8 @@ EXCLUDE_PATTERNS += */3rdparty/*
 EXCLUDE_PATTERNS += */UsersGuide/*.h
 EXCLUDE_PATTERNS += */UsersGuide/*.cpp
 EXCLUDE_PATTERNS += */UsersGuide/*.cu
+# workaround for doxygen 1.15.0 https://github.com/doxygen/doxygen/issues/11887
+EXCLUDE_PATTERNS += */src/*/*.hpp
 
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
