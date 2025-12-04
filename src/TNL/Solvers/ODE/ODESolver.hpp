@@ -5,7 +5,6 @@
 
 #include <TNL/Math.h>
 #include <TNL/Config/ParameterContainer.h>
-#include <TNL/Containers/StaticArray.h>
 #include <TNL/Containers/LinearCombination.h>
 #include <TNL/Solvers/ODE/ODESolver.h>
 #include <TNL/Solvers/ODE/detail/ODESolverEvaluator.h>

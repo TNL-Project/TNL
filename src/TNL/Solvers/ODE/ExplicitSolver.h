@@ -3,13 +3,10 @@
 
 #pragma once
 
-#include <iomanip>
-#include <TNL/Solvers/IterativeSolverMonitor.h>
-#include <TNL/Solvers/IterativeSolver.h>
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
-#include <TNL/Pointers/SharedPointer.h>
-#include <TNL/Containers/Vector.h>
+#include <TNL/Solvers/IterativeSolver.h>
+#include <TNL/Solvers/IterativeSolverMonitor.h>
 
 namespace TNL::Solvers::ODE {
 

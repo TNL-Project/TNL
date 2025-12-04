@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Containers/DistributedVector.h>
-#include <TNL/Containers/StaticArray.h>
+#include <TNL/Containers/Vector.h>
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 #include <TNL/Solvers/ODE/StaticExplicitSolver.h>
