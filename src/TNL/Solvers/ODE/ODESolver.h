@@ -184,7 +184,7 @@ public:
     * \param params are the parameters which are supposed to be passed to the lambda function \e f. This is due to the fact that
     * the CUDA compiler does not allow nested lambda functions: "An extended __host__ __device__ lambda cannot be defined inside
     * an extended __host__ __device__  lambda expression".
-    * \return `true` if steady state solution has been reached, false` otherwise.
+    * \return `true` if steady state solution has been reached, `false` otherwise.
     *
     * \par Example
     * \include Solvers/ODE/StaticODESolver-SineExample.h
