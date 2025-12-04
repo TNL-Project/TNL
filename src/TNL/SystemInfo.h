@@ -188,10 +188,8 @@ ResultType
 readFile( const std::string& fileName )
 {
    std::ifstream file( fileName );
-   if( ! file ) {
-      std::cerr << "Unable to read information from " << fileName << ".\n";
-      return 0;  // NOLINT(modernize-use-nullptr)
-   }
+   if( ! file )
+      throw std::runtime_error( "Unable to read information from " + fileName + ".\n" );
    ResultType result;
    file >> result;
    return result;
