@@ -8,12 +8,12 @@ using namespace TNL;
 using namespace TNL::Containers;
 using std::index_sequence;
 
-template< typename Array >
+template< typename ArrayView >
 void
-expect_identity( const Array& a )
+expect_identity( const ArrayView& a )
 {
-   Array identity;
-   identity.setSize( a.getSize() );
+   Array< typename ArrayView::ValueType, typename ArrayView::DeviceType, typename ArrayView::IndexType > identity;
+   identity.setLike( a );
    for( int i = 0; i < identity.getSize(); i++ )
       identity.setElement( i, i );
    EXPECT_EQ( a, identity );
@@ -27,7 +27,7 @@ __test_SetThroughView()
    using ViewType = typename StaticNDArray< int, SizesHolder< int, I, J > >::ViewType;
    NDArray< int, SizesHolder< int, I, J >, std::make_index_sequence< 2 >, TNL::Devices::Cuda > a;
    a.setSizes( 0, 0 );
-   ViewType a_view( a.getStorageArray().getData(), SizesHolder< int, I, J >{} );
+   ViewType a_view( a.getData(), SizesHolder< int, I, J >{} );
 
    auto kernel = [] __cuda_callable__( int, ViewType a )
    {
@@ -39,7 +39,7 @@ __test_SetThroughView()
 
    a.setValue( 0 );
    Algorithms::parallelFor< TNL::Devices::Cuda >( 0, 1, kernel, a_view );
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 }
 TEST( StaticNDArrayTestCuda, SetThroughView )
 {
@@ -54,7 +54,7 @@ __test_CopyFromArray()
    using ViewType = typename StaticNDArray< int, SizesHolder< int, I, J > >::ViewType;
    NDArray< int, SizesHolder< int, I, J >, std::make_index_sequence< 2 >, TNL::Devices::Cuda > a;
    a.setSizes( 0, 0 );
-   ViewType a_view( a.getStorageArray().getData(), SizesHolder< int, I, J >{} );
+   ViewType a_view( a.getData(), SizesHolder< int, I, J >{} );
 
    auto kernel = [] __cuda_callable__( int, ViewType a )
    {
@@ -69,7 +69,7 @@ __test_CopyFromArray()
 
    a.setValue( 0 );
    Algorithms::parallelFor< TNL::Devices::Cuda >( 0, 1, kernel, a_view );
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 }
 TEST( StaticNDArrayTestCuda, CopyFromArray )
 {

@@ -35,9 +35,6 @@ template< typename Array, typename Indexer, typename Permutation, typename Devic
 class NDArrayStorage : public Indexer
 {
 public:
-   //! \brief Type of the underlying one-dimensional array storing the elements.
-   using StorageArray = Array;
-
    //! \brief Type of the values stored in the array.
    using ValueType = typename Array::ValueType;
 
@@ -68,6 +65,12 @@ public:
 
    //! Compatible constant \ref NDArrayView type.
    using ConstViewType = NDArrayView< std::add_const_t< ValueType >, DeviceType, IndexerType, PermutationType >;
+
+   //! \brief View type of the underlying one-dimensional array storing the elements.
+   using StorageArrayViewType = typename ViewType::StorageArrayViewType;
+
+   //! \brief Constant view type of the underlying one-dimensional array storing the elements.
+   using ConstStorageArrayViewType = typename ViewType::ConstStorageArrayViewType;
 
    //! \brief Constructs an empty storage with zero size.
    NDArrayStorage() = default;
@@ -181,6 +184,20 @@ public:
       return ConstViewType( array.getData(), getIndexer() );
    }
 
+   //! \brief Returns a modifiable view of the underlying storage array.
+   [[nodiscard]] StorageArrayViewType
+   getStorageArrayView()
+   {
+      return getView().getStorageArrayView();
+   }
+
+   //! \brief Returns a non-modifiable view of the underlying storage array.
+   [[nodiscard]] ConstStorageArrayViewType
+   getConstStorageArrayView() const
+   {
+      return getConstView().getConstStorageArrayView();
+   }
+
    /**
     * \brief Returns a modifiable view of a subarray.
     *
@@ -200,6 +217,22 @@ public:
    getSubarrayView( IndexTypes&&... indices )
    {
       return getView().template getSubarrayView< Dimensions... >( std::forward< IndexTypes >( indices )... );
+   }
+
+   /**
+    * \brief A "safe" accessor for array elements.
+    *
+    * It can be called only from the host code and it will do a slow copy from
+    * the device.
+    */
+   template< typename... IndexTypes >
+   [[nodiscard]] ValueType
+   getElement( IndexTypes&&... indices ) const
+   {
+      static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
+      const IndexType storageIndex = getStorageIndex( std::forward< IndexTypes >( indices )... );
+      TNL_ASSERT_LT( storageIndex, array.getSize(), "storage index out of bounds" );
+      return array.getElement( storageIndex );
    }
 
    /**
@@ -463,36 +496,6 @@ public:
       array.reset();
    }
 
-   /**
-    * \brief A "safe" accessor for array elements.
-    *
-    * It can be called only from the host code and it will do a slow copy from
-    * the device.
-    */
-   template< typename... IndexTypes >
-   [[nodiscard]] ValueType
-   getElement( IndexTypes&&... indices ) const
-   {
-      static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
-      const IndexType storageIndex = getStorageIndex( std::forward< IndexTypes >( indices )... );
-      TNL_ASSERT_LT( storageIndex, array.getSize(), "storage index out of bounds" );
-      return array.getElement( storageIndex );
-   }
-
-   //! \brief Returns a constant reference to the underlying storage array.
-   [[nodiscard]] const StorageArray&
-   getStorageArray() const
-   {
-      return array;
-   }
-
-   //! \brief Returns a reference to the underlying storage array.
-   [[nodiscard]] StorageArray&
-   getStorageArray()
-   {
-      return array;
-   }
-
    //! \brief Sets all elements of the array to given value.
    void
    setValue( ValueType value )
@@ -502,7 +505,7 @@ public:
 
 protected:
    //! \brief Underlying one-dimensional array which stores the data.
-   StorageArray array;
+   Array array;
 };
 
 /**
@@ -556,7 +559,7 @@ public:
    NDArray( const AllocatorType& allocator )
    {
       // set empty array containing the specified allocator
-      this->getStorageArray() = Array< Value, Device, Index, Allocator >( allocator );
+      this->array = Array< Value, Device, Index, Allocator >( allocator );
    }
 
    //! \brief Copy constructor with a specific allocator (makes a deep copy).
