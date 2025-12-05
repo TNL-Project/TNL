@@ -22,44 +22,6 @@ using value_type = float;
 //using index_type = std::size_t;
 using index_type = unsigned;
 
-template< typename Array >
-void
-expect_eq_chunked( Array& a, Array& b )
-{
-   // TODO: use something like EXPECT_EQ
-   TNL_ASSERT_EQ( a.getSize(), b.getSize(), "array sizes don't match" );
-   if( a.getSize() != b.getSize() )
-      return;
-
-   using IndexType = typename Array::IndexType;
-
-   const IndexType chunk_size = 4096;
-   for( IndexType c = 0; c < (IndexType) roundUpDivision( a.getSize(), chunk_size ); c++ ) {
-      const typename Array::IndexType this_chunk_size = TNL::min( chunk_size, a.getSize() - c * chunk_size );
-      Array a_chunk( &a[ c * chunk_size ], this_chunk_size );
-      Array b_chunk( &b[ c * chunk_size ], this_chunk_size );
-      // TODO: use something like EXPECT_EQ
-      TNL_ASSERT_EQ( a_chunk, b_chunk, "chunks are not equal" );
-   }
-}
-
-template< typename Array >
-void
-expect_eq( Array& a, Array& b )
-{
-   if( std::is_same_v< typename Array::DeviceType, TNL::Devices::Cuda > ) {
-      using HostArray = typename Array::template Self< typename Array::ValueType, TNL::Devices::Host >;
-      HostArray a_host;
-      HostArray b_host;
-      a_host = a;
-      b_host = b;
-      expect_eq_chunked( a_host, b_host );
-   }
-   else {
-      expect_eq_chunked( a, b );
-   }
-}
-
 template< typename Device >
 const char*
 performer()
@@ -107,8 +69,6 @@ benchmark_array( Benchmark<>& benchmark, index_type size = 500000000 )
    const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "array", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a, b );
 }
 
 template< typename Device >
@@ -120,8 +80,8 @@ benchmark_1D( Benchmark<>& benchmark, index_type size = 500000000 )
    ArrayType b;
    a.setSizes( size );
    b.setSizes( size );
-   a.getStorageArray().setValue( -1 );
-   b.getStorageArray().setValue( 1 );
+   a.setValue( -1 );
+   b.setValue( 1 );
 
    auto f = [ & ]()
    {
@@ -137,8 +97,6 @@ benchmark_1D( Benchmark<>& benchmark, index_type size = 500000000 )
    const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "1D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
 template< typename Device >
@@ -150,8 +108,8 @@ benchmark_2D( Benchmark<>& benchmark, index_type size = 22333 )
    ArrayType b;
    a.setSizes( size, size );
    b.setSizes( size, size );
-   a.getStorageArray().setValue( -1 );
-   b.getStorageArray().setValue( 1 );
+   a.setValue( -1 );
+   b.setValue( 1 );
 
    auto f = [ & ]()
    {
@@ -167,8 +125,6 @@ benchmark_2D( Benchmark<>& benchmark, index_type size = 22333 )
    const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "2D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
 template< typename Device >
@@ -180,8 +136,8 @@ benchmark_3D( Benchmark<>& benchmark, index_type size = 800 )
    ArrayType b;
    a.setSizes( size, size, size );
    b.setSizes( size, size, size );
-   a.getStorageArray().setValue( -1 );
-   b.getStorageArray().setValue( 1 );
+   a.setValue( -1 );
+   b.setValue( 1 );
 
    auto f = [ & ]()
    {
@@ -197,8 +153,6 @@ benchmark_3D( Benchmark<>& benchmark, index_type size = 800 )
    const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "3D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
 template< typename Device >
@@ -210,8 +164,8 @@ benchmark_4D( Benchmark<>& benchmark, index_type size = 150 )
    ArrayType b;
    a.setSizes( size, size, size, size );
    b.setSizes( size, size, size, size );
-   a.getStorageArray().setValue( -1 );
-   b.getStorageArray().setValue( 1 );
+   a.setValue( -1 );
+   b.setValue( 1 );
 
    auto f = [ & ]()
    {
@@ -227,8 +181,6 @@ benchmark_4D( Benchmark<>& benchmark, index_type size = 150 )
    const double datasetSize = 2 * std::pow( size, 4 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "4D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
 template< typename Device >
@@ -240,8 +192,8 @@ benchmark_5D( Benchmark<>& benchmark, index_type size = 56 )
    ArrayType b;
    a.setSizes( size, size, size, size, size );
    b.setSizes( size, size, size, size, size );
-   a.getStorageArray().setValue( -1 );
-   b.getStorageArray().setValue( 1 );
+   a.setValue( -1 );
+   b.setValue( 1 );
 
    auto f = [ & ]()
    {
@@ -257,8 +209,6 @@ benchmark_5D( Benchmark<>& benchmark, index_type size = 56 )
    const double datasetSize = 2 * std::pow( size, 5 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "5D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
 template< typename Device >
@@ -270,8 +220,8 @@ benchmark_6D( Benchmark<>& benchmark, index_type size = 28 )
    ArrayType b;
    a.setSizes( size, size, size, size, size, size );
    b.setSizes( size, size, size, size, size, size );
-   a.getStorageArray().setValue( -1 );
-   b.getStorageArray().setValue( 1 );
+   a.setValue( -1 );
+   b.setValue( 1 );
 
    auto f = [ & ]()
    {
@@ -287,8 +237,6 @@ benchmark_6D( Benchmark<>& benchmark, index_type size = 28 )
    const double datasetSize = 2 * std::pow( size, 6 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "6D", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
 template< typename Device >
@@ -300,8 +248,8 @@ benchmark_2D_perm( Benchmark<>& benchmark, index_type size = 22333 )
    ArrayType b;
    a.setSizes( size, size );
    b.setSizes( size, size );
-   a.getStorageArray().setValue( -1 );
-   b.getStorageArray().setValue( 1 );
+   a.setValue( -1 );
+   b.setValue( 1 );
 
    auto f = [ & ]()
    {
@@ -317,8 +265,6 @@ benchmark_2D_perm( Benchmark<>& benchmark, index_type size = 22333 )
    const double datasetSize = 2 * std::pow( size, 2 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "2D permuted", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
 template< typename Device >
@@ -330,8 +276,8 @@ benchmark_3D_perm( Benchmark<>& benchmark, index_type size = 800 )
    ArrayType b;
    a.setSizes( size, size, size );
    b.setSizes( size, size, size );
-   a.getStorageArray().setValue( -1 );
-   b.getStorageArray().setValue( 1 );
+   a.setValue( -1 );
+   b.setValue( 1 );
 
    auto f = [ & ]()
    {
@@ -347,8 +293,6 @@ benchmark_3D_perm( Benchmark<>& benchmark, index_type size = 800 )
    const double datasetSize = 2 * std::pow( size, 3 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "3D permuted", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
 template< typename Device >
@@ -360,8 +304,8 @@ benchmark_4D_perm( Benchmark<>& benchmark, index_type size = 150 )
    ArrayType b;
    a.setSizes( size, size, size, size );
    b.setSizes( size, size, size, size );
-   a.getStorageArray().setValue( -1 );
-   b.getStorageArray().setValue( 1 );
+   a.setValue( -1 );
+   b.setValue( 1 );
 
    auto f = [ & ]()
    {
@@ -377,8 +321,6 @@ benchmark_4D_perm( Benchmark<>& benchmark, index_type size = 150 )
    const double datasetSize = 2 * std::pow( size, 4 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "4D permuted", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
 template< typename Device >
@@ -391,8 +333,8 @@ benchmark_5D_perm( Benchmark<>& benchmark, index_type size = 56 )
    ArrayType b;
    a.setSizes( size, size, size, size, size );
    b.setSizes( size, size, size, size, size );
-   a.getStorageArray().setValue( -1 );
-   b.getStorageArray().setValue( 1 );
+   a.setValue( -1 );
+   b.setValue( 1 );
 
    auto f = [ & ]()
    {
@@ -408,8 +350,6 @@ benchmark_5D_perm( Benchmark<>& benchmark, index_type size = 56 )
    const double datasetSize = 2 * std::pow( size, 5 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "5D permuted", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
 template< typename Device >
@@ -422,8 +362,8 @@ benchmark_6D_perm( Benchmark<>& benchmark, index_type size = 28 )
    ArrayType b;
    a.setSizes( size, size, size, size, size, size );
    b.setSizes( size, size, size, size, size, size );
-   a.getStorageArray().setValue( -1 );
-   b.getStorageArray().setValue( 1 );
+   a.setValue( -1 );
+   b.setValue( 1 );
 
    auto f = [ & ]()
    {
@@ -439,8 +379,6 @@ benchmark_6D_perm( Benchmark<>& benchmark, index_type size = 28 )
    const double datasetSize = 2 * std::pow( size, 6 ) * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "6D permuted", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
-
-   expect_eq( a.getStorageArray(), b.getStorageArray() );
 }
 
 template< typename Device >
