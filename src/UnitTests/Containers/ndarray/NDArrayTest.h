@@ -5,11 +5,11 @@
 using namespace TNL::Containers;
 using std::index_sequence;
 
-template< typename Array >
+template< typename ArrayView >
 void
-expect_identity( const Array& a )
+expect_identity( const ArrayView& a )
 {
-   Array identity;
+   Array< typename ArrayView::ValueType, typename ArrayView::DeviceType, typename ArrayView::IndexType > identity;
    identity.setLike( a );
    int last = 0;
    for( int i = 0; i < identity.getSize(); i++ ) {
@@ -77,7 +77,7 @@ TEST( NDArrayTest, Static_1D )
       EXPECT_EQ( a[ i ], a( i ) );
    }
 
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 }
 
 TEST( NDArrayTest, Static_2D_Identity )
@@ -91,7 +91,7 @@ TEST( NDArrayTest, Static_2D_Identity )
       for( int j = 0; j < J; j++ )
          a( i, j ) = v++;
 
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 }
 
 TEST( NDArrayTest, Static_2D_Permuted )
@@ -105,7 +105,7 @@ TEST( NDArrayTest, Static_2D_Permuted )
       for( int i = 0; i < I; i++ )
          a( i, j ) = v++;
 
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 }
 
 TEST( NDArrayTest, Dynamic_6D )
@@ -115,7 +115,7 @@ TEST( NDArrayTest, Dynamic_6D )
    a.setSizes( I, J, K, L, M, N );
 
    // initialize entries invalid due to alignment to -1
-   a.getStorageArray().setValue( -1 );
+   a.setValue( -1 );
 
    int v = 0;
    for( int n = 0; n < N; n++ )
@@ -126,7 +126,7 @@ TEST( NDArrayTest, Dynamic_6D )
                   for( int j = 0; j < J; j++ )
                      a( i, j, k, l, m, n ) = v++;
 
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 }
 
 TEST( NDArrayTest, CopySemantics )
@@ -142,7 +142,7 @@ TEST( NDArrayTest, CopySemantics )
       for( int j = 0; j < J; j++ )
          a( i, j ) = v++;
 
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 
    // assignment with zero sizes
    NDArray< int, SizesHolder< int, 0, 0 > > b;
@@ -196,17 +196,17 @@ TEST( NDArrayTest, CopySemantics )
    // assignment with different ValueType
    NDArray< double, SizesHolder< int, 0, 0 > > d;
    d = a;
-   expect_identity( d.getStorageArray() );
+   expect_identity( d.getStorageArrayView() );
 
    // assignment with different SizesHolder
    NDArray< double, SizesHolder< int, I, J > > e;
    e = a;
-   expect_identity( e.getStorageArray() );
+   expect_identity( e.getStorageArrayView() );
 
    // assignment with different IndexType
    NDArray< double, SizesHolder< short int, 0, 0 > > f;
    f = a;
-   expect_identity( f.getStorageArray() );
+   expect_identity( f.getStorageArrayView() );
 
    // assignment with different Permutation
    // TODO
@@ -229,11 +229,11 @@ TEST( NDArrayTest, CopySemanticsCrossDevice )
       for( int j = 0; j < J; j++ )
          a( i, j ) = v++;
 
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 
    // copy to the device, simple check
    da = a;
-   EXPECT_EQ( da.getStorageArray(), a.getStorageArray() );
+   EXPECT_EQ( da.getStorageArrayView(), a.getStorageArrayView() );
 
    // assignment with zero sizes
    NDArray< int, SizesHolder< int, 0, 0 > > b;
@@ -287,17 +287,17 @@ TEST( NDArrayTest, CopySemanticsCrossDevice )
    // assignment with different ValueType
    NDArray< double, SizesHolder< int, 0, 0 > > d;
    d = da;
-   expect_identity( d.getStorageArray() );
+   expect_identity( d.getStorageArrayView() );
 
    // assignment with different SizesHolder
    NDArray< double, SizesHolder< int, I, J > > e;
    e = da;
-   expect_identity( e.getStorageArray() );
+   expect_identity( e.getStorageArrayView() );
 
    // assignment with different IndexType
    NDArray< double, SizesHolder< short int, 0, 0 > > f;
    f = da;
-   expect_identity( f.getStorageArray() );
+   expect_identity( f.getStorageArrayView() );
 
    // assignment with different Permutation
    // TODO

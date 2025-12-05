@@ -33,7 +33,7 @@ main()
          }
 
    // print the underlying 1D arrays
-   std::cout << "a = " << a.getStorageArray() << '\n';
-   std::cout << "b = " << b.getStorageArray() << '\n';
-   std::cout << "c = " << c.getStorageArray() << '\n';
+   std::cout << "a = " << a.getStorageArrayView() << '\n';
+   std::cout << "b = " << b.getStorageArrayView() << '\n';
+   std::cout << "c = " << c.getStorageArrayView() << '\n';
 }

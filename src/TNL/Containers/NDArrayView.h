@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <TNL/Containers/detail/MemoryOperations.h>
+#include <TNL/Containers/ArrayView.h>
 #include <TNL/Containers/NDArrayIndexer.h>
 #include <TNL/Containers/ndarray/SizesHolder.h>
 #include <TNL/Containers/ndarray/StaticSizesHolder.h>
@@ -60,6 +62,12 @@ public:
 
    //! Compatible constant \ref NDArrayView type.
    using ConstViewType = NDArrayView< std::add_const_t< ValueType >, DeviceType, IndexerType, PermutationType >;
+
+   //! \brief View type of the underlying one-dimensional array storing the elements.
+   using StorageArrayViewType = ArrayView< ValueType, DeviceType, IndexType >;
+
+   //! \brief Constant view type of the underlying one-dimensional array storing the elements.
+   using ConstStorageArrayViewType = ArrayView< std::add_const_t< ValueType >, DeviceType, IndexType >;
 
    //! \brief Constructs an array view with zero size.
    __cuda_callable__
@@ -253,6 +261,26 @@ public:
       return ConstViewType( array, getIndexer() );
    }
 
+   //! \brief Returns a modifiable view of the underlying storage array.
+   [[nodiscard]] StorageArrayViewType
+   getStorageArrayView()
+   {
+      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      if( ! isContiguousBlock( Begins{}, getSizes() ) )
+         throw std::runtime_error( "Cannot create StorageArrayView for non-contiguous array." );
+      return StorageArrayViewType( getData(), getStorageSize() );
+   }
+
+   //! \brief Returns a non-modifiable view of the underlying storage array.
+   [[nodiscard]] ConstStorageArrayViewType
+   getConstStorageArrayView() const
+   {
+      using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;
+      if( ! isContiguousBlock( Begins{}, getSizes() ) )
+         throw std::runtime_error( "Cannot create StorageArrayView for non-contiguous array." );
+      return ConstStorageArrayViewType( getData(), getStorageSize() );
+   }
+
    /**
     * \brief Returns a modifiable view of a subarray.
     *
@@ -293,6 +321,22 @@ public:
       using Subindexer = NDArrayIndexer< decltype( subarray_sizes ), decltype( strides ) >;
       using SubarrayView = NDArrayView< ValueType, Device, Subindexer, Subpermutation >;
       return SubarrayView{ begin, subarray_sizes, strides };
+   }
+
+   /**
+    * \brief A "safe" accessor for array elements.
+    *
+    * It can be called only from the host code and it will do a slow copy from
+    * the device.
+    */
+   template< typename... IndexTypes >
+   [[nodiscard]] ValueType
+   getElement( IndexTypes&&... indices ) const
+   {
+      static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
+      const IndexType storageIndex = getStorageIndex( std::forward< IndexTypes >( indices )... );
+      TNL_ASSERT_LT( storageIndex, getStorageSize(), "storage index out of bounds" );
+      return detail::MemoryOperations< Device >::getElement( &array[ storageIndex ] );
    }
 
    /**
