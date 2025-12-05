@@ -147,6 +147,31 @@ public:
       return *this;
    }
 
+   //! \brief Compares the array view with another N-dimensional array view.
+   TNL_NVCC_HD_WARNING_DISABLE
+   [[nodiscard]] __cuda_callable__
+   bool
+   operator==( const NDArrayView& other ) const
+   {
+      if( getSizes() != other.getSizes() )
+         return false;
+      // TODO: contiguity check
+      // TODO: overlaps should be skipped, otherwise it works only after synchronization
+      return Algorithms::detail::Equal< Device >::equal( array, other.array, getStorageSize() );
+   }
+
+   //! \brief Compares the array view with another N-dimensional array view.
+   TNL_NVCC_HD_WARNING_DISABLE
+   [[nodiscard]] __cuda_callable__
+   bool
+   operator!=( const NDArrayView& other ) const
+   {
+      if( getSizes() != other.getSizes() )
+         return true;
+      // TODO: contiguity check
+      return ! Algorithms::detail::Equal< Device >::equal( array, other.array, getStorageSize() );
+   }
+
    //! \brief Re-binds (re-initializes) the array view to a different view.
    __cuda_callable__
    void
@@ -182,31 +207,6 @@ public:
    {
       IndexerType::operator=( IndexerType{} );
       array = nullptr;
-   }
-
-   //! \brief Compares the array view with another N-dimensional array view.
-   TNL_NVCC_HD_WARNING_DISABLE
-   [[nodiscard]] __cuda_callable__
-   bool
-   operator==( const NDArrayView& other ) const
-   {
-      if( getSizes() != other.getSizes() )
-         return false;
-      // TODO: contiguity check
-      // TODO: overlaps should be skipped, otherwise it works only after synchronization
-      return Algorithms::detail::Equal< Device >::equal( array, other.array, getStorageSize() );
-   }
-
-   //! \brief Compares the array view with another N-dimensional array view.
-   TNL_NVCC_HD_WARNING_DISABLE
-   [[nodiscard]] __cuda_callable__
-   bool
-   operator!=( const NDArrayView& other ) const
-   {
-      if( getSizes() != other.getSizes() )
-         return true;
-      // TODO: contiguity check
-      return ! Algorithms::detail::Equal< Device >::equal( array, other.array, getStorageSize() );
    }
 
    //! \brief Returns a raw pointer to the data.

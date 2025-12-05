@@ -125,6 +125,21 @@ public:
    }
 
    /**
+    * \brief Resets the array to the empty state.
+    *
+    * The current data will be deallocated, thus all pointers and views to
+    * the array elements will become invalid.
+    */
+   void
+   reset()
+   {
+      getSizes() = SizesHolderType{};
+      detail::compute_dynamic_strides< PermutationType >( getStrides(), getSizes(), getOverlaps() );
+      TNL_ASSERT_EQ( getStorageSize(), 0, "Failed to reset the sizes." );
+      array.reset();
+   }
+
+   /**
     * \brief Returns a raw pointer to the data.
     *
     * This method can be called from device kernels.
@@ -479,21 +494,6 @@ public:
       getSizes() = other.getSizes();
       detail::compute_dynamic_strides< PermutationType >( getStrides(), getSizes(), getOverlaps() );
       array.setSize( getStorageSize() );
-   }
-
-   /**
-    * \brief Resets the array to the empty state.
-    *
-    * The current data will be deallocated, thus all pointers and views to
-    * the array elements will become invalid.
-    */
-   void
-   reset()
-   {
-      getSizes() = SizesHolderType{};
-      detail::compute_dynamic_strides< PermutationType >( getStrides(), getSizes(), getOverlaps() );
-      TNL_ASSERT_EQ( getStorageSize(), 0, "Failed to reset the sizes." );
-      array.reset();
    }
 
    //! \brief Sets all elements of the array to given value.
