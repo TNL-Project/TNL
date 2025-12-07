@@ -577,3 +577,16 @@ typos:
     script:
         - typos --color always --sort
     interruptible: true
+
+citation-cff:
+    stage: lint
+    rules:
+        - changes:
+            - .gitlab-ci.yml
+            - CITATION.cff
+    image: "quay.io/archlinux/archlinux:latest"
+    before_script:
+        - pacman -Syu --needed --noconfirm check-jsonschema
+    script:
+        - check-jsonschema --color always --schemafile https://raw.githubusercontent.com/citation-file-format/citation-file-format/refs/heads/main/schema.json --force-filetype yaml CITATION.cff
+    interruptible: true
