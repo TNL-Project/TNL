@@ -134,23 +134,23 @@ reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
    if( warpIdx == 0 && inWarpLaneIdx < 16 ) {
       // constexpr int totalWarps = BlockSize / WarpSize;
       constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
-      if( warpsPerSegment >= 32 ) {
+      if constexpr( warpsPerSegment >= 32 ) {
          shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 16 ] );
          __syncwarp();
       }
-      if( warpsPerSegment >= 16 ) {
+      if constexpr( warpsPerSegment >= 16 ) {
          shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 8 ] );
          __syncwarp();
       }
-      if( warpsPerSegment >= 8 ) {
+      if constexpr( warpsPerSegment >= 8 ) {
          shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 4 ] );
          __syncwarp();
       }
-      if( warpsPerSegment >= 4 ) {
+      if constexpr( warpsPerSegment >= 4 ) {
          shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 2 ] );
          __syncwarp();
       }
-      if( warpsPerSegment >= 2 ) {
+      if constexpr( warpsPerSegment >= 2 ) {
          shared[ inWarpLaneIdx ] = reduction( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 1 ] );
          __syncwarp();
       }
