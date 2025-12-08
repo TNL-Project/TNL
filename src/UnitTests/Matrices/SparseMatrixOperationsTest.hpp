@@ -136,6 +136,82 @@ copySparseToDenseMatrix_test()
 
 template< typename Matrix >
 void
+copyDenseToSparseMatrix_test()
+{
+   using RealType = typename Matrix::RealType;
+   using DeviceType = typename Matrix::DeviceType;
+   using IndexType = typename Matrix::IndexType;
+   using DenseMatrixType = TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType >;
+
+   // Create dense source matrix
+   // clang-format off
+  DenseMatrixType source{
+    { 1, 2, 0 },
+    { 0, 5, 6 },
+    { 7, 0, 9 } };
+   // clang-format on
+
+   // Create sparse destination matrix
+   Matrix destination( 3, 3 );
+
+   // Copy matrix
+   TNL::Matrices::copyDenseToSparseMatrix( destination, source );
+
+   // Verify all elements
+   EXPECT_EQ( destination.getElement( 0, 0 ), 1.0 );
+   EXPECT_EQ( destination.getElement( 0, 1 ), 2.0 );
+   EXPECT_EQ( destination.getElement( 0, 2 ), 0.0 );
+   EXPECT_EQ( destination.getElement( 1, 0 ), 0.0 );
+   EXPECT_EQ( destination.getElement( 1, 1 ), 5.0 );
+   EXPECT_EQ( destination.getElement( 1, 2 ), 6.0 );
+   EXPECT_EQ( destination.getElement( 2, 0 ), 7.0 );
+   EXPECT_EQ( destination.getElement( 2, 1 ), 0.0 );
+   EXPECT_EQ( destination.getElement( 2, 2 ), 9.0 );
+
+   // Test with different sizes (non-square matrix)
+   // clang-format off
+  DenseMatrixType source2{
+    { 10,  0, 20,  0 },
+    {  0, 50,  0, 70 } };
+   // clang-format on
+
+   Matrix destination2( 2, 4 );
+   TNL::Matrices::copyDenseToSparseMatrix( destination2, source2 );
+
+   EXPECT_EQ( destination2.getElement( 0, 0 ), 10.0 );
+   EXPECT_EQ( destination2.getElement( 0, 1 ), 0.0 );
+   EXPECT_EQ( destination2.getElement( 0, 2 ), 20.0 );
+   EXPECT_EQ( destination2.getElement( 0, 3 ), 0.0 );
+   EXPECT_EQ( destination2.getElement( 1, 0 ), 0.0 );
+   EXPECT_EQ( destination2.getElement( 1, 1 ), 50.0 );
+   EXPECT_EQ( destination2.getElement( 1, 2 ), 0.0 );
+   EXPECT_EQ( destination2.getElement( 1, 3 ), 70.0 );
+
+   // Test with all zeros matrix
+   DenseMatrixType source3{ { 0, 0 }, { 0, 0 } };
+
+   Matrix destination3( 2, 2 );
+   TNL::Matrices::copyDenseToSparseMatrix( destination3, source3 );
+
+   EXPECT_EQ( destination3.getElement( 0, 0 ), 0.0 );
+   EXPECT_EQ( destination3.getElement( 0, 1 ), 0.0 );
+   EXPECT_EQ( destination3.getElement( 1, 0 ), 0.0 );
+   EXPECT_EQ( destination3.getElement( 1, 1 ), 0.0 );
+
+   // Test with full dense matrix
+   DenseMatrixType source4{ { 1, 2 }, { 3, 4 } };
+
+   Matrix destination4( 2, 2 );
+   TNL::Matrices::copyDenseToSparseMatrix( destination4, source4 );
+
+   EXPECT_EQ( destination4.getElement( 0, 0 ), 1.0 );
+   EXPECT_EQ( destination4.getElement( 0, 1 ), 2.0 );
+   EXPECT_EQ( destination4.getElement( 1, 0 ), 3.0 );
+   EXPECT_EQ( destination4.getElement( 1, 1 ), 4.0 );
+}
+
+template< typename Matrix >
+void
 compressSparseMatrix_test()
 {
    // clang-format off
