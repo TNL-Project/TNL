@@ -28,6 +28,13 @@ TYPED_TEST( SparseMatrixOperationsTest, copySparseToDenseMatrix )
    copySparseToDenseMatrix_test< MatrixType >();
 }
 
+TYPED_TEST( SparseMatrixOperationsTest, copyDenseToSparseMatrix )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   copyDenseToSparseMatrix_test< MatrixType >();
+}
+
 TYPED_TEST( SparseMatrixOperationsTest, compressSparseMatrix )
 {
    using MatrixType = typename TestFixture::MatrixType;
