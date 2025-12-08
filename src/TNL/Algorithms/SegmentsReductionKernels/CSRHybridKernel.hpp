@@ -105,7 +105,9 @@ reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
    if( segmentIdx >= end )
       return;
 
-   __shared__ ReturnType shared[ BlockSize / Backend::getWarpSize() ];
+   // we need to allocate shared memory for at least one warp to avoid indexing shared memory out of bounds
+   constexpr int shared_size = TNL::max( BlockSize / Backend::getWarpSize(), Backend::getWarpSize() );
+   __shared__ ReturnType shared[ shared_size ];
 
    const int laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
    const int inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
