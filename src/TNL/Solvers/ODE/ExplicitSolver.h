@@ -115,6 +115,22 @@ public:
    getMaxTau() const;
 
    /**
+    * \brief Set \e stopOnSteadyState flag.
+    *
+    * If the flag is on, the solver stops when steady-state solution is reached.
+    * Otherwise, the solver stops only when the stop time is reached or criteria
+    * defined in \ref TNL::Solvers::IterativeSolver::checkConvergence() are met.
+    *
+    * \param stopOnSteadyState is the new value of the flag.
+    */
+   void
+   setStopOnSteadyState( bool stopOnSteadyState );
+
+   //! \brief Getter of \e stopOnSteadyState flag.
+   [[nodiscard]] bool
+   getStopOnSteadyState() const;
+
+   /**
     * \brief This method refreshes the solver monitor.
     *
     * The method propagates values of time, time step and others to the
