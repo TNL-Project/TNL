@@ -14,6 +14,13 @@ protected:
 
 TYPED_TEST_SUITE( SparseMatrixOperationsTest, MatrixTypes );
 
+TYPED_TEST( SparseMatrixOperationsTest, copyDenseToDenseMatrix )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   copyDenseToDenseMatrix_test< MatrixType >();
+}
+
 TYPED_TEST( SparseMatrixOperationsTest, compressSparseMatrix )
 {
    using MatrixType = typename TestFixture::MatrixType;
