@@ -99,7 +99,7 @@ StaticIterativeSolver< Real, Index >::nextIteration()
 template< typename Real, typename Index >
 __cuda_callable__
 bool
-StaticIterativeSolver< Real, Index >::checkNextIteration()
+StaticIterativeSolver< Real, Index >::checkNextIteration() const
 {
    return ! static_cast< bool >(
       std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
@@ -110,7 +110,7 @@ StaticIterativeSolver< Real, Index >::checkNextIteration()
 template< typename Real, typename Index >
 __cuda_callable__
 bool
-StaticIterativeSolver< Real, Index >::checkConvergence()
+StaticIterativeSolver< Real, Index >::checkConvergence() const
 {
    if( std::isnan( this->getResidue() ) ) {
       // std::cerr << std::endl << "The residue is NaN." << std::endl;

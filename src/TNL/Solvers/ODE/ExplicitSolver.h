@@ -3,13 +3,10 @@
 
 #pragma once
 
-#include <iomanip>
-#include <TNL/Solvers/IterativeSolverMonitor.h>
-#include <TNL/Solvers/IterativeSolver.h>
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/ParameterContainer.h>
-#include <TNL/Pointers/SharedPointer.h>
-#include <TNL/Containers/Vector.h>
+#include <TNL/Solvers/IterativeSolver.h>
+#include <TNL/Solvers/IterativeSolverMonitor.h>
 
 namespace TNL::Solvers::ODE {
 
@@ -118,6 +115,22 @@ public:
    getMaxTau() const;
 
    /**
+    * \brief Set \e stopOnSteadyState flag.
+    *
+    * If the flag is on, the solver stops when steady-state solution is reached.
+    * Otherwise, the solver stops only when the stop time is reached or criteria
+    * defined in \ref TNL::Solvers::IterativeSolver::checkConvergence() are met.
+    *
+    * \param stopOnSteadyState is the new value of the flag.
+    */
+   void
+   setStopOnSteadyState( bool stopOnSteadyState );
+
+   //! \brief Getter of \e stopOnSteadyState flag.
+   [[nodiscard]] bool
+   getStopOnSteadyState() const;
+
+   /**
     * \brief This method refreshes the solver monitor.
     *
     * The method propagates values of time, time step and others to the
@@ -127,14 +140,32 @@ public:
    refreshSolverMonitor( bool force = false );
 
    /**
+    * \brief Proceeds to the next iteration.
+    *
+    * \return \e true if the solver is allowed to do the next iteration, and \e false otherwise.
+    * This may happen because the divergence occurred.
+    */
+   bool
+   nextIteration() override;
+
+   /**
     * \brief Checks if the solver is allowed to do the next iteration.
     *
-    * \return true \e true if the solver is allowed to do the next iteration.
-    * \return \e false if the solver is \b not allowed to do the next iteration. This may
-    *    happen because the divergence occurred.
+    * \return \e true if the solver is allowed to do the next iteration, and \e false otherwise.
+    * This may happen because the divergence occurred.
     */
    [[nodiscard]] bool
-   checkNextIteration();
+   checkNextIteration() const override;
+
+   /**
+    * \brief Checks whether the convergence occurred already.
+    *
+    * If the convergence did not occur yet, a message is printed to the \e stderr output.
+    *
+    * \return \e true if the convergence already occurred, and \e false otherwise.
+    */
+   [[nodiscard]] bool
+   checkConvergence() const override;
 
    void
    setTestingMode( bool testingMode );

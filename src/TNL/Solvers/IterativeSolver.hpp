@@ -109,7 +109,7 @@ IterativeSolver< Real, Index, SolverMonitor >::nextIteration()
 
 template< typename Real, typename Index, typename SolverMonitor >
 bool
-IterativeSolver< Real, Index, SolverMonitor >::checkNextIteration()
+IterativeSolver< Real, Index, SolverMonitor >::checkNextIteration() const
 {
    return ! static_cast< bool >(
       std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
@@ -119,7 +119,7 @@ IterativeSolver< Real, Index, SolverMonitor >::checkNextIteration()
 
 template< typename Real, typename Index, typename SolverMonitor >
 bool
-IterativeSolver< Real, Index, SolverMonitor >::checkConvergence()
+IterativeSolver< Real, Index, SolverMonitor >::checkConvergence() const
 {
    if( std::isnan( this->getResidue() ) ) {
       std::cerr << "\nThe residue is NaN.\n";

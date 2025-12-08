@@ -21,33 +21,30 @@ main( int argc, char* argv[] )
    const Real output_time_step = 0.25;
    Real next_output_time = TNL::min( output_time_step, final_time );
    Real tau = 0.001;
-   Real time = 0.0;
-   Real current_tau = tau;
    //! [Time variables]
 
    //! [Solver setup]
    Vector u = 0.0;
    ODESolver solver;
    solver.init( u );
+   solver.setTime( 0 );
+   solver.setStopTime( final_time );
+   solver.setTau( tau );
    //! [Solver setup]
 
    //! [Time loop]
-   while( time < final_time ) {
+   while( solver.getTime() < final_time ) {
       auto f = []( const Real& t, const Real& current_tau, const Vector& u, Vector& fu )
       {
          fu = t * sin( t );
       };
-      solver.iterate( u, time, current_tau, f );
-      if( time >= next_output_time ) {
-         std::cout << time << " " << u[ 0 ] << std::endl;
+      solver.iterate( u, f );
+      if( solver.getTime() >= next_output_time ) {
+         std::cout << solver.getTime() << " " << u[ 0 ] << std::endl;
          next_output_time += output_time_step;
          if( next_output_time > final_time )
             next_output_time = final_time;
       }
-      if( time + current_tau > next_output_time )
-         current_tau = next_output_time - time;
-      else
-         current_tau = tau;
    }
    //! [Time loop]
 }

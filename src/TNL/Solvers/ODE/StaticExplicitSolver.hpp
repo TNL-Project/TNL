@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <limits>
-
 #include <TNL/Solvers/ODE/StaticExplicitSolver.h>
 
 namespace TNL::Solvers::ODE {
@@ -45,6 +43,22 @@ StaticExplicitSolver< Real, Index >::getTime() const
 
 template< typename Real, typename Index >
 __cuda_callable__
+const Real&
+StaticExplicitSolver< Real, Index >::getStopTime() const
+{
+   return this->stopTime;
+}
+
+template< typename Real, typename Index >
+__cuda_callable__
+void
+StaticExplicitSolver< Real, Index >::setStopTime( const RealType& stopTime )
+{
+   this->stopTime = stopTime;
+}
+
+template< typename Real, typename Index >
+__cuda_callable__
 void
 StaticExplicitSolver< Real, Index >::setTau( const RealType& tau )
 {
@@ -77,30 +91,56 @@ StaticExplicitSolver< Real, Index >::getMaxTau() const
 
 template< typename Real, typename Index >
 __cuda_callable__
-const Real&
-StaticExplicitSolver< Real, Index >::getStopTime() const
+void
+StaticExplicitSolver< Real, Index >::setStopOnSteadyState( bool stopOnSteadyState )
 {
-   return this->stopTime;
+   this->stopOnSteadyState = stopOnSteadyState;
 }
 
 template< typename Real, typename Index >
-__cuda_callable__
-void
-StaticExplicitSolver< Real, Index >::setStopTime( const RealType& stopTime )
+[[nodiscard]] __cuda_callable__
+bool
+StaticExplicitSolver< Real, Index >::getStopOnSteadyState() const
 {
-   this->stopTime = stopTime;
+   return this->stopOnSteadyState;
 }
 
 template< typename Real, typename Index >
 __cuda_callable__
 bool
-StaticExplicitSolver< Real, Index >::checkNextIteration()
+StaticExplicitSolver< Real, Index >::nextIteration()
 {
-   return ! static_cast< bool >(
-      std::isnan( this->getResidue() ) || this->getIterations() > this->getMaxIterations()
-      || ( this->getResidue() > this->getDivergenceResidue() && this->getIterations() >= this->getMinIterations() )
-      || ( this->getResidue() < this->getConvergenceResidue() && this->getIterations() >= this->getMinIterations()
-           && this->stopOnSteadyState ) );
+   // the base class must be used first because it calls checkNextIteration() which checks the current time
+   bool result = StaticIterativeSolver< RealType, IndexType >::nextIteration();
+   this->setTime( this->getTime() + this->getTau() );
+   return result;
+}
+
+template< typename Real, typename Index >
+__cuda_callable__
+bool
+StaticExplicitSolver< Real, Index >::checkNextIteration() const
+{
+   if( this->getTime() >= this->getStopTime() )
+      return false;
+   if( this->stopOnSteadyState )
+      // the base class checks the residue and the number of iterations
+      return StaticIterativeSolver< RealType, IndexType >::checkNextIteration();
+   return true;
+}
+
+template< typename Real, typename Index >
+__cuda_callable__
+bool
+StaticExplicitSolver< Real, Index >::checkConvergence() const
+{
+   if( this->getTime() >= this->getStopTime() )
+      return true;
+   if( this->stopOnSteadyState )
+      if( StaticIterativeSolver< RealType, IndexType >::checkConvergence() )
+         return true;
+   // std::cerr << "\nThe solver has not reached the stop time.\n";
+   return false;
 }
 
 template< typename Real, typename Index >

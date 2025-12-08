@@ -662,7 +662,8 @@ For simplicity, we demonstrate the use of `iterate` with a static solver, but th
 1. **Initialization:** Before calling `iterate`, it's necessary to initialize the solver using the `init` method. This step sets up auxiliary vectors within the solver. For ODE solvers with dynamic vectors, the internal vectors of the solver are allocated based on the size of the vector `u`.
 
 \snippetlineno Solvers/ODE/StaticODESolver-SineExample_iterate.h Solver setup
-2. **Time Loop:** Within the time loop, the `iterate` method is called. It requires the vector `u`, the right-hand side function `f` of the ODE, and also the variables `time` and `tau`, representing the current time \f$ t \f$ and the integration time step, respectively. The variable `time` is incremented by `tau` with each iteration. Additionally, `tau` can be adjusted if the solver performs adaptive time step selection. It's important to adjust `tau` to ensure that the `next_output_time` is reached exactly.
+
+2. **Time Loop:** Within the time loop, the `iterate` method is called. It requires the same parameters as the `solve` method: the vector `u`, the right-hand side function `f` of the ODE, and additional arguments of the function `f`. The `iterate` method performs one iteration and updates the attributes of the solver accordingly (i.e., the iteration counter, time, and residue). Additionally, the `tau` attribute may be adjusted if the solver performs adaptive time step selection.
 
 \snippetlineno Solvers/ODE/StaticODESolver-SineExample_iterate.h Time loop
 

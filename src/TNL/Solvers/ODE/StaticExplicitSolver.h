@@ -116,14 +116,48 @@ public:
    getMaxTau() const;
 
    /**
+    * \brief Set \e stopOnSteadyState flag.
+    *
+    * If the flag is on, the solver stops when steady-state solution is reached.
+    * Otherwise, the solver stops only when the stop time is reached or criteria
+    * defined in \ref TNL::Solvers::IterativeSolver::checkConvergence() are met.
+    *
+    * \param stopOnSteadyState is the new value of the flag.
+    */
+   __cuda_callable__
+   void
+   setStopOnSteadyState( bool stopOnSteadyState );
+
+   //! \brief Getter of \e stopOnSteadyState flag.
+   [[nodiscard]] __cuda_callable__
+   bool
+   getStopOnSteadyState() const;
+
+   /**
+    * \brief Proceeds to the next iteration.
+    *
+    * \return \e true if the solver is allowed to do the next iteration, and \e false otherwise.
+    * This may happen because the divergence occurred.
+    */
+   bool __cuda_callable__
+   nextIteration();
+
+   /**
     * \brief Checks if the solver is allowed to do the next iteration.
     *
-    * \return true \e true if the solver is allowed to do the next iteration.
-    * \return \e false if the solver is \b not allowed to do the next iteration. This may
-    *    happen because the divergence occurred.
+    * \return \e true if the solver is allowed to do the next iteration, and \e false otherwise.
+    * This may happen because the divergence occurred.
     */
    [[nodiscard]] bool __cuda_callable__
-   checkNextIteration();
+   checkNextIteration() const;
+
+   /**
+    * \brief Checks whether the convergence occurred already.
+    *
+    * \return \e true if the convergence already occurred, and \e false otherwise.
+    */
+   [[nodiscard]] bool __cuda_callable__
+   checkConvergence() const;
 
    __cuda_callable__
    void
