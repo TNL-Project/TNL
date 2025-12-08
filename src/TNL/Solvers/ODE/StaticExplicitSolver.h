@@ -116,6 +116,24 @@ public:
    getMaxTau() const;
 
    /**
+    * \brief Set \e stopOnSteadyState flag.
+    *
+    * If the flag is on, the solver stops when steady-state solution is reached.
+    * Otherwise, the solver stops only when the stop time is reached or criteria
+    * defined in \ref TNL::Solvers::IterativeSolver::checkConvergence() are met.
+    *
+    * \param stopOnSteadyState is the new value of the flag.
+    */
+   __cuda_callable__
+   void
+   setStopOnSteadyState( bool stopOnSteadyState );
+
+   //! \brief Getter of \e stopOnSteadyState flag.
+   [[nodiscard]] __cuda_callable__
+   bool
+   getStopOnSteadyState() const;
+
+   /**
     * \brief Proceeds to the next iteration.
     *
     * \return \e true if the solver is allowed to do the next iteration, and \e false otherwise.

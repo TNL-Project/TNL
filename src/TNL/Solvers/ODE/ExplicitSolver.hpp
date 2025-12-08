@@ -82,6 +82,20 @@ ExplicitSolver< Real, Index, SolverMonitor >::setStopTime( const RealType& stopT
 
 template< typename Real, typename Index, typename SolverMonitor >
 void
+ExplicitSolver< Real, Index, SolverMonitor >::setStopOnSteadyState( bool stopOnSteadyState )
+{
+   this->stopOnSteadyState = stopOnSteadyState;
+}
+
+template< typename Real, typename Index, typename SolverMonitor >
+[[nodiscard]] bool
+ExplicitSolver< Real, Index, SolverMonitor >::getStopOnSteadyState() const
+{
+   return this->stopOnSteadyState;
+}
+
+template< typename Real, typename Index, typename SolverMonitor >
+void
 ExplicitSolver< Real, Index, SolverMonitor >::refreshSolverMonitor( bool force )
 {
    if( this->solverMonitor ) {

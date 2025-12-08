@@ -43,6 +43,22 @@ StaticExplicitSolver< Real, Index >::getTime() const
 
 template< typename Real, typename Index >
 __cuda_callable__
+const Real&
+StaticExplicitSolver< Real, Index >::getStopTime() const
+{
+   return this->stopTime;
+}
+
+template< typename Real, typename Index >
+__cuda_callable__
+void
+StaticExplicitSolver< Real, Index >::setStopTime( const RealType& stopTime )
+{
+   this->stopTime = stopTime;
+}
+
+template< typename Real, typename Index >
+__cuda_callable__
 void
 StaticExplicitSolver< Real, Index >::setTau( const RealType& tau )
 {
@@ -75,18 +91,18 @@ StaticExplicitSolver< Real, Index >::getMaxTau() const
 
 template< typename Real, typename Index >
 __cuda_callable__
-const Real&
-StaticExplicitSolver< Real, Index >::getStopTime() const
+void
+StaticExplicitSolver< Real, Index >::setStopOnSteadyState( bool stopOnSteadyState )
 {
-   return this->stopTime;
+   this->stopOnSteadyState = stopOnSteadyState;
 }
 
 template< typename Real, typename Index >
-__cuda_callable__
-void
-StaticExplicitSolver< Real, Index >::setStopTime( const RealType& stopTime )
+[[nodiscard]] __cuda_callable__
+bool
+StaticExplicitSolver< Real, Index >::getStopOnSteadyState() const
 {
-   this->stopTime = stopTime;
+   return this->stopOnSteadyState;
 }
 
 template< typename Real, typename Index >
