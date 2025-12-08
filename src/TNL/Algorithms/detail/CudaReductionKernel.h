@@ -53,22 +53,22 @@ struct CudaBlockReduce
       storage.data[ tid ] = threadValue;
       __syncthreads();
 
-      if( blockSize >= 1024 ) {
+      if constexpr( blockSize >= 1024 ) {
          if( tid < 512 )
             storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 512 ] );
          __syncthreads();
       }
-      if( blockSize >= 512 ) {
+      if constexpr( blockSize >= 512 ) {
          if( tid < 256 )
             storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 256 ] );
          __syncthreads();
       }
-      if( blockSize >= 256 ) {
+      if constexpr( blockSize >= 256 ) {
          if( tid < 128 )
             storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 128 ] );
          __syncthreads();
       }
-      if( blockSize >= 128 ) {
+      if constexpr( blockSize >= 128 ) {
          if( tid < 64 )
             storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 64 ] );
          __syncthreads();
@@ -76,26 +76,26 @@ struct CudaBlockReduce
 
       // This runs in one warp so we use __syncwarp() instead of __syncthreads().
       if( tid < 32 ) {
-         if( blockSize >= 64 )
+         if constexpr( blockSize >= 64 )
             storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 32 ] );
          __syncwarp();
          // Note that here we do not have to check if tid < 16 etc, because we have
          // 2 * blockSize.x elements of shared memory per block, so we do not
          // access out of bounds. The results for the upper half will be undefined,
          // but unused anyway.
-         if( blockSize >= 32 )
+         if constexpr( blockSize >= 32 )
             storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 16 ] );
          __syncwarp();
-         if( blockSize >= 16 )
+         if constexpr( blockSize >= 16 )
             storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 8 ] );
          __syncwarp();
-         if( blockSize >= 8 )
+         if constexpr( blockSize >= 8 )
             storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 4 ] );
          __syncwarp();
-         if( blockSize >= 4 )
+         if constexpr( blockSize >= 4 )
             storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 2 ] );
          __syncwarp();
-         if( blockSize >= 2 )
+         if constexpr( blockSize >= 2 )
             storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 1 ] );
       }
 
