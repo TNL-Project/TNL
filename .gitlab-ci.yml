@@ -445,10 +445,12 @@ documentation:
             - ./html/
         expire_in: 7 days
 
-pages:
+deploy-documentation:
     stage: deploy
+    # specify that this is a Pages job and publishes the default public directory
+    pages: true
     rules:
-        - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "trigger" || $CI_COMMIT_BRANCH == "main"
+        - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
           changes:
             - Documentation/**/*
             - src/TNL/**/*.{h,hpp}
