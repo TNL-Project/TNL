@@ -15,7 +15,8 @@ arrayViewExample()
    using ArrayType = Containers::Array< int, Device >;
    using IndexType = typename ArrayType::IndexType;
    using ViewType = Containers::ArrayView< int, Device >;
-   ArrayType a1( size ), a2( size );
+   ArrayType a1( size );
+   ArrayType a2( size );
    ViewType a1_view = a1.getView();
    ViewType a2_view = a2.getView();
 
@@ -43,7 +44,7 @@ arrayViewExample()
 
    for( int i = 0; i < size; i++ )
       if( a3_view.getElement( i ) != 2 * i )
-         std::cerr << "Something is wrong!!!" << std::endl;
+         std::cerr << "Something is wrong!!!\n";
 
    /***
     * You may swap array view data with the swap method.
@@ -59,18 +60,18 @@ arrayViewExample()
    std::remove( "a1_view.tnl" );
 
    if( a2_view != a1_view )
-      std::cerr << "Something is wrong!!!" << std::endl;
+      std::cerr << "Something is wrong!!!\n";
 
-   std::cout << "a2_view = " << a2_view << std::endl;
+   std::cout << "a2_view = " << a2_view << '\n';
 }
 
 int
 main()
 {
-   std::cout << "The first test runs on CPU ..." << std::endl;
+   std::cout << "The first test runs on CPU ...\n";
    arrayViewExample< Devices::Host >();
 #ifdef __CUDACC__
-   std::cout << "The second test runs on GPU ..." << std::endl;
+   std::cout << "The second test runs on GPU ...\n";
    arrayViewExample< Devices::Cuda >();
 #endif
 }

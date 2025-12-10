@@ -27,7 +27,7 @@ printMemoryUsage( std::ostream& str = std::cerr )
 {
    std::ifstream meminfo( "/proc/self/status" );
    if( meminfo.fail() ) {
-      std::cerr << "error: unable to open /proc/self/status" << std::endl;
+      std::cerr << "error: unable to open /proc/self/status\n";
       return;
    }
 
@@ -54,7 +54,7 @@ printMemoryUsage( std::ostream& str = std::cerr )
    str << "Memory usage (MiB): "
        << "VmSize = " << vm / 1024 << "MiB, "
        << "VmRSS = " << rss / 1024 << "MiB, "
-       << "VmHWM = " << hwm / 1024 << "MiB, " << std::endl;
+       << "VmHWM = " << hwm / 1024 << "MiB\n";
 }
 
 }  // namespace TNL::Debugging

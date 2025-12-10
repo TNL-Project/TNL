@@ -196,7 +196,7 @@ public:
    __cuda_callable__
    operator bool() const
    {
-      return this->pointer;
+      return this->pointer != nullptr;
    }
 
    /**

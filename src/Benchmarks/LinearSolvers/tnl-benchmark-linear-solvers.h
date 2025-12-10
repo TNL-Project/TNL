@@ -79,7 +79,7 @@ parse_comma_list( const TNL::Config::ParameterContainer& parameters,
                   const char* parameter,
                   const std::set< std::string >& options )
 {
-   const TNL::String param = parameters.getParameter< TNL::String >( parameter );
+   const auto param = parameters.getParameter< TNL::String >( parameter );
 
    if( param == "all" )
       return options;
@@ -89,7 +89,7 @@ parse_comma_list( const TNL::Config::ParameterContainer& parameters,
    std::set< std::string > set;
 
    while( std::getline( ss, s, ',' ) ) {
-      if( ! options.count( s ) )
+      if( options.count( s ) == 0 )
          throw std::logic_error( std::string( "Invalid value in the comma-separated list for the parameter '" ) + parameter
                                  + "': '" + s + "'. The list contains: '" + param.getString() + "'." );
 
@@ -170,7 +170,7 @@ benchmarkIterativeSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
       }
 
       if( solvers.count( "gmres" ) ) {
-         for( auto variant : gmresVariants ) {
+         for( const auto& variant : gmresVariants ) {
             benchmark.setOperation( variant + "-GMRES (Jacobi)" );
             parameters.template setParameter< TNL::String >( "gmres-variant", variant );
             benchmarkSolver< GMRES, Diagonal >( benchmark, parameters, matrixPointer, x0, b );
@@ -227,7 +227,7 @@ benchmarkIterativeSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
       }
 
       if( solvers.count( "gmres" ) ) {
-         for( auto variant : gmresVariants ) {
+         for( const auto& variant : gmresVariants ) {
             benchmark.setOperation( variant + "-GMRES (ILU0)" );
             parameters.template setParameter< TNL::String >( "gmres-variant", variant );
             benchmarkSolver< GMRES, ILU0 >( benchmark, parameters, matrixPointer, x0, b );
@@ -283,7 +283,7 @@ benchmarkIterativeSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
       }
 
       if( solvers.count( "gmres" ) ) {
-         for( auto variant : gmresVariants ) {
+         for( const auto& variant : gmresVariants ) {
             benchmark.setOperation( variant + "-GMRES (ILUT)" );
             parameters.template setParameter< TNL::String >( "gmres-variant", variant );
             benchmarkSolver< GMRES, ILUT >( benchmark, parameters, matrixPointer, x0, b );
@@ -345,12 +345,13 @@ struct LinearSolversBenchmark
    static bool
    run( TNL::Benchmarks::Benchmark<>& benchmark, const TNL::Config::ParameterContainer& parameters )
    {
-      const TNL::String file_matrix = parameters.getParameter< TNL::String >( "input-matrix" );
-      const TNL::String file_dof = parameters.getParameter< TNL::String >( "input-dof" );
-      const TNL::String file_rhs = parameters.getParameter< TNL::String >( "input-rhs" );
+      const auto file_matrix = parameters.getParameter< TNL::String >( "input-matrix" );
+      const auto file_dof = parameters.getParameter< TNL::String >( "input-dof" );
+      const auto file_rhs = parameters.getParameter< TNL::String >( "input-rhs" );
 
       auto matrixPointer = std::make_shared< MatrixType >();
-      VectorType x0, b;
+      VectorType x0;
+      VectorType b;
 
       // load the matrix
       if( file_matrix.endsWith( ".mtx" ) ) {
@@ -391,28 +392,30 @@ struct LinearSolversBenchmark
       const IndexType maxRowLength = max( rowLengths );
 
       const TNL::String title = ( TNL::MPI::GetSize() > 1 ) ? "Distributed linear solvers" : "Linear solvers";
-      std::cout << "\n== " << title << " ==\n" << std::endl;
+      std::cout << "\n== " << title << " ==\n\n";
 
       benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
          { "matrix name", parameters.getParameter< TNL::String >( "name" ) },
          // TODO: strip the device
-         //         { "matrix type", matrixPointer->getType() },
+         //{ "matrix type", matrixPointer->getType() },
          { "rows", TNL::convertToString( matrixPointer->getRows() ) },
          { "columns", TNL::convertToString( matrixPointer->getColumns() ) },
          // FIXME: getMaxRowLengths() returns 0 for matrices loaded from file
-         //         { "max elements per row", matrixPointer->getMaxRowLength() },
+         //{ "max elements per row", matrixPointer->getMaxRowLength() },
          { "max elements per row", TNL::convertToString( maxRowLength ) },
       } ) );
 
       if( parameters.getParameter< bool >( "with-iterative" ) ) {
-         std::cout << "Iterative solvers:" << std::endl;
+         std::cout << "Iterative solvers:\n";
 
          if( parameters.getParameter< bool >( "reorder-dofs" ) ) {
             using PermutationVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
-            PermutationVector perm, iperm;
+            PermutationVector perm;
+            PermutationVector iperm;
             getTrivialOrdering( *matrixPointer, perm, iperm );
             auto matrix_perm = std::make_shared< MatrixType >();
-            VectorType x0_perm, b_perm;
+            VectorType x0_perm;
+            VectorType b_perm;
             x0_perm.setLike( x0 );
             b_perm.setLike( b );
             TNL::Matrices::reorderSparseMatrix( *matrixPointer, *matrix_perm, perm, iperm );
@@ -431,7 +434,7 @@ struct LinearSolversBenchmark
          }
       }
       if( parameters.getParameter< bool >( "with-direct" ) ) {
-         std::cout << "Direct solvers:" << std::endl;
+         std::cout << "Direct solvers:\n";
          runDirect( benchmark, parameters, matrixPointer, x0, b );
       }
       return true;
@@ -445,7 +448,7 @@ struct LinearSolversBenchmark
                    const VectorType& b )
    {
       // set up the distributed matrix
-      const auto communicator = MPI_COMM_WORLD;
+      const TNL::MPI::Comm communicator = MPI_COMM_WORLD;
       const auto localRange = TNL::Containers::splitRange( matrixPointer->getRows(), communicator );
       auto distMatrixPointer = std::make_shared< DistributedMatrix >(
          localRange, matrixPointer->getRows(), matrixPointer->getColumns(), communicator );
@@ -466,11 +469,11 @@ struct LinearSolversBenchmark
          dist_x0[ gi ] = x0[ gi ];
          dist_b[ gi ] = b[ gi ];
 
-         //         const IndexType rowLength = matrixPointer->getRowLength( i );
-         //         IndexType columns[ rowLength ];
-         //         RealType values[ rowLength ];
-         //         matrixPointer->getRowFast( gi, columns, values );
-         //         distMatrixPointer->setRowFast( gi, columns, values, rowLength );
+         //const IndexType rowLength = matrixPointer->getRowLength( i );
+         //IndexType columns[ rowLength ];
+         //RealType values[ rowLength ];
+         //matrixPointer->getRowFast( gi, columns, values );
+         //distMatrixPointer->setRowFast( gi, columns, values, rowLength );
          const auto global_row = matrixPointer->getRow( gi );
          auto local_row = distMatrixPointer->getRow( gi );
          for( IndexType j = 0; j < global_row.getSize(); j++ )
@@ -709,9 +712,9 @@ main( int argc, char* argv[] )
    TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
 
    // TODO: implement resolveMatrixType
-   //   return ! Matrices::resolveMatrixType< MainConfig,
-   //                                         Devices::Host,
-   //                                         LinearSolversBenchmark >( benchmark, parameters );
+   //return ! Matrices::resolveMatrixType< MainConfig,
+   //                                      Devices::Host,
+   //                                      LinearSolversBenchmark >( benchmark, parameters );
    auto precision = parameters.getParameter< TNL::String >( "precision" );
    bool ret_code = false;
    if( precision == "float" ) {

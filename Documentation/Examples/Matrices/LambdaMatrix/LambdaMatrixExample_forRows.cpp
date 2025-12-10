@@ -78,8 +78,8 @@ forRowsExample()
    };
    matrix.forAllRows( f );
 
-   std::cout << "Laplace operator lambda matrix: " << std::endl << matrix << std::endl;
-   std::cout << "Laplace operator dense matrix: " << std::endl << denseMatrix << std::endl;
+   std::cout << "Laplace operator lambda matrix:\n" << matrix << '\n';
+   std::cout << "Laplace operator dense matrix:\n" << denseMatrix << '\n';
 
    /***
     * Compute sum of elements in each row and store it into a vector.
@@ -95,17 +95,17 @@ forRowsExample()
          sum_view[ row.getRowIndex() ] = sum;
       } );
 
-   std::cout << "Sums in matrix rows = " << sum_vector << std::endl;
+   std::cout << "Sums in matrix rows = " << sum_vector << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running example on CPU ... " << std::endl;
+   std::cout << "Running example on CPU ...\n";
    forRowsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running example on CUDA GPU ... " << std::endl;
+   std::cout << "Running example on CUDA GPU ...\n";
    forRowsExample< TNL::Devices::Cuda >();
 #endif
 }

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <math.h>
+#include <TNL/String.h>
 #include <TNL/Config/ConfigDescription.h>
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 #include <TNL/Config/ParameterContainer.h>

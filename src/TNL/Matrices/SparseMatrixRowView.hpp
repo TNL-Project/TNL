@@ -11,13 +11,12 @@ namespace TNL::Matrices {
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::SparseMatrixRowView(
-   const SegmentViewType& segmentView,
-   const ValuesViewType& values,
-   const ColumnsIndexesViewType& columnIndexes )
-: segmentView( segmentView ),
-  values( values ),
-  columnIndexes( columnIndexes )
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::SparseMatrixRowView( SegmentViewType segmentView,
+                                                                                         ValuesViewType values,
+                                                                                         ColumnsIndexesViewType columnIndexes )
+: segmentView( std::move( segmentView ) ),
+  values( std::move( values ) ),
+  columnIndexes( std::move( columnIndexes ) )
 {}
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >

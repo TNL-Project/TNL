@@ -43,7 +43,7 @@ public:
    {}
 
    [[nodiscard]] __cuda_callable__
-   inline Entity< Size, Index, Real >
+   Entity< Size, Index, Real >
    getEntity( Index i, Index j ) const
    {
       Entity< Size, Index, Real > entity( *this );
@@ -69,7 +69,7 @@ class Entity
 {
 public:
    __cuda_callable__
-   inline Entity( const Grid< Size, Index, Real >& grid )
+   Entity( const Grid< Size, Index, Real >& grid )
    : grid( grid )
    {}
 

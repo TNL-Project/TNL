@@ -48,9 +48,9 @@ public:
             v = vertex.getCenter();
             str << "--( " << v.x() << ", " << v.y() << " )";
          }
-         str << " );" << std::endl;
+         str << " );\n";
       }
-      str << std::endl;
+      str << '\n';
       for( Index i = 0; i < mesh.dimensions.x(); i++ ) {
          str << "draw( ";
          vertexCoordinates.x() = i;
@@ -63,9 +63,9 @@ public:
             v = vertex.getCenter();
             str << "--( " << v.x() << ", " << v.y() << " )";
          }
-         str << " );" << std::endl;
+         str << " );\n";
       }
-      str << std::endl;
+      str << '\n';
 
       typename Mesh::Cell cell( mesh );
       CoordinatesType& cellCoordinates = cell.getCoordinates();
@@ -81,7 +81,9 @@ public:
 
       for( Index i = 0; i < mesh.dimensions.x(); i++ )
          for( Index j = 0; j < mesh.dimensions.y(); j++ ) {
-            PointType v1, v2, c;
+            PointType v1;
+            PointType v2;
+            PointType c;
 
             /****
              * East edge normal

@@ -13,7 +13,8 @@ main( int argc, char* argv[] )
     * Create new arrays and initiate them
     */
    const int size = 10;
-   Array< float, Devices::Cuda > a( size ), b( size );
+   Array< float, Devices::Cuda > a( size );
+   Array< float, Devices::Cuda > b( size );
    a = 0;
    b.forAllElements(
       [ = ] __cuda_callable__( int i, float& value )
@@ -25,28 +26,28 @@ main( int argc, char* argv[] )
     * Test the values stored in the arrays
     */
    if( contains( a, 0.0 ) )
-      std::cout << "a contains 0" << std::endl;
+      std::cout << "a contains 0\n";
 
    if( contains( a, 1.0 ) )
-      std::cout << "a contains 1" << std::endl;
+      std::cout << "a contains 1\n";
 
    if( contains( b, 0.0 ) )
-      std::cout << "b contains 0" << std::endl;
+      std::cout << "b contains 0\n";
 
    if( contains( b, 1.0 ) )
-      std::cout << "b contains 1" << std::endl;
+      std::cout << "b contains 1\n";
 
    if( containsOnlyValue( a, 0.0 ) )
-      std::cout << "a contains only 0" << std::endl;
+      std::cout << "a contains only 0\n";
 
    if( containsOnlyValue( a, 1.0 ) )
-      std::cout << "a contains only 1" << std::endl;
+      std::cout << "a contains only 1\n";
 
    if( containsOnlyValue( b, 0.0 ) )
-      std::cout << "b contains only 0" << std::endl;
+      std::cout << "b contains only 0\n";
 
    if( containsOnlyValue( b, 1.0 ) )
-      std::cout << "b contains only 1" << std::endl;
+      std::cout << "b contains only 1\n";
 
    /****
     * Change the first half of b and test it again
@@ -58,5 +59,5 @@ main( int argc, char* argv[] )
                      value = 0.0;
                   } );
    if( containsOnlyValue( b, 0.0, 0, 5 ) )
-      std::cout << "First five elements of b contains only 0" << std::endl;
+      std::cout << "First five elements of b contains only 0\n";
 }

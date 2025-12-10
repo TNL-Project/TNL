@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <math.h>
+#include <TNL/String.h>
 #include <TNL/Config/ConfigDescription.h>
+#include <TNL/Containers/Vector.h>
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 
 namespace TNL::Benchmarks {
@@ -51,10 +52,10 @@ protected:
    computeKFunctions( DofVectorType& u, const RealType& time, RealType tau, RHSFunction&& rhsFunction );
 
    RealType
-   computeError( const RealType tau );
+   computeError( RealType tau );
 
    void
-   computeNewTimeLevel( const RealType time, const RealType tau, DofVectorType& u, RealType& currentResidue );
+   computeNewTimeLevel( RealType time, RealType tau, DofVectorType& u, RealType& currentResidue );
 
    void
    writeGrids( const DofVectorType& u );

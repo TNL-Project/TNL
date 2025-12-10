@@ -58,16 +58,16 @@ traverseGrid()
 
    //! [print cells]
    // Print values of all cells in the grid.
-   std::cout << "Values of cells .... " << std::endl;
+   std::cout << "Values of cells ....\n";
    for( int i = grid_size - 1; i >= 0; i-- ) {
       for( int j = 0; j < grid_size; j++ ) {
          GridCell cell( grid, { j, i } );
          auto idx = cell.getIndex();
          std::cout << std::right << std::setw( 12 ) << cells.getElement( idx );
       }
-      std::cout << std::endl;
+      std::cout << '\n';
    }
-   std::cout << std::endl;
+   std::cout << '\n';
    //! [print cells]
 
    //! [initialize faces]
@@ -94,7 +94,7 @@ traverseGrid()
 
    //! [print faces]
    // Print values of all faces in the grid.
-   std::cout << "Values of faces ..." << std::endl;
+   std::cout << "Values of faces ...\n";
    for( int i = grid_size; i >= 0; i-- ) {
       std::cout << std::right << std::setw( 6 ) << " ";
       for( int j = 0; j < grid_size; j++ ) {
@@ -102,14 +102,14 @@ traverseGrid()
          auto idx = face.getIndex();
          std::cout << std::right << std::setw( 12 ) << faces.getElement( idx );
       }
-      std::cout << std::endl;
+      std::cout << '\n';
       if( i > 0 )
          for( int j = 0; j <= grid_size; j++ ) {
             GridFace face( grid, { j, i - 1 }, { 1, 0 } );
             auto idx = face.getIndex();
             std::cout << std::right << std::setw( 12 ) << faces.getElement( idx );
          }
-      std::cout << std::endl;
+      std::cout << '\n';
    }
    //! [print faces]
 
@@ -147,14 +147,14 @@ traverseGrid()
 
    //! [print vertices]
    // Print values of all vertices in the grid.
-   std::cout << "Values of vertices .... " << std::endl;
+   std::cout << "Values of vertices ....\n";
    for( int i = grid_size; i >= 0; i-- ) {
       for( int j = 0; j <= grid_size; j++ ) {
          GridVertex vertex( grid, { j, i } );
          auto idx = vertex.getIndex();
          std::cout << std::right << std::setw( 12 ) << vertices.getElement( idx );
       }
-      std::cout << std::endl;
+      std::cout << '\n';
    }
    //! [print vertices]
 }
@@ -162,11 +162,11 @@ traverseGrid()
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Traversing grid on CPU..." << std::endl;
+   std::cout << "Traversing grid on CPU...\n";
    traverseGrid< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Traversing grid on CUDA GPU..." << std::endl;
+   std::cout << "Traversing grid on CUDA GPU...\n";
    traverseGrid< TNL::Devices::Cuda >();
 #endif
    return EXIT_SUCCESS;

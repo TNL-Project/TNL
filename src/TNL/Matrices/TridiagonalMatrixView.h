@@ -37,7 +37,7 @@ public:
    /**
     * \brief Matrix view type for constant instances.
     */
-   using ConstViewType = TridiagonalMatrixView< typename std::add_const< Real >::type, Device, Index, Organization >;
+   using ConstViewType = TridiagonalMatrixView< std::add_const_t< Real >, Device, Index, Organization >;
 
    /**
     * \brief Helper type for getting self type or its modifications.

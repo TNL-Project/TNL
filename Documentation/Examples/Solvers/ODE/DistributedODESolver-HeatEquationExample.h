@@ -112,7 +112,7 @@ main( int argc, char* argv[] )
    TNL::MPI::ScopedInitializer mpi( argc, argv );
 
    if( argc != 2 ) {
-      std::cerr << "Usage: " << argv[ 0 ] << " <path to output directory>" << std::endl;
+      std::cerr << "Usage: " << argv[ 0 ] << " <path to output directory>\n";
       return EXIT_FAILURE;
    }
    TNL::String file_name( argv[ 1 ] );

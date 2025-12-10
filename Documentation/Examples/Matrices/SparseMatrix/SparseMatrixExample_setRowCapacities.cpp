@@ -15,17 +15,17 @@ setRowCapacitiesExample()
       for( int column = 0; column <= row; column++ )
          matrix.setElement( row, column, row - column + 1 );
 
-   std::cout << matrix << std::endl;
+   std::cout << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrix on CPU ... " << std::endl;
+   std::cout << "Creating matrix on CPU ...\n";
    setRowCapacitiesExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrix on CUDA GPU ... " << std::endl;
+   std::cout << "Creating matrix on CUDA GPU ...\n";
    setRowCapacitiesExample< TNL::Devices::Cuda >();
 #endif
 }

@@ -11,7 +11,7 @@
 
 namespace TNL::Graphs {
 
-enum class GraphTypes
+enum class GraphTypes : std::uint8_t
 {
    Directed,   //!< Directed graphs.
    Undirected  //!< Undirected graphs.

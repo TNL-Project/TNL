@@ -38,10 +38,21 @@ BICGStabL< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
 {
    this->setSize( x );
 
-   RealType alpha, beta, gamma, rho_0, rho_1, omega, b_norm;
+   RealType alpha;
+   RealType beta;
+   RealType gamma;
+   RealType rho_0;
+   RealType rho_1;
+   RealType omega;
+   RealType b_norm;
    // initial binding to M_tmp sets the correct local range, global size and
    // communicator for distributed views
-   VectorViewType r_0( M_tmp ), r_j( M_tmp ), r_i( M_tmp ), u_0( M_tmp ), Au( M_tmp ), u( M_tmp );
+   VectorViewType r_0( M_tmp );
+   VectorViewType r_j( M_tmp );
+   VectorViewType r_i( M_tmp );
+   VectorViewType u_0( M_tmp );
+   VectorViewType Au( M_tmp );
+   VectorViewType u( M_tmp );
    r_0.bind( R.getData(), size );
    u_0.bind( U.getData(), size );
 
@@ -152,22 +163,22 @@ BICGStabL< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
          }
 
          // MGS with reorthogonalization
-         //         for( int i = 1; i < j; i++ ) {
-         //            const int ij = (i-1) + (j-1) * ell;
-         //            T[ ij ] = 0.0;
-         //         }
-         //         for( int l = 0; l < 2; l++ )
-         //            for( int i = 1; i < j; i++ ) {
-         //               r_i.bind( &R.getData()[ i * ldSize ], size );
-         //               /****
-         //                * T_{i,j} = (r_i, r_j) / sigma_i
-         //                * r_j := r_j - T_{i,j} * r_i
-         //                */
-         //               const int ij = (i-1) + (j-1) * ell;
-         //               const RealType T_ij = (r_i, r_j) / sigma[ i ];
-         //               T[ ij ] += T_ij;
-         //               r_j -= T_ij * r_i );
-         //            }
+         //for( int i = 1; i < j; i++ ) {
+         //   const int ij = (i-1) + (j-1) * ell;
+         //   T[ ij ] = 0.0;
+         //}
+         //for( int l = 0; l < 2; l++ )
+         //   for( int i = 1; i < j; i++ ) {
+         //      r_i.bind( &R.getData()[ i * ldSize ], size );
+         //      /****
+         //       * T_{i,j} = (r_i, r_j) / sigma_i
+         //       * r_j := r_j - T_{i,j} * r_i
+         //       */
+         //      const int ij = (i-1) + (j-1) * ell;
+         //      const RealType T_ij = (r_i, r_j) / sigma[ i ];
+         //      T[ ij ] += T_ij;
+         //      r_j -= T_ij * r_i );
+         //   }
 
          sigma[ j ] = ( r_j, r_j );
          g_1[ j ] = ( r_0, r_j ) / sigma[ j ];

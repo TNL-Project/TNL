@@ -3,6 +3,9 @@
 
 #pragma once
 
+#if defined( __cpp_lib_constexpr_algorithms ) && __cpp_lib_constexpr_algorithms >= 201907L
+   #include <algorithm>
+#endif
 #include <utility>
 #include <initializer_list>
 
@@ -210,10 +213,20 @@ call_with_unpermuted_arguments( Func&& f, Args&&... args ) -> decltype( auto )
 constexpr bool
 all_elements_equal_to_value( std::size_t value, std::initializer_list< std::size_t > list )
 {
-   for( auto elem : list )
+#if defined( __cpp_lib_constexpr_algorithms ) && __cpp_lib_constexpr_algorithms >= 201907L
+   return std::all_of( list.begin(),
+                       list.end(),
+                       [ value ]( std::size_t elem ) constexpr
+                       {
+                          return elem == value;
+                       } );
+#else
+   // std::all_of is not constexpr before C++20
+   for( auto elem : list )  // NOLINT(readability-use-anyofallof)
       if( elem != value )
          return false;
    return true;
+#endif
 }
 
 // Check that all elements of the initializer list are in the specified range [begin, end).
@@ -221,10 +234,20 @@ all_elements_equal_to_value( std::size_t value, std::initializer_list< std::size
 constexpr bool
 all_elements_in_range( std::size_t begin, std::size_t end, std::initializer_list< std::size_t > list )
 {
-   for( auto elem : list )
+#if defined( __cpp_lib_constexpr_algorithms ) && __cpp_lib_constexpr_algorithms >= 201907L
+   return std::all_of( list.begin(),
+                       list.end(),
+                       [ begin, end ]( std::size_t elem ) constexpr
+                       {
+                          return begin <= elem && elem < end;
+                       } );
+#else
+   // std::all_of is not constexpr before C++20
+   for( auto elem : list )  // NOLINT(readability-use-anyofallof)
       if( elem < begin || elem >= end )
          return false;
    return true;
+#endif
 }
 
 // Check that the elements of the initializer list form an increasing sequence.

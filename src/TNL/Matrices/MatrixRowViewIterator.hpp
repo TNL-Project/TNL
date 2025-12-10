@@ -4,7 +4,6 @@
 #pragma once
 
 #include <TNL/Matrices/SparseMatrixRowView.h>
-#include <TNL/Assert.h>
 
 namespace TNL::Matrices {
 

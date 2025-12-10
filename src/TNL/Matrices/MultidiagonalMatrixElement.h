@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <ostream>
-
 #include <TNL/Backend/Macros.h>
 
 namespace TNL::Matrices {

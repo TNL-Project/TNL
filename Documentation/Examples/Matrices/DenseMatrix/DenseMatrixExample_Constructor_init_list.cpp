@@ -14,7 +14,7 @@ initializerListExample()
       // clang-format on
    };
 
-   std::cout << "General dense matrix: " << std::endl << matrix << std::endl;
+   std::cout << "General dense matrix:\n" << matrix << '\n';
 
    TNL::Matrices::DenseMatrix< double, Device > triangularMatrix{
       // clang-format off
@@ -26,17 +26,17 @@ initializerListExample()
       // clang-format on
    };
 
-   std::cout << "Triangular dense matrix: " << std::endl << triangularMatrix << std::endl;
+   std::cout << "Triangular dense matrix:\n" << triangularMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrices on CPU ... " << std::endl;
+   std::cout << "Creating matrices on CPU ...\n";
    initializerListExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrices on CUDA GPU ... " << std::endl;
+   std::cout << "Creating matrices on CUDA GPU ...\n";
    initializerListExample< TNL::Devices::Cuda >();
 #endif
 }

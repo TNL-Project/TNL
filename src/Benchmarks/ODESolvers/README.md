@@ -31,12 +31,3 @@ The benchmark supports single or double precision, can be run on CPU or GPU, and
 ```bash
 tnl-benchmark-ode-solvers --help
 ```
-
-
-
-
-
-
-
-
-

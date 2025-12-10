@@ -37,7 +37,7 @@ printStackBacktrace( std::ostream& out = std::cout, unsigned int max_frames = 64
    int addrlen = backtrace( addrlist.get(), max_frames );
 
    if( addrlen == 0 ) {
-      out << "  <empty, possibly corrupt>" << std::endl;
+      out << "  <empty, possibly corrupt>\n";
       return;
    }
 

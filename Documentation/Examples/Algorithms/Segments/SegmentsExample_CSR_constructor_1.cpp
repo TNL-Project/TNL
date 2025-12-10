@@ -1,5 +1,4 @@
 #include <iostream>
-#include <functional>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Devices/Host.h>
@@ -16,7 +15,7 @@ SegmentsExample()
     */
    TNL::Containers::Vector< int, Device > segmentsSizes{ 1, 2, 3, 4, 5 };
    SegmentsType segments( segmentsSizes );
-   std::cout << "Segments sizes are: " << segments << std::endl;
+   std::cout << "Segments sizes are: " << segments << '\n';
 
    /***
     * Allocate array for the segments;
@@ -47,11 +46,11 @@ SegmentsExample()
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on host:\n";
    SegmentsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of CSR segments on CUDA GPU: " << std::endl;
+   std::cout << "Example of CSR segments on CUDA GPU:\n";
    SegmentsExample< TNL::Devices::Cuda >();
 #endif
    return EXIT_SUCCESS;

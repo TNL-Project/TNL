@@ -62,7 +62,7 @@ public:
     *
     * \param matrixPointer smart pointer (\ref std::shared_ptr) to matrix the preconditioner is related to.
     */
-   virtual void
+   void
    update( const MatrixPointer& matrixPointer ) override;
 
    /**
@@ -71,7 +71,7 @@ public:
     * \param b is the input vector the preconditioner is applied on.
     * \param x is the result of the preconditioning.
     */
-   virtual void
+   void
    solve( ConstVectorViewType b, VectorViewType x ) const override;
 
 protected:
@@ -133,7 +133,7 @@ public:
     *
     * \param matrixPointer smart pointer (\ref std::shared_ptr) to matrix the preconditioner is related to.
     */
-   virtual void
+   void
    update( const MatrixPointer& matrixPointer ) override;
 
    /**
@@ -142,7 +142,7 @@ public:
     * \param b is the input vector the preconditioner is applied on.
     * \param x is the result of the preconditioning.
     */
-   virtual void
+   void
    solve( ConstVectorViewType b, VectorViewType x ) const override;
 
 protected:

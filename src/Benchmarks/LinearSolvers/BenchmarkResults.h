@@ -26,14 +26,14 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
      b( b )
    {}
 
-   [[nodiscard]] virtual HeaderElements
+   [[nodiscard]] HeaderElements
    getTableHeader() const override
    {
       return HeaderElements(
          { "time", "speedup", "time_stddev", "time_stddev/time", "solved", "iterations", "residue_precond", "residue_true" } );
    }
 
-   [[nodiscard]] virtual std::vector< int >
+   [[nodiscard]] std::vector< int >
    getColumnWidthHints() const override
    {
       return std::vector< int >( { 14,      // time
@@ -46,7 +46,7 @@ struct BenchmarkResult : public TNL::Benchmarks::BenchmarkResult
                                    14 } );  // residue true
    }
 
-   virtual RowElements
+   [[nodiscard]] RowElements
    getRowElements() const override
    {
       RowElements elements;

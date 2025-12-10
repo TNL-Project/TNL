@@ -11,7 +11,7 @@
 
 namespace TNL::Meshes {
 
-enum class EntityRefinerVersion
+enum class EntityRefinerVersion : std::uint8_t
 {
    EdgeBisection
 };
@@ -45,9 +45,9 @@ struct EntityRefiner< MeshConfig, Topologies::Triangle, EntityRefinerVersion::Ed
       const auto v2 = entity.template getSubentityIndex< 0 >( 2 );
 
       const auto& mesh = entity.getMesh();
-      const auto v0_p = mesh.getPoint( v0 );
-      const auto v1_p = mesh.getPoint( v1 );
-      const auto v2_p = mesh.getPoint( v2 );
+      const auto& v0_p = mesh.getPoint( v0 );
+      const auto& v1_p = mesh.getPoint( v1 );
+      const auto& v2_p = mesh.getPoint( v2 );
 
       // add new points: midpoints of triangle edges
       const auto w0 = addPoint( 0.5 * ( v1_p + v2_p ) );
@@ -87,10 +87,10 @@ struct EntityRefiner< MeshConfig, Topologies::Quadrangle, EntityRefinerVersion::
       const auto v3 = entity.template getSubentityIndex< 0 >( 3 );
 
       const auto& mesh = entity.getMesh();
-      const auto v0_p = mesh.getPoint( v0 );
-      const auto v1_p = mesh.getPoint( v1 );
-      const auto v2_p = mesh.getPoint( v2 );
-      const auto v3_p = mesh.getPoint( v3 );
+      const auto& v0_p = mesh.getPoint( v0 );
+      const auto& v1_p = mesh.getPoint( v1 );
+      const auto& v2_p = mesh.getPoint( v2 );
+      const auto& v3_p = mesh.getPoint( v3 );
 
       // add new points
       const auto w0 = addPoint( 0.5 * ( v0_p + v1_p ) );
@@ -132,10 +132,10 @@ struct EntityRefiner< MeshConfig, Topologies::Tetrahedron, EntityRefinerVersion:
       const auto v3 = entity.template getSubentityIndex< 0 >( 3 );
 
       const auto& mesh = entity.getMesh();
-      const auto v0_p = mesh.getPoint( v0 );
-      const auto v1_p = mesh.getPoint( v1 );
-      const auto v2_p = mesh.getPoint( v2 );
-      const auto v3_p = mesh.getPoint( v3 );
+      const auto& v0_p = mesh.getPoint( v0 );
+      const auto& v1_p = mesh.getPoint( v1 );
+      const auto& v2_p = mesh.getPoint( v2 );
+      const auto& v3_p = mesh.getPoint( v3 );
 
       // add new points: midpoints of triangle edges
       const auto w0 = addPoint( 0.5 * ( v1_p + v2_p ) );
@@ -187,14 +187,14 @@ struct EntityRefiner< MeshConfig, Topologies::Hexahedron, EntityRefinerVersion::
       const auto v7 = entity.template getSubentityIndex< 0 >( 7 );
 
       const auto& mesh = entity.getMesh();
-      const auto v0_p = mesh.getPoint( v0 );
-      const auto v1_p = mesh.getPoint( v1 );
-      const auto v2_p = mesh.getPoint( v2 );
-      const auto v3_p = mesh.getPoint( v3 );
-      const auto v4_p = mesh.getPoint( v4 );
-      const auto v5_p = mesh.getPoint( v5 );
-      const auto v6_p = mesh.getPoint( v6 );
-      const auto v7_p = mesh.getPoint( v7 );
+      const auto& v0_p = mesh.getPoint( v0 );
+      const auto& v1_p = mesh.getPoint( v1 );
+      const auto& v2_p = mesh.getPoint( v2 );
+      const auto& v3_p = mesh.getPoint( v3 );
+      const auto& v4_p = mesh.getPoint( v4 );
+      const auto& v5_p = mesh.getPoint( v5 );
+      const auto& v6_p = mesh.getPoint( v6 );
+      const auto& v7_p = mesh.getPoint( v7 );
 
       // add new points: centers of bottom edges
       const auto b0 = addPoint( 0.5 * ( v0_p + v1_p ) );

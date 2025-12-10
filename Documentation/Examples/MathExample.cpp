@@ -1,12 +1,8 @@
-#include <iostream>
-#include <TNL/Math.h>
-
-using namespace TNL;
-using namespace std;
+#include <TNL/DiscreteMath.h>
 
 int
 main()
 {
-   isPow2( 1024 );
-   roundUpDivision( 10, 4 );
+   TNL::isPow2( 1024 );
+   TNL::roundUpDivision( 10, 4 );
 }

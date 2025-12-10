@@ -16,7 +16,8 @@ wrapMatrixView()
     * |  9  0  0  0 |
     * \  0  0 15 16 /
     */
-   const int rows( 4 ), columns( 4 );
+   const int rows = 4;
+   const int columns = 4;
    TNL::Containers::Vector< double, Device > valuesVector{ 1, 2, 6, 9, 15, 16 };
    TNL::Containers::Vector< int, Device > columnIndexesVector{ 0, 1, 1, 0, 2, 3 };
    TNL::Containers::Vector< int, Device > rowPointersVector{ 0, 2, 3, 4, 6 };
@@ -30,17 +31,17 @@ wrapMatrixView()
     */
    auto matrix = TNL::Matrices::wrapCSRMatrix< Device >( rows, columns, rowPointers, values, columnIndexes );
 
-   std::cout << "Matrix reads as: " << std::endl << matrix << std::endl;
+   std::cout << "Matrix reads as:\n" << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Wrapping matrix view on host: " << std::endl;
+   std::cout << "Wrapping matrix view on host:\n";
    wrapMatrixView< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Wrapping matrix view on CUDA device: " << std::endl;
+   std::cout << "Wrapping matrix view on CUDA device:\n";
    wrapMatrixView< TNL::Devices::Cuda >();
 #endif
 }

@@ -85,7 +85,7 @@ public:
     * \param indexer is object responsible for indexing and organization of matrix elements
     */
    __cuda_callable__
-   TridiagonalMatrixRowView( IndexType rowIdx, const ValuesViewType& values, const IndexerType& indexer );
+   TridiagonalMatrixRowView( IndexType rowIdx, ValuesViewType values, IndexerType indexer );
 
    /**
     * \brief Returns number of diagonals of the tridiagonal matrix which is three.

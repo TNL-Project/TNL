@@ -11,7 +11,7 @@ struct VoidOperation
 public:
    template< typename Entity >
    __cuda_callable__
-   inline static void
+   static void
    exec( Entity& entity )
    {}
 };
@@ -21,7 +21,7 @@ struct GetEntityIsBoundaryOperation
 public:
    template< typename Entity >
    __cuda_callable__
-   inline static void
+   static void
    exec( Entity& entity )
    {
       bool isBoundary = entity.isBoundary();
@@ -36,7 +36,7 @@ struct GetEntityCoordinateOperation
 public:
    template< typename Entity >
    __cuda_callable__
-   inline static void
+   static void
    exec( Entity& entity )
    {
       typename Entity::GridType::CoordinatesType coordinate = entity.getCoordinates();
@@ -50,7 +50,7 @@ struct GetEntityIndexOperation
 public:
    template< typename Entity >
    __cuda_callable__
-   inline static typename Entity::IndexType
+   static typename Entity::IndexType
    exec( Entity& entity )
    {
       return entity.getIndex();
@@ -62,7 +62,7 @@ struct GetEntityNormalsOperation
 public:
    template< typename Entity >
    __cuda_callable__
-   inline static void
+   static void
    exec( Entity& entity )
    {
       typename Entity::GridType::CoordinatesType coordinate = entity.getNormals();
@@ -76,7 +76,7 @@ struct RefreshEntityOperation
 public:
    template< typename Entity >
    __cuda_callable__
-   inline static void
+   static void
    exec( Entity& entity )
    {
       entity.refresh();
@@ -88,7 +88,7 @@ struct GetMeshDimensionOperation
 public:
    template< typename Entity >
    __cuda_callable__
-   inline static void
+   static void
    exec( Entity& entity )
    {
       typename Entity::GridType::CoordinatesType coordinate = entity.getMesh().getDimensions();
@@ -102,7 +102,7 @@ struct GetOriginOperation
 public:
    template< typename Entity >
    __cuda_callable__
-   inline static void
+   static void
    exec( Entity& entity )
    {
       typename Entity::GridType::PointType coordinate = entity.getMesh().getOrigin();
@@ -116,7 +116,7 @@ struct GetEntitiesCountsOperation
 public:
    template< typename Entity >
    __cuda_callable__
-   inline static void
+   static void
    exec( Entity& entity )
    {
       typename Entity::GridType::EntitiesCounts coordinate = entity.getMesh().getEntitiesCounts();

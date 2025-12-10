@@ -104,7 +104,7 @@ public:
     * \param x is the result of the preconditioning.
     */
    virtual void
-   solve( ConstVectorViewType b, VectorViewType x ) const
+   solve( ConstVectorViewType b, VectorViewType x ) const  // NOLINT(performance-unnecessary-value-param)
    {
       throw std::logic_error( "The solve() method of a dummy preconditioner should not be called." );
    }

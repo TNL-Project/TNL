@@ -25,7 +25,7 @@ sort( ArrayT& array )
                                  } );
    array = aux_array;
 
-   std::cout << "Random array: " << array << std::endl;
+   std::cout << "Random array: " << array << '\n';
 
    /****
     * Sort the array in ascending order.
@@ -35,7 +35,7 @@ sort( ArrayT& array )
          {
             return a < b;
          } );
-   std::cout << "Array sorted in ascending order:" << array << std::endl;
+   std::cout << "Array sorted in ascending order:" << array << '\n';
 
    /***
     * Sort the array in descending order.
@@ -45,7 +45,7 @@ sort( ArrayT& array )
          {
             return a > b;
          } );
-   std::cout << "Array sorted in descending order:" << array << std::endl;
+   std::cout << "Array sorted in descending order:" << array << '\n';
 }
 
 int
@@ -54,7 +54,7 @@ main( int argc, char* argv[] )
    /***
     * Firstly, test the sorting on CPU.
     */
-   std::cout << "Sorting on CPU ... " << std::endl;
+   std::cout << "Sorting on CPU ...\n";
    Array< int, Devices::Host > host_array;
    sort( host_array );
 
@@ -62,7 +62,7 @@ main( int argc, char* argv[] )
    /***
     * And then also on GPU.
     */
-   std::cout << "Sorting on GPU ... " << std::endl;
+   std::cout << "Sorting on GPU ...\n";
    Array< int, Devices::Cuda > cuda_array;
    sort( cuda_array );
 #endif

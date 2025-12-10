@@ -1,7 +1,5 @@
 #include <iostream>
 #include <memory>
-#include <chrono>
-#include <thread>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
@@ -55,7 +53,7 @@ directLinearSolverExample()
     * Set the matrix elements.
     */
    matrix_ptr->forAllRows( f );
-   std::cout << *matrix_ptr << std::endl;
+   std::cout << *matrix_ptr << '\n';
 
    /***
     * Set the right-hand side vector.
@@ -64,7 +62,7 @@ directLinearSolverExample()
    Vector b( size );
    matrix_ptr->vectorProduct( x, b );
    x = 0.0;
-   std::cout << "Vector b = " << b << std::endl;
+   std::cout << "Vector b = " << b << '\n';
 
    /***
     * Setup solver of the linear system.
@@ -86,16 +84,16 @@ directLinearSolverExample()
    solver.solve( b, x );
    monitor.stopMainLoop();
    if( solver.checkConvergence() ) {
-      std::cout << "Solver succeeded." << std::endl;
-      std::cout << "Vector x = " << x << std::endl;
+      std::cout << "Solver succeeded.\n";
+      std::cout << "Vector x = " << x << '\n';
    }
    else
-      std::cout << "Solver failed." << std::endl;
+      std::cout << "Solver failed.\n";
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Solving linear system on host: " << std::endl;
+   std::cout << "Solving linear system on host:\n";
    directLinearSolverExample< TNL::Devices::Sequential >();
 }

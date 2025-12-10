@@ -26,7 +26,7 @@ forRowsExample()
          row.setValue( rowIdx + 1, -1.0 );
    };
    view.forAllRows( f );  // or matrix.forAllRows
-   std::cout << matrix << std::endl;
+   std::cout << matrix << '\n';
 
    /***
     * Now divide each matrix row by its largest element - with the use of iterators.
@@ -40,18 +40,18 @@ forRowsExample()
          for( auto element : row )
             element.value() /= largest;
       } );
-   std::cout << "Divide each matrix row by its largest element... " << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Divide each matrix row by its largest element...\n";
+   std::cout << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Getting matrix rows on host: " << std::endl;
+   std::cout << "Getting matrix rows on host:\n";
    forRowsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Getting matrix rows on CUDA device: " << std::endl;
+   std::cout << "Getting matrix rows on CUDA device:\n";
    forRowsExample< TNL::Devices::Cuda >();
 #endif
 }

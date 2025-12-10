@@ -3,9 +3,7 @@
 
 #pragma once
 
-#include <cstring>
 #include <iostream>
-#include <climits>
 #include <sys/time.h>
 
 #include <TNL/Containers/Array.h>
@@ -76,10 +74,10 @@ public:
    setInterleaving( bool interleaving );
 
    bool
-   setupRandomTest( int tlbTestBlockSize = 0, const int numThreads = 1 );
+   setupRandomTest( int tlbTestBlockSize = 0, int numThreads = 1 );
 
    void
-   setupSequentialTest( const int numThreads = 1, bool interleaving = true );
+   setupSequentialTest( int numThreads = 1, bool interleaving = true );
 
    void
    performTest();
@@ -95,7 +93,7 @@ protected:
    setupRandomTLBWorstTest();
 
    bool
-   setupRandomTestBlock( const unsigned long long int blockSize, PtrArrayType& blockLink, const int numThreads = 1 );
+   setupRandomTestBlock( unsigned long long int blockSize, PtrArrayType& blockLink, int numThreads = 1 );
 
    template< bool readTest, bool writeTest, bool accessCentralData >
    void

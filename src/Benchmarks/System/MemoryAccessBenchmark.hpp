@@ -4,7 +4,6 @@
 #pragma once
 
 #include <TNL/Benchmarks/Benchmarks.h>
-#include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/parseCommandLine.h>
 #include "MemoryAccessBenchmarkTestArray.h"
 #include "MemoryAccessBenchmark.h"

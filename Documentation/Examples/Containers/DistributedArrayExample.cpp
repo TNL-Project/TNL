@@ -37,12 +37,12 @@ distributedArrayExample()
                   } );
    for( int i = 0; i < communicator.size(); i++ ) {
       if( communicator.rank() == i )
-         std::cout << "MPI rank = " << communicator.rank() << std::endl
-                   << " size = " << a.getSize() << std::endl
-                   << " local range = " << a.getLocalRange().getBegin() << " - " << a.getLocalRange().getEnd() << std::endl
-                   << " ghosts = " << a.getGhosts() << std::endl
-                   << " local data = " << a.getLocalView() << std::endl
-                   << " local data with ghosts = " << a.getLocalViewWithGhosts() << std::endl;
+         std::cout << "MPI rank = " << communicator.rank() << '\n'
+                   << " size = " << a.getSize() << '\n'
+                   << " local range = " << a.getLocalRange().getBegin() << " - " << a.getLocalRange().getEnd() << '\n'
+                   << " ghosts = " << a.getGhosts() << '\n'
+                   << " local data = " << a.getLocalView() << '\n'
+                   << " local data with ghosts = " << a.getLocalViewWithGhosts() << '\n';
       TNL::MPI::Barrier();
    }
 }
@@ -53,14 +53,14 @@ main( int argc, char* argv[] )
    TNL::MPI::ScopedInitializer mpi( argc, argv );
 
    if( TNL::MPI::GetRank() == 0 )
-      std::cout << "The first test runs on CPU ..." << std::endl;
+      std::cout << "The first test runs on CPU ...\n";
    distributedArrayExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
    TNL::MPI::Barrier();
 
    if( TNL::MPI::GetRank() == 0 )
-      std::cout << "The second test runs on GPU ..." << std::endl;
+      std::cout << "The second test runs on GPU ...\n";
    distributedArrayExample< TNL::Devices::Cuda >();
 #endif
 }

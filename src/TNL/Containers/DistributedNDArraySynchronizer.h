@@ -239,7 +239,7 @@ public:
          {
             // set the GPU id, see this gotcha:
             // GOTCHA: https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
-            if constexpr( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
+            if constexpr( std::is_same_v< typename DistributedNDArray::DeviceType, Devices::Cuda > )
                Backend::setDevice( this->gpu_id );
 
             // stage 1: fill send buffers
@@ -328,7 +328,7 @@ public:
 
       // save the GPU id to be restored in async threads, see this gotcha:
       // https://devblogs.nvidia.com/cuda-pro-tip-always-set-current-device-avoid-multithreading-bugs/
-      if constexpr( std::is_same< typename DistributedNDArray::DeviceType, Devices::Cuda >::value )
+      if constexpr( std::is_same_v< typename DistributedNDArray::DeviceType, Devices::Cuda > )
          this->gpu_id = Backend::getDevice();
 
       if( countDimensionsWithOverlap( array.getView() ) == 0 )
@@ -369,7 +369,7 @@ public:
    stage_2()
    {
       // synchronize all CUDA streams to ensure the previous stage is finished
-      if constexpr( std::is_same< typename DistributedNDArrayView::DeviceType, Devices::Cuda >::value ) {
+      if constexpr( std::is_same_v< typename DistributedNDArrayView::DeviceType, Devices::Cuda > ) {
          for( auto& [ _, buffer ] : buffers )
             Backend::streamSynchronize( buffer.stream_id );
       }
@@ -419,7 +419,7 @@ public:
    stage_4()
    {
       // synchronize all CUDA streams
-      if constexpr( std::is_same< typename DistributedNDArrayView::DeviceType, Devices::Cuda >::value ) {
+      if constexpr( std::is_same_v< typename DistributedNDArrayView::DeviceType, Devices::Cuda > ) {
          for( auto& [ _, buffer ] : buffers )
             Backend::streamSynchronize( buffer.stream_id );
       }

@@ -77,10 +77,7 @@ public:
    setMatrix( const Matrices::HypreParCSRMatrix& op, bool reuse_setup = false )
    {
       A = &op;
-      if( setup_called && reuse_setup )
-         setup_called = true;
-      else
-         setup_called = false;
+      setup_called = setup_called && reuse_setup;
    }
 
    /**

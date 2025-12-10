@@ -25,9 +25,9 @@ main( int argc, char* argv[] )
    /****
     * Print both arrays.
     */
-   std::cout << "host_array = " << host_array << std::endl;
-   std::cout << "device_array = " << device_array << std::endl;
-   std::cout << std::endl;
+   std::cout << "host_array = " << host_array << '\n';
+   std::cout << "device_array = " << device_array << '\n';
+   std::cout << '\n';
 
    /****
     * There are few other ways how to initialize arrays...
@@ -42,7 +42,7 @@ main( int argc, char* argv[] )
    /****
     * ... and print them all
     */
-   std::cout << "device_array_list = " << device_array_list << std::endl;
-   std::cout << "device_array_vector = " << device_array_vector << std::endl;
-   std::cout << "device_array_init_list = " << device_array_init_list << std::endl;
+   std::cout << "device_array_list = " << device_array_list << '\n';
+   std::cout << "device_array_vector = " << device_array_vector << '\n';
+   std::cout << "device_array_init_list = " << device_array_init_list << '\n';
 }

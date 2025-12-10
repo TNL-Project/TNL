@@ -28,11 +28,11 @@ distributedVectorExample()
                   {
                      value = idx;
                   } );
-   std::cout << "Rank " << communicator.rank() << " has subrange " << localRange << std::endl;
+   std::cout << "Rank " << communicator.rank() << " has subrange " << localRange << '\n';
    const int sum = TNL::sum( v );
 
    if( communicator.rank() == 0 )
-      std::cout << "Global sum is " << sum << std::endl;
+      std::cout << "Global sum is " << sum << '\n';
 }
 
 int
@@ -41,14 +41,14 @@ main( int argc, char* argv[] )
    TNL::MPI::ScopedInitializer mpi( argc, argv );
 
    if( TNL::MPI::GetRank() == 0 )
-      std::cout << "The first test runs on CPU ..." << std::endl;
+      std::cout << "The first test runs on CPU ...\n";
    distributedVectorExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
    TNL::MPI::Barrier();
 
    if( TNL::MPI::GetRank() == 0 )
-      std::cout << "The second test runs on GPU ..." << std::endl;
+      std::cout << "The second test runs on GPU ...\n";
    distributedVectorExample< TNL::Devices::Cuda >();
 #endif
 }

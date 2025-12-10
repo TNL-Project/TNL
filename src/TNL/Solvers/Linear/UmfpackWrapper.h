@@ -43,7 +43,7 @@ public:
    bool
    solve( ConstVectorViewType b, VectorViewType x ) override;
 
-   ~UmfpackWrapper();
+   ~UmfpackWrapper() override;
 
 protected:
 #ifdef HAVE_UMFPACK

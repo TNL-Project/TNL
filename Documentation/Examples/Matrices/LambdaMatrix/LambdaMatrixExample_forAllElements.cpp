@@ -35,18 +35,18 @@ forAllElementsExample()
    };
 
    matrix.forAllElements( f );
-   std::cout << "Original lambda matrix:" << std::endl << matrix << std::endl;
-   std::cout << "Dense matrix:" << std::endl << denseMatrix << std::endl;
+   std::cout << "Original lambda matrix:\n" << matrix << '\n';
+   std::cout << "Dense matrix:\n" << denseMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Copying matrix on host: " << std::endl;
+   std::cout << "Copying matrix on host:\n";
    forAllElementsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Copying matrix on CUDA device: " << std::endl;
+   std::cout << "Copying matrix on CUDA device:\n";
    forAllElementsExample< TNL::Devices::Cuda >();
 #endif
 }

@@ -1,4 +1,3 @@
-#include <iostream>
 #include <cstdlib>
 #include <TNL/Containers/Array.h>
 #include <TNL/Pointers/UniquePointer.h>

@@ -13,7 +13,7 @@ main()
    std::this_thread::sleep_for( std::chrono::milliseconds( milliseconds ) );
    performanceCounters.stop();
 
-   std::cout << "Elapsed CPU cycles: " << performanceCounters.getCPUCycles() << std::endl;
+   std::cout << "Elapsed CPU cycles: " << performanceCounters.getCPUCycles() << '\n';
    performanceCounters.reset();
-   std::cout << "CPU cycles after reset: " << performanceCounters.getCPUCycles() << std::endl;
+   std::cout << "CPU cycles after reset: " << performanceCounters.getCPUCycles() << '\n';
 }

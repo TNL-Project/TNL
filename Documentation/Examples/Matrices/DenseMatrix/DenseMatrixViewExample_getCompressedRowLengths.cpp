@@ -18,22 +18,22 @@ getCompressedRowLengthsExample()
    };
    auto denseMatrixView = denseMatrix.getConstView();
 
-   std::cout << denseMatrixView << std::endl;
+   std::cout << denseMatrixView << '\n';
 
    TNL::Containers::Vector< int, Device > rowLengths;
    denseMatrixView.getCompressedRowLengths( rowLengths );
 
-   std::cout << "Compressed row lengths are: " << rowLengths << std::endl;
+   std::cout << "Compressed row lengths are: " << rowLengths << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Getting compressed row lengths on host: " << std::endl;
+   std::cout << "Getting compressed row lengths on host:\n";
    getCompressedRowLengthsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Getting compressed row lengths on CUDA device: " << std::endl;
+   std::cout << "Getting compressed row lengths on CUDA device:\n";
    getCompressedRowLengthsExample< TNL::Devices::Cuda >();
 #endif
 }

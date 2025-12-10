@@ -5,12 +5,10 @@
 
 #include <cstdint>
 #include <type_traits>
-#include <utility>
 
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
-#include "MatrixType.h"
 
 /**
  * \brief Namespace for matrix formats.

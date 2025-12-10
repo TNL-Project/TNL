@@ -21,18 +21,18 @@ getElements()
    for( int i = 0; i < 5; i++ ) {
       for( int j = 0; j < 5; j++ )
          std::cout << std::setw( 5 ) << std::ios::right << matrixView.getElement( i, i );  // or matrix.getElement
-      std::cout << std::endl;
+      std::cout << '\n';
    }
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Get elements on host:" << std::endl;
+   std::cout << "Get elements on host:\n";
    getElements< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Get elements on CUDA device:" << std::endl;
+   std::cout << "Get elements on CUDA device:\n";
    getElements< TNL::Devices::Cuda >();
 #endif
 }

@@ -99,7 +99,7 @@ public:
 #endif
    }
 
-   bool
+   [[nodiscard]] bool
    factorized() const
    {
       return this->factorisation_success;

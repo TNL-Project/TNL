@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <TNL/Solvers/ODE/ODESolver.h>
 #include <TNL/Solvers/ODE/Methods/Euler.h>
@@ -40,10 +41,9 @@ main( int argc, char* argv[] )
       };
       solver.iterate( u, f );
       if( solver.getTime() >= next_output_time ) {
-         std::cout << solver.getTime() << " " << u[ 0 ] << std::endl;
+         std::cout << solver.getTime() << " " << u[ 0 ] << '\n';
          next_output_time += output_time_step;
-         if( next_output_time > final_time )
-            next_output_time = final_time;
+         next_output_time = std::min( next_output_time, final_time );
       }
    }
    //! [Time loop]

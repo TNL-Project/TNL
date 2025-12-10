@@ -1,4 +1,3 @@
-#include <iostream>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/StaticArray.h>
 #include <TNL/Algorithms/parallelFor.h>
@@ -27,7 +26,9 @@ main( int argc, char* argv[] )
    /***
     * Define dimensions of a 3D mesh function.
     */
-   const int xSize( 10 ), ySize( 10 ), zSize( 10 );
+   const int xSize = 10;
+   const int ySize = 10;
+   const int zSize = 10;
    const int size = xSize * ySize * zSize;
 
    /***

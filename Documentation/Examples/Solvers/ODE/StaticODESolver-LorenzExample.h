@@ -54,7 +54,7 @@ main( int argc, char* argv[] )
       };
       //! [Lambda function]
       solver.solve( u, f );
-      std::cout << u[ 0 ] << " " << u[ 1 ] << " " << u[ 2 ] << std::endl;
+      std::cout << u[ 0 ] << " " << u[ 1 ] << " " << u[ 2 ] << '\n';
    }
    //! [Time loop]
 }

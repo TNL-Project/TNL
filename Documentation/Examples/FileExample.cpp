@@ -20,5 +20,5 @@ main()
    file >> restoredString;
    file.close();
 
-   std::cout << "restored string = " << restoredString << std::endl;
+   std::cout << "restored string = " << restoredString << '\n';
 }

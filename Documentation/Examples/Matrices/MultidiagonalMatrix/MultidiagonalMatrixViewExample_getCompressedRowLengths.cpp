@@ -33,18 +33,18 @@ laplaceOperatorMatrix()
    auto view = matrix.getView();
    TNL::Containers::Vector< int, Device > rowLengths;
    view.getCompressedRowLengths( rowLengths );  // or matrix.getCompressedRowLengths
-   std::cout << "Laplace operator matrix: " << std::endl << matrix << std::endl;
-   std::cout << "Compressed row lengths: " << rowLengths << std::endl;
+   std::cout << "Laplace operator matrix:\n" << matrix << '\n';
+   std::cout << "Compressed row lengths: " << rowLengths << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating Laplace operator matrix on CPU ... " << std::endl;
+   std::cout << "Creating Laplace operator matrix on CPU ...\n";
    laplaceOperatorMatrix< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating Laplace operator matrix on CUDA GPU ... " << std::endl;
+   std::cout << "Creating Laplace operator matrix on CUDA GPU ...\n";
    laplaceOperatorMatrix< TNL::Devices::Cuda >();
 #endif
 }

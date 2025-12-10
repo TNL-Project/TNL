@@ -1,4 +1,3 @@
-#include <iostream>
 #include <string>
 
 #include <TNL/Config/ParameterContainer.h>
@@ -10,5 +9,5 @@ main()
 {
    Config::ParameterContainer parameters;
    auto param = parameters.getParameter< std::string >( "distributed-grid-io-type" );
-   //    parameters.checkParameter< std::string >( "distributed-grid-io-type" );
+   //parameters.checkParameter< std::string >( "distributed-grid-io-type" );
 }

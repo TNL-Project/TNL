@@ -10,14 +10,14 @@ namespace TNL::Matrices {
 template< typename ValuesView, typename Indexer, typename DiagonalsOffsetsView >
 __cuda_callable__
 MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::MultidiagonalMatrixRowView(
-   const IndexType rowIdx,
-   const DiagonalsOffsetsView& diagonalsOffsets,
-   const ValuesViewType& values,
-   const IndexerType& indexer )
+   IndexType rowIdx,
+   DiagonalsOffsetsView diagonalsOffsets,
+   ValuesViewType values,
+   IndexerType indexer )
 : rowIdx( rowIdx ),
-  diagonalsOffsets( diagonalsOffsets ),
-  values( values ),
-  indexer( indexer )
+  diagonalsOffsets( std::move( diagonalsOffsets ) ),
+  values( std::move( values ) ),
+  indexer( std::move( indexer ) )
 {}
 
 template< typename ValuesView, typename Indexer, typename DiagonalsOffsetsView >

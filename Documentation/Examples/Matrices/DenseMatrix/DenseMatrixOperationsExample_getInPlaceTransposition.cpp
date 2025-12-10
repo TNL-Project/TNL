@@ -15,21 +15,21 @@ getInPlaceTranspositionExample()
    };
    // clang-format on
 
-   std::cout << "Dense matrix: " << std::endl << matrix << std::endl;
+   std::cout << "Dense matrix:\n" << matrix << '\n';
 
    matrix.getInPlaceTransposition();
 
-   std::cout << "Transposed dense matrix: " << std::endl << matrix << std::endl;
+   std::cout << "Transposed dense matrix:\n" << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrix on CPU ... " << std::endl;
+   std::cout << "Creating matrix on CPU ...\n";
    getInPlaceTranspositionExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrix on CUDA GPU ... " << std::endl;
+   std::cout << "Creating matrix on CUDA GPU ...\n";
    getInPlaceTranspositionExample< TNL::Devices::Cuda >();
 #endif
 }

@@ -20,26 +20,26 @@ createMatrixView()
     */
    TNL::Matrices::DenseMatrixView< double, Device, int, TNL::Algorithms::Segments::RowMajorOrder > rowMajorMatrix(
       3, 4, values.getView() );
-   std::cout << "Row major order matrix:" << std::endl;
-   std::cout << rowMajorMatrix << std::endl;
+   std::cout << "Row major order matrix:\n";
+   std::cout << rowMajorMatrix << '\n';
 
    /***
     * Create dense matrix view with column major order
     */
    TNL::Matrices::DenseMatrixView< double, Device, int, TNL::Algorithms::Segments::RowMajorOrder > columnMajorMatrix(
       4, 3, values.getView() );
-   std::cout << "Column major order matrix:" << std::endl;
-   std::cout << columnMajorMatrix << std::endl;
+   std::cout << "Column major order matrix:\n";
+   std::cout << columnMajorMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrix view on host: " << std::endl;
+   std::cout << "Creating matrix view on host:\n";
    createMatrixView< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrix view on CUDA device: " << std::endl;
+   std::cout << "Creating matrix view on CUDA device:\n";
    createMatrixView< TNL::Devices::Cuda >();
 #endif
 }

@@ -211,9 +211,9 @@ template< typename Device >
 void
 laplaceOperatorSparseMatrix()
 {
-   std::cout << " Sparse matrix test:" << std::endl;
+   std::cout << " Sparse matrix test:\n";
    for( int gridSize = 16; gridSize <= 8192; gridSize *= 2 ) {
-      std::cout << "  Grid size = " << gridSize << std::endl;
+      std::cout << "  Grid size = " << gridSize << '\n';
       TNL::Timer timer;
 
       std::cout << "   STL map: ";
@@ -224,7 +224,7 @@ laplaceOperatorSparseMatrix()
          STL_Map( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
 
       std::cout << "   setElement on host: ";
       timer.reset();
@@ -234,9 +234,9 @@ laplaceOperatorSparseMatrix()
          setElement_on_host( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
 
-      if( std::is_same< Device, TNL::Devices::Cuda >::value ) {
+      if( std::is_same_v< Device, TNL::Devices::Cuda > ) {
          std::cout << "   setElement on host and transfer on GPU: ";
          timer.reset();
          timer.start();
@@ -245,7 +245,7 @@ laplaceOperatorSparseMatrix()
             setElement_on_host_and_transfer( gridSize, matrix );
          }
          timer.stop();
-         std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
+         std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
       }
 
       std::cout << "   setElement on device: ";
@@ -256,7 +256,7 @@ laplaceOperatorSparseMatrix()
          setElement_on_device( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
 
       std::cout << "   getRow: ";
       timer.reset();
@@ -266,7 +266,7 @@ laplaceOperatorSparseMatrix()
          getRow( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
 
       std::cout << "   forElements: ";
       timer.reset();
@@ -276,18 +276,18 @@ laplaceOperatorSparseMatrix()
          forElements( gridSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
    }
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating Laplace operator matrix on CPU ... " << std::endl;
+   std::cout << "Creating Laplace operator matrix on CPU ...\n";
    laplaceOperatorSparseMatrix< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating Laplace operator matrix on CUDA GPU ... " << std::endl;
+   std::cout << "Creating Laplace operator matrix on CUDA GPU ...\n";
    laplaceOperatorSparseMatrix< TNL::Devices::Cuda >();
 #endif
 }

@@ -47,9 +47,10 @@ template< typename Array >
 void
 expect_eq( Array& a, Array& b )
 {
-   if( std::is_same< typename Array::DeviceType, TNL::Devices::Cuda >::value ) {
+   if( std::is_same_v< typename Array::DeviceType, TNL::Devices::Cuda > ) {
       using HostArray = typename Array::template Self< typename Array::ValueType, TNL::Devices::Host >;
-      HostArray a_host, b_host;
+      HostArray a_host;
+      HostArray b_host;
       a_host = a;
       b_host = b;
       expect_eq_chunked( a_host, b_host );
@@ -63,9 +64,9 @@ template< typename Device >
 const char*
 performer()
 {
-   if( std::is_same< Device, Devices::Host >::value )
+   if( std::is_same_v< Device, Devices::Host > )
       return "CPU";
-   else if( std::is_same< Device, Devices::Cuda >::value )
+   else if( std::is_same_v< Device, Devices::Cuda > )
       return "GPU";
    else
       return "unknown";
@@ -82,7 +83,9 @@ template< typename Device >
 void
 benchmark_array( Benchmark<>& benchmark, index_type size = 500000000 )
 {
-   Array< value_type, Device > a, b;
+   using ArrayType = Array< value_type, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSize( size );
    b.setSize( size );
    a.setValue( -1 );
@@ -112,7 +115,9 @@ template< typename Device >
 void
 benchmark_1D( Benchmark<>& benchmark, index_type size = 500000000 )
 {
-   NDArray< value_type, SizesHolder< index_type, 0 >, std::make_index_sequence< 1 >, Device > a, b;
+   using ArrayType = NDArray< value_type, SizesHolder< index_type, 0 >, std::make_index_sequence< 1 >, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSizes( size );
    b.setSizes( size );
    a.getStorageArray().setValue( -1 );
@@ -140,7 +145,9 @@ template< typename Device >
 void
 benchmark_2D( Benchmark<>& benchmark, index_type size = 22333 )
 {
-   NDArray< value_type, SizesHolder< index_type, 0, 0 >, std::make_index_sequence< 2 >, Device > a, b;
+   using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0 >, std::make_index_sequence< 2 >, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSizes( size, size );
    b.setSizes( size, size );
    a.getStorageArray().setValue( -1 );
@@ -168,7 +175,9 @@ template< typename Device >
 void
 benchmark_3D( Benchmark<>& benchmark, index_type size = 800 )
 {
-   NDArray< value_type, SizesHolder< index_type, 0, 0, 0 >, std::make_index_sequence< 3 >, Device > a, b;
+   using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0 >, std::make_index_sequence< 3 >, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSizes( size, size, size );
    b.setSizes( size, size, size );
    a.getStorageArray().setValue( -1 );
@@ -196,7 +205,9 @@ template< typename Device >
 void
 benchmark_4D( Benchmark<>& benchmark, index_type size = 150 )
 {
-   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0 >, std::make_index_sequence< 4 >, Device > a, b;
+   using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0 >, std::make_index_sequence< 4 >, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSizes( size, size, size, size );
    b.setSizes( size, size, size, size );
    a.getStorageArray().setValue( -1 );
@@ -224,7 +235,9 @@ template< typename Device >
 void
 benchmark_5D( Benchmark<>& benchmark, index_type size = 56 )
 {
-   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0 >, std::make_index_sequence< 5 >, Device > a, b;
+   using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0 >, std::make_index_sequence< 5 >, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSizes( size, size, size, size, size );
    b.setSizes( size, size, size, size, size );
    a.getStorageArray().setValue( -1 );
@@ -252,7 +265,9 @@ template< typename Device >
 void
 benchmark_6D( Benchmark<>& benchmark, index_type size = 28 )
 {
-   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0, 0 >, std::make_index_sequence< 6 >, Device > a, b;
+   using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0, 0 >, std::make_index_sequence< 6 >, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSizes( size, size, size, size, size, size );
    b.setSizes( size, size, size, size, size, size );
    a.getStorageArray().setValue( -1 );
@@ -280,7 +295,9 @@ template< typename Device >
 void
 benchmark_2D_perm( Benchmark<>& benchmark, index_type size = 22333 )
 {
-   NDArray< value_type, SizesHolder< index_type, 0, 0 >, std::index_sequence< 1, 0 >, Device > a, b;
+   using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0 >, std::index_sequence< 1, 0 >, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSizes( size, size );
    b.setSizes( size, size );
    a.getStorageArray().setValue( -1 );
@@ -308,7 +325,9 @@ template< typename Device >
 void
 benchmark_3D_perm( Benchmark<>& benchmark, index_type size = 800 )
 {
-   NDArray< value_type, SizesHolder< index_type, 0, 0, 0 >, std::index_sequence< 2, 1, 0 >, Device > a, b;
+   using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0 >, std::index_sequence< 2, 1, 0 >, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSizes( size, size, size );
    b.setSizes( size, size, size );
    a.getStorageArray().setValue( -1 );
@@ -336,7 +355,9 @@ template< typename Device >
 void
 benchmark_4D_perm( Benchmark<>& benchmark, index_type size = 150 )
 {
-   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0 >, std::index_sequence< 3, 2, 1, 0 >, Device > a, b;
+   using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0 >, std::index_sequence< 3, 2, 1, 0 >, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSizes( size, size, size, size );
    b.setSizes( size, size, size, size );
    a.getStorageArray().setValue( -1 );
@@ -364,7 +385,10 @@ template< typename Device >
 void
 benchmark_5D_perm( Benchmark<>& benchmark, index_type size = 56 )
 {
-   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0 >, std::index_sequence< 4, 3, 2, 1, 0 >, Device > a, b;
+   using ArrayType =
+      NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0 >, std::index_sequence< 4, 3, 2, 1, 0 >, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSizes( size, size, size, size, size );
    b.setSizes( size, size, size, size, size );
    a.getStorageArray().setValue( -1 );
@@ -392,7 +416,10 @@ template< typename Device >
 void
 benchmark_6D_perm( Benchmark<>& benchmark, index_type size = 28 )
 {
-   NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0, 0 >, std::index_sequence< 5, 4, 3, 2, 1, 0 >, Device > a, b;
+   using ArrayType =
+      NDArray< value_type, SizesHolder< index_type, 0, 0, 0, 0, 0, 0 >, std::index_sequence< 5, 4, 3, 2, 1, 0 >, Device >;
+   ArrayType a;
+   ArrayType b;
    a.setSizes( size, size, size, size, size, size );
    b.setSizes( size, size, size, size, size, size );
    a.getStorageArray().setValue( -1 );

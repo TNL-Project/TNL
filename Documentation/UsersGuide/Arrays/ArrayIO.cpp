@@ -12,7 +12,8 @@ main( int argc, char* argv[] )
     * Create new arrays
     */
    const int size = 15;
-   Array< float > a( size ), b( 5 );
+   Array< float > a( size );
+   Array< float > b( 5 );
    a = 1;
    b = 2;
 
@@ -34,7 +35,7 @@ main( int argc, char* argv[] )
    /****
     * Print the results
     */
-   std::cout << "a = " << a << std::endl;
-   std::cout << "a_view = " << a_view << std::endl;
-   std::cout << "b = " << b << std::endl;
+   std::cout << "a = " << a << '\n';
+   std::cout << "a_view = " << a_view << '\n';
+   std::cout << "b = " << b << '\n';
 }

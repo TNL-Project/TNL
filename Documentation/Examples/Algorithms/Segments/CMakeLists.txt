@@ -9,6 +9,7 @@ set(COMMON_EXAMPLES
     SegmentsExample_CSR_getSegmentView
     SegmentsExample_CSR_forElements
     SegmentsExample_CSR_forSegments
+    SegmentsExample_CSR_sequentialForAllSegments
     SegmentsExample_CSR_sequentialForSegments
     SegmentsExample_CSR_reduceSegments
     SegmentsExample_forElements

@@ -44,7 +44,7 @@ printInfo( const std::string& fileName, bool verbose = true )
              << "\tPercentile 25 of non-zero elements per row:\t" << percentile_25 << "\n"
              << "\tPercentile 50 of non-zero elements per row:\t" << percentile_50 << "\n"
              << "\tPercentile 75 of non-zero elements per row:\t" << percentile_75 << "\n"
-             << std::endl;
+             << '\n';
 
    return true;
 }
@@ -53,7 +53,7 @@ int
 main( int argc, char* argv[] )
 {
    if( argc < 2 ) {
-      std::cerr << "Usage: " << argv[ 0 ] << " filename.mtx ..." << std::endl;
+      std::cerr << "Usage: " << argv[ 0 ] << " filename.mtx ...\n";
       return EXIT_FAILURE;
    }
 

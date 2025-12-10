@@ -4,9 +4,9 @@
 #pragma once
 
 #include <string>
-#include <type_traits>
 
 #include <TNL/Config/ConfigDescription.h>
+#include <TNL/Containers/Vector.h>
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 #include <TNL/Config/ParameterContainer.h>
 
@@ -148,7 +148,7 @@ public:
     */
    template< typename RHSFunction >
    bool
-   solve( VectorType& u, RHSFunction&& f );
+   solve( VectorType& u, RHSFunction&& rhsFunction );
 
 protected:
    DofVectorType _k1;

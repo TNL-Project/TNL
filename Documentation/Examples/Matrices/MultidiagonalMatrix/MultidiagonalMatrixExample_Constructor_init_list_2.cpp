@@ -46,17 +46,17 @@ createMultidiagonalMatrix()
          { -1, -1,  4,  0,  0 },
          // clang-format on
       } );
-   std::cout << "The matrix reads as: " << std::endl << matrix << std::endl;
+   std::cout << "The matrix reads as:\n" << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Create multidiagonal matrix on CPU ... " << std::endl;
+   std::cout << "Create multidiagonal matrix on CPU ...\n";
    createMultidiagonalMatrix< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating multidiagonal matrix on CUDA GPU ... " << std::endl;
+   std::cout << "Creating multidiagonal matrix on CUDA GPU ...\n";
    createMultidiagonalMatrix< TNL::Devices::Cuda >();
 #endif
 }

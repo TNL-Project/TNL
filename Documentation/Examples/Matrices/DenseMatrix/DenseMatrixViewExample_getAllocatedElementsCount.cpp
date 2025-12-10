@@ -18,18 +18,18 @@ getElementsCountExample()
    };
    auto triangularMatrixView = triangularMatrix.getConstView();
 
-   std::cout << "Matrix elements count is " << triangularMatrixView.getAllocatedElementsCount() << "." << std::endl;
-   std::cout << "Non-zero matrix elements count is " << triangularMatrixView.getNonzeroElementsCount() << "." << std::endl;
+   std::cout << "Matrix elements count is " << triangularMatrixView.getAllocatedElementsCount() << ".\n";
+   std::cout << "Non-zero matrix elements count is " << triangularMatrixView.getNonzeroElementsCount() << ".\n";
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Computing matrix elements on host: " << std::endl;
+   std::cout << "Computing matrix elements on host:\n";
    getElementsCountExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Computing matrix elements on CUDA device: " << std::endl;
+   std::cout << "Computing matrix elements on CUDA device:\n";
    getElementsCountExample< TNL::Devices::Cuda >();
 #endif
 }

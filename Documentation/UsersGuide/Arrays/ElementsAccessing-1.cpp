@@ -45,6 +45,6 @@ main( int argc, char* argv[] )
    /****
     * Print the results
     */
-   std::cout << " host_array = " << host_array << std::endl;
-   std::cout << " device_array = " << device_array << std::endl;
+   std::cout << " host_array = " << host_array << '\n';
+   std::cout << " device_array = " << device_array << '\n';
 }

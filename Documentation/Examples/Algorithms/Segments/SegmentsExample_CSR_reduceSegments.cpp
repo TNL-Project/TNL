@@ -61,19 +61,19 @@ SegmentsExample()
    SegmentsReductionKernel kernel;
    kernel.init( segments );
    kernel.reduceAllSegments( segments, fetch_full, TNL::Plus{}, keep );
-   std::cout << "The sums with full fetch form are: " << sums << std::endl;
+   std::cout << "The sums with full fetch form are: " << sums << '\n';
    kernel.reduceAllSegments( segments, fetch_brief, TNL::Plus{}, keep );
-   std::cout << "The sums with brief fetch form are: " << sums << std::endl;
+   std::cout << "The sums with brief fetch form are: " << sums << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on host:\n";
    SegmentsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of CSR segments on CUDA GPU: " << std::endl;
+   std::cout << "Example of CSR segments on CUDA GPU:\n";
    SegmentsExample< TNL::Devices::Cuda >();
 #endif
    return EXIT_SUCCESS;

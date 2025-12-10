@@ -39,8 +39,8 @@ main( int argc, char* argv[] )
     */
    Vector< double, Devices::Host > host_v( 10 );
    host_v = 1.0;
-   std::cout << "host_v = " << host_v << std::endl;
-   std::cout << "The sum of the host vector elements is " << sum( host_v ) << "." << std::endl;
+   std::cout << "host_v = " << host_v << '\n';
+   std::cout << "The sum of the host vector elements is " << sum( host_v ) << ".\n";
 
    /***
     * And then also on GPU.
@@ -48,8 +48,8 @@ main( int argc, char* argv[] )
 #ifdef __CUDACC__
    Vector< double, Devices::Cuda > cuda_v( 10 );
    cuda_v = 1.0;
-   std::cout << "cuda_v = " << cuda_v << std::endl;
-   std::cout << "The sum of the CUDA vector elements is " << sum( cuda_v ) << "." << std::endl;
+   std::cout << "cuda_v = " << cuda_v << '\n';
+   std::cout << "The sum of the CUDA vector elements is " << sum( cuda_v ) << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

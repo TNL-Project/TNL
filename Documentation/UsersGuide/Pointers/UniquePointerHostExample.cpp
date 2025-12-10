@@ -16,7 +16,7 @@ main( int argc, char* argv[] )
     */
    Pointers::UniquePointer< ArrayHost > array_ptr( 10 );
    *array_ptr = 1;
-   std::cout << "Array size is " << array_ptr->getSize() << std::endl;
-   std::cout << "Array = " << *array_ptr << std::endl;
+   std::cout << "Array size is " << array_ptr->getSize() << '\n';
+   std::cout << "Array = " << *array_ptr << '\n';
    return EXIT_SUCCESS;
 }

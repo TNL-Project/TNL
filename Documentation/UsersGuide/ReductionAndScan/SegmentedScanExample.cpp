@@ -34,10 +34,10 @@ main( int argc, char* argv[] )
     */
    Array< bool, Devices::Host > host_flags{ 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0 };
    Array< double, Devices::Host > host_v{ 1, 3, 5, 2, 4, 6, 9, 3, 5, 3, 6, 9, 12, 15 };
-   std::cout << "host_flags = " << host_flags << std::endl;
-   std::cout << "host_v     = " << host_v << std::endl;
+   std::cout << "host_flags = " << host_flags << '\n';
+   std::cout << "host_v     = " << host_v << '\n';
    segmentedScan( host_v, host_flags );
-   std::cout << "The segmented prefix sum of the host array is " << host_v << "." << std::endl;
+   std::cout << "The segmented prefix sum of the host array is " << host_v << ".\n";
 
    /***
     * And then also on GPU.
@@ -45,10 +45,10 @@ main( int argc, char* argv[] )
 #ifdef __CUDACC__
    //Array< bool, Devices::Cuda > cuda_flags{ 1,0,0,1,0,0,0,1,0,1,0,0, 0, 0 };
    //Array< double, Devices::Cuda > cuda_v { 1,3,5,2,4,6,9,3,5,3,6,9,12,15 };
-   //std::cout << "cuda_flags = " << cuda_flags << std::endl;
-   //std::cout << "cuda_v     = " << cuda_v << std::endl;
+   //std::cout << "cuda_flags = " << cuda_flags << '\n';
+   //std::cout << "cuda_v     = " << cuda_v << '\n';
    //segmentedScan( cuda_v, cuda_flags );
-   //std::cout << "The segmnted prefix sum of the CUDA array is " << cuda_v << "." << std::endl;
+   //std::cout << "The segmnted prefix sum of the CUDA array is " << cuda_v << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

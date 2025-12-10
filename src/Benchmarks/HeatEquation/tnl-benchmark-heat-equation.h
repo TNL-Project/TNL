@@ -73,11 +73,11 @@ resolveDevice( TNL::Config::ParameterContainer& parameters )
 #ifdef __CUDACC__
       return startBenchmark< Real, TNL::Devices::Cuda >( parameters );
 #else
-      std::cerr << "The benchmark was not built with CUDA support." << std::endl;
+      std::cerr << "The benchmark was not built with CUDA support.\n";
       return false;
 #endif
    }
-   std::cerr << "Unknown device " << device << "." << std::endl;
+   std::cerr << "Unknown device " << device << ".\n";
    return false;
 }
 
@@ -89,7 +89,7 @@ resolveReal( TNL::Config::ParameterContainer& parameters )
       return resolveDevice< float >( parameters );
    if( precision == "double" )
       return resolveDevice< double >( parameters );
-   std::cerr << "Unknown precision " << precision << "." << std::endl;
+   std::cerr << "Unknown precision " << precision << ".\n";
    return false;
 }
 

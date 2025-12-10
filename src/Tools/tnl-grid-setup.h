@@ -19,7 +19,7 @@ setupGrid( const Config::ParameterContainer& parameters )
       RealType originX = parameters.getParameter< double >( "origin-x" );
       RealType proportionsX = parameters.getParameter< double >( "proportions-x" );
       if( ! parameters.checkParameter( "size-x" ) ) {
-         std::cerr << "The parameter size-x is required when the grid dimension is 1." << std::endl;
+         std::cerr << "The parameter size-x is required when the grid dimension is 1.\n";
          return false;
       }
       IndexType sizeX = parameters.getParameter< int >( "size-x" );
@@ -30,8 +30,8 @@ setupGrid( const Config::ParameterContainer& parameters )
       GridType grid;
       grid.setDomain( PointType( originX ), PointType( proportionsX ) );
       grid.setDimensions( CoordinatesType( sizeX ) );
-      std::cout << "Setting dimensions to  ... " << sizeX << std::endl;
-      std::cout << "Writing the grid to the file " << outputFile << std::endl;
+      std::cout << "Setting dimensions to  ... " << sizeX << '\n';
+      std::cout << "Writing the grid to the file " << outputFile << '\n';
 
       std::ofstream file( outputFile );
       Meshes::Writers::VTIWriter< GridType > writer( file );
@@ -43,7 +43,7 @@ setupGrid( const Config::ParameterContainer& parameters )
       RealType proportionsX = parameters.getParameter< double >( "proportions-x" );
       RealType proportionsY = parameters.getParameter< double >( "proportions-y" );
       if( ! parameters.checkParameters( { "size-x", "size-y" } ) ) {
-         std::cerr << "The parameters size-x and size-y are required when the grid dimension is 2." << std::endl;
+         std::cerr << "The parameters size-x and size-y are required when the grid dimension is 2.\n";
          return false;
       }
       IndexType sizeX = parameters.getParameter< int >( "size-x" );
@@ -59,11 +59,11 @@ setupGrid( const Config::ParameterContainer& parameters )
             double h = min( grid.getSpaceSteps().x(), grid.getSpaceSteps().y() );
             grid.setSpaceSteps( PointType( h, h ) );
             std::cout << "Adjusting grid space steps to " << grid.getSpaceSteps() << " and grid proportions to "
-                      << grid.getProportions() << "." << std::endl;
+                      << grid.getProportions() << ".\n";
          }
       }
-      std::cout << "Setting dimensions to  ... " << grid.getDimensions() << std::endl;
-      std::cout << "Writing the grid to the file " << outputFile << std::endl;
+      std::cout << "Setting dimensions to  ... " << grid.getDimensions() << '\n';
+      std::cout << "Writing the grid to the file " << outputFile << '\n';
 
       std::ofstream file( outputFile );
       Meshes::Writers::VTIWriter< GridType > writer( file );
@@ -77,7 +77,7 @@ setupGrid( const Config::ParameterContainer& parameters )
       RealType proportionsY = parameters.getParameter< double >( "proportions-y" );
       RealType proportionsZ = parameters.getParameter< double >( "proportions-z" );
       if( ! parameters.checkParameters( { "size-x", "size-y", "size-z" } ) ) {
-         std::cerr << "The parameters size-x, size-y and size-z are required when the grid dimension is 3." << std::endl;
+         std::cerr << "The parameters size-x, size-y and size-z are required when the grid dimension is 3.\n";
          return false;
       }
       IndexType sizeX = parameters.getParameter< int >( "size-x" );
@@ -95,17 +95,17 @@ setupGrid( const Config::ParameterContainer& parameters )
             double h = min( grid.getSpaceSteps().x(), min( grid.getSpaceSteps().y(), grid.getSpaceSteps().z() ) );
             grid.setSpaceSteps( PointType( h, h, h ) );
             std::cout << "Adjusting grid space steps to " << grid.getSpaceSteps() << " and grid proportions to "
-                      << grid.getProportions() << "." << std::endl;
+                      << grid.getProportions() << ".\n";
          }
       }
-      std::cout << "Setting dimensions to  ... " << grid.getDimensions() << std::endl;
-      std::cout << "Writing the grid to the file " << outputFile << std::endl;
+      std::cout << "Setting dimensions to  ... " << grid.getDimensions() << '\n';
+      std::cout << "Writing the grid to the file " << outputFile << '\n';
 
       std::ofstream file( outputFile );
       Meshes::Writers::VTIWriter< GridType > writer( file );
       writer.writeImageData( grid );
    }
-   std::cout << "[ OK ] " << std::endl;
+   std::cout << "[ OK ]\n";
    return true;
 }
 
@@ -114,12 +114,12 @@ bool
 resolveIndexType( const Config::ParameterContainer& parameters )
 {
    const String& indexType = parameters.getParameter< String >( "index-type" );
-   std::cout << "Setting index type to  ... " << indexType << std::endl;
+   std::cout << "Setting index type to  ... " << indexType << '\n';
    if( indexType == "int" )
       return setupGrid< RealType, int >( parameters );
    if( indexType == "long-int" )
       return setupGrid< RealType, long int >( parameters );
-   std::cerr << "The index type '" << indexType << "' is not defined." << std::endl;
+   std::cerr << "The index type '" << indexType << "' is not defined.\n";
    return false;
 }
 
@@ -127,13 +127,13 @@ inline bool
 resolveRealType( const Config::ParameterContainer& parameters )
 {
    String realType = parameters.getParameter< String >( "real-type" );
-   std::cout << "Setting real type to   ... " << realType << std::endl;
+   std::cout << "Setting real type to   ... " << realType << '\n';
    if( realType == "float" )
       return resolveIndexType< float >( parameters );
    if( realType == "double" )
       return resolveIndexType< double >( parameters );
    if( realType == "long-double" )
       return resolveIndexType< long double >( parameters );
-   std::cerr << "The real type '" << realType << "' is not supported." << std::endl;
+   std::cerr << "The real type '" << realType << "' is not supported.\n";
    return false;
 }

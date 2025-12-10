@@ -30,18 +30,18 @@ reduceArrayExample()
    /****
     * Print the results
     */
-   std::cout << " a = " << a << std::endl;
-   std::cout << " abs-max of all elements = " << result_total.first << " at position " << result_total.second << std::endl;
+   std::cout << " a = " << a << '\n';
+   std::cout << " abs-max of all elements = " << result_total.first << " at position " << result_total.second << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running example on the host system: " << std::endl;
+   std::cout << "Running example on the host system:\n";
    reduceArrayExample< Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running example on the CUDA device: " << std::endl;
+   std::cout << "Running example on the CUDA device:\n";
    reduceArrayExample< Devices::Cuda >();
 #endif
 }

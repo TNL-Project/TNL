@@ -40,17 +40,17 @@ createTridiagonalMatrix()
                          { -1, 2, -1 },
                          { -1, 2, -1 },
                          { -1, 2, 0 } } );
-   std::cout << "The matrix reads as: " << std::endl << matrix << std::endl;
+   std::cout << "The matrix reads as:\n" << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating tridiagonal matrix on CPU ... " << std::endl;
+   std::cout << "Creating tridiagonal matrix on CPU ...\n";
    createTridiagonalMatrix< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating tridiagonal matrix on CUDA GPU ... " << std::endl;
+   std::cout << "Creating tridiagonal matrix on CUDA GPU ...\n";
    createTridiagonalMatrix< TNL::Devices::Cuda >();
 #endif
 }

@@ -119,7 +119,7 @@ GEM< Matrix, Real, SolverMonitor >::solve( MatrixType& A, ConstVectorViewType b,
       // Perform the Gauss-Jordan elimination
       Algorithms::parallelFor< DeviceType >( CoordinateType{ 0, k },
                                              CoordinateType{ n, n },
-                                             [ = ] __cuda_callable__( const CoordinateType c ) mutable
+                                             [ = ] __cuda_callable__( const CoordinateType& c ) mutable
                                              {
                                                 const auto& i = c[ 0 ];
                                                 const auto& j = c[ 1 ];

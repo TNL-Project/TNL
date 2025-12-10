@@ -11,7 +11,7 @@
 
 namespace TNL::Graphs {
 
-enum class TreeType
+enum class TreeType : std::uint8_t
 {
    Tree,
    Forest

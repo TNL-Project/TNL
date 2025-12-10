@@ -23,6 +23,6 @@ main( int argc, char* argv[] )
    auto matrix =
       TNL::Matrices::LambdaMatrixFactory< double, TNL::Devices::Host, int >::create( size, size, matrixElements, rowLengths );
 
-   std::cout << "Matrix looks as:" << std::endl << matrix << std::endl;
-   std::cout << "Non-zero elements count is: " << matrix.getNonzeroElementsCount() << std::endl;
+   std::cout << "Matrix looks as:\n" << matrix << '\n';
+   std::cout << "Non-zero elements count is: " << matrix.getNonzeroElementsCount() << '\n';
 }

@@ -16,7 +16,7 @@ template< typename Device >
 const char*
 getPerformer()
 {
-   if( std::is_same< Device, Devices::Cuda >::value )
+   if( std::is_same_v< Device, Devices::Cuda > )
       return "GPU";
    return "CPU";
 }
@@ -26,9 +26,9 @@ void
 benchmarkSolver( Benchmark<>& benchmark, const Config::ParameterContainer& parameters, VectorPointer& u )
 {
    using VectorType = typename VectorPointer::ObjectType;
-   using RealType = typename VectorType::RealType;
+   //using RealType = typename VectorType::RealType;
    using DeviceType = typename VectorType::DeviceType;
-   using IndexType = typename VectorType::IndexType;
+   //using IndexType = typename VectorType::IndexType;
    //using ProblemType = typename Solver::ProblemType;
 
    // setup

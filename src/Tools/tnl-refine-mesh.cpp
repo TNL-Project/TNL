@@ -147,7 +147,7 @@ refineMesh( Mesh& mesh,
             int iterations )
 {
    for( int i = 1; i <= iterations; i++ ) {
-      std::cout << "Refining mesh (iteration " << i << ")" << std::endl;
+      std::cout << "Refining mesh (iteration " << i << ")\n";
       mesh = getRefinedMeshHelper( mesh, decompositionType );
    }
 
@@ -155,7 +155,7 @@ refineMesh( Mesh& mesh,
    if( outputFormat == "auto" ) {
       namespace fs = std::filesystem;
       format = fs::path( outputFileName ).extension().string();
-      if( format.length() > 0 )
+      if( ! format.empty() )
          // remove dot from the extension
          format = format.substr( 1 );
    }
@@ -179,7 +179,7 @@ refineMesh( Mesh& mesh,
       std::cerr << "File '" << outputFileName << "' has unsupported format (based on the file extension): " << format << ".";
    else
       std::cerr << "Unsupported output file format: " << outputFormat << ".";
-   std::cerr << " Supported formats are 'vtk' and 'vtu'." << std::endl;
+   std::cerr << " Supported formats are 'vtk' and 'vtu'.\n";
    return false;
 }
 
@@ -224,13 +224,13 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   const std::string inputFileName = parameters.getParameter< std::string >( "input-file" );
-   const std::string inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
-   const std::string realType = parameters.getParameter< std::string >( "real-type" );
-   const std::string globalIndexType = parameters.getParameter< std::string >( "global-index-type" );
-   const std::string outputFileName = parameters.getParameter< std::string >( "output-file" );
-   const std::string outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
-   const std::string decompositionType = parameters.getParameter< std::string >( "decomposition-type" );
+   const auto inputFileName = parameters.getParameter< std::string >( "input-file" );
+   const auto inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
+   const auto realType = parameters.getParameter< std::string >( "real-type" );
+   const auto globalIndexType = parameters.getParameter< std::string >( "global-index-type" );
+   const auto outputFileName = parameters.getParameter< std::string >( "output-file" );
+   const auto outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
+   const auto decompositionType = parameters.getParameter< std::string >( "decomposition-type" );
    const int iterations = parameters.getParameter< int >( "iterations" );
 
    auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool

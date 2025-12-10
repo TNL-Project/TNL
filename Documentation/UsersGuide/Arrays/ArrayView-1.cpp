@@ -22,10 +22,10 @@ main( int argc, char* argv[] )
    auto const_view = a.getConstView();
 
    another_view = -5;
-   std::cout << " a = " << a << std::endl;
-   std::cout << " a_view = " << a_view << std::endl;
-   std::cout << " another_view = " << another_view << std::endl;
-   std::cout << " const_view = " << const_view << std::endl;
+   std::cout << " a = " << a << '\n';
+   std::cout << " a_view = " << a_view << '\n';
+   std::cout << " another_view = " << another_view << '\n';
+   std::cout << " const_view = " << const_view << '\n';
 
    //const_view = 3; this would not compile, because constant views provide read-only access
 }

@@ -39,7 +39,7 @@ forRowsExample()
       }
    };
    matrixView.forAllRows( f );  // or matrix.forAllRows
-   std::cout << matrix << std::endl;
+   std::cout << matrix << '\n';
 
    /***
     * Divide each matrix row by a sum of all elements in the row - with use of iterators.
@@ -53,18 +53,18 @@ forRowsExample()
          for( auto element : row )
             element.value() /= sum;
       } );
-   std::cout << "Divide each matrix row by a sum of all elements in the row ... " << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Divide each matrix row by a sum of all elements in the row ...\n";
+   std::cout << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Getting matrix rows on host: " << std::endl;
+   std::cout << "Getting matrix rows on host:\n";
    forRowsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Getting matrix rows on CUDA device: " << std::endl;
+   std::cout << "Getting matrix rows on CUDA device:\n";
    forRowsExample< TNL::Devices::Cuda >();
 #endif
 }

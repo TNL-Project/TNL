@@ -9,10 +9,9 @@ namespace TNL::Matrices {
 
 template< typename SegmentView, typename ValuesView >
 __cuda_callable__
-DenseMatrixRowView< SegmentView, ValuesView >::DenseMatrixRowView( const SegmentViewType& segmentView,
-                                                                   const ValuesViewType& values )
-: segmentView( segmentView ),
-  values( values )
+DenseMatrixRowView< SegmentView, ValuesView >::DenseMatrixRowView( SegmentViewType segmentView, ValuesViewType values )
+: segmentView( std::move( segmentView ) ),
+  values( std::move( values ) )
 {}
 
 template< typename SegmentView, typename ValuesView >

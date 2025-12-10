@@ -275,6 +275,7 @@ private:
    template< typename C > static NoType& test(...);
 
 public:
+   // NOLINTNEXTLINE(modernize-use-nullptr)
    static constexpr bool value = ( sizeof( test< std::decay_t<T> >(0) ) == sizeof( YesType ) );
 };
 

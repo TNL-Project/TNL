@@ -100,9 +100,9 @@ public:
     */
    __cuda_callable__
    MultidiagonalMatrixRowView( IndexType rowIdx,
-                               const DiagonalsOffsetsView& diagonalsOffsets,
-                               const ValuesViewType& values,
-                               const IndexerType& indexer );
+                               DiagonalsOffsetsView diagonalsOffsets,
+                               ValuesViewType values,
+                               IndexerType indexer );
 
    /**
     * \brief Returns number of diagonals of the multidiagonal matrix.

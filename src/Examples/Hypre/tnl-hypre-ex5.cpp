@@ -61,10 +61,10 @@ main( int argc, char* argv[] )
          }
          else if( std::string( argv[ arg_index ] ) == "-vis" ) {
             arg_index++;
-            vis = 1;
+            vis = true;
          }
          else if( std::string( argv[ arg_index ] ) == "-help" ) {
-            print_usage = 1;
+            print_usage = true;
             break;
          }
          else {
@@ -86,10 +86,10 @@ main( int argc, char* argv[] )
                       "                        50 - PCG\n"
                       "                        61 - AMG-FlexGMRES\n"
                       "  -vis                : save the solution for GLVis visualization\n"
-                   << std::endl;
+                      "\n";
       }
 
-      if( print_usage != 0 )
+      if( print_usage )
          return EXIT_SUCCESS;
    }
 
@@ -257,7 +257,7 @@ main( int argc, char* argv[] )
 
       // Ignore errors returned from Hypre functions (e.g. when PCG does not
       // converge within the maximum iterations limit).
-      solver.setErrorMode( solver.WARN_HYPRE_ERRORS );
+      solver.setErrorMode( solver.WARN_HYPRE_ERRORS );  // NOLINT(readability-static-accessed-through-instance)
 
       // Solve the linear system (calls PCG setup, solve, and prints final residual norm)
       solver.solve( par_b, par_x );
@@ -356,7 +356,7 @@ main( int argc, char* argv[] )
       solver.solve( par_b, par_x );
    }
    else if( myid == 0 ) {
-      std::cerr << "Invalid solver id specified." << std::endl;
+      std::cerr << "Invalid solver id specified.\n";
       return EXIT_FAILURE;
    }
 

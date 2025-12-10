@@ -59,7 +59,7 @@ struct MeshCreator
    static bool
    run( const Mesh& meshIn, Mesh& meshOut )
    {
-      std::cerr << "Got a mesh on the input." << std::endl;
+      std::cerr << "Got a mesh on the input.\n";
       return false;
    }
 };
@@ -195,7 +195,7 @@ convertGrid( Grid& grid, const std::string& outputFileName, const std::string& o
    if( outputFormat == "auto" ) {
       namespace fs = std::filesystem;
       format = fs::path( outputFileName ).extension().string();
-      if( format.length() > 0 )
+      if( ! format.empty() )
          // remove dot from the extension
          format = format.substr( 1 );
    }
@@ -225,7 +225,7 @@ convertGrid( Grid& grid, const std::string& outputFileName, const std::string& o
       std::cerr << "File '" << outputFileName << "' has unsupported format (based on the file extension): " << format << ".";
    else
       std::cerr << "Unsupported output file format: " << outputFormat << ".";
-   std::cerr << " Supported formats are 'vtk', 'vtu' and 'ng'." << std::endl;
+   std::cerr << " Supported formats are 'vtk', 'vtu' and 'ng'.\n";
    return false;
 }
 
@@ -254,10 +254,10 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   const std::string inputFileName = parameters.getParameter< std::string >( "input-file" );
-   const std::string inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
-   const std::string outputFileName = parameters.getParameter< std::string >( "output-file" );
-   const std::string outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
+   const auto inputFileName = parameters.getParameter< std::string >( "input-file" );
+   const auto inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
+   const auto outputFileName = parameters.getParameter< std::string >( "output-file" );
+   const auto outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
 
    auto wrapper = [ & ]( const auto& reader, auto&& grid )
    {

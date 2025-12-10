@@ -3,14 +3,20 @@
 
 #pragma once
 
+#include <TNL/Devices/Cuda.h>
+#include <TNL/Devices/Host.h>
+#include <TNL/Devices/Sequential.h>
+#include <TNL/MPI/Wrappers.h>
+
 #include "ComputeBlockResidue.h"
+#include "EulerNonET.h"
 
 namespace TNL::Benchmarks {
 
 template< typename RealType, typename Index >
 __global__
 void
-updateUEulerNonET( const Index size, const RealType tau, const RealType* k1, RealType* u, RealType* cudaBlockResidue );
+updateUEulerNonET( Index size, RealType tau, const RealType* k1, RealType* u, RealType* cudaBlockResidue );
 
 template< typename Vector, typename SolverMonitor >
 EulerNonET< Vector, SolverMonitor >::EulerNonET()

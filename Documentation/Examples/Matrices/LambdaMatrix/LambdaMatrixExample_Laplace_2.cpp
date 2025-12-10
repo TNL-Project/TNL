@@ -53,17 +53,17 @@ laplaceOperatorMatrix()
    };
    auto matrix =
       TNL::Matrices::LambdaMatrixFactory< double, Device, int >::create( matrixSize, matrixSize, matrixElements, rowLengths );
-   std::cout << "Laplace operator matrix: " << std::endl << matrix << std::endl;
+   std::cout << "Laplace operator matrix:\n" << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating Laplace operator matrix on CPU ... " << std::endl;
+   std::cout << "Creating Laplace operator matrix on CPU ...\n";
    laplaceOperatorMatrix< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating Laplace operator matrix on CUDA GPU ... " << std::endl;
+   std::cout << "Creating Laplace operator matrix on CUDA GPU ...\n";
    laplaceOperatorMatrix< TNL::Devices::Cuda >();
 #endif
 }

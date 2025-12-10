@@ -28,12 +28,12 @@ main( int argc, char* argv[] )
     */
    for( int i = 0; i < size; i++ )
       if( host_array.getElement( i ) == device_array.getElement( i ) )
-         std::cout << "Elements at position " << i << " match." << std::endl;
+         std::cout << "Elements at position " << i << " match.\n";
 
    /****
     * Print the results
     */
-   std::cout << std::endl;
-   std::cout << "host_array = " << host_array << std::endl;
-   std::cout << "device_array = " << device_array << std::endl;
+   std::cout << '\n';
+   std::cout << "host_array = " << host_array << '\n';
+   std::cout << "device_array = " << device_array << '\n';
 }

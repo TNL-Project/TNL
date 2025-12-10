@@ -60,10 +60,9 @@ singleSourceShortestPath( const Graph& graph, Index start, Vector& distances )
    distances.setElement( start, 0.0 );
 
    // In the sequential version, we use the Dijkstra algorithm.
-   if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value ) {
+   if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
       // The priority queue stores pairs of (distance, vertex)
-      std::priority_queue < std::pair< Real, Index >, std::vector< std::pair< Real, Index > >, std::greater < std::pair < Real,
-         Index >>> pq;
+      std::priority_queue< std::pair< Real, Index >, std::vector< std::pair< Real, Index > >, std::greater<> > pq;
       pq.emplace( 0, start );
 
       while( ! pq.empty() ) {
