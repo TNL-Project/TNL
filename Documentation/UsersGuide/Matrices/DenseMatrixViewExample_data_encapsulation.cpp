@@ -21,12 +21,12 @@ encapsulation()
       for( int column = 0; column < size; column++ )
          host_data[ row * size + column ] = row * size + column + 1;
    double* data = nullptr;
-   if( std::is_same< Device, TNL::Devices::Host >::value ) {
+   if( std::is_same_v< Device, TNL::Devices::Host > ) {
       data = new double[ size * size ];
       memcpy( data, host_data, sizeof( double ) * size * size );
    }
 #ifdef __CUDACC__
-   else if( std::is_same< Device, TNL::Devices::Cuda >::value ) {
+   else if( std::is_same_v< Device, TNL::Devices::Cuda > ) {
       cudaMalloc( (void**) &data, sizeof( double ) * size * size );
       cudaMemcpy( data, host_data, sizeof( double ) * size * size, cudaMemcpyHostToDevice );
    }
@@ -38,8 +38,8 @@ encapsulation()
    TNL::Containers::VectorView< double, Device > dataView( data, size * size );
    TNL::Matrices::DenseMatrixView< double, Device, int, TNL::Algorithms::Segments::RowMajorOrder > matrix( 5, 5, dataView );
 
-   std::cout << "Dense matrix view reads as:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Dense matrix view reads as:\n";
+   std::cout << matrix << '\n';
 
    auto f = [ = ] __cuda_callable__( int i ) mutable
    {
@@ -47,17 +47,17 @@ encapsulation()
    };
    TNL::Algorithms::parallelFor< Device >( 0, 5, f );
 
-   std::cout << "Dense matrix view after elements manipulation:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Dense matrix view after elements manipulation:\n";
+   std::cout << matrix << '\n';
 
    /***
     * Do not forget to free allocated memory :)
     */
    delete[] host_data;
-   if( std::is_same< Device, TNL::Devices::Host >::value )
+   if( std::is_same_v< Device, TNL::Devices::Host > )
       delete[] data;
 #ifdef __CUDACC__
-   else if( std::is_same< Device, TNL::Devices::Cuda >::value )
+   else if( std::is_same_v< Device, TNL::Devices::Cuda > )
       cudaFree( data );
 #endif
 }
@@ -65,11 +65,11 @@ encapsulation()
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Dense matrix encapsulation on host:" << std::endl;
+   std::cout << "Dense matrix encapsulation on host:\n";
    encapsulation< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Dense matrix encapsulation on CUDA device:" << std::endl;
+   std::cout << "Dense matrix encapsulation on CUDA device:\n";
    encapsulation< TNL::Devices::Cuda >();
 #endif
 }

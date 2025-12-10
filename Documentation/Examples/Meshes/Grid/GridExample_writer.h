@@ -1,5 +1,4 @@
 #include <iostream>
-#include <iomanip>
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/Writers/VTIWriter.h>
 #include <TNL/Meshes/Writers/VTKWriter.h>
@@ -47,7 +46,7 @@ writeGrid()
 
    // Write values of all cells in the grid into a file in VTI format.
    TNL::String cells_file_name_vti( "GridExample-cells-values-" + TNL::getType( Device{} ) + ".vti" );
-   std::cout << "Writing a file " << cells_file_name_vti << " ..." << std::endl;
+   std::cout << "Writing a file " << cells_file_name_vti << " ...\n";
    std::fstream cells_file_vti;
    cells_file_vti.open( cells_file_name_vti.getString(), std::ios::out );
    TNL::Meshes::Writers::VTIWriter< GridType > cells_vti_writer( cells_file_vti );
@@ -56,7 +55,7 @@ writeGrid()
 
    // Write values of all cells in the grid into a file in VTK format.
    TNL::String cells_file_name_vtk( "GridExample-cells-values-" + TNL::getType( Device{} ) + ".vtk" );
-   std::cout << "Writing a file " << cells_file_name_vtk << " ..." << std::endl;
+   std::cout << "Writing a file " << cells_file_name_vtk << " ...\n";
    std::fstream cells_file_vtk;
    cells_file_vtk.open( cells_file_name_vtk.getString(), std::ios::out );
    TNL::Meshes::Writers::VTKWriter< GridType > cells_vtk_writer( cells_file_vtk );
@@ -65,7 +64,7 @@ writeGrid()
 
    // Write values of all cells in the grid into a file in Gnuplot format.
    TNL::String cells_file_name_gplt( "GridExample-cells-values-" + TNL::getType( Device{} ) + ".gplt" );
-   std::cout << "Writing a file " << cells_file_name_gplt << " ..." << std::endl;
+   std::cout << "Writing a file " << cells_file_name_gplt << " ...\n";
    std::fstream cells_file_gplt;
    cells_file_gplt.open( cells_file_name_gplt.getString(), std::ios::out );
    TNL::Meshes::Writers::GnuplotWriter< GridType > cells_gplt_writer( cells_file_gplt );
@@ -104,7 +103,7 @@ writeGrid()
 
    // Write values of all vertices in the grid to a file in VTI format
    TNL::String vertices_file_name_vti( "GridExample-vertices-values-" + TNL::getType( Device{} ) + ".vti" );
-   std::cout << "Writing a file " << vertices_file_name_vti << " ..." << std::endl;
+   std::cout << "Writing a file " << vertices_file_name_vti << " ...\n";
    std::fstream vertices_file_vti;
    vertices_file_vti.open( vertices_file_name_vti.getString(), std::ios::out );
    TNL::Meshes::Writers::VTIWriter< GridType > vertices_vti_writer( vertices_file_vti );
@@ -113,7 +112,7 @@ writeGrid()
 
    // Write values of all vertices in the grid to a file in VTK format
    TNL::String vertices_file_name_vtk( "GridExample-vertices-values-" + TNL::getType( Device{} ) + ".vtk" );
-   std::cout << "Writing a file " << vertices_file_name_vtk << " ..." << std::endl;
+   std::cout << "Writing a file " << vertices_file_name_vtk << " ...\n";
    std::fstream vertices_file_vtk;
    vertices_file_vtk.open( vertices_file_name_vtk.getString(), std::ios::out );
    TNL::Meshes::Writers::VTIWriter< GridType > vertices_vtk_writer( vertices_file_vtk );
@@ -122,7 +121,7 @@ writeGrid()
 
    // Write values of all vertices in the grid to a file in Gnuplot format
    TNL::String vertices_file_name_gplt( "GridExample-vertices-values-" + TNL::getType( Device{} ) + ".gplt" );
-   std::cout << "Writing a file " << vertices_file_name_gplt << " ..." << std::endl;
+   std::cout << "Writing a file " << vertices_file_name_gplt << " ...\n";
    std::fstream vertices_file_gplt;
    vertices_file_gplt.open( vertices_file_name_gplt.getString(), std::ios::out );
    TNL::Meshes::Writers::GnuplotWriter< GridType > vertices_gplt_writer( vertices_file_gplt );
@@ -133,11 +132,11 @@ writeGrid()
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Traversing grid on CPU..." << std::endl;
+   std::cout << "Traversing grid on CPU...\n";
    writeGrid< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Traversing grid on CUDA GPU..." << std::endl;
+   std::cout << "Traversing grid on CUDA GPU...\n";
    writeGrid< TNL::Devices::Cuda >();
 #endif
    return EXIT_SUCCESS;

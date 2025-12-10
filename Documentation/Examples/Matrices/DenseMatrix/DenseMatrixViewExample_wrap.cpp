@@ -8,7 +8,8 @@ template< typename Device >
 void
 wrapMatrixView()
 {
-   const int rows( 3 ), columns( 4 );
+   const int rows = 3;
+   const int columns = 4;
    TNL::Containers::Vector< double, Device > valuesVector{
       // clang-format off
       1,  2,  3,  4,
@@ -22,17 +23,17 @@ wrapMatrixView()
     * Wrap the array `values` to dense matrix view
     */
    auto matrix = TNL::Matrices::wrapDenseMatrix< Device >( rows, columns, values );
-   std::cout << "Matrix reads as: " << std::endl << matrix << std::endl;
+   std::cout << "Matrix reads as:\n" << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Wrapping matrix view on host: " << std::endl;
+   std::cout << "Wrapping matrix view on host:\n";
    wrapMatrixView< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Wrapping matrix view on CUDA device: " << std::endl;
+   std::cout << "Wrapping matrix view on CUDA device:\n";
    wrapMatrixView< TNL::Devices::Cuda >();
 #endif
 }

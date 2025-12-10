@@ -16,7 +16,9 @@ expressions()
     * Create vectors
     */
    const int size = 11;
-   VectorType a( size ), b( size ), c( size );
+   VectorType a( size );
+   VectorType b( size );
+   VectorType c( size );
    a.forAllElements(
       [] __cuda_callable__( int i, RealType& value )
       {
@@ -24,11 +26,11 @@ expressions()
       } );
    b = a * a;
    c = 3 * a + sign( a ) * sin( a );
-   std::cout << "a = " << a << std::endl;
-   std::cout << "sin( a ) = " << sin( a ) << std::endl;
-   std::cout << "abs( sin( a ) ) = " << abs( sin( a ) ) << std::endl;
-   std::cout << "b = " << b << std::endl;
-   std::cout << "c = " << c << std::endl;
+   std::cout << "a = " << a << '\n';
+   std::cout << "sin( a ) = " << sin( a ) << '\n';
+   std::cout << "abs( sin( a ) ) = " << abs( sin( a ) ) << '\n';
+   std::cout << "b = " << b << '\n';
+   std::cout << "c = " << c << '\n';
 }
 
 int
@@ -37,15 +39,15 @@ main( int argc, char* argv[] )
    /****
     * Perform test on CPU
     */
-   std::cout << "Expressions on CPU ..." << std::endl;
+   std::cout << "Expressions on CPU ...\n";
    expressions< Devices::Host >();
 
    /****
     * Perform test on GPU
     */
 #ifdef __CUDACC__
-   std::cout << std::endl;
-   std::cout << "Expressions on GPU ..." << std::endl;
+   std::cout << '\n';
+   std::cout << "Expressions on GPU ...\n";
    expressions< Devices::Cuda >();
 #endif
 }

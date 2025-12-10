@@ -109,9 +109,7 @@ public:
     * \param columnIndexes is a container view for storing the column indexes of the matrix elements.
     */
    __cuda_callable__
-   SparseMatrixRowView( const SegmentViewType& segmentView,
-                        const ValuesViewType& values,
-                        const ColumnsIndexesViewType& columnIndexes );
+   SparseMatrixRowView( SegmentViewType segmentView, ValuesViewType values, ColumnsIndexesViewType columnIndexes );
 
    /**
     * \brief Returns size of the matrix row, i.e. number of matrix elements in this row.

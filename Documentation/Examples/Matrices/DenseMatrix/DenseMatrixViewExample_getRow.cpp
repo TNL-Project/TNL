@@ -31,17 +31,17 @@ getRowExample()
     * Set the matrix elements.
     */
    TNL::Algorithms::parallelFor< Device >( 0, matrix.getRows(), f );
-   std::cout << matrix << std::endl;
+   std::cout << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Getting matrix rows on host: " << std::endl;
+   std::cout << "Getting matrix rows on host:\n";
    getRowExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Getting matrix rows on CUDA device: " << std::endl;
+   std::cout << "Getting matrix rows on CUDA device:\n";
    getRowExample< TNL::Devices::Cuda >();
 #endif
 }

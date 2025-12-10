@@ -26,6 +26,6 @@ main( int argc, char* argv[] )
    TNL::Containers::Vector< int > rowLengthsVector;
    matrix.getCompressedRowLengths( rowLengthsVector );
 
-   std::cout << "Matrix looks as:" << std::endl << matrix << std::endl;
-   std::cout << "Compressed row lengths are: " << rowLengthsVector << std::endl;
+   std::cout << "Matrix looks as:\n" << matrix << '\n';
+   std::cout << "Compressed row lengths are: " << rowLengthsVector << '\n';
 }

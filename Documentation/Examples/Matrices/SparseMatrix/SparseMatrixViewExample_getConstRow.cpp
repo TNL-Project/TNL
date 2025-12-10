@@ -35,17 +35,17 @@ getRowExample()
     * Compute the matrix trace.
     */
    int trace = TNL::Algorithms::reduce< Device >( 0, matrix.getRows(), fetch, std::plus<>{}, 0 );
-   std::cout << "Matrix trace is " << trace << "." << std::endl;
+   std::cout << "Matrix trace is " << trace << ".\n";
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Getting matrix rows on host: " << std::endl;
+   std::cout << "Getting matrix rows on host:\n";
    getRowExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Getting matrix rows on CUDA device: " << std::endl;
+   std::cout << "Getting matrix rows on CUDA device:\n";
    getRowExample< TNL::Devices::Cuda >();
 #endif
 }

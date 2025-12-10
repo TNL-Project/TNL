@@ -3,14 +3,12 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
 #include "DenseMatrixRowView.h"
 #include "MatrixBase.h"
-#include "TNL/Matrices/MatrixType.h"
+#include "MatrixType.h"
 #include "DenseOperations.h"
 
 namespace TNL::Matrices {

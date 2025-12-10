@@ -15,35 +15,35 @@ SegmentsExample()
     * Create segments with given segments sizes and print their setup.
     */
    Segments segments{ 1, 2, 3, 4, 5 };
-   std::cout << "Segments sizes are: " << segments << std::endl << std::endl;
+   std::cout << "Segments sizes are: " << segments << "\n\n";
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int > >();
 
-   std::cout << "Example of Ellpack segments on host: " << std::endl;
+   std::cout << "Example of Ellpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > >();
 
-   std::cout << "Example of ChunkedEllpack segments on host: " << std::endl;
+   std::cout << "Example of ChunkedEllpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Host, int > >();
 
-   std::cout << "Example of BiEllpack segments on host: " << std::endl;
+   std::cout << "Example of BiEllpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::BiEllpack< TNL::Devices::Host, int > >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > >();
 
-   std::cout << "Example of Ellpack segments on host: " << std::endl;
+   std::cout << "Example of Ellpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int > >();
 
-   std::cout << "Example of ChunkedEllpack segments on host: " << std::endl;
+   std::cout << "Example of ChunkedEllpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::ChunkedEllpack< TNL::Devices::Cuda, int > >();
 
-   std::cout << "Example of BiEllpack segments on host: " << std::endl;
+   std::cout << "Example of BiEllpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::BiEllpack< TNL::Devices::Cuda, int > >();
 #endif
    return EXIT_SUCCESS;

@@ -6,8 +6,8 @@ write( std::fstream& file, const Vector& u, const Index n, const Real& h, const 
 {
    file << "# time = " << time << std::endl;
    for( Index i = 0; i < n; i++ )
-      file << i * h << " " << u.getElement( i ) << std::endl;
-   file << std::endl;
+      file << i * h << " " << u.getElement( i ) << '\n';
+   file << '\n';
 }
 
 template< typename Vector, typename Real = typename Vector::RealType >
@@ -17,6 +17,6 @@ write( std::fstream& file, const Vector& u, const Real& h, const Real& time )
    file << "# time = " << time << std::endl;
    const auto localRange = u.getLocalRange();
    for( auto i = localRange.getBegin(); i < localRange.getEnd(); i++ )
-      file << i * h << " " << u.getElement( i ) << std::endl;
-   file << std::endl;
+      file << i * h << " " << u.getElement( i ) << '\n';
+   file << '\n';
 }

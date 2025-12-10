@@ -72,11 +72,11 @@ public:
                            LocalBeginsType localBegins,
                            SizesHolderType localEnds,
                            MPI::Comm communicator )
-   : localView( localView ),
+   : localView( std::move( localView ) ),
      communicator( std::move( communicator ) ),
-     globalSizes( globalSizes ),
-     localBegins( localBegins ),
-     localEnds( localEnds )
+     globalSizes( std::move( globalSizes ) ),
+     localBegins( std::move( localBegins ) ),
+     localEnds( std::move( localEnds ) )
    {}
 
    //! \brief A shallow-copy copy-constructor.

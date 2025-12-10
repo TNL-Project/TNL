@@ -33,14 +33,15 @@ main( int argc, char* argv[] )
          value = sin( (double) i );
       } );
    double result = mapReduce( host_u );
-   std::cout << "host_u = " << host_u << std::endl;
-   std::cout << "Sum of the positive numbers is:" << result << std::endl;
+   std::cout << "host_u = " << host_u << '\n';
+   std::cout << "Sum of the positive numbers is:" << result << '\n';
+
 #ifdef __CUDACC__
    Vector< double, Devices::Cuda > cuda_u( 10 );
    cuda_u = host_u;
    result = mapReduce( cuda_u );
-   std::cout << "cuda_u = " << cuda_u << std::endl;
-   std::cout << "Sum of the positive numbers is:" << result << std::endl;
+   std::cout << "cuda_u = " << cuda_u << '\n';
+   std::cout << "Sum of the positive numbers is:" << result << '\n';
 #endif
    return EXIT_SUCCESS;
 }

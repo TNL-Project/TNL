@@ -32,8 +32,9 @@ main( int argc, char* argv[] )
       {
          value = i - 7;
       } );
-   std::cout << "host_v = " << host_v << std::endl;
-   std::cout << "The maximum norm of the host vector elements is " << maximumNorm( host_v ) << "." << std::endl;
+   std::cout << "host_v = " << host_v << '\n';
+   std::cout << "The maximum norm of the host vector elements is " << maximumNorm( host_v ) << ".\n";
+
 #ifdef __CUDACC__
    Vector< double, Devices::Cuda > cuda_v( 10 );
    cuda_v.forAllElements(
@@ -41,8 +42,8 @@ main( int argc, char* argv[] )
       {
          value = i - 7;
       } );
-   std::cout << "cuda_v = " << cuda_v << std::endl;
-   std::cout << "The maximum norm of the CUDA vector elements is " << maximumNorm( cuda_v ) << "." << std::endl;
+   std::cout << "cuda_v = " << cuda_v << '\n';
+   std::cout << "The maximum norm of the CUDA vector elements is " << maximumNorm( cuda_v ) << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

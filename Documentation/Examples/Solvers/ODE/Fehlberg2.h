@@ -2,7 +2,6 @@
 
 #include <array>
 #include <cstddef>
-#include <TNL/Cuda/CudaCallable.h>
 #include <TNL/Math.h>
 
 template< typename Value = double >

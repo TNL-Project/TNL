@@ -20,21 +20,22 @@ symmetricSparseMatrixExample()
          // clang-format on
       } );
 
-   std::cout << "Symmetric sparse matrix: " << std::endl << symmetricMatrix << std::endl;
+   std::cout << "Symmetric sparse matrix:\n" << symmetricMatrix << '\n';
 
-   TNL::Containers::Vector< double, Device > inVector( 5, 1.0 ), outVector( 5, 0.0 );
+   TNL::Containers::Vector< double, Device > inVector( 5, 1.0 );
+   TNL::Containers::Vector< double, Device > outVector( 5, 0.0 );
    symmetricMatrix.vectorProduct( inVector, outVector );
-   std::cout << "Product with vector " << inVector << " is " << outVector << std::endl << std::endl;
+   std::cout << "Product with vector " << inVector << " is " << outVector << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrix on CPU ... " << std::endl;
+   std::cout << "Creating matrix on CPU ...\n";
    symmetricSparseMatrixExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrix on CUDA GPU ... " << std::endl;
+   std::cout << "Creating matrix on CUDA GPU ...\n";
    symmetricSparseMatrixExample< TNL::Devices::Cuda >();
 #endif
 }

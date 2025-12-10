@@ -1,6 +1,4 @@
 #include <iostream>
-#include <iomanip>
-#include <functional>
 #include <TNL/Matrices/LambdaMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
@@ -66,18 +64,18 @@ reduceAllRows()
     */
    matrix.reduceAllRows( fetch, reduce, keep, std::numeric_limits< double >::lowest() );
 
-   std::cout << "The matrix reads as: " << std::endl << matrix << std::endl;
-   std::cout << "Max. elements in rows are: " << rowMax << std::endl;
+   std::cout << "The matrix reads as:\n" << matrix << '\n';
+   std::cout << "Max. elements in rows are: " << rowMax << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "All rows reduction on host:" << std::endl;
+   std::cout << "All rows reduction on host:\n";
    reduceAllRows< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "All rows reduction on CUDA device:" << std::endl;
+   std::cout << "All rows reduction on CUDA device:\n";
    reduceAllRows< TNL::Devices::Cuda >();
 #endif
 }

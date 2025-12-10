@@ -46,13 +46,14 @@ benchmarkDenseLinearSolvers( TNL::Config::ParameterContainer& parameters )
       auto matrixSize = parameters.getParameter< int >( "matrix-size" );
       input_matrix.setDimensions( matrixSize, matrixSize );
       if( verbose > 1 )
-         std::cout << "Creating random matrix of size " << matrixSize << "x" << matrixSize << std::endl;
+         std::cout << "Creating random matrix of size " << matrixSize << "x" << matrixSize << '\n';
       TNL::Algorithms::fillRandom< TNL::Devices::Host >(
          input_matrix.getValues().getData(), input_matrix.getValues().getSize(), Real( -1 ), Real( 1 ) );
    }
 
    const auto matrixSize = input_matrix.getRows();
-   HostVectorType host_b( matrixSize ), host_x( matrixSize, 1 );
+   HostVectorType host_b( matrixSize );
+   HostVectorType host_x( matrixSize, 1 );
    input_matrix.vectorProduct( host_x, host_b );
 
    // Benchmark GEM on CPU

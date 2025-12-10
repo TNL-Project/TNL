@@ -37,7 +37,7 @@ main( int argc, char* argv[] )
          fu = t * sin( t );
       };
       solver.solve( u, f );
-      std::cout << solver.getTime() << " " << u[ 0 ] << std::endl;
+      std::cout << solver.getTime() << " " << u[ 0 ] << '\n';
    }
    //! [Time loop]
 }

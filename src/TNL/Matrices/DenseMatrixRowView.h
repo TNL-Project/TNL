@@ -83,7 +83,7 @@ public:
     * \param values is a container view for storing the matrix elements values.
     */
    __cuda_callable__
-   DenseMatrixRowView( const SegmentViewType& segmentView, const ValuesViewType& values );
+   DenseMatrixRowView( SegmentViewType segmentView, ValuesViewType values );
 
    /**
     * \brief Returns size of the matrix row, i.e. number of matrix elements in this row.

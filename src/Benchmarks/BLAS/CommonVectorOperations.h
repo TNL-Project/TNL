@@ -36,7 +36,7 @@ struct CommonVectorOperations
 
    template< typename Vector, typename ResultType = typename Vector::RealType, typename Scalar >
    static ResultType
-   getVectorLpNorm( const Vector& v, const Scalar p );
+   getVectorLpNorm( const Vector& v, Scalar p );
 
    template< typename Vector, typename ResultType = typename Vector::RealType >
    static ResultType
@@ -68,7 +68,7 @@ struct CommonVectorOperations
 
    template< typename Vector1, typename Vector2, typename ResultType = typename Vector1::RealType, typename Scalar >
    static ResultType
-   getVectorDifferenceLpNorm( const Vector1& v1, const Vector2& v2, const Scalar p );
+   getVectorDifferenceLpNorm( const Vector1& v1, const Vector2& v2, Scalar p );
 
    template< typename Vector1, typename Vector2, typename ResultType = typename Vector1::RealType >
    static ResultType

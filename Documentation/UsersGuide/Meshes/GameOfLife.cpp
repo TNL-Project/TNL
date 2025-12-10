@@ -27,7 +27,7 @@ template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle > { s
 // Meshes are enabled only for the space dimension equal to the cell dimension.
 template< typename CellTopology, int SpaceDimension >
 struct MeshSpaceDimensionTag< MyConfigTag, CellTopology, SpaceDimension >
-{ enum { enabled = ( SpaceDimension == CellTopology::dimension ) }; };
+{ static constexpr bool enabled = ( SpaceDimension == CellTopology::dimension ); };
 
 // Meshes are enabled only for types explicitly listed below.
 template<> struct MeshRealTag< MyConfigTag, float > { static constexpr bool enabled = false; };
@@ -94,7 +94,7 @@ runGameOfLife( const Mesh& mesh )
    f_in.setValue( 0 );
    //! [Data vectors]
 
-#if 1
+#if 1  // NOLINT
    // generate random initial condition
    std::random_device dev;
    std::mt19937 rng( dev() );

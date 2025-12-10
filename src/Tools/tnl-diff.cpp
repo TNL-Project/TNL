@@ -40,19 +40,19 @@ struct GridIndexTag< TNLDiffBuildConfigTag, long int >
 void
 setupConfig( Config::ConfigDescription& config )
 {
-   config.addEntry< String >( "mesh", "Input mesh file.", "mesh.vti" );
-   config.addEntry< String >( "mesh-format", "Mesh file format.", "auto" );
-   config.addRequiredList< String >( "input-files", "Input files containing the mesh functions to be compared." );
-   config.addEntry< String >( "mesh-function-name", "Name of the mesh function in the input files.", "f" );
-   config.addEntry< String >( "output-file", "File for the output data.", "tnl-diff.log" );
-   config.addEntry< String >(
+   config.addEntry< std::string >( "mesh", "Input mesh file.", "mesh.vti" );
+   config.addEntry< std::string >( "mesh-format", "Mesh file format.", "auto" );
+   config.addRequiredList< std::string >( "input-files", "Input files containing the mesh functions to be compared." );
+   config.addEntry< std::string >( "mesh-function-name", "Name of the mesh function in the input files.", "f" );
+   config.addEntry< std::string >( "output-file", "File for the output data.", "tnl-diff.log" );
+   config.addEntry< std::string >(
       "mode",
       "Mode 'couples' compares two subsequent files. Mode 'sequence' compares the input files against the first one. 'halves' "
       "compares the files from the first and the second half of the input files.",
       "couples" );
-   config.addEntryEnum< String >( "couples" );
-   config.addEntryEnum< String >( "sequence" );
-   config.addEntryEnum< String >( "halves" );
+   config.addEntryEnum< std::string >( "couples" );
+   config.addEntryEnum< std::string >( "sequence" );
+   config.addEntryEnum< std::string >( "halves" );
    config.addEntry< bool >( "exact-match", "Check if the data are exactly the same.", false );
    config.addEntry< bool >( "write-difference", "Write difference grid function.", false );
    //   config.addEntry< bool >( "write-exact-curve", "Write exact curve with given radius.", false );
@@ -73,8 +73,8 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   const String meshFile = parameters.getParameter< String >( "mesh" );
-   const String meshFileFormat = parameters.getParameter< String >( "mesh-format" );
+   const auto meshFile = parameters.getParameter< std::string >( "mesh" );
+   const auto meshFileFormat = parameters.getParameter< std::string >( "mesh-format" );
    auto wrapper = [ & ]( const auto& reader, auto&& mesh )
    {
       using MeshType = std::decay_t< decltype( mesh ) >;

@@ -191,13 +191,13 @@ void
 configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
-   config.addRequiredEntry< String >( "input-mesh", "Input file with the distributed mesh." );
-   config.addEntry< String >( "input-mesh-format", "Input mesh file format.", "auto" );
-   config.addRequiredEntry< String >( "ordering", "Algorithm to reorder the mesh." );
+   config.addRequiredEntry< std::string >( "input-mesh", "Input file with the distributed mesh." );
+   config.addEntry< std::string >( "input-mesh-format", "Input mesh file format.", "auto" );
+   config.addRequiredEntry< std::string >( "ordering", "Algorithm to reorder the mesh." );
    config.addEntryEnum( "rcm" );
    config.addEntryEnum( "kdtree" );
-   config.addRequiredEntry< String >( "output-mesh", "Output file with the distributed mesh." );
-   config.addEntry< String >( "output-mesh-format", "Output mesh file format.", "auto" );
+   config.addRequiredEntry< std::string >( "output-mesh", "Output file with the distributed mesh." );
+   config.addEntry< std::string >( "output-mesh-format", "Output mesh file format.", "auto" );
 }
 
 int
@@ -211,11 +211,11 @@ main( int argc, char* argv[] )
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
 
-   const String inputFileName = parameters.getParameter< String >( "input-mesh" );
-   const String inputFileFormat = parameters.getParameter< String >( "input-mesh-format" );
-   const String ordering = parameters.getParameter< String >( "ordering" );
-   const String outputFileName = parameters.getParameter< String >( "output-mesh" );
-   const String outputFileFormat = parameters.getParameter< String >( "output-mesh-format" );
+   const auto inputFileName = parameters.getParameter< std::string >( "input-mesh" );
+   const auto inputFileFormat = parameters.getParameter< std::string >( "input-mesh-format" );
+   const auto ordering = parameters.getParameter< std::string >( "ordering" );
+   const auto outputFileName = parameters.getParameter< std::string >( "output-mesh" );
+   const auto outputFileFormat = parameters.getParameter< std::string >( "output-mesh-format" );
 
    auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
    {

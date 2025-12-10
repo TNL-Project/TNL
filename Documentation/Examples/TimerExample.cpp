@@ -13,9 +13,9 @@ main()
    std::this_thread::sleep_for( std::chrono::milliseconds( milliseconds ) );
    time.stop();
 
-   std::cout << "Elapsed real time: " << time.getRealTime() << std::endl;
-   std::cout << "Elapsed CPU time: " << time.getCPUTime() << std::endl;
+   std::cout << "Elapsed real time: " << time.getRealTime() << '\n';
+   std::cout << "Elapsed CPU time: " << time.getCPUTime() << '\n';
    time.reset();
-   std::cout << "Real time after reset:" << time.getRealTime() << std::endl;
-   std::cout << "CPU time after reset: " << time.getCPUTime() << std::endl;
+   std::cout << "Real time after reset:" << time.getRealTime() << '\n';
+   std::cout << "CPU time after reset: " << time.getCPUTime() << '\n';
 }

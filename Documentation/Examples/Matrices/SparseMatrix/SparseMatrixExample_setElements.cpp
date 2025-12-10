@@ -19,17 +19,17 @@ setElementsExample()
       // clang-format on
    } );
 
-   std::cout << matrix << std::endl;
+   std::cout << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Setting matrix elements on host: " << std::endl;
+   std::cout << "Setting matrix elements on host:\n";
    setElementsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Setting matrix elements on CUDA device: " << std::endl;
+   std::cout << "Setting matrix elements on CUDA device:\n";
    setElementsExample< TNL::Devices::Cuda >();
 #endif
 }

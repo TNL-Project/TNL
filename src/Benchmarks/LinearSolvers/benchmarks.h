@@ -19,7 +19,7 @@ template< typename Device >
 const char*
 getPerformer()
 {
-   if( std::is_same< Device, TNL::Devices::Cuda >::value )
+   if( std::is_same_v< Device, TNL::Devices::Cuda > )
       return "GPU";
    return "CPU";
 }
@@ -40,12 +40,12 @@ template< typename Device >
 bool
 checkDevice( const TNL::Config::ParameterContainer& parameters )
 {
-   const TNL::String device = parameters.getParameter< TNL::String >( "devices" );
+   const auto device = parameters.getParameter< TNL::String >( "devices" );
    if( device == "all" )
       return true;
-   if( std::is_same< Device, TNL::Devices::Host >::value && device == "host" )
+   if( std::is_same_v< Device, TNL::Devices::Host > && device == "host" )
       return true;
-   if( std::is_same< Device, TNL::Devices::Cuda >::value && device == "cuda" )
+   if( std::is_same_v< Device, TNL::Devices::Cuda > && device == "cuda" )
       return true;
    return false;
 }
@@ -107,7 +107,7 @@ benchmarkSolver( TNL::Benchmarks::Benchmark<>& benchmark,
    catch( const std::runtime_error& ) {
    }
    catch( std::invalid_argument& e ) {
-      std::cerr << e.what() << ". Skipping the benchmark!" << std::endl;
+      std::cerr << e.what() << ". Skipping the benchmark!\n";
       return;
    }
 

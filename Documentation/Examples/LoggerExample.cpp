@@ -2,12 +2,11 @@
 #include <TNL/Logger.h>
 
 using namespace TNL;
-using namespace std;
 
 int
 main()
 {
-   Logger logger( 50, cout );
+   Logger logger( 50, std::cout );
 
    logger.writeSystemInformation( false );
 

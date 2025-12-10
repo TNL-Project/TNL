@@ -39,13 +39,13 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
    L.setDimensions( N, N );
    U.setDimensions( N, N );
 
-   //   Timer timer_total, timer_rowlengths, timer_copy_into_w, timer_k_loop, timer_heap_construct, timer_heap_extract,
-   //   timer_copy_into_LU, timer_reset;
+   //Timer timer_total, timer_rowlengths, timer_copy_into_w, timer_k_loop, timer_heap_construct, timer_heap_extract,
+   //timer_copy_into_LU, timer_reset;
 
-   //   timer_total.start();
+   //timer_total.start();
 
    // compute row lengths
-   //   timer_rowlengths.start();
+   //timer_rowlengths.start();
    typename decltype( L )::RowCapacitiesType L_rowLengths( N );
    typename decltype( U )::RowCapacitiesType U_rowLengths( N );
    for( IndexType i = 0; i < N; i++ ) {
@@ -69,7 +69,7 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
    }
    L.setRowCapacities( L_rowLengths );
    U.setRowCapacities( U_rowLengths );
-   //   timer_rowlengths.stop();
+   //timer_rowlengths.stop();
 
    // intermediate full vector for the i-th row of A
    VectorType w;
@@ -92,12 +92,14 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
    {
       return a.abs_value < b.abs_value;
    };
-   std::vector< Triplet > heap_L, heap_U;
+   std::vector< Triplet > heap_L;
+   std::vector< Triplet > heap_U;
    auto cmp_column = []( const Triplet& a, const Triplet& b )
    {
       return a.column < b.column;
    };
-   std::vector< Triplet > values_L, values_U;
+   std::vector< Triplet > values_L;
+   std::vector< Triplet > values_U;
 
    // Incomplete LU factorization with threshold
    // (see Saad - Iterative methods for sparse linear systems, section 10.4)
@@ -110,7 +112,7 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
       std::set< IndexType > w_k_set;
 
       // copy A_i into the full vector w
-      //      timer_copy_into_w.start();
+      //timer_copy_into_w.start();
       for( IndexType c_j = 0; c_j < A_i.getSize(); c_j++ ) {
          auto j = A_i.getColumnIndex( c_j );
          if( minColumn > 0 ) {
@@ -129,14 +131,14 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
 
          w_k_set.insert( j );
       }
-      //      timer_copy_into_w.stop();
+      //timer_copy_into_w.stop();
 
       // compute relative tolerance
       A_i_norm = std::sqrt( A_i_norm );
       const RealType tau_i = tau * A_i_norm;
 
       // loop for k = 0, ..., i - 1; but only over the non-zero entries of w
-      //      timer_k_loop.start();
+      //timer_k_loop.start();
       for( const IndexType k : w_k_set ) {
          if( k >= i )
             break;
@@ -166,14 +168,14 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
             }
          }
       }
-      //      timer_k_loop.stop();
+      //timer_k_loop.stop();
 
       // apply dropping rule to the row w
       // (we drop all values under threshold and keep nl(i) + p largest values in L
       // and nu(i) + p largest values in U; see Saad (2003) for reference)
 
       // construct heaps with the values in the L and U parts separately
-      //      timer_heap_construct.start();
+      //timer_heap_construct.start();
       for( const IndexType j : w_k_set ) {
          const RealType w_j_abs = std::abs( w[ j ] );
          // ignore small values
@@ -187,10 +189,10 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
       }
       std::make_heap( heap_L.begin(), heap_L.end(), cmp_abs_value );
       std::make_heap( heap_U.begin(), heap_U.end(), cmp_abs_value );
-      //      timer_heap_construct.stop();
+      //timer_heap_construct.stop();
 
       // extract values for L and U
-      //      timer_heap_extract.start();
+      //timer_heap_extract.start();
       for( IndexType c_j = 0; c_j < L_rowLengths[ i ] && c_j < (IndexType) heap_L.size(); c_j++ ) {
          // move the largest to the end
          std::pop_heap( heap_L.begin(), heap_L.end(), cmp_abs_value );
@@ -207,19 +209,19 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
          heap_U.pop_back();
          values_U.push_back( largest );
       }
-      //      timer_heap_extract.stop();
+      //timer_heap_extract.stop();
 
-      //      std::cout << "i = " << i << ", L_rowLengths[ i ] = " << L_rowLengths[ i ] << ", U_rowLengths[ i ] = " <<
-      //      U_rowLengths[ N - 1 - i ] << std::endl;
+      //std::cout << "i = " << i << ", L_rowLengths[ i ] = " << L_rowLengths[ i ] << ", U_rowLengths[ i ] = " <<
+      //U_rowLengths[ N - 1 - i ] << std::endl;
 
-      //      timer_copy_into_LU.start();
+      //timer_copy_into_LU.start();
 
       // sort by column index to make it insertable into the sparse matrix
       std::sort( values_L.begin(), values_L.end(), cmp_column );
       std::sort( values_U.begin(), values_U.end(), cmp_column );
 
       // the row L_i might be empty
-      if( values_L.size() ) {
+      if( ! values_L.empty() ) {
          // L_ij = w_j for j = 0, ..., i - 1
          auto L_i = L.getRow( i );
          for( IndexType c_j = 0; c_j < (IndexType) values_L.size(); c_j++ ) {
@@ -235,10 +237,10 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
          U_i.setElement( c_j, j, values_U[ c_j ].value );
       }
 
-      //      timer_copy_into_LU.stop();
+      //timer_copy_into_LU.stop();
 
       // reset w
-      //      timer_reset.start();
+      //timer_reset.start();
       for( const IndexType j : w_k_set )
          w[ j ] = 0.0;
 
@@ -246,21 +248,21 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
       heap_U.clear();
       values_L.clear();
       values_U.clear();
-      //      timer_reset.stop();
+      //timer_reset.stop();
    }
 
-   //   timer_total.stop();
+   //timer_total.stop();
 
-   //   std::cout << "ILUT::update statistics:\n";
-   //   std::cout << "\ttimer_total:           " << timer_total.getRealTime()          << " s\n";
-   //   std::cout << "\ttimer_rowlengths:      " << timer_rowlengths.getRealTime()     << " s\n";
-   //   std::cout << "\ttimer_copy_into_w:     " << timer_copy_into_w.getRealTime()    << " s\n";
-   //   std::cout << "\ttimer_k_loop:          " << timer_k_loop.getRealTime()         << " s\n";
-   //   std::cout << "\ttimer_heap_construct:  " << timer_heap_construct.getRealTime() << " s\n";
-   //   std::cout << "\ttimer_heap_extract:    " << timer_heap_extract.getRealTime()   << " s\n";
-   //   std::cout << "\ttimer_copy_into_LU:    " << timer_copy_into_LU.getRealTime()   << " s\n";
-   //   std::cout << "\ttimer_reset:           " << timer_reset.getRealTime()          << " s\n";
-   //   std::cout << std::flush;
+   //std::cout << "ILUT::update statistics:\n";
+   //std::cout << "\ttimer_total:           " << timer_total.getRealTime()          << " s\n";
+   //std::cout << "\ttimer_rowlengths:      " << timer_rowlengths.getRealTime()     << " s\n";
+   //std::cout << "\ttimer_copy_into_w:     " << timer_copy_into_w.getRealTime()    << " s\n";
+   //std::cout << "\ttimer_k_loop:          " << timer_k_loop.getRealTime()         << " s\n";
+   //std::cout << "\ttimer_heap_construct:  " << timer_heap_construct.getRealTime() << " s\n";
+   //std::cout << "\ttimer_heap_extract:    " << timer_heap_extract.getRealTime()   << " s\n";
+   //std::cout << "\ttimer_copy_into_LU:    " << timer_copy_into_LU.getRealTime()   << " s\n";
+   //std::cout << "\ttimer_reset:           " << timer_reset.getRealTime()          << " s\n";
+   //std::cout << std::flush;
 }
 
 template< typename Matrix, typename Real, typename Index >

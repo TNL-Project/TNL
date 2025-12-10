@@ -42,7 +42,7 @@ triangularSolveLower( const Matrix& L, Vector1& x, const Vector2& b )
          for( IndexType c_j = 0; c_j < L_entries; c_j++ ) {
             const auto j = L_i.getColumnIndex( c_j );
             // skip padding zeros
-            if( fullStorage == false && j >= N )
+            if( ! fullStorage && j >= N )
                break;
             x_i -= L_i.getValue( c_j ) * x[ j ];
          }
@@ -93,7 +93,7 @@ triangularSolveUpper( const Matrix& U, Vector1& x, const Vector2& b )
       for( IndexType c_j = 1; c_j < U_entries; c_j++ ) {
          const auto j = U_i.getColumnIndex( c_j );
          // skip padding zeros
-         if( fullStorage == false && j >= N )
+         if( ! fullStorage && j >= N )
             break;
          x_i -= U_i.getValue( c_j ) * x[ j ];
       }

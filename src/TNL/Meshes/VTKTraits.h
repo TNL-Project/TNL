@@ -200,15 +200,21 @@ struct TopologyToEntityShape< Topologies::Polyhedron >
 template< typename GridEntity >
 struct GridEntityShape
 {
-private:
-   static constexpr int dim = GridEntity::getEntityDimension();
-   static_assert( dim >= 0 && dim <= 3, "unexpected dimension of the grid entity" );
-
 public:
-   static constexpr EntityShape shape = ( dim == 0 ) ? EntityShape::Vertex
-                                      : ( dim == 1 ) ? EntityShape::Line
-                                      : ( dim == 2 ) ? EntityShape::Pixel
-                                                     : EntityShape::Voxel;
+   static constexpr EntityShape shape = []() constexpr
+   {
+      constexpr int dim = GridEntity::getEntityDimension();
+      static_assert( dim >= 0 && dim <= 3, "unexpected dimension of the grid entity" );
+
+      if constexpr( dim == 0 )
+         return EntityShape::Vertex;
+      if constexpr( dim == 1 )
+         return EntityShape::Line;
+      if constexpr( dim == 2 )
+         return EntityShape::Pixel;
+      if constexpr( dim == 3 )
+         return EntityShape::Voxel;
+   }();
 };
 
 // type names used in the VTK library (for the XML formats)

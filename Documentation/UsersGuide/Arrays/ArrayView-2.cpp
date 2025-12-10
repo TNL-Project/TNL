@@ -20,7 +20,7 @@ main( int argc, char* argv[] )
    ArrayView< float > a_view( a, size );
    a_view = -5;
 
-   std::cout << " a_view = " << a_view << std::endl;
+   std::cout << " a_view = " << a_view << '\n';
    for( int i = 0; i < size; i++ )
       std::cout << a[ i ] << " ";
 

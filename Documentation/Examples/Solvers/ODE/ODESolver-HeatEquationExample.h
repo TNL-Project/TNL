@@ -91,7 +91,7 @@ int
 main( int argc, char* argv[] )
 {
    if( argc != 2 ) {
-      std::cout << "Usage: " << argv[ 0 ] << " <path to output directory>" << std::endl;
+      std::cout << "Usage: " << argv[ 0 ] << " <path to output directory>\n";
       return EXIT_FAILURE;
    }
    TNL::String file_name( argv[ 1 ] );

@@ -24,16 +24,16 @@ matrixWriterExample()
                      // clang-format on
                   } );
 
-   std::cout << "Matrix: " << std::endl << matrix << std::endl;
+   std::cout << "Matrix:\n" << matrix << '\n';
    std::cout << "Writing matrix in Gnuplot format into the file matrix-writer-example.gplt ...";
    TNL::Matrices::MatrixWriter< Matrix >::writeGnuplot( "matrix-writer-example.gplt", matrix );
-   std::cout << " OK " << std::endl;
+   std::cout << " OK\n";
    std::cout << "Writing matrix pattern in EPS format into the file matrix-writer-example.eps ...";
    TNL::Matrices::MatrixWriter< Matrix >::writeEps( "matrix-writer-example.eps", matrix );
-   std::cout << " OK " << std::endl;
+   std::cout << " OK\n";
    std::cout << "Writing matrix in MTX format into the file matrix-writer-example.mtx ...";
    TNL::Matrices::MatrixWriter< Matrix >::writeMtx( "matrix-writer-example.mtx", matrix );
-   std::cout << " OK " << std::endl;
+   std::cout << " OK\n";
 }
 
 template< typename Device >
@@ -45,28 +45,28 @@ matrixReaderExample()
 
    std::cout << "Reading sparse matrix from MTX file matrix-writer-example.mtx ... ";
    TNL::Matrices::MatrixReader< SparseMatrix >::readMtx( "matrix-writer-example.mtx", sparseMatrix );
-   std::cout << " OK " << std::endl;
-   std::cout << "Imported matrix is: " << std::endl << sparseMatrix << std::endl;
+   std::cout << " OK\n";
+   std::cout << "Imported matrix is:\n" << sparseMatrix << '\n';
 
    using DenseMatrix = TNL::Matrices::DenseMatrix< double, Device >;
    DenseMatrix denseMatrix;
 
    std::cout << "Reading dense matrix from MTX file matrix-writer-example.mtx ... ";
    TNL::Matrices::MatrixReader< DenseMatrix >::readMtx( "matrix-writer-example.mtx", denseMatrix );
-   std::cout << " OK " << std::endl;
-   std::cout << "Imported matrix is: " << std::endl << denseMatrix << std::endl;
+   std::cout << " OK\n";
+   std::cout << "Imported matrix is:\n" << denseMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrices on CPU ... " << std::endl;
+   std::cout << "Creating matrices on CPU ...\n";
    matrixWriterExample< TNL::Devices::Host >();
    matrixReaderExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
    std::cout << std::endl << std::endl;
-   std::cout << "Creating matrices on CUDA GPU ... " << std::endl;
+   std::cout << "Creating matrices on CUDA GPU ...\n";
    matrixWriterExample< TNL::Devices::Cuda >();
    matrixReaderExample< TNL::Devices::Cuda >();
 #endif

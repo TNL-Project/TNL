@@ -7,8 +7,7 @@
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Containers/Vector.h>
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 template< typename Real = double, typename Device = Devices::Host, typename Index = int >
 struct SimpleProblem
@@ -39,5 +38,4 @@ struct SimpleProblem
    {}
 };
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks

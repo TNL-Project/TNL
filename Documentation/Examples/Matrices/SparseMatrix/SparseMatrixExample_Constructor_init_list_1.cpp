@@ -12,17 +12,17 @@ initializerListExample()
    for( int row = 0; row < matrix.getRows(); row++ )
       for( int column = 0; column <= row; column++ )
          matrix.setElement( row, column, row - column + 1 );
-   std::cout << "General sparse matrix: " << std::endl << matrix << std::endl;
+   std::cout << "General sparse matrix:\n" << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrices on CPU ... " << std::endl;
+   std::cout << "Creating matrices on CPU ...\n";
    initializerListExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrices on CUDA GPU ... " << std::endl;
+   std::cout << "Creating matrices on CUDA GPU ...\n";
    initializerListExample< TNL::Devices::Cuda >();
 #endif
 }

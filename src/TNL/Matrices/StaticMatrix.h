@@ -224,15 +224,15 @@ template< typename Value, std::size_t Rows, std::size_t Columns, typename Permut
 void
 StaticMatrix< Value, Rows, Columns, Permutation >::print( std::ostream& str ) const
 {
-   for( std::size_t row = 0; row < this->getRows(); row++ ) {
+   for( std::size_t row = 0; row < getRows(); row++ ) {
       str << "Row: " << row << " -> ";
-      for( std::size_t column = 0; column < this->getColumns(); column++ ) {
+      for( std::size_t column = 0; column < getColumns(); column++ ) {
          std::stringstream str_;
          str_ << std::setw( 4 ) << std::right << column << ":" << std::setw( 4 ) << std::left << ( *this )( row, column );
          str << std::setw( 10 ) << str_.str();
       }
-      if( row < this->getRows() - 1 )
-         str << std::endl;
+      if( row < getRows() - 1 )
+         str << '\n';
    }
 }
 

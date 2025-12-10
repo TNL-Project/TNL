@@ -162,7 +162,7 @@ public:
    {
       if( m == nullptr )
          return {};
-      static_assert( std::is_same< HYPRE_Int, HYPRE_BigInt >::value,
+      static_assert( std::is_same_v< HYPRE_Int, HYPRE_BigInt >,
                      "The J array cannot be accessed via this method when HYPRE_Int and HYPRE_BigInt are different types." );
       if( hypre_CSRMatrixBigJ( m ) != nullptr )
          return { hypre_CSRMatrixBigJ( m ), hypre_CSRMatrixNumNonzeros( m ) };
@@ -174,7 +174,7 @@ public:
    {
       if( m == nullptr )
          return {};
-      static_assert( std::is_same< HYPRE_Int, HYPRE_BigInt >::value,
+      static_assert( std::is_same_v< HYPRE_Int, HYPRE_BigInt >,
                      "The J array cannot be accessed via this method when HYPRE_Int and HYPRE_BigInt are different types." );
       if( hypre_CSRMatrixBigJ( m ) != nullptr )
          return { hypre_CSRMatrixBigJ( m ), hypre_CSRMatrixNumNonzeros( m ) };
@@ -410,10 +410,10 @@ public:
                   IndexType begin = 0,
                   IndexType end = 0 ) const
    {
-      static_assert( std::is_same< typename InVector::RealType, RealType >::value, "Wrong value type." );
-      static_assert( std::is_same< typename InVector::IndexType, IndexType >::value, "Wrong index type." );
-      static_assert( std::is_same< typename OutVector::RealType, RealType >::value, "Wrong value type." );
-      static_assert( std::is_same< typename OutVector::IndexType, IndexType >::value, "Wrong index type." );
+      static_assert( std::is_same_v< typename InVector::RealType, RealType >, "Wrong value type." );
+      static_assert( std::is_same_v< typename InVector::IndexType, IndexType >, "Wrong index type." );
+      static_assert( std::is_same_v< typename OutVector::RealType, RealType >, "Wrong value type." );
+      static_assert( std::is_same_v< typename OutVector::IndexType, IndexType >, "Wrong index type." );
 
       if( begin != 0 )
          throw Exceptions::NotImplementedError(

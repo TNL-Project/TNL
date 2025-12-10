@@ -77,12 +77,12 @@ GMRES< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
 
    if( restarting_min <= 0 || restarting_max <= 0 || restarting_min > restarting_max ) {
       std::cerr << "Wrong value for the GMRES restarting parameters: r_min = " << restarting_min
-                << ", r_max = " << restarting_max << std::endl;
+                << ", r_max = " << restarting_max << '\n';
       return false;
    }
    if( restarting_step_min < 0 || restarting_step_max < 0 || restarting_step_min > restarting_step_max ) {
       std::cerr << "Wrong value for the GMRES restarting adjustment parameters: d_min = " << restarting_step_min
-                << ", d_max = " << restarting_step_max << std::endl;
+                << ", d_max = " << restarting_step_max << '\n';
       return false;
    }
    setSize( x );
@@ -184,7 +184,7 @@ GMRES< Matrix >::orthogonalize_CGS( const int m, const RealType normb, const Rea
    // initial binding to _M_tmp sets the correct local range, global size and
    // communicator for distributed views
    VectorViewType v_i( _M_tmp.getView() );
-   //   VectorViewType v_k( _M_tmp.getView() );
+   //VectorViewType v_k( _M_tmp.getView() );
 
    /***
     * v_0 = r / | r | =  1.0 / beta * r
@@ -214,11 +214,11 @@ GMRES< Matrix >::orthogonalize_CGS( const int m, const RealType normb, const Rea
          HostVector H_l( i + 1 );
 
          // CGS part 1: compute projection coefficients
-         //         for( int k = 0; k <= i; k++ ) {
-         //            v_k.bind( &V.getData()[ k * ldSize ], size );
-         //            H_l[k] = (w, v_k);
-         //            H[ k + i * (m + 1) ] += H_l[k];
-         //         }
+         //for( int k = 0; k <= i; k++ ) {
+         //   v_k.bind( &V.getData()[ k * ldSize ], size );
+         //   H_l[k] = (w, v_k);
+         //   H[ k + i * (m + 1) ] += H_l[k];
+         //}
          // H_l = V_i^T * w
          const RealType* _V = V.getData();
          const RealType* _w = Traits::getConstLocalView( w ).getData();
@@ -232,10 +232,10 @@ GMRES< Matrix >::orthogonalize_CGS( const int m, const RealType normb, const Rea
             H[ k + i * ( m + 1 ) ] += H_l[ k ];
 
          // CGS part 2: subtract the projections
-         //         for( int k = 0; k <= i; k++ ) {
-         //            v_k.bind( &V.getData()[ k * ldSize ], size );
-         //            w = w - H_l[k] * v_k;
-         //         }
+         //for( int k = 0; k <= i; k++ ) {
+         //   v_k.bind( &V.getData()[ k * ldSize ], size );
+         //   w = w - H_l[k] * v_k;
+         //}
          // w := w - V_i * H_l
          Matrices::MatrixOperations< DeviceType >::gemv( size,
                                                          (IndexType) i + 1,
@@ -355,8 +355,8 @@ GMRES< Matrix >::orthogonalize_CWY( const int m, const RealType normb, const Rea
     * z = r / | r | =  1.0 / beta * r
     */
    // TODO: investigate normalization by beta and normb
-   //   z = (1.0 / beta) * r;
-   //   z = (1.0 / normb) * r;
+   //z = (1.0 / beta) * r;
+   //z = (1.0 / normb) * r;
    z = r;
 
    H.setValue( 0.0 );
@@ -364,7 +364,7 @@ GMRES< Matrix >::orthogonalize_CWY( const int m, const RealType normb, const Rea
    T.setValue( 0.0 );
 
    // NOTE: this is unstable, s[0] is set later in hauseholder_apply_trunc
-   //   s[ 0 ] = beta;
+   //s[ 0 ] = beta;
 
    /****
     * Starting m-loop
@@ -395,7 +395,7 @@ GMRES< Matrix >::orthogonalize_CWY( const int m, const RealType normb, const Rea
        *     v_i = (I - Y_i * T_i Y_i^T) * e_i
        */
       // vectors v_i are not stored, they can be reconstructed in the update() method
-      //      v_i.bind( &V.getData()[ i * ldSize ], size );
+      //v_i.bind( &V.getData()[ i * ldSize ], size );
       v_i.bind( V.getData(), size );
       hauseholder_cwy( v_i, i );
 
@@ -492,16 +492,16 @@ GMRES< Matrix >::hauseholder_generate( const int i, VectorViewType y_i, ConstVec
          y_i.setElement( i, y_ii - normz );
 
       // compute the norm of the y_i vector; equivalent to this calculation by definition:
-      //       norm_yi_squared = y_i.lpNorm( 2.0 );
-      //       norm_yi_squared = norm_yi_squared * norm_yi_squared
+      //norm_yi_squared = y_i.lpNorm( 2.0 );
+      //norm_yi_squared = norm_yi_squared * norm_yi_squared
       norm_yi_squared = 2 * ( normz * normz + std::fabs( y_ii ) * normz );
    }
    // no-op if the problem is not distributed
    MPI::Bcast( &norm_yi_squared, 1, 0, Traits::getCommunicator( *this->matrix ) );
 
    // XXX: normalization is slower, but more stable
-   //   y_i *= 1.0 / std::sqrt( norm_yi_squared );
-   //   const RealType t_i = 2.0;
+   //y_i *= 1.0 / std::sqrt( norm_yi_squared );
+   //const RealType t_i = 2.0;
    // assuming it's stable enough...
    const RealType t_i = 2.0 / norm_yi_squared;
 
@@ -646,14 +646,14 @@ GMRES< Matrix >::update( const int k, const int m, const HostVector& H, const Ho
    // Backsolve:
    for( int i = k; i >= 0; i-- ) {
       if( H[ i + i * ( m + 1 ) ] == 0 ) {
-         //         for( int _i = 0; _i <= i; _i++ ) {
-         //             for( int _j = 0; _j < i; _j++ )
-         //                std::cout << H[ _i + _j * (m+1) ] << "  ";
-         //            std::cout << std::endl;
-         //         }
-         std::cerr << "H.norm = " << lpNorm( H, 2.0 ) << std::endl;
-         std::cerr << "s = " << s << std::endl;
-         std::cerr << "k = " << k << ", m = " << m << std::endl;
+         //for( int _i = 0; _i <= i; _i++ ) {
+         //    for( int _j = 0; _j < i; _j++ )
+         //       std::cout << H[ _i + _j * (m+1) ] << "  ";
+         //   std::cout << std::endl;
+         //}
+         std::cerr << "H.norm = " << lpNorm( H, 2.0 ) << '\n';
+         std::cerr << "s = " << s << '\n';
+         std::cerr << "k = " << k << ", m = " << m << '\n';
          throw 1;
       }
       y[ i ] /= H[ i + i * ( m + 1 ) ];

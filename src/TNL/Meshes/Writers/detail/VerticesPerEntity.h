@@ -31,12 +31,21 @@ struct VerticesPerEntity< MeshEntity< MeshConfig, Device, Topologies::Vertex >, 
 template< typename GridEntity >
 struct VerticesPerEntity< GridEntity, false >
 {
-private:
-   static constexpr int dim = GridEntity::getEntityDimension();
-   static_assert( dim >= 0 && dim <= 3, "unexpected dimension of the grid entity" );
-
 public:
-   static constexpr int count = ( dim == 0 ) ? 1 : ( dim == 1 ) ? 2 : ( dim == 2 ) ? 4 : 8;
+   static constexpr int count = []() constexpr
+   {
+      constexpr int dim = GridEntity::getEntityDimension();
+      static_assert( dim >= 0 && dim <= 3, "unexpected dimension of the grid entity" );
+
+      if constexpr( dim == 0 )
+         return 1;
+      if constexpr( dim == 1 )
+         return 2;
+      if constexpr( dim == 2 )
+         return 4;
+      if constexpr( dim == 3 )
+         return 8;
+   }();
 };
 
 }  // namespace TNL::Meshes::Writers::detail

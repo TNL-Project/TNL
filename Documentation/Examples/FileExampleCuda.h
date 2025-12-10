@@ -21,7 +21,8 @@ main()
    /***
     * Allocate arrays on host and device
     */
-   double *deviceArray, *hostArray;
+   double* deviceArray;
+   double* hostArray;
    cudaMalloc( (void**) &deviceArray, size * sizeof( double ) );
    hostArray = new double[ 3 ];
 
@@ -42,7 +43,7 @@ main()
     */
    std::cout.precision( 15 );
    for( int i = 0; i < size; i++ )
-      std::cout << hostArray[ i ] << std::endl;
+      std::cout << hostArray[ i ] << '\n';
 
    /***
     * Free allocated memory

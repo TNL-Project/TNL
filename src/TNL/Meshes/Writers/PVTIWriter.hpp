@@ -58,21 +58,21 @@ PVTIWriter< Grid >::writeImageData( const Grid& globalGrid, const unsigned Ghost
    std::stringstream origin;
    std::stringstream spacing;
 
-   auto dims = globalGrid.getDimensions();
+   const auto& dims = globalGrid.getDimensions();
    for( int j = 0; j < dims.getSize(); j++ )
       extent << "0 " << dims[ j ] << " ";
    // VTK knows only 3D grids
    for( int j = dims.getSize(); j < 3; j++ )
       extent << "0 0 ";
 
-   auto o = globalGrid.getOrigin();
+   const auto& o = globalGrid.getOrigin();
    for( int j = 0; j < o.getSize(); j++ )
       origin << std::scientific << o[ j ] << " ";
    // VTK knows only 3D grids
    for( int j = o.getSize(); j < 3; j++ )
       origin << 0 << " ";
 
-   auto h = globalGrid.getSpaceSteps();
+   const auto& h = globalGrid.getSpaceSteps();
    for( int j = 0; j < h.getSize(); j++ )
       spacing << std::scientific << h[ j ] << " ";
    // VTK knows only 3D grids

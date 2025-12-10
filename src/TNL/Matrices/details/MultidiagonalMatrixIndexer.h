@@ -4,7 +4,6 @@
 #pragma once
 
 #include <stdexcept>
-#include <type_traits>
 
 #include <TNL/Backend/Macros.h>
 #include <TNL/DiscreteMath.h>
@@ -24,11 +23,7 @@ public:
    }
 
    __cuda_callable__
-   MultidiagonalMatrixIndexer()
-   : rows( 0 ),
-     columns( 0 ),
-     nonemptyRows( 0 )
-   {}
+   MultidiagonalMatrixIndexer() = default;
 
    __cuda_callable__
    MultidiagonalMatrixIndexer( const IndexType& rows,
@@ -42,12 +37,18 @@ public:
    {}
 
    __cuda_callable__
-   MultidiagonalMatrixIndexer( const MultidiagonalMatrixIndexer& indexer )
-   : rows( indexer.rows ),
-     columns( indexer.columns ),
-     diagonals( indexer.diagonals ),
-     nonemptyRows( indexer.nonemptyRows )
-   {}
+   MultidiagonalMatrixIndexer( const MultidiagonalMatrixIndexer& indexer ) = default;
+
+   __cuda_callable__
+   MultidiagonalMatrixIndexer( MultidiagonalMatrixIndexer&& indexer ) = default;
+
+   __cuda_callable__
+   MultidiagonalMatrixIndexer&
+   operator=( const MultidiagonalMatrixIndexer& indexer ) = default;
+
+   __cuda_callable__
+   MultidiagonalMatrixIndexer&
+   operator=( MultidiagonalMatrixIndexer&& indexer ) = default;
 
    void
    set( const IndexType& rows, const IndexType& columns, const IndexType& diagonals, const IndexType& nonemptyRows )
@@ -113,7 +114,10 @@ public:
    }
 
 protected:
-   IndexType rows, columns, diagonals, nonemptyRows;
+   IndexType rows = 0;
+   IndexType columns = 0;
+   IndexType diagonals = 0;
+   IndexType nonemptyRows = 0;
 };
 
 }  // namespace TNL::Matrices::details

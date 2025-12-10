@@ -14,7 +14,10 @@ CG< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
    this->setSize( x );
    this->resetIterations();
 
-   RealType alpha, beta, s1, s2;
+   RealType alpha;
+   RealType beta;
+   RealType s1;
+   RealType s2;
 
    // initialize the norm of the preconditioned right-hand-side
    RealType normb;

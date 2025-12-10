@@ -28,7 +28,9 @@ struct bfs_distance_visitor : public boost::default_bfs_visitor
    void
    tree_edge( Edge e, const Graph& g ) const
    {
-      typename boost::graph_traits< Graph >::vertex_descriptor u = source( e, g ), v = target( e, g );
+      using vertex_descriptor = typename boost::graph_traits< Graph >::vertex_descriptor;
+      vertex_descriptor u = source( e, g );
+      vertex_descriptor v = target( e, g );
       distances_[ v ] = distances_[ u ] + 1;
    }
 
@@ -75,7 +77,7 @@ struct BoostGraph
       return GraphType == TNL::Graphs::GraphTypes::Undirected;
    }
 
-   BoostGraph() {}
+   BoostGraph() = default;
 
    template< typename TNLGraph >
    BoostGraph( const TNLGraph& graph )
@@ -128,7 +130,7 @@ struct BoostGraph
       boost::kruskal_minimum_spanning_tree( graph, std::back_inserter( spanning_tree ) );
    }
 
-   const AdjacencyList&
+   [[nodiscard]] const AdjacencyList&
    getGraph() const
    {
       return graph;
@@ -145,7 +147,7 @@ struct BoostGraph
          int u = boost::source( edge, graph );
          int v = boost::target( edge, graph );
          int weight = boost::get( boost::edge_weight, graph, edge );
-         file << u << " " << v << " " << weight << std::endl;
+         file << u << " " << v << " " << weight << '\n';
       }
 
       // Close the file

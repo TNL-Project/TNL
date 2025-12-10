@@ -55,18 +55,18 @@ reduceRows()
     */
    matrix.reduceRows( 0, matrix.getRows(), fetch, TNL::Max{}, keep );
 
-   std::cout << "The matrix reads as: " << std::endl << matrix << std::endl;
-   std::cout << "Max. elements in rows are: " << rowMax << std::endl;
+   std::cout << "The matrix reads as:\n" << matrix << '\n';
+   std::cout << "Max. elements in rows are: " << rowMax << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Rows reduction on host:" << std::endl;
+   std::cout << "Rows reduction on host:\n";
    reduceRows< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Rows reduction on CUDA device:" << std::endl;
+   std::cout << "Rows reduction on CUDA device:\n";
    reduceRows< TNL::Devices::Cuda >();
 #endif
 }

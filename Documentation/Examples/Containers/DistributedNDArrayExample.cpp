@@ -58,13 +58,13 @@ distributedNDArrayExample()
    // output the local elements as a flat array
    using ArrayView = TNL::Containers::ArrayView< int, Device, int >;
    ArrayView flat_view( a_view.getData(), a_view.getStorageSize() );
-   std::cout << "Rank " << communicator.rank() << " before synchronization: " << flat_view << std::endl;
+   std::cout << "Rank " << communicator.rank() << " before synchronization: " << flat_view << '\n';
 
    // synchronize the ghost regions and output again
    DistributedNDArraySynchronizer< ArrayType > synchronizer;
    synchronizer.setSynchronizationPattern( NDArraySyncPatterns::D1Q3 );
    synchronizer.synchronize( a );
-   std::cout << "Rank " << communicator.rank() << " after synchronization: " << flat_view << std::endl;
+   std::cout << "Rank " << communicator.rank() << " after synchronization: " << flat_view << '\n';
 }
 
 int
@@ -73,14 +73,14 @@ main( int argc, char* argv[] )
    TNL::MPI::ScopedInitializer mpi( argc, argv );
 
    if( TNL::MPI::GetRank() == 0 )
-      std::cout << "The first test runs on CPU ..." << std::endl;
+      std::cout << "The first test runs on CPU ...\n";
    distributedNDArrayExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
    TNL::MPI::Barrier();
 
    if( TNL::MPI::GetRank() == 0 )
-      std::cout << "The second test runs on GPU ..." << std::endl;
+      std::cout << "The second test runs on GPU ...\n";
    distributedNDArrayExample< TNL::Devices::Cuda >();
 #endif
 }

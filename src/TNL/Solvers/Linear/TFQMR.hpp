@@ -15,7 +15,13 @@ TFQMR< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
 {
    this->setSize( x );
 
-   RealType tau, theta, eta, rho, alpha, b_norm, w_norm;
+   RealType tau;
+   RealType theta;
+   RealType eta;
+   RealType rho;
+   RealType alpha;
+   RealType b_norm;
+   RealType w_norm;
 
    if( this->preconditioner ) {
       this->preconditioner->solve( b, M_tmp );

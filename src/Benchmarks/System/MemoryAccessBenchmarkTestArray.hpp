@@ -133,15 +133,15 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
 
 template< int Size >
 bool
-MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( const unsigned long long int blockSize,
+MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( unsigned long long int blockSize,
                                                               PtrArrayType& blockLink,
-                                                              const int numThreads )
+                                                              int numThreads )
 {
    TNL::Containers::Array< char > usedElements( blockSize, 0 );
    TNL::Containers::Array< unsigned long long int > previousElement( numThreads, 0 );
    TNL::Containers::Array< unsigned long long int > newElement( numThreads, 0 );
 
-   if( blockLink[ 0 ] != NULL )
+   if( blockLink[ 0 ] != nullptr )
       for( int tid = 0; tid < numThreads && tid < (int) blockSize; tid++ )
          blockLink[ tid ]->next = &this->array[ tid ];
 
@@ -183,7 +183,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( const unsigned lon
 
 template< int Size >
 bool
-MemoryAccessBenchmarkTestArray< Size >::setupRandomTest( int tlbTestBlockSize, const int numThreads )
+MemoryAccessBenchmarkTestArray< Size >::setupRandomTest( int tlbTestBlockSize, int numThreads )
 {
    srand( time( nullptr ) );
 
@@ -204,7 +204,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTest( int tlbTestBlockSize, c
 
 template< int Size >
 void
-MemoryAccessBenchmarkTestArray< Size >::setupSequentialTest( const int numThreads, bool interleaving )
+MemoryAccessBenchmarkTestArray< Size >::setupSequentialTest( int numThreads, bool interleaving )
 {
    if( interleaving ) {
       for( unsigned long long int i = 0; i < this->numberOfElements; i++ ) {

@@ -83,9 +83,9 @@ template< typename Device >
 void
 setupDenseMatrix()
 {
-   std::cout << " Dense matrix test:" << std::endl;
+   std::cout << " Dense matrix test:\n";
    for( int matrixSize = 16; matrixSize <= 8192; matrixSize *= 2 ) {
-      std::cout << "  Matrix size = " << matrixSize << std::endl;
+      std::cout << "  Matrix size = " << matrixSize << '\n';
       TNL::Timer timer;
 
       std::cout << "   setElement on host: ";
@@ -96,7 +96,7 @@ setupDenseMatrix()
          setElement_on_host( matrixSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
 
       std::cout << "   setElement on device: ";
       timer.reset();
@@ -106,9 +106,9 @@ setupDenseMatrix()
          setElement_on_device( matrixSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
 
-      if( std::is_same< Device, TNL::Devices::Cuda >::value ) {
+      if( std::is_same_v< Device, TNL::Devices::Cuda > ) {
          std::cout << "   setElement on host and transfer on GPU: ";
          timer.reset();
          timer.start();
@@ -117,7 +117,7 @@ setupDenseMatrix()
             setElement_on_host_and_transfer( matrixSize, matrix );
          }
          timer.stop();
-         std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
+         std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
       }
 
       std::cout << "   getRow: ";
@@ -128,7 +128,7 @@ setupDenseMatrix()
          getRow( matrixSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
 
       std::cout << "   forElements: ";
       timer.reset();
@@ -138,18 +138,18 @@ setupDenseMatrix()
          forElements( matrixSize, matrix );
       }
       timer.stop();
-      std::cout << timer.getRealTime() / (double) testsCount << " sec." << std::endl;
+      std::cout << timer.getRealTime() / (double) testsCount << " sec.\n";
    }
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating dense matrix on CPU ... " << std::endl;
+   std::cout << "Creating dense matrix on CPU ...\n";
    setupDenseMatrix< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating dense matrix on CUDA GPU ... " << std::endl;
+   std::cout << "Creating dense matrix on CUDA GPU ...\n";
    setupDenseMatrix< TNL::Devices::Cuda >();
 #endif
 }

@@ -23,17 +23,17 @@ initializerListExample()
 
    TNL::Matrices::SparseMatrix< double, Device > matrix( 5, 5, map );
 
-   std::cout << "General sparse matrix: " << std::endl << matrix << std::endl;
+   std::cout << "General sparse matrix:\n" << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrices on CPU ... " << std::endl;
+   std::cout << "Creating matrices on CPU ...\n";
    initializerListExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrices on CUDA GPU ... " << std::endl;
+   std::cout << "Creating matrices on CUDA GPU ...\n";
    initializerListExample< TNL::Devices::Cuda >();
 #endif
 }

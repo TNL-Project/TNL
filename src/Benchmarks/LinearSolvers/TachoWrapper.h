@@ -107,7 +107,7 @@ public:
       this->solver.solve( kokkos_x, kokkos_b, kokkos_t );
       return true;
 #else
-      std::cerr << "Tacho is not available." << std::endl;
+      std::cerr << "Tacho is not available.\n";
       return false;
 #endif
    }

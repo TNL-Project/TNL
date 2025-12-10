@@ -84,7 +84,7 @@ public:
                              const RealType& inFunctionMultiplicator = (RealType) 1.0 );
 
 protected:
-   enum EntitiesType
+   enum EntitiesType : std::uint8_t
    {
       all,
       boundary,
@@ -107,7 +107,7 @@ class MeshFunctionEvaluatorAssignmentEntitiesProcessor
 public:
    template< typename EntityType >
    __cuda_callable__
-   static inline void
+   static void
    processEntity( const MeshType& mesh, UserData& userData, const EntityType& entity )
    {
       using FunctionAdapter = FunctionAdapter< MeshType, typename UserData::InFunctionType >;
@@ -126,7 +126,7 @@ class MeshFunctionEvaluatorAdditionEntitiesProcessor
 public:
    template< typename EntityType >
    __cuda_callable__
-   static inline void
+   static void
    processEntity( const MeshType& mesh, UserData& userData, const EntityType& entity )
    {
       using FunctionAdapter = FunctionAdapter< MeshType, typename UserData::InFunctionType >;

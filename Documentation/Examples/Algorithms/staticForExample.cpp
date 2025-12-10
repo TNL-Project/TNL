@@ -19,7 +19,7 @@ printTuple( const std::tuple< Ts... >& tupleVar )
          if( i < sizeof...( Ts ) - 1 )
             std::cout << ", ";
       } );
-   std::cout << " }" << std::endl;
+   std::cout << " }\n";
 }
 
 struct TuplePrinter
@@ -46,7 +46,7 @@ printTupleCallableStruct( const std::tuple< Ts... >& tupleVar )
 {
    std::cout << "{ ";
    TNL::Algorithms::staticFor< size_t, 0, sizeof...( Ts ) >( TuplePrinter(), tupleVar );
-   std::cout << " }" << std::endl;
+   std::cout << " }\n";
 }
 
 int
@@ -59,7 +59,7 @@ main( int argc, char* argv[] )
    TNL::Algorithms::staticFor< int, 0, 5 >(
       [ &a ]( auto i )
       {
-         std::cout << "a[ " << i << " ] = " << std::get< i >( a ) << std::endl;
+         std::cout << "a[ " << i << " ] = " << std::get< i >( a ) << '\n';
       } );
 
    // example of printing a tuple using staticFor and a lambda function

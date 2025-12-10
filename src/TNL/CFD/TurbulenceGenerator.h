@@ -98,7 +98,7 @@ struct TurbulenceGenerator
       rng.seed( seed );
    }
 
-   enum class TimeCorrelationMethod
+   enum class TimeCorrelationMethod : std::uint8_t
    {
       // no correlation between time levels
       none,
@@ -167,11 +167,11 @@ struct TurbulenceGenerator
       // wave number step
       const Real dk = ( k_max - k_min ) / nmodes;
 
-      std::cout << "Turbulence integral length scale: " << lengthScale << std::endl;
-      std::cout << "Minimal wave number: " << k_min << std::endl;
-      std::cout << "Maximal wave number: " << k_max << std::endl;
-      std::cout << "Wave number step: " << dk << std::endl;
-      std::cout << "Number of modes: " << nmodes << std::endl;
+      std::cout << "Turbulence integral length scale: " << lengthScale << '\n';
+      std::cout << "Minimal wave number: " << k_min << '\n';
+      std::cout << "Maximal wave number: " << k_max << '\n';
+      std::cout << "Wave number step: " << dk << '\n';
+      std::cout << "Number of modes: " << nmodes << '\n';
 
       // wave numbers at cell centers
       const Vector k = Vector( linspace( k_min + dk / 2, k_max - dk / 2, nmodes ) );
@@ -194,10 +194,10 @@ struct TurbulenceGenerator
       const Real corr_a = TNL::exp( -timeStep / timeScale );
       const Real corr_b = TNL::sqrt( 1 - corr_a * corr_a );
 
-      std::cout << "Number of time steps: " << ntimes << std::endl;
-      std::cout << "Simulation time step: " << timeStep << std::endl;
-      std::cout << "Turbulence integral time scale: " << timeScale << std::endl;
-      std::cout << "Time correlation factors: a = " << corr_a << ", b = " << corr_b << std::endl;
+      std::cout << "Number of time steps: " << ntimes << '\n';
+      std::cout << "Simulation time step: " << timeStep << '\n';
+      std::cout << "Turbulence integral time scale: " << timeScale << '\n';
+      std::cout << "Time correlation factors: a = " << corr_a << ", b = " << corr_b << '\n';
 
       for( unsigned t = 0; t < ntimes; t++ ) {
          // generate random angles

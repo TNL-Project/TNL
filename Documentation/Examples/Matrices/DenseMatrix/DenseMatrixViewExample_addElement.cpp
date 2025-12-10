@@ -12,23 +12,23 @@ addElements()
    for( int i = 0; i < 5; i++ )
       matrixView.setElement( i, i, i );  // or matrix.setElement
 
-   std::cout << "Initial matrix is: " << std::endl << matrix << std::endl;
+   std::cout << "Initial matrix is:\n" << matrix << '\n';
 
    for( int i = 0; i < 5; i++ )
       for( int j = 0; j < 5; j++ )
          matrixView.addElement( i, j, 1.0, 5.0 );  // or matrix.addElement
 
-   std::cout << "Matrix after addition is: " << std::endl << matrix << std::endl;
+   std::cout << "Matrix after addition is:\n" << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Add elements on host:" << std::endl;
+   std::cout << "Add elements on host:\n";
    addElements< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Add elements on CUDA device:" << std::endl;
+   std::cout << "Add elements on CUDA device:\n";
    addElements< TNL::Devices::Cuda >();
 #endif
 }

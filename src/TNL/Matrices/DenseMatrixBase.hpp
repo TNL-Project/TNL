@@ -607,12 +607,14 @@ DenseMatrixBase< Real, Device, Index, Organization >::addMatrix( const Matrix& m
             this->forAllElements(
                [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType & value )
                {
+                  // NOLINTNEXTLINE(readability-suspicious-call-argument)
                   value += matrixMultiplicator * matrixView( column, row );
                } );
          else  // thisMatrixMultiplicator != 1
             this->forAllElements(
                [ = ] __cuda_callable__( IndexType row, IndexType column, IndexType globalIdx, RealType & value )
                {
+                  // NOLINTNEXTLINE(readability-suspicious-call-argument)
                   value = thisMatrixMultiplicator * value + matrixMultiplicator * matrixView( column, row );
                } );
       }

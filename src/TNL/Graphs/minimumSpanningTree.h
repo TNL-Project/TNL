@@ -1,7 +1,6 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <iostream>
 #include <vector>
 #include <algorithm>
 #include <TNL/Containers/Vector.h>
@@ -181,14 +180,18 @@ parallelMST( const InGraph& graph, OutGraph& tree )
    IndexVector new_links_target( n, -1 );
    IndexVector star_link_source( n, -1 );
    RealVector new_links_weight( n, 0.0 );
-   RealVector hook_candidates_weights( hook_candidates.getStorageSize(), std::numeric_limits< Real >::max() ),
-      star_hook_candidates_weights( n, std::numeric_limits< Real >::max() ),
-      star_hook_weights( n, std::numeric_limits< Real >::max() ), hook_weights( n, std::numeric_limits< Real >::max() );
-   IndexVector hook_candidates_sources( hook_candidates.getStorageSize(), (IndexType) 0 ),
-      hook_candidates_targets( hook_candidates.getStorageSize(), (IndexType) 0 ),
-      star_hook_candidates_sources( n, (IndexType) 0 ), star_hook_candidates_targets( n, (IndexType) 0 ),
-      star_hook_sources( n, (IndexType) 0 ), star_hook_targets( n, (IndexType) 0 ), hook_targets( n, (IndexType) -1 ),
-      hook_sources( n, (IndexType) -1 );
+   RealVector hook_candidates_weights( hook_candidates.getStorageSize(), std::numeric_limits< Real >::max() );
+   RealVector star_hook_candidates_weights( n, std::numeric_limits< Real >::max() );
+   RealVector star_hook_weights( n, std::numeric_limits< Real >::max() );
+   RealVector hook_weights( n, std::numeric_limits< Real >::max() );
+   IndexVector hook_candidates_sources( hook_candidates.getStorageSize(), (IndexType) 0 );
+   IndexVector hook_candidates_targets( hook_candidates.getStorageSize(), (IndexType) 0 );
+   IndexVector star_hook_candidates_sources( n, (IndexType) 0 );
+   IndexVector star_hook_candidates_targets( n, (IndexType) 0 );
+   IndexVector star_hook_sources( n, (IndexType) 0 );
+   IndexVector star_hook_targets( n, (IndexType) 0 );
+   IndexVector hook_targets( n, (IndexType) -1 );
+   IndexVector hook_sources( n, (IndexType) -1 );
    p.forAllElements(
       [] __cuda_callable__( Index i, Index & value )
       {

@@ -16,7 +16,7 @@ setElementsExample()
       // clang-format on
    } );
 
-   std::cout << matrix << std::endl;
+   std::cout << matrix << '\n';
 
    TNL::Matrices::DenseMatrix< double, Device > triangularMatrix;
    triangularMatrix.setElements( {
@@ -29,17 +29,17 @@ setElementsExample()
       // clang-format on
    } );
 
-   std::cout << triangularMatrix << std::endl;
+   std::cout << triangularMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Setting matrix elements on host: " << std::endl;
+   std::cout << "Setting matrix elements on host:\n";
    setElementsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Setting matrix elements on CUDA device: " << std::endl;
+   std::cout << "Setting matrix elements on CUDA device:\n";
    setElementsExample< TNL::Devices::Cuda >();
 #endif
 }

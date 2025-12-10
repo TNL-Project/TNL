@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cstring>
 #include <type_traits>
 #include <TNL/Assert.h>
 #include <TNL/TypeInfo.h>

@@ -13,8 +13,8 @@ setElements()
    for( int i = 0; i < 5; i++ )
       matrixView.setElement( i, i, i );  // or matrix.setElement
 
-   std::cout << "Matrix set from the host:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Matrix set from the host:\n";
+   std::cout << matrix << '\n';
 
    auto f = [ = ] __cuda_callable__( const TNL::Containers::StaticArray< 2, int >& i ) mutable
    {
@@ -24,18 +24,18 @@ setElements()
    TNL::Containers::StaticArray< 2, int > end = { 5, 5 };
    TNL::Algorithms::parallelFor< Device >( begin, end, f );
 
-   std::cout << "Matrix set from its native device:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Matrix set from its native device:\n";
+   std::cout << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Set elements on host:" << std::endl;
+   std::cout << "Set elements on host:\n";
    setElements< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Set elements on CUDA device:" << std::endl;
+   std::cout << "Set elements on CUDA device:\n";
    setElements< TNL::Devices::Cuda >();
 #endif
 }

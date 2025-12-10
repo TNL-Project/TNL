@@ -103,7 +103,7 @@ struct HeatEquationSolverBenchmark
    }
 
    virtual void
-   exec( const Index xSize, const Index ySize ) = 0;
+   exec( Index xSize, Index ySize ) = 0;
 
    bool
    runBenchmark( const TNL::Config::ParameterContainer& parameters )
@@ -118,7 +118,7 @@ struct HeatEquationSolverBenchmark
       const Index xSizeStepFactor = parameters.getParameter< int >( "x-size-step-factor" );
 
       if( xSizeStepFactor <= 1 ) {
-         std::cerr << "The value of --x-size-step-factor must be greater than 1." << std::endl;
+         std::cerr << "The value of --x-size-step-factor must be greater than 1.\n";
          return false;
       }
 
@@ -130,7 +130,7 @@ struct HeatEquationSolverBenchmark
       const int verbose = parameters.getParameter< int >( "verbose" );
 
       if( ySizeStepFactor <= 1 ) {
-         std::cerr << "The value of --y-size-step-factor must be greater than 1." << std::endl;
+         std::cerr << "The value of --y-size-step-factor must be greater than 1.\n";
          return false;
       }
 
@@ -155,14 +155,14 @@ struct HeatEquationSolverBenchmark
 
       auto precision = TNL::getType< Real >();
       TNL::String device;
-      if( std::is_same< Device, TNL::Devices::Sequential >::value )
+      if( std::is_same_v< Device, TNL::Devices::Sequential > )
          device = "sequential";
-      if( std::is_same< Device, TNL::Devices::Host >::value )
+      if( std::is_same_v< Device, TNL::Devices::Host > )
          device = "host";
-      if( std::is_same< Device, TNL::Devices::Cuda >::value )
+      if( std::is_same_v< Device, TNL::Devices::Cuda > )
          device = "cuda";
 
-      std::cout << "Heat equation benchmark  with (" << precision << ", " << device << ")" << std::endl;
+      std::cout << "Heat equation benchmark  with (" << precision << ", " << device << ")\n";
 
       for( Index xSize = minXDimension; xSize <= maxXDimension; xSize *= xSizeStepFactor ) {
          for( Index ySize = minYDimension; ySize <= maxYDimension; ySize *= ySizeStepFactor ) {
