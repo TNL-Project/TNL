@@ -4,8 +4,11 @@ CompileFlags:
   Compiler: clang++
   CompilationDatabase: build
   Add:
+    - "-DHAVE_HYPRE"
     - "-DHAVE_OPENMP"
     - "-DHAVE_MPI"
+    - "-DHAVE_TINYXML2"
+    - "-DHAVE_ZLIB"
     - "-xcu"
   Remove:
     # remove all nvcc-specific flags that may appear in the compile_commands.json file
