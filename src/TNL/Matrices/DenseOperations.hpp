@@ -12,6 +12,74 @@
 
 namespace TNL::Matrices {
 
+template< typename Matrix1, typename Matrix2 >
+void
+copyDenseToDenseMatrix( Matrix1& A, const Matrix2& B )
+{
+   using Index = typename Matrix1::IndexType;
+   using Real = typename Matrix1::RealType;
+   using Device = typename Matrix1::DeviceType;
+   using RHSIndexType = typename Matrix2::IndexType;
+   using RHSRealType = std::remove_const_t< typename Matrix2::RealType >;
+   using RHSDeviceType = typename Matrix2::DeviceType;
+
+   A.setLike( B );
+   if constexpr( Matrix1::getOrganization() == Matrix2::getOrganization() ) {
+      A.getValues() = B.getValues();
+   }
+   else if constexpr( std::is_same_v< Device, RHSDeviceType > ) {
+      auto A_view = A.getView();
+      auto f = [ = ] __cuda_callable__(
+                  RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIdx, const RHSRealType& value ) mutable
+      {
+         A_view( rowIdx, columnIdx ) = value;
+      };
+      B.forAllElements( f );
+   }
+   else {
+      const Index maxRowLength = B.getColumns();
+      const Index bufferRowsCount( 128 );
+      const std::size_t bufferSize = bufferRowsCount * maxRowLength;
+      Containers::Vector< RHSRealType, RHSDeviceType, RHSIndexType > matrixValuesBuffer( bufferSize );
+      Containers::Vector< Real, Device, Index > thisValuesBuffer( bufferSize );
+      auto matrixValuesBuffer_view = matrixValuesBuffer.getView();
+      auto thisValuesBuffer_view = thisValuesBuffer.getView();
+
+      Index baseRow = 0;
+      const Index rowsCount = A.getRows();
+      while( baseRow < rowsCount ) {
+         const Index lastRow = min( baseRow + bufferRowsCount, rowsCount );
+
+         // Copy matrix elements into buffer
+         auto f1 = [ = ] __cuda_callable__(
+                      RHSIndexType rowIdx, RHSIndexType localIdx, RHSIndexType columnIdx, const RHSRealType& value ) mutable
+         {
+            const Index bufferIdx = ( rowIdx - baseRow ) * maxRowLength + columnIdx;
+            matrixValuesBuffer_view[ bufferIdx ] = value;
+         };
+         B.forElements( baseRow, lastRow, f1 );
+
+         // Copy the source matrix buffer to this matrix buffer
+         thisValuesBuffer_view = matrixValuesBuffer_view;
+
+         // Copy matrix elements from the buffer to the matrix.
+         auto A_view = A.getView();
+         using MultiIndex = Containers::StaticArray< 2, Index >;
+         auto f2 = [ = ] __cuda_callable__( const MultiIndex& i ) mutable
+         {
+            const Index& columnIdx = i[ 0 ];
+            const Index& bufferRowIdx = i[ 1 ];
+            const Index bufferIdx = bufferRowIdx * maxRowLength + columnIdx;
+            A_view( baseRow + bufferRowIdx, columnIdx ) = thisValuesBuffer_view[ bufferIdx ];
+         };
+         MultiIndex begin = { 0, 0 };
+         MultiIndex end = { maxRowLength, (Index) min( bufferRowsCount, A.getRows() - baseRow ) };
+         Algorithms::parallelFor< Device >( begin, end, f2 );
+         baseRow += bufferRowsCount;
+      }
+   }
+}
+
 template< int tileDim, typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
@@ -69,8 +137,8 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
 
       __syncthreads();
 
-      // Perform the multiplication for the current tile
-      #pragma unroll
+   // Perform the multiplication for the current tile
+   #pragma unroll
       for( IndexType k = 0; k < tileDim; ++k ) {
          CValue += tileA[ ty ][ k ] * tileB[ k ][ tx ];
       }
