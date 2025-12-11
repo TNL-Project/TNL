@@ -29,6 +29,8 @@ Checks: >
 # FIXME: skip checking performance-unnecessary-value-param only for views
 
 WarningsAsErrors: >
+  clang-analyzer-core.*,
+  modernize-*,
   performance-*,
   mpi-*,
   clang-diagnostic-extra-semi*,

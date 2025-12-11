@@ -530,8 +530,6 @@ clang-tidy:
                 # reported by running clang-tidy on the previous targets)
                 #- src/UnitTests
     interruptible: true
-    # TODO: remove to enforce
-    allow_failure: true
 
 cmake-format:
     stage: lint
