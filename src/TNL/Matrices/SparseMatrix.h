@@ -77,7 +77,7 @@ public:
    using RowCapacitiesVectorType = Containers::Vector< Index, Device, Index, IndexAllocator >;
 
    /**
-    * \brief The type of matrix - general, symmetric or binary.
+    * \brief The type of matrix - general or symmetric.
     */
    using MatrixType = MatrixType_;
 
