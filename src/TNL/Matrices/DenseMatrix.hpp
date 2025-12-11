@@ -8,7 +8,7 @@
 #include <TNL/Devices/Hip.h>
 
 #include "DenseMatrix.h"
-#include "SparseOperations.h"
+#include "DenseSparseOperations.h"
 #include "DenseOperations.h"
 
 namespace TNL::Matrices {
@@ -88,7 +88,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
 {
    if constexpr( ! std::is_same_v< Device, Devices::Host > && ! std::is_same_v< Device, Devices::Sequential > ) {
       DenseMatrix< Real, Devices::Host, Index, Organization > hostMatrix( this->getRows(), this->getColumns() );
-      hostMatrix.setElements( map );
+      hostMatrix.setElements( map, encoding );
       *this = hostMatrix;
    }
    else {
@@ -107,6 +107,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
          }
 
          this->setElement( rowIdx, columnIdx, value );
+
          if( ( encoding == MatrixElementsEncoding::SymmetricMixed || encoding == MatrixElementsEncoding::SymmetricLower
                || encoding == MatrixElementsEncoding::SymmetricUpper )
              && rowIdx != columnIdx )
