@@ -392,7 +392,7 @@ test_GetNonzeroElementsCount()
 
 template< typename Matrix >
 void
-test_SetElements()
+test_SetElementsForSymmetricMatrix()
 {
    using Index = typename Matrix::IndexType;
    using Device = typename Matrix::DeviceType;
@@ -474,7 +474,6 @@ test_SetElements()
    EXPECT_EQ( m_mixed.getElement( 2, 1 ), Real{ 5 } );
    EXPECT_EQ( m_mixed.getElement( 2, 2 ), Real{ 6 } );
 
-
    // Test with reading symmetric matrix to symmetric one - map provides only the lower part
    SymmetricMatrix sm_lower( 3, 3 );
    sm_lower.setElements( symmetric_map_lower, TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
@@ -501,7 +500,7 @@ test_SetElements()
    EXPECT_EQ( sm_upper.getElement( 2, 1 ), Real{ 5 } );
    EXPECT_EQ( sm_upper.getElement( 2, 2 ), Real{ 6 } );
 
-   // Test with reading symmetric matrix to symmetric one - map provides mixed matrix elements in both lower and upper parts 
+   // Test with reading symmetric matrix to symmetric one - map provides mixed matrix elements in both lower and upper parts
    SymmetricMatrix sm_mixed( 3, 3 );
    sm_mixed.setElements( symmetric_map_mixed, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    EXPECT_EQ( sm_mixed.getElement( 0, 0 ), Real{ 1 } );
