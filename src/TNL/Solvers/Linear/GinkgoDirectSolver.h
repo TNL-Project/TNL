@@ -18,7 +18,7 @@ namespace TNL::Solvers::Linear {
 template< typename Matrix >
 class GinkgoDirectSolver : public LinearSolver< Matrix >
 {
-   static_assert( Matrices::is_sparse_csr_matrix< Matrix >::value, "GinkgoDirectSolver works only with CSR format." );
+   static_assert( Matrices::is_sparse_csr_matrix_v< Matrix >, "GinkgoDirectSolver works only with CSR format." );
 
    using Base = LinearSolver< Matrix >;
 
