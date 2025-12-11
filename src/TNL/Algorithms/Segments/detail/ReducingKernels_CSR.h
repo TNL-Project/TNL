@@ -181,7 +181,11 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
    if( segmentIdx >= end )
       return;
 
-   __shared__ ReturnType shared[ BlockSize / Backend::getWarpSize() ];
+   // we need to allocate shared memory for at least one warp to avoid indexing shared memory out of bounds
+   constexpr int shared_size = TNL::max( BlockSize / Backend::getWarpSize(), Backend::getWarpSize() );
+   __shared__ ReturnType shared[ shared_size ];
+   if( threadIdx.x < shared_size )
+      shared[ threadIdx.x ] = identity;  // (*) we sychronize threads later
 
    const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
    const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
@@ -598,7 +602,10 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
    if( segmentIdx_idx >= end )
       return;
 
-   __shared__ ReturnType shared[ BlockSize / Backend::getWarpSize() ];
+   // we need to allocate shared memory for at least one warp to avoid indexing shared memory out of bounds
+   constexpr int shared_size = TNL::max( BlockSize / Backend::getWarpSize(), Backend::getWarpSize() );
+   __shared__ ReturnType shared[ shared_size ];
+
    if( threadIdx.x < BlockSize / Backend::getWarpSize() )
       shared[ threadIdx.x ] = identity;  // (*) we sychronize threads later
 
@@ -1014,8 +1021,13 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
    if( segmentIdx >= end )
       return;
 
-   __shared__ ReturnType shared_results[ BlockSize / Backend::getWarpSize() ];
-   __shared__ Index shared_arguments[ BlockSize / Backend::getWarpSize() ];
+   constexpr int shared_size = TNL::max( BlockSize / Backend::getWarpSize(), Backend::getWarpSize() );
+   __shared__ ReturnType shared_results[ shared_size ];
+   __shared__ Index shared_arguments[ shared_size ];
+   if( threadIdx.x < shared_size ) {
+      shared_results[ threadIdx.x ] = identity;  // (*) we sychronize threads later
+      shared_arguments[ threadIdx.x ] = 0;
+   }
 
    const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
    const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
@@ -1448,8 +1460,13 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
    if( segmentIdx_idx >= end )
       return;
 
-   __shared__ ReturnType shared_results[ BlockSize / Backend::getWarpSize() ];
-   __shared__ Index shared_arguments[ BlockSize / Backend::getWarpSize() ];
+   constexpr int shared_size = TNL::max( BlockSize / Backend::getWarpSize(), Backend::getWarpSize() );
+   __shared__ ReturnType shared_results[ shared_size ];
+   __shared__ Index shared_arguments[ shared_size ];
+   if( threadIdx.x < shared_size ) {
+      shared_results[ threadIdx.x ] = identity;  // (*) we sychronize threads later
+      shared_arguments[ threadIdx.x ] = 0;
+   }
 
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
    const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
