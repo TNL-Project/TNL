@@ -34,10 +34,6 @@ class DenseMatrixBase : public MatrixBase< Real, Device, Index, GeneralMatrix, O
 {
 protected:
    using Base = MatrixBase< Real, Device, Index, GeneralMatrix, Organization >;
-   using SegmentsType = Algorithms::Segments::
-      Ellpack< Device, Index, typename Allocators::Default< Device >::template Allocator< Index >, Organization, 1 >;
-   using SegmentsViewType = typename SegmentsType::ViewType;
-   using SegmentViewType = typename SegmentsType::SegmentViewType;
 
 public:
    /**
@@ -54,6 +50,16 @@ public:
     * \brief The type used for matrix elements indexing.
     */
    using IndexType = Index;
+
+   //! \brief Segments type used for indexing in the dense matrix.
+   using SegmentsType = Algorithms::Segments::
+      Ellpack< Device, Index, typename Allocators::Default< Device >::template Allocator< Index >, Organization, 1 >;
+
+   //! \brief View type of the segments used for indexing in the dense matrix.
+   using SegmentsViewType = typename SegmentsType::ViewType;
+
+   //! \brief Type of segment view used for accessing matrix rows.
+   using SegmentViewType = typename SegmentsType::SegmentViewType;
 
    /**
     * \brief Type for accessing matrix row.

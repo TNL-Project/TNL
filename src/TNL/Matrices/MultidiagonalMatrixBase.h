@@ -39,6 +39,9 @@ public:
     */
    using IndexType = Index;
 
+   //! \brief The type of matrix can be only general currently.
+   using MatrixType = GeneralMatrix;
+
    // TODO: add documentation for these types
    using IndexerType = details::MultidiagonalMatrixIndexer< Index, Organization == Algorithms::Segments::RowMajorOrder >;
    using DiagonalOffsetsView =

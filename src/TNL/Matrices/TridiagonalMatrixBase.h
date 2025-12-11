@@ -39,6 +39,9 @@ public:
     */
    using IndexType = Index;
 
+   //! \brief The type of matrix can be only general currently.
+   using MatrixType = GeneralMatrix;
+
    // TODO: add documentation for this type
    using IndexerType = details::TridiagonalMatrixIndexer< Index, Organization >;
 
