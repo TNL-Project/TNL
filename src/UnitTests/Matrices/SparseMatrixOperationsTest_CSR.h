@@ -23,19 +23,25 @@ TNL::Matrices::SparseMatrix< std::complex< float >,
 #if defined( __CUDACC__ )
    ,
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
-   TNL::Matrices::SparseMatrix< long, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
+   //TNL::Matrices::SparseMatrix< long, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
+   // TODO: This is not accepted by nvcc 13.0 -- long is somehow transformed to TNL::Config::Integer
+   // src/TNL/Matrices/SparseMatrixBase.h(45): error: static assertion failed with "Given Real type is not supported by atomic
+   // operations on GPU which are necessary for symmetric operations." static_assert( detected during:
+   //    instantiation of class "TNL::Matrices::SparseMatrixBase<Real, Device, Index, MatrixType, SegmentsView, ComputeReal>
+   //    [with Real=TNL::Config::Integer, ..."
    TNL::Matrices::SparseMatrix< float, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
-   TNL::Matrices::SparseMatrix< long, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
+   //TNL::Matrices::SparseMatrix< long, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR>,
+   // TODO: The same issue as above
    TNL::Matrices::SparseMatrix< float, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::
       SparseMatrix< double, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR > /*,
 TNL::Matrices::SparseMatrix< TNL::Arithmetics::Complex< float >,
-                     TNL::Devices::Cuda,
-                     long,
-                     TNL::Matrices::GeneralMatrix,
-                     TNL::Algorithms::Segments::CSR >*/
+                  TNL::Devices::Cuda,
+                  long,
+                  TNL::Matrices::GeneralMatrix,
+                  TNL::Algorithms::Segments::CSR >*/
 #elif defined( __HIP__ )
    ,
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
