@@ -5,21 +5,26 @@
 
 namespace TNL::Matrices {
 
-template< typename Matrix1, typename Matrix2 >
+/**
+ * \brief Copies sparse matrix to sparse matrix.
+ *
+ * If the source matrix is \ref TNL::Matrices::GeneralMatrix and the target matrix
+ * is \ref TNL::Matrices::SymmetricMatrix, the values of the source matrix are
+ * assumed to be symmetric. No check is performed, only the lower part of the
+ * matrix and its diagonal are copied.
+ *
+ * \tparam TargetMatrix is the target symmetric sparse matrix type.
+ * \tparam SourceMatrix is the source general sparse matrix type.
+ * \param target is the target symmetric sparse matrix.
+ * \param source is the source general sparse matrix.
+ */
+template< typename TargetMatrix, typename SourceMatrix >
 void
-copyDenseToDenseMatrix( Matrix1& A, const Matrix2& B );
+copySparseToSparseMatrix( TargetMatrix& target, const SourceMatrix& source );
 
 template< typename Matrix1, typename Matrix2 >
 void
-copySparseToDenseMatrix( Matrix1& A, const Matrix2& B );
-
-template< typename Matrix1, typename Matrix2 >
-void
-copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B );
-
-template< typename Matrix1, typename Matrix2 >
-void
-copySparseToSparseMatrix( Matrix1& A, const Matrix2& B );
+copySymmetricSparseToGeneralSparseMatrix( Matrix1& A, const Matrix2& B );
 
 template< typename Matrix1, typename Matrix2 >
 void
