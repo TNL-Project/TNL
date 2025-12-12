@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <limits>
 #include <TNL/TypeTraits.h>
 
 namespace TNL::Algorithms::Segments::detail {
@@ -275,14 +276,14 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    constexpr Index warpSize = Backend::getWarpSize();
    constexpr Index warpsPerBlock = BlockSize / warpSize;
-   constexpr Index none_scheduled = -1;
+   constexpr Index none_scheduled = std::numeric_limits< Index >::max();
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
    const Index segmentIdx =
       threadIdx.x < ( BlockSize / threadsPerSegment )
          ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
-         : (Index) -1;
+         : none_scheduled;
    bool reduce_segment = ( segmentIdx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
@@ -701,14 +702,14 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    constexpr Index warpSize = Backend::getWarpSize();
    constexpr Index warpsPerBlock = BlockSize / warpSize;
-   constexpr Index none_scheduled = -1;
+   constexpr Index none_scheduled = std::numeric_limits< Index >::max();
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
    const Index segmentIdx_idx =
       threadIdx.x < ( BlockSize / threadsPerSegment )
          ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
-         : (Index) -1;
+         : none_scheduled;
    bool reduce_segment = ( segmentIdx_idx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
@@ -1141,14 +1142,14 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    constexpr Index warpSize = Backend::getWarpSize();
    constexpr Index warpsPerBlock = BlockSize / warpSize;
-   constexpr Index none_scheduled = -1;
+   constexpr Index none_scheduled = std::numeric_limits< Index >::max();
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
    const Index segmentIdx =
       threadIdx.x < ( BlockSize / threadsPerSegment )
          ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
-         : -1;
+         : none_scheduled;
    bool reduce_segment = ( segmentIdx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
@@ -1583,14 +1584,14 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    constexpr Index warpSize = Backend::getWarpSize();
    constexpr Index warpsPerBlock = BlockSize / warpSize;
-   constexpr Index none_scheduled = -1;
+   constexpr Index none_scheduled = std::numeric_limits< Index >::max();
    __shared__ Index warps_scheduler[ BlockSize ];
    const auto& offsets = segments.getOffsets();
 
    const Index segmentIdx_idx =
       threadIdx.x < ( BlockSize / threadsPerSegment )
          ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
-         : -1;
+         : none_scheduled;
    bool reduce_segment = ( segmentIdx_idx < end && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
