@@ -260,21 +260,6 @@ computing platform, and (optionally) some libraries.
       <td> `-DHAVE_HYPRE -lHYPRE` </td>
       <td> Attention should be paid to Hypre build options, e.g. `--enable-bigint`. </td>
   </tr>
-  <tr><td> [libpng](http://www.libpng.org/pub/png/libpng.html) </td>
-      <td> \ref TNL::Images "Image processing" classes </td>
-      <td> `-DHAVE_PNG_H -lpng` </td>
-      <td> </td>
-  </tr>
-  <tr><td> [libjpeg](http://libjpeg.sourceforge.net/) </td>
-      <td> \ref TNL::Images "Image processing" classes </td>
-      <td> `-DHAVE_JPEG_H -ljpeg` </td>
-      <td> </td>
-  </tr>
-  <tr><td> [DCMTK](http://dicom.offis.de/dcmtk.php.en) </td>
-      <td> \ref TNL::Images "Image processing" classes </td>
-      <td> `-DHAVE_DCMTK_H -ldcm...` </td>
-      <td> </td>
-  </tr>
   </table>
 
 - __Other language toolchains/interpreters:__
