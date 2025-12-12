@@ -181,24 +181,6 @@ endif()
 # Reference: https://cmake.org/cmake/help/latest/guide/using-dependencies/index.html#fetchcontent-and-find-package-integration
 include(FetchTinyXML2)
 
-find_package(DCMTK)
-if(DCMTK_FOUND)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_DCMTK_H")
-    include_directories(${DCMTK_INCLUDE_DIRS})
-endif()
-
-find_package(PNG)
-if(PNG_FOUND)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_PNG_H")
-    include_directories(${PNG_INCLUDE_DIRS})
-endif()
-
-find_package(JPEG)
-if(JPEG_FOUND)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_JPEG_H")
-    include_directories(${JPEG_INCLUDE_DIRS})
-endif()
-
 ####
 # Test for GMP
 #
