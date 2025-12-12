@@ -7,6 +7,7 @@
 #include <ostream>
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/reduce.h>
+#include <TNL/Graphs/GraphBase.h>
 #include <TNL/Graphs/TypeTraits.h>
 #include <TNL/Graphs/GraphType.h>
 #include <TNL/Matrices/TypeTraits.h>
@@ -20,7 +21,7 @@ namespace TNL::Graphs {
  * \tparam GraphType is type of the graph - directed or undirected.
  */
 template< typename Matrix, typename GraphType_ = Graphs::DirectedGraph >
-struct Graph
+struct Graph : public GraphBase< Matrix, GraphType_ >
 {
    static_assert( Matrices::is_matrix_v< Matrix > );
 
@@ -39,16 +40,23 @@ struct Graph
    //! \brief Type of the graph - directed or undirected.
    using GraphType = GraphType_;
 
-   //! \brief Checks if the graph is directed.
-   static constexpr bool
-   isDirected();
+   using NodeView = GraphNodeView< Graph< MatrixType, GraphType_ > >;
 
-   //! \brief Checks if the graph is undirected.
-   static constexpr bool
-   isUndirected();
+   using ConstNodeView = typename NodeView::ConstNodeView;
+
+   template< typename Matrix_ = MatrixType, typename GraphType__ = GraphType_ >
+   using Self = Graph< Matrix, GraphType__ >;
+
+   using Base = GraphBase< Matrix, GraphType_ >;
+
+   using Base::isDirected;
+   using Base::isUndirected;
 
    //! \brief Default constructor.
    Graph() = default;
+
+   //! \brief Constructor with number of nodes.
+   Graph( IndexType nodesCount );
 
    //! \brief Constructor with adjacency matrix.
    Graph( const MatrixType& matrix );
@@ -85,7 +93,8 @@ struct Graph
     */
    Graph( IndexType nodesCount,
           const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
-          Matrices::MatrixElementsEncoding encoding = Matrices::MatrixElementsEncoding::Complete );
+          Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                                   : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    /**
     * \brief Constructor with number of nodes and edges given as a map.
@@ -103,11 +112,12 @@ struct Graph
    template< typename MapIndex, typename MapValue >
    Graph( IndexType nodesCount,
           const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-          Matrices::MatrixElementsEncoding encoding = Matrices::MatrixElementsEncoding::Complete );
+          Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                                   : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    //! \brief Copy-assignment operator.
    Graph&
-   operator=( const Graph& ) = default;
+   operator=( const Graph& other );
 
    template< typename OtherGraph, std::enable_if_t< isGraph< OtherGraph >( std::declval< OtherGraph >() ) > >
    Graph&
@@ -115,7 +125,7 @@ struct Graph
 
    //! \brief Move-assignment operator.
    Graph&
-   operator=( Graph&& ) = default;
+   operator=( Graph&& other );
 
    //! \brief Comparisons operator.
    bool
@@ -137,14 +147,6 @@ struct Graph
    void
    setEdges( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map );
 
-   //! \brief Returns the number of nodes in the graph.
-   [[nodiscard]] IndexType
-   getNodeCount() const;
-
-   //! \brief Returns the number of edges in the graph.
-   [[nodiscard]] IndexType
-   getEdgeCount() const;
-
    /**
     * \brief Sets the capacities of the graph nodes.
     *
@@ -159,12 +161,12 @@ struct Graph
    void
    setNodeCapacities( const Vector& nodeCapacities );
 
-   //! \brief Returns the constant adjacency matrix of the graph.
+   //! \brief Returns the modifiable adjacency matrix of the graph.
    [[nodiscard]] const MatrixType&
    getAdjacencyMatrix() const;
 
    //! \brief Returns the modifiable adjacency matrix of the graph.
-   MatrixType&
+   [[nodiscard]] MatrixType&
    getAdjacencyMatrix();
 
    //! \brief Sets the adjacency matrix of the graph.
@@ -197,10 +199,15 @@ protected:
    MatrixType adjacencyMatrix;
 };
 
-//! \brief Output stream operator for the \e Graph class.
+//! \brief Deserialization of graphs from binary files.
 template< typename Matrix, typename GraphType_ >
-std::ostream&
-operator<<( std::ostream& os, const Graph< Matrix, GraphType_ >& graph );
+File&
+operator>>( File& file, Graph< Matrix, GraphType_ >& graph );
+
+//! \brief Deserialization of graphs from binary files.
+template< typename Matrix, typename GraphType_ >
+File&
+operator>>( File&& file, Graph< Matrix, GraphType_ >& graph );
 
 }  // namespace TNL::Graphs
 
