@@ -9,42 +9,41 @@
 namespace TNL::Graphs {
 
 template< typename Matrix, typename GraphType_ >
-constexpr bool
-Graph< Matrix, GraphType_ >::isDirected()
+Graph< Matrix, GraphType_ >::Graph( IndexType nodesCount )
+: adjacencyMatrix( nodesCount, nodesCount )
 {
-   return std::is_same_v< GraphType, DirectedGraph >;
-}
-
-template< typename Matrix, typename GraphType_ >
-constexpr bool
-Graph< Matrix, GraphType_ >::isUndirected()
-{
-   return std::is_same_v< GraphType_, UndirectedGraph >;
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
 template< typename Matrix, typename GraphType_ >
 Graph< Matrix, GraphType_ >::Graph( const MatrixType& matrix )
 {
    this->adjacencyMatrix = matrix;
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
 template< typename Matrix, typename GraphType_ >
 Graph< Matrix, GraphType_ >::Graph( MatrixType&& matrix )
 : MatrixType( std::move( matrix ) )
-{}
+{
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+}
 
 template< typename Matrix, typename GraphType_ >
 template< typename OtherGraph >
 Graph< Matrix, GraphType_ >::Graph( const OtherGraph& other )
 {
    this->adjacencyMatrix = other.getAdjacencyMatrix();
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
 template< typename Matrix, typename GraphType_ >
 template< typename OtherGraph >
 Graph< Matrix, GraphType_ >::Graph( const OtherGraph&& other )
-: MatrixType( std::forward< typename OtherGraph::MatrixType >( other.getAdjacencyMatrix() ) )
-{}
+: adjacencyMatrix( std::forward< typename OtherGraph::MatrixType >( other.getAdjacencyMatrix() ) )
+{
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+}
 
 template< typename Matrix, typename GraphType_ >
 Graph< Matrix, GraphType_ >::Graph( IndexType nodesCount,
@@ -78,6 +77,7 @@ Graph< Matrix, GraphType_ >::Graph( IndexType nodesCount,
          this->adjacencyMatrix.setElements( data, encoding );
       }
    }
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
 template< typename Matrix, typename GraphType_ >
@@ -99,6 +99,16 @@ Graph< Matrix, GraphType_ >::Graph( IndexType nodesCount,
       this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
       this->adjacencyMatrix.setElements( map, encoding );
    }
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+}
+
+template< typename Matrix, typename GraphType_ >
+Graph< Matrix, GraphType_ >&
+Graph< Matrix, GraphType_ >::operator=( const Graph& other )
+{
+   this->adjacencyMatrix = other.adjacencyMatrix;
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+   return *this;
 }
 
 template< typename Matrix, typename GraphType_ >
@@ -107,6 +117,16 @@ Graph< Matrix, GraphType_ >&
 Graph< Matrix, GraphType_ >::operator=( const OtherGraph& other )
 {
    this->adjacencyMatrix = other.getAdjacencyMatrix();
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+   return *this;
+}
+
+template< typename Matrix, typename GraphType_ >
+Graph< Matrix, GraphType_ >&
+Graph< Matrix, GraphType_ >::operator=( Graph&& other )
+{
+   this->adjacencyMatrix = std::move( other.adjacencyMatrix );
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
    return *this;
 }
 
@@ -122,6 +142,7 @@ void
 Graph< Matrix, GraphType_ >::setNodeCount( IndexType nodesCount )
 {
    adjacencyMatrix.setDimensions( nodesCount, nodesCount );
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
 template< typename Matrix, typename GraphType_ >
@@ -134,22 +155,7 @@ Graph< Matrix, GraphType_ >::setEdges( const std::map< std::pair< MapIndex, MapI
    }
    else
       this->adjacencyMatrix.setElements( map );
-}
-
-template< typename Matrix, typename GraphType_ >
-[[nodiscard]] auto
-Graph< Matrix, GraphType_ >::getNodeCount() const -> IndexType
-{
-   return adjacencyMatrix.getRows();
-}
-
-template< typename Matrix, typename GraphType_ >
-[[nodiscard]] auto
-Graph< Matrix, GraphType_ >::getEdgeCount() const -> IndexType
-{
-   if constexpr( isUndirected() && ! MatrixType::isSymmetric() )
-      return adjacencyMatrix.getNonzeroElementsCount() / 2;
-   return adjacencyMatrix.getNonzeroElementsCount();
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
 template< typename Matrix, typename GraphType_ >
@@ -158,6 +164,7 @@ void
 Graph< Matrix, GraphType_ >::setNodeCapacities( const Vector& nodeCapacities )
 {
    adjacencyMatrix.setRowCapacities( nodeCapacities );
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
 template< typename Matrix, typename GraphType_ >
@@ -181,6 +188,7 @@ Graph< Matrix, GraphType_ >::setAdjacencyMatrix( const MatrixType& matrix )
    if( matrix.getRows() != matrix.getColumns() )
       throw std::logic_error( "Graph: adjacency matrix must be square matrix." );
    adjacencyMatrix = matrix;
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
 template< typename Matrix, typename GraphType_ >
@@ -190,6 +198,7 @@ Graph< Matrix, GraphType_ >::setAdjacencyMatrix( MatrixType&& matrix )
    if( matrix.getRows() != matrix.getColumns() )
       throw std::logic_error( "Graph: adjacency matrix must be square matrix." );
    adjacencyMatrix = std::forward< MatrixType >( matrix );
+   Base::adjacencyMatrixView, bind( this->adjacencyMatrix.getView() );
 }
 
 template< typename Matrix, typename GraphType_ >
@@ -200,14 +209,29 @@ Graph< Matrix, GraphType_ >::setAdjacencyMatrix( const Matrix_& matrix )
    if( matrix.getRows() != matrix.getColumns() )
       throw std::logic_error( "Graph: adjacency matrix must be square matrix." );
    adjacencyMatrix = matrix;
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
 template< typename Matrix, typename GraphType_ >
-std::ostream&
-operator<<( std::ostream& os, const Graph< Matrix, GraphType_ >& graph )
+File&
+operator>>( File& file, Graph< Matrix, GraphType_ >& graph )
 {
-   os << graph.getAdjacencyMatrix();
-   return os;
+   const std::string type = getObjectType( file );
+   if( type != graph.getSerializationType() )
+      throw Exceptions::FileDeserializationError( file.getFileName(),
+                                                  "object type does not match (expected " + graph.getSerializationType()
+                                                     + ", found " + type + ")." );
+   Matrix adjacencyMatrix;
+   file >> adjacencyMatrix;
+   graph.setAdjacencyMatrix( std::move( adjacencyMatrix ) );
+   return file;
+}
+
+template< typename Matrix, typename GraphType_ >
+File&
+operator>>( File&& file, Graph< Matrix, GraphType_ >& graph )
+{
+   return file >> graph;
 }
 
 }  // namespace TNL::Graphs
