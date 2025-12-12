@@ -446,4 +446,32 @@ getSymmetricPart( const InMatrix& inMatrix )
    return outMatrix;
 }
 
+template< typename Matrix, typename Vector >
+void
+getDiagonal( const Matrix& matrix, Vector& diagonalElements )
+{
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+   diagonalElements.setSize( matrix.getRows() );
+   diagonalElements = 0;
+   auto diagonalElements_view = diagonalElements.getView();
+   matrix.forAllElements(
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const RealType& value ) mutable
+      {
+         if( rowIdx == columnIdx )
+            diagonalElements_view[ rowIdx ] = value;
+      } );
+}
+
+template< typename Matrix >
+auto
+getDiagonal( const Matrix& matrix )
+   -> TNL::Containers::Vector< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType >
+{
+   TNL::Containers::Vector< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType >
+      diagonalElements( matrix.getRows() );
+   getDiagonal( matrix, diagonalElements );
+   return diagonalElements;
+}
+
 }  // namespace TNL::Matrices
