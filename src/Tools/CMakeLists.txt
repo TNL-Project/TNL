@@ -104,22 +104,7 @@ if(TNL_BUILD_CPP_TARGETS)
     add_executable(tnl-grid-setup tnl-grid-setup.cpp)
     target_link_libraries(tnl-grid-setup PUBLIC TNL::TNL)
 
-    add_executable(tnl-image-converter tnl-image-converter.cpp)
-    target_link_libraries(tnl-image-converter PUBLIC TNL::TNL)
-    if(PNG_FOUND)
-        target_link_libraries(tnl-image-converter PUBLIC ${PNG_LIBRARIES})
-    endif()
-    if(JPEG_FOUND)
-        target_link_libraries(tnl-image-converter PUBLIC ${JPEG_LIBRARIES})
-    endif()
-
-    add_executable(tnl-dicom-reader tnl-dicom-reader.cpp)
-    target_link_libraries(tnl-dicom-reader PUBLIC TNL::TNL)
-    if(DCMTK_FOUND)
-        target_link_libraries(tnl-dicom-reader PUBLIC ${DCMTK_LIBRARIES})
-    endif()
-
-    install(TARGETS tnl-matrix-info tnl-grid-setup tnl-image-converter tnl-dicom-reader DESTINATION bin COMPONENT tools)
+    install(TARGETS tnl-matrix-info tnl-grid-setup DESTINATION bin COMPONENT tools)
 
     install(PROGRAMS tnl-benchmark-to-html.py DESTINATION bin COMPONENT tools)
 endif()
