@@ -12,7 +12,7 @@ void
 MemoryAccessBenchmark::configSetup( TNL::Config::ConfigDescription& config )
 {
    config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-heat-equation.log" );
+   config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-memory-access.log" );
    config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "overwrite" );
    config.addEntryEnum( "append" );
