@@ -264,17 +264,13 @@ public:
 
       // allocate the subvertex matrix
       NeighborCountsArray capacities( numberOfEntities );
-      for( auto& pair : seedsIndexedSet ) {
-         const auto& seed = pair.first;
-         const auto& entityIndex = pair.second;
+      for( const auto& [ seed, entityIndex ] : seedsIndexedSet ) {
          capacities.setElement( entityIndex, seed.getCornersCount() );
       }
       meshInitializer.template initSubentityMatrix< EntityDimension, 0 >( capacities );
 
       // initialize the entities (this allows us to create subentity seeds from existing entities instead of intermediate seeds)
-      for( auto& pair : seedsIndexedSet ) {
-         const auto& seed = pair.first;
-         const auto& entityIndex = pair.second;
+      for( const auto& [ seed, entityIndex ] : seedsIndexedSet ) {
          for( LocalIndexType i = 0; i < seed.getCornerIds().getSize(); i++ )
             meshInitializer.template setSubentityIndex< EntityDimension, 0 >( entityIndex, i, seed.getCornerIds()[ i ] );
       }
