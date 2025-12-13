@@ -290,7 +290,7 @@ nvhpc:
         - .build_template
         #- .matrix_template
         - .nvhpc
-    # NOTE: nvc++ has huge memory requirements for matrix tests in Release, so we skip them from the matrix
+    # NOTE: nvc++ has huge memory requirements in Release mode, so we skip it from the matrix
     parallel:
         matrix:
             - MATRIX_TARGET:
@@ -299,11 +299,6 @@ nvhpc:
                 - nontests
               BUILD_TYPE:
                 - Debug
-            - MATRIX_TARGET:
-                - tests
-                - nontests
-              BUILD_TYPE:
-                - Release
 
 clang_cuda:
     extends:
