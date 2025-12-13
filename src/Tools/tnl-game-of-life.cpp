@@ -342,12 +342,18 @@ main( int argc, char* argv[] )
    const auto inputFileName = parameters.getParameter< std::string >( "input-file" );
    const auto inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
 
-   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+   bool status = true;
+   auto wrapper = [ & ]( auto& reader, auto&& mesh )
    {
       using MeshType = std::decay_t< decltype( mesh ) >;
-      return runGameOfLife( std::forward< MeshType >( mesh ) );
+      status = runGameOfLife( std::forward< MeshType >( mesh ) );
    };
-   const bool status =
+   try {
       Meshes::resolveAndLoadDistributedMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
    return static_cast< int >( ! status );
 }

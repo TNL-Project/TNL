@@ -51,10 +51,7 @@ main( int argc, char* argv[] )
 {
    const std::string inputFileName = "example-triangles.vtu";
 
-   auto wrapper = []( auto& reader, auto&& mesh ) -> bool
-   {
-      return true;
-   };
-   const bool result = TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
-   return static_cast< int >( ! result );
+   auto wrapper = []( auto& reader, auto&& mesh ) {};
+   TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
+   return EXIT_SUCCESS;
 }

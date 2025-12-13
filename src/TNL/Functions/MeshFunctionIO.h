@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <type_traits>
 #include <filesystem>
+#include <stdexcept>
+#include <type_traits>
 
 #include <TNL/Meshes/Traits.h>
 #include <TNL/Meshes/Readers/getMeshReader.h>
@@ -17,7 +18,7 @@
 namespace TNL::Functions {
 
 template< typename MeshFunction >
-bool
+void
 readMeshFunction( MeshFunction& function,
                   const std::string& functionName,
                   const std::string& fileName,
@@ -25,7 +26,7 @@ readMeshFunction( MeshFunction& function,
 {
    std::shared_ptr< Meshes::Readers::MeshReader > reader = Meshes::Readers::getMeshReader( fileName, fileFormat );
    if( reader == nullptr )
-      return false;
+      return;
 
    reader->detectMesh();
 
@@ -38,11 +39,9 @@ readMeshFunction( MeshFunction& function,
       data = reader->readPointData( functionName );
    else if( function.getEntitiesDimension() == function.getMeshDimension() )
       data = reader->readCellData( functionName );
-   else {
-      std::cerr << "The mesh function with entities dimension " << function.getEntitiesDimension()
-                << " cannot be read from the file " << fileName << '\n';
-      return false;
-   }
+   else
+      throw std::runtime_error( "The mesh function with entities dimension " + std::to_string( function.getEntitiesDimension() )
+                                + " cannot be read from the file " + fileName );
 
    visit(
       [ & ]( auto&& array )
@@ -58,12 +57,10 @@ readMeshFunction( MeshFunction& function,
                                                            + std::to_string( array.size() ) + ")." );
       },
       data );
-
-   return true;
 }
 
 template< typename MeshFunction >
-bool
+void
 readDistributedMeshFunction( Meshes::DistributedMeshes::DistributedMesh< typename MeshFunction::MeshType >& distributedMesh,
                              MeshFunction& function,
                              const std::string& functionName,
@@ -72,7 +69,7 @@ readDistributedMeshFunction( Meshes::DistributedMeshes::DistributedMesh< typenam
 {
    std::shared_ptr< Meshes::Readers::MeshReader > reader = Meshes::Readers::getMeshReader( fileName, fileFormat );
    if( reader == nullptr )
-      return false;
+      return;
 
    reader->detectMesh();
 
@@ -97,11 +94,9 @@ readDistributedMeshFunction( Meshes::DistributedMeshes::DistributedMesh< typenam
       data = reader->readPointData( functionName );
    else if( function.getEntitiesDimension() == function.getMeshDimension() )
       data = reader->readCellData( functionName );
-   else {
-      std::cerr << "The mesh function with entities dimension " << function.getEntitiesDimension()
-                << " cannot be read from the file " << fileName << std::endl;
-      return false;
-   }
+   else
+      throw std::runtime_error( "The mesh function with entities dimension " + std::to_string( function.getEntitiesDimension() )
+                                + " cannot be read from the file " + fileName );
 
    visit(
       [ & ]( auto&& array )
@@ -117,24 +112,20 @@ readDistributedMeshFunction( Meshes::DistributedMeshes::DistributedMesh< typenam
                                                            + std::to_string( array.size() ) + ")." );
       },
       data );
-
-   return true;
 }
 
 // specialization for grids
 template< typename MeshFunction >
-std::enable_if_t< Meshes::isGrid< typename MeshFunction::MeshType >::value, bool >
+std::enable_if_t< Meshes::isGrid< typename MeshFunction::MeshType >::value >
 writeMeshFunction( const MeshFunction& function,
                    const std::string& functionName,
                    const std::string& fileName,
                    const std::string& fileFormat = "auto" )
 {
    std::ofstream file;
+   // enable exceptions
+   file.exceptions( std::fstream::failbit | std::fstream::badbit | std::fstream::eofbit );
    file.open( fileName );
-   if( ! file ) {
-      std::cerr << "Unable to open a file " << fileName << ".\n";
-      return false;
-   }
 
    namespace fs = std::filesystem;
 
@@ -155,28 +146,29 @@ writeMeshFunction( const MeshFunction& function,
          writer.writeCellData( function.getData(), functionName, 1 );
    }
    else if( format == "gnuplot" || format == "gplt" || format == "plt" )
-      return MeshFunctionGnuplotWriter< MeshFunction >::write( function, file );
+      MeshFunctionGnuplotWriter< MeshFunction >::write( function, file );
    else {
-      std::cerr << "Unknown output format: " << format << '\n';
-      return false;
+      if( fileFormat == "auto" )
+         throw std::runtime_error( "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
+                                   + ". Supported formats are: 'vti', 'gnuplot', 'gplt' and 'plt'." );
+      else
+         throw std::invalid_argument( "Invalid fileFormat parameter: '" + fileFormat
+                                      + "'. Supported formats are: 'vti', 'gnuplot', 'gplt' and 'plt'." );
    }
-   return true;
 }
 
 // specialization for meshes
 template< typename MeshFunction >
-std::enable_if_t< ! Meshes::isGrid< typename MeshFunction::MeshType >::value, bool >
+std::enable_if_t< ! Meshes::isGrid< typename MeshFunction::MeshType >::value >
 writeMeshFunction( const MeshFunction& function,
                    const std::string& functionName,
                    const std::string& fileName,
                    const std::string& fileFormat = "auto" )
 {
    std::ofstream file;
+   // enable exceptions
+   file.exceptions( std::fstream::failbit | std::fstream::badbit | std::fstream::eofbit );
    file.open( fileName );
-   if( ! file ) {
-      std::cerr << "Unable to open a file " << fileName << ".\n";
-      return false;
-   }
 
    namespace fs = std::filesystem;
 
@@ -205,12 +197,15 @@ writeMeshFunction( const MeshFunction& function,
          writer.writeCellData( function.getData(), functionName, 1 );
    }
    else if( format == "gnuplot" || format == "gplt" || format == "plt" )
-      return MeshFunctionGnuplotWriter< MeshFunction >::write( function, file );
+      MeshFunctionGnuplotWriter< MeshFunction >::write( function, file );
    else {
-      std::cerr << "Unknown output format: " << format << '\n';
-      return false;
+      if( fileFormat == "auto" )
+         throw std::runtime_error( "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
+                                   + ". Supported formats are: 'vtk', 'vtu', 'gnuplot', 'gplt' and 'plt'." );
+      else
+         throw std::invalid_argument( "Invalid fileFormat parameter: '" + fileFormat
+                                      + "'. Supported formats are: 'vtk', 'vtu', 'gnuplot', 'gplt' and 'plt'." );
    }
-   return true;
 }
 
 // specialization for grids
@@ -278,10 +273,12 @@ writeDistributedMeshFunction(
       //}
    }
    else {
-      std::cerr << "Unknown output format: " << format << "\n";
-      return false;
+      if( fileFormat == "auto" )
+         throw std::runtime_error( "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
+                                   + ". Supported formats are: 'pvti'." );
+      else
+         throw std::invalid_argument( "Invalid fileFormat parameter: '" + fileFormat + "'. Supported formats are: 'pvti'." );
    }
-   return true;
 }
 
 // TODO: specialization of writeDistributedMeshFunction for unstructured mesh

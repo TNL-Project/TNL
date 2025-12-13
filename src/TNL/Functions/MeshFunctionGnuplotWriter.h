@@ -69,7 +69,7 @@ public:
    using EntityType = typename MeshType::template EntityType< MeshFunction::getEntitiesDimension() >;
    using GlobalIndex = typename MeshType::GlobalIndexType;
 
-   static bool
+   static void
    write( const MeshFunction& function, std::ostream& str )
    {
       const MeshType& mesh = function.getMesh();
@@ -81,7 +81,6 @@ public:
             str << v[ j ] << " ";
          str << function.getData().getElement( i ) << "\n";
       }
-      return true;
    }
 };
 
@@ -94,7 +93,7 @@ public:
    using EntityType = typename MeshType::template EntityType< MeshFunction::getEntitiesDimension() >;
    using GlobalIndex = typename MeshType::GlobalIndexType;
 
-   static bool
+   static void
    write( const MeshFunction& function, std::ostream& str )
    {
       const MeshType& grid = function.getMesh();
@@ -111,7 +110,6 @@ public:
          }
          str << "\n";
       }
-      return true;
    }
 };
 
@@ -124,7 +122,7 @@ public:
    using EntityType = typename MeshType::template EntityType< MeshFunction::getEntitiesDimension() >;
    using GlobalIndex = typename MeshType::GlobalIndexType;
 
-   static bool
+   static void
    write( const MeshFunction& function, std::ostream& str )
    {
       const MeshType& grid = function.getMesh();
@@ -141,7 +139,6 @@ public:
             }
             str << "\n";
          }
-      return true;
    }
 };
 

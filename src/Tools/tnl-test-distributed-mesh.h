@@ -478,7 +478,8 @@ main( int argc, char* argv[] )
    const auto inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
    const int max_iterations = parameters.getParameter< int >( "max-iterations" );
 
-   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+   bool status = true;
+   auto wrapper = [ & ]( auto& reader, auto&& mesh )
    {
       using MeshType = std::decay_t< decltype( mesh ) >;
 
@@ -492,9 +493,14 @@ main( int argc, char* argv[] )
       testSynchronizer( mesh );
 
       // test simple propagation algorithm
-      return testPropagationOverFaces( std::forward< MeshType >( mesh ), max_iterations );
+      status = testPropagationOverFaces( std::forward< MeshType >( mesh ), max_iterations );
    };
-   const bool status =
+   try {
       Meshes::resolveAndLoadDistributedMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
    return static_cast< int >( ! status );
 }

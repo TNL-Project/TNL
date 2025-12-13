@@ -10,18 +10,18 @@
 namespace TNL::Meshes {
 
 template< typename ConfigTag, typename Device, typename Functor >
-[[nodiscard]] bool
+void
 resolveDistributedMeshType( Functor&& functor, const std::string& fileName, const std::string& fileFormat = "auto" );
 
 template< typename ConfigTag, typename Device, typename Functor >
-[[nodiscard]] bool
+void
 resolveAndLoadDistributedMesh( Functor&& functor,
                                const std::string& fileName,
                                const std::string& fileFormat = "auto",
                                const MPI::Comm& communicator = MPI_COMM_WORLD );
 
 template< typename Mesh >
-[[nodiscard]] bool
+void
 loadDistributedMesh( DistributedMeshes::DistributedMesh< Mesh >& distributedMesh,
                      const std::string& fileName,
                      const std::string& fileFormat = "auto",

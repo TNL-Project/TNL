@@ -170,9 +170,13 @@ main( int argc, char* argv[] )
    {
       using GridType = std::decay_t< decltype( grid ) >;
       run( std::forward< GridType >( grid ), parameters );
-      return true;
    };
-   const bool status =
+   try {
       Meshes::resolveAndLoadMesh< DecomposeGridConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
-   return static_cast< int >( ! status );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
+   return EXIT_SUCCESS;
 }

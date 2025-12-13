@@ -233,11 +233,18 @@ main( int argc, char* argv[] )
    const auto decompositionType = parameters.getParameter< std::string >( "decomposition-type" );
    const int iterations = parameters.getParameter< int >( "iterations" );
 
-   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+   bool status = true;
+   auto wrapper = [ & ]( auto& reader, auto&& mesh )
    {
       return refineMesh( mesh, outputFileName, outputFileFormat, decompositionType, iterations );
    };
-   const bool status = Meshes::resolveAndLoadMesh< MeshRefineConfigTag, Devices::Host >(
-      wrapper, inputFileName, inputFileFormat, realType, globalIndexType );
+   try {
+      Meshes::resolveAndLoadMesh< MeshRefineConfigTag, Devices::Host >(
+         wrapper, inputFileName, inputFileFormat, realType, globalIndexType );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
    return static_cast< int >( ! status );
 }

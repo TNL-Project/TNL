@@ -254,11 +254,17 @@ main( int argc, char* argv[] )
    const auto outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
    const auto decompositionType = parameters.getParameter< std::string >( "decomposition-type" );
 
-   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+   bool status = true;
+   auto wrapper = [ & ]( auto& reader, auto&& mesh )
    {
       return triangulateMesh( mesh, outputFileName, outputFileFormat, decompositionType );
    };
-   const bool status =
+   try {
       Meshes::resolveAndLoadMesh< MeshPlanarCorrectConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
    return static_cast< int >( ! status );
 }

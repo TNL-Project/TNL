@@ -44,8 +44,8 @@ We need to specify two template parameters when calling `resolveAndLoadMesh`:
 Then we pass the the function which should be called with the initialized mesh, the input file name, and the input file format (`"auto"` means auto-detection based on the file name).
 In order to show the flexibility of passing other parameters to our main `task` function as defined above, we suggest to implement a wrapper lambda function (called `wrapper` in the example), which captures the relevant variables and forwards them to the `task`.
 
-The return value of the `resolveAndLoadMesh` function is a boolean value representing the success (`true`) or failure (`false`) of the whole function call chain.
-Hence, the return type of both `wrapper` and `task` needs to be `bool` as well.
+The return type of the `resolveAndLoadMesh` function is `void` and it throws an exception upon errors.
+Hence, the return type of `wrapper` is also `void`, but when the `task` returns a boolean status, it can be set to a `bool` variable defined outside the `wrapper`.
 
 For completeness, the full example follows:
 \includelineno ReadMeshExample.cpp

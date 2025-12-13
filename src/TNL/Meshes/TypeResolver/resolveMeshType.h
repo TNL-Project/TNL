@@ -16,18 +16,18 @@ namespace TNL::Meshes {
  * Reader reader;
  * using MeshType = [black magic]
  * MeshType mesh;
- * return functor( reader, mesh );
+ * functor( reader, mesh );
  * \endcode
  *
  * The functor should be a generic lambda expression with the following
  * signature (or an equivalent functor):
  *
  * \code
- * auto functor = [] ( auto& reader, auto&& mesh ) -> bool {};
+ * auto functor = [] ( auto& reader, auto&& mesh ) -> void {};
  * \endcode
  */
 template< typename ConfigTag, typename Device, typename Functor >
-[[nodiscard]] bool
+void
 resolveMeshType( Functor&& functor,
                  const std::string& fileName,
                  const std::string& fileFormat = "auto",
@@ -44,13 +44,12 @@ resolveMeshType( Functor&& functor,
  * Reader reader;
  * using MeshType = [black magic]
  * MeshType mesh;
- * if( ! reader.loadMesh( mesh ) )
- *    return false;
- * return functor( reader, mesh );
+ * reader.loadMesh( mesh );
+ * functor( reader, mesh );
  * \endcode
  */
 template< typename ConfigTag, typename Device, typename Functor >
-[[nodiscard]] bool
+void
 resolveAndLoadMesh( Functor&& functor,
                     const std::string& fileName,
                     const std::string& fileFormat = "auto",
@@ -66,11 +65,11 @@ resolveAndLoadMesh( Functor&& functor,
  * reader instance created in \ref resolveMeshType.
  */
 template< typename Mesh >
-[[nodiscard]] bool
+void
 loadMesh( Mesh& mesh, const std::string& fileName, const std::string& fileFormat = "auto" );
 
 template< typename MeshConfig >
-[[nodiscard]] bool
+void
 loadMesh( Mesh< MeshConfig, Devices::Cuda >& mesh, const std::string& fileName, const std::string& fileFormat = "auto" );
 
 }  // namespace TNL::Meshes

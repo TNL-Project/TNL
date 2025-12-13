@@ -75,12 +75,19 @@ main( int argc, char* argv[] )
 
    const auto meshFile = parameters.getParameter< std::string >( "mesh" );
    const auto meshFileFormat = parameters.getParameter< std::string >( "mesh-format" );
+
+   bool status = true;
    auto wrapper = [ & ]( const auto& reader, auto&& mesh )
    {
       using MeshType = std::decay_t< decltype( mesh ) >;
-      return processFiles< MeshType >( parameters );
+      status = processFiles< MeshType >( parameters );
    };
-   const bool status =
+   try {
       TNL::Meshes::resolveMeshType< TNLDiffBuildConfigTag, Devices::Host >( wrapper, meshFile, meshFileFormat );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
    return static_cast< int >( ! status );
 }

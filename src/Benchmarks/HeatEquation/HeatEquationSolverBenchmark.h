@@ -87,19 +87,18 @@ struct HeatEquationSolverBenchmark
       TNL::Algorithms::parallelFor< Device >( begin, end, init );
    }
 
-   bool
+   void
    writeGnuplot( const std::string& filename, const Index xSize, const Index ySize ) const
    {
       std::ofstream out( filename, std::ios::out );
-      if( ! out.is_open() )
-         return false;
+      // enable exceptions
+      out.exceptions( std::fstream::failbit | std::fstream::badbit | std::fstream::eofbit );
       const Real hx = this->xDomainSize / (Real) xSize;
       const Real hy = this->yDomainSize / (Real) ySize;
       for( Index j = 0; j < ySize; j++ )
          for( Index i = 0; i < xSize; i++ )
             out << i * hx - this->xDomainSize / 2. << " " << j * hy - this->yDomainSize / 2. << " "
                 << this->ux.getElement( j * xSize + i ) << std::endl;
-      return out.good();
    }
 
    virtual void

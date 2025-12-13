@@ -930,9 +930,13 @@ main( int argc, char* argv[] )
    {
       using MeshType = std::decay_t< decltype( mesh ) >;
       run( std::forward< MeshType >( mesh ), parameters );
-      return true;
    };
-   const bool status =
+   try {
       Meshes::resolveAndLoadMesh< DecomposeMeshConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
-   return static_cast< int >( ! status );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
+   return EXIT_SUCCESS;
 }

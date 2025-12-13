@@ -12,14 +12,14 @@ class GridTypeResolver
 {
 public:
    template< typename Reader, typename Functor >
-   [[nodiscard]] static bool
+   static void
    run( Reader& reader, Functor&& functor );
 
 protected:
    template< typename Reader, typename Functor >
    struct detail
    {
-      [[nodiscard]] static bool
+      static void
       resolveGridDimension( Reader& reader, Functor&& functor );
 
       // NOTE: We could disable the grids only by the GridTag, but doing the
@@ -27,19 +27,19 @@ protected:
       //       good optimization of compilation times.
 
       template< int MeshDimension >
-      [[nodiscard]] static bool
+      static void
       resolveReal( Reader& reader, Functor&& functor );
 
       template< int MeshDimension, typename Real >
-      [[nodiscard]] static bool
+      static void
       resolveIndex( Reader& reader, Functor&& functor );
 
       template< int MeshDimension, typename Real, typename Index >
-      [[nodiscard]] static bool
+      static void
       resolveGridType( Reader& reader, Functor&& functor );
 
       template< typename GridType >
-      [[nodiscard]] static bool
+      static void
       resolveTerminate( Reader& reader, Functor&& functor );
    };
 };
