@@ -517,8 +517,7 @@ processFiles( const Config::ParameterContainer& parameters )
 
    using MeshPointer = Pointers::SharedPointer< Mesh >;
    MeshPointer meshPointer;
-   if( ! Meshes::loadMesh( *meshPointer, meshFile, meshFileFormat ) )
-      return false;
+   Meshes::loadMesh( *meshPointer, meshFile, meshFileFormat );
 
    const auto inputFiles = parameters.getParameter< std::vector< std::string > >( "input-files" );
 

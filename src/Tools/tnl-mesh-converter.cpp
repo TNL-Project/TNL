@@ -312,11 +312,18 @@ main( int argc, char* argv[] )
    const auto outputFileName = parameters.getParameter< std::string >( "output-file" );
    const auto outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
 
-   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+   bool status = true;
+   auto wrapper = [ & ]( auto& reader, auto&& mesh )
    {
-      return convertMesh( mesh, inputFileName, outputFileName, outputFileFormat );
+      status = convertMesh( mesh, inputFileName, outputFileName, outputFileFormat );
    };
-   const bool status = Meshes::resolveAndLoadMesh< MeshConverterConfigTag, Devices::Host >(
-      wrapper, inputFileName, inputFileFormat, realType, globalIndexType );
+   try {
+      Meshes::resolveAndLoadMesh< MeshConverterConfigTag, Devices::Host >(
+         wrapper, inputFileName, inputFileFormat, realType, globalIndexType );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
    return static_cast< int >( ! status );
 }

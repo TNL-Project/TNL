@@ -180,11 +180,11 @@ main( int argc, char* argv[] )
 
    for( int i = 1; i < argc; i++ ) {
       const std::string fileName = argv[ i ];
-      auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+      auto wrapper = [ & ]( auto& reader, auto&& mesh )
       {
-         return printInfo( mesh, fileName );
+         result &= printInfo( mesh, fileName );
       };
-      result &= resolveAndLoadMesh< MyConfigTag, Devices::Host >( wrapper, fileName );
+      resolveAndLoadMesh< MyConfigTag, Devices::Host >( wrapper, fileName );
    }
 
    return static_cast< int >( ! result );

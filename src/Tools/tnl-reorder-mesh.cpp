@@ -217,11 +217,18 @@ main( int argc, char* argv[] )
    const auto outputFileName = parameters.getParameter< std::string >( "output-mesh" );
    const auto outputFileFormat = parameters.getParameter< std::string >( "output-mesh-format" );
 
-   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+   bool status = true;
+   auto wrapper = [ & ]( auto& reader, auto&& mesh )
    {
       using MeshType = std::decay_t< decltype( mesh ) >;
-      return reorder( std::forward< MeshType >( mesh ), ordering, outputFileName, outputFileFormat );
+      status = reorder( std::forward< MeshType >( mesh ), ordering, outputFileName, outputFileFormat );
    };
-   const bool status = resolveAndLoadMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   try {
+      resolveAndLoadMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
    return static_cast< int >( ! status );
 }

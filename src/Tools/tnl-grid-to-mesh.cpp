@@ -259,11 +259,17 @@ main( int argc, char* argv[] )
    const auto outputFileName = parameters.getParameter< std::string >( "output-file" );
    const auto outputFileFormat = parameters.getParameter< std::string >( "output-file-format" );
 
+   bool status = true;
    auto wrapper = [ & ]( const auto& reader, auto&& grid )
    {
-      return convertGrid( grid, outputFileName, outputFileFormat );
+      status = convertGrid( grid, outputFileName, outputFileFormat );
    };
-   const bool status =
+   try {
       Meshes::resolveAndLoadMesh< GridToMeshConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
    return static_cast< int >( ! status );
 }

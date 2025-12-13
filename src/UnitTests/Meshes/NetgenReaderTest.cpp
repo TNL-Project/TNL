@@ -85,12 +85,9 @@ test_resolveAndLoadMesh( const MeshType& mesh )
       str1 << mesh;
       str2 << mesh2;
       EXPECT_EQ( str2.str(), str1.str() );
-
-      return true;
    };
 
-   const bool status = resolveAndLoadMesh< ConfigTag, TNL::Devices::Host >( wrapper, TEST_FILE_NAME );
-   EXPECT_TRUE( status );
+   resolveAndLoadMesh< ConfigTag, TNL::Devices::Host >( wrapper, TEST_FILE_NAME );
 
    EXPECT_EQ( std::remove( TEST_FILE_NAME ), 0 );
 }

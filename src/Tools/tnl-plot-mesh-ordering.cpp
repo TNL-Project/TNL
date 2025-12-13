@@ -200,11 +200,11 @@ main( int argc, char* argv[] )
 
    for( int i = 1; i < argc; i++ ) {
       String fileName = argv[ i ];
-      auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+      auto wrapper = [ & ]( auto& reader, auto&& mesh )
       {
-         return plotOrdering( mesh, fileName );
+         result &= plotOrdering( mesh, fileName );
       };
-      result &= resolveAndLoadMesh< MyConfigTag, Devices::Host >( wrapper, fileName );
+      resolveAndLoadMesh< MyConfigTag, Devices::Host >( wrapper, fileName );
    }
 
    return static_cast< int >( ! result );
