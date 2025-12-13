@@ -90,6 +90,11 @@ timeFunction( ComputeFunction compute,
       stddev_time = std::numeric_limits< double >::quiet_NaN();
       stddev_cpu_cycles = std::numeric_limits< double >::quiet_NaN();
    }
+
+   // SolverMonitor takes a pointer to the timer, but the timer is local
+   // so we must unset it to avoid returning a dangling reference to the caller
+   monitor.unsetTimer();
+
    return std::make_tuple( loops, mean_time, stddev_time, mean_cpu_cycles, stddev_cpu_cycles );
 }
 
