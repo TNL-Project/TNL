@@ -9,7 +9,8 @@ CompileFlags:
     - "-DHAVE_MPI"
     - "-DHAVE_TINYXML2"
     - "-DHAVE_ZLIB"
-    - "-xcu"
+    # FIXME: clangd 21 and cuda 13 do not work together
+    #- "-xcu"
   Remove:
     # remove all nvcc-specific flags that may appear in the compile_commands.json file
     - "-Xcompiler"
@@ -60,6 +61,19 @@ Diagnostics:
       modernize-use-auto.MinTypeNameLength: 10
       performance-unnecessary-value-param.AllowedTypes: "std::shared_ptr;std::unique_ptr"
       cppcoreguidelines-pro-type-member-init.UseAssignment: true
+
+  UnusedIncludes: Strict
+  MissingIncludes: None  # TODO: switch to Strict?
+
+Completion:
+  HeaderInsertion: IWYU
+
+Style:
+  AngledHeaders:
+    - "TNL/.*"
+
+Documentation:
+  CommentFormat: Doxygen
 
 ...
 # vim: ft=yaml
