@@ -58,13 +58,13 @@ struct ChooseSparseMatrixComputeReal< bool, Index >
 template< typename Real,
           typename Device = Devices::Host,
           typename Index = int,
-          typename MatrixType = GeneralMatrix,
+          typename MatrixType_ = GeneralMatrix,
           template< typename Device_, typename Index_ > class SegmentsView = Algorithms::Segments::CSRView,
           typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type >
 class SparseMatrixView : public SparseMatrixBase< Real,
                                                   Device,
                                                   Index,
-                                                  MatrixType,
+                                                  MatrixType_,
                                                   std::conditional_t< std::is_const_v< Real >,
                                                                       typename SegmentsView< Device, Index >::ConstViewType,
                                                                       SegmentsView< Device, Index > >,
@@ -73,13 +73,14 @@ class SparseMatrixView : public SparseMatrixBase< Real,
    using Base = SparseMatrixBase< Real,
                                   Device,
                                   Index,
-                                  MatrixType,
+                                  MatrixType_,
                                   std::conditional_t< std::is_const_v< Real >,
                                                       typename SegmentsView< Device, Index >::ConstViewType,
                                                       SegmentsView< Device, Index > >,
                                   ComputeReal >;
 
 public:
+   using Base::MatrixType;
    /**
     * \brief Templated type of segments view, i.e. sparse matrix format.
     */
@@ -92,7 +93,7 @@ public:
    template< typename _Real = Real,
              typename _Device = Device,
              typename _Index = Index,
-             typename _MatrixType = MatrixType,
+             typename _MatrixType = MatrixType_,
              template< typename, typename > class _SegmentsView = SegmentsViewTemplate,
              typename _ComputeReal = ComputeReal >
    using Self = SparseMatrixView< _Real, _Device, _Index, _MatrixType, _SegmentsView, _ComputeReal >;
@@ -100,12 +101,13 @@ public:
    /**
     * \brief Type of related matrix view.
     */
-   using ViewType = SparseMatrixView< Real, Device, Index, MatrixType, SegmentsViewTemplate >;
+   using ViewType = SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsViewTemplate, ComputeReal >;
 
    /**
     * \brief Matrix view type for constant instances.
     */
-   using ConstViewType = SparseMatrixView< std::add_const_t< Real >, Device, Index, MatrixType, SegmentsViewTemplate >;
+   using ConstViewType =
+      SparseMatrixView< std::add_const_t< Real >, Device, Index, MatrixType_, SegmentsViewTemplate, ComputeReal >;
 
    /**
     * \brief Constructor with no parameters.
