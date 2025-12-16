@@ -90,7 +90,7 @@ copyBuffersToMatrixElements( Matrix& m,
             row.setValue( localIdx, 0 );
          }
          else {
-            row.setColumnIndex( localIdx, thisColumnsBuffer_view[ bufferIdx ] );  // column - 1;
+            row.setColumnIndex( localIdx, thisColumnsBuffer_view[ bufferIdx ] );
             row.setValue( localIdx, inValue );
          }
       }
