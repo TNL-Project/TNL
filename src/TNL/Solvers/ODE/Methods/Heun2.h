@@ -35,41 +35,34 @@ struct Heun2
    static constexpr ValueType
    getCoefficient( const std::size_t stage, const std::size_t i )
    {
+      constexpr std::array< std::array< Value, Stages >, Stages > k_coefficients{ std::array< Value, Stages >{ 0.0, 0.0 },
+                                                                                  std::array< Value, Stages >{ 1.0, 0.0 } };
       return k_coefficients[ stage ][ i ];
    }
 
    static constexpr ValueType
    getTimeCoefficient( std::size_t i )
    {
+      constexpr std::array< Value, Stages > time_coefficients{ 0.0, 1.0 };
       return time_coefficients[ i ];
    }
 
    static constexpr ValueType
    getUpdateCoefficient( std::size_t i )
    {
+      constexpr std::array< Value, Stages > higher_order_update_coefficients{ 1.0 / 2.0, 1.0 / 2.0 };
       return higher_order_update_coefficients[ i ];
    }
 
    static constexpr ValueType
    getErrorCoefficient( std::size_t i )
    {
-      return higher_order_update_coefficients[ i ] - lower_order_update_coefficients[ i ];
+      constexpr std::array< Value, Stages > lower_order_update_coefficients{ 1.0, 0.0 };
+      return getUpdateCoefficient( i ) - lower_order_update_coefficients[ i ];
    }
 
 protected:
    static constexpr std::size_t Stages = 2;
-
-   // clang-format off
-   static constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
-      std::array< Value, Stages >{ 0.0, 0.0 },
-      std::array< Value, Stages >{ 1.0, 0.0 }
-   };
-
-   static constexpr std::array< Value, Stages > time_coefficients{ 0.0, 1.0 };
-
-   static constexpr std::array< Value, Stages > higher_order_update_coefficients{ 1.0/2.0, 1.0/2.0 };
-   static constexpr std::array< Value, Stages > lower_order_update_coefficients { 1.0,     0.0 };
-   // clang-format on
 };
 
 }  // namespace TNL::Solvers::ODE::Methods
