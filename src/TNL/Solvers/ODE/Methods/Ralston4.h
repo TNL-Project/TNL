@@ -34,36 +34,33 @@ struct Ralston4
    static constexpr ValueType
    getCoefficient( const std::size_t stage, const std::size_t i )
    {
+      // clang-format off
+      constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
+         std::array< Value, Stages >{  0.0,         0.0,        0.0,        0.0 },
+         std::array< Value, Stages >{  0.4,         0.0,        0.0,        0.0 },
+         std::array< Value, Stages >{  0.29697761,  0.15875964, 0.0,        0.0 },
+         std::array< Value, Stages >{  0.21810040, -3.05096516, 3.83286476, 0.0 }
+      };
+      // clang-format on
       return k_coefficients[ stage ][ i ];
    }
 
    static constexpr ValueType
    getTimeCoefficient( std::size_t i )
    {
+      constexpr std::array< Value, Stages > time_coefficients{ 0.0, 0.4, 0.45573725, 1.0 };
       return time_coefficients[ i ];
    }
 
    static constexpr ValueType
    getUpdateCoefficient( std::size_t i )
    {
+      constexpr std::array< Value, Stages > update_coefficients{ 0.17476028, -0.55148066, 1.20553560, 0.17118478 };
       return update_coefficients[ i ];
    }
 
 protected:
    static constexpr std::size_t Stages = 4;
-
-   // clang-format off
-   static constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
-      std::array< Value, Stages >{  0.0,         0.0,        0.0,        0.0 },
-      std::array< Value, Stages >{  0.4,         0.0,        0.0,        0.0 },
-      std::array< Value, Stages >{  0.29697761,  0.15875964, 0.0,        0.0 },
-      std::array< Value, Stages >{  0.21810040, -3.05096516, 3.83286476, 0.0 }
-   };
-
-   static constexpr std::array< Value, Stages > time_coefficients { 0.0, 0.4, 0.45573725, 1.0 };
-
-   static constexpr std::array< Value, Stages > update_coefficients { 0.17476028, -0.55148066, 1.20553560, 0.17118478 };
-   // clang-format on
 };
 
 }  // namespace TNL::Solvers::ODE::Methods

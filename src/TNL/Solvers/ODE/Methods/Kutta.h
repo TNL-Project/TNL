@@ -34,35 +34,32 @@ struct Kutta
    static constexpr ValueType
    getCoefficient( const std::size_t stage, const std::size_t i )
    {
+      // clang-format off
+      constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
+         std::array< Value, Stages >{     0.0, 0.0, 0.0 },
+         std::array< Value, Stages >{ 1.0/2.0, 0.0, 0.0 },
+         std::array< Value, Stages >{    -1.0, 2.0, 0.0 }
+      };
+      // clang-format on
       return k_coefficients[ stage ][ i ];
    }
 
    static constexpr ValueType
    getTimeCoefficient( std::size_t i )
    {
+      constexpr std::array< Value, Stages > time_coefficients{ 0.0, 1.0 / 2.0, 1.0 };
       return time_coefficients[ i ];
    }
 
    static constexpr ValueType
    getUpdateCoefficient( std::size_t i )
    {
+      constexpr std::array< Value, Stages > update_coefficients{ 1.0 / 6.0, 2.0 / 3.0, 1.0 / 6.0 };
       return update_coefficients[ i ];
    }
 
 protected:
    static constexpr std::size_t Stages = 3;
-
-   // clang-format off
-   static constexpr std::array< std::array< Value, Stages>, Stages > k_coefficients {
-      std::array< Value, Stages >{     0.0, 0.0, 0.0 },
-      std::array< Value, Stages >{ 1.0/2.0, 0.0, 0.0 },
-      std::array< Value, Stages >{    -1.0, 2.0, 0.0 }
-   };
-
-   static constexpr std::array< Value, Stages > time_coefficients { 0.0, 1.0/2.0, 1.0 };
-
-   static constexpr std::array< Value, Stages > update_coefficients { 1.0/6.0, 2.0/3.0, 1.0/6.0 };
-   // clang-format on
 };
 
 }  // namespace TNL::Solvers::ODE::Methods
