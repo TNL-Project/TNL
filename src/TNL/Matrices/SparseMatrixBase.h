@@ -39,17 +39,17 @@ namespace TNL::Matrices {
  * \tparam ComputeReal is the same as \e Real mostly but for binary matrices it
  *         is set to \e Index type. This can be changed by the user, of course.
  */
-template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-class SparseMatrixBase : public MatrixBase< Real, Device, Index, MatrixType, SegmentsView::getOrganization() >
+template< typename Real, typename Device, typename Index, typename MatrixType_, typename SegmentsView, typename ComputeReal >
+class SparseMatrixBase : public MatrixBase< Real, Device, Index, MatrixType_, SegmentsView::getOrganization() >
 {
    static_assert(
-      ! MatrixType::isSymmetric() || ! std::is_same_v< Device, Devices::Cuda >
+      ! MatrixType_::isSymmetric() || ! std::is_same_v< Device, Devices::Cuda >
          || (std::is_same_v< std::decay_t< Real >, float > || std::is_same_v< std::decay_t< Real >, double >
              || std::is_same_v< std::decay_t< Real >, int > || std::is_same_v< std::decay_t< Real >, long long int >
              || std::is_same_v< std::decay_t< Real >, bool >),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
-   using Base = MatrixBase< Real, Device, Index, MatrixType, SegmentsView::getOrganization() >;
+   using Base = MatrixBase< Real, Device, Index, MatrixType_, SegmentsView::getOrganization() >;
 
 public:
    // TODO: add documentation for this type
@@ -84,6 +84,11 @@ public:
     * \brief The type used for matrix elements indexing.
     */
    using IndexType = Index;
+
+   /**
+    * \brief The type of matrix - general or symmetric.
+    */
+   using MatrixType = MatrixType_;
 
    /**
     * \brief Type of segments view used by this matrix. It represents the sparse matrix format.

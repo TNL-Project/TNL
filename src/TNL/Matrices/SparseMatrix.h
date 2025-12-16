@@ -61,6 +61,8 @@ class SparseMatrix : public SparseMatrixBase< Real,
                                   ComputeReal >;
 
 public:
+   using Base::MatrixType;
+
    /**
     * \brief Type of vector holding values of matrix elements.
     */
@@ -75,11 +77,6 @@ public:
     * \brief Type of vector holding values of row capacities.
     */
    using RowCapacitiesVectorType = Containers::Vector< Index, Device, Index, IndexAllocator >;
-
-   /**
-    * \brief The type of matrix - general or symmetric.
-    */
-   using MatrixType = MatrixType_;
 
    /**
     * \brief Templated type of segments, i.e. sparse matrix format.
@@ -113,7 +110,7 @@ public:
     *
     * See \ref SparseMatrixView.
     */
-   using ViewType = SparseMatrixView< Real, Device, Index, MatrixType, SegmentsViewTemplate, ComputeReal >;
+   using ViewType = SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsViewTemplate, ComputeReal >;
 
    /**
     * \brief Matrix view type for constant instances.
@@ -121,7 +118,7 @@ public:
     * See \ref SparseMatrixView.
     */
    using ConstViewType =
-      SparseMatrixView< std::add_const_t< Real >, Device, Index, MatrixType, SegmentsViewTemplate, ComputeReal >;
+      SparseMatrixView< std::add_const_t< Real >, Device, Index, MatrixType_, SegmentsViewTemplate, ComputeReal >;
 
    /**
     * \brief Helper type for getting self type or its modifications.
@@ -129,7 +126,7 @@ public:
    template< typename _Real = Real,
              typename _Device = Device,
              typename _Index = Index,
-             typename _MatrixType = MatrixType,
+             typename _MatrixType = MatrixType_,
              template< typename, typename, typename > class _Segments = SegmentsTemplate,
              typename _ComputeReal = ComputeReal,
              typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real >,
@@ -455,7 +452,7 @@ public:
     */
    template< typename Real2, typename Index2, template< typename, typename, typename > class Segments2 >
    void
-   getTransposition( const SparseMatrix< Real2, Device, Index2, MatrixType, Segments2 >& matrix,
+   getTransposition( const SparseMatrix< Real2, Device, Index2, MatrixType_, Segments2 >& matrix,
                      const ComputeReal& matrixMultiplicator = 1.0 );
 
    /**
