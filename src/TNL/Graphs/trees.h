@@ -39,7 +39,7 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
    using IndexVectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
-   using MatrixType = typename Graph::MatrixType;
+   using AdjacencyMatrixType = typename Graph::AdjacencyMatrixType;
 
    const IndexType n = graph.getNodeCount();
 
@@ -71,7 +71,7 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
                if( ! visitNeighbour( current, neighbor, visited, parents, q ) )
                   return false;
             }
-            if constexpr( MatrixType::isSymmetric() ) {  // search the adjacency matrix for other neighbours
+            if constexpr( AdjacencyMatrixType::isSymmetric() ) {  // search the adjacency matrix for other neighbours
                for( IndexType rowIdx = 0; rowIdx < graph.getNodeCount(); rowIdx++ ) {
                   if( rowIdx == current )
                      continue;
@@ -113,7 +113,7 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
             {
                visited_view[ rowIdx ] = visited_view[ rowIdx ] + value;
             };
-            if constexpr( MatrixType::isSymmetric() )
+            if constexpr( AdjacencyMatrixType::isSymmetric() )
                graph.getAdjacencyMatrix().reduceAllRows( symmetric_fetch, TNL::Plus{}, keep, (IndexType) 0 );
             else
                graph.getAdjacencyMatrix().reduceAllRows( fetch, TNL::Plus{}, keep, (IndexType) 0 );

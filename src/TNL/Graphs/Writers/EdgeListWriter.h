@@ -11,17 +11,17 @@ template< typename Graph >
 struct EdgeListWriter
 {
    using GraphType = Graph;
-   using MatrixType = typename GraphType::MatrixType;
+   using AdjacencyMatrixType = typename GraphType::AdjacencyMatrixType;
    using ValueType = typename GraphType::ValueType;
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
-   using HostMatrixType = typename MatrixType::template Self< ValueType, Devices::Host >;
+   using HostAdjacencyMatrixType = typename AdjacencyMatrixType::template Self< ValueType, Devices::Host >;
 
    static void
    write( std::ostream& str, const Graph& graph )
    {
       if constexpr( ! std::is_same_v< DeviceType, Devices::Host > && ! std::is_same_v< DeviceType, Devices::Host > ) {
-         HostMatrixType hostMatrix;
+         HostAdjacencyMatrixType hostMatrix;
          hostMatrix = graph.getAdjacencyMatrix();
          writeEdgeList( str, hostMatrix );
       }
