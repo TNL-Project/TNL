@@ -3,12 +3,16 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/CSR.h>
+
 #include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Matrices/DenseMatrixBase.h>
+#include <TNL/Matrices/DenseMatrixView.h>
 #include <TNL/Matrices/SparseMatrixBase.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/SparseMatrixView.h>
-#include <TNL/Algorithms/Segments/CSR.h>
+#include <TNL/Matrices/MultidiagonalMatrixView.h>
+#include <TNL/Matrices/TridiagonalMatrixView.h>
 
 namespace TNL::Matrices {
 
@@ -35,6 +39,54 @@ template< typename T >
 constexpr bool is_matrix_v = is_matrix< T >::value;
 
 /**
+ * \brief This checks if given type is matrix view.
+ */
+[[nodiscard]] constexpr std::false_type
+isMatrixView( ... )
+{
+   return {};
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+[[nodiscard]] constexpr std::true_type
+isMatrixView( const DenseMatrixView< Real, Device, Index, Organization >& )
+{
+   return {};
+}
+
+template< typename Real,
+          typename Device,
+          typename Index,
+          typename MatrixType,
+          template< typename, typename > typename SegmentsView,
+          typename ComputeReal >
+[[nodiscard]] constexpr std::true_type
+isMatrixView( const SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& )
+{
+   return {};
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+[[nodiscard]] constexpr std::true_type
+isMatrixView( const MultidiagonalMatrixView< Real, Device, Index, Organization >& )
+{
+   return {};
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+[[nodiscard]] constexpr std::true_type
+isMatrixView( const TridiagonalMatrixView< Real, Device, Index, Organization >& )
+{
+   return {};
+}
+
+template< typename T >
+using is_matrix_view = decltype( isMatrixView( std::declval< T >() ) );
+
+template< typename T >
+constexpr bool is_matrix_view_v = is_matrix_view< T >::value;
+
+/**
  * \brief This checks if the matrix is dense matrix.
  */
 [[nodiscard]] constexpr std::false_type
@@ -56,7 +108,7 @@ template< typename T >
 constexpr bool is_dense_matrix_v = is_dense_matrix< T >::value;
 
 /**
- * \brief This checks if the matrix is sparse.
+ * \brief This checks if the type is sparse matrix.
  */
 [[nodiscard]] constexpr std::false_type
 isSparseMatrix( ... )
