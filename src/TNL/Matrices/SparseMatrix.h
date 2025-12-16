@@ -41,7 +41,7 @@ namespace TNL::Matrices {
 template< typename Real = double,
           typename Device = Devices::Host,
           typename Index = int,
-          typename MatrixType_ = GeneralMatrix,
+          typename MatrixType = GeneralMatrix,
           template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments = Algorithms::Segments::CSR,
           typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
@@ -49,14 +49,14 @@ template< typename Real = double,
 class SparseMatrix : public SparseMatrixBase< Real,
                                               Device,
                                               Index,
-                                              MatrixType_,
+                                              MatrixType,
                                               typename Segments< Device, Index, IndexAllocator >::ViewType,
                                               ComputeReal >
 {
    using Base = SparseMatrixBase< Real,
                                   Device,
                                   Index,
-                                  MatrixType_,
+                                  MatrixType,
                                   typename Segments< Device, Index, IndexAllocator >::ViewType,
                                   ComputeReal >;
 
@@ -77,11 +77,6 @@ public:
    using RowCapacitiesVectorType = Containers::Vector< Index, Device, Index, IndexAllocator >;
 
    /**
-    * \brief The type of matrix - general or symmetric.
-    */
-   using MatrixType = MatrixType_;
-
-   /**
     * \brief Templated type of segments, i.e. sparse matrix format.
     */
    template< typename Device_, typename Index_, typename IndexAllocator_ >
@@ -96,7 +91,7 @@ public:
     * \brief Templated view type of segments, i.e. sparse matrix format.
     */
    template< typename Device_, typename Index_ >
-   using SegmentsViewTemplate = typename SegmentsType::template ViewTemplate< Device_, Index_ >;
+   using SegmentsViewTemplate = typename Segments< Device_, Index_, IndexAllocator >::ViewType;
 
    /**
     * \brief The allocator for matrix elements values.
@@ -113,15 +108,28 @@ public:
     *
     * See \ref SparseMatrixView.
     */
-   using ViewType = SparseMatrixView< Real, Device, Index, MatrixType, SegmentsViewTemplate, ComputeReal >;
+   using ViewType = SparseMatrixView< Real,
+                                      Device,
+                                      Index,
+                                      MatrixType,
+                                      // NOTE: Avoid using SegmentsViewTemplate here!!! Named type is causing type
+                                      // incompatibilities since the owner type is encoded in it.
+                                      Segments< Device, Index, IndexAllocator >::template ViewTemplate,
+                                      ComputeReal >;
 
    /**
     * \brief Matrix view type for constant instances.
     *
     * See \ref SparseMatrixView.
     */
-   using ConstViewType =
-      SparseMatrixView< std::add_const_t< Real >, Device, Index, MatrixType, SegmentsViewTemplate, ComputeReal >;
+   using ConstViewType = SparseMatrixView< std::add_const_t< Real >,
+                                           Device,
+                                           Index,
+                                           MatrixType,
+                                           // NOTE: Avoid using SegmentsViewTemplate here!!! Named type is causing type
+                                           // incompatibilities since the owner type is encoded in it.
+                                           Segments< Device, Index, IndexAllocator >::template ViewTemplate,
+                                           ComputeReal >;
 
    /**
     * \brief Helper type for getting self type or its modifications.

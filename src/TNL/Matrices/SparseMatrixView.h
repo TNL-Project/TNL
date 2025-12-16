@@ -93,19 +93,35 @@ public:
              typename _Device = Device,
              typename _Index = Index,
              typename _MatrixType = MatrixType,
-             template< typename, typename > class _SegmentsView = SegmentsViewTemplate,
+             // NOTE: Avoid using SegmentsViewTemplate here!!! Named type is causing type incompatibilities
+             // since the owner type is encoded in it.
+             template< typename, typename > class _SegmentsView = SegmentsView,
              typename _ComputeReal = ComputeReal >
    using Self = SparseMatrixView< _Real, _Device, _Index, _MatrixType, _SegmentsView, _ComputeReal >;
 
    /**
     * \brief Type of related matrix view.
     */
-   using ViewType = SparseMatrixView< Real, Device, Index, MatrixType, SegmentsViewTemplate >;
+   using ViewType = SparseMatrixView< Real,
+                                      Device,
+                                      Index,
+                                      MatrixType,
+                                      // NOTE: Avoid using SegmentsViewTemplate here!!! Named type is causing type
+                                      // incompatibilities since the owner type is encoded in it.
+                                      SegmentsView,
+                                      ComputeReal >;
 
    /**
     * \brief Matrix view type for constant instances.
     */
-   using ConstViewType = SparseMatrixView< std::add_const_t< Real >, Device, Index, MatrixType, SegmentsViewTemplate >;
+   using ConstViewType = SparseMatrixView< std::add_const_t< Real >,
+                                           Device,
+                                           Index,
+                                           MatrixType,
+                                           // NOTE: Avoid using SegmentsViewTemplate here!!! Named type is causing type
+                                           // incompatibilities since the owner type is encoded in it.
+                                           SegmentsView,
+                                           ComputeReal >;
 
    /**
     * \brief Constructor with no parameters.
