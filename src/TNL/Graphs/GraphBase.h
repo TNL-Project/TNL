@@ -20,38 +20,35 @@ namespace TNL::Graphs {
  * \tparam Matrix is type of matrix used to store the adjacency matrix of the graph.
  * \tparam GraphType is type of the graph - directed or undirected.
  */
-template< typename Matrix, typename GraphType_ = Graphs::DirectedGraph >
+template< typename AdjacencyMatrixView_, typename GraphType_ = Graphs::DirectedGraph >
 struct GraphBase
 {
-   static_assert( Matrices::is_matrix_v< Matrix > );
-
-   //! \brief Type of the adjacency matrix.
-   using MatrixType = Matrix;
+   static_assert( Matrices::is_matrix_view_v< AdjacencyMatrixView_ > );
 
    //! \brief Type of view of the adjacency matrix.
-   using MatrixView = typename Matrix::ViewType;
+   using AdjacencyMatrixView = AdjacencyMatrixView_;
 
    //! \brief Type of constant view of the adjacency matrix.
-   using ConstMatrixView = typename Matrix::ConstViewType;
+   using ConstAdjacencyMatrixView = decltype( std::declval< const AdjacencyMatrixView& >().getConstView() );
 
    //! \brief Type for indexing of the graph nodes.
-   using IndexType = typename Matrix::IndexType;
+   using IndexType = typename AdjacencyMatrixView::IndexType;
 
    //! \brief Type of device where the graph will be operating.
-   using DeviceType = typename Matrix::DeviceType;
+   using DeviceType = typename AdjacencyMatrixView::DeviceType;
 
    //! \brief Type for weights of the graph edges.
-   using ValueType = typename Matrix::RealType;
+   using ValueType = typename AdjacencyMatrixView::RealType;
 
    //! \brief Type of the graph - directed or undirected.
    using GraphType = GraphType_;
 
-   using NodeView = GraphNodeView< Graph< MatrixType, GraphType_ > >;
+   using NodeView = GraphNodeView< AdjacencyMatrixView, GraphType_ >;
 
    using ConstNodeView = typename NodeView::ConstNodeView;
 
-   template< typename Matrix_ = MatrixType, typename GraphType__ = GraphType_ >
-   using Self = Graph< Matrix, GraphType_ >;
+   template< typename MatrixView = AdjacencyMatrixView, typename GraphType__ = GraphType_ >
+   using Self = Graph< MatrixView, GraphType__ >;
 
    //! \brief Checks if the graph is directed.
    static constexpr bool
@@ -96,7 +93,7 @@ struct GraphBase
 
    //! \brief Returns the conatnt view of adjacency matrix of the graph.
    [[nodiscard]] __cuda_callable__
-   const MatrixView&
+   const AdjacencyMatrixView&
    getAdjacencyMatrix() const;
 
    //! \brief Returns the number of nodes in the graph.
@@ -152,7 +149,7 @@ struct GraphBase
    ~GraphBase() = default;
 
 protected:
-   MatrixView adjacencyMatrixView;
+   AdjacencyMatrixView adjacencyMatrixView;
 };
 
 //! \brief Output stream operator for the \e Graph class.

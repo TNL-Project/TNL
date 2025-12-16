@@ -15,7 +15,7 @@ struct MtxReader
    using ValueType = typename Graph::ValueType;
    using DeviceType = typename Graph::DeviceType;
    using IndexType = typename Graph::IndexType;
-   using MatrixType = typename Graph::MatrixType;
+   using MatrixType = typename Graph::AdjacencyMatrixType;
 
    static void
    read( const std::string& file_name, Graph& graph )

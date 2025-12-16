@@ -138,7 +138,7 @@ kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roo
       if( source_root != target_root ) {
          minimum_spanning_tree.getAdjacencyMatrix().getRow( source ).setElement(
             tree_filling[ source ]++, target, edge.getWeight() );
-         if constexpr( OutGraph::isUndirected() && ! OutGraph::MatrixType::isSymmetric() )
+         if constexpr( OutGraph::isUndirected() && ! OutGraph::AdjacencyMatrixType::isSymmetric() )
             minimum_spanning_tree.getAdjacencyMatrix().getRow( target ).setElement(
                tree_filling[ target ]++, source, edge.getWeight() );
          forest.mergeTrees( source, target );
@@ -161,9 +161,9 @@ parallelMST( const InGraph& graph, OutGraph& tree )
    using IndexType = Index;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
    using RealVector = Containers::Vector< RealType, DeviceType, IndexType >;
-   using InMatrixType = typename InGraph::MatrixType;
-   using RowView = typename InMatrixType::ConstRowView;
-   using SegmentsType = typename InMatrixType::SegmentsType;
+   using InAdjacencyMatrixType = typename InGraph::AdjacencyMatrixType;
+   using RowView = typename InAdjacencyMatrixType::ConstRowView;
+   using SegmentsType = typename InAdjacencyMatrixType::SegmentsType;
    using GrowingSegmentsType = Algorithms::Segments::GrowingSegments< SegmentsType >;
 
    Index n = graph.getNodeCount();
@@ -328,7 +328,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
 
       // Find the minimum hook candidates for each star root using a sparse matrix
       // TODO: the following must be done in atomic way to run in parallel
-      /*InMatrixType star_link_matrix( n, n );
+      /*InAdjacencyMatrixType star_link_matrix( n, n );
       star_link_matrix.setRowCapacities( star_slots );
       auto star_matrix_view = star_link_matrix.getView();
 
@@ -361,7 +361,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
 
       std::cout << "Star link matrix: " << std::endl << star_link_matrix << std::endl;
 
-      star_link_matrix.forAllRows( [=] __cuda_callable__ ( const typename InMatrixType::RowView& row ) {
+      star_link_matrix.forAllRows( [=] __cuda_callable__ ( const typename InAdjacencyMatrixType::RowView& row ) {
          auto min_weight = std::numeric_limits< RealType >::max();
          IndexType source = -1, target = -1;
          for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
@@ -547,7 +547,7 @@ parallelMST( const InGraph& graph, OutGraph& tree )
                IndexType col = min( i, target );
                IndexType localIdx = Algorithms::AtomicOperations< DeviceType >::add( treeFillingView[ row ], 1 );
                tree_view.getRow( row ).setElement( localIdx, col, new_links_weight_view[ i ] );
-               if constexpr( ! OutGraph::MatrixType::isSymmetric() ) {
+               if constexpr( ! OutGraph::AdjacencyMatrixType::isSymmetric() ) {
                   IndexType localIdx = Algorithms::AtomicOperations< DeviceType >::add( treeFillingView[ row ], 1 );
                   tree_view.getRow( col ).setElement( localIdx, row, new_links_weight_view[ i ] );
                }
