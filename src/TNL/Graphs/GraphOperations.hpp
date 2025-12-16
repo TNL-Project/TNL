@@ -27,7 +27,7 @@ getTotalWeight( const Graph& graph )
          return (ValueType) 0;
       },
       TNL::Plus{} );
-   if constexpr( Graph::isUndirected() && ! Graph::MatrixType::isSymmetric() )
+   if constexpr( Graph::isUndirected() && ! Graph::AdjacencyMatrixType::isSymmetric() )
       return 0.5 * w;
    return w;
 }
