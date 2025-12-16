@@ -7,47 +7,64 @@
 #include <ostream>
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/reduce.h>
-#include <TNL/Graphs/GraphBase.h>
-#include <TNL/Graphs/TypeTraits.h>
-#include <TNL/Graphs/GraphType.h>
 #include <TNL/Matrices/TypeTraits.h>
+
+#include "GraphBase.h"
+#include "GraphView.h"
+#include "GraphNodeView.h"
+#include "TypeTraits.h"
+#include "GraphType.h"
 
 namespace TNL::Graphs {
 
 /**
  * \brief \e Graph class represents a mathematical graph using an adjacency matrix.
  *
- * \tparam Matrix is type of matrix used to store the adjacency matrix of the graph.
+ * \tparam AdjacencyMatrix is type of matrix used to store the adjacency matrix of the graph.
  * \tparam GraphType is type of the graph - directed or undirected.
  */
-template< typename Matrix, typename GraphType_ = Graphs::DirectedGraph >
-struct Graph : public GraphBase< Matrix, GraphType_ >
+template< typename AdjacencyMatrix, typename GraphType_ = DirectedGraph >
+struct Graph : public GraphBase< typename AdjacencyMatrix::ViewType, GraphType_ >
 {
-   static_assert( Matrices::is_matrix_v< Matrix > );
+   static_assert( Matrices::is_matrix_v< AdjacencyMatrix > );
+   using Base = GraphBase< typename AdjacencyMatrix::ViewType, GraphType_ >;
 
    //! \brief Type of the adjacency matrix.
-   using MatrixType = Matrix;
+   using AdjacencyMatrixType = AdjacencyMatrix;
+
+   //! \brief Type of the adjacency matrix view.
+   using AdjacencyMatrixView = typename AdjacencyMatrix::ViewType;
+
+   //! \brief Type of constant view of the adjacency matrix.
+   using ConstAdjacencyMatrixView = decltype( std::declval< const AdjacencyMatrix& >().getConstView() );
 
    //! \brief Type for indexing of the graph nodes.
-   using IndexType = typename Matrix::IndexType;
+   using IndexType = typename AdjacencyMatrix::IndexType;
 
    //! \brief Type of device where the graph will be operating.
-   using DeviceType = typename Matrix::DeviceType;
+   using DeviceType = typename AdjacencyMatrix::DeviceType;
 
    //! \brief Type for weights of the graph edges.
-   using ValueType = typename Matrix::RealType;
+   using ValueType = typename AdjacencyMatrix::RealType;
 
    //! \brief Type of the graph - directed or undirected.
    using GraphType = GraphType_;
 
-   using NodeView = GraphNodeView< Graph< MatrixType, GraphType_ > >;
+   //! \brief Type of constant view of the adjacency matrix.
+   using ViewType = GraphView< AdjacencyMatrixView, GraphType_ >;
 
+   //! \brief Type of constant view of the adjacency matrix.
+   using ConstViewType = GraphView< ConstAdjacencyMatrixView, GraphType_ >;
+
+   //! \brief Type of the graph nodes view.
+   using NodeView = GraphNodeView< AdjacencyMatrixView, GraphType_ >;
+
+   //! \brief Type of constant graph nodes view.
    using ConstNodeView = typename NodeView::ConstNodeView;
 
-   template< typename Matrix_ = MatrixType, typename GraphType__ = GraphType_ >
-   using Self = Graph< Matrix, GraphType__ >;
-
-   using Base = GraphBase< Matrix, GraphType_ >;
+   //! \brief Helper type for getting self type or its modifications.
+   template< typename Matrix_ = AdjacencyMatrixType, typename GraphType__ = GraphType_ >
+   using Self = Graph< Matrix_, GraphType__ >;
 
    using Base::isDirected;
    using Base::isUndirected;
@@ -59,10 +76,10 @@ struct Graph : public GraphBase< Matrix, GraphType_ >
    Graph( IndexType nodesCount );
 
    //! \brief Constructor with adjacency matrix.
-   Graph( const MatrixType& matrix );
+   Graph( const AdjacencyMatrixType& matrix );
 
    //! \brief Constructor with adjacency matrix.
-   Graph( MatrixType&& matrix );
+   Graph( AdjacencyMatrixType&& matrix );
 
    //! \brief Copy constructor.
    Graph( const Graph& ) = default;
@@ -127,9 +144,13 @@ struct Graph : public GraphBase< Matrix, GraphType_ >
    Graph&
    operator=( Graph&& other );
 
-   //! \brief Comparisons operator.
-   bool
-   operator==( const Graph& other ) const;
+   //! \brief Returns the modifiable view of the graph.
+   ViewType
+   getView();
+
+   //! \brief Returns the constant view of the graph.
+   ConstViewType
+   getConstView() const;
 
    //! \brief Sets the number of nodes in the graph.
    void
@@ -162,21 +183,20 @@ struct Graph : public GraphBase< Matrix, GraphType_ >
    setNodeCapacities( const Vector& nodeCapacities );
 
    //! \brief Returns the modifiable adjacency matrix of the graph.
-   [[nodiscard]] const MatrixType&
+   [[nodiscard]] const AdjacencyMatrixType&
    getAdjacencyMatrix() const;
 
    //! \brief Returns the modifiable adjacency matrix of the graph.
-   [[nodiscard]] MatrixType&
+   [[nodiscard]] AdjacencyMatrixType&
    getAdjacencyMatrix();
 
    //! \brief Sets the adjacency matrix of the graph.
    void
-   setAdjacencyMatrix( const MatrixType& matrix );
+   setAdjacencyMatrix( const AdjacencyMatrixType& matrix );
 
    //! \brief Sets the adjacency matrix of the graph.
    void
-   setAdjacencyMatrix( MatrixType&& matrix );
-
+   setAdjacencyMatrix( AdjacencyMatrixType&& matrix );
    /**
     * \brief Sets the adjacency matrix of the graph.
     *
@@ -196,7 +216,7 @@ struct Graph : public GraphBase< Matrix, GraphType_ >
    ~Graph() = default;
 
 protected:
-   MatrixType adjacencyMatrix;
+   AdjacencyMatrixType adjacencyMatrix;
 };
 
 //! \brief Deserialization of graphs from binary files.
