@@ -10,37 +10,41 @@
 
 namespace TNL::Graphs {
 
-template< typename Matrix, typename GraphType_ >
+template< typename MatrixView, typename GraphType_ >
 struct Graph;
 
-template< typename Graph >
+template< typename MatrixView, typename GraphType_ >
 struct GraphNodeView;
 
 template< typename Real,
           typename Device,
           typename Index,
           Algorithms::Segments::ElementsOrganization Organization,
-          typename RealAllocator,
           typename GraphType_ >
-struct GraphNodeView< Graph< Matrices::DenseMatrix< Real, Device, Index, Organization, RealAllocator >, GraphType_ > >
+struct GraphNodeView< Matrices::DenseMatrixView< Real, Device, Index, Organization >, GraphType_ >
 : public Matrices::DenseMatrixRowView<
-     typename Matrices::DenseMatrix< Real, Device, Index, Organization, RealAllocator >::SegmentsViewType,
-     typename Matrices::DenseMatrix< Real, Device, Index, Organization, RealAllocator >::ValuesViewType >
+     typename Matrices::DenseMatrixView< Real, Device, Index, Organization >::SegmentsViewType,
+     typename Matrices::DenseMatrixView< Real, Device, Index, Organization >::ValuesViewType >
 {
-   using MatrixType = Matrices::DenseMatrix< Real, Device, Index, Organization, RealAllocator >;
+   //! \brief Type of the dense matrix view.
+   using MatrixView = Matrices::DenseMatrixView< Real, Device, Index, Organization >;
 
-   using Base = Matrices::DenseMatrixRowView< typename MatrixType::SegmentsViewType, typename MatrixType::ValuesViewType >;
+   //! \brief Type of constant dense matrix view.
+   using ConstMatrixView = typename MatrixView::ConstViewType;
+
+   //! \brief Base type.
+   using Base = Matrices::DenseMatrixRowView< typename MatrixView::SegmentsViewType, typename MatrixView::ValuesViewType >;
 
    using typename Base::IndexType;
    using typename Base::RealType;
    using typename Base::SegmentViewType;
    using typename Base::ValuesViewType;
 
-   using GraphType = Graph< MatrixType, GraphType_ >;
+   //! \brief Type of the graph node view.
+   using NodeView = GraphNodeView< MatrixView, GraphType_ >;
 
-   using NodeView = GraphNodeView< Graph< MatrixType, GraphType_ > >;
-
-   using ConstNodeView = GraphNodeView< std::add_const_t< Graph< MatrixType, GraphType_ > > >;
+   //! \brief Type of the constant graph node view.
+   using ConstNodeView = GraphNodeView< ConstMatrixView, GraphType_ >;
 
    GraphNodeView( const SegmentViewType& segmentView, const ValuesViewType& valuesView )
    : Base( segmentView, valuesView )
@@ -94,43 +98,39 @@ template< typename Real,
           typename Device,
           typename Index,
           typename MatrixType_,
-          template< typename Device_, typename Index_, typename IndexAllocator_ > class SegmentsType,
+          template< typename Device_, typename Index_ > class SegmentsView,
           typename ComputeRealType,
-          typename RealAllocator,
-          typename IndexAllocator,
           typename GraphType_ >
-struct GraphNodeView< Graph<
-   Matrices::SparseMatrix< Real, Device, Index, MatrixType_, SegmentsType, ComputeRealType, RealAllocator, IndexAllocator >,
-   GraphType_ > >
+struct GraphNodeView< Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >,
+                      GraphType_ >
 : public Matrices::SparseMatrixRowView<
-     typename Matrices::
-        SparseMatrix< Real, Device, Index, MatrixType_, SegmentsType, ComputeRealType, RealAllocator, IndexAllocator >::
-           SegmentsViewType,
-     typename Matrices::
-        SparseMatrix< Real, Device, Index, MatrixType_, SegmentsType, ComputeRealType, RealAllocator, IndexAllocator >::
-           ValuesViewType,
-     typename Matrices::
-        SparseMatrix< Real, Device, Index, MatrixType_, SegmentsType, ComputeRealType, RealAllocator, IndexAllocator >::
-           ColumnIndexesViewType >
+     typename Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >::SegmentsViewType,
+     typename Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >::ValuesViewType,
+     typename Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >::
+        ColumnIndexesViewType >
 {
-   using MatrixType =
-      Matrices::SparseMatrix< Real, Device, Index, MatrixType_, SegmentsType, ComputeRealType, RealAllocator, IndexAllocator >;
+   //! \brief Type of the sparse matrix view.
+   using MatrixView = Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >;
+   //! \brief Type of constant sparse matrix view.
+   using ConstMatrixView = typename MatrixView::ConstViewType;
 
-   using Base = Matrices::SparseMatrixRowView< typename MatrixType::SegmentsViewType,
-                                               typename MatrixType::ValuesViewType,
-                                               typename MatrixType::ColumnIndexesViewType >;
+   //! \brief Base type.
+   using Base = Matrices::SparseMatrixRowView< typename MatrixView::SegmentsViewType,
+                                               typename MatrixView::ValuesViewType,
+                                               typename MatrixView::ColumnIndexesViewType >;
 
    using ColumnIndexesViewType = typename Base::ColumnsIndexesViewType;  // TODO: Rename ColumnsIndexesViewType in Base
+
    using typename Base::IndexType;
    using typename Base::RealType;
    using typename Base::SegmentViewType;
    using typename Base::ValuesViewType;
 
-   using GraphType = Graph< MatrixType, GraphType_ >;
+   //! \brief Type of the graph node view.
+   using NodeView = GraphNodeView< MatrixView, GraphType_ >;
 
-   using NodeView = GraphNodeView< Graph< MatrixType, GraphType_ > >;
-
-   using ConstNodeView = GraphNodeView< std::add_const_t< Graph< MatrixType, GraphType_ > > >;
+   //! \brief Type of the constant graph node view.
+   using ConstNodeView = GraphNodeView< ConstMatrixView, GraphType_ >;
 
    GraphNodeView( const SegmentViewType& segmentView,
                   const ValuesViewType& valuesView,
