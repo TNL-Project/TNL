@@ -226,7 +226,7 @@ template< class Grid, int EntityDimension >
 auto
 GridEntity< Grid, EntityDimension >::getPoint() const -> PointType
 {
-   return this->grid.getSpaceSteps() * this->getCoordinates();
+   return this->grid.getOrigin() + this->grid.getSpaceSteps() * this->getCoordinates();
 }
 
 template< class Grid, int EntityDimension >
