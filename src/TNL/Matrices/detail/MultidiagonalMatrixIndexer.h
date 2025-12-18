@@ -9,7 +9,7 @@
 #include <TNL/Backend/Macros.h>
 #include <TNL/DiscreteMath.h>
 
-namespace TNL::Matrices::details {
+namespace TNL::Matrices::detail {
 
 template< typename Index, bool RowMajorOrder >
 class MultidiagonalMatrixIndexer
@@ -116,4 +116,4 @@ protected:
    IndexType rows, columns, diagonals, nonemptyRows;
 };
 
-}  // namespace TNL::Matrices::details
+}  //namespace TNL::Matrices::detail
