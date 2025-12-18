@@ -8,7 +8,7 @@
 #include <TNL/Containers/Vector.h>
 #include <TNL/Matrices/LambdaMatrix.h>
 #include <TNL/Algorithms/parallelFor.h>
-#include <TNL/Matrices/details/SparseMatrix.h>
+#include <TNL/Matrices/detail/SparseMatrix.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
 namespace TNL::Matrices {
@@ -91,7 +91,7 @@ void
 LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::getCompressedRowLengths(
    Vector& rowLengths ) const
 {
-   details::set_size_if_resizable( rowLengths, this->getRows() );
+   detail::set_size_if_resizable( rowLengths, this->getRows() );
    rowLengths = 0;
    auto rowLengths_view = rowLengths.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType

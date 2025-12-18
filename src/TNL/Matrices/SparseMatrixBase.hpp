@@ -11,7 +11,7 @@
 #include <TNL/Algorithms/Segments/traverse.h>
 #include <TNL/Algorithms/Segments/reduce.h>
 #include "SparseMatrixBase.h"
-#include "details/SparseMatrix.h"
+#include "detail/SparseMatrix.h"
 
 namespace TNL::Matrices {
 
@@ -57,7 +57,7 @@ void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getCompressedRowLengths(
    Vector& rowLengths ) const
 {
-   details::set_size_if_resizable( rowLengths, this->getRows() );
+   detail::set_size_if_resizable( rowLengths, this->getRows() );
    rowLengths = 0;
    auto rowLengths_view = rowLengths.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType
@@ -76,7 +76,7 @@ template< typename Vector >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getRowCapacities( Vector& rowCapacities ) const
 {
-   details::set_size_if_resizable( rowCapacities, this->getRows() );
+   detail::set_size_if_resizable( rowCapacities, this->getRows() );
    rowCapacities = 0;
    auto rowCapacities_view = rowCapacities.getView();
    auto fetch = [] __cuda_callable__( IndexType row, IndexType column, const RealType& value ) -> IndexType

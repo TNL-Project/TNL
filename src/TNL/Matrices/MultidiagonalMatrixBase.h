@@ -6,7 +6,7 @@
 #include "MatrixBase.h"
 #include "MatrixType.h"
 #include "MultidiagonalMatrixRowView.h"
-#include "details/MultidiagonalMatrixIndexer.h"
+#include "detail/MultidiagonalMatrixIndexer.h"
 
 namespace TNL::Matrices {
 
@@ -44,7 +44,7 @@ public:
    using MatrixType = GeneralMatrix;
 
    // TODO: add documentation for these types
-   using IndexerType = details::MultidiagonalMatrixIndexer< Index, Organization == Algorithms::Segments::RowMajorOrder >;
+   using IndexerType = detail::MultidiagonalMatrixIndexer< Index, Organization == Algorithms::Segments::RowMajorOrder >;
    using DiagonalOffsetsView =
       Containers::VectorView< std::conditional_t< std::is_const_v< Real >, std::add_const_t< Index >, Index >, Device, Index >;
    using HostDiagonalOffsetsView = Containers::
