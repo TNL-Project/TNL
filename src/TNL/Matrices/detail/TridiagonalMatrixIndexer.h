@@ -10,7 +10,7 @@
 #include <TNL/Math.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
-namespace TNL::Matrices::details {
+namespace TNL::Matrices::detail {
 
 template< typename Index, Algorithms::Segments::ElementsOrganization Organization >
 class TridiagonalMatrixIndexer
@@ -115,4 +115,4 @@ protected:
    IndexType nonemptyRows = 0;
 };
 
-}  // namespace TNL::Matrices::details
+}  //namespace TNL::Matrices::detail

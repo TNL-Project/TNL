@@ -6,7 +6,7 @@
 #include "MatrixBase.h"
 #include "MatrixType.h"
 #include "TridiagonalMatrixRowView.h"
-#include "details/TridiagonalMatrixIndexer.h"
+#include "detail/TridiagonalMatrixIndexer.h"
 
 namespace TNL::Matrices {
 
@@ -44,7 +44,7 @@ public:
    using MatrixType = GeneralMatrix;
 
    // TODO: add documentation for this type
-   using IndexerType = details::TridiagonalMatrixIndexer< Index, Organization >;
+   using IndexerType = detail::TridiagonalMatrixIndexer< Index, Organization >;
 
    /**
     * \brief Type for accessing matrix rows.
