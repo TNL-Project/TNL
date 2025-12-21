@@ -116,9 +116,8 @@ template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fu
 void
 forSegments( const Segments& segments, IndexBegin begin, IndexEnd end, Function&& function, LaunchConfiguration launchConfig )
 {
-   using IndexType = typename Segments::IndexType;
    detail::TraversingOperations< typename Segments::ConstViewType >::forSegments(
-      segments.getConstView(), (IndexType) 0, segments.getSegmentsCount(), std::forward< Function >( function ), launchConfig );
+      segments.getConstView(), begin, end, std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Segments, typename Function >
