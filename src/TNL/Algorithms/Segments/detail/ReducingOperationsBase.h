@@ -43,6 +43,7 @@ struct ReducingOperationsBase
          } );
 
       auto indexes = compressFast< VectorType >( conditions );
+      indexes += begin;
       reduceSegments( segments,
                       indexes,
                       std::forward< Fetch >( fetch ),
@@ -80,6 +81,7 @@ struct ReducingOperationsBase
          } );
 
       auto indexes = compressFast< VectorType >( conditions );
+      indexes += begin;
       reduceSegmentsWithArgument( segments,
                                   indexes,
                                   std::forward< Fetch >( fetch ),

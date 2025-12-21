@@ -78,6 +78,7 @@ public:
     *
     * \param matrix is the source matrix
     */
+   // TODO: make this explicit to avoid accidental copies
    DenseMatrix( const DenseMatrix& matrix );
 
    /**
