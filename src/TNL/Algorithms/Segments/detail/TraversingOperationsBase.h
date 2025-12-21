@@ -92,8 +92,9 @@ struct TraversingOperationsBase
       auto segments_view = segments.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
       {
+         auto segment = segments_view.getSegmentView( segmentIdx );
          if( segmentCondition( segmentIdx ) )
-            function( segments_view.getSegmentView( segmentIdx ) );
+            function( segment );
       };
       Algorithms::parallelFor< DeviceType >( begin, end, f );  // TODO: Add launchConfig - it seems it does not work with
                                                                // current implementation of parallelFor
