@@ -1,4 +1,5 @@
 add_subdirectory(Factorization)
+add_subdirectory(Traverse)
 
 set(COMMON_TESTS
     DenseMatrixTest
