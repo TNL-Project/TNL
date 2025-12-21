@@ -46,12 +46,16 @@ template< typename Real = double,
           typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-class SparseMatrix : public SparseMatrixBase< Real,
-                                              Device,
-                                              Index,
-                                              MatrixType_,
-                                              typename Segments< Device, Index, IndexAllocator >::ViewType,
-                                              ComputeReal >
+class SparseMatrix
+: public SparseMatrixBase< Real,
+                           Device,
+                           Index,
+                           MatrixType_,
+                           std::conditional_t< std::is_const_v< Real >,
+                                               typename Segments< Device, Index, IndexAllocator >::ConstViewType,
+                                               typename Segments< Device, Index, IndexAllocator >::ViewType >,
+
+                           ComputeReal >
 {
    using Base = SparseMatrixBase< Real,
                                   Device,
