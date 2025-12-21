@@ -987,6 +987,28 @@ public:
    operator!=( const DenseMatrixBase< Real_, Device_, Index_, Organization >& matrix ) const;
 
    /**
+    * \brief Getter of segments for non-constant instances.
+    *
+    * \e Segments are a structure for addressing the matrix elements columns and values.
+    * In fact, \e Segments represent the sparse matrix format.
+    *
+    * \return Non-constant reference to segments.
+    */
+   [[nodiscard]] SegmentsViewType&
+   getSegments();
+
+   /**
+    * \brief Getter of segments for constant instances.
+    *
+    * \e Segments are a structure for addressing the matrix elements columns and values.
+    * In fact, \e Segments represent the sparse matrix format.
+    *
+    * \return Constant reference to segments.
+    */
+   [[nodiscard]] const SegmentsViewType&
+   getSegments() const;
+
+   /**
     * \brief Method for printing the matrix to output stream.
     *
     * \param str is the output stream.
