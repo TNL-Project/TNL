@@ -749,6 +749,20 @@ DenseMatrixBase< Real, Device, Index, Organization >::operator!=(
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+auto
+DenseMatrixBase< Real, Device, Index, Organization >::getSegments() -> SegmentsViewType&
+{
+   return this->segments;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
+auto
+DenseMatrixBase< Real, Device, Index, Organization >::getSegments() const -> const SegmentsViewType&
+{
+   return this->segments;
+}
+
+template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 void
 DenseMatrixBase< Real, Device, Index, Organization >::print( std::ostream& str ) const
 {
