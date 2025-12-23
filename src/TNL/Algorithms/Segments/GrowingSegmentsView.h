@@ -6,7 +6,6 @@
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/print.h>
-#include <TNL/Algorithms/Segments/detail/CheckLambdas.h>
 
 namespace TNL::Algorithms::Segments {
 
@@ -87,7 +86,7 @@ struct GrowingSegmentsView : public SegmentsView_
                    const Value& identity ) const
    {
       // NVCC does not allow if constexpr inside lambda
-      /*if constexpr( detail::CheckFetchLambda< IndexType, Fetch >::hasAllParameters() ) {
+      /*if constexpr( argumentCount< Fetch >() == 3 ) {
          auto main_fetch_with_all_params = [=,*this] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType
       globalIdx, bool compute ) mutable { IndexType end = this->segmentsFilling[ segmentIdx ]; if( localIdx < end  ) { if(
       localIdx == end -1 ) compute = false; return fetch( segmentIdx, localIdx, globalIdx, compute );
