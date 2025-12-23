@@ -5,11 +5,10 @@
 
 #include <TNL/Backend/Macros.h>
 #include <TNL/TypeTraits.h>
-#include "CheckLambdas.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< typename Index, typename Lambda, bool AllParameters = CheckFetchLambda< Index, Lambda >::hasAllParameters() >
+template< typename Index, typename Lambda, bool AllParameters = ( argumentCount< Lambda >() == 3 ) >
 struct FetchLambdaAdapter
 {};
 
