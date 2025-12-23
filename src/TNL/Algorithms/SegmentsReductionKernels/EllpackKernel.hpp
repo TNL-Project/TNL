@@ -39,7 +39,7 @@ EllpackCudaReductionKernel( Index begin,
    end = begin + segmentSize;
 
    // Calculate the result
-   if constexpr( Segments::detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() ) {
+   if constexpr( argumentCount< Fetch >() == 3 ) {
       Index localIdx = laneIdx;
       for( Index i = begin + laneIdx; i < end; i += warpSize, localIdx += warpSize )
          result = reduction( result, fetch( segmentIdx, localIdx, i ) );
