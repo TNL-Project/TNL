@@ -32,7 +32,7 @@ BiEllpackreduceSegmentsKernel( SegmentsView segments,
                                ResultKeeper keeper,
                                Value identity )
 {
-   if constexpr( Segments::detail::CheckFetchLambda< Index, Fetch >::hasAllParameters() )
+   if constexpr( argumentCount< Fetch >() == 3 )
       Segments::detail::reduceSegmentsKernelWithAllParameters< BlockDim >(
          segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
    else

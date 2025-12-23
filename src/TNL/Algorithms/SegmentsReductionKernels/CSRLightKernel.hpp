@@ -285,8 +285,8 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
                                                  Keep& keep,
                                                  const Value& identity ) const
 {
-   constexpr bool DispatchScalarCSR = Segments::detail::CheckFetchLambda< Index, Fetch >::hasAllParameters()
-                                   || std::is_same_v< Device, Devices::Host > || ! std::is_fundamental_v< Value >;
+   constexpr bool DispatchScalarCSR =
+      ( argumentCount< Fetch >() == 3 || std::is_same_v< Device, Devices::Host > || ! std::is_fundamental_v< Value > );
    if constexpr( DispatchScalarCSR ) {
       TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel< Index, Device >::reduceSegments(
          segments, begin, end, fetch, reduction, keep, identity );
