@@ -243,7 +243,7 @@ reduceSegmentsIf( const Segments& segments,
                                                                                      std::forward< Fetch >( fetch ),
                                                                                      std::forward< Reduction >( reduction ),
                                                                                      std::forward< ResultKeeper >( keeper ),
-                                                                                     Reduction::template getIdentity< Value >(),
+                                                                                     identity,
                                                                                      launchConfig );
 }
 
@@ -550,7 +550,7 @@ reduceSegmentsIfWithArgument( const Segments& segments,
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
       std::forward< ResultKeeper >( keeper ),
-      Reduction::template getIdentity< Value >(),
+      identity,
       launchConfig );
 }
 
