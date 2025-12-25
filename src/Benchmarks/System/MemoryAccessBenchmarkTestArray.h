@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include <cstring>
-#include <iostream>
-#include <climits>
+#include <cstdint>
+#include <stdexcept>
 #include <sys/time.h>
 
 #include <TNL/Containers/Array.h>
@@ -13,7 +12,7 @@
 template< int Size >
 struct MemoryAccessBenchmarkTestElement
 {
-   long int&
+   std::uintptr_t&
    operator[]( int i )
    {
       return data[ i ];
@@ -21,18 +20,17 @@ struct MemoryAccessBenchmarkTestElement
 
    MemoryAccessBenchmarkTestElement* next;
 
-   // long int has the same size as a pointer on both 32 and 64 bits systems.
-   long int data[ Size - 1 ];
+   // std::uintptr_t has the same size as a pointer on both 32 and 64 bits systems.
+   std::uintptr_t data[ Size - 1 ];
 };
 
 template<>
 struct MemoryAccessBenchmarkTestElement< 1 >
 {
-   long int&
+   std::uintptr_t&
    operator[]( int i )
    {
-      std::cerr << "Calling of operator [] for TestArrayElement with Size = 1 does not make sense.\n";
-      abort();
+      throw std::logic_error( "Calling of operator [] for TestArrayElement with Size = 1 does not make sense." );
    }
 
    MemoryAccessBenchmarkTestElement* next;
@@ -52,16 +50,16 @@ public:
    using PtrArrayType = TNL::Containers::Array< ElementType* >;
    using ArrayView = typename ArrayType::ViewType;
 
-   MemoryAccessBenchmarkTestArray( unsigned long long int size );
+   MemoryAccessBenchmarkTestArray( std::uintptr_t size );
 
    void
    setThreadsCount( int threads_count );
 
-   [[nodiscard]] unsigned long long int
+   [[nodiscard]] std::uintptr_t
    getElementsCount() const;
 
    void
-   setElementsPerTest( long long int elementsPerTest );
+   setElementsPerTest( std::uintptr_t elementsPerTest );
 
    void
    setWriteTest( bool writeTest );
@@ -76,18 +74,18 @@ public:
    setInterleaving( bool interleaving );
 
    bool
-   setupRandomTest( int tlbTestBlockSize = 0, const int numThreads = 1 );
+   setupRandomTest( int tlbTestBlockSize = 0, int numThreads = 1 );
 
    void
-   setupSequentialTest( const int numThreads = 1, bool interleaving = true );
+   setupSequentialTest( int numThreads = 1, bool interleaving = true );
 
    void
    performTest();
 
-   unsigned long long int
+   std::uintptr_t
    getTestedElementsCount();
 
-   unsigned long long int
+   std::uintptr_t
    getTestedElementsCountPerThread();
 
 protected:
@@ -95,7 +93,7 @@ protected:
    setupRandomTLBWorstTest();
 
    bool
-   setupRandomTestBlock( const unsigned long long int blockSize, PtrArrayType& blockLink, const int numThreads = 1 );
+   setupRandomTestBlock( std::uintptr_t blockSize, PtrArrayType& blockLink, int numThreads = 1 );
 
    template< bool readTest, bool writeTest, bool accessCentralData >
    void
@@ -104,15 +102,19 @@ protected:
    ArrayType allocation;
    ArrayView array;
 
-   unsigned long long int numberOfElements;
+   std::uintptr_t numberOfElements;
 
-   bool readTest = true, writeTest = false, accessCentralData = false, interleaving = false;
+   bool readTest = true;
+   bool writeTest = false;
+   bool accessCentralData = false;
+   bool interleaving = false;
 
    int num_threads = 1;
 
-   unsigned long long int elementsPerTest, testedElementsCount;
+   std::uintptr_t elementsPerTest;
+   std::uintptr_t testedElementsCount;
 
-   unsigned long long int sum = 0;
+   std::uintptr_t sum = 0;
 };
 
 #include "MemoryAccessBenchmarkTestArray.hpp"

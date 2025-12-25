@@ -82,7 +82,7 @@ struct DenseMatrixTranspositionBenchmark
       const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
       const IndexType loops = parameters.getParameter< IndexType >( "loops" );
       const IndexType verbose = parameters.getParameter< IndexType >( "verbose" );
-      bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
+      const bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
 
       auto mode = std::ios::out;
       if( outputMode == "append" )
@@ -93,7 +93,7 @@ struct DenseMatrixTranspositionBenchmark
       std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
       TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
 
-      TNL::String device = parameters.getParameter< TNL::String >( "device" );
+      const auto device = parameters.getParameter< TNL::String >( "device" );
 
       IndexType dmatrix1Rows = 0;     // Number of rows in matrix1 (same as columns in matrix2)
       IndexType dmatrix1Columns = 0;  // Number of columns in matrix1
@@ -284,6 +284,7 @@ struct DenseMatrixTranspositionBenchmark
             denseMatrix.setDimensions( dmatrix1Rows, dmatrix1Columns );
 
             TNL::Matrices::DenseMatrix< RealType, Devices::Host, IndexType > outputMatrix;
+            // NOLINTNEXTLINE(readability-suspicious-call-argument)
             outputMatrix.setDimensions( dmatrix1Columns, dmatrix1Rows );
 
             const RealType h_x = 1.0 / 100;

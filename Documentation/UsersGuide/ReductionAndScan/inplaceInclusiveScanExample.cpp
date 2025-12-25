@@ -14,9 +14,9 @@ main( int argc, char* argv[] )
     */
    Array< double, Devices::Host > host_a( 10 );
    host_a = 1.0;
-   std::cout << "host_a = " << host_a << std::endl;
+   std::cout << "host_a = " << host_a << '\n';
    inplaceInclusiveScan( host_a );
-   std::cout << "The prefix sum of the host array is " << host_a << "." << std::endl;
+   std::cout << "The prefix sum of the host array is " << host_a << ".\n";
 
    /***
     * And then also on GPU.
@@ -24,9 +24,9 @@ main( int argc, char* argv[] )
 #ifdef __CUDACC__
    Array< double, Devices::Cuda > cuda_a( 10 );
    cuda_a = 1.0;
-   std::cout << "cuda_a = " << cuda_a << std::endl;
+   std::cout << "cuda_a = " << cuda_a << '\n';
    inplaceInclusiveScan( cuda_a );
-   std::cout << "The prefix sum of the CUDA array is " << cuda_a << "." << std::endl;
+   std::cout << "The prefix sum of the CUDA array is " << cuda_a << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

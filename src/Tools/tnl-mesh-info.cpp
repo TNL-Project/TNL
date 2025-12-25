@@ -163,7 +163,7 @@ printInfo( Mesh< MeshConfig, Devices::Host >& mesh, const std::string& fileName 
              << "\tAverage number of subvertices per cell:\t" << avgCellSubvertices << "\n"
              << "\tAverage number of subvertices per face:\t" << avgFaceSubvertices << "\n"
              << "\tAverage number of faces per cell:\t" << avgSubfaces << "\n"
-             << std::endl;
+             << '\n';
 
    return true;
 }
@@ -172,7 +172,7 @@ int
 main( int argc, char* argv[] )
 {
    if( argc < 2 ) {
-      std::cerr << "Usage: " << argv[ 0 ] << " filename.[tnl|ng|vtk|vtu|fpma] ..." << std::endl;
+      std::cerr << "Usage: " << argv[ 0 ] << " filename.[tnl|ng|vtk|vtu|fpma] ...\n";
       return EXIT_FAILURE;
    }
 
@@ -180,11 +180,11 @@ main( int argc, char* argv[] )
 
    for( int i = 1; i < argc; i++ ) {
       const std::string fileName = argv[ i ];
-      auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+      auto wrapper = [ & ]( auto& reader, auto&& mesh )
       {
-         return printInfo( mesh, fileName );
+         result &= printInfo( mesh, fileName );
       };
-      result &= resolveAndLoadMesh< MyConfigTag, Devices::Host >( wrapper, fileName );
+      resolveAndLoadMesh< MyConfigTag, Devices::Host >( wrapper, fileName );
    }
 
    return static_cast< int >( ! result );

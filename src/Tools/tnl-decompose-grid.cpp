@@ -97,7 +97,7 @@ run( const GridType& globalGrid, const Config::ParameterContainer& parameters )
 
    // write a .pvti file
    using PVTI = Meshes::Writers::PVTIWriter< GridType >;
-   const std::string pvtiFileName = parameters.template getParameter< String >( "output-file" );
+   const auto pvtiFileName = parameters.template getParameter< std::string >( "output-file" );
    std::ofstream file( pvtiFileName );
    PVTI pvti( file );
    pvti.writeImageData( globalGrid, ghost_levels );  // TODO: ..., ncommon );
@@ -108,12 +108,12 @@ run( const GridType& globalGrid, const Config::ParameterContainer& parameters )
    //      pvtu.template writePCellData< std::uint8_t >( Meshes::VTK::ghostArrayName() );
    //   }
 
-   std::cout << "Writing subdomains..." << std::endl;
+   std::cout << "Writing subdomains...\n";
    const unsigned nproc = TNL::product( decomposition );
    for( unsigned p = 0; p < nproc; p++ ) {
       // cartesian coordinates of the p-th rank in the decomposition
       const CoordinatesType rank_coordinates = getRankCoordinates( p, decomposition );
-      std::cout << p << "-th rank_coordinates: " << rank_coordinates << std::endl;
+      std::cout << p << "-th rank_coordinates: " << rank_coordinates << '\n';
 
       // prepare local grid attributes
       CoordinatesType globalBegin;
@@ -132,7 +132,7 @@ run( const GridType& globalGrid, const Config::ParameterContainer& parameters )
       }
 
       const std::string outputFileName = pvti.addPiece( pvtiFileName, p, globalBegin, globalBegin + localSize );
-      std::cout << outputFileName << std::endl;
+      std::cout << outputFileName << '\n';
 
       // write the subdomain
       using Writer = Meshes::Writers::VTIWriter< GridType >;
@@ -162,7 +162,7 @@ main( int argc, char* argv[] )
    const String inputFileFormat = parameters.getParameter< String >( "input-file-format" );
    const String outputFile = parameters.template getParameter< String >( "output-file" );
    if( ! outputFile.endsWith( ".pvti" ) ) {
-      std::cerr << "Error: the output file must have a '.pvti' extension." << std::endl;
+      std::cerr << "Error: the output file must have a '.pvti' extension.\n";
       return EXIT_FAILURE;
    }
 
@@ -170,9 +170,13 @@ main( int argc, char* argv[] )
    {
       using GridType = std::decay_t< decltype( grid ) >;
       run( std::forward< GridType >( grid ), parameters );
-      return true;
    };
-   const bool status =
+   try {
       Meshes::resolveAndLoadMesh< DecomposeGridConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
-   return static_cast< int >( ! status );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
+   return EXIT_SUCCESS;
 }

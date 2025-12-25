@@ -6,6 +6,7 @@
 #include <string>
 
 #include <TNL/Config/ConfigDescription.h>
+#include <TNL/Containers/Vector.h>
 #include <TNL/Solvers/ODE/ExplicitSolver.h>
 
 namespace TNL::Benchmarks {
@@ -142,7 +143,7 @@ public:
     */
    template< typename RHSFunction >
    bool
-   solve( VectorType& u, RHSFunction&& f );
+   solve( VectorType& u, RHSFunction&& rhsFunction );
 
    void
    writeGrids( const DofVectorType& u );

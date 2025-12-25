@@ -35,6 +35,8 @@ foreach(target IN ITEMS ${UMFPACK_DEPENDING_EXAMPLES})
     add_executable(${target} ${target}.cpp)
     target_compile_definitions(${target} PUBLIC "-DHAVE_UMFPACK")
     target_link_libraries(${target} PUBLIC TNL::TNL SuiteSparse::UMFPACK)
+    # reset SuiteSparse::UMFPACK to system target (upstream sets 0)
+    set_property(TARGET SuiteSparse::UMFPACK PROPERTY SYSTEM 1)
     add_custom_command(
         COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
         OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out DEPENDS ${target}

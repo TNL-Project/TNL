@@ -55,6 +55,15 @@ public:
    }
 
    /**
+    * \brief Unsets the timer object for the solver monitor.
+    */
+   void
+   unsetTimer()
+   {
+      this->timer = nullptr;
+   }
+
+   /**
     * \brief Starts the main loop from which the method \ref SolverMonitor::refresh is called in given time periods.
     */
    void

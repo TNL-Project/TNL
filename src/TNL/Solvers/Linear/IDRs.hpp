@@ -55,7 +55,11 @@ IDRs< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
 
    // initial binding to x sets the correct local range, global size and
    // communicator for distributed views
-   VectorViewType P_i( x ), U_k( x ), U_i( x ), G_k( x ), G_i( x );
+   VectorViewType P_i( x );
+   VectorViewType U_k( x );
+   VectorViewType U_i( x );
+   VectorViewType G_k( x );
+   VectorViewType G_i( x );
 
    // initialize the norm of the right-hand-side
    RealType b_norm = TNL::l2Norm( b );
@@ -317,7 +321,8 @@ IDRs< Matrix >::setSize( const VectorViewType& x )
 
    // initial binding to x sets the correct local range, global size and
    // communicator for distributed views
-   VectorViewType P_i( x ), P_j( x );
+   VectorViewType P_i( x );
+   VectorViewType P_j( x );
 
    // make the columns of P orthonormal
    for( int i = 0; i < s; i++ ) {

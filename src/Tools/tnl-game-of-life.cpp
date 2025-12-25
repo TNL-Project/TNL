@@ -156,7 +156,7 @@ runGameOfLife( const Mesh& mesh )
    typename LocalMesh::PointType c2 = { 0.58, 0.52 };
    Index count = 0;
    for( Index i = 0; i < pointsCount; i++ ) {
-      auto p = localMesh.getPoint( i );
+      const auto& p = localMesh.getPoint( i );
       if( p.x() >= c1.x() && p.y() >= c1.y() && p.x() <= c2.x() && p.y() <= c2.y() ) {
          count++;
       }
@@ -172,7 +172,8 @@ runGameOfLife( const Mesh& mesh )
          const Index subvertices = localMesh.template getSubentitiesCount< LocalMesh::getMeshDimension(), 0 >( i );
          int in_box = 0;
          for( Index j = 0; j < subvertices; j++ ) {
-            auto p = localMesh.getPoint( localMesh.template getSubentityIndex< LocalMesh::getMeshDimension(), 0 >( i, j ) );
+            const auto& p =
+               localMesh.getPoint( localMesh.template getSubentityIndex< LocalMesh::getMeshDimension(), 0 >( i, j ) );
             if( p.x() >= c1.x() && p.y() >= c1.y() && p.x() <= c2.x() && p.y() <= c2.y() )
                in_box++;
          }
@@ -316,8 +317,8 @@ void
 configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
-   config.addRequiredEntry< String >( "input-file", "Input file with the mesh." );
-   config.addEntry< String >( "input-file-format", "Input mesh file format.", "auto" );
+   config.addRequiredEntry< std::string >( "input-file", "Input file with the mesh." );
+   config.addEntry< std::string >( "input-file-format", "Input mesh file format.", "auto" );
    config.addDelimiter( "MPI settings:" );
    TNL::MPI::configSetup( config );
 }
@@ -338,15 +339,21 @@ main( int argc, char* argv[] )
    if( ! TNL::MPI::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String inputFileName = parameters.getParameter< String >( "input-file" );
-   const String inputFileFormat = parameters.getParameter< String >( "input-file-format" );
+   const auto inputFileName = parameters.getParameter< std::string >( "input-file" );
+   const auto inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
 
-   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+   bool status = true;
+   auto wrapper = [ & ]( auto& reader, auto&& mesh )
    {
       using MeshType = std::decay_t< decltype( mesh ) >;
-      return runGameOfLife( std::forward< MeshType >( mesh ) );
+      status = runGameOfLife( std::forward< MeshType >( mesh ) );
    };
-   const bool status =
+   try {
       Meshes::resolveAndLoadDistributedMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
    return static_cast< int >( ! status );
 }

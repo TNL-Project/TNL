@@ -40,7 +40,7 @@ SegmentsExample()
    /***
     * Print the data by the segments.
     */
-   std::cout << "Values of elements after initial setup: " << std::endl;
+   std::cout << "Values of elements after initial setup:\n";
    auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];
@@ -71,25 +71,25 @@ SegmentsExample()
    SegmentsReductionKernel kernel;
    kernel.init( segments );
    kernel.reduceAllSegments( segments, fetch_full, std::plus<>{}, keep, 0.0 );
-   std::cout << "The sums with full fetch form are: " << sums << std::endl;
+   std::cout << "The sums with full fetch form are: " << sums << '\n';
    kernel.reduceAllSegments( segments, fetch_brief, std::plus<>{}, keep, 0.0 );
-   std::cout << "The sums with brief fetch form are: " << sums << std::endl << std::endl;
+   std::cout << "The sums with brief fetch form are: " << sums << "\n\n";
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int > >();
 
-   std::cout << "Example of Ellpack segments on host: " << std::endl;
+   std::cout << "Example of Ellpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > >();
 
-   std::cout << "Example of Ellpack segments on host: " << std::endl;
+   std::cout << "Example of Ellpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int > >();
 #endif
    return EXIT_SUCCESS;

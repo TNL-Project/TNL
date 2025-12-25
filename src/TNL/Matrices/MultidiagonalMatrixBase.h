@@ -4,6 +4,7 @@
 #pragma once
 
 #include "MatrixBase.h"
+#include "MatrixType.h"
 #include "MultidiagonalMatrixRowView.h"
 #include "details/MultidiagonalMatrixIndexer.h"
 

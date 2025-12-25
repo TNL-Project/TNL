@@ -232,12 +232,12 @@ MeshFunction< Mesh, MeshEntityDimension, Real >::getMaxNorm() const
 }
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
-bool
+void
 MeshFunction< Mesh, MeshEntityDimension, Real >::write( const std::string& functionName,
                                                         const std::string& fileName,
                                                         const std::string& fileFormat ) const
 {
-   return writeMeshFunction( *this, functionName, fileName, fileFormat );
+   writeMeshFunction( *this, functionName, fileName, fileFormat );
 }
 
 template< typename Mesh, int MeshEntityDimension, typename Real >

@@ -14,8 +14,7 @@
 #include <cstring>  // std::memcpy, std::memcmp
 #include <cstddef>  // std::nullptr_t
 
-namespace TNL {
-namespace Pointers {
+namespace TNL::Pointers {
 
 /**
  * \brief Cross-device unique smart pointer.
@@ -165,7 +164,7 @@ public:
    __cuda_callable__
    operator bool() const
    {
-      return this->pointer;
+      return this->pointer != nullptr;
    }
 
    /**
@@ -177,7 +176,7 @@ public:
    bool
    operator!() const
    {
-      return ! this->pointer;
+      return this->pointer == nullptr;
    }
 
    /**
@@ -230,8 +229,7 @@ public:
    const UniquePointer&
    operator=( UniquePointer& ptr )
    {
-      if( this->pointer )
-         delete this->pointer;
+      delete this->pointer;
       this->pointer = ptr.pointer;
       ptr.pointer = nullptr;
       return *this;
@@ -270,8 +268,7 @@ public:
     */
    ~UniquePointer() override
    {
-      if( this->pointer )
-         delete this->pointer;
+      delete this->pointer;
    }
 
 protected:
@@ -410,7 +407,7 @@ public:
    __cuda_callable__
    operator bool() const
    {
-      return this->pd;
+      return this->pd != nullptr;
    }
 
    /**
@@ -422,7 +419,7 @@ public:
    bool
    operator!() const
    {
-      return ! this->pd;
+      return this->pd == nullptr;
    }
 
    /**
@@ -523,7 +520,7 @@ public:
    bool
    synchronize() override
    {
-      if( ! this->pd )
+      if( this->pd == nullptr )
          return true;
       if( this->modified() ) {
          Backend::memcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), Backend::MemcpyHostToDevice );
@@ -589,8 +586,7 @@ protected:
    void
    free()
    {
-      if( this->pd )
-         delete this->pd;
+      delete this->pd;
       if( this->cuda_pointer )
          AllocatorType{}.deallocate( this->cuda_pointer, 1 );
    }
@@ -602,10 +598,10 @@ protected:
    Object* cuda_pointer;
 };
 
-}  // namespace Pointers
+}  // namespace TNL::Pointers
 
 #ifndef NDEBUG
-namespace Assert {
+namespace TNL::Assert {
 
 template< typename Object, typename Device >
 struct Formatter< Pointers::UniquePointer< Object, Device > >
@@ -619,7 +615,5 @@ struct Formatter< Pointers::UniquePointer< Object, Device > >
    }
 };
 
-}  // namespace Assert
+}  // namespace TNL::Assert
 #endif
-
-}  // namespace TNL

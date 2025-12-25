@@ -42,6 +42,6 @@ main( int argc, char* argv[] )
       TNL::Matrices::LambdaMatrixFactory< double, TNL::Devices::Host, int >::create( matrixElements2, compressedRowLengths );
    m2.setDimensions( size, size );
 
-   std::cout << "The first lambda matrix: " << std::endl << m1 << std::endl;
-   std::cout << "The second lambda matrix: " << std::endl << m2 << std::endl;
+   std::cout << "The first lambda matrix:\n" << m1 << '\n';
+   std::cout << "The second lambda matrix:\n" << m2 << '\n';
 }

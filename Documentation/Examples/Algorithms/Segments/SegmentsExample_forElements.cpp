@@ -34,8 +34,8 @@ SegmentsExample()
    /***
     * Print the data managed by the segments.
     */
-   std::cout << "Data setup with no check ... " << std::endl;
-   std::cout << "Array: " << data << std::endl;
+   std::cout << "Data setup with no check ...\n";
+   std::cout << "Array: " << data << '\n';
    auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];
@@ -56,25 +56,25 @@ SegmentsExample()
    /***
     * Print the data managed by the segments.
     */
-   std::cout << "Data setup with check for padding elements..." << std::endl;
-   std::cout << "Array: " << data << std::endl;
+   std::cout << "Data setup with check for padding elements...\n";
+   std::cout << "Array: " << data << '\n';
    printSegments( std::cout, segments, fetch );
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int > >();
 
-   std::cout << "Example of Ellpack segments on host: " << std::endl;
+   std::cout << "Example of Ellpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of CSR segments on CUDA GPU: " << std::endl;
+   std::cout << "Example of CSR segments on CUDA GPU:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > >();
 
-   std::cout << "Example of Ellpack segments on CUDA GPU: " << std::endl;
+   std::cout << "Example of Ellpack segments on CUDA GPU:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int > >();
 #endif
    return EXIT_SUCCESS;

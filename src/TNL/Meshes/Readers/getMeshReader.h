@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <filesystem>
+#include <stdexcept>
 
 #include <TNL/Meshes/Readers/NetgenReader.h>
 #include <TNL/Meshes/Readers/VTKReader.h>
@@ -45,11 +46,11 @@ getMeshReader( const std::string& fileName, const std::string& fileFormat )
       return std::make_shared< Readers::FPMAReader >( fileName );
 
    if( fileFormat == "auto" )
-      std::cerr << "File '" << fileName << "' has unsupported format (based on the file extension): " << format << ".";
+      throw std::runtime_error( "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
+                                + ". Supported formats are 'ng', 'vtk', 'vtu', 'vti', 'pvtu' and 'pvti'." );
    else
-      std::cerr << "Unsupported fileFormat parameter: " << fileFormat << ".";
-   std::cerr << " Supported formats are 'ng', 'vtk', 'vtu', 'vti', 'pvtu' and 'pvti'.\n";
-   return nullptr;
+      throw std::invalid_argument( "Invalid fileFormat parameter: '" + fileFormat
+                                   + "'. Supported formats are 'ng', 'vtk', 'vtu', 'vti', 'pvtu' and 'pvti'." );
 }
 
 }  // namespace TNL::Meshes::Readers

@@ -12,7 +12,8 @@ forElementsExample()
     * Create new arrays
     */
    const int size = 10;
-   Containers::Array< float, Device > a( size ), b( size );
+   Containers::Array< float, Device > a( size );
+   Containers::Array< float, Device > b( size );
    b = 0;
 
    /****
@@ -38,18 +39,18 @@ forElementsExample()
    /****
     * Print the results
     */
-   std::cout << " a = " << a << std::endl;
-   std::cout << " b = " << b << std::endl;
+   std::cout << " a = " << a << '\n';
+   std::cout << " b = " << b << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running example on the host system: " << std::endl;
+   std::cout << "Running example on the host system:\n";
    forElementsExample< Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running example on the CUDA device: " << std::endl;
+   std::cout << "Running example on the CUDA device:\n";
    forElementsExample< Devices::Cuda >();
 #endif
 }

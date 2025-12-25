@@ -4,7 +4,6 @@
 #pragma once
 
 #include <TNL/Benchmarks/Benchmarks.h>
-#include <TNL/Config/ConfigDescription.h>
 #include <TNL/Config/parseCommandLine.h>
 #include "MemoryAccessBenchmarkTestArray.h"
 #include "MemoryAccessBenchmark.h"
@@ -13,7 +12,7 @@ void
 MemoryAccessBenchmark::configSetup( TNL::Config::ConfigDescription& config )
 {
    config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-heat-equation.log" );
+   config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-memory-access.log" );
    config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
    config.addEntryEnum( "overwrite" );
    config.addEntryEnum( "append" );

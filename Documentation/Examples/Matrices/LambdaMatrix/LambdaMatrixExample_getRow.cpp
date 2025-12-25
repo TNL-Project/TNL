@@ -78,18 +78,18 @@ getRowExample()
    };
    TNL::Algorithms::parallelFor< Device >( 0, matrixSize, f );
 
-   std::cout << "Laplace operator lambda matrix: " << std::endl << matrix << std::endl;
-   std::cout << "Laplace operator dense matrix: " << std::endl << denseMatrix << std::endl;
+   std::cout << "Laplace operator lambda matrix:\n" << matrix << '\n';
+   std::cout << "Laplace operator dense matrix:\n" << denseMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running example on CPU ... " << std::endl;
+   std::cout << "Running example on CPU ...\n";
    getRowExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running example on CUDA GPU ... " << std::endl;
+   std::cout << "Running example on CUDA GPU ...\n";
    getRowExample< TNL::Devices::Cuda >();
 #endif
 }

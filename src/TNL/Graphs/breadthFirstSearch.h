@@ -115,7 +115,7 @@ breadthFirstSearch_impl( const Matrix& adjacencyMatrix,
    using Index = typename Matrix::IndexType;
    using Device = typename Matrix::DeviceType;
 
-   if constexpr( std::is_same< Device, TNL::Devices::Sequential >::value ) {
+   if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
       distances = -1;
       distances.setElement( start, 0.0 );
 

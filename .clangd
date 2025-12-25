@@ -4,9 +4,13 @@ CompileFlags:
   Compiler: clang++
   CompilationDatabase: build
   Add:
+    - "-DHAVE_HYPRE"
     - "-DHAVE_OPENMP"
     - "-DHAVE_MPI"
-    - "-xcu"
+    - "-DHAVE_TINYXML2"
+    - "-DHAVE_ZLIB"
+    # FIXME: clangd 21 and cuda 13 do not work together
+    #- "-xcu"
   Remove:
     # remove all nvcc-specific flags that may appear in the compile_commands.json file
     - "-Xcompiler"
@@ -44,6 +48,7 @@ Diagnostics:
       - readability-function-cognitive-complexity
       - readability-function-size
       - readability-identifier-length
+      - readability-use-concise-preprocessor-directives
       - modernize-avoid-c-arrays
       - modernize-use-trailing-return-type
       - modernize-raw-string-literal
@@ -54,7 +59,21 @@ Diagnostics:
       readability-magic-numbers.IgnorePowersOf2IntegerValues: true
       modernize-use-default-member-init.UseAssignment: true
       modernize-use-auto.MinTypeNameLength: 10
+      performance-unnecessary-value-param.AllowedTypes: "std::shared_ptr;std::unique_ptr"
       cppcoreguidelines-pro-type-member-init.UseAssignment: true
+
+  UnusedIncludes: Strict
+  MissingIncludes: None  # TODO: switch to Strict?
+
+Completion:
+  HeaderInsertion: IWYU
+
+Style:
+  AngledHeaders:
+    - "TNL/.*"
+
+Documentation:
+  CommentFormat: Doxygen
 
 ...
 # vim: ft=yaml

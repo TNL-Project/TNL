@@ -58,13 +58,9 @@ test_resolveAndLoadMesh( const MeshType& mesh, const std::string& outputFileName
       str1 << mesh;
       str2 << mesh2;
       EXPECT_EQ( str2.str(), str1.str() );
-
-      return true;
    };
 
-   const bool status = TNL::Meshes::resolveAndLoadMesh< ConfigTag, TNL::Devices::Host >(
-      wrapper, outputFileName, "auto", "auto", globalIndexType );
-   EXPECT_TRUE( status );
+   TNL::Meshes::resolveAndLoadMesh< ConfigTag, TNL::Devices::Host >( wrapper, outputFileName, "auto", "auto", globalIndexType );
 
    EXPECT_EQ( std::remove( outputFileName.c_str() ), 0 );
 }

@@ -169,10 +169,7 @@ MatrixReader< Matrix, TNL::Devices::Host >::checkMtxHeader( const String& header
    if( parsedLine[ 3 ] != "real" && parsedLine[ 3 ] != "integer" && parsedLine[ 3 ] != "pattern" )
       throw std::runtime_error( std::string( "Only 'real' and 'integer' matrices are supported, not " )
                                 + parsedLine[ 3 ].getString() );
-   if( parsedLine[ 3 ] == "pattern" )
-      matrixPattern = true;
-   else
-      matrixPattern = false;
+   matrixPattern = parsedLine[ 3 ] == "pattern";
    if( parsedLine[ 4 ] != "general" ) {
       if( parsedLine[ 4 ] == "symmetric" )
          symmetric = true;

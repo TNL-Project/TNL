@@ -38,5 +38,5 @@ main()
     */
    std::cout.precision( 15 );
    for( int i = 0; i < size; i++ )
-      std::cout << doubleArray[ i ] << " -- " << floatArray[ i ] << " -- " << intArray[ i ] << std::endl;
+      std::cout << doubleArray[ i ] << " -- " << floatArray[ i ] << " -- " << intArray[ i ] << '\n';
 }

@@ -125,7 +125,7 @@ public:
    [[nodiscard]] RealType
    getMaxNorm() const;
 
-   bool
+   void
    write( const std::string& functionName, const std::string& fileName, const std::string& fileFormat = "auto" ) const;
 
 protected:

@@ -27,7 +27,7 @@ struct MeshCellTopologyTag< MyConfigTag, Topologies::Triangle >
 
 // Define the main task/function of the program
 template< typename HostMesh >
-bool
+void
 task( const HostMesh& hostMesh )
 {
    //! [Parallel iteration CUDA]
@@ -48,8 +48,6 @@ task( const HostMesh& hostMesh )
    };
    deviceMesh.template forAll< DeviceMesh::getMeshDimension() >( kernel );
    //! [Parallel iteration CUDA]
-
-   return true;
 }
 
 int
@@ -57,10 +55,10 @@ main( int argc, char* argv[] )
 {
    const std::string inputFileName = "example-triangles.vtu";
 
-   auto wrapper = []( auto& reader, auto&& mesh ) -> bool
+   auto wrapper = []( auto& reader, auto&& mesh )
    {
-      return task( mesh );
+      task( mesh );
    };
-   const bool result = TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
-   return static_cast< int >( ! result );
+   TNL::Meshes::resolveAndLoadMesh< MyConfigTag, TNL::Devices::Host >( wrapper, inputFileName, "auto" );
+   return EXIT_SUCCESS;
 }

@@ -49,9 +49,9 @@ public:
       using Grid = Meshes::Grid< Dimension, Real, Device, Index >;
       using Entity = typename Grid::template EntityType< EntityDimension >;
       if( f1.getMesh().getDimensions() != f2.getMesh().getDimensions() ) {
-         outputFile << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
+         outputFile << f1Name << " and " << f2Name << " are defined on different meshes.\n";
          if( verbose )
-            std::cout << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
+            std::cout << f1Name << " and " << f2Name << " are defined on different meshes.\n";
       }
 
       Entity entity( f1.getMesh() );
@@ -61,10 +61,10 @@ public:
          entity.refresh();
          if( f1.getValue( entity ) != f2.getValue( entity ) ) {
             outputFile << f1Name << " and " << f2Name << " differs at " << entity.getCoordinates() << " "
-                       << f1.getValue( entity ) << " != " << f2.getValue( entity ) << std::endl;
+                       << f1.getValue( entity ) << " != " << f2.getValue( entity ) << '\n';
             if( verbose )
                std::cout << f1Name << " and " << f2Name << " differs at " << entity.getCoordinates() << " "
-                         << f1.getValue( entity ) << " != " << f2.getValue( entity ) << std::endl;
+                         << f1.getValue( entity ) << " != " << f2.getValue( entity ) << '\n';
          }
       }
    }
@@ -87,9 +87,9 @@ public:
       using Grid = Meshes::Grid< Dimension, Real, Device, Index >;
       using Entity = typename Grid::template EntityType< EntityDimension >;
       if( f1.getMesh().getDimensions() != f2.getMesh().getDimensions() ) {
-         outputFile << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
+         outputFile << f1Name << " and " << f2Name << " are defined on different meshes.\n";
          if( verbose )
-            std::cout << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
+            std::cout << f1Name << " and " << f2Name << " are defined on different meshes.\n";
       }
 
       Entity entity( f1.getMesh() );
@@ -101,10 +101,10 @@ public:
             entity.refresh();
             if( f1.getValue( entity ) != f2.getValue( entity ) ) {
                outputFile << f1Name << " and " << f2Name << " differs at " << entity.getCoordinates() << " "
-                          << f1.getValue( entity ) << " != " << f2.getValue( entity ) << std::endl;
+                          << f1.getValue( entity ) << " != " << f2.getValue( entity ) << '\n';
                if( verbose )
                   std::cout << f1Name << " and " << f2Name << " differs at " << entity.getCoordinates() << " "
-                            << f1.getValue( entity ) << " != " << f2.getValue( entity ) << std::endl;
+                            << f1.getValue( entity ) << " != " << f2.getValue( entity ) << '\n';
             }
          }
    }
@@ -127,9 +127,9 @@ public:
       using Grid = Meshes::Grid< Dimension, Real, Device, Index >;
       using Entity = typename Grid::template EntityType< EntityDimension >;
       if( f1.getMesh().getDimensions() != f2.getMesh().getDimensions() ) {
-         outputFile << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
+         outputFile << f1Name << " and " << f2Name << " are defined on different meshes.\n";
          if( verbose )
-            std::cout << f1Name << " and " << f2Name << " are defined on different meshes. " << std::endl;
+            std::cout << f1Name << " and " << f2Name << " are defined on different meshes.\n";
       }
 
       Entity entity( f1.getMesh() );
@@ -143,10 +143,10 @@ public:
                entity.refresh();
                if( f1.getValue( entity ) != f2.getValue( entity ) ) {
                   outputFile << f1Name << " and " << f2Name << " differs at " << entity.getCoordinates() << " "
-                             << f1.getValue( entity ) << " != " << f2.getValue( entity ) << std::endl;
+                             << f1.getValue( entity ) << " != " << f2.getValue( entity ) << '\n';
                   if( verbose )
                      std::cout << f1Name << " and " << f2Name << " differs at " << entity.getCoordinates() << " "
-                               << f1.getValue( entity ) << " != " << f2.getValue( entity ) << std::endl;
+                               << f1.getValue( entity ) << " != " << f2.getValue( entity ) << '\n';
                }
             }
    }
@@ -156,19 +156,19 @@ template< typename MeshPointer, typename Value, typename Real, typename Index >
 bool
 computeDifferenceOfMeshFunctions( const MeshPointer& meshPointer, const Config::ParameterContainer& parameters )
 {
-   bool verbose = parameters.getParameter< bool >( "verbose" );
-   std::vector< String > inputFiles = parameters.getParameter< std::vector< String > >( "input-files" );
-   const String meshFunctionName = parameters.getParameter< String >( "mesh-function-name" );
-   String mode = parameters.getParameter< String >( "mode" );
-   String outputFileName = parameters.getParameter< String >( "output-file" );
-   double snapshotPeriod = parameters.getParameter< double >( "snapshot-period" );
-   bool writeDifference = parameters.getParameter< bool >( "write-difference" );
-   bool exactMatch = parameters.getParameter< bool >( "exact-match" );
+   const bool verbose = parameters.getParameter< bool >( "verbose" );
+   const auto inputFiles = parameters.getParameter< std::vector< std::string > >( "input-files" );
+   const auto meshFunctionName = parameters.getParameter< std::string >( "mesh-function-name" );
+   const auto mode = parameters.getParameter< std::string >( "mode" );
+   const auto outputFileName = parameters.getParameter< std::string >( "output-file" );
+   const double snapshotPeriod = parameters.getParameter< double >( "snapshot-period" );
+   const bool writeDifference = parameters.getParameter< bool >( "write-difference" );
+   const bool exactMatch = parameters.getParameter< bool >( "exact-match" );
 
    std::fstream outputFile;
-   outputFile.open( outputFileName.getString(), std::fstream::out );
+   outputFile.open( outputFileName, std::fstream::out );
    if( ! outputFile ) {
-      std::cerr << "Unable to open the file " << outputFileName << "." << std::endl;
+      std::cerr << "Unable to open the file " << outputFileName << ".\n";
       return false;
    }
    if( ! exactMatch ) {
@@ -176,10 +176,10 @@ computeDifferenceOfMeshFunctions( const MeshPointer& meshPointer, const Config::
       outputFile << std::setw( 6 ) << "Time";
       outputFile << std::setw( 18 ) << "L1 diff." << std::setw( 18 ) << "L2 diff." << std::setw( 18 ) << "Max. diff."
                  << std::setw( 18 ) << "Total L1 diff." << std::setw( 18 ) << "Total L2 diff." << std::setw( 18 )
-                 << "Total Max. diff." << std::endl;
+                 << "Total Max. diff.\n";
    }
    if( verbose )
-      std::cout << std::endl;
+      std::cout << '\n';
 
    using Mesh = typename MeshPointer::ObjectType;
    using MeshFunctionType = Functions::MeshFunction< Mesh, Mesh::getMeshDimension(), Real >;
@@ -194,8 +194,7 @@ computeDifferenceOfMeshFunctions( const MeshPointer& meshPointer, const Config::
       String file2;
       if( mode == "couples" ) {
          if( i + 1 == (int) inputFiles.size() ) {
-            std::cerr << std::endl
-                      << "Skipping the file " << inputFiles[ i ] << " since there is no file to couple it with." << std::endl;
+            std::cerr << "\nSkipping the file " << inputFiles[ i ] << " since there is no file to couple it with.\n";
             outputFile.close();
             return false;
          }
@@ -207,7 +206,7 @@ computeDifferenceOfMeshFunctions( const MeshPointer& meshPointer, const Config::
             Functions::readMeshFunction( v2, meshFunctionName, inputFiles[ i + 1 ], "auto" );
          }
          catch( ... ) {
-            std::cerr << "Unable to read the files " << inputFiles[ i ] << " and " << inputFiles[ i + 1 ] << "." << std::endl;
+            std::cerr << "Unable to read the files " << inputFiles[ i ] << " and " << inputFiles[ i + 1 ] << ".\n";
             outputFile.close();
             return false;
          }
@@ -265,7 +264,7 @@ computeDifferenceOfMeshFunctions( const MeshPointer& meshPointer, const Config::
          }
          totalMaxDiff = max( totalMaxDiff, maxDiff );
          outputFile << std::setw( 18 ) << l1Diff << std::setw( 18 ) << l2Diff << std::setw( 18 ) << maxDiff << std::setw( 18 )
-                    << totalL1Diff << std::setw( 18 ) << ::sqrt( totalL2Diff ) << std::setw( 18 ) << totalMaxDiff << std::endl;
+                    << totalL1Diff << std::setw( 18 ) << ::sqrt( totalL2Diff ) << std::setw( 18 ) << totalMaxDiff << '\n';
 
          if( writeDifference ) {
             String differenceFileName = removeFileNameExtension( inputFiles[ i ] ) + ".diff.vti";
@@ -279,7 +278,7 @@ computeDifferenceOfMeshFunctions( const MeshPointer& meshPointer, const Config::
    outputFile.close();
 
    if( verbose )
-      std::cout << std::endl;
+      std::cout << '\n';
    return true;
 }
 
@@ -287,26 +286,26 @@ template< typename MeshPointer, typename Value, typename Real, typename Index >
 bool
 computeDifferenceOfVectors( const MeshPointer& meshPointer, const Config::ParameterContainer& parameters )
 {
-   bool verbose = parameters.getParameter< bool >( "verbose" );
-   std::vector< String > inputFiles = parameters.getParameter< std::vector< String > >( "input-files" );
-   String mode = parameters.getParameter< String >( "mode" );
-   String outputFileName = parameters.getParameter< String >( "output-file" );
-   double snapshotPeriod = parameters.getParameter< double >( "snapshot-period" );
-   bool writeDifference = parameters.getParameter< bool >( "write-difference" );
+   const bool verbose = parameters.getParameter< bool >( "verbose" );
+   const auto inputFiles = parameters.getParameter< std::vector< std::string > >( "input-files" );
+   const auto mode = parameters.getParameter< std::string >( "mode" );
+   const auto outputFileName = parameters.getParameter< std::string >( "output-file" );
+   const double snapshotPeriod = parameters.getParameter< double >( "snapshot-period" );
+   const bool writeDifference = parameters.getParameter< bool >( "write-difference" );
 
    std::fstream outputFile;
-   outputFile.open( outputFileName.getString(), std::fstream::out );
+   outputFile.open( outputFileName, std::fstream::out );
    if( ! outputFile ) {
-      std::cerr << "Unable to open the file " << outputFileName << "." << std::endl;
+      std::cerr << "Unable to open the file " << outputFileName << ".\n";
       return false;
    }
    outputFile << "#";
    outputFile << std::setw( 6 ) << "Time";
    outputFile << std::setw( 18 ) << "L1 diff." << std::setw( 18 ) << "L2 diff." << std::setw( 18 ) << "Max. diff."
               << std::setw( 18 ) << "Total L1 diff." << std::setw( 18 ) << "Total L2 diff." << std::setw( 18 )
-              << "Total Max. diff." << std::endl;
+              << "Total Max. diff.\n";
    if( verbose )
-      std::cout << std::endl;
+      std::cout << '\n';
 
    using VectorType = Containers::Vector< Real, Devices::Host, Index >;
    VectorType v1;
@@ -317,8 +316,7 @@ computeDifferenceOfVectors( const MeshPointer& meshPointer, const Config::Parame
    for( int i = 0; i < (int) inputFiles.size(); i++ ) {
       if( mode == "couples" ) {
          if( i + 1 == (int) inputFiles.size() ) {
-            std::cerr << std::endl
-                      << "Skipping the file " << inputFiles[ i ] << " since there is no file to couple it with." << std::endl;
+            std::cerr << "\nSkipping the file " << inputFiles[ i ] << " since there is no file to couple it with.\n";
             outputFile.close();
             return false;
          }
@@ -370,7 +368,7 @@ computeDifferenceOfVectors( const MeshPointer& meshPointer, const Config::Parame
       }
       totalMaxDiff = max( totalMaxDiff, maxDiff );
       outputFile << std::setw( 18 ) << l1Diff << std::setw( 18 ) << l2Diff << std::setw( 18 ) << maxDiff << std::setw( 18 )
-                 << totalL1Diff << std::setw( 18 ) << ::sqrt( totalL2Diff ) << std::setw( 18 ) << totalMaxDiff << std::endl;
+                 << totalL1Diff << std::setw( 18 ) << ::sqrt( totalL2Diff ) << std::setw( 18 ) << totalMaxDiff << '\n';
 
       if( writeDifference ) {
          String differenceFileName = removeFileNameExtension( inputFiles[ i ] ) + ".diff.tnl";
@@ -384,7 +382,7 @@ computeDifferenceOfVectors( const MeshPointer& meshPointer, const Config::Parame
    outputFile.close();
 
    if( verbose )
-      std::cout << std::endl;
+      std::cout << '\n';
    return true;
 }
 
@@ -397,7 +395,7 @@ computeDifference( const MeshPointer& meshPointer, const String& objectType, con
    if( objectType == "Containers::Array"
        || objectType == "Containers::Vector" )  // TODO: remove deprecated names (Vector is saved as Array)
       return computeDifferenceOfVectors< MeshPointer, Value, Real, Index >( meshPointer, parameters );
-   std::cerr << "Unknown object type " << objectType << "." << std::endl;
+   std::cerr << "Unknown object type " << objectType << ".\n";
    return false;
 }
 
@@ -421,7 +419,7 @@ setIndexType( const MeshPointer& meshPointer,
       return computeDifference< MeshPointer, Value, Real, int >( meshPointer, parsedObjectType[ 0 ], parameters );
    if( indexType == "long-int" )
       return computeDifference< MeshPointer, Value, Real, long int >( meshPointer, parsedObjectType[ 0 ], parameters );
-   std::cerr << "Unknown index type " << indexType << "." << std::endl;
+   std::cerr << "Unknown index type " << indexType << ".\n";
    return false;
 }
 
@@ -499,13 +497,13 @@ setValueType( const MeshPointer& meshPointer,
    //      parameters );
    const std::vector< String > parsedValueType = parseObjectType( elementType );
    if( parsedValueType.empty() ) {
-      std::cerr << "Unable to parse object type " << elementType << "." << std::endl;
+      std::cerr << "Unable to parse object type " << elementType << ".\n";
       return false;
    }
    if( parsedValueType[ 0 ] == "Containers::StaticVector" )
       return setTupleType< MeshPointer >( meshPointer, inputFileName, parsedObjectType, parsedValueType, parameters );
 
-   std::cerr << "Unknown element type " << elementType << "." << std::endl;
+   std::cerr << "Unknown element type " << elementType << ".\n";
    return false;
 }
 
@@ -513,23 +511,22 @@ template< typename Mesh >
 bool
 processFiles( const Config::ParameterContainer& parameters )
 {
-   int verbose = parameters.getParameter< int >( "verbose" );
-   const String meshFile = parameters.getParameter< String >( "mesh" );
-   const String meshFileFormat = parameters.getParameter< String >( "mesh-format" );
+   const int verbose = parameters.getParameter< int >( "verbose" );
+   const auto meshFile = parameters.getParameter< std::string >( "mesh" );
+   const auto meshFileFormat = parameters.getParameter< std::string >( "mesh-format" );
 
    using MeshPointer = Pointers::SharedPointer< Mesh >;
    MeshPointer meshPointer;
-   if( ! Meshes::loadMesh( *meshPointer, meshFile, meshFileFormat ) )
-      return false;
+   Meshes::loadMesh( *meshPointer, meshFile, meshFileFormat );
 
-   std::vector< String > inputFiles = parameters.getParameter< std::vector< String > >( "input-files" );
+   const auto inputFiles = parameters.getParameter< std::vector< std::string > >( "input-files" );
 
    String objectType;
    try {
       objectType = getObjectType( inputFiles[ 0 ] );
    }
    catch( const std::ios_base::failure& exception ) {
-      std::cerr << "Cannot open file " << inputFiles[ 0 ] << std::endl;
+      std::cerr << "Cannot open file " << inputFiles[ 0 ] << '\n';
    }
 
    if( verbose )
@@ -537,7 +534,7 @@ processFiles( const Config::ParameterContainer& parameters )
 
    const std::vector< String > parsedObjectType = parseObjectType( objectType );
    if( parsedObjectType.empty() ) {
-      std::cerr << "Unable to parse object type " << objectType << "." << std::endl;
+      std::cerr << "Unable to parse object type " << objectType << ".\n";
       return false;
    }
    setValueType< MeshPointer >( meshPointer, inputFiles[ 0 ], parsedObjectType, parameters );

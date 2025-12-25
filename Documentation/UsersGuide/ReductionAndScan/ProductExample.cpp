@@ -35,8 +35,8 @@ main( int argc, char* argv[] )
     */
    Vector< double, Devices::Host > host_v( 10 );
    host_v = 1.0;
-   std::cout << "host_v = " << host_v << std::endl;
-   std::cout << "The product of the host vector elements is " << product( host_v ) << "." << std::endl;
+   std::cout << "host_v = " << host_v << '\n';
+   std::cout << "The product of the host vector elements is " << product( host_v ) << ".\n";
 
    /***
     * ... the second test on GPU.
@@ -44,8 +44,8 @@ main( int argc, char* argv[] )
 #ifdef __CUDACC__
    Vector< double, Devices::Cuda > cuda_v( 10 );
    cuda_v = 1.0;
-   std::cout << "cuda_v = " << cuda_v << std::endl;
-   std::cout << "The product of the CUDA vector elements is " << product( cuda_v ) << "." << std::endl;
+   std::cout << "cuda_v = " << cuda_v << '\n';
+   std::cout << "The product of the CUDA vector elements is " << product( cuda_v ) << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

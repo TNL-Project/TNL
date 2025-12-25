@@ -18,7 +18,7 @@ main()
    fileName.setDigitsCount( 2 );
    for( int i = 0; i <= 10; i++ ) {
       fileName.setIndex( i );
-      std::cout << fileName.getFileName() << std::endl;
+      std::cout << fileName.getFileName() << '\n';
    }
 
    /***
@@ -27,6 +27,6 @@ main()
    fileName.setDigitsCount( 3 );
    for( int i = 0; i <= 10; i++ ) {
       fileName.setIndex( i );
-      std::cout << fileName.getFileName() << std::endl;
+      std::cout << fileName.getFileName() << '\n';
    }
 }

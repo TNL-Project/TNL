@@ -1,7 +1,5 @@
 #include <iostream>
 #include <memory>
-#include <chrono>
-#include <thread>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Cuda.h>
@@ -49,7 +47,7 @@ iterativeLinearSolverExample()
     * Set the matrix elements.
     */
    matrix_ptr->forAllRows( f );
-   std::cout << *matrix_ptr << std::endl;
+   std::cout << *matrix_ptr << '\n';
 
    /***
     * Set the right-hand side vector.
@@ -58,7 +56,7 @@ iterativeLinearSolverExample()
    Vector b( size );
    matrix_ptr->vectorProduct( x, b );
    x = 0.0;
-   std::cout << "Vector b = " << b << std::endl;
+   std::cout << "Vector b = " << b << '\n';
 
    /***
     * Setup solver of the linear system.
@@ -81,17 +79,17 @@ iterativeLinearSolverExample()
    solver.setConvergenceResidue( 1.0e-6 );
    solver.solve( b, x );
    monitor.stopMainLoop();
-   std::cout << "Vector x = " << x << std::endl;
+   std::cout << "Vector x = " << x << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Solving linear system on host: " << std::endl;
+   std::cout << "Solving linear system on host:\n";
    iterativeLinearSolverExample< TNL::Devices::Sequential >();
 
 #ifdef __CUDACC__
-   std::cout << "Solving linear system on CUDA device: " << std::endl;
+   std::cout << "Solving linear system on CUDA device:\n";
    iterativeLinearSolverExample< TNL::Devices::Cuda >();
 #endif
 }

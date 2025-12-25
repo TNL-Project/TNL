@@ -4,6 +4,7 @@
 #pragma once
 
 #include <filesystem>
+#include <stdexcept>
 
 #include <TNL/Meshes/TypeResolver/resolveDistributedMeshType.h>
 #include <TNL/Meshes/TypeResolver/resolveMeshType.h>
@@ -11,7 +12,7 @@
 namespace TNL::Meshes {
 
 template< typename ConfigTag, typename Device, typename Functor >
-bool
+void
 resolveDistributedMeshType( Functor&& functor, const std::string& fileName, const std::string& fileFormat )
 {
    std::cout << "Detecting distributed mesh from file " << fileName << " ...\n";
@@ -20,20 +21,20 @@ resolveDistributedMeshType( Functor&& functor, const std::string& fileName, cons
    {
       using LocalMesh = std::decay_t< decltype( localMesh ) >;
       using DistributedMesh = DistributedMeshes::DistributedMesh< LocalMesh >;
-      return std::forward< Functor >( functor )( reader, DistributedMesh{ std::move( localMesh ) } );
+      std::forward< Functor >( functor )( reader, DistributedMesh{ std::move( localMesh ) } );
    };
 
-   return resolveMeshType< ConfigTag, Device >( wrapper, fileName, fileFormat );
+   resolveMeshType< ConfigTag, Device >( wrapper, fileName, fileFormat );
 }
 
 template< typename ConfigTag, typename Device, typename Functor >
-bool
+void
 resolveAndLoadDistributedMesh( Functor&& functor,
                                const std::string& fileName,
                                const std::string& fileFormat,
                                const MPI::Comm& communicator )
 {
-   auto wrapper = [ & ]( Readers::MeshReader& reader, auto&& mesh ) -> bool
+   auto wrapper = [ & ]( Readers::MeshReader& reader, auto&& mesh )
    {
       using MeshType = std::decay_t< decltype( mesh ) >;
       std::cout << "Loading a mesh from the file " << fileName << " ...\n";
@@ -53,15 +54,15 @@ resolveAndLoadDistributedMesh( Functor&& functor,
       }
       catch( const Meshes::Readers::MeshReaderError& e ) {
          std::cerr << "Failed to load the mesh from the file " << fileName << ". The error is:\n" << e.what() << '\n';
-         return false;
+         throw;
       }
-      return functor( reader, std::forward< MeshType >( mesh ) );
+      functor( reader, std::forward< MeshType >( mesh ) );
    };
-   return resolveDistributedMeshType< ConfigTag, Device >( wrapper, fileName, fileFormat );
+   resolveDistributedMeshType< ConfigTag, Device >( wrapper, fileName, fileFormat );
 }
 
 template< typename Mesh >
-bool
+void
 loadDistributedMesh( DistributedMeshes::DistributedMesh< Mesh >& distributedMesh,
                      const std::string& fileName,
                      const std::string& fileFormat,
@@ -71,7 +72,7 @@ loadDistributedMesh( DistributedMeshes::DistributedMesh< Mesh >& distributedMesh
    std::string format = fileFormat;
    if( format == "auto" ) {
       format = fs::path( fileName ).extension().string();
-      if( format.length() > 0 )
+      if( ! format.empty() )
          // remove dot from the extension
          format = format.substr( 1 );
    }
@@ -79,20 +80,18 @@ loadDistributedMesh( DistributedMeshes::DistributedMesh< Mesh >& distributedMesh
    if( format == "pvtu" ) {
       Readers::PVTUReader reader( fileName, communicator );
       reader.loadMesh( distributedMesh );
-      return true;
    }
    else if( format == "pvti" ) {
       Readers::PVTIReader reader( fileName, communicator );
       reader.loadMesh( distributedMesh );
-      return true;
    }
    else {
       if( fileFormat == "auto" )
-         std::cerr << "File '" << fileName << "' has unsupported format (based on the file extension): " << format << ".";
+         throw std::runtime_error( "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
+                                   + ". Supported formats are 'pvtu' and 'pvti'." );
       else
-         std::cerr << "Unsupported fileFormat parameter: " << fileFormat << ".";
-      std::cerr << " Supported formats are 'pvtu' and 'pvti'.\n";
-      return false;
+         throw std::invalid_argument( "Invalid fileFormat parameter: '" + fileFormat
+                                      + "'. Supported formats are 'pvtu' and 'pvti'." );
    }
 }
 

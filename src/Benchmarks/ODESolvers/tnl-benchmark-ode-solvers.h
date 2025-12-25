@@ -294,7 +294,7 @@ resolveDeviceType( Benchmark<>& benchmark, Config::ParameterContainer& parameter
       if( ! resolveIndexType< Real, Devices::Cuda >( benchmark, parameters ) )
          return false;
 #else
-      std::cerr << "CUDA support not compiled in." << std::endl;
+      std::cerr << "CUDA support not compiled in.\n";
       return false;
 #endif
    }

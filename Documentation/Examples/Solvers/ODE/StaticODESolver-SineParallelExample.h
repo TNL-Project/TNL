@@ -72,10 +72,10 @@ solveParallelODEs( const char* file_name )
    std::fstream file;
    file.open( file_name, std::ios::out );
    for( int i = 0; i < c_vals; i++ ) {
-      file << "# c = " << c_min + i * c_step << std::endl;
+      file << "# c = " << c_min + i * c_step << '\n';
       for( int k = 0; k < output_time_steps; k++ )
-         file << k * output_time_step << " " << results.getElement( k * c_vals + i )[ 0 ] << std::endl;
-      file << std::endl;
+         file << k * output_time_step << " " << results.getElement( k * c_vals + i )[ 0 ] << '\n';
+      file << '\n';
    }
    //! [Write results to file]
 }
@@ -84,7 +84,7 @@ int
 main( int argc, char* argv[] )
 {
    if( argc != 2 ) {
-      std::cout << "Usage: " << argv[ 0 ] << " <path to output directory>" << std::endl;
+      std::cout << "Usage: " << argv[ 0 ] << " <path to output directory>\n";
       return EXIT_FAILURE;
    }
    TNL::String file_name( argv[ 1 ] );

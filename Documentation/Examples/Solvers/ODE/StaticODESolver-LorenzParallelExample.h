@@ -28,7 +28,9 @@ solveParallelODEs( const char* file_name )
    //! [Time variables]
 
    //! [Problem parameters]
-   const Real sigma_min( 10.0 ), rho_min( 15.0 ), beta_min( 1.0 );
+   const Real sigma_min = 10.0;
+   const Real rho_min = 15.0;
+   const Real beta_min = 1.0;
    const int parametric_steps = 4;
    const Real sigma_step = 30.0 / ( parametric_steps - 1 );
    const Real rho_step = 21.0 / ( parametric_steps - 1 );
@@ -107,13 +109,13 @@ solveParallelODEs( const char* file_name )
             Real sigma = sigma_min + sigma_idx * sigma_step;
             Real rho = rho_min + rho_idx * rho_step;
             Real beta = beta_min + beta_idx * beta_step;
-            file << "# sigma " << sigma << " rho " << rho << " beta " << beta << std::endl;
+            file << "# sigma " << sigma << " rho " << rho << " beta " << beta << '\n';
             for( int i = 0; i < output_time_steps - 1; i++ ) {
                int offset = ( ( i * parametric_steps + sigma_idx ) * parametric_steps + rho_idx ) * parametric_steps + beta_idx;
                auto u = results.getElement( offset );
-               file << u[ 0 ] << " " << u[ 1 ] << " " << u[ 2 ] << std::endl;
+               file << u[ 0 ] << " " << u[ 1 ] << " " << u[ 2 ] << '\n';
             }
-            file << std::endl;
+            file << '\n';
          }
    //! [Write results to file]
 }
@@ -122,7 +124,7 @@ int
 main( int argc, char* argv[] )
 {
    if( argc != 2 ) {
-      std::cout << "Usage: " << argv[ 0 ] << " <path to output directory>" << std::endl;
+      std::cout << "Usage: " << argv[ 0 ] << " <path to output directory>\n";
       return EXIT_FAILURE;
    }
    TNL::String file_name( argv[ 1 ] );

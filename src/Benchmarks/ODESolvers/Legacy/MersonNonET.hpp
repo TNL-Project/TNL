@@ -8,6 +8,7 @@
 #include <TNL/Config/ParameterContainer.h>
 #include <TNL/MPI/Wrappers.h>
 
+#include "ComputeBlockResidue.h"
 #include "MersonNonET.h"
 
 namespace TNL::Benchmarks {
@@ -23,50 +24,38 @@ namespace TNL::Benchmarks {
 template< typename Real, typename Index >
 __global__
 void
-computeK2Arg( const Index size, const Real tau, const Real* u, const Real* k1, Real* k2_arg );
+computeK2Arg( Index size, Real tau, const Real* u, const Real* k1, Real* k2_arg );
 
 template< typename Real, typename Index >
 __global__
 void
-computeK3Arg( const Index size, const Real tau, const Real* u, const Real* k1, const Real* k2, Real* k3_arg );
+computeK3Arg( Index size, Real tau, const Real* u, const Real* k1, const Real* k2, Real* k3_arg );
 
 template< typename Real, typename Index >
 __global__
 void
-computeK4Arg( const Index size, const Real tau, const Real* u, const Real* k1, const Real* k3, Real* k4_arg );
+computeK4Arg( Index size, Real tau, const Real* u, const Real* k1, const Real* k3, Real* k4_arg );
 
 template< typename Real, typename Index >
 __global__
 void
-computeK5Arg( const Index size, const Real tau, const Real* u, const Real* k1, const Real* k3, const Real* k4, Real* k5_arg );
+computeK5Arg( Index size, Real tau, const Real* u, const Real* k1, const Real* k3, const Real* k4, Real* k5_arg );
 
 template< typename Real, typename Index >
 __global__
 void
-computeErrorKernel( const Index size,
-                    const Real tau,
-                    const Real* k1,
-                    const Real* k3,
-                    const Real* k4,
-                    const Real* k5,
-                    Real* err );
+computeErrorKernel( Index size, Real tau, const Real* k1, const Real* k3, const Real* k4, const Real* k5, Real* err );
 
 template< typename Real, typename Index >
 __global__
 void
-updateUMersonNonET( const Index size,
-                    const Real tau,
-                    const Real* k1,
-                    const Real* k4,
-                    const Real* k5,
-                    Real* u,
-                    Real* blockResidue );
+updateUMersonNonET( Index size, Real tau, const Real* k1, const Real* k4, const Real* k5, Real* u, Real* blockResidue );
 
 template< typename Vector, typename SolverMonitor >
 MersonNonET< Vector, SolverMonitor >::MersonNonET()
 : adaptivity( 0.00001 )
 {
-   if( std::is_same< DeviceType, Devices::Host >::value ) {
+   if( std::is_same_v< DeviceType, Devices::Host > ) {
       this->openMPErrorEstimateBuffer.setSize( std::max( 1, Devices::Host::getMaxThreadsCount() ) );
    }
    this->setConvergenceResidue( 0.0 );

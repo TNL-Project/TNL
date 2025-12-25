@@ -4,6 +4,7 @@
 #pragma once
 
 #include <TNL/Config/ConfigDescription.h>
+#include <TNL/Config/ParameterContainer.h>
 
 struct MemoryAccessBenchmark
 {

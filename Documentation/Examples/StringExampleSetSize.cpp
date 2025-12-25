@@ -8,6 +8,6 @@ main()
 {
    String string;
    string.setSize( 1024 );
-   std::cout << "String size = " << string.getSize() << std::endl;
-   std::cout << "Allocated size = " << string.getAllocatedSize() << std::endl;
+   std::cout << "String size = " << string.getSize() << '\n';
+   std::cout << "Allocated size = " << string.getAllocatedSize() << '\n';
 }

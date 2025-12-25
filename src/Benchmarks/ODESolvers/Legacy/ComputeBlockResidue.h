@@ -3,8 +3,7 @@
 
 #pragma once
 
-namespace TNL {
-namespace Benchmarks {
+namespace TNL::Benchmarks {
 
 #ifdef __CUDACC__
 template< typename Real, typename Index >
@@ -146,5 +145,4 @@ computeBlockResidue( Real* du, Real* blockResidue, Index n )
 }
 #endif
 
-}  // namespace Benchmarks
-}  // namespace TNL
+}  // namespace TNL::Benchmarks

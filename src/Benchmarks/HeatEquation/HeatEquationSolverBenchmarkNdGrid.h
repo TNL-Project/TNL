@@ -3,12 +3,8 @@
 
 #pragma once
 
-#include <iostream>
-#include <fstream>
-#include <numeric>
 #include <type_traits>
 #include <array>
-#include <bitset>
 
 #include <TNL/Config/parseCommandLine.h>
 #include <TNL/Devices/Host.h>
@@ -28,20 +24,20 @@ using conjunction = std::is_same< bool_pack< true, Bs... >, bool_pack< Bs..., tr
 template< int Dimension,
           typename Index,
           typename = std::enable_if_t< ( Dimension > 0 ) >,
-          typename = std::enable_if_t< std::is_integral< Index >::value > >
+          typename = std::enable_if_t< std::is_integral_v< Index > > >
 using Container = TNL::Containers::StaticArray< Dimension, Index >;
 
 template< int Dimension,
           typename Index,
           typename = std::enable_if_t< ( Dimension > 0 ) >,
-          typename = std::enable_if_t< std::is_integral< Index >::value > >
+          typename = std::enable_if_t< std::is_integral_v< Index > > >
 class GridEntity
 {
 public:
    __cuda_callable__
-   inline explicit GridEntity( const Index& vertexIndex,
-                               const Container< Dimension, Index >& coordinates,
-                               const Container< Dimension, bool >& direction )
+   explicit GridEntity( const Index& vertexIndex,
+                        const Container< Dimension, Index >& coordinates,
+                        const Container< Dimension, bool >& direction )
    : vertexIndex( vertexIndex ),
      coordinates( coordinates ),
      direction( direction )
@@ -51,14 +47,14 @@ public:
    ~GridEntity() = default;
 
    [[nodiscard]] __cuda_callable__
-   inline Container< Dimension, Index >
+   Container< Dimension, Index >
    getCoordinates() const noexcept
    {
       return coordinates;
    }
 
    [[nodiscard]] __cuda_callable__
-   inline Index
+   Index
    getIndex() const noexcept
    {
       return vertexIndex;
@@ -84,7 +80,7 @@ public:
     *                          Least significant dimension is in the end of the list
     */
    template< typename... Dimensions,
-             typename = std::enable_if_t< conjunction< std::is_same< Index, Dimensions >::value... >::value >,
+             typename = std::enable_if_t< conjunction< std::is_same_v< Index, Dimensions >... >::value >,
              typename = std::enable_if_t< sizeof...( Dimensions ) == Dimension > >
    void
    setDimensions( Dimensions... dimensions ) noexcept
@@ -102,7 +98,7 @@ public:
    /**
     * @param[in] index - index of dimension
     */
-   [[nodiscard]] inline __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getDimension( Index index ) const noexcept
    {
@@ -115,9 +111,9 @@ public:
     * @param[in] indices - A dimension index pack
     */
    template< typename... DimensionIndex,
-             typename = std::enable_if_t< conjunction< std::is_same< Index, DimensionIndex >::value... >::value >,
+             typename = std::enable_if_t< conjunction< std::is_same_v< Index, DimensionIndex >... >::value >,
              typename = std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ) > >
-   Container< sizeof...( DimensionIndex ), Index >
+   [[nodiscard]] Container< sizeof...( DimensionIndex ), Index >
    getDimensions( DimensionIndex... indices ) const noexcept
    {
       Container< sizeof...( DimensionIndex ), Index > result{ indices... };
@@ -130,7 +126,7 @@ public:
    /**
     * @param[in] index - index of dimension
     */
-   [[nodiscard]] inline __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getEntitiesCount( Index index ) const noexcept
    {
@@ -143,9 +139,9 @@ public:
     * @brief - Returns the number of entities of specific dimension
     */
    template< typename... DimensionIndex,
-             typename = std::enable_if_t< conjunction< std::is_same< Index, DimensionIndex >::value... >::value >,
+             typename = std::enable_if_t< conjunction< std::is_same_v< Index, DimensionIndex >... >::value >,
              typename = std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ) > >
-   Container< sizeof...( DimensionIndex ), Index >
+   [[nodiscard]] Container< sizeof...( DimensionIndex ), Index >
    getEntitiesCounts( DimensionIndex... indices ) const noexcept
    {
       Container< sizeof...( DimensionIndex ), Index > result{ indices... };
@@ -158,7 +154,7 @@ public:
    /**
     * @param[in] index - index of dimension
     */
-   [[nodiscard]] inline __cuda_callable__
+   [[nodiscard]] __cuda_callable__
    Index
    getEndIndex( Index index ) const noexcept
    {
@@ -171,9 +167,9 @@ public:
     * @brief - Returns the last index of specific dimensions
     */
    template< typename... DimensionIndex,
-             typename = std::enable_if_t< conjunction< std::is_same< Index, DimensionIndex >::value... >::value >,
+             typename = std::enable_if_t< conjunction< std::is_same_v< Index, DimensionIndex >... >::value >,
              typename = std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ) > >
-   Container< sizeof...( DimensionIndex ), Index >
+   [[nodiscard]] Container< sizeof...( DimensionIndex ), Index >
    getEndIndices( DimensionIndex... indices ) const noexcept
    {
       Container< sizeof...( DimensionIndex ), Index > result{ indices... };
@@ -250,7 +246,8 @@ public:
          function( entity, args... );
       };
 
-      Index lowerBound = 0, upperBound = verticesCount;
+      Index lowerBound = 0;
+      Index upperBound = verticesCount;
 
       for( Index i = 0; i < directions.getSize(); i++ ) {
          TNL::Algorithms::parallelFor< Device >( lowerBound,
@@ -318,7 +315,7 @@ private:
    }
 
    __cuda_callable__
-   inline GridEntity< Dimension, Index >
+   [[nodiscard]] GridEntity< Dimension, Index >
    makeEntity( const Index& index,
                const Container< Dimension, Index >& traverseRectOrigin,
                const Container< Dimension, Index >& traverseRectDimensions,
@@ -340,7 +337,7 @@ private:
     * Calculates position in the specific boundaries
     */
    __cuda_callable__
-   inline Container< Dimension, Index >
+   [[nodiscard]] Container< Dimension, Index >
    getCoordinates( const Index& index, const Container< Dimension, Index >& dimensions ) const
    {
       Container< Dimension, Index > coordinates = 0;
@@ -365,7 +362,7 @@ private:
     * Calculates product matrix based on the dimension
     */
    [[nodiscard]] __cuda_callable__
-   inline Container< Dimension, Index >
+   Container< Dimension, Index >
    getDimensionProducts( const Container< Dimension, Index >& dimensions ) const noexcept
    {
       Container< Dimension, Index > products = 0;
@@ -381,7 +378,7 @@ private:
     * Calculates index based on the dimension
     */
    [[nodiscard]] __cuda_callable__
-   inline Index
+   Index
    getIndex( const Container< Dimension, Index >& coordinates, const Container< Dimension, Index >& dimensionProducts ) const
    {
       Index index = 0;

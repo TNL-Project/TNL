@@ -25,7 +25,8 @@ binarySparseMatrixExample()
 
    std::cout << "Binary sparse matrix: \n" << binaryMatrix << '\n';
 
-   TNL::Containers::Vector< double, Device > inVector( 5, 1.1 ), outVector( 5, 0.0 );
+   TNL::Containers::Vector< double, Device > inVector( 5, 1.1 );
+   TNL::Containers::Vector< double, Device > outVector( 5, 0.0 );
    binaryMatrix.vectorProduct( inVector, outVector );
    std::cout << "Product with vector " << inVector << " is " << outVector << "\n\n";
 

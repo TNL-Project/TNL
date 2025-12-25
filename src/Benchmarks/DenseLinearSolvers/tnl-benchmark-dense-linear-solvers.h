@@ -42,7 +42,7 @@ setupConfig( TNL::Config::ConfigDescription& config )
 void
 resolvePrecision( TNL::Config::ParameterContainer& parameters )
 {
-   TNL::String precision = parameters.getParameter< TNL::String >( "precision" );
+   const auto precision = parameters.getParameter< TNL::String >( "precision" );
    if( precision == "float" || precision == "all" ) {
       benchmarkDenseLinearSolvers< float, int >( parameters );
    }

@@ -1,4 +1,3 @@
-#include <iostream>
 #include <cstdlib>
 #include <TNL/Containers/Array.h>
 #include <TNL/Pointers/DevicePointer.h>
@@ -37,7 +36,8 @@ main( int argc, char* argv[] )
     * Create a tuple of arrays and print them in CUDA kernel
     */
 #ifdef __CUDACC__
-   ArrayCuda a1( 3 ), a2( 3 );
+   ArrayCuda a1( 3 );
+   ArrayCuda a2( 3 );
    Tuple t( a1, a2 );
    a1 = 1;
    a2 = 2;

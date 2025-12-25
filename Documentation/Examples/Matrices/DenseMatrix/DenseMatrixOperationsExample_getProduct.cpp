@@ -10,7 +10,7 @@ matrixProductExample( TNL::Matrices::TransposeState transposeA, TNL::Matrices::T
 {
    std::cout << "Matrix product (";
    std::cout << ( transposeA == TNL::Matrices::TransposeState::Transpose ? "Transposed x " : "Normal x " );
-   std::cout << ( transposeB == TNL::Matrices::TransposeState::Transpose ? "Transposed)" : "Normal)" ) << std::endl;
+   std::cout << ( transposeB == TNL::Matrices::TransposeState::Transpose ? "Transposed)" : "Normal)" ) << '\n';
 
    TNL::Matrices::DenseMatrix< double, Device, int, Organization > matrix1;
    TNL::Matrices::DenseMatrix< double, Device, int, Organization > matrix2;
@@ -33,7 +33,7 @@ matrixProductExample( TNL::Matrices::TransposeState transposeA, TNL::Matrices::T
       // clang-format on
    }
 
-   std::cout << "Dense matrix 1: " << std::endl << matrix1 << std::endl;
+   std::cout << "Dense matrix 1:\n" << matrix1 << '\n';
 
    if( transposeB == TNL::Matrices::TransposeState::Transpose ) {
       // clang-format off
@@ -55,52 +55,52 @@ matrixProductExample( TNL::Matrices::TransposeState transposeA, TNL::Matrices::T
       // clang-format on
    }
 
-   std::cout << "Dense matrix 2: " << std::endl << matrix2 << std::endl;
+   std::cout << "Dense matrix 2:\n" << matrix2 << '\n';
 
    TNL::Matrices::DenseMatrix< double, Device, int, Organization > resultMatrix;
    resultMatrix.getMatrixProduct( matrix1, matrix2, 1.0, transposeA, transposeB );
 
-   std::cout << "Product: " << std::endl << resultMatrix << std::endl;
+   std::cout << "Product:\n" << resultMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrices on CPU ... " << std::endl;
-   std::cout << "Stored in Row Major Order ... " << std::endl;
+   std::cout << "Creating matrices on CPU ...\n";
+   std::cout << "Stored in Row Major Order ...\n";
    matrixProductExample< TNL::Devices::Host, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >(
       TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::None );
-   std::cout << "Stored in Column Major Order" << std::endl;
+   std::cout << "Stored in Column Major Order\n";
    matrixProductExample< TNL::Devices::Host, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >(
       TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::None );
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrices on CUDA GPU ... " << std::endl;
-   std::cout << "Stored in Row Major Order ... " << std::endl;
+   std::cout << "Creating matrices on CUDA GPU ...\n";
+   std::cout << "Stored in Row Major Order ...\n";
    matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >(
       TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::None );
-   std::cout << "Stored in Column Major Order ... " << std::endl;
+   std::cout << "Stored in Column Major Order ...\n";
    matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >(
       TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::None );
 
-   std::cout << "Stored in Row Major Order ... " << std::endl;
+   std::cout << "Stored in Row Major Order ...\n";
    matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >(
       TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::None );
-   std::cout << "Stored in Column Major Order ... " << std::endl;
+   std::cout << "Stored in Column Major Order ...\n";
    matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >(
       TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::None );
 
-   std::cout << "Stored in Row Major Order ... " << std::endl;
+   std::cout << "Stored in Row Major Order ...\n";
    matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >(
       TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::Transpose );
-   std::cout << "Stored in Column Major Order ... " << std::endl;
+   std::cout << "Stored in Column Major Order ...\n";
    matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >(
       TNL::Matrices::TransposeState::None, TNL::Matrices::TransposeState::Transpose );
 
-   std::cout << "Stored in Row Major Order ... " << std::endl;
+   std::cout << "Stored in Row Major Order ...\n";
    matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >(
       TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::Transpose );
-   std::cout << "Stored in Column Major Order ... " << std::endl;
+   std::cout << "Stored in Column Major Order ...\n";
    matrixProductExample< TNL::Devices::Cuda, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >(
       TNL::Matrices::TransposeState::Transpose, TNL::Matrices::TransposeState::Transpose );
 #endif

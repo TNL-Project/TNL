@@ -1,5 +1,4 @@
 #include <iostream>
-#include <functional>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Devices/Host.h>
@@ -34,7 +33,7 @@ SegmentsExample()
    /***
     * Print the data by the segments.
     */
-   std::cout << "Values of elements after initial setup: " << std::endl;
+   std::cout << "Values of elements after initial setup:\n";
    auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];
@@ -62,18 +61,18 @@ SegmentsExample()
    /***
     * Print the data managed by the segments.
     */
-   std::cout << "Value of elements after dividing by sum in each segment:" << std::endl;
+   std::cout << "Value of elements after dividing by sum in each segment:\n";
    printSegments( std::cout, segments, fetch );
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on host:\n";
    SegmentsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of CSR segments on CUDA GPU: " << std::endl;
+   std::cout << "Example of CSR segments on CUDA GPU:\n";
    SegmentsExample< TNL::Devices::Cuda >();
 #endif
    return EXIT_SUCCESS;

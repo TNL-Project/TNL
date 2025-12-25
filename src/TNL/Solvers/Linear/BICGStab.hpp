@@ -35,7 +35,13 @@ BICGStab< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
 {
    this->setSize( x );
 
-   RealType alpha, beta, omega, rho, rho_old, b_norm, r_ast_sqnorm;
+   RealType alpha;
+   RealType beta;
+   RealType omega;
+   RealType rho;
+   RealType rho_old;
+   RealType b_norm;
+   RealType r_ast_sqnorm;
 
    // initialize the norm of the preconditioned right-hand-side
    if( this->preconditioner ) {

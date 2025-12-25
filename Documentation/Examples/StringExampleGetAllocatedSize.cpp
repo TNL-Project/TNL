@@ -7,5 +7,5 @@ int
 main()
 {
    String str( "my world" );
-   std::cout << "Allocated_size = " << str.getAllocatedSize() << std::endl;
+   std::cout << "Allocated_size = " << str.getAllocatedSize() << '\n';
 }

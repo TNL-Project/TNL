@@ -30,23 +30,26 @@ int
 main( int argc, char* argv[] )
 {
    const double tau = 0.1;
-   Vector< double, Devices::Host > host_u( 10 ), host_delta_u( 10 );
+   Vector< double, Devices::Host > host_u( 10 );
+   Vector< double, Devices::Host > host_delta_u( 10 );
    host_u = 0.0;
    host_delta_u = 1.0;
-   std::cout << "host_u = " << host_u << std::endl;
-   std::cout << "host_delta_u = " << host_delta_u << std::endl;
+   std::cout << "host_u = " << host_u << '\n';
+   std::cout << "host_delta_u = " << host_delta_u << '\n';
    double residue = updateAndResidue( host_u, host_delta_u, tau );
-   std::cout << "New host_u is: " << host_u << "." << std::endl;
-   std::cout << "Residue is:" << residue << std::endl;
+   std::cout << "New host_u is: " << host_u << '\n';
+   std::cout << "Residue is: " << residue << '\n';
+
 #ifdef __CUDACC__
-   Vector< double, Devices::Cuda > cuda_u( 10 ), cuda_delta_u( 10 );
+   Vector< double, Devices::Cuda > cuda_u( 10 );
+   Vector< double, Devices::Cuda > cuda_delta_u( 10 );
    cuda_u = 0.0;
    cuda_delta_u = 1.0;
-   std::cout << "cuda_u = " << cuda_u << std::endl;
-   std::cout << "cuda_delta_u = " << cuda_delta_u << std::endl;
+   std::cout << "cuda_u = " << cuda_u << '\n';
+   std::cout << "cuda_delta_u = " << cuda_delta_u << '\n';
    residue = updateAndResidue( cuda_u, cuda_delta_u, tau );
-   std::cout << "New cuda_u is: " << cuda_u << "." << std::endl;
-   std::cout << "Residue is:" << residue << std::endl;
+   std::cout << "New cuda_u is: " << cuda_u << '\n';
+   std::cout << "Residue is: " << residue << '\n';
 #endif
    return EXIT_SUCCESS;
 }

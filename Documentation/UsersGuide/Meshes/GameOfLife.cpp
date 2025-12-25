@@ -27,7 +27,7 @@ template<> struct MeshCellTopologyTag< MyConfigTag, Topologies::Quadrangle > { s
 // Meshes are enabled only for the space dimension equal to the cell dimension.
 template< typename CellTopology, int SpaceDimension >
 struct MeshSpaceDimensionTag< MyConfigTag, CellTopology, SpaceDimension >
-{ enum { enabled = ( SpaceDimension == CellTopology::dimension ) }; };
+{ static constexpr bool enabled = ( SpaceDimension == CellTopology::dimension ); };
 
 // Meshes are enabled only for types explicitly listed below.
 template<> struct MeshRealTag< MyConfigTag, float > { static constexpr bool enabled = false; };
@@ -81,7 +81,7 @@ struct MeshConfigTemplateTag< MyConfigTag >
 }  // namespace TNL::Meshes::BuildConfigTags
 
 template< typename Mesh >
-bool
+void
 runGameOfLife( const Mesh& mesh )
 {
    //! [Data vectors]
@@ -94,7 +94,7 @@ runGameOfLife( const Mesh& mesh )
    f_in.setValue( 0 );
    //! [Data vectors]
 
-#if 1
+#if 1  // NOLINT
    // generate random initial condition
    std::random_device dev;
    std::mt19937 rng( dev() );
@@ -227,8 +227,6 @@ runGameOfLife( const Mesh& mesh )
       all_done = max( f_in ) == 0 || iteration > max_iter || f_in == f_out;
       //! [Game of Life iteration]
    } while( ! all_done );
-
-   return true;
 }
 
 int
@@ -237,11 +235,11 @@ main( int argc, char* argv[] )
    const std::string inputFileName = "grid-100x100.vtu";
    const std::string inputFileFormat = "auto";
 
-   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+   auto wrapper = [ & ]( auto& reader, auto&& mesh )
    {
       using MeshType = std::decay_t< decltype( mesh ) >;
-      return runGameOfLife( std::forward< MeshType >( mesh ) );
+      runGameOfLife( std::forward< MeshType >( mesh ) );
    };
-   const bool result = Meshes::resolveAndLoadMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
-   return static_cast< int >( ! result );
+   Meshes::resolveAndLoadMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   return EXIT_SUCCESS;
 }

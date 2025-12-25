@@ -33,17 +33,18 @@ main( int argc, char* argv[] )
    /***
     * The first test on CPU ...
     */
-   Vector< double, Devices::Host > host_u( 10 ), host_v( 10 );
+   Vector< double, Devices::Host > host_u( 10 );
+   Vector< double, Devices::Host > host_v( 10 );
    host_u = 1.0;
    host_v.forAllElements(
       [] __cuda_callable__( int i, double& value )
       {
          value = 2 * ( i % 2 ) - 1;
       } );
-   std::cout << "host_u = " << host_u << std::endl;
-   std::cout << "host_v = " << host_v << std::endl;
-   std::cout << "The scalar product ( host_u, host_v ) is " << scalarProduct( host_u, host_v ) << "." << std::endl;
-   std::cout << "The scalar product ( host_v, host_v ) is " << scalarProduct( host_v, host_v ) << "." << std::endl;
+   std::cout << "host_u = " << host_u << '\n';
+   std::cout << "host_v = " << host_v << '\n';
+   std::cout << "The scalar product ( host_u, host_v ) is " << scalarProduct( host_u, host_v ) << ".\n";
+   std::cout << "The scalar product ( host_v, host_v ) is " << scalarProduct( host_v, host_v ) << ".\n";
 
    /***
     * ... the second test on GPU.
@@ -56,10 +57,10 @@ main( int argc, char* argv[] )
       {
          value = 2 * ( i % 2 ) - 1;
       } );
-   std::cout << "cuda_u = " << cuda_u << std::endl;
-   std::cout << "cuda_v = " << cuda_v << std::endl;
-   std::cout << "The scalar product ( cuda_u, cuda_v ) is " << scalarProduct( cuda_u, cuda_v ) << "." << std::endl;
-   std::cout << "The scalar product ( cuda_v, cuda_v ) is " << scalarProduct( cuda_v, cuda_v ) << "." << std::endl;
+   std::cout << "cuda_u = " << cuda_u << '\n';
+   std::cout << "cuda_v = " << cuda_v << '\n';
+   std::cout << "The scalar product ( cuda_u, cuda_v ) is " << scalarProduct( cuda_u, cuda_v ) << ".\n";
+   std::cout << "The scalar product ( cuda_v, cuda_v ) is " << scalarProduct( cuda_v, cuda_v ) << ".\n";
 #endif
    return EXIT_SUCCESS;
 }

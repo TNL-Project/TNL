@@ -5,8 +5,7 @@
 
 #include <TNL/Algorithms/parallelFor.h>
 
-namespace TNL {
-namespace Algorithms {
+namespace TNL::Algorithms {
 
 /**
  * \brief Wrapper to ParallelFor which makes it run sequentially.
@@ -41,5 +40,4 @@ struct SequentialFor
    }
 };
 
-}  // namespace Algorithms
-}  // namespace TNL
+}  // namespace TNL::Algorithms

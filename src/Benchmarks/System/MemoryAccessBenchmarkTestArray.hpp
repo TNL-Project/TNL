@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include <memory>
+
+#include <TNL/DiscreteMath.h>
+
 #ifdef HAVE_OPENMP
    #include <omp.h>
 #endif
@@ -10,18 +14,17 @@
 #include "MemoryAccessBenchmarkTestArray.h"
 
 template< int Size >
-MemoryAccessBenchmarkTestArray< Size >::MemoryAccessBenchmarkTestArray( unsigned long long int size )
+MemoryAccessBenchmarkTestArray< Size >::MemoryAccessBenchmarkTestArray( std::uintptr_t size )
 {
-   this->numberOfElements = ceil( (double) size / (double) sizeof( ElementType ) );
-   this->allocation.setSize( this->numberOfElements + 4096 / sizeof( ElementType ) + 1 );
+   this->numberOfElements = TNL::roundUpDivision( size, sizeof( ElementType ) );
+   this->allocation.setSize( this->numberOfElements + TNL::roundUpDivision( 4096, sizeof( ElementType ) ) );
    this->elementsPerTest = this->numberOfElements;
 
    // Align the array to the memory page boundary
-   long int ptr = (long int) &this->allocation[ 0 ];
-   long int aligned_ptr = ptr >> 12;
-   aligned_ptr++;
-   aligned_ptr <<= 12;
-   this->array.bind( (ElementType*) aligned_ptr, this->numberOfElements );
+   void* ptr = this->allocation.getData();
+   std::size_t space = this->allocation.getSize() * sizeof( ElementType );
+   void* aligned_ptr = std::align( 4096, sizeof( ElementType ), ptr, space );
+   this->array.bind( static_cast< ElementType* >( aligned_ptr ), this->numberOfElements );
 }
 
 template< int Size >
@@ -32,7 +35,7 @@ MemoryAccessBenchmarkTestArray< Size >::setThreadsCount( int threads_count )
 }
 
 template< int Size >
-unsigned long long int
+std::uintptr_t
 MemoryAccessBenchmarkTestArray< Size >::getElementsCount() const
 {
    return this->numberOfElements;
@@ -40,7 +43,7 @@ MemoryAccessBenchmarkTestArray< Size >::getElementsCount() const
 
 template< int Size >
 void
-MemoryAccessBenchmarkTestArray< Size >::setElementsPerTest( long long int elementsPerTest )
+MemoryAccessBenchmarkTestArray< Size >::setElementsPerTest( std::uintptr_t elementsPerTest )
 {
    this->elementsPerTest = elementsPerTest;
 }
@@ -81,26 +84,26 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
       std::cerr << "Element size does not divide the page size.\n";
       return false;
    }
-   const unsigned int elementsPerPage = 4096 / sizeof( ElementType );
-   const unsigned long long int numberOfPages = ceil( (double) this->numberOfElements * sizeof( ElementType ) / 4096.0 );
+   const std::uintptr_t elementsPerPage = 4096 / sizeof( ElementType );
+   const std::uintptr_t numberOfPages = ceil( (double) this->numberOfElements * sizeof( ElementType ) / 4096.0 );
 
    int* elementsOnPageLeft = new int[ numberOfPages ];
    char* usedElements = new char[ this->numberOfElements ];
    memset( usedElements, 0, this->numberOfElements * sizeof( char ) );
-   for( unsigned int i = 0; i < numberOfPages; i++ )
+   for( std::uintptr_t i = 0; i < numberOfPages; i++ )
       elementsOnPageLeft[ i ] = elementsPerPage;
    if( this->numberOfElements % elementsPerPage != 0 )
       elementsOnPageLeft[ numberOfPages - 1 ] = this->numberOfElements % elementsPerPage;
 
-   unsigned long long int previousElement;
-   unsigned long long int newElement;
-   unsigned long long int pageIndex;
+   std::uintptr_t previousElement;
+   std::uintptr_t newElement;
+   std::uintptr_t pageIndex;
    usedElements[ 0 ] = 1;
    previousElement = 0;
    elementsOnPageLeft[ 0 ]--;
    pageIndex = 0;
 
-   for( unsigned long long int i = 1; i < this->numberOfElements; i++ ) {
+   for( std::uintptr_t i = 1; i < this->numberOfElements; i++ ) {
       pageIndex = ( pageIndex + 1 ) % numberOfPages;
       while( elementsOnPageLeft[ pageIndex ] == 0 )
          pageIndex = ( pageIndex + 1 ) % numberOfPages;
@@ -133,15 +136,15 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
 
 template< int Size >
 bool
-MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( const unsigned long long int blockSize,
+MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( std::uintptr_t blockSize,
                                                               PtrArrayType& blockLink,
-                                                              const int numThreads )
+                                                              int numThreads )
 {
    TNL::Containers::Array< char > usedElements( blockSize, 0 );
-   TNL::Containers::Array< unsigned long long int > previousElement( numThreads, 0 );
-   TNL::Containers::Array< unsigned long long int > newElement( numThreads, 0 );
+   TNL::Containers::Array< std::uintptr_t > previousElement( numThreads, 0 );
+   TNL::Containers::Array< std::uintptr_t > newElement( numThreads, 0 );
 
-   if( blockLink[ 0 ] != NULL )
+   if( blockLink[ 0 ] != nullptr )
       for( int tid = 0; tid < numThreads && tid < (int) blockSize; tid++ )
          blockLink[ tid ]->next = &this->array[ tid ];
 
@@ -150,10 +153,10 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( const unsigned lon
       usedElements[ tid ] = 1;
    }
 
-   for( unsigned long long int i = numThreads; i < blockSize; ) {
+   for( std::uintptr_t i = numThreads; i < blockSize; ) {
       for( int tid = 0; tid < numThreads && i < blockSize; tid++, i++ ) {
          newElement[ tid ] = rand() % blockSize;
-         unsigned long long int aux = newElement[ tid ];
+         std::uintptr_t aux = newElement[ tid ];
          while( usedElements[ newElement[ tid ] ] != 0 ) {
             newElement[ tid ] = ( newElement[ tid ] + 1 ) % blockSize;
             if( aux == newElement[ tid ] ) {
@@ -183,7 +186,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( const unsigned lon
 
 template< int Size >
 bool
-MemoryAccessBenchmarkTestArray< Size >::setupRandomTest( int tlbTestBlockSize, const int numThreads )
+MemoryAccessBenchmarkTestArray< Size >::setupRandomTest( int tlbTestBlockSize, int numThreads )
 {
    srand( time( nullptr ) );
 
@@ -195,8 +198,8 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTest( int tlbTestBlockSize, c
    if( tlbTestBlockSize == -1 )
       return this->setupRandomTLBWorstTest();
 
-   const unsigned long long int elementsPerBlock = tlbTestBlockSize * 4096 / sizeof( ElementType );
-   for( unsigned long long int i = 0; i < this->numberOfElements; i += elementsPerBlock )
+   const std::uintptr_t elementsPerBlock = tlbTestBlockSize * 4096 / sizeof( ElementType );
+   for( std::uintptr_t i = 0; i < this->numberOfElements; i += elementsPerBlock )
       if( ! this->setupRandomTestBlock( this->numberOfElements, blockLink ) )
          return false;
    return true;
@@ -204,10 +207,10 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTest( int tlbTestBlockSize, c
 
 template< int Size >
 void
-MemoryAccessBenchmarkTestArray< Size >::setupSequentialTest( const int numThreads, bool interleaving )
+MemoryAccessBenchmarkTestArray< Size >::setupSequentialTest( int numThreads, bool interleaving )
 {
    if( interleaving ) {
-      for( unsigned long long int i = 0; i < this->numberOfElements; i++ ) {
+      for( std::uintptr_t i = 0; i < this->numberOfElements; i++ ) {
          if( i + numThreads < this->numberOfElements )
             this->array[ i ].next = &this->array[ i + numThreads ];
          else
@@ -273,10 +276,10 @@ template< bool readTest, bool writeTest, bool accessCentralData >
 void
 MemoryAccessBenchmarkTestArray< Size >::testLoop()
 {
-   const unsigned long long int elementsPerTestPerThread = this->elementsPerTest / this->num_threads + 1;
-   unsigned long long int testedElementsCount = 0;
+   const std::uintptr_t elementsPerTestPerThread = this->elementsPerTest / this->num_threads + 1;
+   std::uintptr_t testedElementsCount = 0;
 #ifdef HAVE_OPENMP
-#pragma omp parallel num_threads( this->num_threads ), reduction( + : testedElementsCount ), if( this->num_threads > 1 )
+   #pragma omp parallel num_threads( this->num_threads ), reduction( + : testedElementsCount ), if( this->num_threads > 1 )
 #endif
    {
 #ifdef HAVE_OPENMP
@@ -285,7 +288,7 @@ MemoryAccessBenchmarkTestArray< Size >::testLoop()
       const int tid = 0;
 #endif
       testedElementsCount = 0;
-      if( (unsigned long long int) tid < this->numberOfElements )
+      if( (std::uintptr_t) tid < this->numberOfElements )
          while( testedElementsCount < elementsPerTestPerThread ) {
             ElementType* elementPtr = &this->array[ tid ];
             int elements( 0 );
@@ -314,14 +317,14 @@ MemoryAccessBenchmarkTestArray< Size >::testLoop()
 }
 
 template< int Size >
-unsigned long long int
+std::uintptr_t
 MemoryAccessBenchmarkTestArray< Size >::getTestedElementsCount()
 {
    return this->testedElementsCount;
 }
 
 template< int Size >
-unsigned long long int
+std::uintptr_t
 MemoryAccessBenchmarkTestArray< Size >::getTestedElementsCountPerThread()
 {
    return this->testedElementsCount / this->num_threads;

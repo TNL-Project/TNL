@@ -12,7 +12,8 @@ main( int argc, char* argv[] )
     * Create new arrays
     */
    const int size = 10;
-   Array< float, Devices::Cuda > a( size ), b( size );
+   Array< float, Devices::Cuda > a( size );
+   Array< float, Devices::Cuda > b( size );
    b = 0;
 
    /****
@@ -38,6 +39,6 @@ main( int argc, char* argv[] )
    /****
     * Print the results
     */
-   std::cout << " a = " << a << std::endl;
-   std::cout << " b = " << b << std::endl;
+   std::cout << " a = " << a << '\n';
+   std::cout << " b = " << b << '\n';
 }

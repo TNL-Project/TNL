@@ -34,8 +34,8 @@ sort( ArrayT& array )
       {
          value = idx;
       } );
-   std::cout << "Random array:     " << array << std::endl;
-   std::cout << "Index array:      " << index << std::endl;
+   std::cout << "Random array:     " << array << '\n';
+   std::cout << "Index array:      " << index << '\n';
 
    /***
     * Sort the array `array` and apply the same permutation on the array `identity`.
@@ -53,8 +53,8 @@ sort( ArrayT& array )
          TNL::swap( array_view[ i ], array_view[ j ] );
          TNL::swap( index_view[ i ], index_view[ j ] );
       } );
-   std::cout << "Sorted array:      " << array << std::endl;
-   std::cout << "Index:             " << index << std::endl;
+   std::cout << "Sorted array:      " << array << '\n';
+   std::cout << "Index:             " << index << '\n';
 }
 
 int
@@ -63,7 +63,7 @@ main( int argc, char* argv[] )
    /***
     * Firstly, test the sorting on CPU.
     */
-   std::cout << "Sorting on CPU ... " << std::endl;
+   std::cout << "Sorting on CPU ...\n";
    Array< int, Devices::Host > host_array;
    sort( host_array );
 
@@ -71,7 +71,7 @@ main( int argc, char* argv[] )
    /***
     * And then also on GPU.
     */
-   std::cout << "Sorting on GPU ... " << std::endl;
+   std::cout << "Sorting on GPU ...\n";
    Array< int, Devices::Cuda > cuda_array;
    sort( cuda_array );
 #endif

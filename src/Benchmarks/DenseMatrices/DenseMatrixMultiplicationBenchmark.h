@@ -83,11 +83,11 @@ struct DenseMatrixMultiplicationBenchmark
    bool
    runBenchmark()
    {
-      const TNL::String logFileName = parameters.getParameter< TNL::String >( "log-file" );
-      const TNL::String outputMode = parameters.getParameter< TNL::String >( "output-mode" );
+      const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
+      const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
       const IndexType loops = parameters.getParameter< IndexType >( "loops" );
       const IndexType verbose = parameters.getParameter< IndexType >( "verbose" );
-      bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
+      const bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
 
       auto mode = std::ios::out;
       if( outputMode == "append" )
@@ -98,7 +98,7 @@ struct DenseMatrixMultiplicationBenchmark
       std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
       TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
 
-      TNL::String device = parameters.getParameter< TNL::String >( "device" );
+      const auto device = parameters.getParameter< TNL::String >( "device" );
 
       const IndexType numMatrices = 50;  // Number of matrices for the cycle
       IndexType matrix1Rows = 0;         // Number of rows in matrix1

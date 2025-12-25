@@ -138,7 +138,7 @@ IterativeSolverMonitor< Real >::refresh()
       if( time > 0 ) {
          print_item( " T:" );
          print_item( real_to_string( ( saved ) ? saved_time : time, 5 ), 8 );
-         if( ( saved ) ? saved_timeStep : timeStep > 0 ) {
+         if( ( ( saved ) ? saved_timeStep : timeStep ) > 0 ) {
             print_item( " TAU:" );
             print_item( real_to_string( ( saved ) ? saved_timeStep : timeStep, 5 ), 10 );
          }
@@ -156,16 +156,16 @@ IterativeSolverMonitor< Real >::refresh()
          }
       }
 
-      if( ( saved ) ? saved_iterations : iterations > 0 && free >= 14 ) {
+      if( ( ( saved ) ? saved_iterations : iterations ) > 0 && free >= 14 ) {
          print_item( " ITER:" );
          print_item( std::to_string( ( saved ) ? saved_iterations : iterations ), 8 );
       }
-      if( ( saved ) ? saved_residue : residue && free >= 17 ) {
+      if( ( ( saved ) ? saved_residue : residue ) != 0 && free >= 17 ) {
          print_item( " RES:" );
          print_item( real_to_string( ( saved ) ? saved_residue : residue, 5 ), 12 );
       }
 
-      if( nodesPerIteration )  // otherwise MLUPS: 0 is printed
+      if( nodesPerIteration > 0 )  // otherwise MLUPS: 0 is printed
       {
          const RealType mlups = nodesPerIteration * ( iterations - iterations_before_refresh )
                               / ( getElapsedTime() - elapsed_time_before_refresh ) * 1e-6;

@@ -5,7 +5,6 @@
 #include <TNL/Devices/Cuda.h>
 
 using namespace TNL;
-using namespace std;
 
 template< typename Device >
 void
@@ -19,28 +18,28 @@ VectorExample()
    vector2.swap( vector1 );
    vector2.setElement( 2, 4 );
 
-   cout << "First vector:" << vector1.getData() << endl;
-   cout << "Second vector:" << vector2.getData() << endl;
+   std::cout << "First vector:" << vector1.getData() << '\n';
+   std::cout << "Second vector:" << vector2.getData() << '\n';
 
    vector2.reset();
-   cout << "Second vector after reset:" << vector2.getData() << endl;
+   std::cout << "Second vector after reset:" << vector2.getData() << '\n';
 
    Containers::Vector< int, Device > vect = { 1, 2, -3, 3 };
-   cout << "The smallest element is:" << min( vect ) << endl;
-   cout << "The absolute biggest element is:" << max( abs( vect ) ) << endl;
-   cout << "Sum of all vector elements:" << sum( vect ) << endl;
+   std::cout << "The smallest element is:" << min( vect ) << '\n';
+   std::cout << "The absolute biggest element is:" << max( abs( vect ) ) << '\n';
+   std::cout << "Sum of all vector elements:" << sum( vect ) << '\n';
    vect *= 2.0;
-   cout << "Vector multiplied by 2:" << vect << endl;
+   std::cout << "Vector multiplied by 2:" << vect << '\n';
 }
 
 int
 main()
 {
-   std::cout << "Running vector example on the host system: " << std::endl;
+   std::cout << "Running vector example on the host system:\n";
    VectorExample< Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running vector example on the CUDA device: " << std::endl;
+   std::cout << "Running vector example on the CUDA device:\n";
    VectorExample< Devices::Cuda >();
 #endif
 }

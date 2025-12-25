@@ -25,6 +25,6 @@ main()
    //! [initialization]
 
    //! [output]
-   std::cout << "a = " << a.getStorageArray() << std::endl;
+   std::cout << "a = " << a.getStorageArray() << '\n';
    //! [output]
 }

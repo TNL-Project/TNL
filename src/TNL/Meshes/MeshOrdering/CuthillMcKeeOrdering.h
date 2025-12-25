@@ -55,6 +55,9 @@ private:
       using IndexType = typename Mesh::GlobalIndexType;
       const IndexType numberOfCells = mesh.template getEntitiesCount< typename Mesh::Cell >();
 
+      if( numberOfCells == 0 )
+         return;
+
       // allocate permutation vectors
       perm.setSize( numberOfCells );
       iperm.setSize( numberOfCells );

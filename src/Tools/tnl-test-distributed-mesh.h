@@ -451,8 +451,8 @@ void
 configSetup( Config::ConfigDescription& config )
 {
    config.addDelimiter( "General settings:" );
-   config.addRequiredEntry< String >( "input-file", "Input file with the mesh." );
-   config.addEntry< String >( "input-file-format", "Input mesh file format.", "auto" );
+   config.addRequiredEntry< std::string >( "input-file", "Input file with the mesh." );
+   config.addEntry< std::string >( "input-file-format", "Input mesh file format.", "auto" );
    config.addEntry< int >( "max-iterations", "Maximum number of iterations to compute", 100 );
    config.addDelimiter( "MPI settings:" );
    TNL::MPI::configSetup( config );
@@ -474,11 +474,12 @@ main( int argc, char* argv[] )
    if( ! TNL::MPI::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String inputFileName = parameters.getParameter< String >( "input-file" );
-   const String inputFileFormat = parameters.getParameter< String >( "input-file-format" );
+   const auto inputFileName = parameters.getParameter< std::string >( "input-file" );
+   const auto inputFileFormat = parameters.getParameter< std::string >( "input-file-format" );
    const int max_iterations = parameters.getParameter< int >( "max-iterations" );
 
-   auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> bool
+   bool status = true;
+   auto wrapper = [ & ]( auto& reader, auto&& mesh )
    {
       using MeshType = std::decay_t< decltype( mesh ) >;
 
@@ -492,9 +493,14 @@ main( int argc, char* argv[] )
       testSynchronizer( mesh );
 
       // test simple propagation algorithm
-      return testPropagationOverFaces( std::forward< MeshType >( mesh ), max_iterations );
+      status = testPropagationOverFaces( std::forward< MeshType >( mesh ), max_iterations );
    };
-   const bool status =
+   try {
       Meshes::resolveAndLoadDistributedMesh< MyConfigTag, Devices::Host >( wrapper, inputFileName, inputFileFormat );
+   }
+   catch( const std::exception& e ) {
+      std::cerr << "Error: " << e.what() << '\n';
+      return EXIT_FAILURE;
+   }
    return static_cast< int >( ! status );
 }

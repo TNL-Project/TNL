@@ -116,9 +116,9 @@ struct GraphsBenchmark
       benchmark.time< Device >( device, bfs_tnl_dir );
 #ifdef HAVE_BOOST
       if( bfsDistances != this->boostBfsDistancesDirected ) {
-         std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << std::endl;
-         std::cout << "Boost: " << this->boostBfsDistancesDirected << std::endl;
-         std::cout << "TNL:   " << bfsDistances << std::endl;
+         std::cout << "BFS distances of directed graph from Boost and TNL are not equal!\n";
+         std::cout << "Boost: " << this->boostBfsDistancesDirected << '\n';
+         std::cout << "TNL:   " << bfsDistances << '\n';
          this->errors++;
       }
 #endif
@@ -138,9 +138,9 @@ struct GraphsBenchmark
       benchmark.time< Device >( device, bfs_tnl_undir );
 #ifdef HAVE_BOOST
       if( bfsDistances != this->boostBfsDistancesUndirected ) {
-         std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << std::endl;
-         std::cout << "Boost: " << this->boostBfsDistancesUndirected << std::endl;
-         std::cout << "TNL:   " << bfsDistances << std::endl;
+         std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!\n";
+         std::cout << "Boost: " << this->boostBfsDistancesUndirected << '\n';
+         std::cout << "TNL:   " << bfsDistances << '\n';
          this->errors++;
       }
 #endif
@@ -162,9 +162,9 @@ struct GraphsBenchmark
 
 #ifdef HAVE_BOOST
       if( ssspDistances != this->boostSSSPDistancesDirected ) {
-         std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!" << std::endl;
-         std::cout << "Boost: " << this->boostSSSPDistancesDirected << std::endl;
-         std::cout << "TNL:   " << ssspDistances << std::endl;
+         std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!\n";
+         std::cout << "Boost: " << this->boostSSSPDistancesDirected << '\n';
+         std::cout << "TNL:   " << ssspDistances << '\n';
          this->errors++;
       }
 #endif
@@ -186,9 +186,9 @@ struct GraphsBenchmark
 
 #ifdef HAVE_BOOST
       if( ssspDistances != this->boostSSSPDistancesUndirected ) {
-         std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!" << std::endl;
-         std::cout << "Boost: " << this->boostSSSPDistancesUndirected << std::endl;
-         std::cout << "TNL:   " << ssspDistances << std::endl;
+         std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!\n";
+         std::cout << "Boost: " << this->boostSSSPDistancesUndirected << '\n';
+         std::cout << "TNL:   " << ssspDistances << '\n';
          this->errors++;
       }
 #endif
@@ -210,15 +210,15 @@ struct GraphsBenchmark
       auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
       TNL::Graphs::GraphWriter< Graph >::writeEdgeList( filename + "-tnl-mst.txt", mstGraph );
       if( ! TNL::Graphs::isForest( mstGraph ) ) {
-         std::cout << "ERROR: TNL MST is not a forest!" << std::endl;
+         std::cout << "ERROR: TNL MST is not a forest!\n";
          this->errors++;
       }
 #ifdef HAVE_BOOST
       Real mstTotalWeight = mstGraph.getTotalWeight();
       if( mstTotalWeight != boostMSTTotalWeight ) {
-         std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!" << std::endl;
-         std::cout << "Boost MST total weight: " << boostMSTTotalWeight << std::endl;
-         std::cout << "TNL MST total weight: " << mstTotalWeight << std::endl;
+         std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!\n";
+         std::cout << "Boost MST total weight: " << boostMSTTotalWeight << '\n';
+         std::cout << "TNL MST total weight: " << mstTotalWeight << '\n';
          this->errors++;
       }
 #endif
@@ -512,10 +512,10 @@ struct GraphsBenchmark
 
       auto device = parameters.getParameter< TNL::String >( "device" );
 
-      std::cout << "Graphs benchmark  with " << TNL::getType< Real >() << " precision and device: " << device << std::endl;
+      std::cout << "Graphs benchmark  with " << TNL::getType< Real >() << " precision and device: " << device << '\n';
 
       HostDigraph digraph;
-      std::cout << "Reading graph from file " << inputFile << std::endl;
+      std::cout << "Reading graph from file " << inputFile << '\n';
       TNL::Graphs::GraphReader< HostDigraph >::readEdgeList( inputFile, digraph );
 
       auto symmetrizedAdjacencyMatrix = TNL::Matrices::getSymmetricPart< HostMatrix >( digraph.getAdjacencyMatrix() );

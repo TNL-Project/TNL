@@ -1,5 +1,4 @@
 #include <iostream>
-#include <iomanip>
 #include <functional>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
@@ -20,7 +19,8 @@ reduceRows()
    /***
     * Allocate input and output vectors for matrix-vector product
     */
-   TNL::Containers::Vector< double, Device > x( matrix.getColumns() ), y( matrix.getRows() );
+   TNL::Containers::Vector< double, Device > x( matrix.getColumns() );
+   TNL::Containers::Vector< double, Device > y( matrix.getRows() );
 
    /***
     * Fill the input vectors with ones.
@@ -55,20 +55,20 @@ reduceRows()
     */
    matrix.reduceRows( 0, matrix.getRows(), fetch, std::plus<>{}, keep, 0.0 );
 
-   std::cout << "The matrix reads as:" << std::endl << matrix << std::endl;
-   std::cout << "The input vector is:" << x << std::endl;
-   std::cout << "Result of matrix-vector multiplication is: " << y << std::endl;
+   std::cout << "The matrix reads as:\n" << matrix << '\n';
+   std::cout << "The input vector is:" << x << '\n';
+   std::cout << "Result of matrix-vector multiplication is: " << y << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Rows reduction on host:" << std::endl;
+   std::cout << "Rows reduction on host:\n";
    reduceRows< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << std::endl;
-   std::cout << "Rows reduction on CUDA device:" << std::endl;
+   std::cout << '\n';
+   std::cout << "Rows reduction on CUDA device:\n";
    reduceRows< TNL::Devices::Cuda >();
 #endif
 }

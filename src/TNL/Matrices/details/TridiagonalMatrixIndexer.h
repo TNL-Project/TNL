@@ -3,7 +3,11 @@
 
 #pragma once
 
+#include <stdexcept>
+
+#include <TNL/Backend/Macros.h>
 #include <TNL/DiscreteMath.h>
+#include <TNL/Math.h>
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 
 namespace TNL::Matrices::details {
@@ -21,11 +25,7 @@ public:
    }
 
    __cuda_callable__
-   TridiagonalMatrixIndexer()
-   : rows( 0 ),
-     columns( 0 ),
-     nonemptyRows( 0 )
-   {}
+   TridiagonalMatrixIndexer() = default;
 
    __cuda_callable__
    TridiagonalMatrixIndexer( const IndexType& rows, const IndexType& columns )
@@ -35,11 +35,18 @@ public:
    {}
 
    __cuda_callable__
-   TridiagonalMatrixIndexer( const TridiagonalMatrixIndexer& indexer )
-   : rows( indexer.rows ),
-     columns( indexer.columns ),
-     nonemptyRows( indexer.nonemptyRows )
-   {}
+   TridiagonalMatrixIndexer( const TridiagonalMatrixIndexer& indexer ) = default;
+
+   __cuda_callable__
+   TridiagonalMatrixIndexer( TridiagonalMatrixIndexer&& indexer ) = default;
+
+   __cuda_callable__
+   TridiagonalMatrixIndexer&
+   operator=( const TridiagonalMatrixIndexer& indexer ) = default;
+
+   __cuda_callable__
+   TridiagonalMatrixIndexer&
+   operator=( TridiagonalMatrixIndexer&& indexer ) = default;
 
    void
    setDimensions( const IndexType& rows, const IndexType& columns )
@@ -103,7 +110,9 @@ public:
    }
 
 protected:
-   IndexType rows, columns, nonemptyRows;
+   IndexType rows = 0;
+   IndexType columns = 0;
+   IndexType nonemptyRows = 0;
 };
 
 }  // namespace TNL::Matrices::details

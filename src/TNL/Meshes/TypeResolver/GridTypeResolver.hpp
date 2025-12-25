@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <stdexcept>
 #include <utility>
 
 #include <TNL/Meshes/TypeResolver/GridTypeResolver.h>
@@ -11,99 +12,96 @@ namespace TNL::Meshes {
 
 template< typename ConfigTag, typename Device >
 template< typename Reader, typename Functor >
-bool
+void
 GridTypeResolver< ConfigTag, Device >::run( Reader& reader, Functor&& functor )
 {
-   return detail< Reader, Functor >::resolveGridDimension( reader, std::forward< Functor >( functor ) );
+   detail< Reader, Functor >::resolveGridDimension( reader, std::forward< Functor >( functor ) );
 }
 
 template< typename ConfigTag, typename Device >
 template< typename Reader, typename Functor >
-bool
+void
 GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveGridDimension( Reader& reader, Functor&& functor )
 {
    if( reader.getMeshDimension() == 1 )
-      return resolveReal< 1 >( reader, std::forward< Functor >( functor ) );
-   if( reader.getMeshDimension() == 2 )
-      return resolveReal< 2 >( reader, std::forward< Functor >( functor ) );
-   if( reader.getMeshDimension() == 3 )
-      return resolveReal< 3 >( reader, std::forward< Functor >( functor ) );
-   std::cerr << "Unsupported mesh dimension: " << reader.getMeshDimension() << '\n';
-   return false;
+      resolveReal< 1 >( reader, std::forward< Functor >( functor ) );
+   else if( reader.getMeshDimension() == 2 )
+      resolveReal< 2 >( reader, std::forward< Functor >( functor ) );
+   else if( reader.getMeshDimension() == 3 )
+      resolveReal< 3 >( reader, std::forward< Functor >( functor ) );
+   else
+      throw std::invalid_argument( "Unsupported mesh dimension: " + std::to_string( reader.getMeshDimension() ) );
 }
 
 template< typename ConfigTag, typename Device >
 template< typename Reader, typename Functor >
 template< int MeshDimension >
-bool
+void
 GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveReal( Reader& reader, Functor&& functor )
 {
    if constexpr( BuildConfigTags::GridDimensionTag< ConfigTag, MeshDimension >::enabled ) {
       if( reader.getRealType() == "float" )
-         return resolveIndex< MeshDimension, float >( reader, std::forward< Functor >( functor ) );
-      if( reader.getRealType() == "double" )
-         return resolveIndex< MeshDimension, double >( reader, std::forward< Functor >( functor ) );
-      if( reader.getRealType() == "long double" )
-         return resolveIndex< MeshDimension, long double >( reader, std::forward< Functor >( functor ) );
-      std::cerr << "Unsupported real type: " << reader.getRealType() << std::endl;
-      return false;
+         resolveIndex< MeshDimension, float >( reader, std::forward< Functor >( functor ) );
+      else if( reader.getRealType() == "double" )
+         resolveIndex< MeshDimension, double >( reader, std::forward< Functor >( functor ) );
+      else if( reader.getRealType() == "long double" )
+         resolveIndex< MeshDimension, long double >( reader, std::forward< Functor >( functor ) );
+      else
+         throw std::invalid_argument( "Unsupported real type: " + reader.getRealType() );
    }
    else {
-      std::cerr << "The grid dimension " << MeshDimension << " is disabled in the build configuration.\n";
-      return false;
+      throw std::invalid_argument( "The grid dimension " + std::to_string( MeshDimension )
+                                   + " is disabled in the build configuration." );
    }
 }
 
 template< typename ConfigTag, typename Device >
 template< typename Reader, typename Functor >
 template< int MeshDimension, typename Real >
-bool
+void
 GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveIndex( Reader& reader, Functor&& functor )
 {
    if constexpr( BuildConfigTags::GridRealTag< ConfigTag, Real >::enabled ) {
       if( reader.getGlobalIndexType() == "std::int16_t" || reader.getGlobalIndexType() == "std::uint16_t" )
-         return resolveGridType< MeshDimension, Real, std::int16_t >( reader, std::forward< Functor >( functor ) );
-      if( reader.getGlobalIndexType() == "std::int32_t" || reader.getGlobalIndexType() == "std::uint32_t" )
-         return resolveGridType< MeshDimension, Real, std::int32_t >( reader, std::forward< Functor >( functor ) );
-      if( reader.getGlobalIndexType() == "std::int64_t" || reader.getGlobalIndexType() == "std::uint64_t" )
-         return resolveGridType< MeshDimension, Real, std::int64_t >( reader, std::forward< Functor >( functor ) );
-      std::cerr << "Unsupported index type: " << reader.getRealType() << '\n';
-      return false;
+         resolveGridType< MeshDimension, Real, std::int16_t >( reader, std::forward< Functor >( functor ) );
+      else if( reader.getGlobalIndexType() == "std::int32_t" || reader.getGlobalIndexType() == "std::uint32_t" )
+         resolveGridType< MeshDimension, Real, std::int32_t >( reader, std::forward< Functor >( functor ) );
+      else if( reader.getGlobalIndexType() == "std::int64_t" || reader.getGlobalIndexType() == "std::uint64_t" )
+         resolveGridType< MeshDimension, Real, std::int64_t >( reader, std::forward< Functor >( functor ) );
+      else
+         throw std::invalid_argument( "Unsupported index type: " + reader.getRealType() );
    }
    else {
-      std::cerr << "The grid real type " << getType< Real >() << " is disabled in the build configuration.\n";
-      return false;
+      throw std::invalid_argument( "The grid real type " + getType< Real >() + " is disabled in the build configuration." );
    }
 }
 
 template< typename ConfigTag, typename Device >
 template< typename Reader, typename Functor >
 template< int MeshDimension, typename Real, typename Index >
-bool
+void
 GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveGridType( Reader& reader, Functor&& functor )
 {
    if constexpr( BuildConfigTags::GridIndexTag< ConfigTag, Index >::enabled ) {
       using GridType = Meshes::Grid< MeshDimension, Real, Device, Index >;
-      return resolveTerminate< GridType >( reader, std::forward< Functor >( functor ) );
+      resolveTerminate< GridType >( reader, std::forward< Functor >( functor ) );
    }
    else {
-      std::cerr << "The grid index type " << getType< Index >() << " is disabled in the build configuration.\n";
-      return false;
+      throw std::invalid_argument( "The grid index type " + getType< Index >() + " is disabled in the build configuration." );
    }
 }
 
 template< typename ConfigTag, typename Device >
 template< typename Reader, typename Functor >
 template< typename GridType >
-bool
+void
 GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveTerminate( Reader& reader, Functor&& functor )
 {
    if constexpr( BuildConfigTags::GridTag< ConfigTag, GridType >::enabled ) {
-      return std::forward< Functor >( functor )( reader, GridType{} );
+      std::forward< Functor >( functor )( reader, GridType{} );
    }
    else {
-      std::cerr << "The mesh type " << TNL::getType< GridType >() << " is disabled in the build configuration.\n";
-      return false;
+      throw std::invalid_argument( "The mesh type " + TNL::getType< GridType >() + " is disabled in the build configuration." );
    }
 }
 

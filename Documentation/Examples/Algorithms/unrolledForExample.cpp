@@ -11,11 +11,12 @@ main( int argc, char* argv[] )
    /****
     * Create two static vectors
     */
-   const int Size( 3 );
-   StaticVector< Size, double > a, b;
+   const int Size = 3;
+   StaticVector< Size, double > a;
+   StaticVector< Size, double > b;
    a = 1.0;
    b = 2.0;
-   double sum( 0.0 );
+   double sum = 0.0;
 
    /****
     * Compute an addition of a vector and a constant number.
@@ -26,6 +27,6 @@ main( int argc, char* argv[] )
          a[ i ] = b[ i ] + 3.14;
          sum += a[ i ];
       } );
-   std::cout << "a = " << a << std::endl;
-   std::cout << "sum = " << sum << std::endl;
+   std::cout << "a = " << a << '\n';
+   std::cout << "sum = " << sum << '\n';
 }
