@@ -102,8 +102,6 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    }
 
    template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
@@ -111,8 +109,6 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    static void
    reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
                                      const Array& segmentIndexes,
-                                     IndexBegin begin,
-                                     IndexEnd end,
                                      Fetch&& fetch,
                                      Reduction&& reduction,
                                      ResultKeeper&& keeper,
@@ -122,7 +118,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
-         for( IndexType segmentIdx_idx = begin; segmentIdx_idx < end; segmentIdx_idx++ ) {
+         for( IndexType segmentIdx_idx = 0; segmentIdx_idx < segmentIndexes.getSize(); segmentIdx_idx++ ) {
             TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
             const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
             const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
@@ -162,7 +158,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
       else {
          Backend::LaunchConfiguration launch_config;
          // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
-         //  TODO: This ignores parameters begin and end
+         //  TODO: This ignores parameters the size of segmentIndexes
          const IndexType cudaBlocks = segments.getNumberOfSlices();
          const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
          launch_config.blockSize.x = segments.getChunksInSlice();
@@ -185,8 +181,6 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                         segments.getConstView(),
                                         segmentIndexes.getConstView(),
                                         gridIdx,
-                                        begin,
-                                        end,
                                         fetch,
                                         reduction,
                                         keeper,
@@ -281,8 +275,6 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    }
 
    template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
@@ -290,8 +282,6 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    static void
    reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
                                                 const Array& segmentIndexes,
-                                                IndexBegin begin,
-                                                IndexEnd end,
                                                 Fetch&& fetch,
                                                 Reduction&& reduction,
                                                 ResultKeeper&& keeper,
@@ -301,7 +291,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
-         for( IndexType segmentIdx_idx = begin; segmentIdx_idx < end; segmentIdx_idx++ ) {
+         for( IndexType segmentIdx_idx = 0; segmentIdx_idx < segmentIndexes.getSize(); segmentIdx_idx++ ) {
             TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
             const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
             const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
@@ -369,8 +359,6 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                         segments.getConstView(),
                                         segmentIndexes.getConstView(),
                                         gridIdx,
-                                        begin,
-                                        end,
                                         fetch,
                                         reduction,
                                         keeper,

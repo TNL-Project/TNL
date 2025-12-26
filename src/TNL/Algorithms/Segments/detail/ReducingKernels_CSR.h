@@ -429,8 +429,6 @@ void
 reduceSegmentsCSRVectorKernelWithIndexes( Index gridIdx,
                                           const Segments segments,
                                           const ArrayView segmentIndexes,
-                                          Index begin,
-                                          Index end,
                                           Fetch fetch,
                                           const Reduction reduction,
                                           ResultKeeper keep,
@@ -440,8 +438,8 @@ reduceSegmentsCSRVectorKernelWithIndexes( Index gridIdx,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    // We map one warp to each segment
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize() + begin;
-   if( segmentIdx_idx >= end )
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize();
+   if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
    const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
@@ -483,8 +481,6 @@ void
 reduceSegmentsCSRVariableVectorKernelWithIndexes( const Index gridID,
                                                   const Segments segments,
                                                   const ArrayView segmentIndexes,
-                                                  const Index begin,
-                                                  const Index end,
                                                   Fetch fetch,
                                                   Reduce reduce,
                                                   Keep keep,
@@ -494,8 +490,8 @@ reduceSegmentsCSRVariableVectorKernelWithIndexes( const Index gridID,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx_idx =
-      begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx_idx >= end )
+      ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
@@ -589,8 +585,6 @@ void
 reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
                                                     const Segments segments,
                                                     const ArrayView segmentIndexes,
-                                                    Index begin,
-                                                    Index end,
                                                     Fetch fetch,
                                                     const Reduction reduce,
                                                     ResultKeeper keep,
@@ -599,8 +593,8 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
-   if( segmentIdx_idx >= end )
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
+   if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
    // we need to allocate shared memory for at least one warp to avoid indexing shared memory out of bounds
@@ -668,7 +662,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
          __syncwarp();
       }
       constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
-      if( inWarpLaneIdx < segmentsCount && segmentIdx_idx + inWarpLaneIdx < end ) {
+      if( inWarpLaneIdx < segmentsCount && segmentIdx_idx + inWarpLaneIdx < segmentIndexes.getSize() ) {
          keep( segmentIdx_idx,
                segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
                shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
@@ -691,8 +685,6 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
                                                    const Index threadsPerSegment,
                                                    const Segments segments,
                                                    const ArrayView segmentIndexes,
-                                                   Index begin,
-                                                   Index end,
                                                    Fetch fetch,
                                                    const Reduction reduce,
                                                    ResultKeeper keep,
@@ -708,9 +700,9 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
 
    const Index segmentIdx_idx =
       threadIdx.x < ( BlockSize / threadsPerSegment )
-         ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+         ? ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
          : none_scheduled;
-   bool reduce_segment = ( segmentIdx_idx < end && threadIdx.x < BlockSize / threadsPerSegment );
+   bool reduce_segment = ( segmentIdx_idx < segmentIndexes.getSize() && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
    __shared__ Index scheduled_segment_idx[ 1 ];
@@ -1281,8 +1273,6 @@ void
 reduceSegmentsCSRVectorKernelWithIndexesAndArgument( Index gridIdx,
                                                      const Segments segments,
                                                      const ArrayView segmentIndexes,
-                                                     Index begin,
-                                                     Index end,
                                                      Fetch fetch,
                                                      const Reduction reduction,
                                                      ResultKeeper keep,
@@ -1292,8 +1282,8 @@ reduceSegmentsCSRVectorKernelWithIndexesAndArgument( Index gridIdx,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    // We map one warp to each segment
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize() + begin;
-   if( segmentIdx_idx >= end )
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / Backend::getWarpSize();
+   if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
    const Index laneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
@@ -1339,8 +1329,6 @@ void
 reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument( const Index gridID,
                                                              const Segments segments,
                                                              const ArrayView segmentIndexes,
-                                                             const Index begin,
-                                                             const Index end,
                                                              Fetch fetch,
                                                              Reduce reduce,
                                                              Keep keep,
@@ -1350,8 +1338,8 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument( const Index gridID,
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
    const Index segmentIdx_idx =
-      begin + ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx_idx >= end )
+      ( ( gridID * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
@@ -1445,8 +1433,6 @@ void
 reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
                                                                const Segments segments,
                                                                const ArrayView segmentIndexes,
-                                                               Index begin,
-                                                               Index end,
                                                                Fetch fetch,
                                                                const Reduction reduce,
                                                                ResultKeeper keep,
@@ -1457,8 +1443,8 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
    constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
    constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
 
-   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
-   if( segmentIdx_idx >= end )
+   const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
+   if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
    constexpr int shared_size = TNL::max( BlockSize / Backend::getWarpSize(), Backend::getWarpSize() );
@@ -1548,7 +1534,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
       }
       if( warpIdx == 0                      // first warp stores the results
           && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
-          && segmentIdx_idx + inWarpLaneIdx < end )
+          && segmentIdx_idx + inWarpLaneIdx < segmentIndexes.getSize() )
       {
          keep( segmentIdx_idx,
                segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
@@ -1573,8 +1559,6 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
                                                               const Index threadsPerSegment,
                                                               const Segments segments,
                                                               const ArrayView segmentIndexes,
-                                                              Index begin,
-                                                              Index end,
                                                               Fetch fetch,
                                                               const Reduction reduce,
                                                               ResultKeeper keep,
@@ -1590,9 +1574,9 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
 
    const Index segmentIdx_idx =
       threadIdx.x < ( BlockSize / threadsPerSegment )
-         ? begin + ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
+         ? ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * ( BlockSize / threadsPerSegment ) + threadIdx.x
          : none_scheduled;
-   bool reduce_segment = ( segmentIdx_idx < end && threadIdx.x < BlockSize / threadsPerSegment );
+   bool reduce_segment = ( segmentIdx_idx < segmentIndexes.getSize() && threadIdx.x < BlockSize / threadsPerSegment );
 
    // Processing segments larger than BlockSize
    __shared__ Index scheduled_segment_idx[ 1 ];
