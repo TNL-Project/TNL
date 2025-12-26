@@ -170,8 +170,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    }
 
    template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
@@ -179,8 +177,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    static void
    reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
                                      const Array& segmentIndexes,
-                                     IndexBegin begin,
-                                     IndexEnd end,
                                      Fetch&& fetch,
                                      Reduction&& reduction,
                                      ResultKeeper&& keeper,
@@ -192,10 +188,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
       auto segmentIndexes_view = segmentIndexes.getConstView();
       if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
          if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
-            if( end <= begin )
+            if( segmentIndexes.getSize() == 0 )
                return;
             const std::size_t threadsCount =
-               (std::size_t) ( end - begin ) * (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               (std::size_t) segmentIndexes.getSize() * (std::size_t) launchConfig.getThreadsPerSegmentCount();
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             const Index blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
@@ -205,8 +201,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             constexpr auto kernel1 = EllpackCudaReductionKernelWithSegmentIndexes< 1,
                                                                                    ConstViewType,
                                                                                    ArrayView,
-                                                                                   IndexBegin,
-                                                                                   IndexEnd,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
                                                                                    std::remove_reference_t< ResultKeeper >,
@@ -214,8 +208,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             constexpr auto kernel2 = EllpackCudaReductionKernelWithSegmentIndexes< 2,
                                                                                    ConstViewType,
                                                                                    ArrayView,
-                                                                                   IndexBegin,
-                                                                                   IndexEnd,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
                                                                                    std::remove_reference_t< ResultKeeper >,
@@ -223,8 +215,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             constexpr auto kernel4 = EllpackCudaReductionKernelWithSegmentIndexes< 4,
                                                                                    ConstViewType,
                                                                                    ArrayView,
-                                                                                   IndexBegin,
-                                                                                   IndexEnd,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
                                                                                    std::remove_reference_t< ResultKeeper >,
@@ -232,8 +222,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             constexpr auto kernel8 = EllpackCudaReductionKernelWithSegmentIndexes< 8,
                                                                                    ConstViewType,
                                                                                    ArrayView,
-                                                                                   IndexBegin,
-                                                                                   IndexEnd,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
                                                                                    std::remove_reference_t< ResultKeeper >,
@@ -241,8 +229,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             constexpr auto kernel16 = EllpackCudaReductionKernelWithSegmentIndexes< 16,
                                                                                     ConstViewType,
                                                                                     ArrayView,
-                                                                                    IndexBegin,
-                                                                                    IndexEnd,
                                                                                     std::remove_reference_t< Fetch >,
                                                                                     std::remove_reference_t< Reduction >,
                                                                                     std::remove_reference_t< ResultKeeper >,
@@ -250,84 +236,34 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             constexpr auto kernel32 = EllpackCudaReductionKernelWithSegmentIndexes< 32,
                                                                                     ConstViewType,
                                                                                     ArrayView,
-                                                                                    IndexBegin,
-                                                                                    IndexEnd,
                                                                                     std::remove_reference_t< Fetch >,
                                                                                     std::remove_reference_t< Reduction >,
                                                                                     std::remove_reference_t< ResultKeeper >,
                                                                                     ReturnType >;
             switch( launchConfig.getThreadsPerSegmentCount() ) {
                case 1:
-                  Backend::launchKernelSync( kernel1,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel1, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                case 2:
-                  Backend::launchKernelSync( kernel2,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel2, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                case 4:
-                  Backend::launchKernelSync( kernel4,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel4, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                case 8:
-                  Backend::launchKernelSync( kernel8,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel8, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                case 16:
-                  Backend::launchKernelSync( kernel16,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel16, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                case 32:
-                  Backend::launchKernelSync( kernel32,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel32, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                default:
                   throw std::invalid_argument( "Unsupported threads per segment ( "
@@ -351,7 +287,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      result, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
                keeper( segmentIdx_idx, segmentIdx, result );
             };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
          }
       }
       else {  // ColumnMajorOrder
@@ -370,7 +306,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                   reduction( result, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
             keeper( segmentIdx_idx, segmentIdx, result );
          };
-         Algorithms::parallelFor< Device >( begin, end, l );
+         Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
       }
    }
 
@@ -520,8 +456,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    }
 
    template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
@@ -529,8 +463,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    static void
    reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
                                                 const Array& segmentIndexes,
-                                                IndexBegin begin,
-                                                IndexEnd end,
                                                 Fetch&& fetch,
                                                 Reduction&& reduction,
                                                 ResultKeeper&& keeper,
@@ -542,10 +474,10 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
       auto segmentIndexes_view = segmentIndexes.getConstView();
       if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder ) {
          if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
-            if( end <= begin )
+            if( segmentIndexes.getSize() == 0 )
                return;
             const std::size_t threadsCount =
-               (std::size_t) ( end - begin ) * (std::size_t) launchConfig.getThreadsPerSegmentCount();
+               (std::size_t) segmentIndexes.getSize() * (std::size_t) launchConfig.getThreadsPerSegmentCount();
             if( threadsCount > std::numeric_limits< IndexType >::max() )
                throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             const std::size_t blocksCount = Backend::getNumberOfBlocks( threadsCount, 256 );
@@ -556,8 +488,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 1,
                                                                         ConstViewType,
                                                                         ArrayView,
-                                                                        IndexBegin,
-                                                                        IndexEnd,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
                                                                         std::remove_reference_t< ResultKeeper >,
@@ -566,8 +496,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 2,
                                                                         ConstViewType,
                                                                         ArrayView,
-                                                                        IndexBegin,
-                                                                        IndexEnd,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
                                                                         std::remove_reference_t< ResultKeeper >,
@@ -576,8 +504,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 4,
                                                                         ConstViewType,
                                                                         ArrayView,
-                                                                        IndexBegin,
-                                                                        IndexEnd,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
                                                                         std::remove_reference_t< ResultKeeper >,
@@ -586,8 +512,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 8,
                                                                         ConstViewType,
                                                                         ArrayView,
-                                                                        IndexBegin,
-                                                                        IndexEnd,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
                                                                         std::remove_reference_t< ResultKeeper >,
@@ -596,8 +520,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 16,
                                                                         ConstViewType,
                                                                         ArrayView,
-                                                                        IndexBegin,
-                                                                        IndexEnd,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
                                                                         std::remove_reference_t< ResultKeeper >,
@@ -606,84 +528,34 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 32,
                                                                         ConstViewType,
                                                                         ArrayView,
-                                                                        IndexBegin,
-                                                                        IndexEnd,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
                                                                         std::remove_reference_t< ResultKeeper >,
                                                                         ReturnType >;
             switch( launchConfig.getThreadsPerSegmentCount() ) {
                case 1:
-                  Backend::launchKernelSync( kernel1,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel1, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                case 2:
-                  Backend::launchKernelSync( kernel2,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel2, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                case 4:
-                  Backend::launchKernelSync( kernel4,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel4, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                case 8:
-                  Backend::launchKernelSync( kernel8,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel8, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                case 16:
-                  Backend::launchKernelSync( kernel16,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel16, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                case 32:
-                  Backend::launchKernelSync( kernel32,
-                                             launch_config,
-                                             segments,
-                                             segmentIndexes.getConstView(),
-                                             begin,
-                                             end,
-                                             fetch,
-                                             reduction,
-                                             keeper,
-                                             identity );
+                  Backend::launchKernelSync(
+                     kernel32, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
                   break;
                default:
                   throw std::invalid_argument( "Unsupported threads per segment ( "
@@ -710,7 +582,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                              localIdx );
                keeper( segmentIdx_idx, segmentIdx, argument, result );
             };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
          }
       }
       else {  // ColumnMajorOrder
@@ -732,7 +604,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                           localIdx );
             keeper( segmentIdx_idx, segmentIdx, argument, result );
          };
-         Algorithms::parallelFor< Device >( begin, end, l );
+         Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
       }
    }
 };

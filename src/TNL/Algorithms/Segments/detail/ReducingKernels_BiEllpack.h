@@ -212,8 +212,6 @@ void
 BiEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
                                           ArrayView segmentIndexes,
                                           Index gridIdx,
-                                          Index begin,
-                                          Index end,
                                           Fetch fetch,
                                           Reduction reduction,
                                           ResultKeeper keeper,
@@ -221,8 +219,8 @@ BiEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
-   if( segmentIdx_idx >= end )
+   const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+   if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
@@ -356,8 +354,6 @@ void
 BiEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
                                                      ArrayView segmentIndexes,
                                                      Index gridIdx,
-                                                     Index begin,
-                                                     Index end,
                                                      Fetch fetch,
                                                      Reduction reduction,
                                                      ResultKeeper keeper,
@@ -365,8 +361,8 @@ BiEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x + begin;
-   if( segmentIdx_idx >= end )
+   const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
+   if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
