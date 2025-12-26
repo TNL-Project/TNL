@@ -84,7 +84,7 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          return identity;
       };
       Algorithms::Segments::reduceSegments(
-         matrix.getSegments(), rowIndexes, 0, rowIndexes.getSize(), fetchWrapper, reduction, keep, identity, launchConfig );
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keep, identity, launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
@@ -106,7 +106,7 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          return identity;
       };
       Algorithms::Segments::reduceSegments(
-         matrix.getSegments(), rowIndexes, 0, rowIndexes.getSize(), fetchWrapper, reduction, keep, identity, launchConfig );
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keep, identity, launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Keep >
@@ -331,15 +331,8 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          keep( indexOfRowIdx, rowIdx, localIdx, localIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsWithArgument( matrix.getSegments(),
-                                                        rowIndexes,
-                                                        0,
-                                                        rowIndexes.getSize(),
-                                                        fetchWrapper,
-                                                        reduction,
-                                                        keepWrapper,
-                                                        identity,
-                                                        launchConfig );
+      Algorithms::Segments::reduceSegmentsWithArgument(
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
    }
 
    template< typename IndexBegin,

@@ -97,9 +97,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
       Algorithms::Segments::forElements(
          matrix.getSegments(),
-         rowIndexes,
-         begin,
-         end,
+         rowIndexes.getConstView( begin, end ),
          [ columns_view, values_view, columns, function ] __cuda_callable__(
             IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
          {
@@ -128,9 +126,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
       Algorithms::Segments::forElements(
          matrix.getSegments(),
-         rowIndexes,
-         begin,
-         end,
+         rowIndexes.getConstView( begin, end ),
          [ function, values_view, columns_view, columns ] __cuda_callable__(
             IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
          {
@@ -260,7 +256,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          auto rowView = RowView( segmentView, values_view, columns_view );
          function( rowView );
       };
-      Algorithms::Segments::forSegments( matrix.getSegments(), rowIndexes, begin, end, f, launchConfig );
+      Algorithms::Segments::forSegments( matrix.getSegments(), rowIndexes.getConstView( begin, end ), f, launchConfig );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -280,7 +276,7 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
          auto rowView = ConstRowView( segmentView, values_view, columns_view );
          function( rowView );
       };
-      Algorithms::Segments::forSegments( matrix.getSegments(), rowIndexes, begin, end, f, launchConfig );
+      Algorithms::Segments::forSegments( matrix.getSegments(), rowIndexes.getConstView( begin, end ), f, launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >

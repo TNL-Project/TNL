@@ -55,9 +55,7 @@ findInSegments( const Segments& segments,
                 LaunchConfiguration launchConfig )
 {
    reduceSegmentsWithArgument( segments,
-                               segmentIndexes,
-                               begin,
-                               end,
+                               segmentIndexes.getConstView( begin, end ),
                                std::forward< Condition >( condition ),
                                AnyWithArg{},
                                std::forward< ResultKeeper >( keeper ),

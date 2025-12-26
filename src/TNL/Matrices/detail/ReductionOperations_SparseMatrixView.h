@@ -120,15 +120,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          keep( indexOfRowIdx, rowIdx, value );
       };
 
-      Algorithms::Segments::reduceSegments( matrix.getSegments(),
-                                            rowIndexes,
-                                            0,
-                                            rowIndexes.getSize(),
-                                            fetchWrapper,
-                                            reduction,
-                                            keepWrapper,
-                                            identity,
-                                            launchConfig );
+      Algorithms::Segments::reduceSegments(
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
@@ -162,15 +155,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          keep( indexOfRowIdx, rowIdx, value );
       };
 
-      Algorithms::Segments::reduceSegments( matrix.getSegments(),
-                                            rowIndexes,
-                                            0,
-                                            rowIndexes.getSize(),
-                                            fetchWrapper,
-                                            reduction,
-                                            keepWrapper,
-                                            identity,
-                                            launchConfig );
+      Algorithms::Segments::reduceSegments(
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
    }
 
    template< typename IndexBegin,
@@ -373,15 +359,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsWithArgument( matrix.getSegments(),
-                                                        rowIndexes,
-                                                        0,
-                                                        rowIndexes.getSize(),
-                                                        fetchWrapper,
-                                                        reduction,
-                                                        keepWrapper,
-                                                        identity,
-                                                        launchConfig );
+      Algorithms::Segments::reduceSegmentsWithArgument(
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
@@ -418,15 +397,8 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsWithArgument( matrix.getSegments(),
-                                                        rowIndexes,
-                                                        0,
-                                                        rowIndexes.getSize(),
-                                                        fetchWrapper,
-                                                        reduction,
-                                                        keepWrapper,
-                                                        identity,
-                                                        launchConfig );
+      Algorithms::Segments::reduceSegmentsWithArgument(
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
    }
 
    template< typename IndexBegin,
@@ -583,9 +555,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       };
 
       Algorithms::Segments::reduceSegmentsIfWithArgument( matrix.getSegments(),
-                                                          rowIndexes,
-                                                          begin,
-                                                          end,
+                                                          rowIndexes.getConstView( begin, end ),
                                                           std::forward< Condition >( condition ),
                                                           fetchWrapper,
                                                           reduction,
@@ -639,9 +609,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       };
 
       Algorithms::Segments::reduceSegmentsIfWithArgument( matrix.getSegments(),
-                                                          rowIndexes,
-                                                          begin,
-                                                          end,
+                                                          rowIndexes.getConstView( begin, end ),
                                                           std::forward< Condition >( condition ),
                                                           fetchWrapper,
                                                           reduction,
