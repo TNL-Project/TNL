@@ -7,6 +7,33 @@
 #include "LaunchConfiguration.h"
 
 namespace TNL::Algorithms::Segments {
+/**
+ * \brief Sort elements within all segments.
+ *
+ * This is a convenience function that sorts elements in all segments. It internally
+ * calls \e sortSegments with the full range of segments.
+ * The sorting is done in ascending order based on the comparison function provided.
+ *
+ * \tparam Segments Type of the segments container.
+ * \tparam Fetch Type of the fetch function.
+ * \tparam Compare Type of the comparison function.
+ * \tparam Swap Type of the swap function.
+ *
+ * \param segments The segments container.
+ * \param fetch Function to fetch element value at given position.
+ * \param compare Function to compare two elements.
+ * \param swap Function to swap two elements.
+ * \param launchConfig Configuration for parallel execution.
+ *
+ * See \ref sortSegments for a complete example.
+ */
+template< typename Segments, typename Fetch, typename Compare, typename Swap >
+static void
+sortAllSegments( const Segments& segments,
+                 Fetch&& fetch,
+                 Compare&& compare,
+                 Swap&& swap,
+                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Sort elements within specified segments in a range.
@@ -57,79 +84,6 @@ sortSegments( const Segments& segments,
               LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Sort elements within all segments.
- *
- * This is a convenience function that sorts elements in all segments. It internally
- * calls \e sortSegments with the full range of segments.
- * The sorting is done in ascending order based on the comparison function provided.
- *
- * \tparam Segments Type of the segments container.
- * \tparam Fetch Type of the fetch function.
- * \tparam Compare Type of the comparison function.
- * \tparam Swap Type of the swap function.
- *
- * \param segments The segments container.
- * \param fetch Function to fetch element value at given position.
- * \param compare Function to compare two elements.
- * \param swap Function to swap two elements.
- * \param launchConfig Configuration for parallel execution.
- *
- * See \ref sortSegments for a complete example.
- */
-template< typename Segments, typename Fetch, typename Compare, typename Swap >
-static void
-sortAllSegments( const Segments& segments,
-                 Fetch&& fetch,
-                 Compare&& compare,
-                 Swap&& swap,
-                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
-
-/**
- * \brief Sort elements within specified segments using a segment index array.
- *
- * This function sorts elements within segments specified by the \e segmentIndexes array.
- * Each specified segment is sorted independently using insertion sort.
- * The sorting is done in ascending order based on the comparison function provided.
- *
- * \tparam Segments Type of the segments container.
- * \tparam Array Type of the segment indexes array.
- * \tparam IndexBegin Type of the begin index.
- * \tparam IndexEnd Type of the end index.
- * \tparam Fetch Type of the fetch function.
- * \tparam Compare Type of the comparison function.
- * \tparam Swap Type of the swap function.
- *
- * \param segments The segments container.
- * \param segmentIndexes Array containing indices of segments to sort.
- * \param begin The beginning of the range in segmentIndexes.
- * \param end The end of the range in segmentIndexes.
- * \param fetch Function to fetch element value at given position.
- * \param compare Function to compare two elements.
- * \param swap Function to swap two elements.
- * \param launchConfig Configuration for parallel execution.
- *
- * See \ref sortSegments for a complete example.
- */
-template< typename Segments,
-          typename Array,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Compare,
-          typename Swap,
-          typename T = std::enable_if_t< IsArrayType< Array >::value
-                                         && std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
-static void
-sortSegments( const Segments& segments,
-              const Array& segmentIndexes,
-              IndexBegin begin,
-              IndexEnd end,
-              Fetch&& fetch,
-              Compare&& compare,
-              Swap&& swap,
-              LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
-
-/**
  * \brief Sort elements within all segments specified by a segment index array.
  *
  * This is a convenience function that sorts elements in all segments specified by
@@ -165,6 +119,37 @@ sortSegments( const Segments& segments,
               Compare&& compare,
               Swap&& swap,
               LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Sort elements within all segments that satisfy a condition.
+ *
+ * This is a convenience function that sorts elements in all segments that satisfy
+ * the given condition. It internally calls \e sortSegmentsIf with the full range of segments.
+ * The sorting is done in ascending order based on the comparison function provided.
+ *
+ * \tparam Segments Type of the segments container.
+ * \tparam Condition Type of the condition function.
+ * \tparam Fetch Type of the fetch function.
+ * \tparam Compare Type of the comparison function.
+ * \tparam Swap Type of the swap function.
+ *
+ * \param segments The segments container.
+ * \param condition Function that determines if a segment should be sorted.
+ * \param fetch Function to fetch element value at given position.
+ * \param compare Function to compare two elements.
+ * \param swap Function to swap two elements.
+ * \param launchConfig Configuration for parallel execution.
+ *
+ * See \ref sortSegments for a complete example.
+ */
+template< typename Segments, typename Condition, typename Fetch, typename Compare, typename Swap >
+static void
+sortAllSegmentsIf( const Segments& segments,
+                   Condition&& condition,
+                   Fetch&& fetch,
+                   Compare&& compare,
+                   Swap&& swap,
+                   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Sort elements within segments that satisfy a condition.
@@ -210,37 +195,6 @@ sortSegmentsIf( const Segments& segments,
                 Compare&& compare,
                 Swap&& swap,
                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
-
-/**
- * \brief Sort elements within all segments that satisfy a condition.
- *
- * This is a convenience function that sorts elements in all segments that satisfy
- * the given condition. It internally calls \e sortSegmentsIf with the full range of segments.
- * The sorting is done in ascending order based on the comparison function provided.
- *
- * \tparam Segments Type of the segments container.
- * \tparam Condition Type of the condition function.
- * \tparam Fetch Type of the fetch function.
- * \tparam Compare Type of the comparison function.
- * \tparam Swap Type of the swap function.
- *
- * \param segments The segments container.
- * \param condition Function that determines if a segment should be sorted.
- * \param fetch Function to fetch element value at given position.
- * \param compare Function to compare two elements.
- * \param swap Function to swap two elements.
- * \param launchConfig Configuration for parallel execution.
- *
- * See \ref sortSegments for a complete example.
- */
-template< typename Segments, typename Condition, typename Fetch, typename Compare, typename Swap >
-static void
-sortAllSegmentsIf( const Segments& segments,
-                   Condition&& condition,
-                   Fetch&& fetch,
-                   Compare&& compare,
-                   Swap&& swap,
-                   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Sorts a segment using insertion sort.

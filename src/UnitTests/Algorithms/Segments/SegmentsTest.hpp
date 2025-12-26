@@ -409,7 +409,7 @@ test_findInSegmentsIf()
       else
          positions_view[ segmentIdx ] = -1;
    };
-   TNL::Algorithms::Segments::findInSegmentsIf( segments, segmentCondition, condition, keep );
+   TNL::Algorithms::Segments::findInAllSegmentsIf( segments, segmentCondition, condition, keep );
 
    for( IndexType i = 0; i < segmentsCount; i++ ) {
       if( i % maxSegmentSize >= 4 && i % 2 == 0 ) {
@@ -430,7 +430,7 @@ test_findInSegmentsIf()
       return v_view[ globalIdx ] == 5;
    };
 
-   TNL::Algorithms::Segments::findInSegmentsIf( segments.getView(), segmentCondition, short_condition, keep );
+   TNL::Algorithms::Segments::findInAllSegmentsIf( segments.getView(), segmentCondition, short_condition, keep );
 
    for( IndexType i = 0; i < segmentsCount; i++ ) {
       if( i % maxSegmentSize >= 4 && i % 2 == 0 ) {
