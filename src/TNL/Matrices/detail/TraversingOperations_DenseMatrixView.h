@@ -72,7 +72,7 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
          if( localIdx < columns )
             function( segmentIdx, localIdx, localIdx, values_view[ globalIdx ] );
       };
-      Algorithms::Segments::forElements( matrix.getSegments(), rowIndexes, begin, end, f, launchConfig );
+      Algorithms::Segments::forElements( matrix.getSegments(), rowIndexes.getConstView( begin, end ), f, launchConfig );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -91,7 +91,7 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
          if( localIdx < columns )
             function( segmentIdx, localIdx, localIdx, values_view[ globalIdx ] );
       };
-      Algorithms::Segments::forElements( matrix.getSegments(), rowIndexes, begin, end, f, launchConfig );
+      Algorithms::Segments::forElements( matrix.getSegments(), rowIndexes.getConstView( begin, end ), f, launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
@@ -185,7 +185,7 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
          auto rowView = RowView( segmentView, values_view );
          function( rowView );
       };
-      Algorithms::Segments::forSegments( matrix.getSegments(), rowIndexes, begin, end, f, launchConfig );
+      Algorithms::Segments::forSegments( matrix.getSegments(), rowIndexes.getConstView( begin, end ), f, launchConfig );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -204,7 +204,7 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
          const auto rowView = ConstRowView( segmentView, values_view );
          function( rowView );
       };
-      Algorithms::Segments::forSegments( matrix.getSegments(), rowIndexes, begin, end, f, launchConfig );
+      Algorithms::Segments::forSegments( matrix.getSegments(), rowIndexes.getConstView( begin, end ), f, launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
