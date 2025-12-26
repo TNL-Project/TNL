@@ -96,7 +96,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       if( end <= begin )
          return;
 
-      Array aux( end - begin );
+      Containers::Array< IndexType, DeviceType, IndexType > aux( end - begin );
       auto segmentIndexesView = segmentIndexes.getConstView();
       auto segmentsPermutationView = segments.getSegmentsPermutationView();
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();

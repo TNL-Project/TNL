@@ -430,7 +430,7 @@ DenseMatrixBase< Real, Device, Index, Organization >::forElements( const Array& 
    {
       function( rowIdx, columnIdx, columnIdx, values[ globalIdx ] );
    };
-   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, f );
+   Algorithms::Segments::forElements( this->segments, rowIndexes.getConstView( begin, end ), f );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
