@@ -158,9 +158,7 @@ inclusiveScanSegments( const Segments& segments,
 
    forSegments(
       segments,
-      segmentIndexes,
-      begin,
-      end,
+      segmentIndexes.getConstView( begin, end ),
       [ = ] __cuda_callable__( SegmentView & segment ) mutable
       {
          inclusiveScanSegment(
@@ -191,9 +189,7 @@ exclusiveScanSegments( const Segments& segments,
 
    forSegments(
       segments,
-      segmentIndexes,
-      begin,
-      end,
+      segmentIndexes.getConstView( begin, end ),
       [ = ] __cuda_callable__( SegmentView & segment ) mutable
       {
          exclusiveScanSegment(

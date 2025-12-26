@@ -809,7 +809,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
       }
    };
-   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, f, launchConfig );
+   Algorithms::Segments::forElements( this->segments, rowIndexes.getConstView( begin, end ), f, launchConfig );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -836,7 +836,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
       }
    };
-   Algorithms::Segments::forElements( this->segments, rowIndexes, begin, end, f, launchConfig );
+   Algorithms::Segments::forElements( this->segments, rowIndexes.getConstView( begin, end ), f, launchConfig );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >

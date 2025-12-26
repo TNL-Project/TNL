@@ -83,9 +83,7 @@ sortSegments( const Segments& segments,
    using SegmentView = typename Segments::SegmentViewType;
    forSegments(
       segments,
-      segmentIndexes,
-      begin,
-      end,
+      segmentIndexes.getConstView( begin, end ),
       [ = ] __cuda_callable__( const SegmentView segment ) mutable
       {
          segmentInsertionSort( segment, fetch, compare, swap );
