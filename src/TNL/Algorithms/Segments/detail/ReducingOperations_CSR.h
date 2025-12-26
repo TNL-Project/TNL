@@ -316,18 +316,10 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          reduceSegmentsSequential( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
    }
 
-   template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
-             typename Value >
+   template< typename Array, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    static void
    reduceSegmentsWithIndexesSequential( const ConstViewType& segments,
                                         const Array& segmentIndexes,
-                                        IndexBegin begin,
-                                        IndexEnd end,
                                         Fetch&& fetch,
                                         Reduction&& reduction,
                                         ResultKeeper&& keeper,
@@ -359,32 +351,24 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       };
 
       if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+         for( IndexType segmentIdx = 0; segmentIdx < segmentIndexes.getSize(); segmentIdx++ )
             l( segmentIdx );
       }
       else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
 #ifdef HAVE_OPENMP
          #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
 #endif
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+         for( IndexType segmentIdx = 0; segmentIdx < segmentIndexes.getSize(); segmentIdx++ )
             l( segmentIdx );
       }
       else
-         Algorithms::parallelFor< Device >( begin, end, l );
+         Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
    }
 
-   template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
-             typename Value >
+   template< typename Array, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    static void
    reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
                                      const Array& segmentIndexes,
-                                     IndexBegin begin,
-                                     IndexEnd end,
                                      Fetch&& fetch,
                                      Reduction&& reduction,
                                      ResultKeeper&& keeper,
@@ -395,10 +379,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
-            reduceSegmentsWithIndexesSequential(
-               segments, segmentIndexes, begin, end, fetch, reduction, keeper, identity, launchConfig );
+            reduceSegmentsWithIndexesSequential( segments, segmentIndexes, fetch, reduction, keeper, identity, launchConfig );
          else {
-            std::size_t threadsCount = end - begin;
+            std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount *= (std::size_t) Backend::getWarpSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
@@ -427,8 +410,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               gridIdx,
                                               segments.getConstView(),
                                               segmentIndexes.getConstView(),
-                                              begin,
-                                              end,
                                               fetch,
                                               reduction,
                                               keeper,
@@ -452,8 +433,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -476,8 +455,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -500,8 +477,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -524,8 +499,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -548,8 +521,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -573,8 +544,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -598,8 +567,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -629,8 +596,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               launchConfig.getThreadsPerSegmentCount(),
                                               segments.getConstView(),
                                               segmentIndexes.getConstView(),
-                                              begin,
-                                              end,
                                               fetch,
                                               reduction,
                                               keeper,
@@ -644,8 +609,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          }
       }
       else
-         reduceSegmentsWithIndexesSequential(
-            segments, segmentIndexes, begin, end, fetch, reduction, keeper, identity, launchConfig );
+         reduceSegmentsWithIndexesSequential( segments, segmentIndexes, fetch, reduction, keeper, identity, launchConfig );
    }
 
    template< typename IndexBegin,
@@ -943,18 +907,10 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
    }
 
-   template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
-             typename Value >
+   template< typename Array, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    static void
    reduceSegmentsWithIndexesAndArgumentSequential( const ConstViewType& segments,
                                                    const Array& segmentIndexes,
-                                                   IndexBegin begin,
-                                                   IndexEnd end,
                                                    Fetch&& fetch,
                                                    Reduction&& reduction,
                                                    ResultKeeper&& keeper,
@@ -986,32 +942,24 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       };
 
       if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+         for( IndexType segmentIdx = 0; segmentIdx < segmentIndexes.getSize(); segmentIdx++ )
             l( segmentIdx );
       }
       else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
 #ifdef HAVE_OPENMP
          #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
 #endif
-         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
+         for( IndexType segmentIdx = 0; segmentIdx < segmentIndexes.getSize(); segmentIdx++ )
             l( segmentIdx );
       }
       else
-         Algorithms::parallelFor< Device >( begin, end, l );
+         Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
    }
 
-   template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
-             typename Value >
+   template< typename Array, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    static void
    reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
                                                 const Array& segmentIndexes,
-                                                IndexBegin begin,
-                                                IndexEnd end,
                                                 Fetch&& fetch,
                                                 Reduction&& reduction,
                                                 ResultKeeper&& keeper,
@@ -1023,9 +971,9 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsWithIndexesAndArgumentSequential(
-               segments, segmentIndexes, begin, end, fetch, reduction, keeper, identity, launchConfig );
+               segments, segmentIndexes, fetch, reduction, keeper, identity, launchConfig );
          else {
-            std::size_t threadsCount = end - begin;
+            std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
                threadsCount *= (std::size_t) Backend::getWarpSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
@@ -1055,8 +1003,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               gridIdx,
                                               segments.getConstView(),
                                               segmentIndexes.getConstView(),
-                                              begin,
-                                              end,
                                               fetch,
                                               reduction,
                                               keeper,
@@ -1080,8 +1026,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -1104,8 +1048,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -1128,8 +1070,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -1152,8 +1092,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -1176,8 +1114,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -1201,8 +1137,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -1226,8 +1160,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        gridIdx,
                                                        segments.getConstView(),
                                                        segmentIndexes.getConstView(),
-                                                       begin,
-                                                       end,
                                                        fetch,
                                                        reduction,
                                                        keeper,
@@ -1257,8 +1189,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               launchConfig.getThreadsPerSegmentCount(),
                                               segments.getConstView(),
                                               segmentIndexes.getConstView(),
-                                              begin,
-                                              end,
                                               fetch,
                                               reduction,
                                               keeper,
@@ -1273,7 +1203,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       }
       else
          reduceSegmentsWithIndexesAndArgumentSequential(
-            segments, segmentIndexes, begin, end, fetch, reduction, keeper, identity, launchConfig );
+            segments, segmentIndexes, fetch, reduction, keeper, identity, launchConfig );
    }
 };
 }  //namespace TNL::Algorithms::Segments::detail

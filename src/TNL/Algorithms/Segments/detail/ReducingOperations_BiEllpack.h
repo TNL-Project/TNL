@@ -111,8 +111,6 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
    }
 
    template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
@@ -120,8 +118,6 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
    static void
    reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
                                      const Array& segmentIndexes,
-                                     IndexBegin begin,
-                                     IndexEnd end,
                                      Fetch&& fetch,
                                      Reduction&& reduction,
                                      ResultKeeper&& keeper,
@@ -131,7 +127,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
-         for( IndexType segmentIdx_idx = begin; segmentIdx_idx < end; segmentIdx_idx++ ) {
+         for( IndexType segmentIdx_idx = 0; segmentIdx_idx < segmentIndexes.getSize(); segmentIdx_idx++ ) {
             TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
             const IndexType segmentIdx = segmentIndexes[ segmentIdx_idx ];
             const IndexType stripIdx = segmentIdx / SegmentsViewType::getWarpSize();
@@ -177,7 +173,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          constexpr int BlockDim = 256;
          launch_config.blockSize.x = BlockDim;
-         const IndexType stripsCount = roundUpDivision( end - begin, SegmentsViewType::getWarpSize() );
+         const IndexType stripsCount = roundUpDivision( segmentIndexes.getSize(), SegmentsViewType::getWarpSize() );
          const IndexType cudaBlocks =
             roundUpDivision( stripsCount * SegmentsViewType::getWarpSize(), launch_config.blockSize.x );
          const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
@@ -202,8 +198,6 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
                                         segments.getConstView(),
                                         segmentIndexes.getConstView(),
                                         gridIdx,
-                                        begin,
-                                        end,
                                         fetch,
                                         reduction,
                                         keeper,
@@ -306,8 +300,6 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
    }
 
    template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
@@ -315,8 +307,6 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
    static void
    reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
                                                 const Array& segmentIndexes,
-                                                IndexBegin begin,
-                                                IndexEnd end,
                                                 Fetch&& fetch,
                                                 Reduction&& reduction,
                                                 ResultKeeper&& keeper,
@@ -326,7 +316,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
-         for( IndexType segmentIdx_idx = begin; segmentIdx_idx < end; segmentIdx_idx++ ) {
+         for( IndexType segmentIdx_idx = 0; segmentIdx_idx < segmentIndexes.getSize(); segmentIdx_idx++ ) {
             TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
             const IndexType segmentIdx = segmentIndexes[ segmentIdx_idx ];
             const IndexType stripIdx = segmentIdx / SegmentsViewType::getWarpSize();
@@ -376,7 +366,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          constexpr int BlockDim = 256;
          launch_config.blockSize.x = BlockDim;
-         const IndexType stripsCount = roundUpDivision( end - begin, SegmentsViewType::getWarpSize() );
+         const IndexType stripsCount = roundUpDivision( segmentIndexes.getSize(), SegmentsViewType::getWarpSize() );
          const IndexType cudaBlocks =
             roundUpDivision( stripsCount * SegmentsViewType::getWarpSize(), launch_config.blockSize.x );
          const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
@@ -402,8 +392,6 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
                                         segments.getConstView(),
                                         segmentIndexes.getConstView(),
                                         gridIdx,
-                                        begin,
-                                        end,
                                         fetch,
                                         reduction,
                                         keeper,

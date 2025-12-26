@@ -339,8 +339,6 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    }
 
    template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
@@ -348,8 +346,6 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    static void
    reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
                                      const Array& segmentIndexes,
-                                     IndexBegin begin,
-                                     IndexEnd end,
                                      Fetch&& fetch,
                                      Reduction&& reduction,
                                      ResultKeeper&& keeper,
@@ -394,7 +390,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
          keeper( segmentIdx_idx, segmentIdx, result );
       };
 
-      Algorithms::parallelFor< Device >( begin, end, l );
+      Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
    }
 
    template< typename IndexBegin,
@@ -457,8 +453,6 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    }
 
    template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
@@ -466,8 +460,6 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    static void
    reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
                                                 const Array& segmentIndexes,
-                                                IndexBegin begin,
-                                                IndexEnd end,
                                                 Fetch&& fetch,
                                                 Reduction&& reduction,
                                                 ResultKeeper&& keeper,
@@ -517,7 +509,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
          keeper( segmentIdx_idx, segmentIdx, argument, result );
       };
 
-      Algorithms::parallelFor< Device >( begin, end, l );
+      Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
    }
 };
 

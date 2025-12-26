@@ -28,13 +28,8 @@ template< typename Segments, typename Array, typename Function >
 void
 forElements( const Segments& segments, const Array& segmentIndexes, Function function, LaunchConfiguration launchConfig )
 {
-   using IndexType = typename Segments::IndexType;
-   detail::TraversingOperations< typename Segments::ConstViewType >::forElements( segments.getConstView(),
-                                                                                  segmentIndexes,
-                                                                                  (IndexType) 0,
-                                                                                  segmentIndexes.getSize(),
-                                                                                  std::forward< Function >( function ),
-                                                                                  launchConfig );
+   detail::TraversingOperations< typename Segments::ConstViewType >::forElements(
+      segments.getConstView(), segmentIndexes.getConstView(), std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Segments, typename Condition, typename Function >
@@ -120,12 +115,8 @@ template< typename Segments, typename Array, typename Function, typename T >
 void
 forSegments( const Segments& segments, const Array& segmentIndexes, Function&& function, LaunchConfiguration launchConfig )
 {
-   detail::TraversingOperations< typename Segments::ConstViewType >::forSegments( segments.getConstView(),
-                                                                                  segmentIndexes.getConstView(),
-                                                                                  0,
-                                                                                  segmentIndexes.getSize(),
-                                                                                  std::forward< Function >( function ),
-                                                                                  launchConfig );
+   detail::TraversingOperations< typename Segments::ConstViewType >::forSegments(
+      segments.getConstView(), segmentIndexes.getConstView(), std::forward< Function >( function ), launchConfig );
 }
 
 template< typename Segments, typename SegmentCondition, typename Function >
