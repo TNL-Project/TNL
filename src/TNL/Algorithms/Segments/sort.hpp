@@ -27,6 +27,19 @@ segmentInsertionSort( SegmentView segment, Fetch&& fetch, Compare&& compare, Swa
    }
 }
 
+template< typename Segments, typename Fetch, typename Compare, typename Swap >
+static void
+sortAllSegments( const Segments& segments, Fetch&& fetch, Compare&& compare, Swap&& swap, LaunchConfiguration launchConfig )
+{
+   sortSegments( segments,
+                 0,
+                 segments.getSegmentsCount(),
+                 std::forward< Fetch >( fetch ),
+                 std::forward< Compare >( compare ),
+                 std::forward< Swap >( swap ),
+                 launchConfig );
+}
+
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Compare, typename Swap, typename T >
 static void
 sortSegments( const Segments& segments,
@@ -49,48 +62,6 @@ sortSegments( const Segments& segments,
       launchConfig );
 }
 
-template< typename Segments, typename Fetch, typename Compare, typename Swap >
-static void
-sortAllSegments( const Segments& segments, Fetch&& fetch, Compare&& compare, Swap&& swap, LaunchConfiguration launchConfig )
-{
-   sortSegments( segments,
-                 0,
-                 segments.getSegmentsCount(),
-                 std::forward< Fetch >( fetch ),
-                 std::forward< Compare >( compare ),
-                 std::forward< Swap >( swap ),
-                 launchConfig );
-}
-
-template< typename Segments,
-          typename Array,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Compare,
-          typename Swap,
-          typename T >
-static void
-sortSegments( const Segments& segments,
-              const Array& segmentIndexes,
-              IndexBegin begin,
-              IndexEnd end,
-              Fetch&& fetch,
-              Compare&& compare,
-              Swap&& swap,
-              LaunchConfiguration launchConfig )
-{
-   using SegmentView = typename Segments::SegmentViewType;
-   forSegments(
-      segments,
-      segmentIndexes.getConstView( begin, end ),
-      [ = ] __cuda_callable__( const SegmentView segment ) mutable
-      {
-         segmentInsertionSort( segment, fetch, compare, swap );
-      },
-      launchConfig );
-}
-
 template< typename Segments, typename Array, typename Fetch, typename Compare, typename Swap, typename T >
 static void
 sortSegments( const Segments& segments,
@@ -100,14 +71,34 @@ sortSegments( const Segments& segments,
               Swap&& swap,
               LaunchConfiguration launchConfig )
 {
-   sortSegments( segments,
-                 segmentIndexes,
-                 0,
-                 segmentIndexes.getSize(),
-                 std::forward< Fetch >( fetch ),
-                 std::forward< Compare >( compare ),
-                 std::forward< Swap >( swap ),
-                 launchConfig );
+   using SegmentView = typename Segments::SegmentViewType;
+   forSegments(
+      segments,
+      segmentIndexes,
+      [ = ] __cuda_callable__( const SegmentView segment ) mutable
+      {
+         segmentInsertionSort( segment, fetch, compare, swap );
+      },
+      launchConfig );
+}
+
+template< typename Segments, typename Condition, typename Fetch, typename Compare, typename Swap >
+static void
+sortAllSegmentsIf( const Segments& segments,
+                   Condition&& condition,
+                   Fetch&& fetch,
+                   Compare&& compare,
+                   Swap&& swap,
+                   LaunchConfiguration launchConfig )
+{
+   sortSegmentsIf( segments,
+                   0,
+                   segments.getSegmentsCount(),
+                   std::forward< Condition >( condition ),
+                   std::forward< Fetch >( fetch ),
+                   std::forward< Compare >( compare ),
+                   std::forward< Swap >( swap ),
+                   launchConfig );
 }
 
 template< typename Segments,
@@ -139,25 +130,6 @@ sortSegmentsIf( const Segments& segments,
          segmentInsertionSort( segment, fetch, compare, swap );
       },
       launchConfig );
-}
-
-template< typename Segments, typename Condition, typename Fetch, typename Compare, typename Swap >
-static void
-sortAllSegmentsIf( const Segments& segments,
-                   Condition&& condition,
-                   Fetch&& fetch,
-                   Compare&& compare,
-                   Swap&& swap,
-                   LaunchConfiguration launchConfig )
-{
-   sortSegmentsIf( segments,
-                   0,
-                   segments.getSegmentsCount(),
-                   std::forward< Condition >( condition ),
-                   std::forward< Fetch >( fetch ),
-                   std::forward< Compare >( compare ),
-                   std::forward< Swap >( swap ),
-                   launchConfig );
 }
 
 }  // namespace TNL::Algorithms::Segments
