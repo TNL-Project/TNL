@@ -54,54 +54,6 @@ exclusiveScanSegment( SegmentView& segment, Fetch&& fetch, Reduce&& reduce, Writ
    }
 }
 
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduce, typename Write, typename T >
-void
-inclusiveScanSegments( const Segments& segments,
-                       IndexBegin begin,
-                       IndexEnd end,
-                       Fetch&& fetch,
-                       Reduce&& reduce,
-                       Write&& write,
-                       LaunchConfiguration launchConfig )
-{
-   using SegmentView = typename Segments::SegmentViewType;
-
-   forSegments(
-      segments,
-      begin,
-      end,
-      [ = ] __cuda_callable__( SegmentView & segment ) mutable
-      {
-         inclusiveScanSegment(
-            segment, std::forward< Fetch >( fetch ), std::forward< Reduce >( reduce ), std::forward< Write >( write ) );
-      },
-      launchConfig );
-}
-
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduce, typename Write, typename T >
-void
-exclusiveScanSegments( const Segments& segments,
-                       IndexBegin begin,
-                       IndexEnd end,
-                       Fetch&& fetch,
-                       Reduce&& reduce,
-                       Write&& write,
-                       LaunchConfiguration launchConfig )
-{
-   using SegmentView = typename Segments::SegmentViewType;
-
-   forSegments(
-      segments,
-      begin,
-      end,
-      [ = ] __cuda_callable__( SegmentView & segment ) mutable
-      {
-         exclusiveScanSegment(
-            segment, std::forward< Fetch >( fetch ), std::forward< Reduce >( reduce ), std::forward< Write >( write ) );
-      },
-      launchConfig );
-}
-
 template< typename Segments, typename Fetch, typename Reduce, typename Write >
 void
 inclusiveScanAllSegments( const Segments& segments,
@@ -136,17 +88,9 @@ exclusiveScanAllSegments( const Segments& segments,
                           launchConfig );
 }
 
-template< typename Segments,
-          typename Array,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduce,
-          typename Write,
-          typename T >
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduce, typename Write, typename T >
 void
 inclusiveScanSegments( const Segments& segments,
-                       const Array& segmentIndexes,
                        IndexBegin begin,
                        IndexEnd end,
                        Fetch&& fetch,
@@ -158,7 +102,8 @@ inclusiveScanSegments( const Segments& segments,
 
    forSegments(
       segments,
-      segmentIndexes.getConstView( begin, end ),
+      begin,
+      end,
       [ = ] __cuda_callable__( SegmentView & segment ) mutable
       {
          inclusiveScanSegment(
@@ -167,17 +112,9 @@ inclusiveScanSegments( const Segments& segments,
       launchConfig );
 }
 
-template< typename Segments,
-          typename Array,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduce,
-          typename Write,
-          typename T >
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduce, typename Write, typename T >
 void
 exclusiveScanSegments( const Segments& segments,
-                       const Array& segmentIndexes,
                        IndexBegin begin,
                        IndexEnd end,
                        Fetch&& fetch,
@@ -189,7 +126,8 @@ exclusiveScanSegments( const Segments& segments,
 
    forSegments(
       segments,
-      segmentIndexes.getConstView( begin, end ),
+      begin,
+      end,
       [ = ] __cuda_callable__( SegmentView & segment ) mutable
       {
          exclusiveScanSegment(
@@ -207,14 +145,17 @@ inclusiveScanSegments( const Segments& segments,
                        Write&& write,
                        LaunchConfiguration launchConfig )
 {
-   inclusiveScanSegments( segments,
-                          segmentIndexes,
-                          0,
-                          segmentIndexes.getSize(),
-                          std::forward< Fetch >( fetch ),
-                          std::forward< Reduce >( reduce ),
-                          std::forward< Write >( write ),
-                          launchConfig );
+   using SegmentView = typename Segments::SegmentViewType;
+
+   forSegments(
+      segments,
+      segmentIndexes,
+      [ = ] __cuda_callable__( SegmentView & segment ) mutable
+      {
+         inclusiveScanSegment(
+            segment, std::forward< Fetch >( fetch ), std::forward< Reduce >( reduce ), std::forward< Write >( write ) );
+      },
+      launchConfig );
 }
 
 template< typename Segments, typename Array, typename Fetch, typename Reduce, typename Write >
@@ -226,14 +167,55 @@ exclusiveScanSegments( const Segments& segments,
                        Write&& write,
                        LaunchConfiguration launchConfig )
 {
-   exclusiveScanSegments( segments,
-                          segmentIndexes,
-                          0,
-                          segmentIndexes.getSize(),
-                          std::forward< Fetch >( fetch ),
-                          std::forward< Reduce >( reduce ),
-                          std::forward< Write >( write ),
-                          launchConfig );
+   using SegmentView = typename Segments::SegmentViewType;
+
+   forSegments(
+      segments,
+      segmentIndexes,
+      [ = ] __cuda_callable__( SegmentView & segment ) mutable
+      {
+         exclusiveScanSegment(
+            segment, std::forward< Fetch >( fetch ), std::forward< Reduce >( reduce ), std::forward< Write >( write ) );
+      },
+      launchConfig );
+}
+
+template< typename Segments, typename Condition, typename Fetch, typename Reduce, typename Write >
+void
+inclusiveScanAllSegmentsIf( const Segments& segments,
+                            Condition&& condition,
+                            Fetch&& fetch,
+                            Reduce&& reduce,
+                            Write&& write,
+                            LaunchConfiguration launchConfig )
+{
+   inclusiveScanSegmentsIf( segments,
+                            0,
+                            segments.getSegmentsCount(),
+                            std::forward< Condition >( condition ),
+                            std::forward< Fetch >( fetch ),
+                            std::forward< Reduce >( reduce ),
+                            std::forward< Write >( write ),
+                            launchConfig );
+}
+
+template< typename Segments, typename Condition, typename Fetch, typename Reduce, typename Write >
+void
+exclusiveScanAllSegmentsIf( const Segments& segments,
+                            Condition&& condition,
+                            Fetch&& fetch,
+                            Reduce&& reduce,
+                            Write&& write,
+                            LaunchConfiguration launchConfig )
+{
+   exclusiveScanSegmentsIf( segments,
+                            0,
+                            segments.getSegmentsCount(),
+                            std::forward< Condition >( condition ),
+                            std::forward< Fetch >( fetch ),
+                            std::forward< Reduce >( reduce ),
+                            std::forward< Write >( write ),
+                            launchConfig );
 }
 
 template< typename Segments,
@@ -300,44 +282,6 @@ exclusiveScanSegmentsIf( const Segments& segments,
             segment, std::forward< Fetch >( fetch ), std::forward< Reduce >( reduce ), std::forward< Write >( write ) );
       },
       launchConfig );
-}
-
-template< typename Segments, typename Condition, typename Fetch, typename Reduce, typename Write >
-void
-inclusiveScanAllSegmentsIf( const Segments& segments,
-                            Condition&& condition,
-                            Fetch&& fetch,
-                            Reduce&& reduce,
-                            Write&& write,
-                            LaunchConfiguration launchConfig )
-{
-   inclusiveScanSegmentsIf( segments,
-                            0,
-                            segments.getSegmentsCount(),
-                            std::forward< Condition >( condition ),
-                            std::forward< Fetch >( fetch ),
-                            std::forward< Reduce >( reduce ),
-                            std::forward< Write >( write ),
-                            launchConfig );
-}
-
-template< typename Segments, typename Condition, typename Fetch, typename Reduce, typename Write >
-void
-exclusiveScanAllSegmentsIf( const Segments& segments,
-                            Condition&& condition,
-                            Fetch&& fetch,
-                            Reduce&& reduce,
-                            Write&& write,
-                            LaunchConfiguration launchConfig )
-{
-   exclusiveScanSegmentsIf( segments,
-                            0,
-                            segments.getSegmentsCount(),
-                            std::forward< Condition >( condition ),
-                            std::forward< Fetch >( fetch ),
-                            std::forward< Reduce >( reduce ),
-                            std::forward< Write >( write ),
-                            launchConfig );
 }
 
 }  // namespace TNL::Algorithms::Segments
