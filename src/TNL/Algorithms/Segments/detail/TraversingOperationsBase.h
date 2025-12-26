@@ -54,14 +54,9 @@ struct TraversingOperationsBase
                                                                // current implementation of parallelFor
    }
 
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename Array, typename Function >
    static void
-   forSegments( const Segments& segments,
-                const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                LaunchConfiguration launchConfig )
+   forSegments( const Segments& segments, const Array& segmentIndexes, Function&& function, LaunchConfiguration launchConfig )
    {
       using IndexType = typename Segments::IndexType;
       using DeviceType = typename Segments::DeviceType;
@@ -74,8 +69,9 @@ struct TraversingOperationsBase
          auto segment = segments_view.getSegmentView( segmentIndexes_view[ segmentIdx_idx ] );
          function( segment );
       };
-      Algorithms::parallelFor< DeviceType >( begin, end, f );  // TODO: Add launchConfig - it seems it does not work with
-                                                               // current implementation of parallelFor
+      Algorithms::parallelFor< DeviceType >(
+         0, segmentIndexes.getSize(), f );  // TODO: Add launchConfig - it seems it does not work with
+                                            // current implementation of parallelFor
    }
 
    template< typename IndexBegin, typename IndexEnd, typename SegmentCondition, typename Function >

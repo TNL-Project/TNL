@@ -120,8 +120,6 @@ forElementsWithSegmentIndexesKernel_Ellpack( const Index gridIdx,
                                              const Index threadsPerSegment,
                                              SegmentsView segments,
                                              ArrayView segmentIndexes,
-                                             const Index begin,
-                                             const Index end,
                                              Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -131,8 +129,8 @@ forElementsWithSegmentIndexesKernel_Ellpack( const Index gridIdx,
       segmentSize = segments.getSegmentSize();
    __syncthreads();
    if constexpr( Organization == RowMajorOrder ) {
-      const Index segmentIdx_idx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
-      if( segmentIdx_idx >= end )
+      const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+      if( segmentIdx_idx >= segmentIndexes.getSize() )
          return;
 
       const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
@@ -156,12 +154,12 @@ forElementsWithSegmentIndexesKernel_Ellpack( const Index gridIdx,
       }
    }
    else {  // ColumnMajorOrder
-      const Index segmentsCount = ( end - begin );
+      const Index segmentsCount = segmentIndexes.getSize();
       const Index elementsCount = segmentsCount * segmentSize;
       for( Index globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx ); globalThreadIdx < elementsCount;
            globalThreadIdx += totalThreadsCount )
       {
-         const Index segmentIdx = segmentIndexes[ globalThreadIdx / segmentSize + begin ];
+         const Index segmentIdx = segmentIndexes[ globalThreadIdx / segmentSize ];
          const Index localIdx = globalThreadIdx % segmentSize;
          const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
          TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
@@ -186,8 +184,6 @@ void
 forElementsWithSegmentIndexesBlockMergeKernel_Ellpack( Index gridIdx,
                                                        SegmentsConstView segments,
                                                        ArrayView segmentIndexes,
-                                                       const Index begin,
-                                                       const Index end,
                                                        Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -196,8 +192,8 @@ forElementsWithSegmentIndexesBlockMergeKernel_Ellpack( Index gridIdx,
    const Index globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx );
    if constexpr( Organization == Algorithms::Segments::RowMajorOrder ) {
       const Index localIdx = globalThreadIdx % segments.getSegmentSize();
-      const Index segmentIdx_idx = begin + globalThreadIdx / segments.getSegmentSize();
-      if( segmentIdx_idx >= end )
+      const Index segmentIdx_idx = globalThreadIdx / segments.getSegmentSize();
+      if( segmentIdx_idx >= segmentIndexes.getSize() )
          return;
       TNL_ASSERT_GE( segmentIdx_idx, 0, "" );
       TNL_ASSERT_GE( localIdx, 0, "" );
@@ -210,13 +206,13 @@ forElementsWithSegmentIndexesBlockMergeKernel_Ellpack( Index gridIdx,
          function( segmentIdx, globalIdx );
    }
    else {  // ColumnMajorOrder
-      const Index segmentsCount = ( end - begin );
+      const Index segmentsCount = segmentIndexes.getSize();
       const Index localIdx = globalThreadIdx / segmentsCount;
-      const Index segmentIdx_idx = begin + globalThreadIdx % segmentsCount;
+      const Index segmentIdx_idx = globalThreadIdx % segmentsCount;
       if( localIdx >= segments.getSegmentSize() )
          return;
 
-      TNL_ASSERT_LT( segmentIdx_idx, end, "" );
+      TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
       TNL_ASSERT_LT( localIdx, segments.getSegmentSize(), "" );
       const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
       const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
