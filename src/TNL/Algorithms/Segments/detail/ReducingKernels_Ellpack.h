@@ -116,8 +116,6 @@ EllpackCudaReductionKernel( const Segments segments,
 template< int ThreadsPerSegment,
           typename Segments,
           typename ArrayView,
-          typename IndexBegin,
-          typename IndexEnd,
           typename Fetch,
           typename Reduction,
           typename ResultKeeper,
@@ -126,8 +124,6 @@ __global__
 void
 EllpackCudaReductionKernelWithSegmentIndexes( const Segments segments,
                                               const ArrayView segmentIndexes,
-                                              IndexBegin begin,
-                                              IndexEnd end,
                                               Fetch fetch,
                                               Reduction reduce,
                                               ResultKeeper keep,
@@ -139,8 +135,8 @@ EllpackCudaReductionKernelWithSegmentIndexes( const Segments segments,
 
    const int gridIdx = 0;
    const Index segmentIdx_idx =
-      begin + ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx_idx >= end )
+      ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
@@ -149,8 +145,8 @@ EllpackCudaReductionKernelWithSegmentIndexes( const Segments segments,
    ReturnType result = identity;
    const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
 
-   begin = segmentIdx * segmentSize;  // reusing begin and end variables - now they define
-   end = begin + segmentSize;         // the range of the global indices
+   Index begin = segmentIdx * segmentSize;
+   Index end = begin + segmentSize;
 
    // Calculate the result
    if constexpr( argumentCount< Fetch >() == 3 ) {
@@ -337,8 +333,6 @@ EllpackCudaReductionKernelWithArgument( const Segments segments,
 template< int ThreadsPerSegment,
           typename Segments,
           typename ArrayView,
-          typename IndexBegin,
-          typename IndexEnd,
           typename Fetch,
           typename Reduction,
           typename ResultKeeper,
@@ -347,8 +341,6 @@ __global__
 void
 EllpackCudaReductionKernelWithSegmentIndexesAndArgument( const Segments segments,
                                                          const ArrayView segmentIndexes,
-                                                         IndexBegin begin,
-                                                         IndexEnd end,
                                                          Fetch fetch,
                                                          Reduction reduce,
                                                          ResultKeeper keep,
@@ -360,8 +352,8 @@ EllpackCudaReductionKernelWithSegmentIndexesAndArgument( const Segments segments
 
    const int gridIdx = 0;
    const Index segmentIdx_idx =
-      begin + ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
-   if( segmentIdx_idx >= end )
+      ( ( gridIdx * Backend::getMaxGridXSize() ) + ( blockIdx.x * blockDim.x ) + threadIdx.x ) / ThreadsPerSegment;
+   if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
@@ -371,8 +363,8 @@ EllpackCudaReductionKernelWithSegmentIndexesAndArgument( const Segments segments
    Index argument = 0;
    const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
 
-   begin = segmentIdx * segmentSize;  // reusing begin and end variables - now they define
-   end = begin + segmentSize;         // the range of the global indices
+   Index begin = segmentIdx * segmentSize;
+   Index end = begin + segmentSize;
 
    // Calculate the result
    Index localIdx = laneIdx;
