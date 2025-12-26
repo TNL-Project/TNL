@@ -351,9 +351,7 @@ test_forElementsWithSegmentIndexes_EmptySegments()
       auto v_view = v.getView();
       TNL::Algorithms::Segments::forElements(
          segments,
-         segmentIndexes,
-         0,
-         segmentsCount / 2,
+         segmentIndexes.getConstView( 0, segmentsCount / 2 ),
          [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
          {
             v_view[ globalIdx ] = segmentIdx + localIdx;
@@ -365,9 +363,7 @@ test_forElementsWithSegmentIndexes_EmptySegments()
       v = -1;
       TNL::Algorithms::Segments::forElements(
          segments.getView(),
-         segmentIndexes,
-         0,
-         segmentsCount / 2,
+         segmentIndexes.getConstView( 0, segmentsCount / 2 ),
          [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
          {
             v_view[ globalIdx ] = segmentIdx + localIdx;
@@ -379,9 +375,7 @@ test_forElementsWithSegmentIndexes_EmptySegments()
       v = -1;
       TNL::Algorithms::Segments::forElements(
          segments,
-         segmentIndexes,
-         0,
-         segmentsCount / 2,
+         segmentIndexes.getConstView( 0, segmentsCount / 2 ),
          [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType globalIdx ) mutable
          {
             v_view[ globalIdx ] = segmentIdx;
@@ -427,9 +421,7 @@ test_forElementsWithSegmentIndexes()
       auto v_view = v.getView();
       TNL::Algorithms::Segments::forElements(
          segments,
-         segmentIndexes,
-         0,
-         segmentsCount / 2,
+         segmentIndexes.getConstView( 0, segmentsCount / 2 ),
          [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
          {
             v_view[ globalIdx ] = segmentIdx + localIdx;
@@ -453,9 +445,7 @@ test_forElementsWithSegmentIndexes()
       v = -1;
       TNL::Algorithms::Segments::forElements(
          segments.getView(),
-         segmentIndexes,
-         0,
-         segmentsCount / 2,
+         segmentIndexes.getConstView( 0, segmentsCount / 2 ),
          [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType globalIdx ) mutable
          {
             v_view[ globalIdx ] = segmentIdx + localIdx;
@@ -478,9 +468,7 @@ test_forElementsWithSegmentIndexes()
       v = -1;
       TNL::Algorithms::Segments::forElements(
          segments,
-         segmentIndexes,
-         0,
-         segmentsCount / 2,
+         segmentIndexes.getConstView( 0, segmentsCount / 2 ),
          [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType globalIdx ) mutable
          {
             v_view[ globalIdx ] = segmentIdx;
