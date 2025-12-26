@@ -219,14 +219,12 @@ forElementsWithSegmentIndexesKernel_CSR( const Index gridIdx,
                                          const Index threadsPerSegment,
                                          const OffsetsView offsets,
                                          const ArrayView segmentIndexes,
-                                         const Index begin,
-                                         const Index end,
                                          Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-   const Index idx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
-   if( idx >= end )
+   const Index idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+   if( idx >= segmentIndexes.getSize() )
       return;
    TNL_ASSERT_GE( idx, 0, "" );
    TNL_ASSERT_LT( idx, segmentIndexes.getSize(), "" );
@@ -256,17 +254,15 @@ void
 forElementsWithSegmentIndexesDynamicGroupingKernel_CSR( const Index gridIdx,
                                                         const OffsetsView offsets,
                                                         const ArrayView segmentIndexes,
-                                                        const Index begin,
-                                                        const Index end,
                                                         Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
-   const Index segmentIdx_ptr = begin + Backend::getGlobalThreadIdx_x( gridIdx );
+   const Index segmentIdx_ptr = Backend::getGlobalThreadIdx_x( gridIdx );
 
    Index segmentIdx( 0 );
    bool traverse_segment( false );
-   if( segmentIdx_ptr < end ) {
+   if( segmentIdx_ptr < segmentIndexes.getSize() ) {
       TNL_ASSERT_GE( segmentIdx_ptr, 0, "" );
       TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
       segmentIdx = segmentIndexes[ segmentIdx_ptr ];
@@ -285,8 +281,6 @@ void
 forElementsWithSegmentIndexesBlockMergeKernel_CSR( const Index gridIdx,
                                                    const OffsetsView offsets,
                                                    const ArrayView segmentIndexes,
-                                                   const Index begin,
-                                                   const Index end,
                                                    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -298,9 +292,10 @@ forElementsWithSegmentIndexesBlockMergeKernel_CSR( const Index gridIdx,
    __shared__ Index shared_global_offsets[ SegmentsPerBlock ];
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
-   const Index segmentIdx_ptr = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
-   const Index last_local_segment_idx = min( SegmentsPerBlock, end - begin - blockIdx.x * SegmentsPerBlock );
-   if( segmentIdx_ptr < end && threadIdx.x < SegmentsPerBlock ) {
+   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index last_local_segment_idx =
+      min( SegmentsPerBlock, segmentIndexes.getSize() - Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock );
+   if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x < SegmentsPerBlock ) {
       TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
       shared_segment_indexes[ threadIdx.x ] = segmentIndexes[ segmentIdx_ptr ];
       TNL_ASSERT_GE( shared_segment_indexes[ threadIdx.x ], 0, "" );
@@ -312,7 +307,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_CSR( const Index gridIdx,
    using BlockScan = cub::BlockScan< Index, 256 >;
    __shared__ typename BlockScan::TempStorage temp_storage;
    Index value = 0;
-   if( segmentIdx_ptr < end && threadIdx.x <= SegmentsPerBlock ) {
+   if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x <= SegmentsPerBlock ) {
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
       value = offsets[ seg_idx + 1 ] - offsets[ seg_idx ];
    }
@@ -321,7 +316,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_CSR( const Index gridIdx,
       shared_offsets[ threadIdx.x ] = value;
    #else  // USE_CUB
    Index value = 0;
-   if( segmentIdx_ptr < end && threadIdx.x <= SegmentsPerBlock ) {
+   if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x <= SegmentsPerBlock ) {
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
       TNL_ASSERT_GE( seg_idx, 0, "Wrong index of segment index - smaller that 0." );
       TNL_ASSERT_LT( seg_idx, offsets.getSize() - 1, "Wrong index of segment index - larger that the number of indexes." );

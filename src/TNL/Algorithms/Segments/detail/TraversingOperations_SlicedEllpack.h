@@ -80,7 +80,10 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
       Algorithms::parallelFor< Device >( begin, end, l );
    }
 
-   template< typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename IndexBegin,
+             typename IndexEnd,
+             typename Function,
+             typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
    static void
    forElements( const ConstViewType& segments,
                 IndexBegin begin,
@@ -158,12 +161,10 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
       }
    }
 
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename Array, typename Function >
    static void
    forElementsSequential( const ConstViewType& segments,
                           const Array& segmentIndexes,
-                          IndexBegin begin,
-                          IndexEnd end,
                           Function&& function,
                           const LaunchConfiguration& launchConfig )
    {
@@ -218,15 +219,13 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             }
          }
       };
-      Algorithms::parallelFor< Device >( begin, end, l );
+      Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
    }
 
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename Array, typename Function >
    static void
    forElements( const ConstViewType& segments,
                 const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
                 Function&& function,
                 LaunchConfiguration launchConfig )
    {
@@ -236,10 +235,10 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
-            forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
+            forElementsSequential( segments, segmentIndexes, std::forward< Function >( function ), launchConfig );
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
-            std::size_t threadsCount = end - begin;
+            std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
             }
@@ -268,8 +267,6 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                                               launchConfig.getThreadsPerSegmentCount(),
                                               segments,
                                               segmentIndexesView,
-                                              begin,
-                                              end,
                                               function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
@@ -284,8 +281,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                                                                                   256 >;  // BlockSize
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 1:
-                        Backend::launchKernelAsync(
-                           kernel, launchConfig, gridIdx, segments, segmentIndexesView, begin, end, function );
+                        Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, segmentIndexesView, function );
                         break;
                      default:
                         throw std::invalid_argument( "Unsupported threads per segment ( "
@@ -301,7 +297,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          }
       }
       else {
-         forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
+         forElementsSequential( segments, segmentIndexes, std::forward< Function >( function ), launchConfig );
       }
    }
 

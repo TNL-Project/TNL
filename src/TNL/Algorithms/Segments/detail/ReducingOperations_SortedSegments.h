@@ -119,8 +119,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
                segments.getEmbeddedSegmentsView(),
                segments.getSegmentsPermutationView().getConstView( begin, end ),
-               0,
-               end - begin,
                fetch_,
                reduction,
                [ = ] __cuda_callable__( IndexType segmentIdx_idx, IndexType segmentIdx, const ReturnType& result ) mutable
@@ -142,8 +140,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
                segments.getEmbeddedSegmentsView(),
                segments.getSegmentsPermutationView().getConstView( begin, end ),
-               0,
-               end - begin,
                fetch,
                reduction,
                [ = ] __cuda_callable__( IndexType segmentdIdx_idx, IndexType segmentIdx, const ReturnType& result ) mutable
@@ -165,8 +161,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
    }
 
    template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
              typename Fetch,
              typename Reduction,
              typename ResultKeeper,
@@ -174,8 +168,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
    static void
    reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
                                      const Array& segmentIndexes,
-                                     IndexBegin begin,
-                                     IndexEnd end,
                                      Fetch&& fetch,
                                      Reduction&& reduction,
                                      ResultKeeper&& keeper,
@@ -184,26 +176,24 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
    {
       using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
 
-      if( end <= begin )
+      if( segmentIndexes.getSize() == 0 )
          return;
 
-      Array aux( end - begin );
+      Array aux( segmentIndexes.getSize() );
       auto segmentIndexesView = segmentIndexes.getConstView();
       auto segmentsPermutationView = segments.getSegmentsPermutationView();
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       aux.forAllElements(
          [ = ] __cuda_callable__( IndexType i, IndexType & value )
          {
-            TNL_ASSERT_LT( i + begin, segmentIndexesView.getSize(), "" );
-            value = segmentsPermutationView[ segmentIndexesView[ i + begin ] ];
+            TNL_ASSERT_LT( i, segmentIndexesView.getSize(), "" );
+            value = segmentsPermutationView[ segmentIndexesView[ i ] ];
          } );
 
       if constexpr( argumentCount< Fetch >() == 3 ) {
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
-            0,
-            aux.getSize(),
             [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
             {
                return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
@@ -220,8 +210,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
-            0,
-            aux.getSize(),
             fetch,
             reduction,
             [ = ] __cuda_callable__( IndexType segmentIdx_idx, IndexType segmentIdx, const ReturnType& result ) mutable
@@ -297,8 +285,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
                segments.getEmbeddedSegmentsView(),
                segments.getSegmentsPermutationView().getConstView( begin, end ),
-               0,
-               end - begin,
                fetch_,
                reduction,
                [ = ] __cuda_callable__(
@@ -313,8 +299,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
                segments.getEmbeddedSegmentsView(),
                segments.getSegmentsPermutationView().getConstView( begin, end ),
-               0,
-               end - begin,
                fetch,
                reduction,
                [ = ] __cuda_callable__(
@@ -328,18 +312,10 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       }
    }
 
-   template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
-             typename Value >
+   template< typename Array, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    static void
    reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
                                                 const Array& segmentIndexes,
-                                                IndexBegin begin,
-                                                IndexEnd end,
                                                 Fetch&& fetch,
                                                 Reduction&& reduction,
                                                 ResultKeeper&& keeper,
@@ -348,26 +324,24 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
    {
       using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
 
-      if( end <= begin )
+      if( segmentIndexes.getSize() == 0 )
          return;
 
-      Containers::Array< IndexType, DeviceType, IndexType > aux( end - begin );
+      Containers::Array< IndexType, DeviceType, IndexType > aux( segmentIndexes.getSize() );
       auto segmentIndexesView = segmentIndexes.getConstView();
       auto segmentsPermutationView = segments.getSegmentsPermutationView();
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       aux.forAllElements(
          [ = ] __cuda_callable__( IndexType i, IndexType & value )
          {
-            TNL_ASSERT_LT( i + begin, segmentIndexesView.getSize(), "" );
-            value = segmentsPermutationView[ segmentIndexesView[ i + begin ] ];
+            TNL_ASSERT_LT( i, segmentIndexesView.getSize(), "" );
+            value = segmentsPermutationView[ segmentIndexesView[ i ] ];
          } );
 
       if constexpr( argumentCount< Fetch >() == 3 ) {
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
-            0,
-            aux.getSize(),
             [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
             {
                return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
@@ -385,8 +359,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
-            0,
-            aux.getSize(),
             fetch,
             reduction,
             [ = ] __cuda_callable__(
@@ -438,8 +410,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
             segments.getEmbeddedSegmentsView(),
             indexes.getConstView(),
-            0,
-            indexes.getSize(),
             [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
             {
                return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
@@ -456,8 +426,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
             segments.getEmbeddedSegmentsView(),
             indexes.getConstView(),
-            0,
-            indexes.getSize(),
             fetch,
             reduction,
             [ = ] __cuda_callable__( IndexType segmentIdx_idx, IndexType segmentIdx, const ReturnType& result ) mutable
@@ -508,8 +476,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
             segments.getEmbeddedSegmentsView(),
             indexes.getConstView(),
-            0,
-            indexes.getSize(),
             [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
             {
                return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
@@ -527,8 +493,6 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
             segments.getEmbeddedSegmentsView(),
             indexes.getConstView(),
-            0,
-            indexes.getSize(),
             fetch,
             reduction,
             [ = ] __cuda_callable__(

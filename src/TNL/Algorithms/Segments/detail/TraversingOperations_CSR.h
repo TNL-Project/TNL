@@ -110,12 +110,10 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
       }
    }
 
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename Array, typename Function >
    static void
    forElementsSequential( const ConstViewType& segments,
                           const Array& segmentIndexes,
-                          IndexBegin begin,
-                          IndexEnd end,
                           Function&& function,
                           LaunchConfiguration launchConfig )
    {
@@ -144,19 +142,17 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             }
          }
       };
-      Algorithms::parallelFor< Device >( begin, end, l );
+      Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
    }
 
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename Array, typename Function >
    static void
    forElements( const ConstViewType& segments,
                 const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
                 Function&& function,
                 LaunchConfiguration launchConfig )
    {
-      if( end <= begin )
+      if( segmentIndexes.getSize() == 0 )
          return;
 
       if( launchConfig.blockSize.x == 1 )
@@ -164,10 +160,10 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
       if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
-            forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
+            forElementsSequential( segments, segmentIndexes, std::forward< Function >( function ), launchConfig );
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
-            std::size_t threadsCount = end - begin;
+            std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged
@@ -196,8 +192,6 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                                               launchConfig.getThreadsPerSegmentCount(),
                                               segments.getOffsets(),
                                               segmentIndexesView,
-                                              begin,
-                                              end,
                                               function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
@@ -212,7 +206,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                                                                                          std::remove_reference_t< Function >,
                                                                                          SegmentsPerBlock >;
                            Backend::launchKernelAsync(
-                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, begin, end, function );
+                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
                            break;
                         }
                      case 2:
@@ -225,7 +219,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                                                                                          std::remove_reference_t< Function >,
                                                                                          SegmentsPerBlock >;
                            Backend::launchKernelAsync(
-                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, begin, end, function );
+                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
                            break;
                         }
                      case 4:
@@ -238,7 +232,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                                                                                          std::remove_reference_t< Function >,
                                                                                          SegmentsPerBlock >;
                            Backend::launchKernelAsync(
-                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, begin, end, function );
+                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
                            break;
                         }
                      case 8:
@@ -251,7 +245,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                                                                                          std::remove_reference_t< Function >,
                                                                                          SegmentsPerBlock >;
                            Backend::launchKernelAsync(
-                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, begin, end, function );
+                              kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
                            break;
                         }
                      default:
@@ -266,7 +260,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                                                                                      IndexType,
                                                                                      std::remove_reference_t< Function > >;
                   Backend::launchKernelAsync(
-                     kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, begin, end, function );
+                     kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
                }
                else
                   throw std::invalid_argument( "Unsupported threads to segments mapping for CSR segments." );
@@ -275,7 +269,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          }
       }
       else
-         forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
+         forElementsSequential( segments, segmentIndexes, std::forward< Function >( function ), launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >

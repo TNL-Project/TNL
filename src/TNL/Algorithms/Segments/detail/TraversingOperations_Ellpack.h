@@ -138,12 +138,10 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
       }
    }
 
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename Array, typename Function >
    static void
    forElementsSequential( const ViewType& segments,
                           const Array& segmentIndexes,
-                          IndexBegin begin,
-                          IndexEnd end,
                           Function&& function,
                           const LaunchConfiguration& launchConfig )
    {
@@ -182,17 +180,12 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             }
          }
       };
-      Algorithms::parallelFor< Device >( begin, end, l );
+      Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
    }
 
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename Array, typename Function >
    static void
-   forElements( const ViewType& segments,
-                const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                LaunchConfiguration launchConfig )
+   forElements( const ViewType& segments, const Array& segmentIndexes, Function&& function, LaunchConfiguration launchConfig )
    {
       if( launchConfig.blockSize.x == 1 )
          launchConfig.blockSize.x = 256;
@@ -200,10 +193,10 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
-            forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
+            forElementsSequential( segments, segmentIndexes, std::forward< Function >( function ), launchConfig );
          else {
             auto segmentIndexesView = segmentIndexes.getConstView();
-            std::size_t threadsCount = end - begin;
+            std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed )
                threadsCount *= (std::size_t) launchConfig.getThreadsPerSegmentCount();
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged )
@@ -230,8 +223,6 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                                               launchConfig.getThreadsPerSegmentCount(),
                                               segments,
                                               segmentIndexesView,
-                                              begin,
-                                              end,
                                               function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
@@ -246,8 +237,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
 
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 1:
-                        Backend::launchKernelAsync(
-                           kernel, launchConfig, gridIdx, segments, segmentIndexesView, begin, end, function );
+                        Backend::launchKernelAsync( kernel, launchConfig, gridIdx, segments, segmentIndexesView, function );
                         break;
                      default:
                         throw std::invalid_argument( "Unsupported threads per segment ( "
@@ -263,7 +253,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          }
       }
       else {
-         forElementsSequential( segments, segmentIndexes, begin, end, std::forward< Function >( function ), launchConfig );
+         forElementsSequential( segments, segmentIndexes, std::forward< Function >( function ), launchConfig );
       }
    }
 

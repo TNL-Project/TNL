@@ -61,8 +61,6 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             TraversingOperations< EmbeddedSegmentsView >::forElements(
                segments.getEmbeddedSegmentsView(),
                segments.getSegmentsPermutationView().getConstView( begin, end ),
-               0,
-               end - begin,
                [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
                {
                   function( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
@@ -73,8 +71,6 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             TraversingOperations< EmbeddedSegmentsView >::forElements(
                segments.getEmbeddedSegmentsView(),
                segments.getSegmentsPermutationView().getConstView( begin, end ),
-               0,
-               end - begin,
                [ = ] __cuda_callable__( IndexType segmentIdx, IndexType globalIdx ) mutable
                {
                   function( inverseSegmentsPermutationView[ segmentIdx ], globalIdx );
@@ -84,35 +80,31 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       }
    }
 
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename Array, typename Function >
    static void
    forElements( const ConstViewType& segments,
                 const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
                 Function&& function,
                 LaunchConfiguration launchConfig )
    {
-      if( end <= begin )
+      if( segmentIndexes.getSize() == 0 )
          return;
 
-      Containers::Array< IndexType, DeviceType, IndexType > aux( end - begin );
+      Containers::Array< IndexType, DeviceType, IndexType > aux( segmentIndexes.getSize() );
       auto segmentIndexesView = segmentIndexes.getConstView();
       auto segmentsPermutationView = segments.getSegmentsPermutationView();
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       aux.forAllElements(
          [ = ] __cuda_callable__( IndexType i, IndexType & value )
          {
-            TNL_ASSERT_LT( i + begin, segmentIndexesView.getSize(), "" );
-            value = segmentsPermutationView[ segmentIndexesView[ i + begin ] ];
+            TNL_ASSERT_LT( i, segmentIndexesView.getSize(), "" );
+            value = segmentsPermutationView[ segmentIndexesView[ i ] ];
          } );
 
       if constexpr( argumentCount< Function >() == 3 ) {
          TraversingOperations< EmbeddedSegmentsView >::forElements(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
-            0,
-            aux.getSize(),
             [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
             {
                function( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
@@ -123,8 +115,6 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          TraversingOperations< EmbeddedSegmentsView >::forElements(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
-            0,
-            aux.getSize(),
             [ = ] __cuda_callable__( IndexType segmentIdx, IndexType globalIdx ) mutable
             {
                function( inverseSegmentsPermutationView[ segmentIdx ], globalIdx );
@@ -204,7 +194,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
       auto indexes = compressFast< VectorType >( conditions );
       indexes += begin;
-      forElements( segments, indexes, 0, indexes.getSize(), function, launchConfig );
+      forElements( segments, indexes, function, launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
@@ -245,8 +235,6 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          TraversingOperations< EmbeddedSegmentsView >::forSegments(
             segments.getEmbeddedSegmentsView(),
             segmentIndexes,
-            0,
-            segmentIndexes.getSize(),
             [ = ] __cuda_callable__( SegmentView & segment ) mutable
             {
                segment.setSegmentIndex( segments_view.getInverseSegmentsPermutationView()[ segment.getSegmentIndex() ] );
@@ -256,26 +244,24 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       }
    }
 
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename Array, typename Function >
    static void
    forSegments( const ConstViewType& segments,
                 const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
                 Function&& function,
                 LaunchConfiguration launchConfig )
    {
       using SegmentView = typename ConstViewType::SegmentViewType;
 
-      if( end <= begin )
+      if( segmentIndexes.getSize() == 0 )
          return;
 
       auto segments_view = segments.getConstView();
-      Containers::Vector< IndexType, DeviceType, IndexType > transformedSegmentIndexes( end - begin );
+      Containers::Vector< IndexType, DeviceType, IndexType > transformedSegmentIndexes( segmentIndexes.getSize() );
       auto segmentsPermutationView = segments.getConstView().getSegmentsPermutationView();
       auto segmentIndexesView = segmentIndexes.getConstView();
-      transformedSegmentIndexes.forElements( begin,
-                                             end,
+      transformedSegmentIndexes.forElements( 0,
+                                             segmentIndexes.getSize(),
                                              [ = ] __cuda_callable__( IndexType i, IndexType & value )
                                              {
                                                 value = segmentsPermutationView[ segmentIndexesView[ i ] ];
@@ -284,8 +270,6 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       TraversingOperations< EmbeddedSegmentsView >::forSegments(
          segments.getEmbeddedSegmentsView(),
          transformedSegmentIndexes,
-         0,
-         transformedSegmentIndexes.getSize(),
          [ = ] __cuda_callable__( SegmentView & segment ) mutable
          {
             segment.setSegmentIndex( segments_view.getInverseSegmentsPermutationView()[ segment.getSegmentIndex() ] );
@@ -316,7 +300,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
       auto indexes = compressFast< VectorType >( conditions );
       indexes += begin;
-      forSegments( segments, indexes, 0, indexes.getSize(), function, launchConfig );
+      forSegments( segments, indexes, function, launchConfig );
    }
 };
 

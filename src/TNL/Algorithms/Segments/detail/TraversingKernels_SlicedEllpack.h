@@ -194,13 +194,11 @@ forElementsWithSegmentIndexesKernel_SlicedEllpack( const Index gridIdx,
                                                    const Index threadsPerSegment,
                                                    const SegmentsConstView segments,
                                                    const ArrayView segmentIndexes,
-                                                   Index begin,
-                                                   Index end,
                                                    Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index idx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
-   if( idx >= end )
+   const Index idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
+   if( idx >= segmentIndexes.getSize() )
       return;
    TNL_ASSERT_GE( idx, 0, "" );
    TNL_ASSERT_LT( idx, segmentIndexes.getSize(), "" );
@@ -251,8 +249,6 @@ void
 forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx,
                                                              const SegmentsConstView segments,
                                                              const ArrayView segmentIndexes,
-                                                             const Index begin,
-                                                             const Index end,
                                                              Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -264,9 +260,9 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
    __shared__ Index shared_global_offsets[ SegmentsPerBlock ];
    __shared__ Index shared_segment_indexes[ SegmentsPerBlock ];
 
-   const Index segmentIdx_ptr = begin + Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
-   const Index last_local_segment_idx = min( SegmentsPerBlock, end - begin - blockIdx.x * SegmentsPerBlock );
-   if( segmentIdx_ptr < end && threadIdx.x < SegmentsPerBlock ) {
+   const Index segmentIdx_ptr = Backend::getGlobalBlockIdx_x( gridIdx ) * SegmentsPerBlock + threadIdx.x;
+   const Index last_local_segment_idx = min( SegmentsPerBlock, segmentIndexes.getSize() - blockIdx.x * SegmentsPerBlock );
+   if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x < SegmentsPerBlock ) {
       TNL_ASSERT_LT( segmentIdx_ptr, segmentIndexes.getSize(), "" );
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
       shared_segment_indexes[ threadIdx.x ] = seg_idx;
@@ -288,7 +284,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
       shared_offsets[ threadIdx.x ] = value;
    #else  // USE_CUB
    Index value = 0;
-   if( segmentIdx_ptr < end && threadIdx.x <= SegmentsPerBlock ) {
+   if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x <= SegmentsPerBlock ) {
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
       TNL_ASSERT_GE( seg_idx, 0, "Wrong index of segment index - smaller that 0." );
       TNL_ASSERT_LT(

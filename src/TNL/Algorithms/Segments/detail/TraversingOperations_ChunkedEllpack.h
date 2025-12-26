@@ -85,12 +85,10 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
       Algorithms::parallelFor< DeviceType >( begin, end, work );
    }
 
-   template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
+   template< typename Array, typename Function >
    static void
    forElements( const ConstViewType& segments,
                 const Array& segmentIndexes,
-                IndexBegin begin,
-                IndexEnd end,
                 Function&& function,
                 const LaunchConfiguration& launchConfig )
    {
@@ -155,7 +153,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
             }
          }
       };
-      Algorithms::parallelFor< DeviceType >( begin, end, work );
+      Algorithms::parallelFor< DeviceType >( 0, segmentIndexes.getSize(), work );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
