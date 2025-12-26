@@ -31,15 +31,15 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
    {
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
       const auto sliceOffsets_view = segments.getSliceOffsetsView();
-      if constexpr( Organization == RowMajorOrder ) {
-         if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+      auto l = [ sliceSegmentSizes_view, sliceOffsets_view, function ] __cuda_callable__( const IndexType segmentIdx ) mutable
+      {
+         const IndexType sliceIdx = segmentIdx / SliceSize;
+         const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
+         if constexpr( Organization == RowMajorOrder ) {
+            const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
+            const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
+            const IndexType end = begin + segmentSize;
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
                   // The following is a workaround of a bug in nvcc 11.2
@@ -50,32 +50,16 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                   function( segmentIdx, localIdx++, globalIdx );
 #endif
                }
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
-      else {                                                 // ColumnMajorOrder
-         if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               // const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
-               const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
+         else {  // ColumnMajorOrder
+            const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
+            const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
                   // The following is a workaround of a bug in nvcc 11.2
@@ -86,23 +70,14 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                   function( segmentIdx, localIdx++, globalIdx );
 #endif
                }
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               // const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
-               const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
@@ -195,16 +170,17 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
       auto segmentIndexes_view = segmentIndexes.getConstView();
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
       const auto sliceOffsets_view = segments.getSliceOffsetsView();
-      if constexpr( Organization == RowMajorOrder ) {
-         if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-            auto l = [ = ] __cuda_callable__( const IndexType idx ) mutable
-            {
-               const IndexType segmentIdx = segmentIndexes_view[ idx ];
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+      auto l = [ segmentIndexes_view, sliceSegmentSizes_view, sliceOffsets_view, function ] __cuda_callable__(
+                  const IndexType idx ) mutable
+      {
+         const IndexType segmentIdx = segmentIndexes_view[ idx ];
+         const IndexType sliceIdx = segmentIdx / SliceSize;
+         const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
+         if constexpr( Organization == RowMajorOrder ) {
+            const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
+            const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
+            const IndexType end = begin + segmentSize;
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
                   // The following is a workaround of a bug in nvcc 11.2
@@ -215,34 +191,16 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                   function( segmentIdx, localIdx++, globalIdx );
 #endif
                }
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType idx ) mutable
-            {
-               const IndexType segmentIdx = segmentIndexes_view[ idx ];
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
-      else {
-         if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-            auto l = [ = ] __cuda_callable__( const IndexType idx ) mutable
-            {
-               const IndexType segmentIdx = segmentIndexes_view[ idx ];
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               // const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
-               const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
+         else {
+            const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
+            const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
                   // The following is a workaround of a bug in nvcc 11.2
@@ -253,24 +211,14 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                   function( segmentIdx, localIdx++, globalIdx );
 #endif
                }
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType idx ) mutable
-            {
-               const IndexType segmentIdx = segmentIndexes_view[ idx ];
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               // const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
-               const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -368,17 +316,18 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
    {
       const auto sliceSegmentSizes_view = segments.getSliceSegmentSizesView();
       const auto sliceOffsets_view = segments.getSliceOffsetsView();
-      if constexpr( Organization == RowMajorOrder ) {
-         if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               if( ! condition( segmentIdx ) )
-                  return;
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+      auto l = [ sliceSegmentSizes_view, sliceOffsets_view, condition, function ] __cuda_callable__(
+                  const IndexType segmentIdx ) mutable
+      {
+         if( ! condition( segmentIdx ) )
+            return;
+         const IndexType sliceIdx = segmentIdx / SliceSize;
+         const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
+         if constexpr( Organization == RowMajorOrder ) {
+            const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
+            const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
+            const IndexType end = begin + segmentSize;
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
                   // The following is a workaround of a bug in nvcc 11.2
@@ -389,35 +338,16 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                   function( segmentIdx, localIdx++, globalIdx );
 #endif
                }
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               if( ! condition( segmentIdx ) )
-                  return;
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
-      else {
-         if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               if( ! condition( segmentIdx ) )
-                  return;
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
-               const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
+         else {
+            const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
+            const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
                   // The following is a workaround of a bug in nvcc 11.2
@@ -428,24 +358,14 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
                   function( segmentIdx, localIdx++, globalIdx );
 #endif
                }
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               if( ! condition( segmentIdx ) )
-                  return;
-               const IndexType sliceIdx = segmentIdx / SliceSize;
-               const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-               const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
-               const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >

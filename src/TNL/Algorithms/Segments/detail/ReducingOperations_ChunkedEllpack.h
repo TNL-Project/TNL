@@ -32,9 +32,9 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    reduceSegments( const ConstViewType& segments,
                    IndexBegin begin,
                    IndexEnd end,
-                   Fetch&& fetch,          // TODO Fetch&& does not work with nvcc
-                   Reduction&& reduction,  // TODO Reduction&& does not work with nvcc
-                   ResultKeeper&& keeper,  // TODO ResultKeeper&& does not work with nvcc
+                   Fetch&& fetch,
+                   Reduction&& reduction,
+                   ResultKeeper&& keeper,
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
@@ -113,9 +113,9 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                      const Array& segmentIndexes,
                                      IndexBegin begin,
                                      IndexEnd end,
-                                     Fetch&& fetch,          // TODO Fetch&& does not work with nvcc
-                                     Reduction&& reduction,  // TODO Reduction&& does not work with nvcc
-                                     ResultKeeper&& keeper,  // TODO ResultKeeper&& does not work with nvcc
+                                     Fetch&& fetch,
+                                     Reduction&& reduction,
+                                     ResultKeeper&& keeper,
                                      const Value& identity,
                                      const LaunchConfiguration& launchConfig )
    {
@@ -206,9 +206,9 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    reduceSegmentsWithArgument( const ConstViewType& segments,
                                IndexBegin begin,
                                IndexEnd end,
-                               Fetch&& fetch,          // TODO Fetch&& does not work with nvcc
-                               Reduction&& reduction,  // TODO Reduction&& does not work with nvcc
-                               ResultKeeper&& keeper,  // TODO ResultKeeper&& does not work with nvcc
+                               Fetch&& fetch,
+                               Reduction&& reduction,
+                               ResultKeeper&& keeper,
                                const Value& identity,
                                const LaunchConfiguration& launchConfig )
    {
@@ -292,9 +292,9 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                                 const Array& segmentIndexes,
                                                 IndexBegin begin,
                                                 IndexEnd end,
-                                                Fetch&& fetch,          // TODO Fetch&& does not work with nvcc
-                                                Reduction&& reduction,  // TODO Reduction&& does not work with nvcc
-                                                ResultKeeper&& keeper,  // TODO ResultKeeper&& does not work with nvcc
+                                                Fetch&& fetch,
+                                                Reduction&& reduction,
+                                                ResultKeeper&& keeper,
                                                 const Value& identity,
                                                 const LaunchConfiguration& launchConfig )
    {
