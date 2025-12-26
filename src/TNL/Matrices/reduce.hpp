@@ -16,7 +16,6 @@ reduceAllRows( Matrix& matrix,
                const FetchValue& identity,
                Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using IndexType = typename Matrix::IndexType;
    reduceRows( matrix,
                0,
                matrix.getRows(),
