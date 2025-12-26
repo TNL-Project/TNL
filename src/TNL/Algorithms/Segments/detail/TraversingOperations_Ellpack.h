@@ -28,55 +28,42 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                           Function&& function,
                           const LaunchConfiguration& launchConfig )
    {
-      if constexpr( Organization == RowMajorOrder ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-         const IndexType segmentSize = segments.getSegmentSize();
-         if constexpr( argumentCount< Function >() == 3 ) {
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               const IndexType begin = segmentIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+      const IndexType segmentSize = segments.getSegmentSize();
+      const IndexType storageSize = segments.getStorageSize();
+      const IndexType alignedSize = segments.getAlignedSize();
+      auto l = [ segmentSize, storageSize, alignedSize, function ] __cuda_callable__( const IndexType segmentIdx ) mutable
+      {
+         (void) segmentSize;  // To suppress unused variable warning
+         (void) storageSize;
+         (void) alignedSize;
+         if constexpr( Organization == RowMajorOrder ) {
+            const IndexType begin = segmentIdx * segmentSize;
+            const IndexType end = begin + segmentSize;
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               const IndexType begin = segmentIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
-      else {
-         const IndexType storageSize = segments.getStorageSize();
-         const IndexType alignedSize = segments.getAlignedSize();
-         if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               const IndexType begin = segmentIdx;
-               const IndexType end = storageSize;
+         else {
+            const IndexType begin = segmentIdx;
+            const IndexType end = storageSize;
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += alignedSize )
                   function( segmentIdx, localIdx++, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               const IndexType begin = segmentIdx;
-               const IndexType end = storageSize;
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += alignedSize )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
@@ -163,59 +150,44 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                           const LaunchConfiguration& launchConfig )
    {
       auto segmentIndexesView = segmentIndexes.getConstView();
-      if constexpr( Organization == RowMajorOrder ) {
-         const IndexType segmentSize = segments.getSegmentSize();
-         if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-            auto l = [ = ] __cuda_callable__( const IndexType idx ) mutable
-            {
-               const IndexType segmentIdx = segmentIndexesView[ idx ];
-               const IndexType begin = segmentIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+      const IndexType segmentSize = segments.getSegmentSize();
+      const IndexType storageSize = segments.getStorageSize();
+      const IndexType alignedSize = segments.getAlignedSize();
+      auto l = [ segmentSize, storageSize, alignedSize, segmentIndexesView, function ] __cuda_callable__(
+                  const IndexType idx ) mutable
+      {
+         (void) segmentSize;  // To suppress unused variable warning
+         (void) storageSize;
+         (void) alignedSize;
+         const IndexType segmentIdx = segmentIndexesView[ idx ];
+         if constexpr( Organization == RowMajorOrder ) {
+            const IndexType begin = segmentIdx * segmentSize;
+            const IndexType end = begin + segmentSize;
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType idx ) mutable
-            {
-               const IndexType segmentIdx = segmentIndexesView[ idx ];
-               const IndexType begin = segmentIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
-      else {
-         const IndexType storageSize = segments.getStorageSize();
-         const IndexType alignedSize = segments.getAlignedSize();
-         if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-            auto l = [ = ] __cuda_callable__( const IndexType idx ) mutable
-            {
-               const IndexType segmentIdx = segmentIndexesView[ idx ];
-               const IndexType begin = segmentIdx;
-               const IndexType end = storageSize;
+         else {
+            const IndexType begin = segmentIdx;
+            const IndexType end = storageSize;
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += alignedSize )
                   function( segmentIdx, localIdx++, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType idx ) mutable
-            {
-               const IndexType segmentIdx = segmentIndexesView[ idx ];
-               const IndexType begin = segmentIdx;
-               const IndexType end = storageSize;
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += alignedSize )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
@@ -308,63 +280,45 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                             Function&& function,
                             const LaunchConfiguration& launchConfig )
    {
-      if constexpr( Organization == RowMajorOrder ) {
-         const IndexType segmentSize = segments.getSegmentSize();
-         if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               if( ! condition( segmentIdx ) )
-                  return;
-               const IndexType begin = segmentIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+      const IndexType segmentSize = segments.getSegmentSize();
+      const IndexType storageSize = segments.getStorageSize();
+      const IndexType alignedSize = segments.getAlignedSize();
+      auto l =
+         [ segmentSize, storageSize, alignedSize, condition, function ] __cuda_callable__( const IndexType segmentIdx ) mutable
+      {
+         (void) segmentSize;  // To suppress unused variable warning
+         (void) storageSize;
+         (void) alignedSize;
+         if( ! condition( segmentIdx ) )
+            return;
+         if constexpr( Organization == RowMajorOrder ) {
+            const IndexType begin = segmentIdx * segmentSize;
+            const IndexType end = begin + segmentSize;
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               if( ! condition( segmentIdx ) )
-                  return;
-               const IndexType begin = segmentIdx * segmentSize;
-               const IndexType end = begin + segmentSize;
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
-      else {
-         const IndexType storageSize = segments.getStorageSize();
-         const IndexType alignedSize = segments.getAlignedSize();
-         if constexpr( argumentCount< Function >() == 3 ) {  // TODO: Move this inside the lambda function when nvcc accepts it.
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               if( ! condition( segmentIdx ) )
-                  return;
-               const IndexType begin = segmentIdx;
-               const IndexType end = storageSize;
+         else {
+            const IndexType begin = segmentIdx;
+            const IndexType end = storageSize;
+            if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += alignedSize )
                   function( segmentIdx, localIdx++, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
-         }
-         else {  // argumentCount< Function >() == 2
-            auto l = [ = ] __cuda_callable__( const IndexType segmentIdx ) mutable
-            {
-               if( ! condition( segmentIdx ) )
-                  return;
-               const IndexType begin = segmentIdx;
-               const IndexType end = storageSize;
+            }
+            else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += alignedSize )
                   function( segmentIdx, globalIdx );
-            };
-            Algorithms::parallelFor< Device >( begin, end, l );
+            }
          }
-      }
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
