@@ -29,30 +29,22 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                           const LaunchConfiguration& launchConfig )
    {
       const auto offsetsView = segments.getOffsets();
-      // TODO: if constexpr could be just inside the lambda function l when nvcc allolws it
-      if constexpr( argumentCount< Function >() == 3 ) {
-         auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
-         {
-            const IndexType begin = offsetsView[ segmentIdx ];
-            const IndexType end = offsetsView[ segmentIdx + 1 ];
+      auto l = [ offsetsView, function ] __cuda_callable__( IndexType segmentIdx ) mutable
+      {
+         const IndexType begin = offsetsView[ segmentIdx ];
+         const IndexType end = offsetsView[ segmentIdx + 1 ];
+         if constexpr( argumentCount< Function >() == 3 ) {
             IndexType localIdx( 0 );
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                function( segmentIdx, localIdx++, globalIdx );
-         };
-         // TODO: Add launch config
-         Algorithms::parallelFor< Device >( begin, end, l );
-      }
-      else {
-         auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
-         {
-            const IndexType begin = offsetsView[ segmentIdx ];
-            const IndexType end = offsetsView[ segmentIdx + 1 ];
+         }
+         else {
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                function( segmentIdx, globalIdx );
-         };
-         // TODO: Add launch config
-         Algorithms::parallelFor< Device >( begin, end, l );
-      }
+         }
+      };
+      // TODO: Add launch config
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
@@ -127,44 +119,32 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                           Function&& function,
                           LaunchConfiguration launchConfig )
    {
-      const auto offsetsView = segments.getOffsets();
       auto segmentIndexesView = segmentIndexes.getConstView();
-      // TODO: if constexpr could be just inside the lambda function l when nvcc allolws it
-      if constexpr( argumentCount< Function >() == 3 ) {
-         auto l = [ = ] __cuda_callable__( IndexType idx ) mutable
-         {
-            TNL_ASSERT_LT( idx, segmentIndexesView.getSize(), "" );
-            const IndexType segmentIdx = segmentIndexesView[ idx ];
-            TNL_ASSERT_GE( segmentIdx, 0, "Wrong index of segment index - smaller that 0." );
-            TNL_ASSERT_LT(
-               segmentIdx, offsetsView.getSize() - 1, "Wrong index of segment index - larger that the number of indexes." );
-            const IndexType begin = offsetsView[ segmentIdx ];
-            const IndexType end = offsetsView[ segmentIdx + 1 ];
+      auto l = [ segmentIndexesView, function, segments ] __cuda_callable__( IndexType idx ) mutable
+      {
+         TNL_ASSERT_LT( idx, segmentIndexesView.getSize(), "" );
+         const IndexType segmentIdx = segmentIndexesView[ idx ];
+         TNL_ASSERT_GE( segmentIdx, 0, "Wrong index of segment index - smaller that 0." );
+         TNL_ASSERT_LT( segmentIdx,
+                        segments.getOffsets().getSize() - 1,
+                        "Wrong index of segment index - larger that the number of indexes." );
+         const IndexType begin = segments.getOffsets()[ segmentIdx ];
+         const IndexType end = segments.getOffsets()[ segmentIdx + 1 ];
+         if constexpr( argumentCount< Function >() == 3 ) {
             IndexType localIdx( 0 );
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
                TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
                function( segmentIdx, localIdx++, globalIdx );
             }
-         };
-         Algorithms::parallelFor< Device >( begin, end, l );
-      }
-      else {  // argumentCount< Function >() == 2
-         auto l = [ = ] __cuda_callable__( IndexType idx ) mutable
-         {
-            TNL_ASSERT_LT( idx, segmentIndexesView.getSize(), "" );
-            const IndexType segmentIdx = segmentIndexesView[ idx ];
-            TNL_ASSERT_GE( segmentIdx, 0, "Wrong index of segment index - smaller that 0." );
-            TNL_ASSERT_LT(
-               segmentIdx, offsetsView.getSize() - 1, "Wrong index of segment index - larger that the number of indexes." );
-            const IndexType begin = offsetsView[ segmentIdx ];
-            const IndexType end = offsetsView[ segmentIdx + 1 ];
+         }
+         else {
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
                TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
                function( segmentIdx, globalIdx );
             }
-         };
-         Algorithms::parallelFor< Device >( begin, end, l );
-      }
+         }
+      };
+      Algorithms::parallelFor< Device >( begin, end, l );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
