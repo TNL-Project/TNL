@@ -8,6 +8,90 @@
 namespace TNL::Algorithms::Segments {
 
 /**
+ * \page SegmentTraversalOverview Overview of Segment Traversal Functions
+ *
+ * \tableofcontents
+ *
+ * This page provides an overview of all traversal functions available for segment operations,
+ * helping to understand the differences between variants and choose the right function for your needs.
+ *
+ * \section SegmentTraversalFunctionCategories Function Categories
+ *
+ * Traversal functions are organized along two main dimensions:
+ *
+ * \subsection SegmentTraversalElementVsSegment Element-wise vs. Segment-wise Traversal
+ *
+ * | Category | Operates On | Lambda Parameter | Use Case |
+ * |----------|------------|------------------|----------|
+ * | **Element-wise** (`forElements`, `forAllElements`) | Individual elements | Element indices | Operate on each element
+ * separately |
+ * | **Segment-wise** (`forSegments`, `forAllSegments`) | Whole segments | SegmentView object | Operate on segments
+ * as units |
+ *
+ * **When to use:**
+ * - **Element-wise**: When you need to process each element independently (e.g., apply transformation, update values)
+ * - **Segment-wise**: When you need access to the entire segment structure or segment context (e.g., custom
+ * segment algorithms, segment-level operations)
+ *
+ * \subsection SegmentTraversalScopeAndConditional Scope and Conditional Variants
+ *
+ * Similar to other segment operations, traversal functions come in different scopes and conditional variants.
+ *
+ * | Scope | Segments Processed | Parameters |
+ * |-------|-------------------|------------|
+ * | **All** | All segments | No range/array parameters |
+ * | **Range** | Segments [begin, end) | `begin` and `end` indices |
+ * | **Array** | Specific segments | Array of segment indices |
+ * | **If** | Segment condition | Process segments based on segment-level properties |
+ *
+ * \section SegmentTraversalElementFunctions Element-wise Traversal Functions
+ *
+ * These functions iterate over individual elements within segments:
+ *
+ * \subsection SegmentTraversalBasicElementFunctions Basic Element Traversal
+ *
+ * | Function | Segments Processed | Description |
+ * |----------|-------------------|-------------|
+ * | \ref forAllElements | All segments | Process all elements in all segments |
+ * | \ref forElements (range) | Segments [begin, end) | Process elements in segment range |
+ * | \ref forElements (array) | Segments in array | Process elements in specified segments |
+ * | \ref forAllElementsIf | All segments | Segment-level condition |
+ * | \ref forElementsIf | Segments [begin, end) | Segment-level condition |
+ *
+ * \section SegmentTraversalSegmentFunctions Segment-wise Traversal Functions
+ *
+ * These functions iterate over segments as whole units:
+ *
+ * \subsection SegmentTraversalBasicSegmentFunctions Basic Segment Traversal
+ *
+ * | Function | Segments Processed | Description |
+ * |----------|-------------------|-------------|
+ * | \ref forAllSegments | All segments | Process all segments |
+ * | \ref forSegments (range) | Segments [begin, end) | Process segments in range |
+ * | \ref forSegments (array) | Segments in array | Process specified segments |
+ * | \ref forAllSegmentsIf | All segments | Segment-level condition |
+ * | \ref forSegmentsIf | Segments [begin, end) | Segment-level condition |
+ *
+ * \section SegmentTraversalParameters Common Parameters
+ *
+ * All traversal functions share these common parameters:
+ *
+ * - **segments**: The segments container to traverse
+ * - **f**: Lambda function to apply (see \ref SegmentElementLambda_Full, \ref SegmentElementLambda_Brief, or \ref
+ * SegmentViewLambda)
+ * - **launchConfig**: Configuration for parallel execution (optional)
+ *
+ * Additional parameters for specific variants:
+ * - **Scope variants**: `begin`, `end` (range) or `segmentIndexes` (array)
+ * - **If variants**: `condition` lambda for filtering (see \ref SegmentConditionLambda)
+ *
+ * \section SegmentTraversalRelatedPages Related Pages
+ *
+ * - \ref SegmentTraversalLambdas - Detailed lambda function signatures
+ * - \ref TNL::Algorithms::Segments::SegmentView - Segment view documentation
+ */
+
+/**
  * \page SegmentTraversalLambdas Segment Traversal Lambda Function Reference
  *
  * This page provides a comprehensive reference for all lambda function signatures used

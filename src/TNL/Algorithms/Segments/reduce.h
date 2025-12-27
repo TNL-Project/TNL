@@ -10,6 +10,92 @@
 namespace TNL::Algorithms::Segments {
 
 /**
+ * \page SegmentReductionOverview Overview of Segment Reduction Functions
+ *
+ * \tableofcontents
+ *
+ * This page provides an overview of all reduction functions available for segment operations,
+ * helping to understand the differences between variants and choose the right function for your needs.
+ *
+ * \section SegmentReductionFunctionCategories Function Categories
+ *
+ * The segment reduction functions are organized along three independent axes:
+ *
+ * \subsection SegmentReductionBasicVsArgument Basic vs. WithArgument Variants
+ *
+ * | Category | Tracks Position? | Use Case |
+ * |----------|-----------------|----------|
+ * | **Basic** | No | Only the reduced value is needed (e.g., sum, product) |
+ * | **WithArgument** | Yes | Need both the value and its position (e.g., max value and where it occurs) |
+ *
+ * \subsection SegmentReductionScopeAndConditionalVariants Scope and Conditional Variants (Which Segments to Process)
+ *
+ * | Scope | Segments Processed | Parameters |
+ * |-------|-------------------|------------|
+ * | **All** | All segments | No range/array parameters |
+ * | **Range** | Segments [begin, end) | `begin` and `end` indices |
+ * | **Array** | Specific segments | Array of segment indices |
+ * | **If** | Segment condition | Process segments based on segment-level properties |
+ *
+ * \section SegmentReductionCompleteMatrix Complete Function Matrix
+ *
+ * All reduction functions follow this naming pattern:
+ * `reduce[Scope][WithArgument][If]`
+ *
+ * \subsection SegmentReductionBasicFunctions Basic Reduction Functions
+ *
+ * | Function | Scope | Conditional | Tracks Position |
+ * |----------|-------|-------------|-----------------|
+ * | \ref reduceAllSegments | All | No | No |
+ * | \ref reduceSegments (range) | Range [begin,end) | No | No |
+ * | \ref reduceSegments (array) | Segment array | No | No |
+ * | \ref reduceAllSegmentsIf | All | Yes | No |
+ * | \ref reduceSegmentsIf | Range [begin,end) | Yes | No |
+ *
+ * \subsection SegmentReductionWithArgumentFunctions WithArgument Reduction Functions
+ *
+ * | Function | Scope | Conditional | Tracks Position |
+ * |----------|-------|-------------|-----------------|
+ * | \ref reduceAllSegmentsWithArgument | All | No | Yes |
+ * | \ref reduceSegmentsWithArgument (range) | Range [begin,end) | No | Yes |
+ * | \ref reduceSegmentsWithArgument (array) | Segment array | No | Yes |
+ * | \ref reduceAllSegmentsIfWithArgument | All | Yes | Yes |
+ * | \ref reduceSegmentsIfWithArgument | Range [begin,end) | Yes | Yes |
+ *
+ * \section SegmentReductionParameters Common Parameters
+ *
+ * All reduction functions share these common parameters:
+ *
+ * - **segments**: The segments container to reduce
+ * - **fetch**: Lambda that retrieves element values (see \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief)
+ * - **reduction**: Lambda or function object that combines values (see \ref SegmentReductionLambda_Basic or \ref
+ * SegmentReductionLambda_WithArgument)
+ * - **keeper**: Lambda that stores the reduction results (see \ref SegmentKeeperLambda_Basic or variants)
+ * - **identity**: The identity element for the reduction (e.g., 0 for addition, 1 for multiplication)
+ * - **launchConfig**: Configuration for parallel execution (optional)
+ *
+ * Additional parameters for specific variants:
+ * - **Scope variants**: `begin`, `end` (range) or `segmentIndexes` (array)
+ * - **If variants**: `condition` lambda for segment filtering (see \ref SegmentConditionLambda)
+ *
+ * \section SegmentReductionUsageGuidelines Usage Guidelines
+ *
+ * **Performance considerations:**
+ * - Use the brief form of fetch lambda when possible for better performance.
+ * - Use `*If` variants to skip unnecessary segments.
+ * - Consider using function objects instead of lambda reductions for common operations.
+ * - Range and array overloads avoid processing unnecessary segments.
+ * - The `fetch` lambda can even modify data on-the-fly if needed and thus it allows merging multiple operations into one
+ * kernel and improving performance.
+ *
+ * \section SegmentReductionRelatedPages Related Pages
+ *
+ * - \ref SegmentReductionLambdas - Detailed lambda function signatures
+ * - \ref ReductionFunctionObjects - Pre-defined reduction function objects
+ * - \ref ReductionFunctionObjectsWithArgument - Reduction objects with position tracking
+ */
+
+/**
  * \page SegmentReductionLambdas Segment Reduction Lambda Function Reference
  *
  * This page provides a comprehensive reference for all lambda function signatures used
