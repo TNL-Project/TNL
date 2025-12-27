@@ -59,8 +59,8 @@ namespace TNL::Algorithms::Segments {
  * | \ref reduceAllSegmentsWithArgument | All | No | Yes |
  * | \ref reduceSegmentsWithArgument (range) | Range [begin,end) | No | Yes |
  * | \ref reduceSegmentsWithArgument (array) | Segment array | No | Yes |
- * | \ref reduceAllSegmentsIfWithArgument | All | Yes | Yes |
- * | \ref reduceSegmentsIfWithArgument | Range [begin,end) | Yes | Yes |
+ * | \ref reduceAllSegmentsWithArgumentIf | All | Yes | Yes |
+ * | \ref reduceSegmentsWithArgumentIf | Range [begin,end) | Yes | Yes |
  *
  * \section SegmentReductionParameters Common Parameters
  *
@@ -881,9 +881,9 @@ reduceSegmentsWithArgument( const Segments& segments,
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIfWithArgument.cpp
+ * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
  * \par Output
- * \include SegmentsExample_reduceSegmentsIfWithArgument.out
+ * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
 template< typename Segments,
           typename Condition,
@@ -892,7 +892,7 @@ template< typename Segments,
           typename ResultKeeper,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
 static void
-reduceAllSegmentsIfWithArgument( const Segments& segments,
+reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                  Condition&& condition,
                                  Fetch&& fetch,
                                  Reduction&& reduction,
@@ -925,13 +925,13 @@ reduceAllSegmentsIfWithArgument( const Segments& segments,
  * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIfWithArgument.cpp
+ * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
  * \par Output
- * \include SegmentsExample_reduceSegmentsIfWithArgument.out
+ * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
 template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper >
 static void
-reduceAllSegmentsIfWithArgument( const Segments& segments,
+reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                  Condition&& condition,
                                  Fetch&& fetch,
                                  Reduction&& reduction,
@@ -968,9 +968,9 @@ reduceAllSegmentsIfWithArgument( const Segments& segments,
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIfWithArgument.cpp
+ * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
  * \par Output
- * \include SegmentsExample_reduceSegmentsIfWithArgument.out
+ * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
 template< typename Segments,
           typename IndexBegin,
@@ -982,7 +982,7 @@ template< typename Segments,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
-reduceSegmentsIfWithArgument( const Segments& segments,
+reduceSegmentsWithArgumentIf( const Segments& segments,
                               IndexBegin begin,
                               IndexEnd end,
                               Condition&& condition,
@@ -1017,9 +1017,9 @@ reduceSegmentsIfWithArgument( const Segments& segments,
  * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIfWithArgument.cpp
+ * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
  * \par Output
- * \include SegmentsExample_reduceSegmentsIfWithArgument.out
+ * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
 template< typename Segments,
           typename IndexBegin,
@@ -1030,7 +1030,7 @@ template< typename Segments,
           typename ResultKeeper,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
-reduceSegmentsIfWithArgument( const Segments& segments,
+reduceSegmentsWithArgumentIf( const Segments& segments,
                               IndexBegin begin,
                               IndexEnd end,
                               Condition&& condition,

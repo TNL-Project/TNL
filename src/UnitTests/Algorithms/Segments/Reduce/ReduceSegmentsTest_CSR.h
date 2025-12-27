@@ -64,9 +64,9 @@ TYPED_TEST( CSRReduceSegmentsTest, reduceSegmentsIf_MaximumInSegments )
    test_reduceSegmentsIf_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
-TYPED_TEST( CSRReduceSegmentsTest, reduceSegmentsIfWithArgument_MaximumInSegments )
+TYPED_TEST( CSRReduceSegmentsTest, reduceSegmentsWithArgumentIf_MaximumInSegments )
 {
-   test_reduceSegmentsIfWithArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
+   test_reduceSegmentsWithArgumentIf_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( CSRReduceSegmentsTest, reduce_SumOfMaximums )

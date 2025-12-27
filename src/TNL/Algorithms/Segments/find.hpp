@@ -94,7 +94,7 @@ findInSegmentsIf( const Segments& segments,
    {
       keeper( segmentIdx, localIdx, found );
    };
-   reduceSegmentsIfWithArgument( segments,
+   reduceSegmentsWithArgumentIf( segments,
                                  begin,
                                  end,
                                  std::forward< SegmentCondition >( segmentCondition ),

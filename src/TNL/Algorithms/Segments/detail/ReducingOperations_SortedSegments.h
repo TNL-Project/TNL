@@ -445,7 +445,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
              typename ResultKeeper,
              typename Value >
    static void
-   reduceSegmentsIfWithArgument( const ConstViewType& segments,
+   reduceSegmentsWithArgumentIf( const ConstViewType& segments,
                                  IndexBegin begin,
                                  IndexEnd end,
                                  Condition&& condition,

@@ -576,7 +576,7 @@ test_reduceSegmentsIf_MaximumInSegments()
 
 template< typename Segments >
 void
-test_reduceSegmentsIfWithArgument_MaximumInSegments()
+test_reduceSegmentsWithArgumentIf_MaximumInSegments()
 {
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
@@ -634,7 +634,7 @@ test_reduceSegmentsIfWithArgument_MaximumInSegments()
          result_view[ segmentIdx ] = res;
          args_view[ segmentIdx ] = localIdx;
       };
-      TNL::Algorithms::Segments::reduceAllSegmentsIfWithArgument(
+      TNL::Algorithms::Segments::reduceAllSegmentsWithArgumentIf(
          segments, condition, fetch, TNL::MaxWithArg{}, keep, launch_config );
 
       for( IndexType i = 0; i < segmentsCount; i++ ) {
@@ -658,7 +658,7 @@ test_reduceSegmentsIfWithArgument_MaximumInSegments()
          return 0;
       };
 
-      TNL::Algorithms::Segments::reduceSegmentsIfWithArgument(
+      TNL::Algorithms::Segments::reduceSegmentsWithArgumentIf(
          segments.getView(), 0, segmentsCount, condition, short_fetch, TNL::MaxWithArg{}, keep, launch_config );
 
       for( IndexType i = 0; i < segmentsCount; i++ ) {

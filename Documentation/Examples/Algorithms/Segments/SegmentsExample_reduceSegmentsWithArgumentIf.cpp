@@ -75,7 +75,7 @@ SegmentsExample()
       positions_view[ segmentIdx ] = localIdx;
    };
 
-   TNL::Algorithms::Segments::reduceAllSegmentsIfWithArgument( segments, condition, fetch_full, TNL::MaxWithArg{}, keep );
+   TNL::Algorithms::Segments::reduceAllSegmentsWithArgumentIf( segments, condition, fetch_full, TNL::MaxWithArg{}, keep );
    std::cout << "The sums with full fetch form are: " << sums << std::endl;
    std::cout << "The compressed sums with full fetch form are: " << compressedSums << std::endl;
    std::cout << "The positions of the largest elements are: " << positions << std::endl;
@@ -83,7 +83,7 @@ SegmentsExample()
    sums = 0;
    compressedSums = 0;
    positions = 0;
-   TNL::Algorithms::Segments::reduceAllSegmentsIfWithArgument( segments, condition, fetch_brief, TNL::MaxWithArg{}, keep );
+   TNL::Algorithms::Segments::reduceAllSegmentsWithArgumentIf( segments, condition, fetch_brief, TNL::MaxWithArg{}, keep );
    std::cout << "The sums with brief fetch form are: " << sums << std::endl << std::endl;
    std::cout << "The compressed sums with full fetch form are: " << compressedSums << std::endl;
    std::cout << "The positions of the largest elements are: " << positions << std::endl;
