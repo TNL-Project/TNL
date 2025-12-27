@@ -12,6 +12,111 @@ namespace TNL::Matrices {
 // other matrix types as well. Also, documentation and examples should be added.
 
 /**
+ * \page MatrixReductionOverview Overview of Matrix Reduction Functions
+ *
+ * \tableofcontents
+ *
+ * This page provides an overview of all reduction functions available for matrix operations,
+ * helping to understand the differences between variants and choose the right function for your needs.
+ *
+ * \section MatrixReductionWhatIsReduction What is a Matrix Row Reduction?
+ *
+ * A **matrix row reduction** performs a reduction operation (like sum, max, min) across the elements
+ * within each row of a matrix, producing one result per row. This is a fundamental operation for:
+ * - Computing row sums, products, or norms
+ * - Finding maximum/minimum values in each row
+ * - Identifying specific elements (argmax, argmin)
+ * - Row-level statistics and analysis
+ *
+ * \section MatrixReductionFunctionCategories Function Categories
+ *
+ * Matrix reduction functions are organized along three independent axes:
+ *
+ * \subsection MatrixReductionConstVsNonConst Const vs. Non-Const Matrix
+ *
+ * | Category | Matrix Modifiable? | Use Case |
+ * |----------|-------------------|----------|
+ * | **Non-const** | Yes | Can modify matrix elements during reduction |
+ * | **Const** | No | Read-only access to matrix elements |
+ *
+ * Note: Each reduction function has both const and non-const overloads. The possiblity
+ * to modify the matrix during reduction alows to fuse reduction with traversing operations
+ * into a single pass. This can improve performance by reducing memory accesses.
+ *
+ * \subsection MatrixReductionBasicVsArgument Basic vs. WithArgument Variants
+ *
+ * | Category | Tracks Position? | Use Case |
+ * |----------|-----------------|----------|
+ * | **Basic** | No | Only the reduced value is needed (e.g., row sum, row max) |
+ * | **WithArgument** | Yes | Need value and column position (e.g., max value and where it occurs) |
+ *
+ * \subsection MatrixReductionScopeAndConditionalVariants Scope and Conditional Variants (Which Rows to Process)
+ *
+ * | Scope | Rows Processed | Parameters |
+ * |-------|---------------|------------|
+ * | **All** | All rows | No range/array parameters |
+ * | **Range** | Rows [begin, end) | `begin` and `end` indices |
+ * | **Array** | Specific rows | Array of row indices |
+ * | **If** | Rows filtered by a condition | Process rows based on row-level properties |
+ *
+ * \section MatrixReductionCompleteMatrix Complete Function Matrix
+ *
+ * All reduction functions follow this naming pattern:
+ * `reduce[Scope]Rows[WithArgument][If]`
+ *
+ * Each function has **both const and non-const overloads** (×2 multiplier).
+ *
+ * \subsection MatrixReductionBasicFunctions Basic Reduction Functions
+ *
+ * | Function | Scope | Conditional | Tracks Position | Overloads |
+ * |----------|-------|-------------|-----------------|----------|
+ * | \ref reduceAllRows | All | No | No | const & non-const |
+ * | \ref reduceRows (range) | Range [begin,end) | No | No | const & non-const |
+ * | \ref reduceRows (array) | Row array | No | No | const & non-const |
+ * | \ref reduceAllRowsIf | All | Yes | No | const & non-const |
+ * | \ref reduceRowsIf | Range [begin,end) | Yes | No | const & non-const |
+ *
+ * \subsection MatrixReductionWithArgumentFunctions WithArgument Reduction Functions
+ *
+ * | Function | Scope | Conditional | Tracks Position | Overloads |
+ * |----------|-------|-------------|-----------------|----------|
+ * | \ref reduceAllRowsWithArgument | All | No | Yes | const & non-const |
+ * | \ref reduceRowsWithArgument (range) | Range [begin,end) | No | Yes | const & non-const |
+ * | \ref reduceRowsWithArgument (array) | Row array | No | Yes | const & non-const |
+ * | \ref reduceAllRowsWithArgumentIf | All | Yes | Yes | const & non-const |
+ * | \ref reduceRowsWithArgumentIf | Range [begin,end) | Yes | Yes | const & non-const |
+ *
+ * \section MatrixReductionParameters Common Parameters
+ *
+ * All reduction functions share these common parameters:
+ *
+ * - **matrix**: The matrix to reduce (const or non-const)
+ * - **fetch**: Lambda that retrieves element values (see \ref FetchLambda_NonConst or \ref FetchLambda_Const)
+ * - **reduction**: Lambda or function object that combines values (see \ref ReductionLambda_Basic or \ref
+ * ReductionLambda_WithArgument)
+ * - **keep**: Lambda that stores the reduction results (see \ref KeepLambda_Basic or variants)
+ * - **identity**: The identity element for the reduction (e.g., 0 for addition, 1 for multiplication)
+ * - **launchConfig**: Configuration for parallel execution (optional)
+ *
+ * Additional parameters:
+ * - **Scope variants**: `begin`, `end` (range) or `rowIndexes` (array)
+ * - **If variants**: `condition` lambda for row filtering (see \ref RowConditionLambda)
+ *
+ * \section MatrixReductionUsageGuidelines Usage Guidelines
+ *
+ * **Matrix type considerations:**
+ *
+ * - **Sparse matrices**: Fetch lambda receives even mutable column index for non-const matrices
+ * - **Dense/structured matrices**: Column index is implicit, passed by value
+ * - Choose fetch lambda signature based on matrix type (see \ref FetchLambdas)
+ *
+ * \section MatrixReductionRelatedPages Related Pages
+ *
+ * - \ref MatrixReductionLambdas - Detailed lambda function signatures
+ * - \ref MatrixTraversalOverview - Matrix traversal operations
+ */
+
+/**
  * \page MatrixReductionLambdas Matrix Reduction Lambda Function Reference
  *
  * This page provides a comprehensive reference for all lambda function signatures used
