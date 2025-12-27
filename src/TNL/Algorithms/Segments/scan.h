@@ -8,6 +8,174 @@
 #include <TNL/TypeTraits.h>
 #include "LaunchConfiguration.h"
 
+/**
+ * \page SegmentScanOverview Overview of Segment Scan Functions
+ *
+ * \tableofcontents
+ *
+ * This page provides an overview of all scan (prefix-sum) functions available for segment operations,
+ * helping to understand the differences between variants and choose the right function for your needs.
+ *
+ * \section SegmentScanFunctionCategories Function Categories
+ *
+ * \subsection SegmentScanBasicFunctions Basic Scan Functions
+ *
+ * These functions compute scan within specified segments:
+ *
+ * | Function | Segments Scanned | Scan Type |
+ * |----------|-----------------|-----------|
+ * | \ref inclusiveScanAllSegments | All segments | Inclusive |
+ * | \ref exclusiveScanAllSegments | All segments | Exclusive |
+ * | \ref inclusiveScanSegments (range) | Segments [begin, end) | Inclusive |
+ * | \ref exclusiveScanSegments (range) | Segments [begin, end) | Exclusive |
+ * | \ref inclusiveScanSegments (array) | Segments in array | Inclusive |
+ * | \ref exclusiveScanSegments (array) | Segments in array | Exclusive |
+ *
+ * **When to use:**
+ * - Use `*AllSegments` when you need to scan all segments
+ * - Use range overload when scanning a contiguous range of segments
+ * - Use array overload when you have a specific, non-contiguous set of segment indices
+ *
+ * \subsection SegmentScanConditionalFunctions Conditional Scan Functions
+ *
+ * These functions add segment-level conditions, including only segments that satisfy the condition in the scan:
+ *
+ * | Function | Segments Scanned | Scan Type |
+ * |----------|-----------------|-----------|
+ * | \ref inclusiveScanAllSegmentsIf | All segments | Inclusive with segment filter |
+ * | \ref exclusiveScanAllSegmentsIf | All segments | Exclusive with segment filter |
+ * | \ref inclusiveScanSegmentsIf | Segments [begin, end) | Inclusive with segment filter |
+ * | \ref exclusiveScanSegmentsIf | Segments [begin, end) | Exclusive with segment filter |
+ *
+ * **When to use:**
+ * - Use these when you want to skip certain elements within segments
+ * - Example: Compute prefix-sum only for positive values, or only for elements meeting specific criteria
+ *
+ * \subsection SegmentScanLowLevelFunctions Low-Level Functions
+ *
+ * | Function | Purpose |
+ * |----------|---------|
+ * | \ref inclusiveScanSegment | Computes inclusive scan for a single segment view |
+ * | \ref exclusiveScanSegment | Computes exclusive scan for a single segment view |
+ *
+ * **When to use:**
+ * - Use these when you have a `SegmentView` object and need fine-grained control
+ * - Useful when implementing custom segment algorithms
+ *
+ * \section SegmentScanParameters Common Parameters
+ *
+ * All scan functions share these common parameters:
+ *
+ * - **segments**: The segments container to scan
+ * - **fetch**: Lambda that retrieves element values (see \ref SegmentScanFetchLambda)
+ * - **reduce**: Function object that combines values (see \ref SegmentScanReduction)
+ * - **write**: Lambda that stores the scan results (see \ref SegmentScanWriteLambda)
+ * - **launchConfig**: Configuration for parallel execution (optional)
+ *
+ * Conditional variants additionally require:
+ * - **condition**: Lambda that determines if an element should be included (see \ref SegmentScanConditionLambda)
+ *
+ * \section SegmentScanUsageGuidelines Usage Guidelines
+ *
+ * **In-place vs. out-of-place:**
+ * - All scan implementations support in-place operations
+ * - Your `write` lambda can modify the same array that `fetch` reads from
+ * - For out-of-place scans, write to a different array
+ *
+ * **Performance considerations:**
+ * - Scan operations are sequential within each segment
+ * - Different segments are processed in parallel
+ * - Use element conditions (`*If` variants) to skip unnecessary elements
+ * - Choose appropriate reduction function objects for best performance
+ *
+ * \section SegmentScanRelatedPages Related Pages
+ *
+ * - \ref SegmentScanLambdas - Detailed lambda function signatures
+ * - \ref ReductionFunctionObjects - Available reduction operations
+ */
+
+/**
+ * \page SegmentScanLambdas Lambda Functions for Segment Scan Operations
+ *
+ * \tableofcontents
+ *
+ * This page describes the lambda function signatures used in segment scan (prefix-sum) operations.
+ *
+ * \section SegmentScanFetchLambda Fetch Lambda
+ *
+ * The fetch lambda retrieves the value of an element for the scan operation.
+ * It has one of the following forms:
+ *
+ * **Full form:**
+ * ```cpp
+ * auto fetch = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx )
+ * {
+ *    // Return the value at the given position
+ *    return ...;
+ * };
+ * ```
+ *
+ * **Brief form:**
+ * ```cpp
+ * auto fetch = [=] __cuda_callable__ ( IndexType globalIdx )
+ * {
+ *    // Return the value at the given position
+ *    return ...;
+ * };
+ * ```
+ *
+ * In both variants:
+ * - \e segmentIdx is the index of the segment.
+ * - \e localIdx is the rank of the element within the segment.
+ * - \e globalIdx is the index of the element in the corresponding container.
+ *
+ * \section SegmentScanReduction Reduction Function Object
+ *
+ * The scan operation uses a reduction function object to combine values.
+ * See \ref ReductionFunctionObjects for available reduction operations like:
+ * - `TNL::Plus` - Addition
+ * - `TNL::Multiplies` - Multiplication
+ * - `TNL::Min` - Minimum
+ * - `TNL::Max` - Maximum
+ *
+ * \section SegmentScanWriteLambda Write Lambda
+ *
+ * The write lambda stores the result of the scan operation.
+ * It has the following signature:
+ *
+ * ```cpp
+ * auto write = [=] __cuda_callable__ ( IndexType globalIdx, ValueType value )
+ * {
+ *    // Write the value at the given position
+ *    output[globalIdx] = value;
+ * };
+ * ```
+ *
+ * - \e globalIdx is the index where the result should be written.
+ * - \e value is the scan result to write.
+ *
+ * Note: The implementation allows in-place scan (the write function may modify the input array).
+ *
+ * \section SegmentScanConditionLambda Condition Lambda
+ *
+ * The condition lambda determines which elements should be included in the scan operation.
+ * It has the following signature:
+ *
+ * ```cpp
+ * auto condition = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) -> bool
+ * {
+ *    // Return true if element should be included in scan
+ *    return ...;
+ * };
+ * ```
+ *
+ * - \e segmentIdx is the index of the segment.
+ * - \e localIdx is the rank of the element within the segment.
+ * - \e globalIdx is the index of the element in the corresponding container.
+ *
+ * The lambda should return `true` if the element should be included in the scan.
+ */
+
 namespace TNL::Algorithms::Segments {
 
 /**
@@ -22,12 +190,9 @@ namespace TNL::Algorithms::Segments {
  * \tparam Write Type of the write function.
  *
  * \param segments The segments container.
- * \param fetch Function to fetch element value at given position. Should have signature:
- *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. The implementation allows inplace scan (the write function may
- * modify the input array) Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
@@ -56,12 +221,9 @@ inclusiveScanAllSegments( const Segments& segments,
  * \tparam Write Type of the write function.
  *
  * \param segments The segments container.
- * \param fetch Function to fetch element value at given position. Should have signature:
- *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. The implementation allows inplace scan (the write function may
- * modify the input array) Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
@@ -95,12 +257,9 @@ exclusiveScanAllSegments( const Segments& segments,
  * \param segments The segments container.
  * \param begin The beginning of the range of segments to scan.
  * \param end The end of the range of segments to scan.
- * \param fetch Function to fetch element value at given position. Should have signature:
- *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. The implementation allows inplace scan (the write function may
- * modify the input array) Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
@@ -143,12 +302,9 @@ inclusiveScanSegments( const Segments& segments,
  * \param segments The segments container.
  * \param begin The beginning of the range of segments to scan.
  * \param end The end of the range of segments to scan.
- * \param fetch Function to fetch element value at given position. Should have signature:
- *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. The implementation allows inplace scan (the write function may
- * modify the input array) Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
@@ -188,12 +344,9 @@ exclusiveScanSegments( const Segments& segments,
  *
  * \param segments The segments container.
  * \param segmentIndexes Array containing indices of segments to scan.
- * \param fetch Function to fetch element value at given position. Should have signature:
- *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. The implementation allows inplace scan (the write function may
- * modify the input array) Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
@@ -225,12 +378,9 @@ inclusiveScanSegments( const Segments& segments,
  *
  * \param segments The segments container.
  * \param segmentIndexes Array containing indices of segments to scan.
- * \param fetch Function to fetch element value at given position. Should have signature:
- *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. The implementation allows inplace scan (the write function may
- * modify the input array) Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
@@ -261,14 +411,10 @@ exclusiveScanSegments( const Segments& segments,
  * \tparam Write Type of the write function.
  *
  * \param segments The segments container.
- * \param condition Function that returns true for elements to include in scan. Should have signature:
- *        `bool condition(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param fetch Function to fetch element value at given position. Should have signature:
- *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. The implementation allows inplace scan (the write function may
- * modify the input array) Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param condition Function that returns true for elements to include in scan. See \ref SegmentScanConditionLambda.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
@@ -300,14 +446,10 @@ inclusiveScanAllSegmentsIf( const Segments& segments,
  * \tparam Write Type of the write function.
  *
  * \param segments The segments container.
- * \param condition Function that returns true for elements to include in scan. Should have signature:
- *        `bool condition(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param fetch Function to fetch element value at given position. Should have signature:
- *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. The implementation allows inplace scan (the write function may
- * modify the input array) Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param condition Function that returns true for elements to include in scan. See \ref SegmentScanConditionLambda.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
@@ -334,24 +476,9 @@ exclusiveScanAllSegmentsIf( const Segments& segments,
  * \tparam Write Type of the write function.
  *
  * \param segment The segment view to scan.
- * \param fetch Function to fetch element value at given position. It should have one of the following forms:
- *
- * 1. **Full form**
- *  ```
- *  auto fetch = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) { ... }
- *  ```
- * 2. **Brief form**
- *  ```
- *  auto fetch = [=] __cuda_callable__ ( IndexType globalIdx ) { ... }
- *  ```
- *
- * In both variants:
- * - \e segmentIdx is the index of the segment.
- * - \e localIdx is the rank of the element within the segment.
- * - \e globalIdx is the index of the element in the corresponding container.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  */
 template< typename SegmentView, typename Fetch, typename Reduce, typename Write >
 __cuda_callable__
@@ -367,25 +494,9 @@ inclusiveScanSegment( SegmentView& segment, Fetch&& fetch, Reduce&& reduce, Writ
  * \tparam Write Type of the write function.
  *
  * \param segment The segment view to scan.
- * \param fetch Function to fetch element value at given position.  It should have one of the following forms:
- *
- * 1. **Full form**
- *  ```
- *  auto fetch = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) { ... }
- *  ```
- * 2. **Brief form**
- *  ```
- *  auto fetch = [=] __cuda_callable__ ( IndexType globalIdx ) { ... }
- *  ```
- *
- * In both variants:
- * - \e segmentIdx is the index of the segment.
- * - \e localIdx is the rank of the element within the segment.
- * - \e globalIdx is the index of the element in the corresponding container.
- *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  */
 template< typename SegmentView, typename Fetch, typename Reduce, typename Write >
 __cuda_callable__
@@ -410,13 +521,10 @@ exclusiveScanSegment( SegmentView& segment, Fetch&& fetch, Reduce&& reduce, Writ
  * \param segments The segments container.
  * \param begin The beginning of the range of segments to scan.
  * \param end The end of the range of segments to scan.
- * \param condition Function that returns true for elements to include in scan.
- * \param fetch Function to fetch element value at given position. Should have signature:
- *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. The implementation allows inplace scan (the write function may
- * modify the input array) Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param condition Function that returns true for elements to include in scan. See \ref SegmentScanConditionLambda.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
@@ -461,13 +569,10 @@ inclusiveScanSegmentsIf( const Segments& segments,
  * \param segments The segments container.
  * \param begin The beginning of the range of segments to scan.
  * \param end The end of the range of segments to scan.
- * \param condition Function that returns true for elements to include in scan.
- * \param fetch Function to fetch element value at given position. Should have signature:
- *        `ValueType fetch(IndexType segmentIdx, IndexType localIdx, IndexType globalIdx)`.
- * \param reduce Function object performing the reduction.
- * \param write Function to write result at given position. The implementation allows inplace scan (the write function may
- * modify the input array) Should have signature:
- *        `void write(IndexType globalIdx, ValueType value)`.
+ * \param condition Function that returns true for elements to include in scan. See \ref SegmentScanConditionLambda.
+ * \param fetch Function to fetch element value at given position. See \ref SegmentScanFetchLambda.
+ * \param reduce Function object performing the reduction. See \ref SegmentScanReduction.
+ * \param write Function to write result at given position. See \ref SegmentScanWriteLambda.
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
