@@ -10,6 +10,129 @@
 // other matrix types as well. Also, documentation and examples should be added.
 
 /**
+ * \page MatrixTraversalOverview Overview of Matrix Traversal Functions
+ *
+ * \tableofcontents
+ *
+ * This page provides an overview of all traversal functions available for matrix operations,
+ * helping to understand the differences between variants and choose the right function for your needs.
+ *
+ * \section MatrixTraversalWhatIsTraversal What is Matrix Traversal?
+ *
+ * **Matrix traversal** operations apply a user-defined function to matrix elements or rows.
+ * Unlike reductions (which compute results), traversals are used for side effects:
+ * - Modifying matrix elements in-place
+ * - Performing computations that depend on element positions
+ * - Implementing custom matrix algorithms
+ *
+ * \section MatrixTraversalFunctionCategories Function Categories
+ *
+ * Matrix traversal functions are organized along three main dimensions:
+ *
+ * \subsection MatrixTraversalConstVsNonConst Const vs. Non-Const Matrix
+ *
+ * | Category | Matrix Modifiable? | Use Case |
+ * |----------|-------------------|----------|
+ * | **Non-const** | Yes | Can modify matrix elements and structure |
+ * | **Const** | No | Read-only access to matrix elements |
+ *
+ * Note: Each traversal function has **both const and non-const overloads**.
+ *
+ * \subsection MatrixTraversalElementVsRow Element-wise vs. Row-wise Traversal
+ *
+ * | Category | Operates On | Lambda Parameter | Use Case |
+ * |----------|------------|------------------|----------|
+ * | **Element-wise** (`forElements`, `forAllElements`) | Individual elements | Element indices & values | Operate on each
+ * element separately |
+ * | **Row-wise** (`forRows`, `forAllRows`) | Whole rows | RowView object | Operate on rows as units |
+ *
+ * \subsection MatrixTraversalScopeAndConditional Scope and Conditional Variants
+ *
+ * Similar to other matrix operations, traversal functions have different scope and conditional variants.
+ *
+ * | Scope | Rows Processed | Parameters |
+ * |-------|---------------|------------|
+ * | **All** | All rows | No range/array parameters |
+ * | **Range** | Rows [begin, end) | `begin` and `end` indices |
+ * | **Array** | Specific rows | Array of row indices |
+ * | **If** | Rows filtered by a condition | Process rows based on row-level properties |
+ *
+ * \section MatrixTraversalElementFunctions Element-wise Traversal Functions
+ *
+ * These functions iterate over individual elements within matrix rows:
+ *
+ * \subsection MatrixTraversalBasicElementFunctions Basic Element Traversal
+ *
+ * | Function | Rows Processed | Description | Overloads |
+ * |----------|---------------|-------------|----------|
+ * | \ref forAllElements | All rows | Process all elements in all rows | const & non-const |
+ * | \ref forElements (range) | Rows [begin, end) | Process elements in row range | const & non-const |
+ * | \ref forElements (array) | Rows in array | Process elements in specified rows | const & non-const |
+ * | \ref forAllElementsIf | All rows | Row-level condition | const & non-const |
+ * | \ref forElementsIf | Rows [begin, end) | Row-level condition | const & non-const |
+ *
+ * **When to use:**
+ * - Matrix elements assembly and updates
+ * - Element-level operations and transformations
+ *
+ * \section MatrixTraversalRowFunctions Row-wise Traversal Functions
+ *
+ * These functions iterate over rows as whole units using \e RowView:
+ *
+ * \subsection MatrixTraversalBasicRowFunctions Basic Row Traversal
+ *
+ * | Function | Rows Processed | Description | Overloads |
+ * |----------|---------------|-------------|----------|
+ * | \ref forAllRows | All rows | Process all rows | const & non-const |
+ * | \ref forRows (range) | Rows [begin, end) | Process rows in range | const & non-const |
+ * | \ref forRows (array) | Rows in array | Process specified rows | const & non-const |
+ * | \ref forAllRowsIf | All rows | Row-level condition | const & non-const |
+ * | \ref forRowsIf | Rows [begin, end) | Row-level condition | const & non-const |
+ *
+ * **When to use:**
+ * - Row-level operations (scaling, normalization)
+ *
+ * \section MatrixTraversalParameters Common Parameters
+ *
+ * All traversal functions share these common parameters:
+ *
+ * - **matrix**: The matrix to traverse (const or non-const)
+ * - **function**: Lambda function to apply (see \ref TraversalFunction_NonConst, \ref TraversalFunction_Const, \ref
+ * TraversalRowFunction_NonConst, or \ref TraversalRowFunction_Const)
+ * - **launchConfig**: Configuration for parallel execution (optional)
+ *
+ * Additional parameters:
+ * - **Scope variants**: `begin`, `end` (range) or `rowIndexes` (array)
+ * - **If variants**: `condition` lambda for filtering (see \ref TraversalConditionLambda)
+ *
+ * \section MatrixTraversalUsageGuidelines Usage Guidelines
+ *
+ * **Matrix type considerations:**
+ *
+ * - **Sparse matrices** (SparseMatrix, SparseMatrixView):
+ *   - Element traversal: Can modify even column indices for non-const matrices
+ *   - Row traversal: Use RowView for efficient sparse operations
+ *
+ * - **Dense matrices** (DenseMatrix, DenseMatrixView):
+ *   - Column indices are implicit
+ *   - Element traversal processes all elements in each row
+ *
+ * - **Structured matrices** (Tridiagonal, Multidiagonal) (NOT IMPLEMENTED YET):
+ *   - Column indices follow fixed patterns
+ *   - Element traversal only processes non-zero structure
+ *
+ * **Performance considerations:**
+ * - Element-wise traversal is is parallel within rows, i.e. one matrix row can be processed by multiple threads
+ * - Row-wise traversal never maps multiple threads to the same row. Row-wise traversal is therefore preferred when
+ *   row-level context is needed.
+ *
+ * \section MatrixTraversalRelatedPages Related Pages
+ *
+ * - \ref MatrixTraversalLambdas - Detailed lambda function signatures
+ * - \ref MatrixReductionOverview - Matrix reduction operations
+ */
+
+/**
  * \page MatrixTraversalLambdas Matrix Traversal Lambda Functions Reference
  *
  * This page documents the lambda function signatures used in matrix traversal operations.
