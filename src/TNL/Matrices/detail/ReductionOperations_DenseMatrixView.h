@@ -367,7 +367,7 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          keep( indexOfRowIdx, rowIdx, localIdx, localIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsIfWithArgument( matrix.getSegments(),
+      Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
                                                           begin,
                                                           end,
                                                           std::forward< Condition >( condition ),
@@ -410,7 +410,7 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          keep( indexOfRowIdx, rowIdx, localIdx, localIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsIfWithArgument( matrix.getSegments(),
+      Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
                                                           begin,
                                                           end,
                                                           std::forward< Condition >( condition ),
