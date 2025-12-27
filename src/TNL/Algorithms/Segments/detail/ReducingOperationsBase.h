@@ -61,7 +61,7 @@ struct ReducingOperationsBase
              typename ResultKeeper,
              typename Value >
    static void
-   reduceSegmentsIfWithArgument( const Segments& segments,
+   reduceSegmentsWithArgumentIf( const Segments& segments,
                                  IndexBegin begin,
                                  IndexEnd end,
                                  Condition&& condition,

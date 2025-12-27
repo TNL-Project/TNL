@@ -66,9 +66,9 @@ TYPED_TEST( SortedAdaptiveCSRReduceSegmentsTest, reduceSegmentsIf_MaximumInSegme
    test_reduceSegmentsIf_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
-TYPED_TEST( SortedAdaptiveCSRReduceSegmentsTest, reduceSegmentsIfWithArgument_MaximumInSegments )
+TYPED_TEST( SortedAdaptiveCSRReduceSegmentsTest, reduceSegmentsWithArgumentIf_MaximumInSegments )
 {
-   test_reduceSegmentsIfWithArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
+   test_reduceSegmentsWithArgumentIf_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( SortedAdaptiveCSRReduceSegmentsTest, reduce_SumOfMaximums )
