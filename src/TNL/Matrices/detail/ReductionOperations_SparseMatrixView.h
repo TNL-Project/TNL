@@ -445,7 +445,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsIfWithArgument( matrix.getSegments(),
+      Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
                                                           begin,
                                                           end,
                                                           std::forward< Condition >( condition ),
@@ -498,7 +498,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsIfWithArgument( matrix.getSegments(),
+      Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
                                                           begin,
                                                           end,
                                                           std::forward< Condition >( condition ),
@@ -554,7 +554,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsIfWithArgument( matrix.getSegments(),
+      Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
                                                           rowIndexes.getConstView( begin, end ),
                                                           std::forward< Condition >( condition ),
                                                           fetchWrapper,
@@ -608,7 +608,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsIfWithArgument( matrix.getSegments(),
+      Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
                                                           rowIndexes.getConstView( begin, end ),
                                                           std::forward< Condition >( condition ),
                                                           fetchWrapper,
