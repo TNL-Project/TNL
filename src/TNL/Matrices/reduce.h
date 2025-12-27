@@ -1372,9 +1372,9 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsIfWithArgument.cpp
+ * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
- * \include MatrixExample_reduceAllRowsIfWithArgument.out
+ * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
 template< typename Matrix,
           typename Condition,
@@ -1383,7 +1383,7 @@ template< typename Matrix,
           typename Keep,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 void
-reduceAllRowsIfWithArgument(
+reduceAllRowsWithArgumentIf(
    Matrix& matrix,
    Condition&& condition,
    Fetch&& fetch,
@@ -1412,9 +1412,9 @@ reduceAllRowsIfWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsIfWithArgument.cpp
+ * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
- * \include MatrixExample_reduceAllRowsIfWithArgument.out
+ * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
 template< typename Matrix,
           typename Condition,
@@ -1423,7 +1423,7 @@ template< typename Matrix,
           typename Keep,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 void
-reduceAllRowsIfWithArgument(
+reduceAllRowsWithArgumentIf(
    const Matrix& matrix,
    Condition&& condition,
    Fetch&& fetch,
@@ -1450,13 +1450,13 @@ reduceAllRowsIfWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsIfWithArgument.cpp
+ * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
- * \include MatrixExample_reduceAllRowsIfWithArgument.out
+ * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
 void
-reduceAllRowsIfWithArgument(
+reduceAllRowsWithArgumentIf(
    Matrix& matrix,
    Condition&& condition,
    Fetch&& fetch,
@@ -1482,13 +1482,13 @@ reduceAllRowsIfWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsIfWithArgument.cpp
+ * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
- * \include MatrixExample_reduceAllRowsIfWithArgument.out
+ * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
 void
-reduceAllRowsIfWithArgument(
+reduceAllRowsWithArgumentIf(
    const Matrix& matrix,
    Condition&& condition,
    Fetch&& fetch,
@@ -1522,9 +1522,9 @@ reduceAllRowsIfWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsIfWithArgument.cpp
+ * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
- * \include MatrixExample_reduceRowsIfWithArgument.out
+ * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
 template< typename Matrix,
           typename IndexBegin,
@@ -1535,7 +1535,7 @@ template< typename Matrix,
           typename Keep,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 void
-reduceRowsIfWithArgument(
+reduceRowsWithArgumentIf(
    Matrix& matrix,
    IndexBegin begin,
    IndexEnd end,
@@ -1572,9 +1572,9 @@ reduceRowsIfWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsIfWithArgument.cpp
+ * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
- * \include MatrixExample_reduceRowsIfWithArgument.out
+ * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
 template< typename Matrix,
           typename IndexBegin,
@@ -1585,7 +1585,7 @@ template< typename Matrix,
           typename Keep,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 void
-reduceRowsIfWithArgument(
+reduceRowsWithArgumentIf(
    const Matrix& matrix,
    IndexBegin begin,
    IndexEnd end,
@@ -1620,9 +1620,9 @@ reduceRowsIfWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsIfWithArgument.cpp
+ * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
- * \include MatrixExample_reduceRowsIfWithArgument.out
+ * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
 template< typename Matrix,
           typename IndexBegin,
@@ -1632,7 +1632,7 @@ template< typename Matrix,
           typename Reduction,
           typename Keep >
 void
-reduceRowsIfWithArgument(
+reduceRowsWithArgumentIf(
    Matrix& matrix,
    IndexBegin begin,
    IndexEnd end,
@@ -1666,9 +1666,9 @@ reduceRowsIfWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsIfWithArgument.cpp
+ * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
- * \include MatrixExample_reduceRowsIfWithArgument.out
+ * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
 template< typename Matrix,
           typename IndexBegin,
@@ -1678,7 +1678,7 @@ template< typename Matrix,
           typename Reduction,
           typename Keep >
 void
-reduceRowsIfWithArgument(
+reduceRowsWithArgumentIf(
    const Matrix& matrix,
    IndexBegin begin,
    IndexEnd end,
