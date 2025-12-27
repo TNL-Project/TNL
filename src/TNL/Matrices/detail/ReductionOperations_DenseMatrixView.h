@@ -343,7 +343,7 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
              typename Keep,
              typename FetchValue >
    static void
-   reduceRowsIfWithArgument( MatrixView& matrix,
+   reduceRowsWithArgumentIf( MatrixView& matrix,
                              IndexBegin begin,
                              IndexEnd end,
                              Condition&& condition,
@@ -386,7 +386,7 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
              typename Keep,
              typename FetchValue >
    static void
-   reduceRowsIfWithArgument( const ConstMatrixView& matrix,
+   reduceRowsWithArgumentIf( const ConstMatrixView& matrix,
                              IndexBegin begin,
                              IndexEnd end,
                              Condition&& condition,
