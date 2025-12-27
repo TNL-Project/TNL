@@ -16,7 +16,7 @@ set(COMMON_EXAMPLES
     SegmentsExample_forSegmentsWithIndexes
     SegmentsExample_reduceSegments
     SegmentsExample_reduceSegmentsIf
-    SegmentsExample_reduceSegmentsIfWithArgument
+    SegmentsExample_reduceSegmentsWithArgumentIf
     SegmentsExample_reduceSegmentsWithSegmentIndexes
     SegmentsExample_reduceSegmentsWithArgument
     SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument

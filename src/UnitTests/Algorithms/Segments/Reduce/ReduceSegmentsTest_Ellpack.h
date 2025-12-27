@@ -73,7 +73,7 @@ TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsIf_MaximumInSegments )
 
 TYPED_TEST( EllpackReduceSegmentsTest, reduceSegmentsIfWithArg_MaximumInSegments )
 {
-   test_reduceSegmentsIfWithArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
+   test_reduceSegmentsWithArgumentIf_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( EllpackReduceSegmentsTest, reduce_SumOfMaximums )

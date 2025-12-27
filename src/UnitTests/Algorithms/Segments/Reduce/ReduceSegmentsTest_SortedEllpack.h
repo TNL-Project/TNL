@@ -72,9 +72,9 @@ TYPED_TEST( SortedEllpackReduceSegmentsTest, reduceSegmentsIf_MaximumInSegments 
    test_reduceSegmentsIf_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
-TYPED_TEST( SortedEllpackReduceSegmentsTest, reduceSegmentsIfWithArgument_MaximumInSegments )
+TYPED_TEST( SortedEllpackReduceSegmentsTest, reduceSegmentsWithArgumentIf_MaximumInSegments )
 {
-   test_reduceSegmentsIfWithArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
+   test_reduceSegmentsWithArgumentIf_MaximumInSegments< typename TestFixture::SegmentsType >();
 }
 
 TYPED_TEST( SortedEllpackReduceSegmentsTest, reduce_SumOfMaximums )
