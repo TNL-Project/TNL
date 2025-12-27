@@ -409,7 +409,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
              typename Keep,
              typename FetchValue >
    static void
-   reduceRowsIfWithArgument( MatrixView& matrix,
+   reduceRowsWithArgumentIf( MatrixView& matrix,
                              IndexBegin begin,
                              IndexEnd end,
                              Condition&& condition,
@@ -464,7 +464,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
              typename Keep,
              typename FetchValue >
    static void
-   reduceRowsIfWithArgument( const ConstMatrixView& matrix,
+   reduceRowsWithArgumentIf( const ConstMatrixView& matrix,
                              IndexBegin begin,
                              IndexEnd end,
                              Condition&& condition,
@@ -518,7 +518,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
              typename Keep,
              typename FetchValue >
    static void
-   reduceRowsIfWithArgument( MatrixView& matrix,
+   reduceRowsWithArgumentIf( MatrixView& matrix,
                              const Array& rowIndexes,
                              IndexBegin begin,
                              IndexEnd end,
@@ -573,7 +573,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
              typename Keep,
              typename FetchValue >
    static void
-   reduceRowsIfWithArgument( const ConstMatrixView& matrix,
+   reduceRowsWithArgumentIf( const ConstMatrixView& matrix,
                              const Array& rowIndexes,
                              IndexBegin begin,
                              IndexEnd end,

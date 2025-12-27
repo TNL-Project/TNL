@@ -323,7 +323,7 @@ test_reduceRowsWithArgument()
 
 template< typename MatrixType >
 void
-test_reduceRowsIfWithArgument()
+test_reduceRowsWithArgumentIf()
 {
    using RealType = typename MatrixType::RealType;
    using DeviceType = typename MatrixType::DeviceType;
@@ -369,7 +369,7 @@ test_reduceRowsIfWithArgument()
    matrix.setElement( 4, 4, 16 );
 
    ////
-   // Test reduceRowsIfWithArgument: find max element > 5 and its column index
+   // Test reduceRowsWithArgumentIf: find max element > 5 and its column index
    TNL::Containers::Vector< RealType, DeviceType, IndexType > maxValues( rows, 0 );
    TNL::Containers::Vector< IndexType, DeviceType, IndexType > maxColumns( rows, -1 );
    auto maxValues_view = maxValues.getView();
@@ -403,7 +403,7 @@ test_reduceRowsIfWithArgument()
       maxColumns_view[ rowIdx ] = columnIdx;
    };
 
-   TNL::Matrices::reduceAllRowsIfWithArgument( matrix, condition, fetch, reduce, keep, (RealType) 0 );
+   TNL::Matrices::reduceAllRowsWithArgumentIf( matrix, condition, fetch, reduce, keep, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
    EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
@@ -419,7 +419,7 @@ test_reduceRowsIfWithArgument()
    const auto constMatrix( matrix );
    maxValues = 0;
    maxColumns = -1;
-   TNL::Matrices::reduceRowsIfWithArgument( constMatrix.getConstView(), 1, 4, condition, fetch, reduce, keep, (RealType) 0 );
+   TNL::Matrices::reduceRowsWithArgumentIf( constMatrix.getConstView(), 1, 4, condition, fetch, reduce, keep, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
    EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
@@ -458,15 +458,15 @@ TYPED_TEST_P( MatrixReduceTest, reduceRowsWithArgumentTest )
    test_reduceRowsWithArgument< typename TestFixture::MatrixType_ >();
 }
 
-TYPED_TEST_P( MatrixReduceTest, reduceRowsIfWithArgumentTest )
+TYPED_TEST_P( MatrixReduceTest, reduceRowsWithArgumentIfTest )
 {
-   test_reduceRowsIfWithArgument< typename TestFixture::MatrixType_ >();
+   test_reduceRowsWithArgumentIf< typename TestFixture::MatrixType_ >();
 }
 
 REGISTER_TYPED_TEST_SUITE_P( MatrixReduceTest,
                              reduceRowsTest,
                              reduceRowsIfTest,
                              reduceRowsWithArgumentTest,
-                             reduceRowsIfWithArgumentTest );
+                             reduceRowsWithArgumentIfTest );
 
 #include "../../main.h"

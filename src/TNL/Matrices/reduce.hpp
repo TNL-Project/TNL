@@ -690,7 +690,7 @@ reduceRowsWithArgument( const Matrix& matrix,
 
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
 void
-reduceAllRowsIfWithArgument( Matrix& matrix,
+reduceAllRowsWithArgumentIf( Matrix& matrix,
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
@@ -698,7 +698,7 @@ reduceAllRowsIfWithArgument( Matrix& matrix,
                              const FetchValue& identity,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   reduceRowsIfWithArgument( matrix,
+   reduceRowsWithArgumentIf( matrix,
                              (decltype( matrix.getRows() )) 0,
                              matrix.getRows(),
                              std::forward< Condition >( condition ),
@@ -711,7 +711,7 @@ reduceAllRowsIfWithArgument( Matrix& matrix,
 
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
 void
-reduceAllRowsIfWithArgument( const Matrix& matrix,
+reduceAllRowsWithArgumentIf( const Matrix& matrix,
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
@@ -719,7 +719,7 @@ reduceAllRowsIfWithArgument( const Matrix& matrix,
                              const FetchValue& identity,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   reduceRowsIfWithArgument( matrix,
+   reduceRowsWithArgumentIf( matrix,
                              (decltype( matrix.getRows() )) 0,
                              matrix.getRows(),
                              std::forward< Condition >( condition ),
@@ -732,14 +732,14 @@ reduceAllRowsIfWithArgument( const Matrix& matrix,
 
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
 void
-reduceAllRowsIfWithArgument( Matrix& matrix,
+reduceAllRowsWithArgumentIf( Matrix& matrix,
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
                              Keep&& keep,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   reduceRowsIfWithArgument( matrix,
+   reduceRowsWithArgumentIf( matrix,
                              (decltype( matrix.getRows() )) 0,
                              matrix.getRows(),
                              std::forward< Condition >( condition ),
@@ -751,14 +751,14 @@ reduceAllRowsIfWithArgument( Matrix& matrix,
 
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
 void
-reduceAllRowsIfWithArgument( const Matrix& matrix,
+reduceAllRowsWithArgumentIf( const Matrix& matrix,
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
                              Keep&& keep,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   reduceRowsIfWithArgument( matrix,
+   reduceRowsWithArgumentIf( matrix,
                              (decltype( matrix.getRows() )) 0,
                              matrix.getRows(),
                              std::forward< Condition >( condition ),
@@ -777,7 +777,7 @@ template< typename Matrix,
           typename Keep,
           typename FetchValue >
 void
-reduceRowsIfWithArgument( Matrix& matrix,
+reduceRowsWithArgumentIf( Matrix& matrix,
                           IndexBegin begin,
                           IndexEnd end,
                           Condition&& condition,
@@ -788,7 +788,7 @@ reduceRowsIfWithArgument( Matrix& matrix,
                           Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto matrix_view = matrix.getView();
-   detail::ReductionOperations< typename Matrix::ViewType >::reduceRowsIfWithArgument( matrix_view,
+   detail::ReductionOperations< typename Matrix::ViewType >::reduceRowsWithArgumentIf( matrix_view,
                                                                                        begin,
                                                                                        end,
                                                                                        std::forward< Condition >( condition ),
@@ -808,7 +808,7 @@ template< typename Matrix,
           typename Keep,
           typename FetchValue >
 void
-reduceRowsIfWithArgument( const Matrix& matrix,
+reduceRowsWithArgumentIf( const Matrix& matrix,
                           IndexBegin begin,
                           IndexEnd end,
                           Condition&& condition,
@@ -818,7 +818,7 @@ reduceRowsIfWithArgument( const Matrix& matrix,
                           const FetchValue& identity,
                           Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRowsIfWithArgument(
+   detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRowsWithArgumentIf(
       matrix.getConstView(),
       begin,
       end,
@@ -838,7 +838,7 @@ template< typename Matrix,
           typename Reduction,
           typename Keep >
 void
-reduceRowsIfWithArgument( Matrix& matrix,
+reduceRowsWithArgumentIf( Matrix& matrix,
                           IndexBegin begin,
                           IndexEnd end,
                           Condition&& condition,
@@ -848,7 +848,7 @@ reduceRowsIfWithArgument( Matrix& matrix,
                           Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto matrix_view = matrix.getView();
-   detail::ReductionOperations< typename Matrix::ViewType >::reduceRowsIfWithArgument( matrix_view,
+   detail::ReductionOperations< typename Matrix::ViewType >::reduceRowsWithArgumentIf( matrix_view,
                                                                                        begin,
                                                                                        end,
                                                                                        std::forward< Condition >( condition ),
@@ -866,7 +866,7 @@ template< typename Matrix,
           typename Reduction,
           typename Keep >
 void
-reduceRowsIfWithArgument( const Matrix& matrix,
+reduceRowsWithArgumentIf( const Matrix& matrix,
                           IndexBegin begin,
                           IndexEnd end,
                           Condition&& condition,
@@ -875,7 +875,7 @@ reduceRowsIfWithArgument( const Matrix& matrix,
                           Keep&& keep,
                           Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRowsIfWithArgument(
+   detail::ReductionOperations< typename Matrix::ConstViewType >::reduceRowsWithArgumentIf(
       matrix.getConstView(),
       begin,
       end,
