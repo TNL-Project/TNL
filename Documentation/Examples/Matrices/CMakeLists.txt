@@ -1,6 +1,7 @@
 add_subdirectory(DenseMatrix)
 add_subdirectory(LambdaMatrix)
 add_subdirectory(MultidiagonalMatrix)
+add_subdirectory(Reduce)
 add_subdirectory(SparseMatrix)
 add_subdirectory(Traverse)
 add_subdirectory(TridiagonalMatrix)
