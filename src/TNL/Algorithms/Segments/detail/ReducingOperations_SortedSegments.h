@@ -378,7 +378,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
              typename Reduction,
              typename ResultKeeper,
              typename Value >
-   static void
+   static IndexType
    reduceSegmentsIf( const ConstViewType& segments,
                      IndexBegin begin,
                      IndexEnd end,
@@ -393,7 +393,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
 
       if( end <= begin )
-         return;
+         return 0;
 
       VectorType conditions( segments.getSegmentsCount() );
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
@@ -435,6 +435,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             identity,
             launchConfig );
       }
+      return indexes.getSize();
    }
 
    template< typename IndexBegin,
@@ -444,7 +445,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
              typename Reduction,
              typename ResultKeeper,
              typename Value >
-   static void
+   static IndexType
    reduceSegmentsWithArgumentIf( const ConstViewType& segments,
                                  IndexBegin begin,
                                  IndexEnd end,
@@ -459,7 +460,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
 
       if( end <= begin )
-         return;
+         return 0;
 
       VectorType conditions( segments.getSegmentsCount() );
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
@@ -503,6 +504,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             identity,
             launchConfig );
       }
+      return indexes.getSize();
    }
 };
 

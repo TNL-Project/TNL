@@ -22,7 +22,7 @@ struct ReducingOperationsBase
              typename Reduction,
              typename ResultKeeper,
              typename Value >
-   static void
+   static IndexType
    reduceSegmentsIf( const Segments& segments,
                      IndexBegin begin,
                      IndexEnd end,
@@ -51,6 +51,7 @@ struct ReducingOperationsBase
                       std::forward< ResultKeeper >( keeper ),
                       identity,
                       launchConfig );
+      return indexes.getSize();
    }
 
    template< typename IndexBegin,
@@ -60,7 +61,7 @@ struct ReducingOperationsBase
              typename Reduction,
              typename ResultKeeper,
              typename Value >
-   static void
+   static IndexType
    reduceSegmentsWithArgumentIf( const Segments& segments,
                                  IndexBegin begin,
                                  IndexEnd end,
@@ -89,6 +90,7 @@ struct ReducingOperationsBase
                                   std::forward< ResultKeeper >( keeper ),
                                   identity,
                                   launchConfig );
+      return indexes.getSize();
    }
 };
 
