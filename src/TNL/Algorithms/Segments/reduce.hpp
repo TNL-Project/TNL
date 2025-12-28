@@ -152,7 +152,7 @@ reduceSegments( const Segments& segments,
 }
 
 template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
-static void
+static typename Segments::IndexType
 reduceAllSegmentsIf( const Segments& segments,
                      Condition&& condition,
                      Fetch&& fetch,
@@ -162,19 +162,19 @@ reduceAllSegmentsIf( const Segments& segments,
                      LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
-   reduceSegmentsIf( segments,
-                     (IndexType) 0,
-                     segments.getSegmentsCount(),
-                     std::forward< Condition >( condition ),
-                     std::forward< Fetch >( fetch ),
-                     std::forward< Reduction >( reduction ),
-                     std::forward< ResultKeeper >( keeper ),
-                     identity,
-                     launchConfig );
+   return reduceSegmentsIf( segments,
+                            (IndexType) 0,
+                            segments.getSegmentsCount(),
+                            std::forward< Condition >( condition ),
+                            std::forward< Fetch >( fetch ),
+                            std::forward< Reduction >( reduction ),
+                            std::forward< ResultKeeper >( keeper ),
+                            identity,
+                            launchConfig );
 }
 
 template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper >
-static void
+static typename Segments::IndexType
 reduceAllSegmentsIf( const Segments& segments,
                      Condition&& condition,
                      Fetch&& fetch,
@@ -184,15 +184,15 @@ reduceAllSegmentsIf( const Segments& segments,
 {
    using IndexType = typename Segments::IndexType;
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
-   reduceSegmentsIf( segments,
-                     (IndexType) 0,
-                     segments.getSegmentsCount(),
-                     std::forward< Condition >( condition ),
-                     std::forward< Fetch >( fetch ),
-                     std::forward< Reduction >( reduction ),
-                     std::forward< ResultKeeper >( keeper ),
-                     Reduction::template getIdentity< Value >(),
-                     launchConfig );
+   return reduceSegmentsIf( segments,
+                            (IndexType) 0,
+                            segments.getSegmentsCount(),
+                            std::forward< Condition >( condition ),
+                            std::forward< Fetch >( fetch ),
+                            std::forward< Reduction >( reduction ),
+                            std::forward< ResultKeeper >( keeper ),
+                            Reduction::template getIdentity< Value >(),
+                            launchConfig );
 }
 
 template< typename Segments,
@@ -204,7 +204,7 @@ template< typename Segments,
           typename ResultKeeper,
           typename Value,
           typename T >
-static void
+static typename Segments::IndexType
 reduceSegmentsIf( const Segments& segments,
                   IndexBegin begin,
                   IndexEnd end,
@@ -215,15 +215,16 @@ reduceSegmentsIf( const Segments& segments,
                   const Value& identity,
                   LaunchConfiguration launchConfig )
 {
-   detail::ReducingOperations< typename Segments::ConstViewType >::reduceSegmentsIf( segments.getConstView(),
-                                                                                     begin,
-                                                                                     end,
-                                                                                     std::forward< Condition >( condition ),
-                                                                                     std::forward< Fetch >( fetch ),
-                                                                                     std::forward< Reduction >( reduction ),
-                                                                                     std::forward< ResultKeeper >( keeper ),
-                                                                                     identity,
-                                                                                     launchConfig );
+   return detail::ReducingOperations< typename Segments::ConstViewType >::reduceSegmentsIf(
+      segments.getConstView(),
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Fetch >( fetch ),
+      std::forward< Reduction >( reduction ),
+      std::forward< ResultKeeper >( keeper ),
+      identity,
+      launchConfig );
 }
 
 template< typename Segments,
@@ -234,7 +235,7 @@ template< typename Segments,
           typename Reduction,
           typename ResultKeeper,
           typename T >
-static void
+static typename Segments::IndexType
 reduceSegmentsIf( const Segments& segments,
                   IndexBegin begin,
                   IndexEnd end,
@@ -245,15 +246,15 @@ reduceSegmentsIf( const Segments& segments,
                   LaunchConfiguration launchConfig )
 {
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
-   detail::ReducingOperations< typename Segments::ConstViewType >::reduceSegmentsIf( segments.getConstView(),
-                                                                                     begin,
-                                                                                     end,
-                                                                                     std::forward< Condition >( condition ),
-                                                                                     std::forward< Fetch >( fetch ),
-                                                                                     std::forward< Reduction >( reduction ),
-                                                                                     std::forward< ResultKeeper >( keeper ),
-                                                                                     Reduction::template getIdentity< Value >(),
-                                                                                     launchConfig );
+   return reduceSegmentsIf( segments.getConstView(),
+                            begin,
+                            end,
+                            std::forward< Condition >( condition ),
+                            std::forward< Fetch >( fetch ),
+                            std::forward< Reduction >( reduction ),
+                            std::forward< ResultKeeper >( keeper ),
+                            Reduction::template getIdentity< Value >(),
+                            launchConfig );
 }
 
 template< typename Segments, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
@@ -393,7 +394,7 @@ reduceSegmentsWithArgument( const Segments& segments,
 }
 
 template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
-static void
+static typename Segments::IndexType
 reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                  Condition&& condition,
                                  Fetch&& fetch,
@@ -403,19 +404,19 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                  LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
-   reduceSegmentsWithArgumentIf( segments,
-                                 (IndexType) 0,
-                                 segments.getSegmentsCount(),
-                                 std::forward< Condition >( condition ),
-                                 std::forward< Fetch >( fetch ),
-                                 std::forward< Reduction >( reduction ),
-                                 std::forward< ResultKeeper >( keeper ),
-                                 identity,
-                                 launchConfig );
+   return reduceSegmentsWithArgumentIf( segments,
+                                        (IndexType) 0,
+                                        segments.getSegmentsCount(),
+                                        std::forward< Condition >( condition ),
+                                        std::forward< Fetch >( fetch ),
+                                        std::forward< Reduction >( reduction ),
+                                        std::forward< ResultKeeper >( keeper ),
+                                        identity,
+                                        launchConfig );
 }
 
 template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper >
-static void
+static typename Segments::IndexType
 reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                  Condition&& condition,
                                  Fetch&& fetch,
@@ -425,15 +426,15 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
 {
    using IndexType = typename Segments::IndexType;
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
-   reduceSegmentsWithArgumentIf( segments,
-                                 (IndexType) 0,
-                                 segments.getSegmentsCount(),
-                                 std::forward< Condition >( condition ),
-                                 std::forward< Fetch >( fetch ),
-                                 std::forward< Reduction >( reduction ),
-                                 std::forward< ResultKeeper >( keeper ),
-                                 Reduction::template getIdentity< Value >(),
-                                 launchConfig );
+   return reduceSegmentsWithArgumentIf( segments,
+                                        (IndexType) 0,
+                                        segments.getSegmentsCount(),
+                                        std::forward< Condition >( condition ),
+                                        std::forward< Fetch >( fetch ),
+                                        std::forward< Reduction >( reduction ),
+                                        std::forward< ResultKeeper >( keeper ),
+                                        Reduction::template getIdentity< Value >(),
+                                        launchConfig );
 }
 
 template< typename Segments,
@@ -445,7 +446,7 @@ template< typename Segments,
           typename ResultKeeper,
           typename Value,
           typename T >
-static void
+static typename Segments::IndexType
 reduceSegmentsWithArgumentIf( const Segments& segments,
                               IndexBegin begin,
                               IndexEnd end,
@@ -456,7 +457,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
                               const Value& identity,
                               LaunchConfiguration launchConfig )
 {
-   detail::ReducingOperations< typename Segments::ConstViewType >::reduceSegmentsWithArgumentIf(
+   return detail::ReducingOperations< typename Segments::ConstViewType >::reduceSegmentsWithArgumentIf(
       segments.getConstView(),
       begin,
       end,
@@ -476,7 +477,7 @@ template< typename Segments,
           typename Reduction,
           typename ResultKeeper,
           typename T >
-static void
+static typename Segments::IndexType
 reduceSegmentsWithArgumentIf( const Segments& segments,
                               IndexBegin begin,
                               IndexEnd end,
@@ -487,16 +488,15 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
                               LaunchConfiguration launchConfig )
 {
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
-   detail::ReducingOperations< typename Segments::ConstViewType >::reduceSegmentsWithArgumentIf(
-      segments.getConstView(),
-      begin,
-      end,
-      std::forward< Condition >( condition ),
-      std::forward< Fetch >( fetch ),
-      std::forward< Reduction >( reduction ),
-      std::forward< ResultKeeper >( keeper ),
-      Reduction::template getIdentity< Value >(),
-      launchConfig );
+   return reduceSegmentsWithArgumentIf( segments.getConstView(),
+                                        begin,
+                                        end,
+                                        std::forward< Condition >( condition ),
+                                        std::forward< Fetch >( fetch ),
+                                        std::forward< Reduction >( reduction ),
+                                        std::forward< ResultKeeper >( keeper ),
+                                        Reduction::template getIdentity< Value >(),
+                                        launchConfig );
 }
 
 template< typename Segments,

@@ -625,13 +625,15 @@ reduceRows( const Matrix& matrix,
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsIf.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
-void
+typename Matrix::IndexType
 reduceAllRowsIf( Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
@@ -658,13 +660,15 @@ reduceAllRowsIf( Matrix& matrix,
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsIf.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
-void
+typename Matrix::IndexType
 reduceAllRowsIf( const Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
@@ -690,13 +694,15 @@ reduceAllRowsIf( const Matrix& matrix,
  * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsIf.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
-void
+typename Matrix::IndexType
 reduceAllRowsIf( Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
@@ -721,13 +727,15 @@ reduceAllRowsIf( Matrix& matrix,
  * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsIf.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
-void
+typename Matrix::IndexType
 reduceAllRowsIf( const Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
@@ -759,6 +767,8 @@ reduceAllRowsIf( const Matrix& matrix,
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceRowsIf.cpp
  * \par Output
@@ -772,7 +782,7 @@ template< typename Matrix,
           typename Reduction,
           typename Keep,
           typename FetchValue >
-void
+typename Matrix::IndexType
 reduceRowsIf( Matrix& matrix,
               IndexBegin begin,
               IndexEnd end,
@@ -808,6 +818,8 @@ reduceRowsIf( Matrix& matrix,
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceRowsIf.cpp
  * \par Output
@@ -821,7 +833,7 @@ template< typename Matrix,
           typename Reduction,
           typename Keep,
           typename FetchValue >
-void
+typename Matrix::IndexType
 reduceRowsIf( const Matrix& matrix,
               IndexBegin begin,
               IndexEnd end,
@@ -855,6 +867,8 @@ reduceRowsIf( const Matrix& matrix,
  * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceRowsIf.cpp
  * \par Output
@@ -867,7 +881,7 @@ template< typename Matrix,
           typename Fetch,
           typename Reduction,
           typename Keep >
-void
+typename Matrix::IndexType
 reduceRowsIf( Matrix& matrix,
               IndexBegin begin,
               IndexEnd end,
@@ -900,6 +914,8 @@ reduceRowsIf( Matrix& matrix,
  * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceRowsIf.cpp
  * \par Output
@@ -912,7 +928,7 @@ template< typename Matrix,
           typename Fetch,
           typename Reduction,
           typename Keep >
-void
+typename Matrix::IndexType
 reduceRowsIf( const Matrix& matrix,
               IndexBegin begin,
               IndexEnd end,
@@ -1371,6 +1387,8 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \param identity The identity element for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
@@ -1382,7 +1400,7 @@ template< typename Matrix,
           typename Reduction,
           typename Keep,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
-void
+typename Matrix::IndexType
 reduceAllRowsWithArgumentIf(
    Matrix& matrix,
    Condition&& condition,
@@ -1411,6 +1429,8 @@ reduceAllRowsWithArgumentIf(
  * \param identity The identity element for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
@@ -1422,7 +1442,7 @@ template< typename Matrix,
           typename Reduction,
           typename Keep,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
-void
+typename Matrix::IndexType
 reduceAllRowsWithArgumentIf(
    const Matrix& matrix,
    Condition&& condition,
@@ -1449,13 +1469,15 @@ reduceAllRowsWithArgumentIf(
  * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
-void
+typename Matrix::IndexType
 reduceAllRowsWithArgumentIf(
    Matrix& matrix,
    Condition&& condition,
@@ -1481,13 +1503,15 @@ reduceAllRowsWithArgumentIf(
  * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
-void
+typename Matrix::IndexType
 reduceAllRowsWithArgumentIf(
    const Matrix& matrix,
    Condition&& condition,
@@ -1521,6 +1545,8 @@ reduceAllRowsWithArgumentIf(
  * \param identity The identity element for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
@@ -1534,7 +1560,7 @@ template< typename Matrix,
           typename Reduction,
           typename Keep,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
-void
+typename Matrix::IndexType
 reduceRowsWithArgumentIf(
    Matrix& matrix,
    IndexBegin begin,
@@ -1571,6 +1597,8 @@ reduceRowsWithArgumentIf(
  * \param identity The identity element for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
@@ -1584,7 +1612,7 @@ template< typename Matrix,
           typename Reduction,
           typename Keep,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
-void
+typename Matrix::IndexType
 reduceRowsWithArgumentIf(
    const Matrix& matrix,
    IndexBegin begin,
@@ -1619,6 +1647,8 @@ reduceRowsWithArgumentIf(
  * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
@@ -1631,7 +1661,7 @@ template< typename Matrix,
           typename Fetch,
           typename Reduction,
           typename Keep >
-void
+typename Matrix::IndexType
 reduceRowsWithArgumentIf(
    Matrix& matrix,
    IndexBegin begin,
@@ -1665,6 +1695,8 @@ reduceRowsWithArgumentIf(
  * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \return The number of processed rows, i.e. rows for which the condition was true.
+ *
  * \par Example
  * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
@@ -1677,7 +1709,7 @@ template< typename Matrix,
           typename Fetch,
           typename Reduction,
           typename Keep >
-void
+typename Matrix::IndexType
 reduceRowsWithArgumentIf(
    const Matrix& matrix,
    IndexBegin begin,
