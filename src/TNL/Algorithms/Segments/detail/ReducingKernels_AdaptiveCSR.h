@@ -12,7 +12,7 @@ template< typename BlocksView,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -21,7 +21,7 @@ reduceSegmentsCSRAdaptiveKernel( int gridIdx,
                                  Offsets offsets,
                                  Fetch fetch,
                                  Reduction reduction,
-                                 ResultKeeper keep,
+                                 ResultStorer store,
                                  Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -66,7 +66,7 @@ reduceSegmentsCSRAdaptiveKernel( int gridIdx,
          // Scalar reduction
          for( Index sharedIdx = offsets[ i ] - begin; sharedIdx < sharedEnd; sharedIdx++ )
             result = reduction( result, streamShared[ warpIdx ][ sharedIdx ] );
-         keep( i, result );
+         store( i, result );
       }
    }
    else if( block.getType() == detail::Type::VECTOR )  // Vector kernel - one segment per warp
@@ -82,7 +82,7 @@ reduceSegmentsCSRAdaptiveKernel( int gridIdx,
       result = BlockReduce::warpReduce( reduction, result );
 
       if( laneIdx == 0 )
-         keep( segmentIdx, result );
+         store( segmentIdx, result );
    }
    else  // block.getType() == Type::LONG - several warps per segment
    {
@@ -131,7 +131,7 @@ reduceSegmentsCSRAdaptiveKernel( int gridIdx,
          }
          if( laneIdx == 0 ) {
             //printf( "Long: segmentIdx %d -> %d \n", segmentIdx, multivectorShared[ 0 ] );
-            keep( segmentIdx, multivectorShared[ 0 ] );
+            store( segmentIdx, multivectorShared[ 0 ] );
          }
       }
    }
@@ -143,7 +143,7 @@ template< typename BlocksView,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -152,7 +152,7 @@ reduceSegmentsCSRAdaptiveKernelWithArgument( int gridIdx,
                                              Offsets offsets,
                                              Fetch fetch,
                                              Reduction reduction,
-                                             ResultKeeper keep,
+                                             ResultStorer store,
                                              Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -201,7 +201,7 @@ reduceSegmentsCSRAdaptiveKernelWithArgument( int gridIdx,
          Index localIdx = 0;
          for( Index sharedIdx = offsets[ i ] - begin; sharedIdx < sharedEnd; sharedIdx++, localIdx++ )
             reduction( result, streamShared_result[ warpIdx ][ sharedIdx ], argument, localIdx );
-         keep( i, argument, result );
+         store( i, argument, result );
       }
    }
    else if( block.getType() == detail::Type::VECTOR )  // Vector kernel - one segment per warp
@@ -217,7 +217,7 @@ reduceSegmentsCSRAdaptiveKernelWithArgument( int gridIdx,
       auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduction, result, argument );
 
       if( laneIdx == 0 )
-         keep( segmentIdx, argument_, result_ );
+         store( segmentIdx, argument_, result_ );
    }
    else  // block.getType() == Type::LONG - several warps per segment
    {
@@ -283,7 +283,7 @@ reduceSegmentsCSRAdaptiveKernelWithArgument( int gridIdx,
          }
          if( laneIdx == 0 ) {
             //printf( "Long: segmentIdx %d -> %d \n", segmentIdx, multivectorShared_result[ 0 ] );
-            keep( segmentIdx, multivectorShared_argument[ 0 ], multivectorShared_result[ 0 ] );
+            store( segmentIdx, multivectorShared_argument[ 0 ], multivectorShared_result[ 0 ] );
          }
       }
    }

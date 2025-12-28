@@ -56,14 +56,14 @@ reduceRowsWithArgumentExample()
       }
    };
 
-   auto keepRange = [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
+   auto storeRange = [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
    {
       rangeMaxValues_view[ rowIdx - rangeBegin ] = value;
       rangeMaxColumns_view[ rowIdx - rangeBegin ] = columnIdx;
    };
 
    TNL::Matrices::reduceRowsWithArgument(
-      matrix, rangeBegin, rangeEnd, fetch, reduction, keepRange, std::numeric_limits< double >::lowest() );
+      matrix, rangeBegin, rangeEnd, fetch, reduction, storeRange, std::numeric_limits< double >::lowest() );
    // You may also use TNL::MaxWithArg{} instead of defining your own reduction lambda.
 
    std::cout << "Maxima for rows 2-6:" << std::endl;
@@ -94,7 +94,7 @@ reduceRowsWithArgumentExample()
       }
    };
 
-   auto keepArray =
+   auto storeArray =
       [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
    {
       arrayMinValues_view[ rowIdx ] = value;
@@ -104,7 +104,7 @@ reduceRowsWithArgumentExample()
    };
 
    TNL::Matrices::reduceRowsWithArgument(
-      matrix, rowIndexes, fetch, reductionMin, keepArray, std::numeric_limits< double >::max() );
+      matrix, rowIndexes, fetch, reductionMin, storeArray, std::numeric_limits< double >::max() );
    // You may also use TNL::MinWithArg{} instead of defining your own reduction lambda.
 
    std::cout << "Minima for rows [1, 3, 5, 7]:" << std::endl;
