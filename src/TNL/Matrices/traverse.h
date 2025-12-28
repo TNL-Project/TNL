@@ -5,6 +5,8 @@
 
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 
+namespace TNL::Matrices {
+
 // TODO: The following is incomplete implementation of traversing functions for matrices. It is necessary
 // for traversing of graphs and it currently supports sparse and dense matrices only. It should be extended to support
 // other matrix types as well. Also, documentation and examples should be added.
@@ -222,7 +224,49 @@
  *
  */
 
-namespace TNL::Matrices {
+/**
+ * \brief Iterates in parallel over all elements of **all** matrix rows and
+ * applies the specified lambda function.
+ *
+ * \tparam Matrix The type of the matrix.
+ * \tparam Function The type of the lambda function to be applied to each element.
+ *
+ * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param function Lambda function to be applied to each element. See \ref TraversalFunction_NonConst.
+ * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
+ *
+ * \par Example
+ * \include Matrices/Traverse/MatrixExample_forElements.cpp
+ * \par Output
+ * \include MatrixExample_forElements.out
+ */
+template< typename Matrix, typename Function >
+void
+forAllElements( Matrix& matrix,
+                Function&& function,
+                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+
+/**
+ * \brief Iterates in parallel over all elements of **all** matrix rows of **constant matrix** and
+ * applies the specified lambda function.
+ *
+ * \tparam Matrix The type of the matrix.
+ * \tparam Function The type of the lambda function to be applied to each element.
+ *
+ * \param matrix The matrixwhose elements will be processed using the lambda function.
+ * \param function Lambda function to be applied to each element. See \ref TraversalFunction_Const.
+ * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
+ *
+ * \par Example
+ * \include Matrices/Traverse/MatrixExample_forElements.cpp
+ * \par Output
+ * \include MatrixExample_forElements.out
+ */
+template< typename Matrix, typename Function >
+void
+forAllElements( const Matrix& matrix,
+                Function&& function,
+                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements in the given range of matrix rows and
@@ -287,50 +331,6 @@ forElements( const Matrix& matrix,
              IndexEnd end,
              Function&& function,
              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
-
-/**
- * \brief Iterates in parallel over all elements of **all** matrix rows and
- * applies the specified lambda function.
- *
- * \tparam Matrix The type of the matrix.
- * \tparam Function The type of the lambda function to be applied to each element.
- *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
- * \param function Lambda function to be applied to each element. See \ref TraversalFunction_NonConst.
- * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
- *
- * \par Example
- * \include Matrices/Traverse/MatrixExample_forElements.cpp
- * \par Output
- * \include MatrixExample_forElements.out
- */
-template< typename Matrix, typename Function >
-void
-forAllElements( Matrix& matrix,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
-
-/**
- * \brief Iterates in parallel over all elements of **all** matrix rows of **constant matrix** and
- * applies the specified lambda function.
- *
- * \tparam Matrix The type of the matrix.
- * \tparam Function The type of the lambda function to be applied to each element.
- *
- * \param matrix The matrixwhose elements will be processed using the lambda function.
- * \param function Lambda function to be applied to each element. See \ref TraversalFunction_Const.
- * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
- *
- * \par Example
- * \include Matrices/Traverse/MatrixExample_forElements.cpp
- * \par Output
- * \include MatrixExample_forElements.out
- */
-template< typename Matrix, typename Function >
-void
-forAllElements( const Matrix& matrix,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements of matrix rows with the given indexes and
