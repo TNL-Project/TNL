@@ -146,7 +146,7 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
              typename Reduction,
              typename Keep,
              typename FetchValue >
-   static void
+   static IndexType
    reduceRowsIf( MatrixView& matrix,
                  IndexBegin begin,
                  IndexEnd end,
@@ -165,15 +165,15 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
             return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
          return identity;
       };
-      Algorithms::Segments::reduceSegmentsIf( matrix.getSegments(),
-                                              begin,
-                                              end,
-                                              std::forward< Condition >( condition ),
-                                              fetchWrapper,
-                                              reduction,
-                                              keep,
-                                              identity,
-                                              launchConfig );
+      return Algorithms::Segments::reduceSegmentsIf( matrix.getSegments(),
+                                                     begin,
+                                                     end,
+                                                     std::forward< Condition >( condition ),
+                                                     fetchWrapper,
+                                                     reduction,
+                                                     keep,
+                                                     identity,
+                                                     launchConfig );
    }
 
    template< typename IndexBegin,
@@ -183,7 +183,7 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
              typename Reduction,
              typename Keep,
              typename FetchValue >
-   static void
+   static IndexType
    reduceRowsIf( const ConstMatrixView& matrix,
                  IndexBegin begin,
                  IndexEnd end,
@@ -203,15 +203,15 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          return identity;
       };
 
-      Algorithms::Segments::reduceSegmentsIf( matrix.getSegments(),
-                                              begin,
-                                              end,
-                                              std::forward< Condition >( condition ),
-                                              fetchWrapper,
-                                              reduction,
-                                              keep,
-                                              identity,
-                                              launchConfig );
+      return Algorithms::Segments::reduceSegmentsIf( matrix.getSegments(),
+                                                     begin,
+                                                     end,
+                                                     std::forward< Condition >( condition ),
+                                                     fetchWrapper,
+                                                     reduction,
+                                                     keep,
+                                                     identity,
+                                                     launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
@@ -295,15 +295,8 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          keep( indexOfRowIdx, rowIdx, localIdx, localIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsWithArgument( matrix.getSegments(),
-                                                        rowIndexes,
-                                                        0,
-                                                        rowIndexes.getSize(),
-                                                        fetchWrapper,
-                                                        reduction,
-                                                        keepWrapper,
-                                                        identity,
-                                                        launchConfig );
+      Algorithms::Segments::reduceSegmentsWithArgument(
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
@@ -342,7 +335,7 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
              typename Reduction,
              typename Keep,
              typename FetchValue >
-   static void
+   static IndexType
    reduceRowsWithArgumentIf( MatrixView& matrix,
                              IndexBegin begin,
                              IndexEnd end,
@@ -367,15 +360,15 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          keep( indexOfRowIdx, rowIdx, localIdx, localIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
-                                                          begin,
-                                                          end,
-                                                          std::forward< Condition >( condition ),
-                                                          fetchWrapper,
-                                                          reduction,
-                                                          keepWrapper,
-                                                          identity,
-                                                          launchConfig );
+      return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
+                                                                 begin,
+                                                                 end,
+                                                                 std::forward< Condition >( condition ),
+                                                                 fetchWrapper,
+                                                                 reduction,
+                                                                 keepWrapper,
+                                                                 identity,
+                                                                 launchConfig );
    }
 
    template< typename IndexBegin,
@@ -385,7 +378,7 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
              typename Reduction,
              typename Keep,
              typename FetchValue >
-   static void
+   static IndexType
    reduceRowsWithArgumentIf( const ConstMatrixView& matrix,
                              IndexBegin begin,
                              IndexEnd end,
@@ -410,15 +403,15 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          keep( indexOfRowIdx, rowIdx, localIdx, localIdx, value );
       };
 
-      Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
-                                                          begin,
-                                                          end,
-                                                          std::forward< Condition >( condition ),
-                                                          fetchWrapper,
-                                                          reduction,
-                                                          keepWrapper,
-                                                          identity,
-                                                          launchConfig );
+      return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
+                                                                 begin,
+                                                                 end,
+                                                                 std::forward< Condition >( condition ),
+                                                                 fetchWrapper,
+                                                                 reduction,
+                                                                 keepWrapper,
+                                                                 identity,
+                                                                 launchConfig );
    }
 };
 }  // namespace TNL::Matrices::detail

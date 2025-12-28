@@ -486,6 +486,8 @@ reduceSegments( const Segments& segments,
  *                 If the \e Reduction type does not provide a static member function
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
  *
+ * \return The number of segments that were processed (i.e., for which the condition was true).
+ *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
  * \par Output
@@ -497,7 +499,7 @@ template< typename Segments,
           typename Reduction,
           typename ResultKeeper,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
-static void
+static typename Segments::IndexType
 reduceAllSegmentsIf( const Segments& segments,
                      Condition&& condition,
                      Fetch&& fetch,
@@ -521,13 +523,15 @@ reduceAllSegmentsIf( const Segments& segments,
  * \param reduction Function object for reduction operation. See \ref SegmentReductionFunctionObjects.
  * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_Basic.
  *
+ * \return The number of segments that were processed (i.e., for which the condition was true).
+ *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsIf.out
  */
 template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper >
-static void
+static typename Segments::IndexType
 reduceAllSegmentsIf( const Segments& segments,
                      Condition&& condition,
                      Fetch&& fetch,
@@ -562,6 +566,8 @@ reduceAllSegmentsIf( const Segments& segments,
  *                 If the \e Reduction type does not provide a static member function
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
  *
+ * \return The number of segments that were processed (i.e., for which the condition was true).
+ *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
  * \par Output
@@ -576,7 +582,7 @@ template< typename Segments,
           typename ResultKeeper,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
-static void
+static typename Segments::IndexType
 reduceSegmentsIf( const Segments& segments,
                   IndexBegin begin,
                   IndexEnd end,
@@ -610,6 +616,8 @@ reduceSegmentsIf( const Segments& segments,
  * \param reduction Function object for reduction operation. See \ref SegmentReductionFunctionObjects.
  * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_Basic.
  *
+ * \return The number of segments that were processed (i.e., for which the condition was true).
+ *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
  * \par Output
@@ -623,7 +631,7 @@ template< typename Segments,
           typename Reduction,
           typename ResultKeeper,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
-static void
+static typename Segments::IndexType
 reduceSegmentsIf( const Segments& segments,
                   IndexBegin begin,
                   IndexEnd end,
@@ -880,6 +888,8 @@ reduceSegmentsWithArgument( const Segments& segments,
  *                 If the \e Reduction type does not provide a static member function
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
  *
+ * \return The number of segments that were processed (i.e., for which the condition was true).
+ *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
  * \par Output
@@ -891,7 +901,7 @@ template< typename Segments,
           typename Reduction,
           typename ResultKeeper,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
-static void
+static typename Segments::IndexType
 reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                  Condition&& condition,
                                  Fetch&& fetch,
@@ -924,13 +934,15 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  * \param reduction Function object for reduction operation with argument tracking. See \ref SegmentReductionFunctionObjects.
  * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
  *
+ * \return The number of segments that were processed (i.e., for which the condition was true).
+ *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
 template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper >
-static void
+static typename Segments::IndexType
 reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                  Condition&& condition,
                                  Fetch&& fetch,
@@ -962,10 +974,11 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  * \param reduction Lambda function for reduction operation with argument tracking. See \ref
  * SegmentReductionLambda_WithArgument.
  * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
- *
  * \param identity The initial value for the reduction operation.
  *                 If the \e Reduction type does not provide a static member function
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
+ *
+ * \return The number of segments that were processed (i.e., for which the condition was true).
  *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
@@ -981,7 +994,7 @@ template< typename Segments,
           typename ResultKeeper,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
-static void
+static typename Segments::IndexType
 reduceSegmentsWithArgumentIf( const Segments& segments,
                               IndexBegin begin,
                               IndexEnd end,
@@ -1016,6 +1029,8 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
  * \param reduction Function object for reduction operation with argument tracking. See \ref SegmentReductionFunctionObjects.
  * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
  *
+ * \return The number of segments that were processed (i.e., for which the condition was true).
+ *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
  * \par Output
@@ -1029,7 +1044,7 @@ template< typename Segments,
           typename Reduction,
           typename ResultKeeper,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
-static void
+static typename Segments::IndexType
 reduceSegmentsWithArgumentIf( const Segments& segments,
                               IndexBegin begin,
                               IndexEnd end,
