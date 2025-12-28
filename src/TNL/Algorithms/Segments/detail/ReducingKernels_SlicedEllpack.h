@@ -12,7 +12,7 @@ template< int BlockSize,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __device__
 void
@@ -22,7 +22,7 @@ reduceSegmentsRowMajorSlicedEllpackKernel( const int gridIdx,
                                            IndexEnd end,
                                            Fetch& fetch,
                                            Reduction& reduce,
-                                           ResultKeeper& keep,
+                                           ResultStorer& store,
                                            const Value& identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -118,7 +118,7 @@ reduceSegmentsRowMajorSlicedEllpackKernel( const int gridIdx,
    #endif
    // Write the result
    if( ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
-      keep( segmentIdx, result );
+      store( segmentIdx, result );
    }
 #endif
 }
@@ -131,7 +131,7 @@ template< int BlockSize,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __device__
 void
@@ -141,7 +141,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel( const int gridIdx,
                                               IndexEnd end,
                                               Fetch& fetch,
                                               Reduction& reduce,
-                                              ResultKeeper& keep,
+                                              ResultStorer& store,
                                               const Value& identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -301,7 +301,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel( const int gridIdx,
    #endif
       // Write the result
       if( inSliceThreadIdx < SliceSize && segmentIdx >= begin && segmentIdx < end ) {
-         keep( segmentIdx, result );
+         store( segmentIdx, result );
       }
    }
    else {  // more than one warp is involved in the reduction - use shared memory
@@ -448,7 +448,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel( const int gridIdx,
          ( begin / SliceSize ) * SliceSize + firstSliceInBlock * SliceSize + threadIdx.x / ThreadsPerSegment;
 
       if( ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 && currentSegmentIdx >= begin && currentSegmentIdx < end )
-         keep( currentSegmentIdx, result );
+         store( currentSegmentIdx, result );
    }
 #endif
 }
@@ -460,7 +460,7 @@ template< int BlockSize,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -470,16 +470,16 @@ reduceSegmentsSlicedEllpackKernel( const int gridIdx,
                                    IndexEnd end,
                                    Fetch fetch,
                                    Reduction reduce,
-                                   ResultKeeper keep,
+                                   ResultStorer store,
                                    const Value identity )
 {
    static_assert( ThreadsPerSegment <= Backend::getWarpSize(),
                   "ThreadsPerSegment must be less than or equal to the warp size." );
    if constexpr( Segments::getOrganization() == RowMajorOrder )
       reduceSegmentsRowMajorSlicedEllpackKernel< BlockSize, ThreadsPerSegment >(
-         gridIdx, segments, begin, end, fetch, reduce, keep, identity );
+         gridIdx, segments, begin, end, fetch, reduce, store, identity );
    else
       reduceSegmentsColumnMajorSlicedEllpackKernel< BlockSize, ThreadsPerSegment >(
-         gridIdx, segments, begin, end, fetch, reduce, keep, identity );
+         gridIdx, segments, begin, end, fetch, reduce, store, identity );
 }
 }  // namespace TNL::Algorithms::Segments::detail

@@ -26,7 +26,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsSequential( const ConstViewType& segments,
@@ -34,14 +34,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                              IndexEnd end,
                              Fetch&& fetch,
                              Reduction&& reduction,
-                             ResultKeeper&& keeper,
+                             ResultStorer&& storer,
                              const Value& identity,
                              const LaunchConfiguration& launchConfig )
    {
       using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
       OffsetsView offsets = segments.getOffsets();
 
-      auto l = [ offsets, fetch, reduction, keeper, identity ] __cuda_callable__( const Index segmentIdx ) mutable
+      auto l = [ offsets, fetch, reduction, storer, identity ] __cuda_callable__( const Index segmentIdx ) mutable
       {
          const IndexType begin = offsets[ segmentIdx ];
          const IndexType end = offsets[ segmentIdx + 1 ];
@@ -56,7 +56,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                aux = reduction( aux, fetch( globalIdx ) );
          }
-         keeper( segmentIdx, aux );
+         storer( segmentIdx, aux );
       };
 
       if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
@@ -78,7 +78,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegments( const ConstViewType& segments,
@@ -86,14 +86,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                    IndexEnd end,
                    Fetch&& fetch,
                    Reduction&& reduction,
-                   ResultKeeper&& keeper,
+                   ResultStorer&& storer,
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
-            reduceSegmentsSequential( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+            reduceSegmentsSequential( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
@@ -115,10 +115,10 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                          IndexType,
                                                                          std::remove_reference_t< Fetch >,
                                                                          std::remove_reference_t< Reduction >,
-                                                                         std::remove_reference_t< ResultKeeper >,
+                                                                         std::remove_reference_t< ResultStorer >,
                                                                          Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, keeper, identity );
+                     kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, storer, identity );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
@@ -130,7 +130,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                      IndexType,
                                                                      std::remove_reference_t< Fetch >,
                                                                      std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultKeeper >,
+                                                                     std::remove_reference_t< ResultStorer >,
                                                                      Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -140,7 +140,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -152,7 +152,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                      IndexType,
                                                                      std::remove_reference_t< Fetch >,
                                                                      std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultKeeper >,
+                                                                     std::remove_reference_t< ResultStorer >,
                                                                      Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -162,7 +162,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -174,7 +174,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                      IndexType,
                                                                      std::remove_reference_t< Fetch >,
                                                                      std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultKeeper >,
+                                                                     std::remove_reference_t< ResultStorer >,
                                                                      Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -184,7 +184,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -196,7 +196,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                      IndexType,
                                                                      std::remove_reference_t< Fetch >,
                                                                      std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultKeeper >,
+                                                                     std::remove_reference_t< ResultStorer >,
                                                                      Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -206,7 +206,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -218,7 +218,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                      IndexType,
                                                                      std::remove_reference_t< Fetch >,
                                                                      std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultKeeper >,
+                                                                     std::remove_reference_t< ResultStorer >,
                                                                      Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -228,7 +228,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -241,7 +241,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                        IndexType,
                                                                        std::remove_reference_t< Fetch >,
                                                                        std::remove_reference_t< Reduction >,
-                                                                       std::remove_reference_t< ResultKeeper >,
+                                                                       std::remove_reference_t< ResultStorer >,
                                                                        Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -251,7 +251,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -264,7 +264,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                        IndexType,
                                                                        std::remove_reference_t< Fetch >,
                                                                        std::remove_reference_t< Reduction >,
-                                                                       std::remove_reference_t< ResultKeeper >,
+                                                                       std::remove_reference_t< ResultStorer >,
                                                                        Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -274,7 +274,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -291,7 +291,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                   IndexType,
                                                                                   std::remove_reference_t< Fetch >,
                                                                                   std::remove_reference_t< Reduction >,
-                                                                                  std::remove_reference_t< ResultKeeper >,
+                                                                                  std::remove_reference_t< ResultStorer >,
                                                                                   Value,
                                                                                   256 >;
                   Backend::launchKernelAsync( kernel,
@@ -303,7 +303,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               end,
                                               fetch,
                                               reduction,
-                                              keeper,
+                                              storer,
                                               identity );
                }
                else {
@@ -314,16 +314,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          }
       }
       else
-         reduceSegmentsSequential( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+         reduceSegmentsSequential( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
    }
 
-   template< typename Array, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
    static void
    reduceSegmentsWithIndexesSequential( const ConstViewType& segments,
                                         const Array& segmentIndexes,
                                         Fetch&& fetch,
                                         Reduction&& reduction,
-                                        ResultKeeper&& keeper,
+                                        ResultStorer&& storer,
                                         const Value& identity,
                                         LaunchConfiguration launchConfig )
    {
@@ -331,7 +331,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       OffsetsView offsets = segments.getOffsets();
       auto segmentIndexes_view = segmentIndexes.getConstView();
 
-      auto l = [ offsets, segmentIndexes_view, fetch, reduction, keeper, identity ] __cuda_callable__(
+      auto l = [ offsets, segmentIndexes_view, fetch, reduction, storer, identity ] __cuda_callable__(
                   const Index segmentIdx_idx ) mutable
       {
          const IndexType segmentIdx = segmentIndexes_view[ segmentIdx_idx ];
@@ -348,7 +348,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                result = reduction( result, fetch( globalIdx ) );
          }
-         keeper( segmentIdx_idx, segmentIdx, result );
+         storer( segmentIdx_idx, segmentIdx, result );
       };
 
       if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
@@ -366,13 +366,13 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
    }
 
-   template< typename Array, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
    static void
    reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
                                      const Array& segmentIndexes,
                                      Fetch&& fetch,
                                      Reduction&& reduction,
-                                     ResultKeeper&& keeper,
+                                     ResultStorer&& storer,
                                      const Value& identity,
                                      LaunchConfiguration launchConfig )
    {
@@ -380,7 +380,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
-            reduceSegmentsWithIndexesSequential( segments, segmentIndexes, fetch, reduction, keeper, identity, launchConfig );
+            reduceSegmentsWithIndexesSequential( segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
@@ -404,7 +404,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                     IndexType,
                                                                                     std::remove_reference_t< Fetch >,
                                                                                     std::remove_reference_t< Reduction >,
-                                                                                    std::remove_reference_t< ResultKeeper >,
+                                                                                    std::remove_reference_t< ResultStorer >,
                                                                                     Value >;
                   Backend::launchKernelAsync( kernel,
                                               launch_config,
@@ -413,7 +413,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               segmentIndexes.getConstView(),
                                               fetch,
                                               reduction,
-                                              keeper,
+                                              storer,
                                               identity );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
@@ -427,7 +427,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                 IndexType,
                                                                                 std::remove_reference_t< Fetch >,
                                                                                 std::remove_reference_t< Reduction >,
-                                                                                std::remove_reference_t< ResultKeeper >,
+                                                                                std::remove_reference_t< ResultStorer >,
                                                                                 Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -436,7 +436,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -449,7 +449,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                 IndexType,
                                                                                 std::remove_reference_t< Fetch >,
                                                                                 std::remove_reference_t< Reduction >,
-                                                                                std::remove_reference_t< ResultKeeper >,
+                                                                                std::remove_reference_t< ResultStorer >,
                                                                                 Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -458,7 +458,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -471,7 +471,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                 IndexType,
                                                                                 std::remove_reference_t< Fetch >,
                                                                                 std::remove_reference_t< Reduction >,
-                                                                                std::remove_reference_t< ResultKeeper >,
+                                                                                std::remove_reference_t< ResultStorer >,
                                                                                 Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -480,7 +480,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -493,7 +493,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                 IndexType,
                                                                                 std::remove_reference_t< Fetch >,
                                                                                 std::remove_reference_t< Reduction >,
-                                                                                std::remove_reference_t< ResultKeeper >,
+                                                                                std::remove_reference_t< ResultStorer >,
                                                                                 Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -502,7 +502,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -515,7 +515,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                 IndexType,
                                                                                 std::remove_reference_t< Fetch >,
                                                                                 std::remove_reference_t< Reduction >,
-                                                                                std::remove_reference_t< ResultKeeper >,
+                                                                                std::remove_reference_t< ResultStorer >,
                                                                                 Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -524,7 +524,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -538,7 +538,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                   IndexType,
                                                                                   std::remove_reference_t< Fetch >,
                                                                                   std::remove_reference_t< Reduction >,
-                                                                                  std::remove_reference_t< ResultKeeper >,
+                                                                                  std::remove_reference_t< ResultStorer >,
                                                                                   Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -547,7 +547,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -561,7 +561,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                   IndexType,
                                                                                   std::remove_reference_t< Fetch >,
                                                                                   std::remove_reference_t< Reduction >,
-                                                                                  std::remove_reference_t< ResultKeeper >,
+                                                                                  std::remove_reference_t< ResultStorer >,
                                                                                   Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -570,7 +570,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -589,7 +589,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                         IndexType,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultKeeper >,
+                                                                        std::remove_reference_t< ResultStorer >,
                                                                         Value,
                                                                         256 >;
                   Backend::launchKernelAsync( kernel,
@@ -600,7 +600,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               segmentIndexes.getConstView(),
                                               fetch,
                                               reduction,
-                                              keeper,
+                                              storer,
                                               identity );
                }
                else {
@@ -611,14 +611,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          }
       }
       else
-         reduceSegmentsWithIndexesSequential( segments, segmentIndexes, fetch, reduction, keeper, identity, launchConfig );
+         reduceSegmentsWithIndexesSequential( segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
    }
 
    template< typename IndexBegin,
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsSequentialWithArgument( const ConstViewType& segments,
@@ -626,14 +626,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                          IndexEnd end,
                                          Fetch&& fetch,
                                          Reduction&& reduction,
-                                         ResultKeeper&& keeper,
+                                         ResultStorer&& storer,
                                          const Value& identity,
                                          const LaunchConfiguration& launchConfig )
    {
       using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
       OffsetsView offsets = segments.getOffsets();
 
-      auto l = [ offsets, fetch, reduction, keeper, identity ] __cuda_callable__( const Index segmentIdx ) mutable
+      auto l = [ offsets, fetch, reduction, storer, identity ] __cuda_callable__( const Index segmentIdx ) mutable
       {
          const IndexType begin = offsets[ segmentIdx ];
          const IndexType end = offsets[ segmentIdx + 1 ];
@@ -648,7 +648,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                reduction( result, fetch( globalIdx ), argument, localIdx );
             localIdx++;
          }
-         keeper( segmentIdx, argument, result );
+         storer( segmentIdx, argument, result );
       };
 
       if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
@@ -670,7 +670,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsWithArgument( const ConstViewType& segments,
@@ -678,14 +678,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                IndexEnd end,
                                Fetch&& fetch,
                                Reduction&& reduction,
-                               ResultKeeper&& keeper,
+                               ResultStorer&& storer,
                                const Value& identity,
                                const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
-            reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+            reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
          else {
             std::size_t threadsCount = end - begin;
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
@@ -707,10 +707,10 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                      IndexType,
                                                                                      std::remove_reference_t< Fetch >,
                                                                                      std::remove_reference_t< Reduction >,
-                                                                                     std::remove_reference_t< ResultKeeper >,
+                                                                                     std::remove_reference_t< ResultStorer >,
                                                                                      Value >;
                   Backend::launchKernelAsync(
-                     kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, keeper, identity );
+                     kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, storer, identity );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
@@ -722,7 +722,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                  IndexType,
                                                                                  std::remove_reference_t< Fetch >,
                                                                                  std::remove_reference_t< Reduction >,
-                                                                                 std::remove_reference_t< ResultKeeper >,
+                                                                                 std::remove_reference_t< ResultStorer >,
                                                                                  Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -732,7 +732,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -744,7 +744,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                  IndexType,
                                                                                  std::remove_reference_t< Fetch >,
                                                                                  std::remove_reference_t< Reduction >,
-                                                                                 std::remove_reference_t< ResultKeeper >,
+                                                                                 std::remove_reference_t< ResultStorer >,
                                                                                  Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -754,7 +754,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -766,7 +766,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                  IndexType,
                                                                                  std::remove_reference_t< Fetch >,
                                                                                  std::remove_reference_t< Reduction >,
-                                                                                 std::remove_reference_t< ResultKeeper >,
+                                                                                 std::remove_reference_t< ResultStorer >,
                                                                                  Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -776,7 +776,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -788,7 +788,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                  IndexType,
                                                                                  std::remove_reference_t< Fetch >,
                                                                                  std::remove_reference_t< Reduction >,
-                                                                                 std::remove_reference_t< ResultKeeper >,
+                                                                                 std::remove_reference_t< ResultStorer >,
                                                                                  Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -798,7 +798,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -810,7 +810,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                  IndexType,
                                                                                  std::remove_reference_t< Fetch >,
                                                                                  std::remove_reference_t< Reduction >,
-                                                                                 std::remove_reference_t< ResultKeeper >,
+                                                                                 std::remove_reference_t< ResultStorer >,
                                                                                  Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -820,7 +820,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -833,7 +833,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                    IndexType,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultKeeper >,
+                                                                                   std::remove_reference_t< ResultStorer >,
                                                                                    Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -843,7 +843,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -856,7 +856,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                    IndexType,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultKeeper >,
+                                                                                   std::remove_reference_t< ResultStorer >,
                                                                                    Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -866,7 +866,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -884,7 +884,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                          IndexType,
                                                                          std::remove_reference_t< Fetch >,
                                                                          std::remove_reference_t< Reduction >,
-                                                                         std::remove_reference_t< ResultKeeper >,
+                                                                         std::remove_reference_t< ResultStorer >,
                                                                          Value,
                                                                          256 >;
                   Backend::launchKernelAsync( kernel,
@@ -896,7 +896,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               end,
                                               fetch,
                                               reduction,
-                                              keeper,
+                                              storer,
                                               identity );
                }
                else {
@@ -907,16 +907,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          }
       }
       else
-         reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+         reduceSegmentsSequentialWithArgument( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
    }
 
-   template< typename Array, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
    static void
    reduceSegmentsWithIndexesAndArgumentSequential( const ConstViewType& segments,
                                                    const Array& segmentIndexes,
                                                    Fetch&& fetch,
                                                    Reduction&& reduction,
-                                                   ResultKeeper&& keeper,
+                                                   ResultStorer&& storer,
                                                    const Value& identity,
                                                    LaunchConfiguration launchConfig )
    {
@@ -924,7 +924,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       OffsetsView offsets = segments.getOffsets();
       auto segmentIndexes_view = segmentIndexes.getConstView();
 
-      auto l = [ offsets, segmentIndexes_view, fetch, reduction, keeper, identity ] __cuda_callable__(
+      auto l = [ offsets, segmentIndexes_view, fetch, reduction, storer, identity ] __cuda_callable__(
                   const Index segmentIdx_idx ) mutable
       {
          const IndexType segmentIdx = segmentIndexes_view[ segmentIdx_idx ];
@@ -941,7 +941,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                else
                   reduction( result, fetch( globalIdx ), argument, localIdx );
          }
-         keeper( segmentIdx_idx, segmentIdx, argument, result );
+         storer( segmentIdx_idx, segmentIdx, argument, result );
       };
 
       if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
@@ -959,13 +959,13 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
    }
 
-   template< typename Array, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+   template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
    static void
    reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
                                                 const Array& segmentIndexes,
                                                 Fetch&& fetch,
                                                 Reduction&& reduction,
-                                                ResultKeeper&& keeper,
+                                                ResultStorer&& storer,
                                                 const Value& identity,
                                                 LaunchConfiguration launchConfig )
    {
@@ -974,7 +974,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             reduceSegmentsWithIndexesAndArgumentSequential(
-               segments, segmentIndexes, fetch, reduction, keeper, identity, launchConfig );
+               segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
          else {
             std::size_t threadsCount = segmentIndexes.getSize();
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp )
@@ -999,7 +999,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                           IndexType,
                                                                           std::remove_reference_t< Fetch >,
                                                                           std::remove_reference_t< Reduction >,
-                                                                          std::remove_reference_t< ResultKeeper >,
+                                                                          std::remove_reference_t< ResultStorer >,
                                                                           Value >;
                   Backend::launchKernelAsync( kernel,
                                               launch_config,
@@ -1008,7 +1008,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               segmentIndexes.getConstView(),
                                               fetch,
                                               reduction,
-                                              keeper,
+                                              storer,
                                               identity );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
@@ -1022,7 +1022,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               IndexType,
                               std::remove_reference_t< Fetch >,
                               std::remove_reference_t< Reduction >,
-                              std::remove_reference_t< ResultKeeper >,
+                              std::remove_reference_t< ResultStorer >,
                               Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -1031,7 +1031,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -1044,7 +1044,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               IndexType,
                               std::remove_reference_t< Fetch >,
                               std::remove_reference_t< Reduction >,
-                              std::remove_reference_t< ResultKeeper >,
+                              std::remove_reference_t< ResultStorer >,
                               Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -1053,7 +1053,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -1066,7 +1066,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               IndexType,
                               std::remove_reference_t< Fetch >,
                               std::remove_reference_t< Reduction >,
-                              std::remove_reference_t< ResultKeeper >,
+                              std::remove_reference_t< ResultStorer >,
                               Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -1075,7 +1075,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -1088,7 +1088,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               IndexType,
                               std::remove_reference_t< Fetch >,
                               std::remove_reference_t< Reduction >,
-                              std::remove_reference_t< ResultKeeper >,
+                              std::remove_reference_t< ResultStorer >,
                               Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -1097,7 +1097,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -1110,7 +1110,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               IndexType,
                               std::remove_reference_t< Fetch >,
                               std::remove_reference_t< Reduction >,
-                              std::remove_reference_t< ResultKeeper >,
+                              std::remove_reference_t< ResultStorer >,
                               Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -1119,7 +1119,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -1133,7 +1133,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               IndexType,
                               std::remove_reference_t< Fetch >,
                               std::remove_reference_t< Reduction >,
-                              std::remove_reference_t< ResultKeeper >,
+                              std::remove_reference_t< ResultStorer >,
                               Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -1142,7 +1142,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -1156,7 +1156,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               IndexType,
                               std::remove_reference_t< Fetch >,
                               std::remove_reference_t< Reduction >,
-                              std::remove_reference_t< ResultKeeper >,
+                              std::remove_reference_t< ResultStorer >,
                               Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -1165,7 +1165,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                        segmentIndexes.getConstView(),
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                            break;
                         }
@@ -1184,7 +1184,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                                                                    IndexType,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultKeeper >,
+                                                                                   std::remove_reference_t< ResultStorer >,
                                                                                    Value,
                                                                                    256 >;
                   Backend::launchKernelAsync( kernel,
@@ -1195,7 +1195,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                                               segmentIndexes.getConstView(),
                                               fetch,
                                               reduction,
-                                              keeper,
+                                              storer,
                                               identity );
                }
                else {
@@ -1207,7 +1207,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       }
       else
          reduceSegmentsWithIndexesAndArgumentSequential(
-            segments, segmentIndexes, fetch, reduction, keeper, identity, launchConfig );
+            segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
    }
 };
 }  //namespace TNL::Algorithms::Segments::detail

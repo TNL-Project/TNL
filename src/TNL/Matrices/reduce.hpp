@@ -7,12 +7,12 @@
 #include "detail/ReductionOperations.h"
 
 namespace TNL::Matrices {
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
 reduceAllRows( Matrix& matrix,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                const FetchValue& identity,
                Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -21,17 +21,17 @@ reduceAllRows( Matrix& matrix,
                matrix.getRows(),
                std::forward< Fetch >( fetch ),
                reduction,
-               std::forward< Keep >( keep ),
+               std::forward< Store >( store ),
                identity,
                launchConfig );
 }
 
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
 reduceAllRows( const Matrix& matrix,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                const FetchValue& identity,
                Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -41,17 +41,17 @@ reduceAllRows( const Matrix& matrix,
                matrix.getRows(),
                std::forward< Fetch >( fetch ),
                reduction,
-               std::forward< Keep >( keep ),
+               std::forward< Store >( store ),
                identity,
                launchConfig );
 }
 
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
 reduceAllRows( Matrix& matrix,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Matrix::IndexType;
@@ -62,17 +62,17 @@ reduceAllRows( Matrix& matrix,
                matrix.getRows(),
                std::forward< Fetch >( fetch ),
                reduction,
-               std::forward< Keep >( keep ),
+               std::forward< Store >( store ),
                Reduction::template getIdentity< FetchValue >(),
                launchConfig );
 }
 
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
 reduceAllRows( const Matrix& matrix,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Matrix::IndexType;
@@ -83,7 +83,7 @@ reduceAllRows( const Matrix& matrix,
                matrix.getRows(),
                std::forward< Fetch >( fetch ),
                reduction,
-               std::forward< Keep >( keep ),
+               std::forward< Store >( store ),
                Reduction::template getIdentity< FetchValue >(),
                launchConfig );
 }
@@ -93,7 +93,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T >
 void
@@ -102,7 +102,7 @@ reduceRows( Matrix& matrix,
             IndexEnd end,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             const FetchValue& identity,
             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -112,7 +112,7 @@ reduceRows( Matrix& matrix,
                                                                          end,
                                                                          std::forward< Fetch >( fetch ),
                                                                          reduction,
-                                                                         std::forward< Keep >( keep ),
+                                                                         std::forward< Store >( store ),
                                                                          identity,
                                                                          launchConfig );
 }
@@ -122,7 +122,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T >
 void
@@ -131,7 +131,7 @@ reduceRows( const Matrix& matrix,
             IndexEnd end,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             const FetchValue& identity,
             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -140,19 +140,19 @@ reduceRows( const Matrix& matrix,
                                                                               end,
                                                                               std::forward< Fetch >( fetch ),
                                                                               reduction,
-                                                                              std::forward< Keep >( keep ),
+                                                                              std::forward< Store >( store ),
                                                                               identity,
                                                                               launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Keep, typename T >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename T >
 void
 reduceRows( Matrix& matrix,
             IndexBegin begin,
             IndexEnd end,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -162,19 +162,19 @@ reduceRows( Matrix& matrix,
                end,
                std::forward< Fetch >( fetch ),
                reduction,
-               std::forward< Keep >( keep ),
+               std::forward< Store >( store ),
                Reduction::template getIdentity< FetchValue >(),
                launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Keep, typename T >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename T >
 void
 reduceRows( const Matrix& matrix,
             IndexBegin begin,
             IndexEnd end,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -184,18 +184,18 @@ reduceRows( const Matrix& matrix,
                end,
                std::forward< Fetch >( fetch ),
                reduction,
-               std::forward< Keep >( keep ),
+               std::forward< Store >( store ),
                Reduction::template getIdentity< FetchValue >(),
                launchConfig );
 }
 
-template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue, typename T >
+template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue, typename T >
 void
 reduceRows( Matrix& matrix,
             const Array& rowIndexes,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             const FetchValue& identity,
             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -204,18 +204,18 @@ reduceRows( Matrix& matrix,
                                                                          rowIndexes,
                                                                          std::forward< Fetch >( fetch ),
                                                                          reduction,
-                                                                         std::forward< Keep >( keep ),
+                                                                         std::forward< Store >( store ),
                                                                          identity,
                                                                          launchConfig );
 }
 
-template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue, typename T >
+template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue, typename T >
 void
 reduceRows( const Matrix& matrix,
             const Array& rowIndexes,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             const FetchValue& identity,
             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -223,18 +223,18 @@ reduceRows( const Matrix& matrix,
                                                                               rowIndexes,
                                                                               std::forward< Fetch >( fetch ),
                                                                               reduction,
-                                                                              std::forward< Keep >( keep ),
+                                                                              std::forward< Store >( store ),
                                                                               identity,
                                                                               launchConfig );
 }
 
-template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Keep, typename T >
+template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Store, typename T >
 void
 reduceRows( Matrix& matrix,
             const Array& rowIndexes,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -243,18 +243,18 @@ reduceRows( Matrix& matrix,
                rowIndexes,
                std::forward< Fetch >( fetch ),
                reduction,
-               std::forward< Keep >( keep ),
+               std::forward< Store >( store ),
                Reduction::template getIdentity< FetchValue >(),
                launchConfig );
 }
 
-template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Keep, typename T >
+template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Store, typename T >
 void
 reduceRows( const Matrix& matrix,
             const Array& rowIndexes,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -265,18 +265,18 @@ reduceRows( const Matrix& matrix,
                rowIndexes.getSize(),
                std::forward< Fetch >( fetch ),
                reduction,
-               std::forward< Keep >( keep ),
+               std::forward< Store >( store ),
                Reduction::template getIdentity< FetchValue >(),
                launchConfig );
 }
 
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Matrix::IndexType
 reduceAllRowsIf( Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
                  Reduction&& reduction,
-                 Keep&& keep,
+                 Store&& store,
                  const FetchValue& identity,
                  Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -286,18 +286,18 @@ reduceAllRowsIf( Matrix& matrix,
                         std::forward< Condition >( condition ),
                         std::forward< Fetch >( fetch ),
                         reduction,
-                        std::forward< Keep >( keep ),
+                        std::forward< Store >( store ),
                         identity,
                         launchConfig );
 }
 
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Matrix::IndexType
 reduceAllRowsIf( const Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
                  Reduction&& reduction,
-                 Keep&& keep,
+                 Store&& store,
                  const FetchValue& identity,
                  Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -307,18 +307,18 @@ reduceAllRowsIf( const Matrix& matrix,
                         std::forward< Condition >( condition ),
                         std::forward< Fetch >( fetch ),
                         reduction,
-                        std::forward< Keep >( keep ),
+                        std::forward< Store >( store ),
                         identity,
                         launchConfig );
 }
 
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
 reduceAllRowsIf( Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
                  Reduction&& reduction,
-                 Keep&& keep,
+                 Store&& store,
                  Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -329,18 +329,18 @@ reduceAllRowsIf( Matrix& matrix,
                         std::forward< Condition >( condition ),
                         std::forward< Fetch >( fetch ),
                         reduction,
-                        std::forward< Keep >( keep ),
+                        std::forward< Store >( store ),
                         Reduction::template getIdentity< FetchValue >(),
                         launchConfig );
 }
 
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
 reduceAllRowsIf( const Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
                  Reduction&& reduction,
-                 Keep&& keep,
+                 Store&& store,
                  Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -351,7 +351,7 @@ reduceAllRowsIf( const Matrix& matrix,
                         std::forward< Condition >( condition ),
                         std::forward< Fetch >( fetch ),
                         reduction,
-                        std::forward< Keep >( keep ),
+                        std::forward< Store >( store ),
                         Reduction::template getIdentity< FetchValue >(),
                         launchConfig );
 }
@@ -362,7 +362,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue >
 typename Matrix::IndexType
 reduceRowsIf( Matrix& matrix,
@@ -371,7 +371,7 @@ reduceRowsIf( Matrix& matrix,
               Condition&& condition,
               Fetch&& fetch,
               Reduction&& reduction,
-              Keep&& keep,
+              Store&& store,
               const FetchValue& identity,
               Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -382,7 +382,7 @@ reduceRowsIf( Matrix& matrix,
                                                                                   std::forward< Condition >( condition ),
                                                                                   std::forward< Fetch >( fetch ),
                                                                                   reduction,
-                                                                                  std::forward< Keep >( keep ),
+                                                                                  std::forward< Store >( store ),
                                                                                   identity,
                                                                                   launchConfig );
 }
@@ -393,7 +393,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue >
 typename Matrix::IndexType
 reduceRowsIf( const Matrix& matrix,
@@ -402,7 +402,7 @@ reduceRowsIf( const Matrix& matrix,
               Condition&& condition,
               Fetch&& fetch,
               Reduction&& reduction,
-              Keep&& keep,
+              Store&& store,
               const FetchValue& identity,
               Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -412,7 +412,7 @@ reduceRowsIf( const Matrix& matrix,
                                                                                        std::forward< Condition >( condition ),
                                                                                        std::forward< Fetch >( fetch ),
                                                                                        reduction,
-                                                                                       std::forward< Keep >( keep ),
+                                                                                       std::forward< Store >( store ),
                                                                                        identity,
                                                                                        launchConfig );
 }
@@ -423,7 +423,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep >
+          typename Store >
 typename Matrix::IndexType
 reduceRowsIf( Matrix& matrix,
               IndexBegin begin,
@@ -431,7 +431,7 @@ reduceRowsIf( Matrix& matrix,
               Condition&& condition,
               Fetch&& fetch,
               Reduction&& reduction,
-              Keep&& keep,
+              Store&& store,
               Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -442,7 +442,7 @@ reduceRowsIf( Matrix& matrix,
                         std::forward< Condition >( condition ),
                         std::forward< Fetch >( fetch ),
                         reduction,
-                        std::forward< Keep >( keep ),
+                        std::forward< Store >( store ),
                         Reduction::template getIdentity< FetchValue >(),
                         launchConfig );
 }
@@ -453,7 +453,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep >
+          typename Store >
 typename Matrix::IndexType
 reduceRowsIf( const Matrix& matrix,
               IndexBegin begin,
@@ -461,7 +461,7 @@ reduceRowsIf( const Matrix& matrix,
               Condition&& condition,
               Fetch&& fetch,
               Reduction&& reduction,
-              Keep&& keep,
+              Store&& store,
               Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -472,17 +472,17 @@ reduceRowsIf( const Matrix& matrix,
                         std::forward< Condition >( condition ),
                         std::forward< Fetch >( fetch ),
                         reduction,
-                        std::forward< Keep >( keep ),
+                        std::forward< Store >( store ),
                         Reduction::template getIdentity< FetchValue >(),
                         launchConfig );
 }
 
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
 reduceAllRowsWithArgument( Matrix& matrix,
                            Fetch&& fetch,
                            Reduction&& reduction,
-                           Keep&& keep,
+                           Store&& store,
                            const FetchValue& identity,
                            Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -491,17 +491,17 @@ reduceAllRowsWithArgument( Matrix& matrix,
                            matrix.getRows(),
                            std::forward< Fetch >( fetch ),
                            reduction,
-                           std::forward< Keep >( keep ),
+                           std::forward< Store >( store ),
                            identity,
                            launchConfig );
 }
 
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
 reduceAllRowsWithArgument( const Matrix& matrix,
                            Fetch&& fetch,
                            Reduction&& reduction,
-                           Keep&& keep,
+                           Store&& store,
                            const FetchValue& identity,
                            Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -510,17 +510,17 @@ reduceAllRowsWithArgument( const Matrix& matrix,
                            matrix.getRows(),
                            std::forward< Fetch >( fetch ),
                            reduction,
-                           std::forward< Keep >( keep ),
+                           std::forward< Store >( store ),
                            identity,
                            launchConfig );
 }
 
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
 reduceAllRowsWithArgument( Matrix& matrix,
                            Fetch&& fetch,
                            Reduction&& reduction,
-                           Keep&& keep,
+                           Store&& store,
                            Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -530,17 +530,17 @@ reduceAllRowsWithArgument( Matrix& matrix,
                            matrix.getRows(),
                            std::forward< Fetch >( fetch ),
                            reduction,
-                           std::forward< Keep >( keep ),
+                           std::forward< Store >( store ),
                            Reduction::template getIdentity< FetchValue >(),
                            launchConfig );
 }
 
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
 reduceAllRowsWithArgument( const Matrix& matrix,
                            Fetch&& fetch,
                            Reduction&& reduction,
-                           Keep&& keep,
+                           Store&& store,
                            Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -550,7 +550,7 @@ reduceAllRowsWithArgument( const Matrix& matrix,
                            matrix.getRows(),
                            std::forward< Fetch >( fetch ),
                            reduction,
-                           std::forward< Keep >( keep ),
+                           std::forward< Store >( store ),
                            Reduction::template getIdentity< FetchValue >(),
                            launchConfig );
 }
@@ -560,7 +560,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T >
 void
@@ -569,7 +569,7 @@ reduceRowsWithArgument( Matrix& matrix,
                         IndexEnd end,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         const FetchValue& identity,
                         Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -579,7 +579,7 @@ reduceRowsWithArgument( Matrix& matrix,
                                                                                      end,
                                                                                      std::forward< Fetch >( fetch ),
                                                                                      reduction,
-                                                                                     std::forward< Keep >( keep ),
+                                                                                     std::forward< Store >( store ),
                                                                                      identity,
                                                                                      launchConfig );
 }
@@ -589,7 +589,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T >
 void
@@ -598,7 +598,7 @@ reduceRowsWithArgument( const Matrix& matrix,
                         IndexEnd end,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         const FetchValue& identity,
                         Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -607,19 +607,19 @@ reduceRowsWithArgument( const Matrix& matrix,
                                                                                           end,
                                                                                           std::forward< Fetch >( fetch ),
                                                                                           reduction,
-                                                                                          std::forward< Keep >( keep ),
+                                                                                          std::forward< Store >( store ),
                                                                                           identity,
                                                                                           launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Keep, typename T >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename T >
 void
 reduceRowsWithArgument( Matrix& matrix,
                         IndexBegin begin,
                         IndexEnd end,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -629,19 +629,19 @@ reduceRowsWithArgument( Matrix& matrix,
                            end,
                            std::forward< Fetch >( fetch ),
                            reduction,
-                           std::forward< Keep >( keep ),
+                           std::forward< Store >( store ),
                            Reduction::template getIdentity< FetchValue >(),
                            launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Keep, typename T >
+template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename T >
 void
 reduceRowsWithArgument( const Matrix& matrix,
                         IndexBegin begin,
                         IndexEnd end,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -651,18 +651,18 @@ reduceRowsWithArgument( const Matrix& matrix,
                            end,
                            std::forward< Fetch >( fetch ),
                            reduction,
-                           std::forward< Keep >( keep ),
+                           std::forward< Store >( store ),
                            Reduction::template getIdentity< FetchValue >(),
                            launchConfig );
 }
 
-template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue, typename T >
+template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue, typename T >
 void
 reduceRowsWithArgument( Matrix& matrix,
                         const Array& rowIndexes,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         const FetchValue& identity,
                         Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -671,18 +671,18 @@ reduceRowsWithArgument( Matrix& matrix,
                                                                                      rowIndexes,
                                                                                      std::forward< Fetch >( fetch ),
                                                                                      reduction,
-                                                                                     std::forward< Keep >( keep ),
+                                                                                     std::forward< Store >( store ),
                                                                                      identity,
                                                                                      launchConfig );
 }
 
-template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue, typename T >
+template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue, typename T >
 void
 reduceRowsWithArgument( const Matrix& matrix,
                         const Array& rowIndexes,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         const FetchValue& identity,
                         Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -690,18 +690,18 @@ reduceRowsWithArgument( const Matrix& matrix,
                                                                                           rowIndexes,
                                                                                           std::forward< Fetch >( fetch ),
                                                                                           reduction,
-                                                                                          std::forward< Keep >( keep ),
+                                                                                          std::forward< Store >( store ),
                                                                                           identity,
                                                                                           launchConfig );
 }
 
-template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Keep, typename T >
+template< typename Matrix, typename Array, typename Fetch, typename Reduction, typename Store, typename T >
 void
 reduceRowsWithArgument( Matrix& matrix,
                         const Array& rowIndexes,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -710,7 +710,7 @@ reduceRowsWithArgument( Matrix& matrix,
                            rowIndexes,
                            std::forward< Fetch >( fetch ),
                            reduction,
-                           std::forward< Keep >( keep ),
+                           std::forward< Store >( store ),
                            Reduction::template getIdentity< FetchValue >(),
                            launchConfig );
 }
@@ -721,14 +721,14 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename T >
 void
 reduceRowsWithArgument( const Matrix& matrix,
                         const Array& rowIndexes,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -737,18 +737,18 @@ reduceRowsWithArgument( const Matrix& matrix,
                            rowIndexes,
                            std::forward< Fetch >( fetch ),
                            reduction,
-                           std::forward< Keep >( keep ),
+                           std::forward< Store >( store ),
                            Reduction::template getIdentity< FetchValue >(),
                            launchConfig );
 }
 
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Matrix::IndexType
 reduceAllRowsWithArgumentIf( Matrix& matrix,
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
-                             Keep&& keep,
+                             Store&& store,
                              const FetchValue& identity,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -758,18 +758,18 @@ reduceAllRowsWithArgumentIf( Matrix& matrix,
                                     std::forward< Condition >( condition ),
                                     std::forward< Fetch >( fetch ),
                                     reduction,
-                                    std::forward< Keep >( keep ),
+                                    std::forward< Store >( store ),
                                     identity,
                                     launchConfig );
 }
 
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Matrix::IndexType
 reduceAllRowsWithArgumentIf( const Matrix& matrix,
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
-                             Keep&& keep,
+                             Store&& store,
                              const FetchValue& identity,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -779,18 +779,18 @@ reduceAllRowsWithArgumentIf( const Matrix& matrix,
                                     std::forward< Condition >( condition ),
                                     std::forward< Fetch >( fetch ),
                                     reduction,
-                                    std::forward< Keep >( keep ),
+                                    std::forward< Store >( store ),
                                     identity,
                                     launchConfig );
 }
 
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
 reduceAllRowsWithArgumentIf( Matrix& matrix,
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
-                             Keep&& keep,
+                             Store&& store,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -801,18 +801,18 @@ reduceAllRowsWithArgumentIf( Matrix& matrix,
                                     std::forward< Condition >( condition ),
                                     std::forward< Fetch >( fetch ),
                                     reduction,
-                                    std::forward< Keep >( keep ),
+                                    std::forward< Store >( store ),
                                     Reduction::template getIdentity< FetchValue >(),
                                     launchConfig );
 }
 
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
 reduceAllRowsWithArgumentIf( const Matrix& matrix,
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
-                             Keep&& keep,
+                             Store&& store,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -823,7 +823,7 @@ reduceAllRowsWithArgumentIf( const Matrix& matrix,
                                     std::forward< Condition >( condition ),
                                     std::forward< Fetch >( fetch ),
                                     reduction,
-                                    std::forward< Keep >( keep ),
+                                    std::forward< Store >( store ),
                                     Reduction::template getIdentity< FetchValue >(),
                                     launchConfig );
 }
@@ -834,7 +834,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf( Matrix& matrix,
@@ -843,7 +843,7 @@ reduceRowsWithArgumentIf( Matrix& matrix,
                           Condition&& condition,
                           Fetch&& fetch,
                           Reduction&& reduction,
-                          Keep&& keep,
+                          Store&& store,
                           const FetchValue& identity,
                           Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -855,7 +855,7 @@ reduceRowsWithArgumentIf( Matrix& matrix,
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
       reduction,
-      std::forward< Keep >( keep ),
+      std::forward< Store >( store ),
       identity,
       launchConfig );
 }
@@ -866,7 +866,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf( const Matrix& matrix,
@@ -875,7 +875,7 @@ reduceRowsWithArgumentIf( const Matrix& matrix,
                           Condition&& condition,
                           Fetch&& fetch,
                           Reduction&& reduction,
-                          Keep&& keep,
+                          Store&& store,
                           const FetchValue& identity,
                           Algorithms::Segments::LaunchConfiguration launchConfig )
 {
@@ -886,7 +886,7 @@ reduceRowsWithArgumentIf( const Matrix& matrix,
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
       reduction,
-      std::forward< Keep >( keep ),
+      std::forward< Store >( store ),
       identity,
       launchConfig );
 }
@@ -897,7 +897,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep >
+          typename Store >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf( Matrix& matrix,
                           IndexBegin begin,
@@ -905,7 +905,7 @@ reduceRowsWithArgumentIf( Matrix& matrix,
                           Condition&& condition,
                           Fetch&& fetch,
                           Reduction&& reduction,
-                          Keep&& keep,
+                          Store&& store,
                           Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -916,7 +916,7 @@ reduceRowsWithArgumentIf( Matrix& matrix,
                                     std::forward< Condition >( condition ),
                                     std::forward< Fetch >( fetch ),
                                     reduction,
-                                    std::forward< Keep >( keep ),
+                                    std::forward< Store >( store ),
                                     Reduction::template getIdentity< FetchValue >(),
                                     launchConfig );
 }
@@ -927,7 +927,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep >
+          typename Store >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf( const Matrix& matrix,
                           IndexBegin begin,
@@ -935,7 +935,7 @@ reduceRowsWithArgumentIf( const Matrix& matrix,
                           Condition&& condition,
                           Fetch&& fetch,
                           Reduction&& reduction,
-                          Keep&& keep,
+                          Store&& store,
                           Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
@@ -946,7 +946,7 @@ reduceRowsWithArgumentIf( const Matrix& matrix,
                                     std::forward< Condition >( condition ),
                                     std::forward< Fetch >( fetch ),
                                     reduction,
-                                    std::forward< Keep >( keep ),
+                                    std::forward< Store >( store ),
                                     Reduction::template getIdentity< FetchValue >(),
                                     launchConfig );
 }

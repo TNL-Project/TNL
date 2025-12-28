@@ -25,14 +25,14 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
    using DeviceType = typename MatrixView::DeviceType;
    using IndexType = typename MatrixView::IndexType;
 
-   template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+   template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
    reduceRows( MatrixView& matrix,
                IndexBegin begin,
                IndexEnd end,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                const FetchValue& identity,
                Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -56,17 +56,17 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          return identity;
       };
       Algorithms::Segments::reduceSegments(
-         matrix.getSegments(), begin, end, fetchWrapper, reduction, keep, identity, launchConfig );
+         matrix.getSegments(), begin, end, fetchWrapper, reduction, store, identity, launchConfig );
    }
 
-   template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+   template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
    reduceRows( const ConstMatrixView& matrix,
                IndexBegin begin,
                IndexEnd end,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                const FetchValue& identity,
                Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -87,16 +87,16 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          return identity;
       };
       Algorithms::Segments::reduceSegments(
-         matrix.getSegments(), begin, end, fetchWrapper, reduction, keep, identity, launchConfig );
+         matrix.getSegments(), begin, end, fetchWrapper, reduction, store, identity, launchConfig );
    }
 
-   template< typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+   template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
    reduceRows( MatrixView& matrix,
                const Array& rowIndexes,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                const FetchValue& identity,
                Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -121,20 +121,20 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       };
       auto keepWrapper = [ = ] __cuda_callable__( IndexType indexOfRowIdx, IndexType rowIdx, const FetchValue& value ) mutable
       {
-         keep( indexOfRowIdx, rowIdx, value );
+         store( indexOfRowIdx, rowIdx, value );
       };
 
       Algorithms::Segments::reduceSegments(
          matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
    }
 
-   template< typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+   template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
    reduceRows( const ConstMatrixView& matrix,
                const Array& rowIndexes,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                const FetchValue& identity,
                Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -156,7 +156,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       };
       auto keepWrapper = [ = ] __cuda_callable__( IndexType indexOfRowIdx, IndexType rowIdx, const FetchValue& value ) mutable
       {
-         keep( indexOfRowIdx, rowIdx, value );
+         store( indexOfRowIdx, rowIdx, value );
       };
 
       Algorithms::Segments::reduceSegments(
@@ -168,7 +168,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
              typename Condition,
              typename Fetch,
              typename Reduction,
-             typename Keep,
+             typename Store,
              typename FetchValue >
    static IndexType
    reduceRowsIf( MatrixView& matrix,
@@ -177,7 +177,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                  Condition&& condition,
                  Fetch&& fetch,
                  Reduction&& reduction,
-                 Keep&& keep,
+                 Store&& store,
                  const FetchValue& identity,
                  Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -206,7 +206,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                                                      std::forward< Condition >( condition ),
                                                      fetchWrapper,
                                                      reduction,
-                                                     keep,
+                                                     store,
                                                      identity,
                                                      launchConfig );
    }
@@ -216,7 +216,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
              typename Condition,
              typename Fetch,
              typename Reduction,
-             typename Keep,
+             typename Store,
              typename FetchValue >
    static IndexType
    reduceRowsIf( const ConstMatrixView& matrix,
@@ -225,7 +225,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                  Condition&& condition,
                  Fetch&& fetch,
                  Reduction&& reduction,
-                 Keep&& keep,
+                 Store&& store,
                  const FetchValue& identity,
                  Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -251,19 +251,19 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                                                      std::forward< Condition >( condition ),
                                                      fetchWrapper,
                                                      reduction,
-                                                     keep,
+                                                     store,
                                                      identity,
                                                      launchConfig );
    }
 
-   template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+   template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
    reduceRowsWithArgument( MatrixView& matrix,
                            IndexBegin begin,
                            IndexEnd end,
                            Fetch&& fetch,
                            Reduction&& reduction,
-                           Keep&& keep,
+                           Store&& store,
                            const FetchValue& identity,
                            Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -290,21 +290,21 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto keepWrapper = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
       {
          const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         keep( rowIdx, localIdx, columnIdx, value );
+         store( rowIdx, localIdx, columnIdx, value );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
          matrix.getSegments(), begin, end, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
    }
 
-   template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+   template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
    reduceRowsWithArgument( const ConstMatrixView& matrix,
                            IndexBegin begin,
                            IndexEnd end,
                            Fetch&& fetch,
                            Reduction&& reduction,
-                           Keep&& keep,
+                           Store&& store,
                            const FetchValue& identity,
                            Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -328,20 +328,20 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       auto keepWrapper = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
       {
          const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         keep( rowIdx, localIdx, columnIdx, value );
+         store( rowIdx, localIdx, columnIdx, value );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
          matrix.getSegments(), begin, end, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
    }
 
-   template< typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+   template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
    reduceRowsWithArgument( MatrixView& matrix,
                            const Array& rowIndexes,
                            Fetch&& fetch,
                            Reduction&& reduction,
-                           Keep&& keep,
+                           Store&& store,
                            const FetchValue& identity,
                            Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -365,20 +365,20 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                             IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
       {
          const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
          matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
    }
 
-   template< typename Array, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+   template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
    reduceRowsWithArgument( const ConstMatrixView& matrix,
                            const Array& rowIndexes,
                            Fetch&& fetch,
                            Reduction&& reduction,
-                           Keep&& keep,
+                           Store&& store,
                            const FetchValue& identity,
                            Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -403,7 +403,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                             IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
       {
          const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -415,7 +415,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
              typename Condition,
              typename Fetch,
              typename Reduction,
-             typename Keep,
+             typename Store,
              typename FetchValue >
    static IndexType
    reduceRowsWithArgumentIf( MatrixView& matrix,
@@ -424,7 +424,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
-                             Keep&& keep,
+                             Store&& store,
                              const FetchValue& identity,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -453,7 +453,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                             IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
       {
          const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
       return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
@@ -472,7 +472,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
              typename Condition,
              typename Fetch,
              typename Reduction,
-             typename Keep,
+             typename Store,
              typename FetchValue >
    static IndexType
    reduceRowsWithArgumentIf( const ConstMatrixView& matrix,
@@ -481,7 +481,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
-                             Keep&& keep,
+                             Store&& store,
                              const FetchValue& identity,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -506,7 +506,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                             IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
       {
          const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
       return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
@@ -526,7 +526,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
              typename Condition,
              typename Fetch,
              typename Reduction,
-             typename Keep,
+             typename Store,
              typename FetchValue >
    static IndexType
    reduceRowsWithArgumentIf( MatrixView& matrix,
@@ -536,7 +536,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
-                             Keep&& keep,
+                             Store&& store,
                              const FetchValue& identity,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -564,7 +564,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                             IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
       {
          const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
       return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
@@ -583,7 +583,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
              typename Condition,
              typename Fetch,
              typename Reduction,
-             typename Keep,
+             typename Store,
              typename FetchValue >
    static IndexType
    reduceRowsWithArgumentIf( const ConstMatrixView& matrix,
@@ -593,7 +593,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                              Condition&& condition,
                              Fetch&& fetch,
                              Reduction&& reduction,
-                             Keep&& keep,
+                             Store&& store,
                              const FetchValue& identity,
                              Algorithms::Segments::LaunchConfiguration launchConfig )
    {
@@ -618,7 +618,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                             IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
       {
          const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         keep( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
       };
 
       return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),

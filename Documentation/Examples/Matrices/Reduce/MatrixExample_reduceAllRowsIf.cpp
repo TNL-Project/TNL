@@ -47,7 +47,7 @@ reduceAllRowsIfExample()
       return rowIdx % 2 == 0;  // Only even row indices
    };
 
-   auto keep = [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, const double& sum ) mutable
+   auto store = [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, const double& sum ) mutable
    {
       evenRowSums_view[ rowIdx ] = sum;
       compressedEvenRowSums_view[ indexOfRowIdx ] = sum;
@@ -56,7 +56,7 @@ reduceAllRowsIfExample()
    // Initialize with -1 to see which rows were processed
    evenRowSums.setValue( -1.0 );
 
-   auto evenRowsCount = TNL::Matrices::reduceAllRowsIf( matrix, rowCondition, fetch, TNL::Plus{}, keep );
+   auto evenRowsCount = TNL::Matrices::reduceAllRowsIf( matrix, rowCondition, fetch, TNL::Plus{}, store );
 
    std::cout << "Sums for even-indexed rows (odd indices show -1): " << evenRowSums << std::endl;
    std::cout << "Compressed sums for even-indexed rows: " << compressedEvenRowSums.getView( 0, evenRowsCount ) << std::endl;

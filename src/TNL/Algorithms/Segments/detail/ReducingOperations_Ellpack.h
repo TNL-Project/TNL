@@ -25,7 +25,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType,
              typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
    static void
@@ -34,7 +34,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                    IndexEnd end,
                    Fetch&& fetch,
                    Reduction&& reduction,
-                   ResultKeeper&& keeper,
+                   ResultStorer&& storer,
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
@@ -58,7 +58,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                     IndexEnd,
                                                                     std::remove_reference_t< Fetch >,
                                                                     std::remove_reference_t< Reduction >,
-                                                                    std::remove_reference_t< ResultKeeper >,
+                                                                    std::remove_reference_t< ResultStorer >,
                                                                     ReturnType >;
                constexpr auto kernel2 = EllpackCudaReductionKernel< 2,
                                                                     ConstViewType,
@@ -66,7 +66,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                     IndexEnd,
                                                                     std::remove_reference_t< Fetch >,
                                                                     std::remove_reference_t< Reduction >,
-                                                                    std::remove_reference_t< ResultKeeper >,
+                                                                    std::remove_reference_t< ResultStorer >,
                                                                     ReturnType >;
                constexpr auto kernel4 = EllpackCudaReductionKernel< 4,
                                                                     ConstViewType,
@@ -74,7 +74,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                     IndexEnd,
                                                                     std::remove_reference_t< Fetch >,
                                                                     std::remove_reference_t< Reduction >,
-                                                                    std::remove_reference_t< ResultKeeper >,
+                                                                    std::remove_reference_t< ResultStorer >,
                                                                     ReturnType >;
                constexpr auto kernel8 = EllpackCudaReductionKernel< 8,
                                                                     ConstViewType,
@@ -82,7 +82,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                     IndexEnd,
                                                                     std::remove_reference_t< Fetch >,
                                                                     std::remove_reference_t< Reduction >,
-                                                                    std::remove_reference_t< ResultKeeper >,
+                                                                    std::remove_reference_t< ResultStorer >,
                                                                     ReturnType >;
                constexpr auto kernel16 = EllpackCudaReductionKernel< 16,
                                                                      ConstViewType,
@@ -90,7 +90,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                      IndexEnd,
                                                                      std::remove_reference_t< Fetch >,
                                                                      std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultKeeper >,
+                                                                     std::remove_reference_t< ResultStorer >,
                                                                      ReturnType >;
                constexpr auto kernel32 = EllpackCudaReductionKernel< 32,
                                                                      ConstViewType,
@@ -98,33 +98,33 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                      IndexEnd,
                                                                      std::remove_reference_t< Fetch >,
                                                                      std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultKeeper >,
+                                                                     std::remove_reference_t< ResultStorer >,
                                                                      ReturnType >;
 
                switch( launchConfig.getThreadsPerSegmentCount() ) {
                   case 1:
                      Backend::launchKernelSync(
-                        kernel1, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                        kernel1, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                      break;
                   case 2:
                      Backend::launchKernelSync(
-                        kernel2, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                        kernel2, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                      break;
                   case 4:
                      Backend::launchKernelSync(
-                        kernel4, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                        kernel4, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                      break;
                   case 8:
                      Backend::launchKernelSync(
-                        kernel8, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                        kernel8, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                      break;
                   case 16:
                      Backend::launchKernelSync(
-                        kernel16, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                        kernel16, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                      break;
                   case 32:
                      Backend::launchKernelSync(
-                        kernel32, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                        kernel32, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                      break;
                   default:
                      throw std::invalid_argument( "Unsupported threads per segment ( "
@@ -147,7 +147,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                for( IndexType j = begin; j < end; j++ )
                   result = reduction(
                      result, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
-               keeper( segmentIdx, result );
+               storer( segmentIdx, result );
             };
             Algorithms::parallelFor< Device >( begin, end, l );
          }
@@ -163,7 +163,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             IndexType localIdx = 0;
             for( IndexType j = begin; j < end; j += alignedSize )
                aux = reduction( aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
-            keeper( segmentIdx, aux );
+            storer( segmentIdx, aux );
          };
          Algorithms::parallelFor< Device >( begin, end, l );
       }
@@ -172,14 +172,14 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    template< typename Array,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
                                      const Array& segmentIndexes,
                                      Fetch&& fetch,
                                      Reduction&& reduction,
-                                     ResultKeeper&& keeper,
+                                     ResultStorer&& storer,
                                      const Value& identity,
                                      const LaunchConfiguration& launchConfig )
    {
@@ -203,67 +203,67 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                                    ArrayView,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultKeeper >,
+                                                                                   std::remove_reference_t< ResultStorer >,
                                                                                    ReturnType >;
             constexpr auto kernel2 = EllpackCudaReductionKernelWithSegmentIndexes< 2,
                                                                                    ConstViewType,
                                                                                    ArrayView,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultKeeper >,
+                                                                                   std::remove_reference_t< ResultStorer >,
                                                                                    ReturnType >;
             constexpr auto kernel4 = EllpackCudaReductionKernelWithSegmentIndexes< 4,
                                                                                    ConstViewType,
                                                                                    ArrayView,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultKeeper >,
+                                                                                   std::remove_reference_t< ResultStorer >,
                                                                                    ReturnType >;
             constexpr auto kernel8 = EllpackCudaReductionKernelWithSegmentIndexes< 8,
                                                                                    ConstViewType,
                                                                                    ArrayView,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultKeeper >,
+                                                                                   std::remove_reference_t< ResultStorer >,
                                                                                    ReturnType >;
             constexpr auto kernel16 = EllpackCudaReductionKernelWithSegmentIndexes< 16,
                                                                                     ConstViewType,
                                                                                     ArrayView,
                                                                                     std::remove_reference_t< Fetch >,
                                                                                     std::remove_reference_t< Reduction >,
-                                                                                    std::remove_reference_t< ResultKeeper >,
+                                                                                    std::remove_reference_t< ResultStorer >,
                                                                                     ReturnType >;
             constexpr auto kernel32 = EllpackCudaReductionKernelWithSegmentIndexes< 32,
                                                                                     ConstViewType,
                                                                                     ArrayView,
                                                                                     std::remove_reference_t< Fetch >,
                                                                                     std::remove_reference_t< Reduction >,
-                                                                                    std::remove_reference_t< ResultKeeper >,
+                                                                                    std::remove_reference_t< ResultStorer >,
                                                                                     ReturnType >;
             switch( launchConfig.getThreadsPerSegmentCount() ) {
                case 1:
                   Backend::launchKernelSync(
-                     kernel1, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel1, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                case 2:
                   Backend::launchKernelSync(
-                     kernel2, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel2, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                case 4:
                   Backend::launchKernelSync(
-                     kernel4, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel4, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                case 8:
                   Backend::launchKernelSync(
-                     kernel8, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel8, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                case 16:
                   Backend::launchKernelSync(
-                     kernel16, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel16, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                case 32:
                   Backend::launchKernelSync(
-                     kernel32, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel32, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                default:
                   throw std::invalid_argument( "Unsupported threads per segment ( "
@@ -285,7 +285,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                for( IndexType j = begin; j < end; j++ )
                   result = reduction(
                      result, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
-               keeper( segmentIdx_idx, segmentIdx, result );
+               storer( segmentIdx_idx, segmentIdx, result );
             };
             Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
          }
@@ -304,7 +304,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
             for( IndexType j = begin; j < end; j += alignedSize )
                result =
                   reduction( result, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, j ) );
-            keeper( segmentIdx_idx, segmentIdx, result );
+            storer( segmentIdx_idx, segmentIdx, result );
          };
          Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
       }
@@ -314,7 +314,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsWithArgument( const ConstViewType& segments,
@@ -322,7 +322,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                IndexEnd end,
                                Fetch&& fetch,
                                Reduction&& reduction,
-                               ResultKeeper&& keeper,
+                               ResultStorer&& storer,
                                const Value& identity,
                                const LaunchConfiguration& launchConfig )
    {
@@ -345,7 +345,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                              IndexEnd,
                                                                              std::remove_reference_t< Fetch >,
                                                                              std::remove_reference_t< Reduction >,
-                                                                             std::remove_reference_t< ResultKeeper >,
+                                                                             std::remove_reference_t< ResultStorer >,
                                                                              ReturnType >;
             constexpr auto kernel2 = EllpackCudaReductionKernelWithArgument< 2,
                                                                              ConstViewType,
@@ -353,7 +353,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                              IndexEnd,
                                                                              std::remove_reference_t< Fetch >,
                                                                              std::remove_reference_t< Reduction >,
-                                                                             std::remove_reference_t< ResultKeeper >,
+                                                                             std::remove_reference_t< ResultStorer >,
                                                                              ReturnType >;
             constexpr auto kernel4 = EllpackCudaReductionKernelWithArgument< 4,
                                                                              ConstViewType,
@@ -361,7 +361,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                              IndexEnd,
                                                                              std::remove_reference_t< Fetch >,
                                                                              std::remove_reference_t< Reduction >,
-                                                                             std::remove_reference_t< ResultKeeper >,
+                                                                             std::remove_reference_t< ResultStorer >,
                                                                              ReturnType >;
             constexpr auto kernel8 = EllpackCudaReductionKernelWithArgument< 8,
                                                                              ConstViewType,
@@ -369,7 +369,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                              IndexEnd,
                                                                              std::remove_reference_t< Fetch >,
                                                                              std::remove_reference_t< Reduction >,
-                                                                             std::remove_reference_t< ResultKeeper >,
+                                                                             std::remove_reference_t< ResultStorer >,
                                                                              ReturnType >;
             constexpr auto kernel16 = EllpackCudaReductionKernelWithArgument< 16,
                                                                               ConstViewType,
@@ -377,7 +377,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                               IndexEnd,
                                                                               std::remove_reference_t< Fetch >,
                                                                               std::remove_reference_t< Reduction >,
-                                                                              std::remove_reference_t< ResultKeeper >,
+                                                                              std::remove_reference_t< ResultStorer >,
                                                                               ReturnType >;
             constexpr auto kernel32 = EllpackCudaReductionKernelWithArgument< 32,
                                                                               ConstViewType,
@@ -385,28 +385,28 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                               IndexEnd,
                                                                               std::remove_reference_t< Fetch >,
                                                                               std::remove_reference_t< Reduction >,
-                                                                              std::remove_reference_t< ResultKeeper >,
+                                                                              std::remove_reference_t< ResultStorer >,
                                                                               ReturnType >;
             switch( launchConfig.getThreadsPerSegmentCount() ) {
                case 1:
-                  Backend::launchKernelSync( kernel1, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                  Backend::launchKernelSync( kernel1, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                   break;
                case 2:
-                  Backend::launchKernelSync( kernel2, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                  Backend::launchKernelSync( kernel2, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                   break;
                case 4:
-                  Backend::launchKernelSync( kernel4, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                  Backend::launchKernelSync( kernel4, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                   break;
                case 8:
-                  Backend::launchKernelSync( kernel8, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                  Backend::launchKernelSync( kernel8, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                   break;
                case 16:
                   Backend::launchKernelSync(
-                     kernel16, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                     kernel16, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                   break;
                case 32:
                   Backend::launchKernelSync(
-                     kernel32, launch_config, segments, begin, end, fetch, reduction, keeper, identity );
+                     kernel32, launch_config, segments, begin, end, fetch, reduction, storer, identity );
                   break;
                default:
                   throw std::invalid_argument( "Unsupported threads per segment ( "
@@ -429,7 +429,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                              detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, j ),
                              argument,
                              localIdx );
-               keeper( segmentIdx, argument, result );
+               storer( segmentIdx, argument, result );
             };
             Algorithms::parallelFor< Device >( begin, end, l );
          }
@@ -449,7 +449,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                           detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, j ),
                           argument,
                           localIdx );
-            keeper( segmentIdx, argument, result );
+            storer( segmentIdx, argument, result );
          };
          Algorithms::parallelFor< Device >( begin, end, l );
       }
@@ -458,14 +458,14 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    template< typename Array,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
                                                 const Array& segmentIndexes,
                                                 Fetch&& fetch,
                                                 Reduction&& reduction,
-                                                ResultKeeper&& keeper,
+                                                ResultStorer&& storer,
                                                 const Value& identity,
                                                 const LaunchConfiguration& launchConfig )
    {
@@ -490,7 +490,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                         ArrayView,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultKeeper >,
+                                                                        std::remove_reference_t< ResultStorer >,
                                                                         ReturnType >;
             constexpr auto kernel2 =
                EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 2,
@@ -498,7 +498,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                         ArrayView,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultKeeper >,
+                                                                        std::remove_reference_t< ResultStorer >,
                                                                         ReturnType >;
             constexpr auto kernel4 =
                EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 4,
@@ -506,7 +506,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                         ArrayView,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultKeeper >,
+                                                                        std::remove_reference_t< ResultStorer >,
                                                                         ReturnType >;
             constexpr auto kernel8 =
                EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 8,
@@ -514,7 +514,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                         ArrayView,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultKeeper >,
+                                                                        std::remove_reference_t< ResultStorer >,
                                                                         ReturnType >;
             constexpr auto kernel16 =
                EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 16,
@@ -522,7 +522,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                         ArrayView,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultKeeper >,
+                                                                        std::remove_reference_t< ResultStorer >,
                                                                         ReturnType >;
             constexpr auto kernel32 =
                EllpackCudaReductionKernelWithSegmentIndexesAndArgument< 32,
@@ -530,32 +530,32 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                                                                         ArrayView,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultKeeper >,
+                                                                        std::remove_reference_t< ResultStorer >,
                                                                         ReturnType >;
             switch( launchConfig.getThreadsPerSegmentCount() ) {
                case 1:
                   Backend::launchKernelSync(
-                     kernel1, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel1, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                case 2:
                   Backend::launchKernelSync(
-                     kernel2, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel2, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                case 4:
                   Backend::launchKernelSync(
-                     kernel4, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel4, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                case 8:
                   Backend::launchKernelSync(
-                     kernel8, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel8, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                case 16:
                   Backend::launchKernelSync(
-                     kernel16, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel16, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                case 32:
                   Backend::launchKernelSync(
-                     kernel32, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, keeper, identity );
+                     kernel32, launch_config, segments, segmentIndexes.getConstView(), fetch, reduction, storer, identity );
                   break;
                default:
                   throw std::invalid_argument( "Unsupported threads per segment ( "
@@ -580,7 +580,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                              detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, j ),
                              argument,
                              localIdx );
-               keeper( segmentIdx_idx, segmentIdx, argument, result );
+               storer( segmentIdx_idx, segmentIdx, argument, result );
             };
             Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
          }
@@ -602,7 +602,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                           detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, j ),
                           argument,
                           localIdx );
-            keeper( segmentIdx_idx, segmentIdx, argument, result );
+            storer( segmentIdx_idx, segmentIdx, argument, result );
          };
          Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
       }

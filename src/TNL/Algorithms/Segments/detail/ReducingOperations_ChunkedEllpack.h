@@ -26,7 +26,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegments( const ConstViewType& segments,
@@ -34,7 +34,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                    IndexEnd end,
                    Fetch&& fetch,
                    Reduction&& reduction,
-                   ResultKeeper&& keeper,
+                   ResultStorer&& storer,
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
@@ -71,7 +71,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                         aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
                }
             }
-            keeper( segmentIdx, aux );
+            storer( segmentIdx, aux );
          }
       }
       if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
@@ -92,10 +92,10 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                                                         IndexType,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultKeeper >,
+                                                                        std::remove_reference_t< ResultStorer >,
                                                                         Value >;
             Backend::launchKernelAsync(
-               kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
+               kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, storer, identity );
          }
          Backend::streamSynchronize( launch_config.stream );
       }
@@ -104,14 +104,14 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    template< typename Array,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
                                      const Array& segmentIndexes,
                                      Fetch&& fetch,
                                      Reduction&& reduction,
-                                     ResultKeeper&& keeper,
+                                     ResultStorer&& storer,
                                      const Value& identity,
                                      const LaunchConfiguration& launchConfig )
    {
@@ -152,7 +152,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                         detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
                }
             }
-            keeper( segmentIdx_idx, segmentIdx, result );
+            storer( segmentIdx_idx, segmentIdx, result );
          }
       }
       else {
@@ -174,7 +174,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                                                                    IndexType,
                                                                                    std::remove_reference_t< Fetch >,
                                                                                    std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultKeeper >,
+                                                                                   std::remove_reference_t< ResultStorer >,
                                                                                    Value >;
             Backend::launchKernelAsync( kernel,
                                         launch_config,
@@ -183,7 +183,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                         gridIdx,
                                         fetch,
                                         reduction,
-                                        keeper,
+                                        storer,
                                         identity );
          }
          Backend::streamSynchronize( launch_config.stream );
@@ -194,7 +194,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsWithArgument( const ConstViewType& segments,
@@ -202,7 +202,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                IndexEnd end,
                                Fetch&& fetch,
                                Reduction&& reduction,
-                               ResultKeeper&& keeper,
+                               ResultStorer&& storer,
                                const Value& identity,
                                const LaunchConfiguration& launchConfig )
    {
@@ -244,7 +244,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                 localIdx );
                }
             }
-            keeper( segmentIdx, argument, result );
+            storer( segmentIdx, argument, result );
          }
       }
       else {
@@ -265,10 +265,10 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                                                                     IndexType,
                                                                                     std::remove_reference_t< Fetch >,
                                                                                     std::remove_reference_t< Reduction >,
-                                                                                    std::remove_reference_t< ResultKeeper >,
+                                                                                    std::remove_reference_t< ResultStorer >,
                                                                                     Value >;
             Backend::launchKernelAsync(
-               kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, keeper, identity );
+               kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, storer, identity );
          }
          Backend::streamSynchronize( launch_config.stream );
       }
@@ -277,14 +277,14 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    template< typename Array,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
                                                 const Array& segmentIndexes,
                                                 Fetch&& fetch,
                                                 Reduction&& reduction,
-                                                ResultKeeper&& keeper,
+                                                ResultStorer&& storer,
                                                 const Value& identity,
                                                 const LaunchConfiguration& launchConfig )
    {
@@ -329,7 +329,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                 localIdx );
                }
             }
-            keeper( segmentIdx_idx, segmentIdx, argument, result );
+            storer( segmentIdx_idx, segmentIdx, argument, result );
          }
       }
       else {
@@ -352,7 +352,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                                                          IndexType,
                                                                          std::remove_reference_t< Fetch >,
                                                                          std::remove_reference_t< Reduction >,
-                                                                         std::remove_reference_t< ResultKeeper >,
+                                                                         std::remove_reference_t< ResultStorer >,
                                                                          Value >;
             Backend::launchKernelAsync( kernel,
                                         launch_config,
@@ -361,7 +361,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                         gridIdx,
                                         fetch,
                                         reduction,
-                                        keeper,
+                                        storer,
                                         identity );
          }
          Backend::streamSynchronize( launch_config.stream );

@@ -41,12 +41,12 @@ reduceRowsExample()
       return value;
    };
 
-   auto keepRange = [ = ] __cuda_callable__( int rowIdx, const double& sum ) mutable
+   auto storeRange = [ = ] __cuda_callable__( int rowIdx, const double& sum ) mutable
    {
       rangeSums_view[ rowIdx - 2 ] = sum;  // Offset by begin index
    };
 
-   TNL::Matrices::reduceRows( matrix, 2, 6, fetch, TNL::Plus{}, keepRange );
+   TNL::Matrices::reduceRows( matrix, 2, 6, fetch, TNL::Plus{}, storeRange );
 
    std::cout << "Sums for rows 2-5: " << rangeSums << std::endl;
 
@@ -59,13 +59,13 @@ reduceRowsExample()
    auto arraySums_view = arraySums.getView();
    auto compressedSums_view = compressedSums.getView();
 
-   auto keepArray = [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, const double& sum ) mutable
+   auto storeArray = [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, const double& sum ) mutable
    {
       arraySums_view[ rowIdx ] = sum;
       compressedSums_view[ indexOfRowIdx ] = sum;
    };
 
-   TNL::Matrices::reduceRows( matrix, rowIndexes, fetch, TNL::Plus{}, keepArray );
+   TNL::Matrices::reduceRows( matrix, rowIndexes, fetch, TNL::Plus{}, storeArray );
 
    std::cout << "Sums for rows [0, 2, 4, 6]: " << arraySums << std::endl;
    std::cout << "Compressed sums for rows [0, 2, 4, 6]: " << compressedSums.getView( 0, rowIndexes.getSize() ) << std::endl;

@@ -10,7 +10,7 @@ namespace TNL::Algorithms::Segments::detail {
 
 // TODO: The following vector kernel is special case of the general variabel vector kernel.
 // Check the performance and if it is the same, we can erase this kernel.
-template< typename Segments, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+template< typename Segments, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
 void
 reduceSegmentsCSRVectorKernel( Index gridIdx,
@@ -19,7 +19,7 @@ reduceSegmentsCSRVectorKernel( Index gridIdx,
                                Index end,
                                Fetch fetch,
                                const Reduction reduction,
-                               ResultKeeper keep,
+                               ResultStorer store,
                                const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -50,7 +50,7 @@ reduceSegmentsCSRVectorKernel( Index gridIdx,
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx, result );
+      store( segmentIdx, result );
 #endif
 }
 
@@ -59,7 +59,7 @@ template< int ThreadsPerSegment,
           typename Index,
           typename Fetch,
           typename Reduce,
-          typename Keep,
+          typename Store,
           typename Value >
 __global__
 void
@@ -69,7 +69,7 @@ reduceSegmentsCSRVariableVectorKernel( const Index gridID,
                                        const Index end,
                                        Fetch fetch,
                                        Reduce reduce,
-                                       Keep keep,
+                                       Store store,
                                        const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -151,7 +151,7 @@ reduceSegmentsCSRVariableVectorKernel( const Index gridID,
 
    // Write the result
    if( laneID == 0 )
-      keep( segmentIdx, result );
+      store( segmentIdx, result );
 #endif
 }
 
@@ -161,7 +161,7 @@ template< int BlockSize,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -171,7 +171,7 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
                                          Index end,
                                          Fetch fetch,
                                          const Reduction reduce,
-                                         ResultKeeper keep,
+                                         ResultStorer store,
                                          const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -247,7 +247,7 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
           && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
           && segmentIdx + inWarpLaneIdx < end )
       {
-         keep( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * warpsPerSegment ] );
+         store( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * warpsPerSegment ] );
       }
    }
 #endif
@@ -257,7 +257,7 @@ template< typename Segments,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           int BlockSize = 256 >
 __global__
@@ -269,7 +269,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
                                         Index end,
                                         Fetch fetch,
                                         const Reduction reduce,
-                                        ResultKeeper keep,
+                                        ResultStorer store,
                                         const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -331,7 +331,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
       // Write the result
       if( threadIdx.x == 0 ) {
          TNL_ASSERT_NE( *scheduled_segment, none_scheduled, "" );
-         keep( *scheduled_segment, result );
+         store( *scheduled_segment, result );
       }
       __syncthreads();
 
@@ -384,7 +384,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
       // Write the result
       if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 ) {  // first lane in the warp
          TNL_ASSERT_NE( scheduled_segment, none_scheduled, "" );
-         keep( scheduled_segment, result );
+         store( scheduled_segment, result );
       }
       warp_idx += warpsPerBlock;
    }
@@ -408,7 +408,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
       }
       // Write the result
       TNL_ASSERT_NE( segmentIdx, none_scheduled, "" );
-      keep( segmentIdx, result );
+      store( segmentIdx, result );
    }
 #endif
 }
@@ -422,7 +422,7 @@ template< typename Segments,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -431,7 +431,7 @@ reduceSegmentsCSRVectorKernelWithIndexes( Index gridIdx,
                                           const ArrayView segmentIndexes,
                                           Fetch fetch,
                                           const Reduction reduction,
-                                          ResultKeeper keep,
+                                          ResultStorer store,
                                           const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -463,7 +463,7 @@ reduceSegmentsCSRVectorKernelWithIndexes( Index gridIdx,
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx_idx, segmentIdx, result );
+      store( segmentIdx_idx, segmentIdx, result );
 
 #endif
 }
@@ -474,7 +474,7 @@ template< int ThreadsPerSegment,
           typename Index,
           typename Fetch,
           typename Reduce,
-          typename Keep,
+          typename Store,
           typename Value >
 __global__
 void
@@ -483,7 +483,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexes( const Index gridID,
                                                   const ArrayView segmentIndexes,
                                                   Fetch fetch,
                                                   Reduce reduce,
-                                                  Keep keep,
+                                                  Store store,
                                                   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -567,7 +567,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexes( const Index gridID,
 
    // Write the result
    if( laneID == 0 )
-      keep( segmentIdx_idx, segmentIdx, result );
+      store( segmentIdx_idx, segmentIdx, result );
 #endif
 }
 
@@ -578,7 +578,7 @@ template< int BlockSize,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -587,7 +587,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
                                                     const ArrayView segmentIndexes,
                                                     Fetch fetch,
                                                     const Reduction reduce,
-                                                    ResultKeeper keep,
+                                                    ResultStorer store,
                                                     const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -663,7 +663,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
       }
       constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
       if( inWarpLaneIdx < segmentsCount && segmentIdx_idx + inWarpLaneIdx < segmentIndexes.getSize() ) {
-         keep( segmentIdx_idx,
+         store( segmentIdx_idx,
                segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
                shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
       }
@@ -676,7 +676,7 @@ template< typename Segments,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           int BlockSize = 256 >
 __global__
@@ -687,7 +687,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
                                                    const ArrayView segmentIndexes,
                                                    Fetch fetch,
                                                    const Reduction reduce,
-                                                   ResultKeeper keep,
+                                                   ResultStorer store,
                                                    const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -759,7 +759,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
 
       // Write the result
       if( threadIdx.x == 0 )
-         keep( scheduled_segment_idx[ 0 ], scheduled_segment, result );
+         store( scheduled_segment_idx[ 0 ], scheduled_segment, result );
    }
 
    // Processing segments smaller than BlockSize and larger the warp size
@@ -803,7 +803,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
 
       // Write the result
       if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 )  // first lane in the warp
-         keep( warps_scheduler[ warp_idx ],          // segmentIdx_idx
+         store( warps_scheduler[ warp_idx ],          // segmentIdx_idx
                scheduled_segment,
                result );
       warp_idx += warpsPerBlock;
@@ -827,7 +827,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
          }
       }
       // Write the result
-      keep( segmentIdx_idx, segmentIdx, result );
+      store( segmentIdx_idx, segmentIdx, result );
    }
 #endif
 }
@@ -836,7 +836,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
 
 // TODO: The following vector kernel is special case of the general variable vector kernel.
 // Check the performance and if it is the same, we can erase this kernel.
-template< typename Segments, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+template< typename Segments, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
 void
 reduceSegmentsCSRVectorKernelWithArgument( Index gridIdx,
@@ -845,7 +845,7 @@ reduceSegmentsCSRVectorKernelWithArgument( Index gridIdx,
                                            Index end,
                                            Fetch fetch,
                                            const Reduction reduction,
-                                           ResultKeeper keep,
+                                           ResultStorer store,
                                            const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -880,7 +880,7 @@ reduceSegmentsCSRVectorKernelWithArgument( Index gridIdx,
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx, argument_, result_ );
+      store( segmentIdx, argument_, result_ );
 #endif
 }
 
@@ -889,7 +889,7 @@ template< int ThreadsPerSegment,
           typename Index,
           typename Fetch,
           typename Reduce,
-          typename Keep,
+          typename Store,
           typename Value >
 __global__
 void
@@ -899,7 +899,7 @@ reduceSegmentsCSRVariableVectorKernelWithArgument( const Index gridID,
                                                    const Index end,
                                                    Fetch fetch,
                                                    Reduce reduce,
-                                                   Keep keep,
+                                                   Store store,
                                                    const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -982,7 +982,7 @@ reduceSegmentsCSRVariableVectorKernelWithArgument( const Index gridID,
 
    // Write the result
    if( laneID == 0 )
-      keep( segmentIdx, argument, result );
+      store( segmentIdx, argument, result );
 #endif
 }
 
@@ -992,7 +992,7 @@ template< int BlockSize,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -1002,7 +1002,7 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
                                                      Index end,
                                                      Fetch fetch,
                                                      const Reduction reduce,
-                                                     ResultKeeper keep,
+                                                     ResultStorer store,
                                                      const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -1103,7 +1103,7 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
           && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
           && segmentIdx + inWarpLaneIdx < end )
       {
-         keep( segmentIdx + inWarpLaneIdx,
+         store( segmentIdx + inWarpLaneIdx,
                shared_arguments[ inWarpLaneIdx * warpsPerSegment ],
                shared_results[ inWarpLaneIdx * warpsPerSegment ] );
       }
@@ -1115,7 +1115,7 @@ template< typename Segments,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           int BlockSize = 256 >
 __global__
@@ -1127,7 +1127,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
                                                     Index end,
                                                     Fetch fetch,
                                                     const Reduction reduce,
-                                                    ResultKeeper keep,
+                                                    ResultStorer store,
                                                     const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -1191,7 +1191,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
 
       // Write the result
       if( threadIdx.x == 0 )
-         keep( scheduled_segment[ 0 ], argument_, result_ );
+         store( scheduled_segment[ 0 ], argument_, result_ );
    }
 
    // Processing segments smaller than BlockSize and larger the warp size
@@ -1233,7 +1233,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
 
       // Write the result
       if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 )  // first lane in the warp
-         keep( scheduled_segment, argument_, result_ );
+         store( scheduled_segment, argument_, result_ );
       warp_idx += warpsPerBlock;
    }
 
@@ -1252,7 +1252,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
          localIdx++;
       }
       // Write the result
-      keep( segmentIdx, argument, result );
+      store( segmentIdx, argument, result );
    }
 #endif
 }
@@ -1266,7 +1266,7 @@ template< typename Segments,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -1275,7 +1275,7 @@ reduceSegmentsCSRVectorKernelWithIndexesAndArgument( Index gridIdx,
                                                      const ArrayView segmentIndexes,
                                                      Fetch fetch,
                                                      const Reduction reduction,
-                                                     ResultKeeper keep,
+                                                     ResultStorer store,
                                                      const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -1311,7 +1311,7 @@ reduceSegmentsCSRVectorKernelWithIndexesAndArgument( Index gridIdx,
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx_idx, segmentIdx, argument_, result_ );
+      store( segmentIdx_idx, segmentIdx, argument_, result_ );
 
 #endif
 }
@@ -1322,7 +1322,7 @@ template< int ThreadsPerSegment,
           typename Index,
           typename Fetch,
           typename Reduce,
-          typename Keep,
+          typename Store,
           typename Value >
 __global__
 void
@@ -1331,7 +1331,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument( const Index gridID,
                                                              const ArrayView segmentIndexes,
                                                              Fetch fetch,
                                                              Reduce reduce,
-                                                             Keep keep,
+                                                             Store store,
                                                              const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -1415,7 +1415,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument( const Index gridID,
 
    // Write the result
    if( laneID == 0 )
-      keep( segmentIdx_idx, segmentIdx, argument, result );
+      store( segmentIdx_idx, segmentIdx, argument, result );
 #endif
 }
 
@@ -1426,7 +1426,7 @@ template< int BlockSize,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -1435,7 +1435,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
                                                                const ArrayView segmentIndexes,
                                                                Fetch fetch,
                                                                const Reduction reduce,
-                                                               ResultKeeper keep,
+                                                               ResultStorer store,
                                                                const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -1536,7 +1536,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
           && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
           && segmentIdx_idx + inWarpLaneIdx < segmentIndexes.getSize() )
       {
-         keep( segmentIdx_idx,
+         store( segmentIdx_idx,
                segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
                shared_arguments[ inWarpLaneIdx * warpsPerSegment ],
                shared_results[ inWarpLaneIdx * warpsPerSegment ] );
@@ -1550,7 +1550,7 @@ template< typename Segments,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           int BlockSize = 256 >
 __global__
@@ -1561,7 +1561,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
                                                               const ArrayView segmentIndexes,
                                                               Fetch fetch,
                                                               const Reduction reduce,
-                                                              ResultKeeper keep,
+                                                              ResultStorer store,
                                                               const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -1629,7 +1629,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
 
       // Write the result
       if( threadIdx.x == 0 )
-         keep( scheduled_segment_idx[ 0 ], scheduled_segment, argument_, result_ );
+         store( scheduled_segment_idx[ 0 ], scheduled_segment, argument_, result_ );
    }
 
    // Processing segments smaller than BlockSize and larger the warp size
@@ -1673,7 +1673,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
 
       // Write the result
       if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 )  // first lane in the warp
-         keep( scheduled_segment_idx[ 0 ], scheduled_segment, argument_, result_ );
+         store( scheduled_segment_idx[ 0 ], scheduled_segment, argument_, result_ );
       warp_idx += warpsPerBlock;
    }
 
@@ -1692,7 +1692,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
          localIdx++;
       }
       // Write the result
-      keep( segmentIdx_idx, segmentIdx, argument, result );
+      store( segmentIdx_idx, segmentIdx, argument, result );
    }
 #endif
 }

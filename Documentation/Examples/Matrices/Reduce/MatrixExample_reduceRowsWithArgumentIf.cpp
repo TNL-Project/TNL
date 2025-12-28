@@ -65,7 +65,7 @@ reduceRowsWithArgumentIfExample()
       return rowIdx % 2 == 0;
    };
 
-   auto keepRange =
+   auto storeRange =
       [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
    {
       rangeMaxValues_view[ rowIdx - rangeBegin ] = value;
@@ -78,7 +78,7 @@ reduceRowsWithArgumentIfExample()
    rangeMaxColumns.setValue( -1 );
 
    auto evenRowsCount = TNL::Matrices::reduceRowsWithArgumentIf(
-      matrix, rangeBegin, rangeEnd, evenRowCondition, fetch, reduction, keepRange, std::numeric_limits< double >::lowest() );
+      matrix, rangeBegin, rangeEnd, evenRowCondition, fetch, reduction, storeRange, std::numeric_limits< double >::lowest() );
    // You may also use TNL::MaxWithArg{} instead of defining your own reduction lambda.
 
    std::cout << "Argmax for rows 3-8 (only even indices):" << std::endl;
@@ -115,7 +115,7 @@ reduceRowsWithArgumentIfExample()
       }
    };
 
-   auto keepOddMin =
+   auto storeOddMin =
       [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
    {
       oddMinValues_view[ rowIdx - 5 ] = value;
@@ -128,7 +128,7 @@ reduceRowsWithArgumentIfExample()
    oddMinColumns.setValue( -1 );
 
    auto oddRowsCount = TNL::Matrices::reduceRowsWithArgumentIf(
-      matrix, 5, 10, oddRowCondition, fetch, reductionMin, keepOddMin, std::numeric_limits< double >::max() );
+      matrix, 5, 10, oddRowCondition, fetch, reductionMin, storeOddMin, std::numeric_limits< double >::max() );
    // You may also use TNL::MinWithArg{} instead of defining your own reduction lambda.
 
    std::cout << "Argmin for rows 5-9 (only odd indices):" << std::endl;

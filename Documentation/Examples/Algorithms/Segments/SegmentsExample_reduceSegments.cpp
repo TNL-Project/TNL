@@ -63,14 +63,14 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   auto keep = [ = ] __cuda_callable__( int segmentIdx, const double& value ) mutable
+   auto store = [ = ] __cuda_callable__( int segmentIdx, const double& value ) mutable
    {
       sums_view[ segmentIdx ] = value;
    };
 
-   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_full, TNL::Plus{}, keep );
+   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_full, TNL::Plus{}, store );
    std::cout << "The sums with full fetch form are: " << sums << std::endl;
-   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_brief, TNL::Plus{}, keep );
+   TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_brief, TNL::Plus{}, store );
    std::cout << "The sums with brief fetch form are: " << sums << std::endl << std::endl;
    //! [reduction]
 }

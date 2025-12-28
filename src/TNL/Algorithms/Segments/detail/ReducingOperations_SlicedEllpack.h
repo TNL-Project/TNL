@@ -35,7 +35,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsSequential( const ConstViewType& segments,
@@ -43,7 +43,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                              IndexEnd end,
                              Fetch&& fetch,
                              Reduction&& reduction,
-                             ResultKeeper&& keeper,
+                             ResultStorer&& storer,
                              const Value& identity,
                              const LaunchConfiguration& launchConfig )
    {
@@ -52,7 +52,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       const auto sliceSegmentSizes = segments.getSliceSegmentSizesView();
       const auto sliceOffsets = segments.getSliceOffsetsView();
 
-      auto l = [ sliceOffsets, sliceSegmentSizes, fetch, reduction, keeper, identity ] __cuda_callable__(
+      auto l = [ sliceOffsets, sliceSegmentSizes, fetch, reduction, storer, identity ] __cuda_callable__(
                   const IndexType segmentIdx ) mutable
       {
          const IndexType sliceIdx = segmentIdx / SegmentsViewType::getSliceSize();
@@ -78,7 +78,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                aux = reduction(
                   aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
          }
-         keeper( segmentIdx, aux );
+         storer( segmentIdx, aux );
       };
 
       Algorithms::parallelFor< Device >( begin, end, l );
@@ -88,7 +88,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegments( const ConstViewType& segments,
@@ -96,7 +96,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                    IndexEnd end,
                    Fetch&& fetch,
                    Reduction&& reduction,
-                   ResultKeeper&& keeper,
+                   ResultStorer&& storer,
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
@@ -108,7 +108,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                    end,
                                    std::forward< Fetch >( fetch ),
                                    std::forward< Reduction >( reduction ),
-                                   std::forward< ResultKeeper >( keeper ),
+                                   std::forward< ResultStorer >( storer ),
                                    identity,
                                    launchConfig );
       }
@@ -121,7 +121,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                       end,
                                       std::forward< Fetch >( fetch ),
                                       std::forward< Reduction >( reduction ),
-                                      std::forward< ResultKeeper >( keeper ),
+                                      std::forward< ResultStorer >( storer ),
                                       identity,
                                       launchConfig );
             return;
@@ -157,7 +157,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                       IndexType,
                                                                                       std::remove_reference_t< Fetch >,
                                                                                       std::remove_reference_t< Reduction >,
-                                                                                      std::remove_reference_t< ResultKeeper >,
+                                                                                      std::remove_reference_t< ResultStorer >,
                                                                                       Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -167,7 +167,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                         }
                         else
@@ -192,7 +192,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                       IndexType,
                                                                                       std::remove_reference_t< Fetch >,
                                                                                       std::remove_reference_t< Reduction >,
-                                                                                      std::remove_reference_t< ResultKeeper >,
+                                                                                      std::remove_reference_t< ResultStorer >,
                                                                                       Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -202,7 +202,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                         }
                         else
@@ -228,7 +228,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                       IndexType,
                                                                                       std::remove_reference_t< Fetch >,
                                                                                       std::remove_reference_t< Reduction >,
-                                                                                      std::remove_reference_t< ResultKeeper >,
+                                                                                      std::remove_reference_t< ResultStorer >,
                                                                                       Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -238,7 +238,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                         }
                         else
@@ -264,7 +264,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                       IndexType,
                                                                                       std::remove_reference_t< Fetch >,
                                                                                       std::remove_reference_t< Reduction >,
-                                                                                      std::remove_reference_t< ResultKeeper >,
+                                                                                      std::remove_reference_t< ResultStorer >,
                                                                                       Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -274,7 +274,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                         }
                         else
@@ -300,7 +300,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                                                       IndexType,
                                                                                       std::remove_reference_t< Fetch >,
                                                                                       std::remove_reference_t< Reduction >,
-                                                                                      std::remove_reference_t< ResultKeeper >,
+                                                                                      std::remove_reference_t< ResultStorer >,
                                                                                       Value >;
                            Backend::launchKernelAsync( kernel,
                                                        launch_config,
@@ -310,7 +310,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                                        end,
                                                        fetch,
                                                        reduction,
-                                                       keeper,
+                                                       storer,
                                                        identity );
                         }
                         else
@@ -341,14 +341,14 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    template< typename Array,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
                                      const Array& segmentIndexes,
                                      Fetch&& fetch,
                                      Reduction&& reduction,
-                                     ResultKeeper&& keeper,
+                                     ResultStorer&& storer,
                                      const Value& identity,
                                      const LaunchConfiguration& launchConfig )
    {
@@ -358,7 +358,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       const auto sliceOffsets = segments.getSliceOffsetsView();
       auto segmentIndexes_view = segmentIndexes.getConstView();
 
-      auto l = [ sliceOffsets, segmentIndexes_view, sliceSegmentSizes, fetch, reduction, keeper, identity ] __cuda_callable__(
+      auto l = [ sliceOffsets, segmentIndexes_view, sliceSegmentSizes, fetch, reduction, storer, identity ] __cuda_callable__(
                   const IndexType segmentIdx_idx ) mutable
       {
          TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes_view.getSize(), "" );
@@ -387,7 +387,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                result = reduction(
                   result, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
          }
-         keeper( segmentIdx_idx, segmentIdx, result );
+         storer( segmentIdx_idx, segmentIdx, result );
       };
 
       Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
@@ -397,7 +397,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsWithArgument( const ConstViewType& segments,
@@ -405,7 +405,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                                IndexEnd end,
                                Fetch&& fetch,
                                Reduction&& reduction,
-                               ResultKeeper&& keeper,
+                               ResultStorer&& storer,
                                const Value& identity,
                                const LaunchConfiguration& launchConfig )
    {
@@ -414,7 +414,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       const auto sliceSegmentSizes = segments.getSliceSegmentSizesView();
       const auto sliceOffsets = segments.getSliceOffsetsView();
 
-      auto l = [ sliceOffsets, sliceSegmentSizes, fetch, reduction, keeper, identity ] __cuda_callable__(
+      auto l = [ sliceOffsets, sliceSegmentSizes, fetch, reduction, storer, identity ] __cuda_callable__(
                   const IndexType segmentIdx ) mutable
       {
          const IndexType sliceIdx = segmentIdx / SegmentsViewType::getSliceSize();
@@ -446,7 +446,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                           argument,
                           localIdx );
          }
-         keeper( segmentIdx, argument, result );
+         storer( segmentIdx, argument, result );
       };
 
       Algorithms::parallelFor< Device >( begin, end, l );
@@ -455,14 +455,14 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    template< typename Array,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
    reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
                                                 const Array& segmentIndexes,
                                                 Fetch&& fetch,
                                                 Reduction&& reduction,
-                                                ResultKeeper&& keeper,
+                                                ResultStorer&& storer,
                                                 const Value& identity,
                                                 const LaunchConfiguration& launchConfig )
    {
@@ -472,7 +472,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       const auto sliceOffsets = segments.getSliceOffsetsView();
       auto segmentIndexes_view = segmentIndexes.getConstView();
 
-      auto l = [ sliceOffsets, segmentIndexes_view, sliceSegmentSizes, fetch, reduction, keeper, identity ] __cuda_callable__(
+      auto l = [ sliceOffsets, segmentIndexes_view, sliceSegmentSizes, fetch, reduction, storer, identity ] __cuda_callable__(
                   const IndexType segmentIdx_idx ) mutable
       {
          TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes_view.getSize(), "" );
@@ -506,7 +506,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                           argument,
                           localIdx );
          }
-         keeper( segmentIdx_idx, segmentIdx, argument, result );
+         storer( segmentIdx_idx, segmentIdx, argument, result );
       };
 
       Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
