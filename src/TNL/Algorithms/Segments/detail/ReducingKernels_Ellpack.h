@@ -11,7 +11,7 @@ template< int ThreadsPerSegment,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -20,7 +20,7 @@ EllpackCudaReductionKernel( const Segments segments,
                             IndexEnd end,
                             Fetch fetch,
                             Reduction reduce,
-                            ResultKeeper keep,
+                            ResultStorer store,
                             const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -108,7 +108,7 @@ EllpackCudaReductionKernel( const Segments segments,
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx, result );
+      store( segmentIdx, result );
 
 #endif
 }
@@ -118,7 +118,7 @@ template< int ThreadsPerSegment,
           typename ArrayView,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -126,7 +126,7 @@ EllpackCudaReductionKernelWithSegmentIndexes( const Segments segments,
                                               const ArrayView segmentIndexes,
                                               Fetch fetch,
                                               Reduction reduce,
-                                              ResultKeeper keep,
+                                              ResultStorer store,
                                               const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -216,7 +216,7 @@ EllpackCudaReductionKernelWithSegmentIndexes( const Segments segments,
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx_idx, segmentIdx, result );
+      store( segmentIdx_idx, segmentIdx, result );
 
 #endif
 }
@@ -227,7 +227,7 @@ template< int ThreadsPerSegment,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -236,7 +236,7 @@ EllpackCudaReductionKernelWithArgument( const Segments segments,
                                         IndexEnd end,
                                         Fetch fetch,
                                         Reduction reduce,
-                                        ResultKeeper keep,
+                                        ResultStorer store,
                                         const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -325,7 +325,7 @@ EllpackCudaReductionKernelWithArgument( const Segments segments,
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx, argument, result );
+      store( segmentIdx, argument, result );
 
 #endif
 }
@@ -335,7 +335,7 @@ template< int ThreadsPerSegment,
           typename ArrayView,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -343,7 +343,7 @@ EllpackCudaReductionKernelWithSegmentIndexesAndArgument( const Segments segments
                                                          const ArrayView segmentIndexes,
                                                          Fetch fetch,
                                                          Reduction reduce,
-                                                         ResultKeeper keep,
+                                                         ResultStorer store,
                                                          const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -431,7 +431,7 @@ EllpackCudaReductionKernelWithSegmentIndexesAndArgument( const Segments segments
 
    // Write the result
    if( laneIdx == 0 )
-      keep( segmentIdx_idx, segmentIdx, argument, result );
+      store( segmentIdx_idx, segmentIdx, argument, result );
 
 #endif
 }

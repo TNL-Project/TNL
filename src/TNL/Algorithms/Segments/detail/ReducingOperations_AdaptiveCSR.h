@@ -28,7 +28,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
    reduceSegments( const ConstViewType& segments,
@@ -36,19 +36,19 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
                    IndexEnd end,
                    Fetch&& fetch,
                    Reduction&& reduction,
-                   ResultKeeper&& keeper,
+                   ResultStorer&& storer,
                    const Value& identity,
                    const LaunchConfiguration& launchConfig )
    {
       if( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
          if( valueSizeLog >= segments.MaxValueSizeLog() ) {
-            ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+            ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
             return;
          }
 
          if constexpr( argumentCount< Fetch >() == 3 ) {
-            ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+            ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
          }
          else {
             using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -79,23 +79,23 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
                                                                         IndexType,
                                                                         std::remove_reference_t< Fetch >,
                                                                         std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultKeeper >,
+                                                                        std::remove_reference_t< ResultStorer >,
                                                                         Value >;
                Backend::launchKernelAsync(
-                  kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, keeper, identity );
+                  kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
             }
             Backend::streamSynchronize( launch_config.stream );
          }
       }
       else
-         ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+         ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
    }
 
    template< typename IndexBegin,
              typename IndexEnd,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
    reduceSegmentsWithArgument( const ConstViewType& segments,
@@ -103,7 +103,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
                                IndexEnd end,
                                Fetch&& fetch,
                                Reduction&& reduction,
-                               ResultKeeper&& keeper,
+                               ResultStorer&& storer,
                                const Value& identity,
                                const LaunchConfiguration& launchConfig )
    {
@@ -111,13 +111,13 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
          int valueSizeLog = segments.getSizeValueLog( sizeof( Value ) );
          if( valueSizeLog >= segments.MaxValueSizeLog() ) {
             ReducingOperationsCSR::reduceSegmentsWithArgument(
-               segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+               segments, begin, end, fetch, reduction, storer, identity, launchConfig );
             return;
          }
 
          if constexpr( argumentCount< Fetch >() == 3 ) {
             ReducingOperationsCSR::reduceSegmentsWithArgument(
-               segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+               segments, begin, end, fetch, reduction, storer, identity, launchConfig );
          }
          else {
             using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -149,17 +149,17 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
                                                                                     IndexType,
                                                                                     std::remove_reference_t< Fetch >,
                                                                                     std::remove_reference_t< Reduction >,
-                                                                                    std::remove_reference_t< ResultKeeper >,
+                                                                                    std::remove_reference_t< ResultStorer >,
                                                                                     Value >;
                Backend::launchKernelAsync(
-                  kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, keeper, identity );
+                  kernel, launch_config, gridIdx, blocks, segments.getOffsets(), fetch, reduction, storer, identity );
             }
             Backend::streamSynchronize( launch_config.stream );
          }
       }
       else
          ReducingOperationsCSR::reduceSegmentsWithArgument(
-            segments, begin, end, fetch, reduction, keeper, identity, launchConfig );
+            segments, begin, end, fetch, reduction, storer, identity, launchConfig );
    }
 };
 
