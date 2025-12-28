@@ -243,8 +243,8 @@ namespace TNL::Matrices {
  * \subsection StoreLambda_WithIndexArrayAndLocalIdx Store With Row Index Array and Local Index
  *
  * ```cpp
- * auto store = [=] __cuda_callable__ ( IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const
- * Value& value ) { ...
+ * auto store = [=] __cuda_callable__ ( IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, IndexType columnIdx,
+ * const FetchValue& value ) { ...
  * }
  * ```
  *
@@ -280,10 +280,16 @@ namespace TNL::Matrices {
  * - They must provide a static template method \e getIdentity to automatically deduce the identity value
  * - For WithArgument variants, they must be instances of \ref ReductionFunctionObjectsWithArgument
  * - Common examples: \e Min, \e Max, \e Sum, \e Product, \e MinWithArg, \e MaxWithArg
+ *
+ * \section MatrixReduceReductionLambdasRelatedPages Related Pages
+ *
+ * - \ref MatrixReductionOverview - Overview of matrix reduction functions
  */
 
 /**
  * \brief Performs parallel reduction within each matrix row over all rows.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -310,6 +316,8 @@ reduceAllRows( Matrix& matrix,
 /**
  * \brief Performs parallel reduction within each matrix row over all rows (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
@@ -335,6 +343,8 @@ reduceAllRows( const Matrix& matrix,
 /**
  * \brief Performs parallel reduction within each matrix row over all rows
  * with automatic identity deduction.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -364,6 +374,8 @@ reduceAllRows( Matrix& matrix,
  * \brief Performs parallel reduction within each matrix row over all rows
  * with automatic identity deduction (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
@@ -390,6 +402,8 @@ reduceAllRows( const Matrix& matrix,
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -438,6 +452,8 @@ reduceRows( Matrix& matrix,
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of rows where the reduction will be performed.
@@ -480,6 +496,8 @@ reduceRows( const Matrix& matrix,
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes
  * with automatic identity deduction.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -524,6 +542,8 @@ reduceRows( Matrix& matrix,
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes
  * with automatic identity deduction (const version).
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -568,6 +588,8 @@ reduceRows( const Matrix& matrix,
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes.
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -606,6 +628,8 @@ reduceRows( Matrix& matrix,
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -640,6 +664,8 @@ reduceRows( const Matrix& matrix,
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes
  * with automatic identity deduction.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
@@ -677,6 +703,8 @@ reduceRows( Matrix& matrix,
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes
  * with automatic identity deduction (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -712,6 +740,8 @@ reduceRows( const Matrix& matrix,
 /**
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition.
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -746,6 +776,8 @@ reduceAllRowsIf( Matrix& matrix,
 
 /**
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition (const version).
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the lambda function used for the condition check.
@@ -783,6 +815,8 @@ reduceAllRowsIf( const Matrix& matrix,
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition
  * with automatic identity deduction.
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -816,6 +850,8 @@ reduceAllRowsIf( Matrix& matrix,
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition
  * with automatic identity deduction (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -847,6 +883,8 @@ reduceAllRowsIf( const Matrix& matrix,
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -899,6 +937,8 @@ reduceRowsIf( Matrix& matrix,
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition (const
  * version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of rows where the reduction will be performed.
@@ -950,6 +990,8 @@ reduceRowsIf( const Matrix& matrix,
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition
  * with automatic identity deduction.
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of rows where the reduction will be performed.
@@ -996,6 +1038,8 @@ reduceRowsIf( Matrix& matrix,
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition
  * with automatic identity deduction (const version).
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -1044,6 +1088,8 @@ reduceRowsIf( const Matrix& matrix,
  * \brief Performs parallel reduction within each matrix row over all rows while
  *  returning also the position of the element of interest.
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
@@ -1075,6 +1121,8 @@ reduceAllRowsWithArgument(
 /**
  * \brief Performs parallel reduction within each matrix row over all rows while
  *  returning also the position of the element of interest (const version).
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -1108,6 +1156,8 @@ reduceAllRowsWithArgument(
  * \brief Performs parallel reduction within each matrix row over all rows while
  *  returning also the position of the element of interest with automatic identity deduction.
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
@@ -1137,6 +1187,8 @@ reduceAllRowsWithArgument(
  * \brief Performs parallel reduction within each matrix row over all rows while
  *  returning also the position of the element of interest with automatic identity deduction (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
@@ -1165,6 +1217,8 @@ reduceAllRowsWithArgument(
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes while
  *  returning also the position of the element of interest.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -1207,6 +1261,8 @@ reduceRowsWithArgument( Matrix& matrix,
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes while
  *  returning also the position of the element of interest (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of rows where the reduction will be performed.
@@ -1248,6 +1304,8 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes while
  *  returning also the position of the element of interest with automatic identity deduction.
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of rows where the reduction will be performed.
@@ -1285,6 +1343,8 @@ reduceRowsWithArgument( Matrix& matrix,
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes while
  *  returning also the position of the element of interest with automatic identity deduction (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of rows where the reduction will be performed.
@@ -1321,6 +1381,8 @@ reduceRowsWithArgument( const Matrix& matrix,
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes while
  *  returning also the position of the element of interest.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
@@ -1363,6 +1425,8 @@ reduceRowsWithArgument( Matrix& matrix,
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes while
  *  returning also the position of the element of interest (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -1404,6 +1468,8 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes while
  *  returning also the position of the element of interest with automatic identity deduction.
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -1440,6 +1506,8 @@ reduceRowsWithArgument( Matrix& matrix,
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes while
  *  returning also the position of the element of interest with automatic identity deduction (const version).
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
@@ -1477,6 +1545,8 @@ reduceRowsWithArgument( const Matrix& matrix,
 /**
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition while
  *  returning also the position of the element of interest.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the lambda function used for the condition check.
@@ -1520,6 +1590,8 @@ reduceAllRowsWithArgumentIf(
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition while
  *  returning also the position of the element of interest (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -1561,6 +1633,8 @@ reduceAllRowsWithArgumentIf(
 /**
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition while
  *  returning also the position of the element of interest with automatic identity deduction.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the lambda function used for the condition check.
@@ -1595,6 +1669,8 @@ reduceAllRowsWithArgumentIf(
 /**
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition while
  *  returning also the position of the element of interest with automatic identity deduction (const version).
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Condition The type of the lambda function used for the condition check.
@@ -1629,6 +1705,8 @@ reduceAllRowsWithArgumentIf(
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition while
  *  returning also the position of the element of interest.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -1682,6 +1760,8 @@ reduceRowsWithArgumentIf(
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition while
  *  returning also the position of the element of interest (const version).
  *
+ * See also: \ref MatrixReductionOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of rows where the reduction will be performed.
@@ -1733,6 +1813,8 @@ reduceRowsWithArgumentIf(
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition while
  *  returning also the position of the element of interest with automatic identity deduction.
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -1781,6 +1863,8 @@ reduceRowsWithArgumentIf(
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition while
  *  returning also the position of the element of interest with automatic identity deduction (const version).
+ *
+ * See also: \ref MatrixReductionOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )

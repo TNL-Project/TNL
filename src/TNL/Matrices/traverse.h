@@ -222,11 +222,16 @@ namespace TNL::Matrices {
  * **Returns:**
  * - `true` if the row should be processed, `false` to skip it
  *
+ * \section MatrixTraversalLambdasRelatedPages Related Pages
+ *
+ * - \ref MatrixTraversalOverview - Overview of matrix traversal functions
  */
 
 /**
- * \brief Iterates in parallel over all elements of **all** matrix rows and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements of **all** matrix rows and applies the specified lambda function.
+ *
+ * See also: \ref MatrixTraversalOverview
+ *
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be applied to each element.
@@ -236,7 +241,7 @@ namespace TNL::Matrices {
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElements.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElements.cpp
  * \par Output
  * \include MatrixExample_forElements.out
  */
@@ -250,6 +255,8 @@ forAllElements( Matrix& matrix,
  * \brief Iterates in parallel over all elements of **all** matrix rows of **constant matrix** and
  * applies the specified lambda function.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
@@ -258,7 +265,7 @@ forAllElements( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElements.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElements.cpp
  * \par Output
  * \include MatrixExample_forElements.out
  */
@@ -269,8 +276,9 @@ forAllElements( const Matrix& matrix,
                 Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements in the given range of matrix rows and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements in the given range of matrix rows and applies the specified lambda function.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -288,7 +296,7 @@ forAllElements( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElements.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElements.cpp
  * \par Output
  * \include MatrixExample_forElements.out
  */
@@ -301,8 +309,10 @@ forElements( Matrix& matrix,
              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements of **constant matrix** in the given range of matrix rows and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements of **constant matrix** in the given range of matrix rows and applies the
+ * specified lambda function.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -320,7 +330,7 @@ forElements( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElements.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElements.cpp
  * \par Output
  * \include MatrixExample_forElements.out
  */
@@ -333,8 +343,10 @@ forElements( const Matrix& matrix,
              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements of matrix rows with the given indexes and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
+ * function.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
@@ -356,7 +368,7 @@ forElements( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forElementsWithIndexes.out
  */
@@ -370,8 +382,10 @@ forElements( Matrix& matrix,
              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements of matrix rows with the given indexes and
- * applies the specified lambda function. This function is for **constant matrices**.
+ * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
+ * function. This function is for **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
@@ -393,7 +407,7 @@ forElements( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forElementsWithIndexes.out
  */
@@ -407,8 +421,10 @@ forElements( const Matrix& matrix,
              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements of matrix rows with the given indexes and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
+ * function.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
@@ -422,7 +438,7 @@ forElements( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forElementsWithIndexes.out
  */
@@ -434,8 +450,10 @@ forElements( Matrix& matrix,
              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements of matrix rows with the given indexes and
- * applies the specified lambda function. This function is for **constant matrices**.
+ * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
+ * function. This function is for **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
@@ -449,7 +467,7 @@ forElements( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forElementsWithIndexes.out
  */
@@ -462,6 +480,9 @@ forElements( const Matrix& matrix,
 
 /**
  * \brief Iterates in parallel over all elements in a given range of rows based on a condition.
+ *
+ * See also: \ref MatrixTraversalOverview
+ *
  *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, all elements of the row are traversed,
@@ -486,7 +507,7 @@ forElements( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsIf.cpp
  * \par Output
  * \include MatrixExample_forElementsIf.out
  */
@@ -500,8 +521,10 @@ forElementsIf( Matrix& matrix,
                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements in a given range of rows based on a condition.
- * This function is for **constant matrices**.
+ * \brief Iterates in parallel over all elements in a given range of rows based on a condition. This function is for
+ * **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, all elements of the row are traversed,
@@ -526,7 +549,7 @@ forElementsIf( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsIf.cpp
  * \par Output
  * \include MatrixExample_forElementsIf.out
  */
@@ -542,6 +565,8 @@ forElementsIf( const Matrix& matrix,
 /**
  * \brief Iterates in parallel over all elements of **all** matrix rows based on a condition.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, all elements of the row are traversed,
  * and the specified lambda function is applied to each element. If the condition lambda function returns
@@ -557,7 +582,7 @@ forElementsIf( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsIf.cpp
  * \par Output
  * \include MatrixExample_forElementsIf.out
  */
@@ -570,6 +595,9 @@ forAllElementsIf( Matrix& matrix,
 
 /**
  * \brief Iterates in parallel over all elements of **all** matrix rows based on a condition.
+ *
+ * See also: \ref MatrixTraversalOverview
+ *
  * This function is for **constant matrices**.
  *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
@@ -587,7 +615,7 @@ forAllElementsIf( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsIf.cpp
  * \par Output
  * \include MatrixExample_forElementsIf.out
  */
@@ -601,6 +629,8 @@ forAllElementsIf( const Matrix& matrix,
 /**
  * \brief Iterates in parallel over matrix rows within the specified range of row indexes
  * and applies the given lambda function to each row.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -618,11 +648,11 @@ forAllElementsIf( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRows-1.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-1.cpp
  * \par Output
  * \include MatrixExample_forRows-1.out
  *
- * \include Matrices/Traverse/MatrixExample_forRows-2.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-2.cpp
  * \par Output
  * \include MatrixExample_forRows-2.out
  */
@@ -642,6 +672,8 @@ forRows( Matrix& matrix,
  * \brief Iterates in parallel over matrix rows within the specified range of row indexes
  * and applies the given lambda function to each row. This function is for **constant matrices**.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of matrix rows on which the lambda function will be applied.
@@ -658,11 +690,11 @@ forRows( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRows-1.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-1.cpp
  * \par Output
  * \include MatrixExample_forRows-1.out
  *
- * \include Matrices/Traverse/MatrixExample_forRows-2.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-2.cpp
  * \par Output
  * \include MatrixExample_forRows-2.out
  */
@@ -681,6 +713,8 @@ forRows( const Matrix& matrix,
 /**
  * \brief Iterates in parallel over **all** matrix rows and applies the given lambda function to each row.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
@@ -689,11 +723,11 @@ forRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRows-1.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-1.cpp
  * \par Output
  * \include MatrixExample_forRows-1.out
  *
- * \include Matrices/Traverse/MatrixExample_forRows-2.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-2.cpp
  * \par Output
  * \include MatrixExample_forRows-2.out
  */
@@ -707,6 +741,9 @@ forAllRows( Matrix& matrix,
  * \brief Iterates in parallel over **all** matrix rows and applies the given lambda function to each row.
  * This function is for **constant matrices**.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
@@ -715,11 +752,11 @@ forAllRows( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRows-1.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-1.cpp
  * \par Output
  * \include MatrixExample_forRows-1.out
  *
- * \include Matrices/Traverse/MatrixExample_forRows-2.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-2.cpp
  * \par Output
  * \include MatrixExample_forRows-2.out
  */
@@ -733,6 +770,8 @@ forAllRows( const Matrix& matrix,
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
  * lambda function to each row.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
@@ -753,7 +792,7 @@ forAllRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forRowsWithIndexes.out
  */
@@ -776,6 +815,8 @@ forRows( Matrix& matrix,
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
  * lambda function to each row. This function is for **constant matrices**.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
@@ -796,7 +837,7 @@ forRows( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forRowsWithIndexes.out
  */
@@ -819,6 +860,8 @@ forRows( const Matrix& matrix,
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
  * lambda function to each row.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
@@ -831,7 +874,7 @@ forRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forRowsWithIndexes.out
  */
@@ -846,6 +889,8 @@ forRows( Matrix& matrix,
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
  * lambda function to each row. This function is for **constant matrices**.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
@@ -858,7 +903,7 @@ forRows( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forRowsWithIndexes.out
  */
@@ -871,6 +916,8 @@ forRows( const Matrix& matrix,
 /**
  * \brief Iterates in parallel over rows within the given range of row indexes, applying a condition
  * to determine whether each row should be processed.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * For each row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
@@ -894,7 +941,7 @@ forRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsIf.cpp
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */
@@ -915,6 +962,8 @@ forRowsIf( Matrix& matrix,
 /**
  * \brief Iterates in parallel over rows within the given range of row indexes, applying a condition
  * to determine whether each row should be processed. This function is for **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * For each row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
@@ -938,7 +987,7 @@ forRowsIf( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsIf.cpp
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */
@@ -960,6 +1009,8 @@ forRowsIf( const Matrix& matrix,
  * \brief Iterates in parallel over **all** matrix rows, applying a condition
  * to determine whether each row should be processed.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * For each row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
  * If the condition lambda function returns \e false, the row is skipped.
@@ -974,7 +1025,7 @@ forRowsIf( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsIf.cpp
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */
@@ -988,6 +1039,8 @@ forAllRowsIf( Matrix& matrix,
 /**
  * \brief Iterates in parallel over **all** matrix rows, applying a condition
  * to determine whether each row should be processed. This function is for **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * For each row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
@@ -1003,7 +1056,7 @@ forAllRowsIf( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsIf.cpp
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */
