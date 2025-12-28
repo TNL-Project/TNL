@@ -241,10 +241,16 @@ namespace TNL::Algorithms::Segments {
  * - They must provide a static template method \e getIdentity to automatically deduce the identity value
  * - For WithArgument variants, they must be instances of \ref ReductionFunctionObjectsWithArgument
  * - Common examples: \e Min, \e Max, \e Sum, \e Product, \e MinWithArg, \e MaxWithArg
+ *
+ * \section SegmentReductionLambdasRelatedPages Related Pages
+ *
+ * - \ref SegmentReductionOverview - Overview of segment reduction functions
  */
 
 /**
  * \brief Performs parallel reduction within each segment.
+ *
+ * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -280,6 +286,8 @@ reduceAllSegments( const Segments& segments,
 /**
  * \brief Performs parallel reduction within each segment.
  *
+ * See also: \ref SegmentReductionOverview
+ *
  * \tparam Segments The type of the segments.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
@@ -305,6 +313,8 @@ reduceAllSegments( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes.
+ *
+ * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -354,6 +364,8 @@ reduceSegments( const Segments& segments,
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes.
  *
+ * See also: \ref SegmentReductionOverview
+ *
  * \tparam Segments The type of the segments.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of segments where the reduction will be performed.
@@ -395,6 +407,8 @@ reduceSegments( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes.
+ *
+ * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam Array The type of the array containing the indexes of the segments to iterate over.
@@ -435,6 +449,8 @@ reduceSegments( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes.
+ *
+ * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam Array The type of the array containing the indexes of the segments to iterate over.
@@ -469,6 +485,8 @@ reduceSegments( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
+ *
+ * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam Condition The type of the lambda function used for the condition check.
@@ -511,6 +529,8 @@ reduceAllSegmentsIf( const Segments& segments,
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
  *
+ * See also: \ref SegmentReductionOverview
+ *
  * \tparam Segments The type of the segments.
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -541,6 +561,8 @@ reduceAllSegmentsIf( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
+ *
+ * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -596,6 +618,8 @@ reduceSegmentsIf( const Segments& segments,
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
  *
+ * See also: \ref SegmentReductionOverview
+ *
  * \tparam Segments The type of the segments.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of segments where the reduction will be performed.
@@ -643,6 +667,8 @@ reduceSegmentsIf( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
+ *
+ * See also: \ref SegmentReductionOverview
  *  returning also the position of the element of interest.
  *
  * \tparam Segments The type of the segments.
@@ -679,6 +705,8 @@ reduceAllSegmentsWithArgument( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
+ *
+ * See also: \ref SegmentReductionOverview
  *  returning also the position of the element of interest.
  *
  * \tparam Segments The type of the segments.
@@ -706,6 +734,8 @@ reduceAllSegmentsWithArgument( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
+ *
+ * See also: \ref SegmentReductionOverview
  *  returning also the position of the element of interest.
  *
  * \tparam Segments The type of the segments.
@@ -757,6 +787,8 @@ reduceSegmentsWithArgument( const Segments& segments,
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
  *  returning also the position of the element of interest.
  *
+ * See also: \ref SegmentReductionOverview
+ *
  * \tparam Segments The type of the segments.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of segments where the reduction will be performed.
@@ -793,6 +825,7 @@ reduceSegmentsWithArgument( const Segments& segments,
 /**
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes while
  *  returning also the position of the element of interest.
+ * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam Array The type of the array containing the indexes of the segments to iterate over.
@@ -835,6 +868,8 @@ reduceSegmentsWithArgument( const Segments& segments,
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes while
  *  returning also the position of the element of interest.
  *
+ * See also: \ref SegmentReductionOverview
+ *
  * \tparam Segments The type of the segments.
  * \tparam Array The type of the array containing the indexes of the segments to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
@@ -870,6 +905,8 @@ reduceSegmentsWithArgument( const Segments& segments,
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
  *  returning also the position of the element of interest.
+ *
+ * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam Condition The type of the lambda function used for the condition check.
@@ -914,6 +951,8 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
  *  returning also the position of the element of interest.
  *
+ * See also: \ref SegmentReductionOverview
+ *
  * \tparam Segments The type of the segments.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of segments where the reduction will be performed.
@@ -953,6 +992,8 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
  *  returning also the position of the element of interest.
+ *
+ * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -1009,6 +1050,8 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
  *  returning also the position of the element of interest.
  *
+ * See also: \ref SegmentReductionOverview
+ *
  * \tparam Segments The type of the segments.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of segments where the reduction will be performed.
@@ -1070,10 +1113,13 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
  * \tparam FinalReductionValue The type of the final reduction result.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param segmentFetch A lambda function for fetching data within segments.
- * \param segmentReduction A function object defining the reduction operation within segments.
- * \param finalFetch A lambda function for fetching segment results.
- * \param finalReduction A function object defining the reduction operation for segment results.
+ * \param segmentFetch Lambda function for fetching data within segments. See \ref SegmentFetchLambda_Full or \ref
+ * SegmentFetchLambda_Brief.
+ * \param segmentReduction Function object defining the reduction operation within segments. See \ref
+ * SegmentReductionLambda_Basic.
+ * \param finalFetch Lambda function for fetching segment results (transforms segment reduction values before final reduction).
+ * \param finalReduction Function object defining the reduction operation for segment results. See \ref
+ * SegmentReductionLambda_Basic.
  * \param segmentsReductionIdentity The initial value for the reduction operation within the segments.
  * \param finalReductionIdentity The initial value for the final reduction operation.
  *
@@ -1110,10 +1156,13 @@ reduceAll( const Segments& segments,
  * \tparam FinalReduction The type of the reduction operation for segment results.
  *
  * \param segments The segment data structure on which the reduction will be performed.
- * \param segmentFetch A lambda function for fetching data within segments.
- * \param segmentReduction A function object defining the reduction operation within segments.
- * \param finalFetch A lambda function for fetching segment results.
- * \param finalReduction A function object defining the reduction operation for segment results.
+ * \param segmentFetch Lambda function for fetching data within segments. See \ref SegmentFetchLambda_Full or \ref
+ * SegmentFetchLambda_Brief.
+ * \param segmentReduction Function object defining the reduction operation within segments. See \ref
+ * SegmentReductionLambda_Basic.
+ * \param finalFetch Lambda function for fetching segment results (transforms segment reduction values before final reduction).
+ * \param finalReduction Function object defining the reduction operation for segment results. See \ref
+ * SegmentReductionLambda_Basic.
  *
  * \return The final reduction result combining all segment reduction results.
  */
@@ -1151,9 +1200,10 @@ reduceAll( const Segments& segments,
  *    whose corresponding segments will be processed for reduction.
  * \param segmentFetch Lambda function for fetching data within segments. See \ref SegmentFetchLambda_Full or \ref
  * SegmentFetchLambda_Brief.
- * \param segmentReduction Lambda function for reduction operation within segments. See \ref SegmentReductionLambda_Basic.
+ * \param segmentReduction Function object defining the reduction operation within segments. See \ref
+ * SegmentReductionLambda_Basic.
  * \param finalFetch Lambda function for fetching segment results (transforms segment reduction values before final reduction).
- * \param finalReduction Lambda function for final reduction operation over all segment results. See \ref
+ * \param finalReduction Function object defining the reduction operation for segment results. See \ref
  * SegmentReductionLambda_Basic.
  *
  * \param segmentsReductionIdentity The initial value for the reduction operation within the segments.
@@ -1210,10 +1260,13 @@ reduce( const Segments& segments,
  *    whose corresponding segments will be processed for reduction.
  * \param end The end of the interval [ \e begin, \e end ) of segment indexes
  *    whose corresponding segments will be processed for reduction.
- * \param segmentFetch A lambda function for fetching data within segments.
- * \param segmentReduction A function object defining the reduction operation within segments.
- * \param finalFetch A lambda function for fetching segment results.
- * \param finalReduction A function object defining the reduction operation for segment results.
+ * \param segmentFetch Lambda function for fetching data within segments. See \ref SegmentFetchLambda_Full or \ref
+ * SegmentFetchLambda_Brief.
+ * \param segmentReduction Function object defining the reduction operation within segments. See \ref
+ * SegmentReductionLambda_Basic.
+ * \param finalFetch Lambda function for fetching segment results (transforms segment reduction values before final reduction).
+ * \param finalReduction Function object defining the reduction operation for segment results. See \ref
+ * SegmentReductionLambda_Basic.
  *
  * \return The final reduction result combining all segment reduction results.
  */

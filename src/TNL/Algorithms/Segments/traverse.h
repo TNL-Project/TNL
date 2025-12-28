@@ -154,11 +154,16 @@ namespace TNL::Algorithms::Segments {
  * **Parameters:**
  * - \e segmentIdx - The index of the segment
  * - Returns: \e true if the segment (or its elements) should be processed, \e false otherwise
+ *
+ * \section SegmentTraversalLambdasRelatedPages Related Pages
+ *
+ * - \ref SegmentTraversalOverview - Overview of segment traversal functions
  */
 
 /**
- * \brief Iterates in parallel over all elements of **all** segments and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements of **all** segments and applies the specified lambda function.
+ *
+ * See also: \ref SegmentTraversalOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam Function The type of the lambda function to be applied to each element.
@@ -180,8 +185,9 @@ forAllElements( const Segments& segments,
                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements in the given range of segments and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements in the given range of segments and applies the specified lambda function.
+ *
+ * See also: \ref SegmentTraversalOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -213,8 +219,9 @@ forElements( const Segments& segments,
              LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements of segments with the given indexes and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements of segments with the given indexes and applies the specified lambda function.
+ *
+ * See also: \ref SegmentTraversalOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam Array The type of the array containing the indexes of the segments to iterate over.
@@ -242,6 +249,8 @@ forElements( const Segments& segments,
 
 /**
  * \brief Iterates in parallel over all elements of **all** segments based on a condition.
+ *
+ * See also: \ref SegmentTraversalOverview
  *
  * For each segment, a condition lambda function is evaluated based on the segment index.
  * If the condition lambda function returns \e true, all elements of the segment are traversed,
@@ -272,6 +281,8 @@ forAllElementsIf( const Segments& segments,
 
 /**
  * \brief Iterates in parallel over all elements in a given range of segments based on a condition.
+ *
+ * See also: \ref SegmentTraversalOverview
  *
  * For each segment, a condition lambda function is evaluated based on the segment index.
  * If the condition lambda function returns \e true, all elements of the segment are traversed,
@@ -329,6 +340,8 @@ forElementsIfSparse( const Segments& segments,
 /**
  * \brief Iterates in parallel over **all** segments and applies the given lambda function to each segment.
  *
+ * See also: \ref SegmentTraversalOverview
+ *
  * \tparam Segments The type of the segments.
  * \tparam Function The type of the lambda function to be executed on each segment.
  *
@@ -354,6 +367,8 @@ forAllSegments( const Segments& segments,
 /**
  * \brief Iterates in parallel over segments within the specified range of segment indexes
  * and applies the given lambda function to each segment.
+ *
+ * See also: \ref SegmentTraversalOverview
  *
  * \tparam Segments The type of the segments.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -395,6 +410,8 @@ forSegments( const Segments& segments,
  * \brief Iterates in parallel over segments with the given indexes and applies the specified
  * lambda function to each segment.
  *
+ * See also: \ref SegmentTraversalOverview
+ *
  * \tparam Segments The type of the segments.
  * \tparam Array The type of the array containing the indexes of the segments to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
@@ -420,6 +437,8 @@ forSegments( const Segments& segments,
 /**
  * \brief Iterates in parallel over **all** segments, applying a condition
  * to determine whether each segment should be processed.
+ *
+ * See also: \ref SegmentTraversalOverview
  *
  * For each segment, a condition lambda function is evaluated based on the segment index.
  * If the condition lambda function returns \e true, the specified lambda function is executed for the segment.
@@ -449,6 +468,8 @@ forAllSegmentsIf( const Segments& segments,
 /**
  * \brief Iterates in parallel over segments within the given range of segment indexes, applying a condition
  * to determine whether each segment should be processed.
+ *
+ * See also: \ref SegmentTraversalOverview
  *
  * For each segment, a condition lambda function is evaluated based on the segment index.
  * If the condition lambda function returns \e true, the specified lambda function is executed for the segment.
@@ -503,6 +524,8 @@ sequentialForSegments( const Segments& segments, IndexBegin begin, IndexEnd end,
 // TODO: Sequential variants should be achieved via LaunchConfiguration
 /**
  * \brief Iterates in parallel over **all** segments and call given lambda function for each segment.
+ *
+ * See also: \ref SegmentTraversalOverview
  *
  * This function is just a sequential variant of \ref TNL::Algorithms::Segments::forAllSegments.
  */
