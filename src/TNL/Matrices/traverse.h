@@ -222,11 +222,16 @@ namespace TNL::Matrices {
  * **Returns:**
  * - `true` if the row should be processed, `false` to skip it
  *
+ * \section MatrixTraversalLambdasRelatedPages Related Pages
+ *
+ * - \ref MatrixTraversalOverview - Overview of matrix traversal functions
  */
 
 /**
- * \brief Iterates in parallel over all elements of **all** matrix rows and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements of **all** matrix rows and applies the specified lambda function.
+ *
+ * See also: \ref MatrixTraversalOverview
+ *
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be applied to each element.
@@ -250,6 +255,8 @@ forAllElements( Matrix& matrix,
  * \brief Iterates in parallel over all elements of **all** matrix rows of **constant matrix** and
  * applies the specified lambda function.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be applied to each element.
  *
@@ -269,8 +276,9 @@ forAllElements( const Matrix& matrix,
                 Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements in the given range of matrix rows and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements in the given range of matrix rows and applies the specified lambda function.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -301,8 +309,10 @@ forElements( Matrix& matrix,
              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements of **constant matrix** in the given range of matrix rows and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements of **constant matrix** in the given range of matrix rows and applies the
+ * specified lambda function.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -333,8 +343,10 @@ forElements( const Matrix& matrix,
              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements of matrix rows with the given indexes and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
+ * function.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
@@ -370,8 +382,10 @@ forElements( Matrix& matrix,
              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements of matrix rows with the given indexes and
- * applies the specified lambda function. This function is for **constant matrices**.
+ * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
+ * function. This function is for **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
@@ -407,8 +421,10 @@ forElements( const Matrix& matrix,
              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements of matrix rows with the given indexes and
- * applies the specified lambda function.
+ * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
+ * function.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
@@ -434,8 +450,10 @@ forElements( Matrix& matrix,
              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements of matrix rows with the given indexes and
- * applies the specified lambda function. This function is for **constant matrices**.
+ * \brief Iterates in parallel over all elements of matrix rows with the given indexes and applies the specified lambda
+ * function. This function is for **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
@@ -462,6 +480,9 @@ forElements( const Matrix& matrix,
 
 /**
  * \brief Iterates in parallel over all elements in a given range of rows based on a condition.
+ *
+ * See also: \ref MatrixTraversalOverview
+ *
  *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, all elements of the row are traversed,
@@ -500,8 +521,10 @@ forElementsIf( Matrix& matrix,
                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
- * \brief Iterates in parallel over all elements in a given range of rows based on a condition.
- * This function is for **constant matrices**.
+ * \brief Iterates in parallel over all elements in a given range of rows based on a condition. This function is for
+ * **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, all elements of the row are traversed,
@@ -542,6 +565,8 @@ forElementsIf( const Matrix& matrix,
 /**
  * \brief Iterates in parallel over all elements of **all** matrix rows based on a condition.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, all elements of the row are traversed,
  * and the specified lambda function is applied to each element. If the condition lambda function returns
@@ -570,6 +595,9 @@ forAllElementsIf( Matrix& matrix,
 
 /**
  * \brief Iterates in parallel over all elements of **all** matrix rows based on a condition.
+ *
+ * See also: \ref MatrixTraversalOverview
+ *
  * This function is for **constant matrices**.
  *
  * For each matrix row, a condition lambda function is evaluated based on the row index.
@@ -601,6 +629,8 @@ forAllElementsIf( const Matrix& matrix,
 /**
  * \brief Iterates in parallel over matrix rows within the specified range of row indexes
  * and applies the given lambda function to each row.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
@@ -642,6 +672,8 @@ forRows( Matrix& matrix,
  * \brief Iterates in parallel over matrix rows within the specified range of row indexes
  * and applies the given lambda function to each row. This function is for **constant matrices**.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam IndexBegin The type of the index defining the beginning of the interval [ \e begin, \e end )
  *    of matrix rows on which the lambda function will be applied.
@@ -681,6 +713,8 @@ forRows( const Matrix& matrix,
 /**
  * \brief Iterates in parallel over **all** matrix rows and applies the given lambda function to each row.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be executed on each row.
  *
@@ -706,6 +740,9 @@ forAllRows( Matrix& matrix,
 /**
  * \brief Iterates in parallel over **all** matrix rows and applies the given lambda function to each row.
  * This function is for **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
+ *
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Function The type of the lambda function to be executed on each row.
@@ -733,6 +770,8 @@ forAllRows( const Matrix& matrix,
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
  * lambda function to each row.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
@@ -775,6 +814,8 @@ forRows( Matrix& matrix,
 /**
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
  * lambda function to each row. This function is for **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
@@ -819,6 +860,8 @@ forRows( const Matrix& matrix,
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
  * lambda function to each row.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
@@ -846,6 +889,8 @@ forRows( Matrix& matrix,
  * \brief Iterates in parallel over matrix rows with the given indexes and applies the specified
  * lambda function to each row. This function is for **constant matrices**.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * \tparam Matrix The type of the matrix.
  * \tparam Array The type of the array containing the indexes of the matrix rows to iterate over.
  *   This can be containers such as \ref TNL::Containers::Array, \ref TNL::Containers::ArrayView,
@@ -871,6 +916,8 @@ forRows( const Matrix& matrix,
 /**
  * \brief Iterates in parallel over rows within the given range of row indexes, applying a condition
  * to determine whether each row should be processed.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * For each row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
@@ -916,6 +963,8 @@ forRowsIf( Matrix& matrix,
  * \brief Iterates in parallel over rows within the given range of row indexes, applying a condition
  * to determine whether each row should be processed. This function is for **constant matrices**.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * For each row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
  * If the condition lambda function returns \e false, the row is skipped.
@@ -960,6 +1009,8 @@ forRowsIf( const Matrix& matrix,
  * \brief Iterates in parallel over **all** matrix rows, applying a condition
  * to determine whether each row should be processed.
  *
+ * See also: \ref MatrixTraversalOverview
+ *
  * For each row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
  * If the condition lambda function returns \e false, the row is skipped.
@@ -988,6 +1039,8 @@ forAllRowsIf( Matrix& matrix,
 /**
  * \brief Iterates in parallel over **all** matrix rows, applying a condition
  * to determine whether each row should be processed. This function is for **constant matrices**.
+ *
+ * See also: \ref MatrixTraversalOverview
  *
  * For each row, a condition lambda function is evaluated based on the row index.
  * If the condition lambda function returns \e true, the specified lambda function is executed for the row.
