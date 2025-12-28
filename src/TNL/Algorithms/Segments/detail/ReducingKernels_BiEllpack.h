@@ -13,7 +13,7 @@ template< int BlockDim,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __device__
 void
@@ -23,7 +23,7 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
                                        Index end,
                                        Fetch fetch,
                                        Reduction reduction,
-                                       ResultKeeper keeper,
+                                       ResultStorer storer,
                                        Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -56,7 +56,7 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
       }
       groupHeight /= 2;
    }
-   keeper( segmentIdx, result );
+   storer( segmentIdx, result );
 #endif
 }
 
@@ -65,7 +65,7 @@ template< int BlockDim,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __device__
 void
@@ -75,7 +75,7 @@ reduceSegmentsKernel( SegmentsView segments,
                       Index end,
                       Fetch fetch,
                       Reduction reduction,
-                      ResultKeeper keeper,
+                      ResultStorer storer,
                       Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -170,7 +170,7 @@ reduceSegmentsKernel( SegmentsView segments,
       return;
 
    // Store the results
-   keeper( warpStart + inWarpIdx,
+   storer( warpStart + inWarpIdx,
            results[ segments.getSegmentsPermutationView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1 ) ] );
 #endif
 }
@@ -179,7 +179,7 @@ template< typename SegmentsView,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           int BlockDim >
 __global__
@@ -190,13 +190,13 @@ BiEllpackReduceSegmentsKernel( SegmentsView segments,
                                Index end,
                                Fetch fetch,
                                Reduction reduction,
-                               ResultKeeper keeper,
+                               ResultStorer storer,
                                Value identity )
 {
    if constexpr( argumentCount< Fetch >() == 3 )
-      reduceSegmentsKernelWithAllParameters< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
+      reduceSegmentsKernelWithAllParameters< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
    else
-      reduceSegmentsKernel< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
+      reduceSegmentsKernel< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
 }
 
 template< typename SegmentsView,
@@ -204,7 +204,7 @@ template< typename SegmentsView,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           int BlockDim >
 __global__
@@ -214,7 +214,7 @@ BiEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
                                           Index gridIdx,
                                           Fetch fetch,
                                           Reduction reduction,
-                                          ResultKeeper keeper,
+                                          ResultStorer storer,
                                           Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -253,7 +253,7 @@ BiEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
       }
       groupHeight /= 2;
    }
-   keeper( segmentIdx_idx, segmentIdx, result );
+   storer( segmentIdx_idx, segmentIdx, result );
 #endif
 }
 
@@ -262,7 +262,7 @@ template< int BlockDim,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __device__
 void
@@ -272,7 +272,7 @@ reduceSegmentsKernelWithAllParametersWithArgument( SegmentsView segments,
                                                    Index end,
                                                    Fetch fetch,
                                                    Reduction reduction,
-                                                   ResultKeeper keeper,
+                                                   ResultStorer storer,
                                                    Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -314,7 +314,7 @@ reduceSegmentsKernelWithAllParametersWithArgument( SegmentsView segments,
       }
       groupHeight /= 2;
    }
-   keeper( segmentIdx, argument, result );
+   storer( segmentIdx, argument, result );
 #endif
 }
 
@@ -322,7 +322,7 @@ template< typename SegmentsView,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           int BlockDim >
 __global__
@@ -333,12 +333,12 @@ BiEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
                                            Index end,
                                            Fetch fetch,
                                            Reduction reduction,
-                                           ResultKeeper keeper,
+                                           ResultStorer storer,
                                            Value identity )
 {
    //Currently we do not have specialized kernel for short fetch with argument
    reduceSegmentsKernelWithAllParametersWithArgument< BlockDim >(
-      segments, gridIdx, begin, end, fetch, reduction, keeper, identity );
+      segments, gridIdx, begin, end, fetch, reduction, storer, identity );
 }
 
 template< typename SegmentsView,
@@ -346,7 +346,7 @@ template< typename SegmentsView,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           int BlockDim >
 __global__
@@ -356,7 +356,7 @@ BiEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
                                                      Index gridIdx,
                                                      Fetch fetch,
                                                      Reduction reduction,
-                                                     ResultKeeper keeper,
+                                                     ResultStorer storer,
                                                      Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -400,7 +400,7 @@ BiEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
       }
       groupHeight /= 2;
    }
-   keeper( segmentIdx_idx, segmentIdx, argument, result );
+   storer( segmentIdx_idx, segmentIdx, argument, result );
 #endif
 }
 
