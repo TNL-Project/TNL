@@ -20,7 +20,7 @@ struct ReducingOperationsBase
              typename Condition,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value >
    static IndexType
    reduceSegmentsIf( const Segments& segments,
@@ -29,7 +29,7 @@ struct ReducingOperationsBase
                      Condition&& condition,
                      Fetch&& fetch,
                      Reduction&& reduction,
-                     ResultKeeper&& keeper,
+                     ResultStorer&& storer,
                      const Value& identity,
                      LaunchConfiguration launchConfig )
    {
@@ -48,7 +48,7 @@ struct ReducingOperationsBase
                       indexes,
                       std::forward< Fetch >( fetch ),
                       std::forward< Reduction >( reduction ),
-                      std::forward< ResultKeeper >( keeper ),
+                      std::forward< ResultStorer >( storer ),
                       identity,
                       launchConfig );
       return indexes.getSize();
@@ -59,7 +59,7 @@ struct ReducingOperationsBase
              typename Condition,
              typename Fetch,
              typename Reduction,
-             typename ResultKeeper,
+             typename ResultStorer,
              typename Value >
    static IndexType
    reduceSegmentsWithArgumentIf( const Segments& segments,
@@ -68,7 +68,7 @@ struct ReducingOperationsBase
                                  Condition&& condition,
                                  Fetch&& fetch,
                                  Reduction&& reduction,
-                                 ResultKeeper&& keeper,
+                                 ResultStorer&& storer,
                                  const Value& identity,
                                  LaunchConfiguration launchConfig )
    {
@@ -87,7 +87,7 @@ struct ReducingOperationsBase
                                   indexes,
                                   std::forward< Fetch >( fetch ),
                                   std::forward< Reduction >( reduction ),
-                                  std::forward< ResultKeeper >( keeper ),
+                                  std::forward< ResultStorer >( storer ),
                                   identity,
                                   launchConfig );
       return indexes.getSize();

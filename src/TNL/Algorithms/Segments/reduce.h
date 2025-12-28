@@ -70,7 +70,7 @@ namespace TNL::Algorithms::Segments {
  * - **fetch**: Lambda that retrieves element values (see \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief)
  * - **reduction**: Lambda or function object that combines values (see \ref SegmentReductionLambda_Basic or \ref
  * SegmentReductionLambda_WithArgument)
- * - **keeper**: Lambda that stores the reduction results (see \ref SegmentKeeperLambda_Basic or variants)
+ * - **storer**: Lambda that stores the reduction results (see \ref SegmentStorerLambda_Basic or variants)
  * - **identity**: The identity element for the reduction (e.g., 0 for addition, 1 for multiplication)
  * - **launchConfig**: Configuration for parallel execution (optional)
  *
@@ -165,24 +165,24 @@ namespace TNL::Algorithms::Segments {
  * Note: This variant is used when you need to track which element produced the final result
  * (e.g., finding the maximum value and its position within the segment).
  *
- * \section SegmentKeeperLambdas Keeper Lambda Functions
+ * \section SegmentStorerLambdas Storer Lambda Functions
  *
- * The \e keeper lambda is used to store the final reduction result for each segment.
+ * The \e storer lambda is used to store the final reduction result for each segment.
  *
- * \subsection SegmentKeeperLambda_Basic Basic Keeper (Segment Index Only)
+ * \subsection SegmentStorerLambda_Basic Basic Storer (Segment Index Only)
  *
  * ```cpp
- * auto keeper = [=] __cuda_callable__ ( IndexType segmentIdx, const Value& value ) { ... }
+ * auto storer = [=] __cuda_callable__ ( IndexType segmentIdx, const Value& value ) { ... }
  * ```
  *
  * **Parameters:**
  * - \e segmentIdx - The index of the segment
  * - \e value - The result of the reduction for this segment
  *
- * \subsection SegmentKeeperLambda_WithLocalIdx Keeper With Local Index (Position Tracking)
+ * \subsection SegmentStorerLambda_WithLocalIdx Storer With Local Index (Position Tracking)
  *
  * ```cpp
- * auto keeper = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, const Value& value ) { ... }
+ * auto storer = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, const Value& value ) { ... }
  * ```
  *
  * **Parameters:**
@@ -193,10 +193,10 @@ namespace TNL::Algorithms::Segments {
  * Note: This variant is typically used with \ref SegmentReductionLambda_WithArgument to track both
  * the value and its position within the segment.
  *
- * \subsection SegmentKeeperLambda_WithIndexArray Keeper With Segment Index Array
+ * \subsection SegmentStorerLambda_WithIndexArray Storer With Segment Index Array
  *
  * ```cpp
- * auto keeper = [=] __cuda_callable__ ( IndexType indexOfSegmentIdx, IndexType segmentIdx, const Value& value ) { ... }
+ * auto storer = [=] __cuda_callable__ ( IndexType indexOfSegmentIdx, IndexType segmentIdx, const Value& value ) { ... }
  * ```
  *
  * **Parameters:**
@@ -204,10 +204,10 @@ namespace TNL::Algorithms::Segments {
  * - \e segmentIdx - The actual index of the segment
  * - \e value - The result of the reduction for this segment
  *
- * \subsection SegmentKeeperLambda_WithIndexArrayAndLocalIdx Keeper With Index Array and Local Index
+ * \subsection SegmentStorerLambda_WithIndexArrayAndLocalIdx Storer With Index Array and Local Index
  *
  * ```cpp
- * auto keeper = [=] __cuda_callable__ ( IndexType indexOfSegmentIdx, IndexType segmentIdx, IndexType localIdx, const Value&
+ * auto storer = [=] __cuda_callable__ ( IndexType indexOfSegmentIdx, IndexType segmentIdx, IndexType localIdx, const Value&
  * value ) { ... }
  * ```
  *
@@ -249,12 +249,12 @@ namespace TNL::Algorithms::Segments {
  * \tparam Segments The type of the segments.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction operation. See \ref SegmentReductionLambda_Basic.
- * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_Basic.
+ * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  * \param identity The initial value for the reduction operation.
  *                 If the \e Reduction type does not provide a static member function
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
@@ -267,13 +267,13 @@ namespace TNL::Algorithms::Segments {
 template< typename Segments,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
 static void
 reduceAllSegments( const Segments& segments,
                    Fetch&& fetch,
                    Reduction&& reduction,
-                   ResultKeeper&& keeper,
+                   ResultStorer&& storer,
                    const Value& identity,
                    LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -283,24 +283,24 @@ reduceAllSegments( const Segments& segments,
  * \tparam Segments The type of the segments.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation. See \ref SegmentReductionFunctionObjects.
- * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_Basic.
+ * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegments.cpp
  * \par Output
  * \include SegmentsExample_reduceSegments.out
  */
-template< typename Segments, typename Fetch, typename Reduction, typename ResultKeeper >
+template< typename Segments, typename Fetch, typename Reduction, typename ResultStorer >
 static void
 reduceAllSegments( const Segments& segments,
                    Fetch&& fetch,
                    Reduction&& reduction,
-                   ResultKeeper&& keeper,
+                   ResultStorer&& storer,
                    LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -313,7 +313,7 @@ reduceAllSegments( const Segments& segments,
  *    of segments where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
@@ -322,7 +322,7 @@ reduceAllSegments( const Segments& segments,
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction operation. See \ref SegmentReductionLambda_Basic.
- * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_Basic.
+ * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \param identity The initial value for the reduction operation.
  *                 If the \e Reduction type does not provide a static member function
@@ -338,7 +338,7 @@ template< typename Segments,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
@@ -347,7 +347,7 @@ reduceSegments( const Segments& segments,
                 IndexEnd end,
                 Fetch&& fetch,
                 Reduction&& reduction,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 const Value& identity,
                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -361,7 +361,7 @@ reduceSegments( const Segments& segments,
  *    of segments where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
@@ -370,7 +370,7 @@ reduceSegments( const Segments& segments,
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation. See \ref SegmentReductionFunctionObjects.
- * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_Basic.
+ * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegments.cpp
@@ -382,7 +382,7 @@ template< typename Segments,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
 reduceSegments( const Segments& segments,
@@ -390,7 +390,7 @@ reduceSegments( const Segments& segments,
                 IndexEnd end,
                 Fetch&& fetch,
                 Reduction&& reduction,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -400,13 +400,13 @@ reduceSegments( const Segments& segments,
  * \tparam Array The type of the array containing the indexes of the segments to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param segmentIndexes The array containing the indexes of the segments to iterate over.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction operation. See \ref SegmentReductionLambda_Basic.
- * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_WithIndexArray.
+ * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_WithIndexArray.
  *
  * \param identity The initial value for the reduction operation.
  *                 If the \e Reduction type does not provide a static member function
@@ -421,7 +421,7 @@ template< typename Segments,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 static void
@@ -429,7 +429,7 @@ reduceSegments( const Segments& segments,
                 const Array& segmentIndexes,
                 Fetch&& fetch,
                 Reduction&& reduction,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 const Value& identity,
                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -440,13 +440,13 @@ reduceSegments( const Segments& segments,
  * \tparam Array The type of the array containing the indexes of the segments to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param segmentIndexes The array containing the indexes of the segments to iterate over.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation. See \ref SegmentReductionFunctionObjects.
- * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_WithIndexArray.
+ * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_WithIndexArray.
  *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexes.cpp
@@ -457,14 +457,14 @@ template< typename Segments,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 static void
 reduceSegments( const Segments& segments,
                 const Array& segmentIndexes,
                 Fetch&& fetch,
                 Reduction&& reduction,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -474,13 +474,13 @@ reduceSegments( const Segments& segments,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction operation. See \ref SegmentReductionLambda_Basic.
- * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_Basic.
+ * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \param identity The initial value for the reduction operation.
  *                 If the \e Reduction type does not provide a static member function
@@ -497,14 +497,14 @@ template< typename Segments,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
 static typename Segments::IndexType
 reduceAllSegmentsIf( const Segments& segments,
                      Condition&& condition,
                      Fetch&& fetch,
                      Reduction&& reduction,
-                     ResultKeeper&& keeper,
+                     ResultStorer&& storer,
                      const Value& identity,
                      LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -515,13 +515,13 @@ reduceAllSegmentsIf( const Segments& segments,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation. See \ref SegmentReductionFunctionObjects.
- * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_Basic.
+ * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
@@ -530,13 +530,13 @@ reduceAllSegmentsIf( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsIf.out
  */
-template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper >
+template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultStorer >
 static typename Segments::IndexType
 reduceAllSegmentsIf( const Segments& segments,
                      Condition&& condition,
                      Fetch&& fetch,
                      Reduction&& reduction,
-                     ResultKeeper&& keeper,
+                     ResultStorer&& storer,
                      LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -550,7 +550,7 @@ reduceAllSegmentsIf( const Segments& segments,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
@@ -560,7 +560,7 @@ reduceAllSegmentsIf( const Segments& segments,
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction operation. See \ref SegmentReductionLambda_Basic.
- * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_Basic.
+ * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \param identity The initial value for the reduction operation.
  *                 If the \e Reduction type does not provide a static member function
@@ -579,7 +579,7 @@ template< typename Segments,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static typename Segments::IndexType
@@ -589,7 +589,7 @@ reduceSegmentsIf( const Segments& segments,
                   Condition&& condition,
                   Fetch&& fetch,
                   Reduction&& reduction,
-                  ResultKeeper&& keeper,
+                  ResultStorer&& storer,
                   const Value& identity,
                   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -604,7 +604,7 @@ reduceSegmentsIf( const Segments& segments,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
@@ -614,7 +614,7 @@ reduceSegmentsIf( const Segments& segments,
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation. See \ref SegmentReductionFunctionObjects.
- * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_Basic.
+ * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
@@ -629,7 +629,7 @@ template< typename Segments,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static typename Segments::IndexType
 reduceSegmentsIf( const Segments& segments,
@@ -638,7 +638,7 @@ reduceSegmentsIf( const Segments& segments,
                   Condition&& condition,
                   Fetch&& fetch,
                   Reduction&& reduction,
-                  ResultKeeper&& keeper,
+                  ResultStorer&& storer,
                   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -648,13 +648,13 @@ reduceSegmentsIf( const Segments& segments,
  * \tparam Segments The type of the segments.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction operation with argument tracking. See \ref
  * SegmentReductionLambda_WithArgument.
- * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
+ * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
  *                 If the \e Reduction type does not provide a static member function
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
@@ -667,13 +667,13 @@ reduceSegmentsIf( const Segments& segments,
 template< typename Segments,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
 static void
 reduceAllSegmentsWithArgument( const Segments& segments,
                                Fetch&& fetch,
                                Reduction&& reduction,
-                               ResultKeeper&& keeper,
+                               ResultStorer&& storer,
                                const Value& identity,
                                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -684,24 +684,24 @@ reduceAllSegmentsWithArgument( const Segments& segments,
  * \tparam Segments The type of the segments.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation with argument tracking. See \ref SegmentReductionFunctionObjects.
- * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
+ * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgument.out
  */
-template< typename Segments, typename Fetch, typename Reduction, typename ResultKeeper >
+template< typename Segments, typename Fetch, typename Reduction, typename ResultStorer >
 static void
 reduceAllSegmentsWithArgument( const Segments& segments,
                                Fetch&& fetch,
                                Reduction&& reduction,
-                               ResultKeeper&& keeper,
+                               ResultStorer&& storer,
                                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -715,7 +715,7 @@ reduceAllSegmentsWithArgument( const Segments& segments,
  *    of segments where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
@@ -725,7 +725,7 @@ reduceAllSegmentsWithArgument( const Segments& segments,
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction operation with argument tracking. See \ref
  * SegmentReductionLambda_WithArgument.
- * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
+ * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  *
  * \param identity The initial value for the reduction operation.
  *                 If the \e Reduction type does not provide a static member function
@@ -741,7 +741,7 @@ template< typename Segments,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
 static void
 reduceSegmentsWithArgument( const Segments& segments,
@@ -749,7 +749,7 @@ reduceSegmentsWithArgument( const Segments& segments,
                             IndexEnd end,
                             Fetch&& fetch,
                             Reduction&& reduction,
-                            ResultKeeper&& keeper,
+                            ResultStorer&& storer,
                             const Value& identity,
                             LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -764,7 +764,7 @@ reduceSegmentsWithArgument( const Segments& segments,
  *    of segments where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
@@ -773,21 +773,21 @@ reduceSegmentsWithArgument( const Segments& segments,
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation with argument tracking. See \ref SegmentReductionFunctionObjects.
- * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
+ * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgument.out
  */
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename ResultKeeper >
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename ResultStorer >
 static void
 reduceSegmentsWithArgument( const Segments& segments,
                             IndexBegin begin,
                             IndexEnd end,
                             Fetch&& fetch,
                             Reduction&& reduction,
-                            ResultKeeper&& keeper,
+                            ResultStorer&& storer,
                             LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -798,13 +798,13 @@ reduceSegmentsWithArgument( const Segments& segments,
  * \tparam Array The type of the array containing the indexes of the segments to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param segmentIndexes The array containing the indexes of the segments to iterate over.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction with argument tracking. See \ref SegmentReductionLambda_WithArgument.
- * \param keeper Lambda function for storing results. See \ref SegmentKeeperLambda_WithIndexArrayAndLocalIdx.
+ * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_WithIndexArrayAndLocalIdx.
  *
  * \param identity The initial value for the reduction operation.
  *                 If the \e Reduction type does not provide a static member function
@@ -819,7 +819,7 @@ template< typename Segments,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 static void
@@ -827,7 +827,7 @@ reduceSegmentsWithArgument( const Segments& segments,
                             const Array& segmentIndexes,
                             Fetch&& fetch,
                             Reduction&& reduction,
-                            ResultKeeper&& keeper,
+                            ResultStorer&& storer,
                             const Value& identity,
                             LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -839,14 +839,14 @@ reduceSegmentsWithArgument( const Segments& segments,
  * \tparam Array The type of the array containing the indexes of the segments to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param segmentIndexes The array containing the indexes of the segments to iterate over.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation with argument tracking. See \ref SegmentReductionFunctionObjects.
- * \param keeper Lambda function for storing results with index array and local index. See \ref
- * SegmentKeeperLambda_WithIndexArrayAndLocalIdx.
+ * \param storer Lambda function for storing results with index array and local index. See \ref
+ * SegmentStorerLambda_WithIndexArrayAndLocalIdx.
  *
  * \par Example
  * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument.cpp
@@ -857,14 +857,14 @@ template< typename Segments,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 static void
 reduceSegmentsWithArgument( const Segments& segments,
                             const Array& segmentIndexes,
                             Fetch&& fetch,
                             Reduction&& reduction,
-                            ResultKeeper&& keeper,
+                            ResultStorer&& storer,
                             LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -875,14 +875,14 @@ reduceSegmentsWithArgument( const Segments& segments,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction operation with argument tracking. See \ref
  * SegmentReductionLambda_WithArgument.
- * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
+ * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  *
  * \param identity The initial value for the reduction operation.
  *                 If the \e Reduction type does not provide a static member function
@@ -899,14 +899,14 @@ template< typename Segments,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
 static typename Segments::IndexType
 reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                  Condition&& condition,
                                  Fetch&& fetch,
                                  Reduction&& reduction,
-                                 ResultKeeper&& keeper,
+                                 ResultStorer&& storer,
                                  const Value& identity,
                                  LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -922,7 +922,7 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
@@ -932,7 +932,7 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation with argument tracking. See \ref SegmentReductionFunctionObjects.
- * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
+ * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  *
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
@@ -941,13 +941,13 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
-template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper >
+template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultStorer >
 static typename Segments::IndexType
 reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                  Condition&& condition,
                                  Fetch&& fetch,
                                  Reduction&& reduction,
-                                 ResultKeeper&& keeper,
+                                 ResultStorer&& storer,
                                  LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -962,7 +962,7 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
@@ -973,7 +973,7 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Lambda function for reduction operation with argument tracking. See \ref
  * SegmentReductionLambda_WithArgument.
- * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
+ * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
  *                 If the \e Reduction type does not provide a static member function
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
@@ -991,7 +991,7 @@ template< typename Segments,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static typename Segments::IndexType
@@ -1001,7 +1001,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
                               Condition&& condition,
                               Fetch&& fetch,
                               Reduction&& reduction,
-                              ResultKeeper&& keeper,
+                              ResultStorer&& storer,
                               const Value& identity,
                               LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1017,7 +1017,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam ResultKeeper The type of the lambda function used for storing results from individual segments.
+ * \tparam ResultStorer The type of the lambda function used for storing results from individual segments.
  *
  * \param segments The segment data structure on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of segments where the reduction
@@ -1027,7 +1027,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref SegmentFetchLambda_Full or \ref SegmentFetchLambda_Brief.
  * \param reduction Function object for reduction operation with argument tracking. See \ref SegmentReductionFunctionObjects.
- * \param keeper Lambda function for storing results with local index. See \ref SegmentKeeperLambda_WithLocalIdx.
+ * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  *
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
@@ -1042,7 +1042,7 @@ template< typename Segments,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static typename Segments::IndexType
 reduceSegmentsWithArgumentIf( const Segments& segments,
@@ -1051,7 +1051,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
                               Condition&& condition,
                               Fetch&& fetch,
                               Reduction&& reduction,
-                              ResultKeeper&& keeper,
+                              ResultStorer&& storer,
                               LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**

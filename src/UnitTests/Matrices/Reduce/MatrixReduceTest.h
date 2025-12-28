@@ -65,11 +65,11 @@ test_reduceRows()
    {
       return value;
    };
-   auto keep = [ = ] __cuda_callable__( const IndexType rowIdx, const RealType value ) mutable
+   auto store = [ = ] __cuda_callable__( const IndexType rowIdx, const RealType value ) mutable
    {
       rowSums_view[ rowIdx ] = value;
    };
-   TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, keep, RealType( 0 ) );
+   TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, store, RealType( 0 ) );
    EXPECT_EQ( rowSums.getElement( 0 ), 12 );  // 1+2+4+5
    EXPECT_EQ( rowSums.getElement( 1 ), 13 );  // 6+7
    EXPECT_EQ( rowSums.getElement( 2 ), 27 );  // 8+9+10
@@ -79,7 +79,7 @@ test_reduceRows()
    const auto constMatrix( matrix );
 
    rowSums = 0;
-   TNL::Matrices::reduceRows( constMatrix.getConstView(), 1, 4, fetch, TNL::Plus{}, keep, RealType( 0 ) );
+   TNL::Matrices::reduceRows( constMatrix.getConstView(), 1, 4, fetch, TNL::Plus{}, store, RealType( 0 ) );
    EXPECT_EQ( rowSums.getElement( 0 ), 0 );  // skipped
    EXPECT_EQ( rowSums.getElement( 1 ), 13 );  // 6+7
    EXPECT_EQ( rowSums.getElement( 2 ), 27 );  // 8+9+10
@@ -169,11 +169,11 @@ test_reduceRowsIf()
    {
       return rowIdx >= 2;
    };
-   auto keep = [ = ] __cuda_callable__( const IndexType indexOfRowIdx, const IndexType rowIdx, const IndexType value ) mutable
+   auto store = [ = ] __cuda_callable__( const IndexType indexOfRowIdx, const IndexType rowIdx, const IndexType value ) mutable
    {
       rowCounts_view[ rowIdx ] = value;
    };
-   TNL::Matrices::reduceAllRowsIf( matrix, condition, fetch, TNL::Plus{}, keep, 0 );
+   TNL::Matrices::reduceAllRowsIf( matrix, condition, fetch, TNL::Plus{}, store, 0 );
    EXPECT_EQ( rowCounts.getElement( 0 ), 0 );  // skipped
    EXPECT_EQ( rowCounts.getElement( 1 ), 0 );  // skipped
    EXPECT_EQ( rowCounts.getElement( 2 ), 3 );  // 8, 9, 10
@@ -182,7 +182,7 @@ test_reduceRowsIf()
 
    rowCounts = 0;
    const auto constMatrix( matrix );
-   TNL::Matrices::reduceRowsIf( constMatrix.getConstView(), 1, 4, condition, fetch, TNL::Plus{}, keep, 0 );
+   TNL::Matrices::reduceRowsIf( constMatrix.getConstView(), 1, 4, condition, fetch, TNL::Plus{}, store, 0 );
    EXPECT_EQ( rowCounts.getElement( 0 ), 0 );  // skipped by condition and range
    EXPECT_EQ( rowCounts.getElement( 1 ), 0 );  // skipped by condition
    EXPECT_EQ( rowCounts.getElement( 2 ), 3 );  // 8, 9, 10
@@ -258,7 +258,7 @@ test_reduceRowsWithArgument()
          aIdx = bIdx;
       }
    };
-   auto keep = [ = ] __cuda_callable__(
+   auto store = [ = ] __cuda_callable__(
                   const IndexType rowIdx, const IndexType localIdx, const IndexType columnIdx, const RealType& value ) mutable
    {
       maxValues_view[ rowIdx ] = value;
@@ -274,7 +274,7 @@ test_reduceRowsWithArgument()
       maxColumns_view[ rowIdx ] = columnIdx;
    };
 
-   TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, reduce, keep, (RealType) 0 );
+   TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, reduce, store, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 5 );
    EXPECT_EQ( maxColumns.getElement( 0 ), 4 );
@@ -290,7 +290,7 @@ test_reduceRowsWithArgument()
    maxValues = 0;
    maxColumns = -1;
    const auto constMatrix( matrix );
-   TNL::Matrices::reduceRowsWithArgument( constMatrix.getConstView(), 2, 4, fetch, reduce, keep, (RealType) 0 );
+   TNL::Matrices::reduceRowsWithArgument( constMatrix.getConstView(), 2, 4, fetch, reduce, store, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
    EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
@@ -393,7 +393,7 @@ test_reduceRowsWithArgumentIf()
          aIdx = bIdx;
       }
    };
-   auto keep = [ = ] __cuda_callable__( const IndexType indexOfRowIdx,
+   auto store = [ = ] __cuda_callable__( const IndexType indexOfRowIdx,
                                         const IndexType rowIdx,
                                         const IndexType localIdx,
                                         const IndexType columnIdx,
@@ -403,7 +403,7 @@ test_reduceRowsWithArgumentIf()
       maxColumns_view[ rowIdx ] = columnIdx;
    };
 
-   TNL::Matrices::reduceAllRowsWithArgumentIf( matrix, condition, fetch, reduce, keep, (RealType) 0 );
+   TNL::Matrices::reduceAllRowsWithArgumentIf( matrix, condition, fetch, reduce, store, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
    EXPECT_EQ( maxColumns.getElement( 0 ), -1 );
@@ -419,7 +419,7 @@ test_reduceRowsWithArgumentIf()
    const auto constMatrix( matrix );
    maxValues = 0;
    maxColumns = -1;
-   TNL::Matrices::reduceRowsWithArgumentIf( constMatrix.getConstView(), 1, 4, condition, fetch, reduce, keep, (RealType) 0 );
+   TNL::Matrices::reduceRowsWithArgumentIf( constMatrix.getConstView(), 1, 4, condition, fetch, reduce, store, (RealType) 0 );
 
    EXPECT_EQ( maxValues.getElement( 0 ), 0 );  // skipped
    EXPECT_EQ( maxColumns.getElement( 0 ), -1 );

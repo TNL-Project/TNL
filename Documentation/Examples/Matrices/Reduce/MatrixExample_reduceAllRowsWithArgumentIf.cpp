@@ -63,7 +63,7 @@ reduceAllRowsWithArgumentIfExample()
       return rowIdx % 2 == 0;  // Only even row indices
    };
 
-   auto keep =
+   auto store =
       [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
    {
       maxValues_view[ rowIdx ] = value;
@@ -77,7 +77,7 @@ reduceAllRowsWithArgumentIfExample()
    maxColumns.setValue( -1 );
 
    auto evenRowsCount = TNL::Matrices::reduceAllRowsWithArgumentIf(
-      matrix, rowCondition, fetch, reduction, keep, std::numeric_limits< double >::lowest() );
+      matrix, rowCondition, fetch, reduction, store, std::numeric_limits< double >::lowest() );
    // You may also use TNL::MaxWithArg{} instead of defining your own reduction lambda.
 
    std::cout << "Argmax for even-indexed rows:" << std::endl;

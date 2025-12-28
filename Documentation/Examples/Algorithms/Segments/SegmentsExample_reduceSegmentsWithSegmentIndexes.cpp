@@ -69,19 +69,19 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   auto keep = [ = ] __cuda_callable__( int indexOfSegmentIdx, int segmentIdx, const double& value ) mutable
+   auto store = [ = ] __cuda_callable__( int indexOfSegmentIdx, int segmentIdx, const double& value ) mutable
    {
       sums_view[ segmentIdx ] = value;
       compressedSums_view[ indexOfSegmentIdx ] = value;
    };
 
-   TNL::Algorithms::Segments::reduceSegments( segments, segmentIndexes, fetch_full, TNL::Plus{}, keep );
+   TNL::Algorithms::Segments::reduceSegments( segments, segmentIndexes, fetch_full, TNL::Plus{}, store );
    std::cout << "The sums with full fetch form are: " << sums << std::endl;
    std::cout << "The compressed sums with full fetch form are: " << compressedSums << std::endl;
 
    sums = 0;
    compressedSums = 0;
-   TNL::Algorithms::Segments::reduceSegments( segments, segmentIndexes, fetch_brief, TNL::Plus{}, keep );
+   TNL::Algorithms::Segments::reduceSegments( segments, segmentIndexes, fetch_brief, TNL::Plus{}, store );
    std::cout << "The sums with brief fetch form are: " << sums << std::endl;
    std::cout << "The compressed sums with brief fetch form are: " << compressedSums << std::endl;
    //! [reduction]

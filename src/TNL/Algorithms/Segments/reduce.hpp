@@ -10,12 +10,12 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Segments, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+template< typename Segments, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 static void
 reduceAllSegments( const Segments& segments,
                    Fetch&& fetch,
                    Reduction&& reduction,
-                   ResultKeeper&& keeper,
+                   ResultStorer&& storer,
                    const Value& identity,
                    LaunchConfiguration launchConfig )
 {
@@ -25,17 +25,17 @@ reduceAllSegments( const Segments& segments,
                    segments.getSegmentsCount(),
                    std::forward< Fetch >( fetch ),
                    std::forward< Reduction >( reduction ),
-                   std::forward< ResultKeeper >( keeper ),
+                   std::forward< ResultStorer >( storer ),
                    identity,
                    launchConfig );
 }
 
-template< typename Segments, typename Fetch, typename Reduction, typename ResultKeeper >
+template< typename Segments, typename Fetch, typename Reduction, typename ResultStorer >
 static void
 reduceAllSegments( const Segments& segments,
                    Fetch&& fetch,
                    Reduction&& reduction,
-                   ResultKeeper&& keeper,
+                   ResultStorer&& storer,
                    LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
@@ -45,7 +45,7 @@ reduceAllSegments( const Segments& segments,
                    segments.getSegmentsCount(),
                    std::forward< Fetch >( fetch ),
                    std::forward< Reduction >( reduction ),
-                   std::forward< ResultKeeper >( keeper ),
+                   std::forward< ResultStorer >( storer ),
                    Reduction::template getIdentity< Value >(),
                    launchConfig );
 }
@@ -55,7 +55,7 @@ template< typename Segments,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           typename T >
 static void
@@ -64,7 +64,7 @@ reduceSegments( const Segments& segments,
                 IndexEnd end,
                 Fetch&& fetch,
                 Reduction&& reduction,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 const Value& identity,
                 LaunchConfiguration launchConfig )
 {
@@ -73,7 +73,7 @@ reduceSegments( const Segments& segments,
                                                                                    end,
                                                                                    std::forward< Fetch >( fetch ),
                                                                                    std::forward< Reduction >( reduction ),
-                                                                                   std::forward< ResultKeeper >( keeper ),
+                                                                                   std::forward< ResultStorer >( storer ),
                                                                                    identity,
                                                                                    launchConfig );
 }
@@ -83,7 +83,7 @@ template< typename Segments,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T >
 static void
 reduceSegments( const Segments& segments,
@@ -91,7 +91,7 @@ reduceSegments( const Segments& segments,
                 IndexEnd end,
                 Fetch&& fetch,
                 Reduction&& reduction,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 LaunchConfiguration launchConfig )
 {
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
@@ -100,7 +100,7 @@ reduceSegments( const Segments& segments,
                                                                                    end,
                                                                                    std::forward< Fetch >( fetch ),
                                                                                    std::forward< Reduction >( reduction ),
-                                                                                   std::forward< ResultKeeper >( keeper ),
+                                                                                   std::forward< ResultStorer >( storer ),
                                                                                    Reduction::template getIdentity< Value >(),
                                                                                    launchConfig );
 }
@@ -109,7 +109,7 @@ template< typename Segments,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           typename T >
 static void
@@ -117,7 +117,7 @@ reduceSegments( const Segments& segments,
                 const Array& segmentIndexes,
                 Fetch&& fetch,
                 Reduction&& reduction,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 const Value& identity,
                 LaunchConfiguration launchConfig )
 {
@@ -126,18 +126,18 @@ reduceSegments( const Segments& segments,
       segmentIndexes,
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
-      std::forward< ResultKeeper >( keeper ),
+      std::forward< ResultStorer >( storer ),
       identity,
       launchConfig );
 }
 
-template< typename Segments, typename Array, typename Fetch, typename Reduction, typename ResultKeeper, typename T >
+template< typename Segments, typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename T >
 static void
 reduceSegments( const Segments& segments,
                 const Array& segmentIndexes,
                 Fetch&& fetch,
                 Reduction&& reduction,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 LaunchConfiguration launchConfig )
 {
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
@@ -146,18 +146,18 @@ reduceSegments( const Segments& segments,
       segmentIndexes,
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
-      std::forward< ResultKeeper >( keeper ),
+      std::forward< ResultStorer >( storer ),
       Reduction::template getIdentity< Value >(),
       launchConfig );
 }
 
-template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 static typename Segments::IndexType
 reduceAllSegmentsIf( const Segments& segments,
                      Condition&& condition,
                      Fetch&& fetch,
                      Reduction&& reduction,
-                     ResultKeeper&& keeper,
+                     ResultStorer&& storer,
                      const Value& identity,
                      LaunchConfiguration launchConfig )
 {
@@ -168,18 +168,18 @@ reduceAllSegmentsIf( const Segments& segments,
                             std::forward< Condition >( condition ),
                             std::forward< Fetch >( fetch ),
                             std::forward< Reduction >( reduction ),
-                            std::forward< ResultKeeper >( keeper ),
+                            std::forward< ResultStorer >( storer ),
                             identity,
                             launchConfig );
 }
 
-template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper >
+template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultStorer >
 static typename Segments::IndexType
 reduceAllSegmentsIf( const Segments& segments,
                      Condition&& condition,
                      Fetch&& fetch,
                      Reduction&& reduction,
-                     ResultKeeper&& keeper,
+                     ResultStorer&& storer,
                      LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
@@ -190,7 +190,7 @@ reduceAllSegmentsIf( const Segments& segments,
                             std::forward< Condition >( condition ),
                             std::forward< Fetch >( fetch ),
                             std::forward< Reduction >( reduction ),
-                            std::forward< ResultKeeper >( keeper ),
+                            std::forward< ResultStorer >( storer ),
                             Reduction::template getIdentity< Value >(),
                             launchConfig );
 }
@@ -201,7 +201,7 @@ template< typename Segments,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           typename T >
 static typename Segments::IndexType
@@ -211,7 +211,7 @@ reduceSegmentsIf( const Segments& segments,
                   Condition&& condition,
                   Fetch&& fetch,
                   Reduction&& reduction,
-                  ResultKeeper&& keeper,
+                  ResultStorer&& storer,
                   const Value& identity,
                   LaunchConfiguration launchConfig )
 {
@@ -222,7 +222,7 @@ reduceSegmentsIf( const Segments& segments,
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
-      std::forward< ResultKeeper >( keeper ),
+      std::forward< ResultStorer >( storer ),
       identity,
       launchConfig );
 }
@@ -233,7 +233,7 @@ template< typename Segments,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T >
 static typename Segments::IndexType
 reduceSegmentsIf( const Segments& segments,
@@ -242,7 +242,7 @@ reduceSegmentsIf( const Segments& segments,
                   Condition&& condition,
                   Fetch&& fetch,
                   Reduction&& reduction,
-                  ResultKeeper&& keeper,
+                  ResultStorer&& storer,
                   LaunchConfiguration launchConfig )
 {
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
@@ -252,17 +252,17 @@ reduceSegmentsIf( const Segments& segments,
                             std::forward< Condition >( condition ),
                             std::forward< Fetch >( fetch ),
                             std::forward< Reduction >( reduction ),
-                            std::forward< ResultKeeper >( keeper ),
+                            std::forward< ResultStorer >( storer ),
                             Reduction::template getIdentity< Value >(),
                             launchConfig );
 }
 
-template< typename Segments, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+template< typename Segments, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 static void
 reduceAllSegmentsWithArgument( const Segments& segments,
                                Fetch&& fetch,
                                Reduction&& reduction,
-                               ResultKeeper&& keeper,
+                               ResultStorer&& storer,
                                const Value& identity,
                                LaunchConfiguration launchConfig )
 {
@@ -272,17 +272,17 @@ reduceAllSegmentsWithArgument( const Segments& segments,
                                segments.getSegmentsCount(),
                                std::forward< Fetch >( fetch ),
                                std::forward< Reduction >( reduction ),
-                               std::forward< ResultKeeper >( keeper ),
+                               std::forward< ResultStorer >( storer ),
                                identity,
                                launchConfig );
 }
 
-template< typename Segments, typename Fetch, typename Reduction, typename ResultKeeper >
+template< typename Segments, typename Fetch, typename Reduction, typename ResultStorer >
 static void
 reduceAllSegmentsWithArgument( const Segments& segments,
                                Fetch&& fetch,
                                Reduction&& reduction,
-                               ResultKeeper&& keeper,
+                               ResultStorer&& storer,
                                LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
@@ -292,7 +292,7 @@ reduceAllSegmentsWithArgument( const Segments& segments,
                                segments.getSegmentsCount(),
                                std::forward< Fetch >( fetch ),
                                std::forward< Reduction >( reduction ),
-                               std::forward< ResultKeeper >( keeper ),
+                               std::forward< ResultStorer >( storer ),
                                Reduction::template getIdentity< Value >(),
                                launchConfig );
 }
@@ -302,7 +302,7 @@ template< typename Segments,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 static void
 reduceSegmentsWithArgument( const Segments& segments,
@@ -310,7 +310,7 @@ reduceSegmentsWithArgument( const Segments& segments,
                             IndexEnd end,
                             Fetch&& fetch,
                             Reduction&& reduction,
-                            ResultKeeper&& keeper,
+                            ResultStorer&& storer,
                             const Value& identity,
                             LaunchConfiguration launchConfig )
 {
@@ -320,19 +320,19 @@ reduceSegmentsWithArgument( const Segments& segments,
       end,
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
-      std::forward< ResultKeeper >( keeper ),
+      std::forward< ResultStorer >( storer ),
       identity,
       launchConfig );
 }
 
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename ResultKeeper >
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename ResultStorer >
 static void
 reduceSegmentsWithArgument( const Segments& segments,
                             IndexBegin begin,
                             IndexEnd end,
                             Fetch&& fetch,
                             Reduction&& reduction,
-                            ResultKeeper&& keeper,
+                            ResultStorer&& storer,
                             LaunchConfiguration launchConfig )
 {
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
@@ -342,7 +342,7 @@ reduceSegmentsWithArgument( const Segments& segments,
       end,
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
-      std::forward< ResultKeeper >( keeper ),
+      std::forward< ResultStorer >( storer ),
       Reduction::template getIdentity< Value >(),
       launchConfig );
 }
@@ -351,7 +351,7 @@ template< typename Segments,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           typename T >
 static void
@@ -359,7 +359,7 @@ reduceSegmentsWithArgument( const Segments& segments,
                             const Array& segmentIndexes,
                             Fetch&& fetch,
                             Reduction&& reduction,
-                            ResultKeeper&& keeper,
+                            ResultStorer&& storer,
                             const Value& identity,
                             LaunchConfiguration launchConfig )
 {
@@ -368,18 +368,18 @@ reduceSegmentsWithArgument( const Segments& segments,
       segmentIndexes,
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
-      std::forward< ResultKeeper >( keeper ),
+      std::forward< ResultStorer >( storer ),
       identity,
       launchConfig );
 }
 
-template< typename Segments, typename Array, typename Fetch, typename Reduction, typename ResultKeeper, typename T >
+template< typename Segments, typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename T >
 static void
 reduceSegmentsWithArgument( const Segments& segments,
                             const Array& segmentIndexes,
                             Fetch&& fetch,
                             Reduction&& reduction,
-                            ResultKeeper&& keeper,
+                            ResultStorer&& storer,
                             LaunchConfiguration launchConfig )
 {
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
@@ -388,18 +388,18 @@ reduceSegmentsWithArgument( const Segments& segments,
       segmentIndexes,
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
-      std::forward< ResultKeeper >( keeper ),
+      std::forward< ResultStorer >( storer ),
       Reduction::template getIdentity< Value >(),
       launchConfig );
 }
 
-template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 static typename Segments::IndexType
 reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                  Condition&& condition,
                                  Fetch&& fetch,
                                  Reduction&& reduction,
-                                 ResultKeeper&& keeper,
+                                 ResultStorer&& storer,
                                  const Value& identity,
                                  LaunchConfiguration launchConfig )
 {
@@ -410,18 +410,18 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                         std::forward< Condition >( condition ),
                                         std::forward< Fetch >( fetch ),
                                         std::forward< Reduction >( reduction ),
-                                        std::forward< ResultKeeper >( keeper ),
+                                        std::forward< ResultStorer >( storer ),
                                         identity,
                                         launchConfig );
 }
 
-template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultKeeper >
+template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultStorer >
 static typename Segments::IndexType
 reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                  Condition&& condition,
                                  Fetch&& fetch,
                                  Reduction&& reduction,
-                                 ResultKeeper&& keeper,
+                                 ResultStorer&& storer,
                                  LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
@@ -432,7 +432,7 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
                                         std::forward< Condition >( condition ),
                                         std::forward< Fetch >( fetch ),
                                         std::forward< Reduction >( reduction ),
-                                        std::forward< ResultKeeper >( keeper ),
+                                        std::forward< ResultStorer >( storer ),
                                         Reduction::template getIdentity< Value >(),
                                         launchConfig );
 }
@@ -443,7 +443,7 @@ template< typename Segments,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value,
           typename T >
 static typename Segments::IndexType
@@ -453,7 +453,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
                               Condition&& condition,
                               Fetch&& fetch,
                               Reduction&& reduction,
-                              ResultKeeper&& keeper,
+                              ResultStorer&& storer,
                               const Value& identity,
                               LaunchConfiguration launchConfig )
 {
@@ -464,7 +464,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
       std::forward< Condition >( condition ),
       std::forward< Fetch >( fetch ),
       std::forward< Reduction >( reduction ),
-      std::forward< ResultKeeper >( keeper ),
+      std::forward< ResultStorer >( storer ),
       identity,
       launchConfig );
 }
@@ -475,7 +475,7 @@ template< typename Segments,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T >
 static typename Segments::IndexType
 reduceSegmentsWithArgumentIf( const Segments& segments,
@@ -484,7 +484,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
                               Condition&& condition,
                               Fetch&& fetch,
                               Reduction&& reduction,
-                              ResultKeeper&& keeper,
+                              ResultStorer&& storer,
                               LaunchConfiguration launchConfig )
 {
    using Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType;
@@ -494,7 +494,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
                                         std::forward< Condition >( condition ),
                                         std::forward< Fetch >( fetch ),
                                         std::forward< Reduction >( reduction ),
-                                        std::forward< ResultKeeper >( keeper ),
+                                        std::forward< ResultStorer >( storer ),
                                         Reduction::template getIdentity< Value >(),
                                         launchConfig );
 }
