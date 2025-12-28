@@ -40,12 +40,12 @@ reduceAllRowsExample()
       return value;
    };
 
-   auto keep = [ = ] __cuda_callable__( int rowIdx, const double& sum ) mutable
+   auto store = [ = ] __cuda_callable__( int rowIdx, const double& sum ) mutable
    {
       rowSums_view[ rowIdx ] = sum;
    };
 
-   TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, keep );
+   TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, store );
 
    std::cout << "Row sums: " << rowSums << std::endl;
 
@@ -55,12 +55,12 @@ reduceAllRowsExample()
    TNL::Containers::Vector< double, Device > rowMaxima( matrix.getRows() );
    auto rowMaxima_view = rowMaxima.getView();
 
-   auto keepMax = [ = ] __cuda_callable__( int rowIdx, const double& max ) mutable
+   auto storeMax = [ = ] __cuda_callable__( int rowIdx, const double& max ) mutable
    {
       rowMaxima_view[ rowIdx ] = max;
    };
 
-   TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Max{}, keepMax );
+   TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Max{}, storeMax );
 
    std::cout << "Row maxima: " << rowMaxima << std::endl;
 }

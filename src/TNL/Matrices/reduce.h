@@ -91,10 +91,11 @@ namespace TNL::Matrices {
  * All reduction functions share these common parameters:
  *
  * - **matrix**: The matrix to reduce (const or non-const)
- * - **fetch**: Lambda that retrieves element values (see \ref FetchLambda_NonConst or \ref FetchLambda_Const)
- * - **reduction**: Lambda or function object that combines values (see \ref ReductionLambda_Basic or \ref
- * ReductionLambda_WithArgument)
- * - **keep**: Lambda that stores the reduction results (see \ref KeepLambda_Basic or variants)
+ * - **fetch**: Lambda that retrieves element values (see \ref MatrixReduceFetchLambda_NonConst or \ref
+ * MatrixReduceFetchLambda_Const)
+ * - **reduction**: Lambda or function object that combines values (see \ref MatrixReduceReductionLambda_Basic or \ref
+ * MatrixReduceReductionLambda_WithArgument)
+ * - **store**: Lambda that stores the reduction results (see \ref MatrixStoreLambda_Basic or variants)
  * - **identity**: The identity element for the reduction (e.g., 0 for addition, 1 for multiplication)
  * - **launchConfig**: Configuration for parallel execution (optional)
  *
@@ -201,24 +202,24 @@ namespace TNL::Matrices {
  * Note: This variant is used when you need to track which element produced the final result
  * (e.g., finding the maximum value and its position).
  *
- * \section KeepLambdas Keep Lambda Functions
+ * \section MatrixStoreLambdas Store Lambda Functions
  *
- * The \e keep lambda is used to store the final reduction result for each row.
+ * The \e store lambda is used to store the final reduction result for each row.
  *
- * \subsection KeepLambda_Basic Basic Keep (Row Index Only)
+ * \subsection MatrixStoreLambda_Basic Basic Store (Row Index Only)
  *
  * ```cpp
- * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, const FetchValue& value ) { ... }
+ * auto store = [=] __cuda_callable__ ( IndexType rowIdx, const FetchValue& value ) { ... }
  * ```
  *
  * **Parameters:**
  * - \e rowIdx - The index of the row
  * - \e value - The result of the reduction for this row
  *
- * \subsection KeepLambda_WithLocalIdx Keep With Argument (Position Tracking)
+ * \subsection MatrixStoreLambda_WithLocalIdx Store With Argument (Position Tracking)
  *
  * ```cpp
- * auto keep = [=] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const Value& value ) { ... }
+ * auto store = [=] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const Value& value ) { ... }
  * ```
  *
  * **Parameters:**
@@ -227,10 +228,10 @@ namespace TNL::Matrices {
  * - \e columnIdx - The column index of the element within the row (when tracking positions)
  * - \e value - The result of the reduction for this row
  *
- * \subsection KeepLambda_WithIndexArray Keep With Row Index Array Or Condition
+ * \subsection MatrixStoreLambda_WithIndexArray Store With Row Index Array Or Condition
  *
  * ```cpp
- * auto keep = [=] __cuda_callable__ ( IndexType indexOfRowIdx, IndexType rowIdx, const FetchValue& value ) { ... }
+ * auto store = [=] __cuda_callable__ ( IndexType indexOfRowIdx, IndexType rowIdx, const FetchValue& value ) { ... }
  * ```
  *
  * **Parameters:**
@@ -239,10 +240,10 @@ namespace TNL::Matrices {
  * - \e rowIdx - The actual index of the row
  * - \e value - The result of the reduction for this row
  *
- * \subsection KeepLambda_WithIndexArrayAndLocalIdx Keep With Row Index Array and Local Index
+ * \subsection StoreLambda_WithIndexArrayAndLocalIdx Store With Row Index Array and Local Index
  *
  * ```cpp
- * auto keep = [=] __cuda_callable__ ( IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const
+ * auto store = [=] __cuda_callable__ ( IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const
  * Value& value ) { ...
  * }
  * ```
@@ -287,22 +288,22 @@ namespace TNL::Matrices {
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
+ * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
 reduceAllRows( Matrix& matrix,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                const FetchValue& identity,
                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -312,22 +313,22 @@ reduceAllRows( Matrix& matrix,
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
+ * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
 reduceAllRows( const Matrix& matrix,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                const FetchValue& identity,
                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -338,12 +339,12 @@ reduceAllRows( const Matrix& matrix,
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -351,12 +352,12 @@ reduceAllRows( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceAllRows.out
  */
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
 reduceAllRows( Matrix& matrix,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -366,12 +367,12 @@ reduceAllRows( Matrix& matrix,
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -379,12 +380,12 @@ reduceAllRows( Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceAllRows.out
  */
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
 reduceAllRows( const Matrix& matrix,
                Fetch&& fetch,
                Reduction&& reduction,
-               Keep&& keep,
+               Store&& store,
                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -397,7 +398,7 @@ reduceAllRows( const Matrix& matrix,
  *    of rows where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
@@ -405,9 +406,9 @@ reduceAllRows( const Matrix& matrix,
  *    will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of rows where the reduction
  *    will be performed.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Lambda function for the reduction operation. See \ref ReductionLambda_Basic.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
+ * \param reduction Lambda function for the reduction operation. See \ref MatrixReduceReductionLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -421,7 +422,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
@@ -430,7 +431,7 @@ reduceRows( Matrix& matrix,
             IndexEnd end,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             const FetchValue& identity,
             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -444,7 +445,7 @@ reduceRows( Matrix& matrix,
  *    of rows where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
@@ -452,9 +453,9 @@ reduceRows( Matrix& matrix,
  *    will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of rows where the reduction
  *    will be performed.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Lambda function for the reduction operation. See \ref ReductionLambda_Basic.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
+ * \param reduction Lambda function for the reduction operation. See \ref MatrixReduceReductionLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
@@ -463,7 +464,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
@@ -472,7 +473,7 @@ reduceRows( const Matrix& matrix,
             IndexEnd end,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             const FetchValue& identity,
             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -487,7 +488,7 @@ reduceRows( const Matrix& matrix,
  *    of rows where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction
@@ -496,7 +497,7 @@ reduceRows( const Matrix& matrix,
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -509,7 +510,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceRows( Matrix& matrix,
@@ -517,7 +518,7 @@ reduceRows( Matrix& matrix,
             IndexEnd end,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -531,7 +532,7 @@ reduceRows( Matrix& matrix,
  *    of rows where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction
@@ -540,7 +541,7 @@ reduceRows( Matrix& matrix,
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -553,7 +554,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceRows( const Matrix& matrix,
@@ -561,7 +562,7 @@ reduceRows( const Matrix& matrix,
             IndexEnd end,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -575,18 +576,14 @@ reduceRows( const Matrix& matrix,
  *    of row indexes where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes
- *    whose corresponding rows will be processed for reduction.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes
- *    whose corresponding rows will be processed for reduction.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param keep Lambda function for storing results. See \ref KeepLambda_WithIndexArray.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
+ * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
@@ -594,7 +591,7 @@ template< typename Matrix,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
@@ -602,7 +599,7 @@ reduceRows( Matrix& matrix,
             const Array& rowIndexes,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             const FetchValue& identity,
             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -613,14 +610,14 @@ reduceRows( Matrix& matrix,
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param keep Lambda function for storing results. See \ref KeepLambda_WithIndexArray.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
+ * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
@@ -628,7 +625,7 @@ template< typename Matrix,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
@@ -636,7 +633,7 @@ reduceRows( const Matrix& matrix,
             const Array& rowIndexes,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             const FetchValue& identity,
             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -648,13 +645,13 @@ reduceRows( const Matrix& matrix,
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_WithIndexArray.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -666,14 +663,14 @@ template< typename Matrix,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceRows( Matrix& matrix,
             const Array& rowIndexes,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -684,13 +681,13 @@ reduceRows( Matrix& matrix,
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_WithIndexArray.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -702,14 +699,14 @@ template< typename Matrix,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceRows( const Matrix& matrix,
             const Array& rowIndexes,
             Fetch&& fetch,
             Reduction&& reduction,
-            Keep&& keep,
+            Store&& store,
             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -719,14 +716,14 @@ reduceRows( const Matrix& matrix,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
+ * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -737,13 +734,13 @@ reduceRows( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceAllRowsIf.out
  */
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Matrix::IndexType
 reduceAllRowsIf( Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
                  Reduction&& reduction,
-                 Keep&& keep,
+                 Store&& store,
                  const FetchValue& identity,
                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -754,14 +751,14 @@ reduceAllRowsIf( Matrix& matrix,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
+ * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -772,13 +769,13 @@ reduceAllRowsIf( Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceAllRowsIf.out
  */
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Matrix::IndexType
 reduceAllRowsIf( const Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
                  Reduction&& reduction,
-                 Keep&& keep,
+                 Store&& store,
                  const FetchValue& identity,
                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -790,13 +787,13 @@ reduceAllRowsIf( const Matrix& matrix,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -806,13 +803,13 @@ reduceAllRowsIf( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceAllRowsIf.out
  */
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
 reduceAllRowsIf( Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
                  Reduction&& reduction,
-                 Keep&& keep,
+                 Store&& store,
                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -823,13 +820,13 @@ reduceAllRowsIf( Matrix& matrix,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -839,13 +836,13 @@ reduceAllRowsIf( Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceAllRowsIf.out
  */
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
 reduceAllRowsIf( const Matrix& matrix,
                  Condition&& condition,
                  Fetch&& fetch,
                  Reduction&& reduction,
-                 Keep&& keep,
+                 Store&& store,
                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -859,16 +856,16 @@ reduceAllRowsIf( const Matrix& matrix,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
+ * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -885,7 +882,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue >
 typename Matrix::IndexType
 reduceRowsIf( Matrix& matrix,
@@ -894,7 +891,7 @@ reduceRowsIf( Matrix& matrix,
               Condition&& condition,
               Fetch&& fetch,
               Reduction&& reduction,
-              Keep&& keep,
+              Store&& store,
               const FetchValue& identity,
               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -910,16 +907,16 @@ reduceRowsIf( Matrix& matrix,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
+ * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -936,7 +933,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue >
 typename Matrix::IndexType
 reduceRowsIf( const Matrix& matrix,
@@ -945,7 +942,7 @@ reduceRowsIf( const Matrix& matrix,
               Condition&& condition,
               Fetch&& fetch,
               Reduction&& reduction,
-              Keep&& keep,
+              Store&& store,
               const FetchValue& identity,
               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -961,7 +958,7 @@ reduceRowsIf( const Matrix& matrix,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
@@ -969,7 +966,7 @@ reduceRowsIf( const Matrix& matrix,
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -985,7 +982,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep >
+          typename Store >
 typename Matrix::IndexType
 reduceRowsIf( Matrix& matrix,
               IndexBegin begin,
@@ -993,7 +990,7 @@ reduceRowsIf( Matrix& matrix,
               Condition&& condition,
               Fetch&& fetch,
               Reduction&& reduction,
-              Keep&& keep,
+              Store&& store,
               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -1008,7 +1005,7 @@ reduceRowsIf( Matrix& matrix,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
@@ -1016,7 +1013,7 @@ reduceRowsIf( Matrix& matrix,
  * \param condition Lambda function for condition check. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_Basic.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -1032,7 +1029,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep >
+          typename Store >
 typename Matrix::IndexType
 reduceRowsIf( const Matrix& matrix,
               IndexBegin begin,
@@ -1040,7 +1037,7 @@ reduceRowsIf( const Matrix& matrix,
               Condition&& condition,
               Fetch&& fetch,
               Reduction&& reduction,
-              Keep&& keep,
+              Store&& store,
               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -1050,13 +1047,13 @@ reduceRowsIf( const Matrix& matrix,
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Lambda function for reduction with argument tracking. See \ref ReductionLambda_WithArgument.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
+ * \param reduction Lambda function for reduction with argument tracking. See \ref MatrixReduceReductionLambda_WithArgument.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1065,13 +1062,13 @@ reduceRowsIf( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgument.out
  */
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
 reduceAllRowsWithArgument(
    Matrix& matrix,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1082,13 +1079,13 @@ reduceAllRowsWithArgument(
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Lambda function for reduction with argument tracking. See \ref ReductionLambda_WithArgument.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
+ * \param reduction Lambda function for reduction with argument tracking. See \ref MatrixReduceReductionLambda_WithArgument.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1097,13 +1094,13 @@ reduceAllRowsWithArgument(
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgument.out
  */
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep, typename FetchValue >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
 reduceAllRowsWithArgument(
    const Matrix& matrix,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1114,12 +1111,12 @@ reduceAllRowsWithArgument(
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -1127,13 +1124,13 @@ reduceAllRowsWithArgument(
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgument.out
  */
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
 reduceAllRowsWithArgument(
    Matrix& matrix,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -1143,12 +1140,12 @@ reduceAllRowsWithArgument(
  * \tparam Matrix The type of the matrix.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -1156,13 +1153,13 @@ reduceAllRowsWithArgument(
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgument.out
  */
-template< typename Matrix, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
 reduceAllRowsWithArgument(
    const Matrix& matrix,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -1176,15 +1173,15 @@ reduceAllRowsWithArgument(
  *    of rows where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Lambda function for reduction operation with argument. See \ref ReductionLambda_WithArgument.
- * \param keep Lambda function for storing results. See \ref KeepLambda_WithLocalIdx.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
+ * \param reduction Lambda function for reduction operation with argument. See \ref MatrixReduceReductionLambda_WithArgument.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
@@ -1193,7 +1190,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
@@ -1202,7 +1199,7 @@ reduceRowsWithArgument( Matrix& matrix,
                         IndexEnd end,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         const FetchValue& identity,
                         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1217,15 +1214,15 @@ reduceRowsWithArgument( Matrix& matrix,
  *    of rows where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Lambda function for reduction operation with argument. See \ref ReductionLambda_WithArgument.
- * \param keep Lambda function for storing results. See \ref KeepLambda_WithLocalIdx.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
+ * \param reduction Lambda function for reduction operation with argument. See \ref MatrixReduceReductionLambda_WithArgument.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
@@ -1234,7 +1231,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
@@ -1243,7 +1240,7 @@ reduceRowsWithArgument( const Matrix& matrix,
                         IndexEnd end,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         const FetchValue& identity,
                         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1258,14 +1255,14 @@ reduceRowsWithArgument( const Matrix& matrix,
  *    of rows where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction operation with argument. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
 template< typename Matrix,
@@ -1273,7 +1270,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceRowsWithArgument( Matrix& matrix,
@@ -1281,7 +1278,7 @@ reduceRowsWithArgument( Matrix& matrix,
                         IndexEnd end,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -1295,14 +1292,14 @@ reduceRowsWithArgument( Matrix& matrix,
  *    of rows where the reduction will be performed.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction operation with argument. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
 template< typename Matrix,
@@ -1310,7 +1307,7 @@ template< typename Matrix,
           typename IndexEnd,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 reduceRowsWithArgument( const Matrix& matrix,
@@ -1318,7 +1315,7 @@ reduceRowsWithArgument( const Matrix& matrix,
                         IndexEnd end,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -1329,14 +1326,15 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Lambda function for reduction with argument tracking. See \ref ReductionLambda_WithArgument.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithIndexArrayAndLocalIdx.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
+ * \param reduction Lambda function for reduction with argument tracking. See \ref MatrixReduceReductionLambda_WithArgument.
+ * \param store Lambda function for storing results with position tracking. See \ref
+ * MatrixStoreLambda_WithIndexArrayAndLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1349,7 +1347,7 @@ template< typename Matrix,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
@@ -1357,7 +1355,7 @@ reduceRowsWithArgument( Matrix& matrix,
                         const Array& rowIndexes,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         const FetchValue& identity,
                         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1369,14 +1367,15 @@ reduceRowsWithArgument( Matrix& matrix,
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
- * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Lambda function for reduction with argument tracking. See \ref ReductionLambda_WithArgument.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithIndexArrayAndLocalIdx.
+ * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
+ * \param reduction Lambda function for reduction with argument tracking. See \ref MatrixReduceReductionLambda_WithArgument.
+ * \param store Lambda function for storing results with position tracking. See \ref
+ * MatrixStoreLambda_WithIndexArrayAndLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1389,7 +1388,7 @@ template< typename Matrix,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
@@ -1397,7 +1396,7 @@ reduceRowsWithArgument( const Matrix& matrix,
                         const Array& rowIndexes,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         const FetchValue& identity,
                         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1409,13 +1408,14 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithIndexArrayAndLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref
+ * MatrixStoreLambda_WithIndexArrayAndLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -1427,14 +1427,14 @@ template< typename Matrix,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceRowsWithArgument( Matrix& matrix,
                         const Array& rowIndexes,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -1445,13 +1445,14 @@ reduceRowsWithArgument( Matrix& matrix,
  * \tparam Array The type of the array containing the indexes of the rows to iterate over.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithIndexArrayAndLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref
+ * MatrixStoreLambda_WithIndexArrayAndLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -1463,14 +1464,14 @@ template< typename Matrix,
           typename Array,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
 reduceRowsWithArgument( const Matrix& matrix,
                         const Array& rowIndexes,
                         Fetch&& fetch,
                         Reduction&& reduction,
-                        Keep&& keep,
+                        Store&& store,
                         Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -1481,14 +1482,14 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param identity The identity element for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1503,7 +1504,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 typename Matrix::IndexType
 reduceAllRowsWithArgumentIf(
@@ -1511,7 +1512,7 @@ reduceAllRowsWithArgumentIf(
    Condition&& condition,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1523,14 +1524,14 @@ reduceAllRowsWithArgumentIf(
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param identity The identity element for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1545,7 +1546,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 typename Matrix::IndexType
 reduceAllRowsWithArgumentIf(
@@ -1553,7 +1554,7 @@ reduceAllRowsWithArgumentIf(
    Condition&& condition,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1565,13 +1566,13 @@ reduceAllRowsWithArgumentIf(
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -1581,14 +1582,14 @@ reduceAllRowsWithArgumentIf(
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
 reduceAllRowsWithArgumentIf(
    Matrix& matrix,
    Condition&& condition,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -1599,13 +1600,13 @@ reduceAllRowsWithArgumentIf(
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -1615,14 +1616,14 @@ reduceAllRowsWithArgumentIf(
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
-template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Keep >
+template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
 reduceAllRowsWithArgumentIf(
    const Matrix& matrix,
    Condition&& condition,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -1637,7 +1638,7 @@ reduceAllRowsWithArgumentIf(
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
@@ -1646,7 +1647,7 @@ reduceAllRowsWithArgumentIf(
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param identity The identity element for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1663,7 +1664,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf(
@@ -1673,7 +1674,7 @@ reduceRowsWithArgumentIf(
    Condition&& condition,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1689,7 +1690,7 @@ reduceRowsWithArgumentIf(
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param matrix The matrix on which the reduction will be performed.
@@ -1698,7 +1699,7 @@ reduceRowsWithArgumentIf(
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param identity The identity element for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1715,7 +1716,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep,
+          typename Store,
           typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf(
@@ -1725,7 +1726,7 @@ reduceRowsWithArgumentIf(
    Condition&& condition,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    const FetchValue& identity,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
@@ -1741,7 +1742,7 @@ reduceRowsWithArgumentIf(
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
@@ -1749,7 +1750,7 @@ reduceRowsWithArgumentIf(
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -1765,7 +1766,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep >
+          typename Store >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf(
    Matrix& matrix,
@@ -1774,7 +1775,7 @@ reduceRowsWithArgumentIf(
    Condition&& condition,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -1789,7 +1790,7 @@ reduceRowsWithArgumentIf(
  * \tparam Condition The type of the lambda function used for the condition check.
  * \tparam Fetch The type of the lambda function used for data fetching.
  * \tparam Reduction The type of the function object defining the reduction operation.
- * \tparam Keep The type of the lambda function used for storing results from individual rows.
+ * \tparam Store The type of the lambda function used for storing results from individual rows.
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of rows where the reduction will be performed.
@@ -1797,7 +1798,7 @@ reduceRowsWithArgumentIf(
  * \param condition Lambda function for row condition checking. See \ref MatrixConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_Const.
  * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param keep Lambda function for storing results with position tracking. See \ref KeepLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed rows, i.e. rows for which the condition was true.
@@ -1813,7 +1814,7 @@ template< typename Matrix,
           typename Condition,
           typename Fetch,
           typename Reduction,
-          typename Keep >
+          typename Store >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf(
    const Matrix& matrix,
@@ -1822,7 +1823,7 @@ reduceRowsWithArgumentIf(
    Condition&& condition,
    Fetch&& fetch,
    Reduction&& reduction,
-   Keep&& keep,
+   Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 }  // namespace TNL::Matrices

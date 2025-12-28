@@ -46,14 +46,14 @@ reduceRowsIfExample()
       return rowIdx % 2 == 0;
    };
 
-   auto keepRange = [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, const double& sum ) mutable
+   auto storeRange = [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, const double& sum ) mutable
    {
       rangeSums_view[ rowIdx - 2 ] = sum;
    };
 
    rangeSums.setValue( -1.0 );
 
-   TNL::Matrices::reduceRowsIf( matrix, 2, 7, evenRowCondition, fetch, TNL::Plus{}, keepRange );
+   TNL::Matrices::reduceRowsIf( matrix, 2, 7, evenRowCondition, fetch, TNL::Plus{}, storeRange );
 
    std::cout << "Sums for rows 2-6 (only even indices, others show -1): " << rangeSums << std::endl;
 
@@ -70,7 +70,7 @@ reduceRowsIfExample()
       return rowIdx > 3 && rowIdx % 2 == 1;  // Only odd row indices greater than 3
    };
 
-   auto keepArray = [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, const double& max ) mutable
+   auto storeArray = [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, const double& max ) mutable
    {
       arrayMaxima_view[ rowIdx ] = max;
       compressedMaxima_view[ indexOfRowIdx ] = max;
@@ -78,7 +78,7 @@ reduceRowsIfExample()
 
    arrayMaxima.setValue( -1.0 );
 
-   auto processedRows = TNL::Matrices::reduceAllRowsIf( matrix, rowCondition, fetch, TNL::Max{}, keepArray );
+   auto processedRows = TNL::Matrices::reduceAllRowsIf( matrix, rowCondition, fetch, TNL::Max{}, storeArray );
 
    std::cout << "Maxima for rows [1, 3, 5, 7] where rowIdx > 3: " << arrayMaxima << std::endl;
    std::cout << "Compressed maxima for rows [1, 3, 5, 7] where rowIdx > 3: " << compressedMaxima.getView( 0, processedRows )

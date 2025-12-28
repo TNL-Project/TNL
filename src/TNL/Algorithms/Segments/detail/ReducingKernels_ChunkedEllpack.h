@@ -5,7 +5,7 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
 void
 ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
@@ -14,7 +14,7 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
                                     Index end,
                                     Fetch fetch,
                                     Reduction reduction,
-                                    ResultKeeper keeper,
+                                    ResultStorer storer,
                                     Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -86,7 +86,7 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
       while( chunkIndex < lastChunk )
          result = reduction( result, chunksResults[ chunkIndex++ ] );
       if( segment >= begin && segment < end )
-         keeper( segment, result );
+         storer( segment, result );
    }
 #endif
 }
@@ -96,7 +96,7 @@ template< typename SegmentsView,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -105,7 +105,7 @@ ChunkedEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
                                                Index gridIdx,
                                                Fetch fetch,
                                                Reduction reduction,
-                                               ResultKeeper keeper,
+                                               ResultStorer storer,
                                                Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -145,11 +145,11 @@ ChunkedEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
          }
       }
    }
-   keeper( segmentIdx_idx, segmentIdx, result );
+   storer( segmentIdx_idx, segmentIdx, result );
 #endif
 }
 
-template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
+template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
 void
 ChunkedEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
@@ -158,7 +158,7 @@ ChunkedEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
                                                 Index end,
                                                 Fetch fetch,
                                                 Reduction reduction,
-                                                ResultKeeper keeper,
+                                                ResultStorer storer,
                                                 Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -224,7 +224,7 @@ ChunkedEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
          chunkIndex++;
       }
       if( segment >= begin && segment < end )
-         keeper( segment, argument, result );
+         storer( segment, argument, result );
    }
 #endif
 }
@@ -234,7 +234,7 @@ template< typename SegmentsView,
           typename Index,
           typename Fetch,
           typename Reduction,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename Value >
 __global__
 void
@@ -243,7 +243,7 @@ ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
                                                           Index gridIdx,
                                                           Fetch fetch,
                                                           Reduction reduction,
-                                                          ResultKeeper keeper,
+                                                          ResultStorer storer,
                                                           Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
@@ -287,7 +287,7 @@ ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
          }
       }
    }
-   keeper( segmentIdx_idx, segmentIdx, argument, result );
+   storer( segmentIdx_idx, segmentIdx, argument, result );
 #endif
 }
 
