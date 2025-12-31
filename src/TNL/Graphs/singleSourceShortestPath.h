@@ -117,7 +117,7 @@ singleSourceShortestPath( const Graph& graph,
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
 
-   distances.setSize( graph.getNodeCount() );
+   distances.setSize( graph.getVertexCount() );
    distances = std::numeric_limits< Real >::max();
    distances.setElement( start, 0.0 );
 

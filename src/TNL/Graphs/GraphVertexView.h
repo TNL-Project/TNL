@@ -10,21 +10,20 @@
 
 namespace TNL::Graphs {
 
-template< typename MatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 struct Graph;
 
-template< typename MatrixView, typename GraphType_ >
-struct GraphNodeView;
+template< typename MatrixView, typename Orientation >
+struct GraphVertexView;
 
 template< typename Real,
           typename Device,
           typename Index,
           Algorithms::Segments::ElementsOrganization Organization,
           typename GraphType_ >
-struct GraphNodeView< Matrices::DenseMatrixView< Real, Device, Index, Organization >, GraphType_ >
-: public Matrices::DenseMatrixRowView<
-     typename Matrices::DenseMatrixView< Real, Device, Index, Organization >::SegmentsViewType,
-     typename Matrices::DenseMatrixView< Real, Device, Index, Organization >::ValuesViewType >
+struct GraphVertexView< Matrices::DenseMatrixView< Real, Device, Index, Organization >, GraphType_ >
+: public Matrices::DenseMatrixRowView< typename Matrices::DenseMatrixView< Real, Device, Index, Organization >::SegmentViewType,
+                                       typename Matrices::DenseMatrixView< Real, Device, Index, Organization >::ValuesViewType >
 {
    //! \brief Type of the dense matrix view.
    using MatrixView = Matrices::DenseMatrixView< Real, Device, Index, Organization >;
@@ -32,8 +31,13 @@ struct GraphNodeView< Matrices::DenseMatrixView< Real, Device, Index, Organizati
    //! \brief Type of constant dense matrix view.
    using ConstMatrixView = typename MatrixView::ConstViewType;
 
+   using MatrixRowView =
+      Matrices::DenseMatrixRowView< typename MatrixView::SegmentViewType, typename MatrixView::ValuesViewType >;
+
+   using ConstMatrixRowView = typename MatrixRowView::ConstRowView;
+
    //! \brief Base type.
-   using Base = Matrices::DenseMatrixRowView< typename MatrixView::SegmentsViewType, typename MatrixView::ValuesViewType >;
+   using Base = Matrices::DenseMatrixRowView< typename MatrixView::SegmentViewType, typename MatrixView::ValuesViewType >;
 
    using typename Base::IndexType;
    using typename Base::RealType;
@@ -41,18 +45,28 @@ struct GraphNodeView< Matrices::DenseMatrixView< Real, Device, Index, Organizati
    using typename Base::ValuesViewType;
 
    //! \brief Type of the graph node view.
-   using NodeView = GraphNodeView< MatrixView, GraphType_ >;
+   using VertexView = GraphVertexView< MatrixView, GraphType_ >;
 
    //! \brief Type of the constant graph node view.
-   using ConstNodeView = GraphNodeView< ConstMatrixView, GraphType_ >;
+   using ConstVertexView = GraphVertexView< ConstMatrixView, GraphType_ >;
 
-   GraphNodeView( const SegmentViewType& segmentView, const ValuesViewType& valuesView )
+   GraphVertexView( const SegmentViewType& segmentView, const ValuesViewType& valuesView )
    : Base( segmentView, valuesView )
    {}
 
+   GraphVertexView( MatrixRowView&& matrixRowView )
+   : Base( std::forward( matrixRowView ) )
+   {}
+
+   GraphVertexView( const MatrixRowView& matrixRowView )
+   : Base( matrixRowView )
+   {}
+
+   GraphVertexView( const GraphVertexView& ) = default;
+
    [[nodiscard]] __cuda_callable__
    IndexType
-   getNodeIndex() const
+   getVertexIndex() const
    {
       return Base::getRowIndex();
    }
@@ -92,6 +106,13 @@ struct GraphNodeView< Matrices::DenseMatrixView< Real, Device, Index, Organizati
       // In dense matrix, edges are identified by their target indices
       Base::setValue( target, weight );
    }
+
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getDegree() const
+   {
+      return Base::getSize();
+   }
 };
 
 template< typename Real,
@@ -101,10 +122,11 @@ template< typename Real,
           template< typename Device_, typename Index_ > class SegmentsView,
           typename ComputeRealType,
           typename GraphType_ >
-struct GraphNodeView< Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >,
-                      GraphType_ >
+struct GraphVertexView< Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >,
+                        GraphType_ >
 : public Matrices::SparseMatrixRowView<
-     typename Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >::SegmentsViewType,
+     typename Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >::SegmentsViewType::
+        SegmentViewType,
      typename Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >::ValuesViewType,
      typename Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >::
         ColumnIndexesViewType >
@@ -114,8 +136,14 @@ struct GraphNodeView< Matrices::SparseMatrixView< Real, Device, Index, MatrixTyp
    //! \brief Type of constant sparse matrix view.
    using ConstMatrixView = typename MatrixView::ConstViewType;
 
+   using MatrixRowView = Matrices::SparseMatrixRowView< typename MatrixView::SegmentsViewType::SegmentViewType,
+                                                        typename MatrixView::ValuesViewType,
+                                                        typename MatrixView::ColumnIndexesViewType >;
+
+   using ConstMatrixRowView = typename MatrixRowView::ConstRowView;
+
    //! \brief Base type.
-   using Base = Matrices::SparseMatrixRowView< typename MatrixView::SegmentsViewType,
+   using Base = Matrices::SparseMatrixRowView< typename MatrixView::SegmentsViewType::SegmentViewType,
                                                typename MatrixView::ValuesViewType,
                                                typename MatrixView::ColumnIndexesViewType >;
 
@@ -127,20 +155,30 @@ struct GraphNodeView< Matrices::SparseMatrixView< Real, Device, Index, MatrixTyp
    using typename Base::ValuesViewType;
 
    //! \brief Type of the graph node view.
-   using NodeView = GraphNodeView< MatrixView, GraphType_ >;
+   using VertexView = GraphVertexView< MatrixView, GraphType_ >;
 
    //! \brief Type of the constant graph node view.
-   using ConstNodeView = GraphNodeView< ConstMatrixView, GraphType_ >;
+   using ConstVertexView = GraphVertexView< ConstMatrixView, GraphType_ >;
 
-   GraphNodeView( const SegmentViewType& segmentView,
-                  const ValuesViewType& valuesView,
-                  const ColumnIndexesViewType& columnIndexesView )
+   GraphVertexView( const SegmentViewType& segmentView,
+                    const ValuesViewType& valuesView,
+                    const ColumnIndexesViewType& columnIndexesView )
    : Base( segmentView, valuesView, columnIndexesView )
    {}
 
+   GraphVertexView( MatrixRowView&& matrixRowView )
+   : Base( std::forward( matrixRowView ) )
+   {}
+
+   GraphVertexView( const MatrixRowView& matrixRowView )
+   : Base( matrixRowView )
+   {}
+
+   GraphVertexView( const GraphVertexView& ) = default;
+
    [[nodiscard]] __cuda_callable__
    IndexType
-   getNodeIndex() const
+   getVertexIndex() const
    {
       return Base::getRowIndex();
    }
@@ -179,6 +217,17 @@ struct GraphNodeView< Matrices::SparseMatrixView< Real, Device, Index, MatrixTyp
    {
       Base::setColumnIndex( edgeIndex, target );
       Base::setValue( edgeIndex, weight );
+   }
+
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getDegree() const
+   {
+      IndexType degree = 0;
+      for( IndexType i = 0; i < Base::getSize(); ++i )
+         if( Base::getColumnIndex( i ) != Matrices::paddingIndex< IndexType > )
+            ++degree;
+      return degree;
    }
 };
 

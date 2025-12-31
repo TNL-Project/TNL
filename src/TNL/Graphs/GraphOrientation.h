@@ -7,7 +7,7 @@ namespace TNL::Graphs {
 
 //! \brief Structure for specifying graph type.
 template< bool Directed >
-struct GraphType
+struct GraphOrientation
 {
    [[nodiscard]] static constexpr bool
    isDirected()
@@ -25,11 +25,11 @@ struct GraphType
 };
 
 //! \brief Undirected graph type.
-struct UndirectedGraph : GraphType< false >
+struct UndirectedGraph : GraphOrientation< false >
 {};
 
 //! \brief Directed graph type.
-struct DirectedGraph : GraphType< true >
+struct DirectedGraph : GraphOrientation< true >
 {};
 
 }  // namespace TNL::Graphs

@@ -62,9 +62,9 @@ struct BoostGraph
    template< typename TNLGraph >
    BoostGraph( const TNLGraph& graph )
    {
-      static_assert( std::is_same_v< typename TNLGraph::GraphType, GraphType >, "Graph types must match." );
+      static_assert( std::is_same_v< typename TNLGraph::GraphOrientation, GraphType >, "Graph types must match." );
 
-      for( Index rowIdx = 0; rowIdx < graph.getNodeCount(); rowIdx++ ) {
+      for( Index rowIdx = 0; rowIdx < graph.getVertexCount(); rowIdx++ ) {
          const auto row = graph.getAdjacencyMatrix().getRow( rowIdx );
          for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
             auto value = row.getValue( localIdx );
