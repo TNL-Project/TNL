@@ -40,8 +40,8 @@ struct GraphsBenchmark
    using RealType = Real;
    using IndexType = Index;
    using HostMatrix = TNL::Matrices::SparseMatrix< Real, TNL::Devices::Host, Index >;
-   using HostGraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::UndirectedGraph >;
-   using HostDigraph = TNL::Graphs::Graph< HostMatrix, TNL::Graphs::DirectedGraph >;
+   using HostGraph = TNL::Graphs::Graph< Real, TNL::Devices::Host, Index, TNL::Graphs::UndirectedGraph >;
+   using HostDigraph = TNL::Graphs::Graph< Real, TNL::Devices::Host, Index, TNL::Graphs::DirectedGraph >;
    using HostIndexVector = TNL::Containers::Vector< Index, TNL::Devices::Host, Index >;
    using HostRealVector = TNL::Containers::Vector< Real, TNL::Devices::Host, Index >;
 
@@ -104,7 +104,7 @@ struct GraphsBenchmark
          benchmark.setMetadataElement( { "format", "N/A" } );
          benchmark.setMetadataElement( { "threads mapping", "" } );
 
-         std::vector< Index > boostBfsDistances( digraph.getNodeCount() );
+         std::vector< Index > boostBfsDistances( digraph.getVertexCount() );
          auto bfs_boost_dir = [ & ]() mutable
          {
             boostDigraph.breadthFirstSearch( largestNode, boostBfsDistances );
@@ -153,7 +153,7 @@ struct GraphsBenchmark
          benchmark.setMetadataElement( { "format", "N/A" } );
          benchmark.setMetadataElement( { "threads mapping", "" } );
 
-         std::vector< Real > boostSSSPDistances( digraph.getNodeCount() );
+         std::vector< Real > boostSSSPDistances( digraph.getVertexCount() );
          auto sssp_boost_dir = [ & ]() mutable
          {
             boostDigraph.singleSourceShortestPath( largestNode, boostSSSPDistances );
@@ -384,9 +384,8 @@ struct GraphsBenchmark
                   const TNL::String& segments )
    {
       using Matrix = TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
-      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::UndirectedGraph >;
-      using Digraph = TNL::Graphs::Graph< Matrix, TNL::Graphs::DirectedGraph >;
-      using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::UndirectedGraph >;
+      using Graph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::UndirectedGraph >;
+      using Digraph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::DirectedGraph >;
       using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
       using RealVector = TNL::Containers::Vector< Real, Device, Index >;
       using SegmentsType = typename Matrix::SegmentsType;
@@ -400,7 +399,7 @@ struct GraphsBenchmark
 
       if( this->withBfs ) {
          // Benchmarking breadth-first search with directed graph
-         IndexVector bfsDistances( digraph.getNodeCount() );
+         IndexVector bfsDistances( digraph.getVertexCount() );
          benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
          benchmark.setMetadataElement( { "problem", "BFS dir" } );
          benchmark.setMetadataElement( { "format", segments } );
@@ -416,7 +415,7 @@ struct GraphsBenchmark
             if( bfsDistances != this->boostBfsDistancesDirected ) {
                std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << std::endl;
                this->errors++;
-               //for( Index i = 0; i < digraph.getNodeCount(); i++ )
+               //for( Index i = 0; i < digraph.getVertexCount(); i++ )
                //   if( bfsDistances.getElement( i ) != this->boostBfsDistancesDirected[ i ] )
                //      std::cerr << "i = " << i << " TNL -> " << bfsDistances.getElement( i ) << " Boost -> "
                //                << this->boostBfsDistancesDirected[ i ] << std::endl;
@@ -446,7 +445,7 @@ struct GraphsBenchmark
             if( bfsDistances != this->boostBfsDistancesUndirected ) {
                std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << std::endl;
                this->errors++;
-               //for( Index i = 0; i < digraph.getNodeCount(); i++ )
+               //for( Index i = 0; i < digraph.getVertexCount(); i++ )
                //   if( bfsDistances.getElement( i ) != this->boostBfsDistancesUndirected[ i ] )
                //      std::cerr << "i = " << i << " TNL -> " << bfsDistances.getElement( i ) << " Boost -> "
                //                << this->boostBfsDistancesUndirected[ i ] << std::endl;
@@ -471,7 +470,7 @@ struct GraphsBenchmark
          for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
 
-            RealVector ssspDistances( digraph.getNodeCount(), 0 );
+            RealVector ssspDistances( digraph.getVertexCount(), 0 );
             auto sssp_tnl_dir = [ & ]() mutable
             {
                TNL::Graphs::singleSourceShortestPath( digraph, largestNode, ssspDistances, launchConfig );
@@ -506,7 +505,7 @@ struct GraphsBenchmark
          for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
 
-            RealVector ssspDistances( digraph.getNodeCount(), 0 );
+            RealVector ssspDistances( digraph.getVertexCount(), 0 );
             auto sssp_tnl_undir = [ & ]() mutable
             {
                TNL::Graphs::singleSourceShortestPath( graph, largestNode, ssspDistances, launchConfig );
@@ -604,7 +603,7 @@ struct GraphsBenchmark
       auto symmetrizedAdjacencyMatrix = TNL::Matrices::getSymmetricPart< HostMatrix >( digraph.getAdjacencyMatrix() );
       HostGraph graph( symmetrizedAdjacencyMatrix );
       //TNL::Graphs::Writers::EdgeListWriter< HostGraph >::write( inputFile + "-undirected.txt", graph );
-      HostIndexVector nodeDegrees( digraph.getNodeCount(), 0 );
+      HostIndexVector nodeDegrees( digraph.getVertexCount(), 0 );
       graph.getAdjacencyMatrix().getCompressedRowLengths( nodeDegrees );
       Index largest = TNL::argMax( nodeDegrees ).second;
       Index smallest = TNL::argMax( greater( nodeDegrees, 0 ) ).second;

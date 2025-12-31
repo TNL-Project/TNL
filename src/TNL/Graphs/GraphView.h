@@ -7,46 +7,57 @@
 
 namespace TNL::Graphs {
 
-template< typename AdjacencyMatrixView_, typename GraphType_ >
-struct GraphView : public GraphBase< AdjacencyMatrixView_, GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
+struct GraphView
+: public GraphBase< Value,
+                    Device,
+                    Index,
+                    Orientation,
+                    std::conditional_t< std::is_const_v< Value >, typename AdjacencyMatrix::ConstMatrixType, AdjacencyMatrix > >
 {
-   static_assert( Matrices::is_matrix_view_v< AdjacencyMatrixView_ > );
-
-   using Base = GraphBase< AdjacencyMatrixView_, GraphType_ >;
+   //! \brief Type of the adjacency matrix.
+   using AdjacencyMatrixType =
+      std::conditional_t< std::is_const_v< Value >, typename AdjacencyMatrix::ConstMatrixType, AdjacencyMatrix >;
 
    //! \brief Type of the adjacency matrix view.
-   using AdjacencyMatrixView = AdjacencyMatrixView_;
+   using AdjacencyMatrixView = typename AdjacencyMatrixType::ViewType;
 
    //! \brief Type of constant view of the adjacency matrix.
-   using ConstAdjacencyMatrixView = decltype( std::declval< const AdjacencyMatrixView& >().getConstView() );
+   using ConstAdjacencyMatrixView = typename AdjacencyMatrixType::ConstViewType;
 
    //! \brief Type for indexing of the graph nodes.
-   using IndexType = typename AdjacencyMatrixView::IndexType;
+   using IndexType = Index;
 
    //! \brief Type of device where the graph will be operating.
-   using DeviceType = typename AdjacencyMatrixView::DeviceType;
+   using DeviceType = Device;
 
    //! \brief Type for weights of the graph edges.
-   using ValueType = typename AdjacencyMatrixView::RealType;
+   using ValueType = Value;
 
    //! \brief Type of the graph - directed or undirected.
-   using GraphType = GraphType_;
+   using GraphType = Orientation;
 
    //! \brief Type of view of the graph.
-   using ViewType = GraphView< AdjacencyMatrixView, GraphType_ >;
+   using ViewType = GraphView< Value, Device, Index, Orientation, AdjacencyMatrix >;
 
    //! \brief Type of constant view of the graph.
-   using ConstViewType = GraphView< ConstAdjacencyMatrixView, GraphType_ >;
+   using ConstViewType =
+      GraphView< std::add_const_t< Value >, Device, Index, Orientation, typename AdjacencyMatrixType::ConstMatrixType >;
 
    //! \brief Type of the graph nodes view.
-   using NodeView = GraphNodeView< AdjacencyMatrixView, GraphType_ >;
+   using VertexView = GraphVertexView< AdjacencyMatrixView, Orientation >;
 
    //! \brief Type of constant graph nodes view.
-   using ConstNodeView = typename NodeView::ConstNodeView;
+   using ConstVertexView = typename VertexView::ConstVertexView;
 
-   template< typename Matrix_ = AdjacencyMatrixView, typename GraphType__ = GraphType_ >
-   using Self = Graph< Matrix_, GraphType__ >;
+   template< typename Value_ = Value,
+             typename Device_ = Device,
+             typename Index_ = Index,
+             typename Orientation_ = Orientation,
+             typename AdjacencyMatrix_ = AdjacencyMatrix >
+   using Self = GraphView< Value_, Device_, Index_, Orientation_, AdjacencyMatrix_ >;
 
+   using Base = GraphBase< Value, Device, Index, Orientation, AdjacencyMatrixType >;
    using Base::isDirected;
    using Base::isUndirected;
 

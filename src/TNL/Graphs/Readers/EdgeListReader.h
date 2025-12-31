@@ -44,7 +44,7 @@ struct EdgeListReader
          edges.emplace( Edge( from_node, to_node ), weight );
       }
       nodes++;  // nodes are numbered from 0
-      graph.setNodeCount( nodes );
+      graph.setVertexCount( nodes );
       graph.setEdges( edges );
    }
 };

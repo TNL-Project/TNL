@@ -41,7 +41,7 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
    using IndexVectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
    using AdjacencyMatrixType = typename Graph::AdjacencyMatrixType;
 
-   const IndexType n = graph.getNodeCount();
+   const IndexType n = graph.getVertexCount();
 
    /////
    // Check if the number of edges is n - 1, i.e number of vertices - 1 if we test for tree.
@@ -72,7 +72,7 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
                   return false;
             }
             if constexpr( AdjacencyMatrixType::isSymmetric() ) {  // search the adjacency matrix for other neighbours
-               for( IndexType rowIdx = 0; rowIdx < graph.getNodeCount(); rowIdx++ ) {
+               for( IndexType rowIdx = 0; rowIdx < graph.getVertexCount(); rowIdx++ ) {
                   if( rowIdx == current )
                      continue;
                   auto row = graph.getAdjacencyMatrix().getRow( rowIdx );

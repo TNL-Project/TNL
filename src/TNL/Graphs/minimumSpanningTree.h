@@ -110,7 +110,7 @@ kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roo
    using IndexType = typename InGraph::IndexType;
    using IndexVector = Containers::Vector< IndexType, DeviceType, IndexType >;
 
-   Index n = graph.getNodeCount();
+   Index n = graph.getVertexCount();
    std::vector< Edge< Real, Index > > edges;
    for( Index i = 0; i < n; i++ ) {
       const auto row = graph.getAdjacencyMatrix().getRow( i );
@@ -127,8 +127,8 @@ kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roo
    IndexVector nodeCapacities( n );
    IndexVector tree_filling( n, 0 );
    graph.getAdjacencyMatrix().getRowCapacities( nodeCapacities );
-   minimum_spanning_tree.setNodeCount( n );
-   minimum_spanning_tree.setNodeCapacities( nodeCapacities );
+   minimum_spanning_tree.setVertexCount( n );
+   minimum_spanning_tree.setVertexCapacities( nodeCapacities );
 
    for( const auto& edge : edges ) {
       auto source = edge.getSource();
@@ -166,12 +166,12 @@ parallelMST( const InGraph& graph, OutGraph& tree )
    using SegmentsType = typename InAdjacencyMatrixType::SegmentsType;
    using GrowingSegmentsType = Algorithms::Segments::GrowingSegments< SegmentsType >;
 
-   Index n = graph.getNodeCount();
+   Index n = graph.getVertexCount();
    IndexVector starRootsSlots;
    graph.getAdjacencyMatrix().getRowCapacities( starRootsSlots );
    starRootsSlots = n;
    GrowingSegmentsType hook_candidates( starRootsSlots );
-   tree.setNodeCount( n );
+   tree.setVertexCount( n );
    tree.getAdjacencyMatrix().setRowCapacities( starRootsSlots );
 
    IndexVector p( n );

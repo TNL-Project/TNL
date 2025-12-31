@@ -12,7 +12,8 @@ class GraphTest : public ::testing::Test
 {
 protected:
    using MatrixType = Matrix;
-   using GraphType = TNL::Graphs::Graph< MatrixType, TNL::Graphs::DirectedGraph >;
+   using GraphType = TNL::Graphs::
+      Graph< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType, TNL::Graphs::DirectedGraph >;
 };
 
 // types for which MatrixTest is instantiated
@@ -50,14 +51,14 @@ TYPED_TEST( GraphTest, test_BFS_small )
         });
    // clang-format on
 
-   VectorType distances( graph.getNodeCount() );
+   VectorType distances( graph.getVertexCount() );
    std::vector< VectorType > expectedDistances{ { 0.0, 0.5, 1.2, 2.0, 3.5 },
                                                 { 0.5, 0.0, 1.7, 2.3, 3.7 },
                                                 { 1.2, 1.7, 0.0, 0.8, 2.3 },
                                                 { 2.0, 2.3, 0.8, 0.0, 1.5 },
                                                 { 3.5, 3.7, 2.3, 1.5, 0.0 } };
 
-   for( int start_node = 0; start_node < graph.getNodeCount(); ++start_node ) {
+   for( int start_node = 0; start_node < graph.getVertexCount(); ++start_node ) {
       TNL::Graphs::singleSourceShortestPath( graph, start_node, distances );
       ASSERT_EQ( distances, expectedDistances[ start_node ] ) << "start_node: " << start_node;
    }
@@ -89,7 +90,7 @@ TYPED_TEST( GraphTest, test_BFS_larger )
         });
    // clang-format on
 
-   VectorType distances( graph.getNodeCount() );
+   VectorType distances( graph.getVertexCount() );
    std::vector< VectorType > expectedDistances = {
       { 0.0, 0.5, 1.2, 2.0, 4.2, 3.3, 3.5, 5.1, 5.0, 6.8 },        { -1.0, 0.0, -1.0, 2.3, 3.7, -1.0, 3.8, 4.6, -1.0, 6.8 },
       { -1.0, -1.0, 0.0, 0.8, -1.0, 2.1, 2.3, -1.0, 3.8, 5.6 },    { -1.0, -1.0, -1.0, 0.0, -1.0, -1.0, 1.5, -1.0, -1.0, 4.8 },
@@ -98,9 +99,9 @@ TYPED_TEST( GraphTest, test_BFS_larger )
       { -1.0, -1.0, -1.0, 2.6, -1.0, -1.0, 4.1, -1.0, 0.0, 1.9 },  { -1.0, -1.0, -1.0, 0.7, -1.0, -1.0, 2.2, -1.0, -1.0, 0.0 }
    };
 
-   for( int start_node = 0; start_node < graph.getNodeCount(); start_node++ ) {
+   for( int start_node = 0; start_node < graph.getVertexCount(); start_node++ ) {
       TNL::Graphs::singleSourceShortestPath( graph, start_node, distances );
-      for( IndexType i = 0; i < graph.getNodeCount(); i++ )
+      for( IndexType i = 0; i < graph.getVertexCount(); i++ )
          ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances[ start_node ].getElement( i ) )
             << "start_node: " << start_node << " distances[ " << i << " ]: " << distances.getElement( i )
             << " expectedDistances[ " << start_node << " ][ " << i << " ]: " << expectedDistances[ start_node ].getElement( i )
@@ -124,7 +125,7 @@ TYPED_TEST( GraphTest, test_BFS_largest )
                       { 7, 2, 1.9 },   { 7, 13, 6.1 },  { 8, 7, 3.3 },   { 8, 9, 2.7 },  { 9, 12, 4.8 },  { 10, 9, 2.5 },
                       { 10, 14, 6.6 }, { 11, 12, 3.7 }, { 12, 10, 3.9 }, { 13, 8, 4.0 }, { 13, 12, 5.1 }, { 14, 13, 2.8 } } );
 
-   VectorType distances( graph.getNodeCount() );
+   VectorType distances( graph.getVertexCount() );
    std::vector< VectorType > expectedDistances = {
       { 0.0, 2.4, 34.3, 5.5, 4.6, 9.3, 8.4, 32.4, 29.1, 13.7, 15.7, 12.8, 16.5, 25.1, 22.3 },
       { -1.0, 0.0, 31.9, 3.1, -1.0, 6.9, 6.0, 30.0, 26.7, 11.3, 13.3, -1.0, 16.1, 22.7, 19.9 },
@@ -143,9 +144,9 @@ TYPED_TEST( GraphTest, test_BFS_largest )
       { -1.0, 13.2, 12.0, 16.3, -1.0, 20.1, 19.2, 10.1, 6.8, 9.5, 11.8, -1.0, 7.9, 2.8, 0.0 }
    };
 
-   for( int start_node = 0; start_node < graph.getNodeCount(); start_node++ ) {
+   for( int start_node = 0; start_node < graph.getVertexCount(); start_node++ ) {
       TNL::Graphs::singleSourceShortestPath( graph, start_node, distances );
-      for( IndexType i = 0; i < graph.getNodeCount(); i++ )
+      for( IndexType i = 0; i < graph.getVertexCount(); i++ )
          ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances[ start_node ].getElement( i ) )
             << "start_node: " << start_node << " distances[ " << i << " ]: " << distances.getElement( i )
             << " expectedDistances[ " << start_node << " ][ " << i << " ]: " << expectedDistances[ start_node ].getElement( i )
