@@ -5,7 +5,7 @@
 
 namespace TNL::Graphs {
 
-template< typename MatrixType, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 struct Graph;
 
 //! \brief This checks if given type is matrix.
@@ -15,9 +15,9 @@ isGraph( ... )
    return {};
 }
 
-template< typename MatrixType, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] constexpr std::true_type
-isGraph( const Graph< MatrixType, GraphType_ >& )
+isGraph( const Graph< Value, Device, Index, Orientation, AdjacencyMatrix >& )
 {
    return {};
 }
