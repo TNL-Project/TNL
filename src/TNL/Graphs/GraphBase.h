@@ -7,48 +7,52 @@
 #include <ostream>
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/reduce.h>
-#include <TNL/Graphs/GraphNodeView.h>
+#include <TNL/Graphs/GraphVertexView.h>
 #include <TNL/Graphs/TypeTraits.h>
-#include <TNL/Graphs/GraphType.h>
+#include <TNL/Graphs/GraphOrientation.h>
 #include <TNL/Matrices/TypeTraits.h>
 
 namespace TNL::Graphs {
-
 /**
  * \brief \e Graph class represents a mathematical graph using an adjacency matrix.
  *
  * \tparam Matrix is type of matrix used to store the adjacency matrix of the graph.
  * \tparam GraphType is type of the graph - directed or undirected.
  */
-template< typename AdjacencyMatrixView_, typename GraphType_ = Graphs::DirectedGraph >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 struct GraphBase
 {
-   static_assert( Matrices::is_matrix_view_v< AdjacencyMatrixView_ > );
+   static_assert( Matrices::is_matrix_v< AdjacencyMatrix > && ! Matrices::is_matrix_view_v< AdjacencyMatrix >,
+                  "Adjacency matrix type cannot be matrix view." );
 
-   //! \brief Type of view of the adjacency matrix.
-   using AdjacencyMatrixView = AdjacencyMatrixView_;
+   //! \brief Type of the adjacency matrix view.
+   using AdjacencyMatrixView = typename AdjacencyMatrix::ViewType;
 
    //! \brief Type of constant view of the adjacency matrix.
-   using ConstAdjacencyMatrixView = decltype( std::declval< const AdjacencyMatrixView& >().getConstView() );
+   using ConstAdjacencyMatrixView = typename AdjacencyMatrix::ConstViewType;
 
    //! \brief Type for indexing of the graph nodes.
-   using IndexType = typename AdjacencyMatrixView::IndexType;
+   using IndexType = Index;
 
    //! \brief Type of device where the graph will be operating.
-   using DeviceType = typename AdjacencyMatrixView::DeviceType;
+   using DeviceType = Device;
 
    //! \brief Type for weights of the graph edges.
-   using ValueType = typename AdjacencyMatrixView::RealType;
+   using ValueType = Value;
 
    //! \brief Type of the graph - directed or undirected.
-   using GraphType = GraphType_;
+   using GraphOrientation = Orientation;
 
-   using NodeView = GraphNodeView< AdjacencyMatrixView, GraphType_ >;
+   using VertexView = GraphVertexView< AdjacencyMatrixView, Orientation >;
 
-   using ConstNodeView = typename NodeView::ConstNodeView;
+   using ConstVertexView = typename VertexView::ConstVertexView;
 
-   template< typename MatrixView = AdjacencyMatrixView, typename GraphType__ = GraphType_ >
-   using Self = Graph< MatrixView, GraphType__ >;
+   template< typename Value_ = Value,
+             typename Device_ = Device,
+             typename Index_ = Index,
+             typename Orientation_ = Orientation,
+             typename AdjacencyMatrix_ = AdjacencyMatrix >
+   using Self = GraphBase< Value_, Device_, Index_, Orientation_, AdjacencyMatrix_ >;
 
    //! \brief Checks if the graph is directed.
    static constexpr bool
@@ -91,15 +95,20 @@ struct GraphBase
    [[nodiscard]] static std::string
    getSerializationType();
 
-   //! \brief Returns the conatnt view of adjacency matrix of the graph.
+   //! \brief Returns the constant view of adjacency matrix of the graph.
    [[nodiscard]] __cuda_callable__
    const AdjacencyMatrixView&
-   getAdjacencyMatrix() const;
+   getAdjacencyMatrixView() const;
+
+   //! \brief Returns the view of adjacency matrix of the graph.
+   [[nodiscard]] __cuda_callable__
+   AdjacencyMatrixView&
+   getAdjacencyMatrixView();
 
    //! \brief Returns the number of nodes in the graph.
    [[nodiscard]] __cuda_callable__
    IndexType
-   getNodeCount() const;
+   getVertexCount() const;
 
    //! \brief Returns the number of edges in the graph.
    [[nodiscard]] __cuda_callable__
@@ -112,8 +121,8 @@ struct GraphBase
     * \param nodeIdx is index of the node to be returned.
     */
    [[nodiscard]] __cuda_callable__
-   ConstNodeView
-   getNode( IndexType nodeIdx ) const;
+   ConstVertexView
+   getVertex( IndexType nodeIdx ) const;
 
    /***
     * \brief Returns the modifiable view of the graph node with given index.
@@ -121,8 +130,8 @@ struct GraphBase
     * \param nodeIdx is index of the node to be returned.
     */
    [[nodiscard]] __cuda_callable__
-   NodeView
-   getNode( IndexType nodeIdx );
+   VertexView
+   getVertex( IndexType nodeIdx );
 
    /***
     * \brief Sets the weight of the edge between given node and its edge index.
@@ -135,6 +144,7 @@ struct GraphBase
    void
    setEdgeWeight( IndexType nodeIdx, IndexType edgeIdx, const ValueType& value );
 
+   // TODO: Added eraseEdge - works only for sparse adjacencymatrices
    /***
     * \brief Returns the weight of the edge between given node and its edge index.
     *
@@ -145,6 +155,13 @@ struct GraphBase
    ValueType
    getEdgeWeight( IndexType nodeIdx, IndexType edgeIdx ) const;
 
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getVertexDegree( IndexType nodeIdx ) const
+   {
+      return this->getVertex( nodeIdx ).getDegree();
+   }
+
    //! \brief Destructor.
    ~GraphBase() = default;
 
@@ -153,19 +170,19 @@ protected:
 };
 
 //! \brief Output stream operator for the \e Graph class.
-template< typename Matrix, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 std::ostream&
-operator<<( std::ostream& os, const GraphBase< Matrix, GraphType_ >& graph );
+operator<<( std::ostream& os, const GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >& graph );
 
 //! \brief Serialization of graphs into binary files.
-template< typename Matrix, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 File&
-operator<<( File& file, const GraphBase< Matrix, GraphType_ >& graph );
+operator<<( File& file, const GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >& graph );
 
 //! \brief Serialization of graphs into binary files.
-template< typename Matrix, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 File&
-operator<<( File&& file, const GraphBase< Matrix, GraphType_ >& graph );
+operator<<( File&& file, const GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >& graph );
 
 // Note: Deserialization is different for Graph and GraphView,
 // see the respective files for implementation.

@@ -9,54 +9,62 @@
 
 namespace TNL::Graphs {
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 constexpr bool
-GraphBase< AdjacencyMatrixView, GraphType_ >::isDirected()
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::isDirected()
 {
-   return std::is_same_v< GraphType, DirectedGraph >;
+   return std::is_same_v< Orientation, DirectedGraph >;
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 constexpr bool
-GraphBase< AdjacencyMatrixView, GraphType_ >::isUndirected()
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::isUndirected()
 {
-   return std::is_same_v< GraphType_, UndirectedGraph >;
+   return std::is_same_v< Orientation, UndirectedGraph >;
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 bool
-GraphBase< AdjacencyMatrixView, GraphType_ >::operator==( const GraphBase& other ) const
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::operator==( const GraphBase& other ) const
 {
    return adjacencyMatrixView == other.adjacencyMatrixView;
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] std::string
-GraphBase< AdjacencyMatrixView, GraphType_ >::getSerializationType()
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getSerializationType()
 {
-   return "Graph< " + AdjacencyMatrixView::getSerializationType() + ", " + GraphType::getSerializationType() + " >";
+   return "Graph< " + AdjacencyMatrixView::getSerializationType() + ", " + GraphOrientation::getSerializationType() + " >";
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] __cuda_callable__
 auto
-GraphBase< AdjacencyMatrixView, GraphType_ >::getAdjacencyMatrix() const -> const AdjacencyMatrixView&
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getAdjacencyMatrixView() -> AdjacencyMatrixView&
 {
    return adjacencyMatrixView;
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] __cuda_callable__
 auto
-GraphBase< AdjacencyMatrixView, GraphType_ >::getNodeCount() const -> IndexType
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getAdjacencyMatrixView() const -> const AdjacencyMatrixView&
+{
+   return adjacencyMatrixView;
+}
+
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
+[[nodiscard]] __cuda_callable__
+auto
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getVertexCount() const -> IndexType
 {
    return adjacencyMatrixView.getRows();
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] __cuda_callable__
 auto
-GraphBase< AdjacencyMatrixView, GraphType_ >::getEdgeCount() const -> IndexType
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getEdgeCount() const -> IndexType
 {
    if constexpr( isUndirected() ) {
       auto diagonalEntries = sum( notEqualTo( Matrices::getDiagonal( adjacencyMatrixView ), 0 ) );
@@ -67,59 +75,60 @@ GraphBase< AdjacencyMatrixView, GraphType_ >::getEdgeCount() const -> IndexType
    }
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] __cuda_callable__
 auto
-GraphBase< AdjacencyMatrixView, GraphType_ >::getNode( IndexType nodeIdx ) const -> ConstNodeView
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getVertex( IndexType nodeIdx ) const -> ConstVertexView
 {
-   return { this->getAdjacencyMatrix().getSegments().getSegmentView( nodeIdx ),
-            this->getAdjacencyMatrix().getValues().getView() };
+   return { adjacencyMatrixView.getSegments().getSegmentView( nodeIdx ), adjacencyMatrixView.getValues().getView() };
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] __cuda_callable__
 auto
-GraphBase< AdjacencyMatrixView, GraphType_ >::getNode( IndexType nodeIdx ) -> NodeView
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getVertex( IndexType nodeIdx ) -> VertexView
 {
-   return { this->getAdjacencyMatrix().getSegments().getSegmentView( nodeIdx ),
-            this->getAdjacencyMatrix().getValues().getView() };
+   return { adjacencyMatrixView.getSegments().getSegmentView( nodeIdx ), adjacencyMatrixView.getValues().getView() };
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 __cuda_callable__
 void
-GraphBase< AdjacencyMatrixView, GraphType_ >::setEdgeWeight( IndexType nodeIdx, IndexType edgeIdx, const ValueType& value )
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::setEdgeWeight( IndexType nodeIdx,
+                                                                                IndexType edgeIdx,
+                                                                                const ValueType& value )
 {
-   this->getAdjacencyMatrix().setElement( nodeIdx, edgeIdx, value );
+   adjacencyMatrixView.setElement( nodeIdx, edgeIdx, value );
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] __cuda_callable__
 auto
-GraphBase< AdjacencyMatrixView, GraphType_ >::getEdgeWeight( IndexType nodeIdx, IndexType edgeIdx ) const -> ValueType
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getEdgeWeight( IndexType nodeIdx, IndexType edgeIdx ) const
+   -> ValueType
 {
-   return this->getAdjacencyMatrix().getElement( nodeIdx, edgeIdx );
+   return adjacencyMatrixView.getElement( nodeIdx, edgeIdx );
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 std::ostream&
-operator<<( std::ostream& os, const GraphBase< AdjacencyMatrixView, GraphType_ >& graph )
+operator<<( std::ostream& os, const GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >& graph )
 {
-   os << graph.getAdjacencyMatrix();
+   os << graph.getAdjacencyMatrixView();
    return os;
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 File&
-operator<<( File& file, const GraphBase< AdjacencyMatrixView, GraphType_ >& graph )
+operator<<( File& file, const GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >& graph )
 {
    saveObjectType( file, graph.getSerializationType() );
-   return file << graph.getAdjacencyMatrix();
+   return file << graph.getAdjacencyMatrixView();
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 File&
-operator<<( File&& file, const GraphBase< AdjacencyMatrixView, GraphType_ >& graph )
+operator<<( File&& file, const GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >& graph )
 {
    return file << graph;
 }
