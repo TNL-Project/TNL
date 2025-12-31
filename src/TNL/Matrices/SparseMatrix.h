@@ -61,7 +61,9 @@ class SparseMatrix
                                   Device,
                                   Index,
                                   MatrixType_,
-                                  typename Segments< Device, Index, IndexAllocator >::ViewType,
+                                  std::conditional_t< std::is_const_v< Real >,
+                                                      typename Segments< Device, Index, IndexAllocator >::ConstViewType,
+                                                      typename Segments< Device, Index, IndexAllocator >::ViewType >,
                                   ComputeReal >;
 
 public:
@@ -97,7 +99,10 @@ public:
     * \brief Templated view type of segments, i.e. sparse matrix format.
     */
    template< typename Device_, typename Index_ >
-   using SegmentsViewTemplate = typename SegmentsType::template ViewTemplate< Device_, Index_ >;
+   using SegmentsViewTemplate = typename std::conditional_t<
+      std::is_const_v< Real >,
+      typename Segments< Device, Index, IndexAllocator >::ConstViewType,
+      typename Segments< Device, Index, IndexAllocator >::ViewType >::template ViewTemplate< Device_, Index_ >;
 
    /**
     * \brief The allocator for matrix elements values.
@@ -114,7 +119,18 @@ public:
     *
     * See \ref SparseMatrixView.
     */
-   using ViewType = SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsViewTemplate, ComputeReal >;
+
+   using ViewType =
+      SparseMatrixView< Real,
+                        Device,
+                        Index,
+                        MatrixType_,
+                        Segments< Device, Index, IndexAllocator >::template ViewTemplate,  //NOTE: Avoid using
+                                                                                           //SegmentsViewTemplate here!!! Named
+                                                                                           //type is causing type
+                                                                                           //incompatibilities since the owner
+                                                                                           // type is encoded in it.
+                        ComputeReal >;
 
    /**
     * \brief Matrix view type for constant instances.
@@ -122,7 +138,22 @@ public:
     * See \ref SparseMatrixView.
     */
    using ConstViewType =
-      SparseMatrixView< std::add_const_t< Real >, Device, Index, MatrixType_, SegmentsViewTemplate, ComputeReal >;
+      SparseMatrixView< std::add_const_t< Real >,
+                        Device,
+                        Index,
+                        MatrixType_,
+                        Segments< Device, Index, IndexAllocator >::template ViewTemplate,  //NOTE: Avoid using
+                                                                                           //SegmentsViewTemplate here!!! Named
+                                                                                           //type is causing type
+                                                                                           //incompatibilities since the owner
+                                                                                           // type is encoded in it.
+                        ComputeReal >;
+
+   /**
+    * \brief Type of related constant matrix.
+    */
+   using ConstMatrixType =
+      SparseMatrix< std::add_const_t< Real >, Device, Index, MatrixType_, Segments, ComputeReal, RealAllocator, IndexAllocator >;
 
    /**
     * \brief Helper type for getting self type or its modifications.
