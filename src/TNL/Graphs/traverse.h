@@ -202,11 +202,11 @@ namespace TNL::Graphs {
  * which vertices to process:
  *
  * ```cpp
- * auto condition = [=] __cuda_callable__ ( IndexType sourceIdx ) -> bool { ... }
+ * auto condition = [=] __cuda_callable__ ( IndexType vertexIdx ) -> bool { ... }
  * ```
  *
  * **Parameters:**
- * - `sourceIdx` - The index of the graph vertex to check
+ * - `vertexIdx` - The index of the graph vertex to check
  *
  * **Returns:**
  * - `true` if the vertex should be processed, `false` to skip it
