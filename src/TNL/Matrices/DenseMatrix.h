@@ -67,6 +67,11 @@ public:
    using Self = DenseMatrix< _Real, _Device, _Index, _Organization, _RealAllocator >;
 
    /**
+    * \brief Type of related constant matrix.
+    */
+   using ConstMatrixType = DenseMatrix< std::add_const_t< Real >, Device, Index, Organization, RealAllocator >;
+
+   /**
     * \brief Constructor only with values allocator.
     *
     * \param allocator is used for allocation of matrix elements values.
