@@ -92,6 +92,11 @@ public:
    using Self = TridiagonalMatrix< _Real, _Device, _Index, _Organization, _RealAllocator >;
 
    /**
+    * \brief Type of related constant matrix.
+    */
+   using ConstMatrixType = TridiagonalMatrix< std::add_const_t< Real >, Device, Index, Organization, RealAllocator >;
+
+   /**
     * \brief Constructor with no parameters.
     */
    TridiagonalMatrix() = default;
