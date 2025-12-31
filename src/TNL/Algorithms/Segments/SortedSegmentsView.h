@@ -37,6 +37,15 @@ public:
    //! \brief Type of constant segments view.
    using ConstViewType = SortedSegmentsView< EmbeddedSegmentsConstView >;
 
+   /**
+    * \brief Templated view type.
+    *
+    * \tparam Device_ is alternative device type for the view.
+    * \tparam Index_ is alternative index type for the view.
+    */
+   template< typename Device_, typename Index_ >
+   using ViewTemplate = SortedSegmentsView< typename EmbeddedSegmentsView::template ViewTemplate< Device_, Index_ > >;
+
    //! \brief Default constructor with no parameters to create empty segments view.
    __cuda_callable__
    SortedSegmentsView() = default;
