@@ -50,18 +50,22 @@ struct GraphVertexView< Matrices::DenseMatrixView< Real, Device, Index, Organiza
    //! \brief Type of the constant graph node view.
    using ConstVertexView = GraphVertexView< ConstMatrixView, GraphType_ >;
 
+   __cuda_callable__
    GraphVertexView( const SegmentViewType& segmentView, const ValuesViewType& valuesView )
    : Base( segmentView, valuesView )
    {}
 
+   __cuda_callable__
    GraphVertexView( MatrixRowView&& matrixRowView )
    : Base( std::forward( matrixRowView ) )
    {}
 
+   __cuda_callable__
    GraphVertexView( const MatrixRowView& matrixRowView )
    : Base( matrixRowView )
    {}
 
+   __cuda_callable__
    GraphVertexView( const GraphVertexView& ) = default;
 
    [[nodiscard]] __cuda_callable__
@@ -73,14 +77,14 @@ struct GraphVertexView< Matrices::DenseMatrixView< Real, Device, Index, Organiza
 
    [[nodiscard]] __cuda_callable__
    const RealType&
-   getWeight( IndexType edgeIndex ) const
+   getEdgeWeight( IndexType edgeIndex ) const
    {
       return Base::getValue( edgeIndex );
    }
 
    [[nodiscard]] __cuda_callable__
    RealType&
-   getWeight( IndexType edgeIndex )
+   getEdgeWeight( IndexType edgeIndex )
    {
       return Base::getValue( edgeIndex );
    }
@@ -94,7 +98,7 @@ struct GraphVertexView< Matrices::DenseMatrixView< Real, Device, Index, Organiza
 
    __cuda_callable__
    void
-   setWeight( IndexType edgeIndex, const RealType& weight )
+   setEdgeWeight( IndexType edgeIndex, const RealType& weight )
    {
       Base::setValue( edgeIndex, weight );
    }
@@ -160,20 +164,24 @@ struct GraphVertexView< Matrices::SparseMatrixView< Real, Device, Index, MatrixT
    //! \brief Type of the constant graph node view.
    using ConstVertexView = GraphVertexView< ConstMatrixView, GraphType_ >;
 
+   __cuda_callable__
    GraphVertexView( const SegmentViewType& segmentView,
                     const ValuesViewType& valuesView,
                     const ColumnIndexesViewType& columnIndexesView )
    : Base( segmentView, valuesView, columnIndexesView )
    {}
 
+   __cuda_callable__
    GraphVertexView( MatrixRowView&& matrixRowView )
    : Base( std::forward( matrixRowView ) )
    {}
 
+   __cuda_callable__
    GraphVertexView( const MatrixRowView& matrixRowView )
    : Base( matrixRowView )
    {}
 
+   __cuda_callable__
    GraphVertexView( const GraphVertexView& ) = default;
 
    [[nodiscard]] __cuda_callable__
@@ -185,14 +193,14 @@ struct GraphVertexView< Matrices::SparseMatrixView< Real, Device, Index, MatrixT
 
    [[nodiscard]] __cuda_callable__
    const RealType&
-   getWeight( IndexType edgeIndex ) const
+   getEdgeWeight( IndexType edgeIndex ) const
    {
       return Base::getValue( edgeIndex );
    }
 
    [[nodiscard]] __cuda_callable__
    RealType&
-   getWeight( IndexType edgeIndex )
+   getEdgeWeight( IndexType edgeIndex )
    {
       return Base::getValue( edgeIndex );
    }
@@ -206,7 +214,7 @@ struct GraphVertexView< Matrices::SparseMatrixView< Real, Device, Index, MatrixT
 
    __cuda_callable__
    void
-   setWeight( IndexType edgeIndex, const RealType& weight )
+   setEdgeWeight( IndexType edgeIndex, const RealType& weight )
    {
       Base::setValue( edgeIndex, weight );
    }
