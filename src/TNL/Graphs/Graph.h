@@ -28,6 +28,9 @@ namespace TNL::Graphs {
  * graphs, however, it is important to distinguish between the absence of an edge and the presence of an edge with zero weight.
  * To preserve this distinction, edges with zero weight are represented by explicitly stored matrix entries with zero value.
  *
+ * For unweighted graphs, use `bool` as the `Value` type. In this case, the sparse adjacency matrix is binary, which only
+ * stores the positions of the edges without any associated weights.
+ *
  * If a dense matrix is used as the adjacency matrix, it represents a complete graph, meaning that all possible edges between
  * nodes are present.
  *
