@@ -7,62 +7,62 @@
 
 namespace TNL::Graphs {
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 __cuda_callable__
-GraphView< AdjacencyMatrixView, GraphType_ >::GraphView( AdjacencyMatrixView& adjacencyMatrixView )
+GraphView< Value, Device, Index, Orientation, AdjacencyMatrix >::GraphView( AdjacencyMatrixView& adjacencyMatrixView )
 {
    this->adjacencyMatrixView.bind( adjacencyMatrixView );
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 __cuda_callable__
-GraphView< AdjacencyMatrixView, GraphType_ >::GraphView( AdjacencyMatrixView&& adjacencyMatrixView )
+GraphView< Value, Device, Index, Orientation, AdjacencyMatrix >::GraphView( AdjacencyMatrixView&& adjacencyMatrixView )
 {
    this->adjacencyMatrixView.bind( std::forward< AdjacencyMatrixView >( adjacencyMatrixView ) );
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 void __cuda_callable__
-GraphView< AdjacencyMatrixView, GraphType_ >::bind( AdjacencyMatrixView& adjacencyMatrixView )
+GraphView< Value, Device, Index, Orientation, AdjacencyMatrix >::bind( AdjacencyMatrixView& adjacencyMatrixView )
 {
    this->adjacencyMatrixView.bind( adjacencyMatrixView );
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 void __cuda_callable__
-GraphView< AdjacencyMatrixView, GraphType_ >::bind( AdjacencyMatrixView&& adjacencyMatrixView )
+GraphView< Value, Device, Index, Orientation, AdjacencyMatrix >::bind( AdjacencyMatrixView&& adjacencyMatrixView )
 {
    this->adjacencyMatrixView.bind( std::forward< AdjacencyMatrixView >( adjacencyMatrixView ) );
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 void __cuda_callable__
-GraphView< AdjacencyMatrixView, GraphType_ >::bind( GraphView& graphView )
+GraphView< Value, Device, Index, Orientation, AdjacencyMatrix >::bind( GraphView& graphView )
 {
    this->adjacencyMatrixView.bind( graphView.adjacencyMatrixView );
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 void __cuda_callable__
-GraphView< AdjacencyMatrixView, GraphType_ >::bind( GraphView&& graphView )
+GraphView< Value, Device, Index, Orientation, AdjacencyMatrix >::bind( GraphView&& graphView )
 {
    this->adjacencyMatrixView.bind( std::forward< GraphView >( graphView ).adjacencyMatrixView );
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] __cuda_callable__
 auto
-GraphView< AdjacencyMatrixView, GraphType_ >::getView() -> ViewType
+GraphView< Value, Device, Index, Orientation, AdjacencyMatrix >::getView() -> ViewType
 {
    return GraphView( this->adjacencyMatrixView );
 }
 
-template< typename AdjacencyMatrixView, typename GraphType_ >
+template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] __cuda_callable__
 auto
-GraphView< AdjacencyMatrixView, GraphType_ >::getConstView() const -> ConstViewType
+GraphView< Value, Device, Index, Orientation, AdjacencyMatrix >::getConstView() const -> ConstViewType
 {
-   return ConstViewType( this->adjacencyMatrixView );
+   return ConstViewType( this->adjacencyMatrixView.getConstView() );
 }
 
 }  // namespace TNL::Graphs
