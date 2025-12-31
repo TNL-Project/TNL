@@ -109,6 +109,12 @@ public:
    using Self = MultidiagonalMatrix< _Real, _Device, _Index, _Organization, _RealAllocator, _IndexAllocator >;
 
    /**
+    * \brief Type of related constant matrix.
+    */
+   using ConstMatrixType =
+      MultidiagonalMatrix< std::add_const_t< Real >, Device, Index, Organization, RealAllocator, IndexAllocator >;
+
+   /**
     * \brief Constructor with no parameters.
     */
    MultidiagonalMatrix() = default;

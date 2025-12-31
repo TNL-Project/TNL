@@ -81,6 +81,7 @@ class SparseMatrixView : public SparseMatrixBase< Real,
 
 public:
    using Base::MatrixType;
+
    /**
     * \brief Templated type of segments view, i.e. sparse matrix format.
     */
@@ -94,20 +95,27 @@ public:
              typename _Device = Device,
              typename _Index = Index,
              typename _MatrixType = MatrixType_,
-             template< typename, typename > class _SegmentsView = SegmentsViewTemplate,
+             template< typename, typename > class _SegmentsView =
+                SegmentsView,  //NOTE: Avoid using SegmentsViewTemplate here!!! Named type is causing type incompatibilities
+                               //since the owner type is encoded in it.
              typename _ComputeReal = ComputeReal >
    using Self = SparseMatrixView< _Real, _Device, _Index, _MatrixType, _SegmentsView, _ComputeReal >;
 
    /**
     * \brief Type of related matrix view.
     */
-   using ViewType = SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsViewTemplate, ComputeReal >;
+   using ViewType = SparseMatrixView< Real,
+                                      Device,
+                                      Index,
+                                      MatrixType_,
+                                      SegmentsView,  //NOTE: Avoid using SegmentsViewTemplate here!!! Named type is causing type
+                                                     //incompatibilities since the owner type is encoded in it.
+                                      ComputeReal >;
 
    /**
     * \brief Matrix view type for constant instances.
     */
-   using ConstViewType =
-      SparseMatrixView< std::add_const_t< Real >, Device, Index, MatrixType_, SegmentsViewTemplate, ComputeReal >;
+   using ConstViewType = SparseMatrixView< std::add_const_t< Real >, Device, Index, MatrixType_, SegmentsView, ComputeReal >;
 
    /**
     * \brief Constructor with no parameters.
