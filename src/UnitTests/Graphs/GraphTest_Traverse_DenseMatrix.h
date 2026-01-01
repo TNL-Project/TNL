@@ -4,66 +4,74 @@
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Graphs/traverse.h>
-#include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Containers/Vector.h>
 
 #include <gtest/gtest.h>
 
-// Test fixture for graph traversal tests
+// Test fixture for dense graph traversal tests
 template< typename Matrix >
-class GraphTraversalTest : public ::testing::Test
+class DenseGraphTraversalTest : public ::testing::Test
 {
 protected:
    using AdjacencyMatrixType = Matrix;
-   using DirectedGraphType = TNL::Graphs::
-      Graph< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType, TNL::Graphs::DirectedGraph >;
-   using UndirectedGraphType = TNL::Graphs::
-      Graph< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType, TNL::Graphs::UndirectedGraph >;
+   using DirectedGraphType = TNL::Graphs::Graph< typename Matrix::RealType,
+                                                 typename Matrix::DeviceType,
+                                                 typename Matrix::IndexType,
+                                                 TNL::Graphs::DirectedGraph,
+                                                 Matrix >;
+   using UndirectedGraphType = TNL::Graphs::Graph< typename Matrix::RealType,
+                                                   typename Matrix::DeviceType,
+                                                   typename Matrix::IndexType,
+                                                   TNL::Graphs::UndirectedGraph,
+                                                   Matrix >;
    using ValueType = typename AdjacencyMatrixType::RealType;
    using DeviceType = typename AdjacencyMatrixType::DeviceType;
    using IndexType = typename AdjacencyMatrixType::IndexType;
 };
 
-// Types for which GraphTraversalTest is instantiated
-using GraphTraversalTestTypes = ::testing::Types< TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >,
-                                                  TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >
+// Types for which DenseGraphTraversalTest is instantiated
+using DenseGraphTraversalTestTypes = ::testing::Types< TNL::Matrices::DenseMatrix< double, TNL::Devices::Sequential, int >,
+                                                       TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int >
 #if defined( __CUDACC__ )
-                                                  ,
-                                                  TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >
+                                                       ,
+                                                       TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int >
 #elif defined( __HIP__ )
-                                                  ,
-                                                  TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >
+                                                       ,
+                                                       TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int >
 #endif
-                                                  >;
+                                                       >;
 
-TYPED_TEST_SUITE( GraphTraversalTest, GraphTraversalTestTypes );
+TYPED_TEST_SUITE( DenseGraphTraversalTest, DenseGraphTraversalTestTypes );
 
-// Helper function to create a simple directed graph
-// Graph structure:
-//   0 -> 1 (weight 1.0)
-//   0 -> 2 (weight 2.0)
-//   1 -> 3 (weight 3.0)
-//   2 -> 3 (weight 4.0)
-//   3 -> 4 (weight 5.0)
+// Helper function to create a complete directed graph (dense matrix)
+// For a complete graph with n vertices, every vertex connects to every other vertex
+// Graph structure (4 vertices):
+//   0 -> 1,2,3 (weights 1.0, 2.0, 3.0)
+//   1 -> 0,2,3 (weights 4.0, 5.0, 6.0)
+//   2 -> 0,1,3 (weights 7.0, 8.0, 9.0)
+//   3 -> 0,1,2 (weights 10.0, 11.0, 12.0)
 template< typename GraphType >
 void
-createSimpleDirectedGraph( GraphType& graph )
+createCompleteDirectedGraph( GraphType& graph )
 {
    using ValueType = typename GraphType::ValueType;
    using IndexType = typename GraphType::IndexType;
-   using DeviceType = typename GraphType::DeviceType;
-   using IndexVector = TNL::Containers::Vector< IndexType, DeviceType >;
 
-   graph.setVertexCount( 5 );
-   graph.setVertexCapacities( IndexVector( { 2, 1, 1, 1, 0 } ) );
+   const IndexType n = 4;
+   graph.setVertexCount( n );
 
-   // Set edges
-   graph.setEdgeWeight( 0, 1, ValueType( 1.0 ) );
-   graph.setEdgeWeight( 0, 2, ValueType( 2.0 ) );
-   graph.setEdgeWeight( 1, 3, ValueType( 3.0 ) );
-   graph.setEdgeWeight( 2, 3, ValueType( 4.0 ) );
-   graph.setEdgeWeight( 3, 4, ValueType( 5.0 ) );
+   ValueType weight = 1.0;
+   for( IndexType i = 0; i < n; i++ ) {
+      for( IndexType j = 0; j < n; j++ ) {
+         if( i != j ) {
+            graph.setEdgeWeight( i, j, weight );
+            weight += 1.0;
+         }
+         else
+            graph.setEdgeWeight( i, j, 0.0 );  // zero weights are omitted in these tests
+      }
+   }
 }
 
 // Helper functors for CUDA compatibility (lambdas with __cuda_callable__ cannot be in protected methods)
@@ -77,7 +85,9 @@ struct EdgeCountFunctor
    void
    operator()( IndexType vertexIdx, IndexType localIdx, IndexType neighborIdx, ValueType& edgeWeight ) const
    {
-      TNL::Algorithms::AtomicOperations< DeviceType >::add( edgeCountView[ 0 ], IndexType( 1 ) );
+      // Only count non-zero edges (for dense matrices, zero means no edge)
+      if( edgeWeight != ValueType( 0 ) )
+         TNL::Algorithms::AtomicOperations< DeviceType >::add( edgeCountView[ 0 ], IndexType( 1 ) );
    }
 };
 
@@ -91,62 +101,9 @@ struct WeightSumFunctor
    void
    operator()( IndexType vertexIdx, IndexType localIdx, IndexType neighborIdx, const ValueType& edgeWeight ) const
    {
-      TNL::Algorithms::AtomicOperations< DeviceType >::add( weightSumView[ 0 ], edgeWeight );
-   }
-};
-
-template< typename IndexType >
-struct VertexRangeCondition
-{
-   IndexType start, end;
-
-   __cuda_callable__
-   bool
-   operator()( IndexType vertexIdx ) const
-   {
-      return vertexIdx >= start && vertexIdx < end;
-   }
-};
-
-template< typename ViewType, typename DeviceType, typename IndexType >
-struct VertexDegreeCondition
-{
-   ViewType graphView;
-
-   __cuda_callable__
-   bool
-   operator()( IndexType vertexIdx ) const
-   {
-      return graphView.getVertex( vertexIdx ).getDegree() > 0;
-   }
-};
-
-template< typename ViewType, typename DeviceType, typename IndexType >
-struct DegreeSumFunctor
-{
-   mutable ViewType totalDegreeView;
-
-   template< typename Vertex >
-   __cuda_callable__
-   void
-   operator()( Vertex& vertex ) const
-   {
-      TNL::Algorithms::AtomicOperations< DeviceType >::add( totalDegreeView[ 0 ], vertex.getDegree() );
-   }
-};
-
-template< typename ViewType, typename DeviceType, typename IndexType >
-struct VertexCountFunctor
-{
-   mutable ViewType vertexCountView;
-
-   template< typename Vertex >
-   __cuda_callable__
-   void
-   operator()( const Vertex& vertex ) const
-   {
-      if( vertex.getDegree() > 0 )
-         TNL::Algorithms::AtomicOperations< DeviceType >::add( vertexCountView[ 0 ], IndexType( 1 ) );
+      // Only sum non-zero edges (for dense matrices, zero means no edge)
+      if( edgeWeight != ValueType( 0 ) )
+         TNL::Algorithms::AtomicOperations< DeviceType >::add( weightSumView[ 0 ], edgeWeight );
    }
 };
 
@@ -162,17 +119,6 @@ struct EvenVertexCondition
 };
 
 template< typename IndexType >
-struct GreaterThanZeroCondition
-{
-   __cuda_callable__
-   bool
-   operator()( IndexType vertexIdx ) const
-   {
-      return vertexIdx > 0;
-   }
-};
-
-template< typename IndexType >
 struct OddVertexCondition
 {
    __cuda_callable__
@@ -184,6 +130,17 @@ struct OddVertexCondition
 };
 
 template< typename IndexType >
+struct GreaterThanZeroCondition
+{
+   __cuda_callable__
+   bool
+   operator()( IndexType vertexIdx ) const
+   {
+      return vertexIdx > 0;
+   }
+};
+
+template< typename IndexType >
 struct LessThanThreeCondition
 {
    __cuda_callable__
@@ -191,6 +148,46 @@ struct LessThanThreeCondition
    operator()( IndexType vertexIdx ) const
    {
       return vertexIdx < 3;
+   }
+};
+
+template< typename ViewType, typename DeviceType, typename IndexType >
+struct DegreeSumFunctor
+{
+   mutable ViewType totalDegreeView;
+
+   template< typename Vertex >
+   __cuda_callable__
+   void
+   operator()( Vertex& vertex ) const
+   {
+      // For dense matrices, manually count non-zero edges
+      IndexType degree = 0;
+      for( IndexType i = 0; i < vertex.getDegree(); i++ ) {
+         if( vertex.getEdgeWeight( i ) != 0.0 )
+            degree++;
+      }
+      TNL::Algorithms::AtomicOperations< DeviceType >::add( totalDegreeView[ 0 ], degree );
+   }
+};
+
+template< typename ViewType, typename DeviceType, typename IndexType >
+struct VertexCountFunctor
+{
+   mutable ViewType vertexCountView;
+
+   template< typename Vertex >
+   __cuda_callable__
+   void
+   operator()( const Vertex& vertex ) const
+   {
+      // For dense matrices, only count vertices with at least one non-zero edge
+      for( IndexType i = 0; i < vertex.getDegree(); i++ ) {
+         if( vertex.getEdgeWeight( i ) != 0.0 ) {
+            TNL::Algorithms::AtomicOperations< DeviceType >::add( vertexCountView[ 0 ], IndexType( 1 ) );
+            return;
+         }
+      }
    }
 };
 
@@ -219,7 +216,7 @@ struct DoubleWeightFunctor
    }
 };
 
-TYPED_TEST( GraphTraversalTest, forAllEdges )
+TYPED_TEST( DenseGraphTraversalTest, forAllEdges )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using ValueType = typename TestFixture::ValueType;
@@ -227,9 +224,9 @@ TYPED_TEST( GraphTraversalTest, forAllEdges )
    using IndexType = typename TestFixture::IndexType;
 
    GraphType graph;
-   createSimpleDirectedGraph( graph );
+   createCompleteDirectedGraph( graph );
 
-   // Count edges using forAllEdges
+   // Count edges using forAllEdges - complete graph with 4 vertices has 4*3 = 12 edges
    TNL::Containers::Vector< IndexType, DeviceType > edgeCount( 1 );
    edgeCount.setValue( 0 );
 
@@ -238,9 +235,9 @@ TYPED_TEST( GraphTraversalTest, forAllEdges )
 
    TNL::Graphs::forAllEdges( graph, func_count );
 
-   EXPECT_EQ( edgeCount.getElement( 0 ), 5 );
+   EXPECT_EQ( edgeCount.getElement( 0 ), 12 );
 
-   // Sum all edge weights
+   // Sum all edge weights (1+2+3+4+5+6+7+8+9+10+11+12 = 78)
    TNL::Containers::Vector< ValueType, DeviceType > weightSum( 1 );
    weightSum.setValue( 0.0 );
 
@@ -249,10 +246,10 @@ TYPED_TEST( GraphTraversalTest, forAllEdges )
    const GraphType& constGraph = graph;
    TNL::Graphs::forAllEdges( constGraph, func_sum );
 
-   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 15.0 );  // 1+2+3+4+5 = 15
+   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 78.0 );
 }
 
-TYPED_TEST( GraphTraversalTest, forEdges_Range )
+TYPED_TEST( DenseGraphTraversalTest, forEdges_Range )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using ValueType = typename TestFixture::ValueType;
@@ -260,9 +257,9 @@ TYPED_TEST( GraphTraversalTest, forEdges_Range )
    using IndexType = typename TestFixture::IndexType;
 
    GraphType graph;
-   createSimpleDirectedGraph( graph );
+   createCompleteDirectedGraph( graph );
 
-   // Process edges only in vertices [1, 3)
+   // Process edges only in vertices [1, 3) - vertices 1 and 2, each has 3 edges
    TNL::Containers::Vector< IndexType, DeviceType > edgeCount( 1 );
    edgeCount.setValue( 0 );
 
@@ -270,9 +267,10 @@ TYPED_TEST( GraphTraversalTest, forEdges_Range )
    EdgeCountFunctor< decltype( edgeCountView ), DeviceType, IndexType > func_count{ edgeCountView };
 
    TNL::Graphs::forEdges( graph, 1, 3, func_count );
-   EXPECT_EQ( edgeCount.getElement( 0 ), 2 );  // vertex 1 has 1 edge, vertex 2 has 1 edge
+   EXPECT_EQ( edgeCount.getElement( 0 ), 6 );  // vertices 1,2 each have 3 edges
 
-   // Sum edge weights in vertices [0, 2)
+   // Sum edge weights in vertices [0, 2) - vertices 0,1
+   // Vertex 0: 1+2+3 = 6, Vertex 1: 4+5+6 = 15, Total = 21
    TNL::Containers::Vector< ValueType, DeviceType > weightSum( 1 );
    weightSum.setValue( 0.0 );
 
@@ -281,10 +279,10 @@ TYPED_TEST( GraphTraversalTest, forEdges_Range )
 
    const GraphType& constGraph = graph;
    TNL::Graphs::forEdges( constGraph, 0, 2, func_sum );
-   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 6.0 );  // vertex 0: 1+2 = 3, vertex 1: 3 => 3+3 = 6
+   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 21.0 );
 }
 
-TYPED_TEST( GraphTraversalTest, forEdges_Array )
+TYPED_TEST( DenseGraphTraversalTest, forEdges_Array )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using ValueType = typename TestFixture::ValueType;
@@ -292,9 +290,9 @@ TYPED_TEST( GraphTraversalTest, forEdges_Array )
    using IndexType = typename TestFixture::IndexType;
 
    GraphType graph;
-   createSimpleDirectedGraph( graph );
+   createCompleteDirectedGraph( graph );
 
-   // Process edges only in vertices [0, 3]
+   // Process edges only in vertices [0, 3] - vertices 0 and 3
    TNL::Containers::Vector< IndexType, DeviceType > vertices_1( { 0, 3 } );
    TNL::Containers::Vector< IndexType, DeviceType > edgeCount( 1 );
    edgeCount.setValue( 0 );
@@ -303,9 +301,10 @@ TYPED_TEST( GraphTraversalTest, forEdges_Array )
    EdgeCountFunctor< decltype( edgeCountView ), DeviceType, IndexType > func_count{ edgeCountView };
 
    TNL::Graphs::forEdges( graph, vertices_1, 0, 2, func_count );
-   EXPECT_EQ( edgeCount.getElement( 0 ), 3 );  // vertex 0 has 2 edges, vertex 3 has 1 edge
+   EXPECT_EQ( edgeCount.getElement( 0 ), 6 );  // vertices 0,3 each have 3 edges
 
    // Process edges in vertices [1, 2]
+   // Vertex 1: 4+5+6 = 15, Vertex 2: 7+8+9 = 24, Total = 39
    TNL::Containers::Vector< IndexType, DeviceType > vertices_2( { 1, 2 } );
    TNL::Containers::Vector< ValueType, DeviceType > weightSum( 1 );
    weightSum.setValue( 0.0 );
@@ -315,10 +314,10 @@ TYPED_TEST( GraphTraversalTest, forEdges_Array )
 
    const GraphType& constGraph = graph;
    TNL::Graphs::forEdges( constGraph, vertices_2, func_sum );
-   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 7.0 );  // vertex 1: 3, vertex 2: 4 => 7
+   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 39.0 );
 }
 
-TYPED_TEST( GraphTraversalTest, forAllEdgesIf )
+TYPED_TEST( DenseGraphTraversalTest, forAllEdgesIf )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using ValueType = typename TestFixture::ValueType;
@@ -326,9 +325,9 @@ TYPED_TEST( GraphTraversalTest, forAllEdgesIf )
    using IndexType = typename TestFixture::IndexType;
 
    GraphType graph;
-   createSimpleDirectedGraph( graph );
+   createCompleteDirectedGraph( graph );
 
-   // Process edges only in vertices with even indices
+   // Process edges only in vertices with even indices (0, 2) - 6 edges total
    TNL::Containers::Vector< IndexType, DeviceType > edgeCount( 1 );
    edgeCount.setValue( 0 );
 
@@ -339,8 +338,9 @@ TYPED_TEST( GraphTraversalTest, forAllEdgesIf )
 
    TNL::Graphs::forAllEdgesIf( graph, condition_count, func_count );
 
-   EXPECT_EQ( edgeCount.getElement( 0 ), 3 );  // vertex 0: 2 edges, vertex 2: 1 edge
-   // Process edges only in vertices with index > 0
+   EXPECT_EQ( edgeCount.getElement( 0 ), 6 );  // vertices 0,2 each have 3 edges
+   // Process edges only in vertices with index > 0 (vertices 1,2,3) - 9 edges
+   // Weights: vertices 1,2,3 = (4+5+6)+(7+8+9)+(10+11+12) = 15+24+33 = 72
    TNL::Containers::Vector< ValueType, DeviceType > weightSum( 1 );
    weightSum.setValue( 0.0 );
 
@@ -352,10 +352,10 @@ TYPED_TEST( GraphTraversalTest, forAllEdgesIf )
    const GraphType& constGraph = graph;
    TNL::Graphs::forAllEdgesIf( constGraph, condition_sum, func_sum );
 
-   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 12.0 );  // vertices 1,2,3: 3+4+5 = 12
+   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 72.0 );
 }
 
-TYPED_TEST( GraphTraversalTest, forEdgesIf )
+TYPED_TEST( DenseGraphTraversalTest, forEdgesIf )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using ValueType = typename TestFixture::ValueType;
@@ -363,9 +363,9 @@ TYPED_TEST( GraphTraversalTest, forEdgesIf )
    using IndexType = typename TestFixture::IndexType;
 
    GraphType graph;
-   createSimpleDirectedGraph( graph );
+   createCompleteDirectedGraph( graph );
 
-   // Process edges in range [1, 4) where vertex index is odd
+   // Process edges in range [1, 4) where vertex index is odd (vertices 1,3) - 6 edges
    TNL::Containers::Vector< IndexType, DeviceType > edgeCount( 1 );
    edgeCount.setValue( 0 );
 
@@ -376,9 +376,10 @@ TYPED_TEST( GraphTraversalTest, forEdgesIf )
 
    TNL::Graphs::forEdgesIf( graph, 1, 4, condition_count, func_count );
 
-   EXPECT_EQ( edgeCount.getElement( 0 ), 2 );  // vertex 1: 1 edge, vertex 3: 1 edge
+   EXPECT_EQ( edgeCount.getElement( 0 ), 6 );  // vertices 1,3 each have 3 edges
 
-   // Process edges in range [0, 3) where vertex has even index (=> 0,2)
+   // Process even vertices in range [0, 4) with even index (vertices 0,2) - 6 edges
+   // Weights: vertex 0: 1+2+3 = 6, vertex 2: 7+8+9 = 24, Total = 30
    TNL::Containers::Vector< ValueType, DeviceType > weightSum( 1 );
    weightSum.setValue( 0.0 );
 
@@ -388,21 +389,21 @@ TYPED_TEST( GraphTraversalTest, forEdgesIf )
    WeightSumFunctor< decltype( weightSumView ), DeviceType > func_sum{ weightSumView };
 
    const GraphType& constGraph = graph;
-   TNL::Graphs::forEdgesIf( constGraph, 0, 3, condition_sum, func_sum );
+   TNL::Graphs::forEdgesIf( constGraph, 0, 4, condition_sum, func_sum );
 
-   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 7.0 );  // vertices 0,2: (1+2)+(4) = 7
+   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 30.0 );
 }
 
-TYPED_TEST( GraphTraversalTest, forAllVertices )
+TYPED_TEST( DenseGraphTraversalTest, forAllVertices )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using DeviceType = typename TestFixture::DeviceType;
    using IndexType = typename TestFixture::IndexType;
 
    GraphType graph;
-   createSimpleDirectedGraph( graph );
+   createCompleteDirectedGraph( graph );
 
-   // Count total degree using forAllVertices
+   // Count total degree using forAllVertices - each of 4 vertices has degree 3
    TNL::Containers::Vector< IndexType, DeviceType > totalDegree( 1 );
    totalDegree.setValue( 0 );
 
@@ -411,9 +412,9 @@ TYPED_TEST( GraphTraversalTest, forAllVertices )
 
    TNL::Graphs::forAllVertices( graph, func_count );
 
-   EXPECT_EQ( totalDegree.getElement( 0 ), 5 );  // Total edges in graph
+   EXPECT_EQ( totalDegree.getElement( 0 ), 12 );  // 4 vertices * 3 edges each
 
-   // Count vertices with at least one edge
+   // Count all vertices (all have edges in complete graph)
    TNL::Containers::Vector< IndexType, DeviceType > vertexCount( 1 );
    vertexCount.setValue( 0 );
 
@@ -423,19 +424,19 @@ TYPED_TEST( GraphTraversalTest, forAllVertices )
    const GraphType& constGraph = graph;
    TNL::Graphs::forAllVertices( constGraph, func_sum );
 
-   EXPECT_EQ( vertexCount.getElement( 0 ), 4 );  // Vertices 0,1,2,3 have edges
+   EXPECT_EQ( vertexCount.getElement( 0 ), 4 );  // All 4 vertices have edges
 }
 
-TYPED_TEST( GraphTraversalTest, forVertices_Range )
+TYPED_TEST( DenseGraphTraversalTest, forVertices_Range )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using DeviceType = typename TestFixture::DeviceType;
    using IndexType = typename TestFixture::IndexType;
 
    GraphType graph;
-   createSimpleDirectedGraph( graph );
+   createCompleteDirectedGraph( graph );
 
-   // Process vertices in range [1, 4)
+   // Process vertices in range [1, 4) - vertices 1,2,3 each with degree 3
    TNL::Containers::Vector< IndexType, DeviceType > totalDegree( 1 );
    totalDegree.setValue( 0 );
 
@@ -444,7 +445,7 @@ TYPED_TEST( GraphTraversalTest, forVertices_Range )
 
    TNL::Graphs::forVertices( graph, 1, 4, func_degree );
 
-   EXPECT_EQ( totalDegree.getElement( 0 ), 3 );  // Vertices 1,2,3 have 1+1+1 = 3 edges
+   EXPECT_EQ( totalDegree.getElement( 0 ), 9 );  // Vertices 1,2,3 have 3+3+3 = 9 edges
    // Count vertices with edges in range [0, 3)
    TNL::Containers::Vector< IndexType, DeviceType > vertexCount( 1 );
    vertexCount.setValue( 0 );
@@ -455,20 +456,20 @@ TYPED_TEST( GraphTraversalTest, forVertices_Range )
    const GraphType& constGraph = graph;
    TNL::Graphs::forVertices( constGraph, 0, 3, func_count );
 
-   EXPECT_EQ( vertexCount.getElement( 0 ), 3 );  // Vertices 0,1,2 have edges
+   EXPECT_EQ( vertexCount.getElement( 0 ), 3 );  // Vertices 0,1,2 all have edges
 }
 
-TYPED_TEST( GraphTraversalTest, forVertices_Array )
+TYPED_TEST( DenseGraphTraversalTest, forVertices_Array )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using DeviceType = typename TestFixture::DeviceType;
    using IndexType = typename TestFixture::IndexType;
 
    GraphType graph;
-   createSimpleDirectedGraph( graph );
+   createCompleteDirectedGraph( graph );
 
-   // Process specific vertices [0, 2, 4]
-   TNL::Containers::Vector< IndexType, DeviceType > even_vertices( { 0, 2, 4 } );
+   // Process even-indexed vertices [0, 2]
+   TNL::Containers::Vector< IndexType, DeviceType > even_vertices( { 0, 2 } );
    TNL::Containers::Vector< IndexType, DeviceType > totalDegree( 1 );
    totalDegree.setValue( 0 );
 
@@ -477,9 +478,9 @@ TYPED_TEST( GraphTraversalTest, forVertices_Array )
 
    TNL::Graphs::forVertices( graph, even_vertices, func_degree );
 
-   EXPECT_EQ( totalDegree.getElement( 0 ), 3 );  // Vertices 0,2,4 have 2+1+0 = 3 edges
+   EXPECT_EQ( totalDegree.getElement( 0 ), 6 );  // Vertices 0,2 each have 3 edges
 
-   // Process specific vertices [1, 3]
+   // Count odd-indexed vertices in range [0, 2)
    TNL::Containers::Vector< IndexType, DeviceType > odd_vertices( { 1, 3 } );
    TNL::Containers::Vector< IndexType, DeviceType > vertexCount( 1 );
    vertexCount.setValue( 0 );
@@ -493,16 +494,16 @@ TYPED_TEST( GraphTraversalTest, forVertices_Array )
    EXPECT_EQ( vertexCount.getElement( 0 ), 2 );  // Both vertices 1 and 3 have edges
 }
 
-TYPED_TEST( GraphTraversalTest, forAllVerticesIf )
+TYPED_TEST( DenseGraphTraversalTest, forAllVerticesIf )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using DeviceType = typename TestFixture::DeviceType;
    using IndexType = typename TestFixture::IndexType;
 
    GraphType graph;
-   createSimpleDirectedGraph( graph );
+   createCompleteDirectedGraph( graph );
 
-   // Process vertices with even indices
+   // Process vertices with even indices (0,2)
    TNL::Containers::Vector< IndexType, DeviceType > totalDegree( 1 );
    totalDegree.setValue( 0 );
 
@@ -513,9 +514,9 @@ TYPED_TEST( GraphTraversalTest, forAllVerticesIf )
 
    TNL::Graphs::forAllVerticesIf( graph, condition_degree, func_degree );
 
-   EXPECT_EQ( totalDegree.getElement( 0 ), 3 );  // Vertices 0,2,4 have 2+1+0 = 3 edges
+   EXPECT_EQ( totalDegree.getElement( 0 ), 6 );  // Vertices 0,2 have 3+3 = 6 edges
 
-   // Process vertices with index < 3
+   // Process vertices with index < 3 (vertices 0,1,2)
    TNL::Containers::Vector< IndexType, DeviceType > vertexCount( 1 );
    vertexCount.setValue( 0 );
 
@@ -530,16 +531,16 @@ TYPED_TEST( GraphTraversalTest, forAllVerticesIf )
    EXPECT_EQ( vertexCount.getElement( 0 ), 3 );  // Vertices 0,1,2 have edges
 }
 
-TYPED_TEST( GraphTraversalTest, forVerticesIf )
+TYPED_TEST( DenseGraphTraversalTest, forVerticesIf )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using DeviceType = typename TestFixture::DeviceType;
    using IndexType = typename TestFixture::IndexType;
 
    GraphType graph;
-   createSimpleDirectedGraph( graph );
+   createCompleteDirectedGraph( graph );
 
-   // Process vertices in range [1, 5) where index is odd
+   // Process vertices in range [1, 4) where index is odd (vertices 1,3)
    TNL::Containers::Vector< IndexType, DeviceType > totalDegree( 1 );
    totalDegree.setValue( 0 );
 
@@ -548,11 +549,11 @@ TYPED_TEST( GraphTraversalTest, forVerticesIf )
    auto totalDegreeView = totalDegree.getView();
    DegreeSumFunctor< decltype( totalDegreeView ), DeviceType, IndexType > func_degree{ totalDegreeView };
 
-   TNL::Graphs::forVerticesIf( graph, 1, 5, condition_degree, func_degree );
+   TNL::Graphs::forVerticesIf( graph, 1, 4, condition_degree, func_degree );
 
-   EXPECT_EQ( totalDegree.getElement( 0 ), 2 );  // Vertices 1,3 have 1+1 = 2 edges
+   EXPECT_EQ( totalDegree.getElement( 0 ), 6 );  // Vertices 1,3 have 3+3 = 6 edges
 
-   // Process even vertices in range [0, 4) with even index (=> 0,2)
+   // Process even vertices in range [0, 4) with even index (vertices 0,2)
    TNL::Containers::Vector< IndexType, DeviceType > vertexCount( 1 );
    vertexCount.setValue( 0 );
 
@@ -567,21 +568,21 @@ TYPED_TEST( GraphTraversalTest, forVerticesIf )
    EXPECT_EQ( vertexCount.getElement( 0 ), 2 );  // Vertices 0,2
 }
 
-TYPED_TEST( GraphTraversalTest, EdgeWeightModification )
+TYPED_TEST( DenseGraphTraversalTest, EdgeWeightModification )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using ValueType = typename TestFixture::ValueType;
    using DeviceType = typename TestFixture::DeviceType;
 
    GraphType graph;
-   createSimpleDirectedGraph( graph );
+   createCompleteDirectedGraph( graph );
 
    // Double all edge weights
    DoubleWeightFunctor func;
 
    TNL::Graphs::forAllEdges( graph, func );
 
-   // Verify weights were doubled
+   // Verify weights were doubled (original sum was 78, doubled is 156)
    TNL::Containers::Vector< ValueType, DeviceType > weightSum( 1 );
    weightSum.setValue( 0.0 );
 
@@ -591,7 +592,7 @@ TYPED_TEST( GraphTraversalTest, EdgeWeightModification )
    const GraphType& constGraph = graph;
    TNL::Graphs::forAllEdges( constGraph, sumFunc );
 
-   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 30.0 );  // 2*(1+2+3+4+5) = 30
+   EXPECT_DOUBLE_EQ( weightSum.getElement( 0 ), 156.0 );  // 2*78 = 156
 }
 
 #include "../main.h"
