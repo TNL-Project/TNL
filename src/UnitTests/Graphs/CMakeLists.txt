@@ -1,4 +1,4 @@
-set(COMMON_TESTS GraphTest GraphTest_BFS GraphTest_SSSP GraphTest_trees GraphTest_MST GraphTest_Traverse_SparseMatrix GraphTest_Traverse_DenseMatrix)
+set(COMMON_TESTS GraphTest GraphTest_BFS GraphTest_SSSP GraphTest_trees GraphTest_MST GraphTest_Traverse_SparseMatrix GraphTest_Traverse_DenseMatrix GraphTest_Reduce_SparseMatrix GraphTest_Reduce_DenseMatrix)
 
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${COMMON_TESTS})
