@@ -46,7 +46,7 @@ traversingLaunchConfigurations( const Segments& segments ) -> std::list< std::pa
             { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 2 ), "BlockMerged 2 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 4 ), "BlockMerged 4 TPS" },
             { LaunchConfiguration( ThreadsToSegmentsMapping::BlockMerged, 8 ), "BlockMerged 8 TPS" },
-            { LaunchConfiguration( ThreadsToSegmentsMapping::DynamicGrouping, 1 ), "1 TPS" },
+            { LaunchConfiguration( ThreadsToSegmentsMapping::DynamicGrouping, 1 ), "DynamicGrouping 1 TPS" },
          };
    }
 
