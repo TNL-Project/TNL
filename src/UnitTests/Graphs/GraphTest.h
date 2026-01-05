@@ -20,11 +20,13 @@ protected:
                                                  typename Matrix::DeviceType,
                                                  typename Matrix::IndexType,
                                                  TNL::Graphs::DirectedGraph,
+                                                 TNL::Algorithms::Segments::CSR,
                                                  AdjacencyMatrixType >;
    using UndirectedGraphType = TNL::Graphs::Graph< typename Matrix::RealType,
                                                    typename Matrix::DeviceType,
                                                    typename Matrix::IndexType,
                                                    TNL::Graphs::UndirectedGraph,
+                                                   TNL::Algorithms::Segments::CSR,
                                                    AdjacencyMatrixType >;
 };
 
@@ -91,10 +93,8 @@ TYPED_TEST( GraphBasicTest, SetVertexCount )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
       using SymmetricGraphType =
-         TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph, SymmetricAdjacencyMatrixType >;
+         TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph, TNL::Algorithms::Segments::CSR >;
 
       SymmetricGraphType symmetricGraph;
       symmetricGraph.setVertexCount( 5 );
@@ -161,13 +161,7 @@ TYPED_TEST( GraphBasicTest, ConstructorWithInitializerList )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       SymmetricGraphType symmetricGraph( 4, { { 0, 1, 1.0 }, { 0, 2, 2.0 }, { 1, 2, 3.0 }, { 1, 3, 4.0 }, { 2, 3, 5.0 } } );
       EXPECT_EQ( symmetricGraph.getVertexCount(), 4 );
       EXPECT_EQ( symmetricGraph.getEdgeCount(), 5 );
@@ -233,13 +227,7 @@ TYPED_TEST( GraphBasicTest, ConstructorWithMap )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       SymmetricGraphType symmetricGraph( 4, edges );
       EXPECT_EQ( symmetricGraph.getVertexCount(), 4 );
       EXPECT_EQ( symmetricGraph.getEdgeCount(), 5 );
@@ -299,13 +287,7 @@ TYPED_TEST( GraphBasicTest, SetEdges )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       SymmetricGraphType symmetricGraph( 3 );
       symmetricGraph.setEdges( edges );
       EXPECT_EQ( symmetricGraph.getVertexCount(), 3 );
@@ -403,13 +385,7 @@ TYPED_TEST( GraphBasicTest, CopyConstructor )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       SymmetricGraphType symmetricGraph( undirectedGraph );
 
       EXPECT_EQ( symmetricGraph.getVertexCount(), 3 );
@@ -490,13 +466,7 @@ TYPED_TEST( GraphBasicTest, EqualityOperator )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       SymmetricGraphType symmetricGraph1( 3, { { 0, 1, 1.0 }, { 1, 2, 2.0 } } );
       SymmetricGraphType symmetricGraph2( 3, { { 0, 1, 1.0 }, { 1, 2, 2.0 } } );
       SymmetricGraphType symmetricGraph3( 3, { { 0, 1, 1.0 } } );
@@ -541,13 +511,7 @@ TYPED_TEST( GraphBasicTest, SingleEdge )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       // TODO: The following does not work for the same reason as in the EqualityOperator test.
       //SymmetricGraphType symmetricGraph( graph );
       SymmetricGraphType symmetricGraph( 2, { { 1, 0, 1.0 } } );
@@ -578,13 +542,7 @@ TYPED_TEST( GraphBasicTest, SelfLoop )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       // TODO: The following does not work for the same reason as in the EqualityOperator test.
       //SymmetricGraphType symmetricGraph( graph );
       SymmetricGraphType symmetricGraph( 3, { { 0, 0, 1.0 }, { 2, 1, 2.0 }, { 2, 2, 3.0 } } );
@@ -622,13 +580,7 @@ TYPED_TEST( GraphBasicTest, CompleteGraph )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       SymmetricGraphType symmetricGraph(
          3, { { 0, 1, 1.0 }, { 0, 2, 1.0 }, { 1, 0, 1.0 }, { 1, 2, 1.0 }, { 2, 0, 1.0 }, { 2, 1, 1.0 } } );
 
@@ -670,14 +622,7 @@ TYPED_TEST( GraphBasicTest, LinearChain )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
-
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       // Linear chain: 0 -> 1 -> 2 -> 3 -> 4
       SymmetricGraphType symmetricGraph( 5, { { 0, 1, 1.0 }, { 1, 2, 1.0 }, { 2, 3, 1.0 }, { 3, 4, 1.0 } } );
 
@@ -724,13 +669,7 @@ TYPED_TEST( GraphBasicTest, StarGraph )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       SymmetricGraphType symmetricGraph( 5, { { 0, 1, 1.0 }, { 0, 2, 1.0 }, { 0, 3, 1.0 }, { 0, 4, 1.0 } } );
       EXPECT_EQ( symmetricGraph.getVertexCount(), 5 );
       EXPECT_EQ( symmetricGraph.getEdgeCount(), 4 );
@@ -772,14 +711,7 @@ TYPED_TEST( GraphBasicTest, UndirectedGraphBasic )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType =
-         TNL::Matrices::SparseMatrix< ValueType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
-
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       SymmetricGraphType symmetricGraph( 3, { { 0, 1, 1.0 }, { 1, 2, 2.0 } } );
       EXPECT_EQ( symmetricGraph.getVertexCount(), 3 );
       EXPECT_EQ( symmetricGraph.getEdgeCount(), 2 );
@@ -838,15 +770,10 @@ TYPED_TEST( GraphBasicTest, LargerGraph )
 
    // Test undirected graph using symmetric sparse matrix
    if constexpr( TNL::Matrices::is_sparse_matrix< typename GraphType::AdjacencyMatrixType >() ) {
-      using SymmetricAdjacencyMatrixType = TNL::Matrices::SparseMatrix< typename GraphType::ValueType,
-                                                                        typename GraphType::DeviceType,
-                                                                        typename GraphType::IndexType,
-                                                                        TNL::Matrices::SymmetricMatrix >;
-      using SymmetricGraphType = TNL::Graphs::Graph< typename SymmetricAdjacencyMatrixType::RealType,
-                                                     typename SymmetricAdjacencyMatrixType::DeviceType,
-                                                     typename SymmetricAdjacencyMatrixType::IndexType,
-                                                     TNL::Graphs::UndirectedGraph,
-                                                     SymmetricAdjacencyMatrixType >;
+      using ValueType = typename GraphType::ValueType;
+      using DeviceType = typename GraphType::DeviceType;
+      using IndexType = typename GraphType::IndexType;
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
       SymmetricGraphType symmetricGraph( 10,
                                          { { 0, 1, 1.0 },
                                            { 1, 2, 1.0 },

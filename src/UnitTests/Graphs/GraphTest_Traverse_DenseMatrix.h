@@ -15,16 +15,20 @@ class DenseGraphTraversalTest : public ::testing::Test
 {
 protected:
    using AdjacencyMatrixType = Matrix;
-   using DirectedGraphType = TNL::Graphs::Graph< typename Matrix::RealType,
-                                                 typename Matrix::DeviceType,
-                                                 typename Matrix::IndexType,
-                                                 TNL::Graphs::DirectedGraph,
-                                                 Matrix >;
-   using UndirectedGraphType = TNL::Graphs::Graph< typename Matrix::RealType,
-                                                   typename Matrix::DeviceType,
-                                                   typename Matrix::IndexType,
-                                                   TNL::Graphs::UndirectedGraph,
-                                                   Matrix >;
+   using DirectedGraphType =
+      TNL::Graphs::Graph< typename Matrix::RealType,
+                          typename Matrix::DeviceType,
+                          typename Matrix::IndexType,
+                          TNL::Graphs::DirectedGraph,
+                          TNL::Algorithms::Segments::Ellpack,  // this parameter is ignored for dense matrices
+                          Matrix >;
+   using UndirectedGraphType =
+      TNL::Graphs::Graph< typename Matrix::RealType,
+                          typename Matrix::DeviceType,
+                          typename Matrix::IndexType,
+                          TNL::Graphs::UndirectedGraph,
+                          TNL::Algorithms::Segments::Ellpack,  // this parameter is ignored for dense matrices
+                          Matrix >;
    using ValueType = typename AdjacencyMatrixType::RealType;
    using DeviceType = typename AdjacencyMatrixType::DeviceType;
    using IndexType = typename AdjacencyMatrixType::IndexType;

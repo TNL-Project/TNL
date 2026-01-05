@@ -8,21 +8,26 @@
 
 namespace TNL::Graphs::detail {
 
-template< typename Value, typename Device, typename Index, typename Orientation >
+template< typename Value,
+          typename Device,
+          typename Index,
+          template< typename, typename, typename > class Segments,
+          typename Orientation >
 struct DefaultGraphAdjacencyMatrix
 {
-   using type =
-      TNL::Matrices::SparseMatrix< Value, Device, Index, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
+   using type = TNL::Matrices::SparseMatrix< Value, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
 };
 
-template< typename Value, typename Device, typename Index >
-struct DefaultGraphAdjacencyMatrix< Value, Device, Index, UndirectedGraph >
+template< typename Value, typename Device, typename Index, template< typename, typename, typename > class Segments >
+struct DefaultGraphAdjacencyMatrix< Value, Device, Index, Segments, UndirectedGraph >
 {
-   using type =
-      TNL::Matrices::SparseMatrix< Value, Device, Index, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >;
+   using type = TNL::Matrices::SparseMatrix< Value, Device, Index, TNL::Matrices::SymmetricMatrix, Segments >;
 };
 
-template< typename Value, typename Device, typename Index, typename Orientation >
-using DefaultGraphAdjacencyMatrix_t = typename DefaultGraphAdjacencyMatrix< Value, Device, Index, Orientation >::type;
-
+template< typename Value,
+          typename Device,
+          typename Index,
+          template< typename, typename, typename > class Segments,
+          typename Orientation >
+using DefaultGraphAdjacencyMatrix_t = typename DefaultGraphAdjacencyMatrix< Value, Device, Index, Segments, Orientation >::type;
 }  // namespace TNL::Graphs::detail
