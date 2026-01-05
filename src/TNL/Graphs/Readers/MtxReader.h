@@ -20,7 +20,11 @@ struct MtxReader
    static void
    read( const std::string& file_name, Graph& graph )
    {
-      Matrices::MatrixReader< MatrixType >::readMtx( file_name, graph.getAdjacencyMatrix() );
+      MatrixType adjacencyMatrix;
+      Matrices::MatrixReader< MatrixType >::readMtx( file_name, adjacencyMatrix );
+      if( adjacencyMatrix.getRows() != adjacencyMatrix.getColumns() )
+         throw std::runtime_error( "Error in Graph MtxReader: adjacency matrix is not square!" );
+      graph.setAdjacencyMatrix( std::move( adjacencyMatrix ) );
    }
 };
 
