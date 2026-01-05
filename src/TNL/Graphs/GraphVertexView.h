@@ -10,7 +10,12 @@
 
 namespace TNL::Graphs {
 
-template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
+template< typename Value,
+          typename Device,
+          typename Index,
+          typename Orientation,
+          template< typename, typename, typename > class Segments,
+          typename AdjacencyMatrix >
 struct Graph;
 
 template< typename MatrixView, typename Orientation >
