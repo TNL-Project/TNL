@@ -15,11 +15,8 @@ class GraphReductionTest : public ::testing::Test
 {
 protected:
    using AdjacencyMatrixType = Matrix;
-   using DirectedGraphType = TNL::Graphs::Graph< typename Matrix::RealType,
-                                                 typename Matrix::DeviceType,
-                                                 typename Matrix::IndexType,
-                                                 TNL::Graphs::DirectedGraph,
-                                                 AdjacencyMatrixType >;
+   using DirectedGraphType = TNL::Graphs::
+      Graph< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType, TNL::Graphs::DirectedGraph >;
    using ValueType = typename AdjacencyMatrixType::RealType;
    using DeviceType = typename AdjacencyMatrixType::DeviceType;
    using IndexType = typename AdjacencyMatrixType::IndexType;
