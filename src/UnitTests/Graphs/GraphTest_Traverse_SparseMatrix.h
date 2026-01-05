@@ -16,13 +16,12 @@ class GraphTraversalTest : public ::testing::Test
 {
 protected:
    using AdjacencyMatrixType = Matrix;
-   using DirectedGraphType = TNL::Graphs::
-      Graph< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType, TNL::Graphs::DirectedGraph >;
-   using UndirectedGraphType = TNL::Graphs::
-      Graph< typename Matrix::RealType, typename Matrix::DeviceType, typename Matrix::IndexType, TNL::Graphs::UndirectedGraph >;
    using ValueType = typename AdjacencyMatrixType::RealType;
    using DeviceType = typename AdjacencyMatrixType::DeviceType;
    using IndexType = typename AdjacencyMatrixType::IndexType;
+
+   using DirectedGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::DirectedGraph >;
+   using UndirectedGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
 };
 
 // Types for which GraphTraversalTest is instantiated
