@@ -44,7 +44,8 @@ template< typename Value,
           typename Device,
           typename Index,
           typename Orientation = DirectedGraph,
-          typename AdjacencyMatrix = detail::DefaultGraphAdjacencyMatrix_t< Value, Device, Index, Orientation > >
+          template< typename, typename, typename > class Segments = TNL::Algorithms::Segments::CSR,
+          typename AdjacencyMatrix = detail::DefaultGraphAdjacencyMatrix_t< Value, Device, Index, Segments, Orientation > >
 struct Graph
 : public GraphBase< Value,
                     Device,
@@ -92,8 +93,9 @@ struct Graph
              typename Device_ = Device,
              typename Index_ = Index,
              typename Orientation_ = Orientation,
+             template< typename, typename, typename > class Segments_ = Segments,
              typename AdjacencyMatrix_ = AdjacencyMatrix >
-   using Self = Graph< Value_, Device_, Index_, Orientation_, AdjacencyMatrix_ >;
+   using Self = Graph< Value_, Device_, Index_, Orientation_, Segments_, AdjacencyMatrix_ >;
 
    using Base = GraphBase< Value, Device, Index, Orientation, AdjacencyMatrixType >;
    using Base::isDirected;
@@ -250,14 +252,24 @@ protected:
 };
 
 //! \brief Deserialization of graphs from binary files.
-template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
+template< typename Value,
+          typename Device,
+          typename Index,
+          typename Orientation,
+          template< typename, typename, typename > class Segments,
+          typename AdjacencyMatrix >
 File&
-operator>>( File& file, Graph< Value, Device, Index, Orientation, AdjacencyMatrix >& graph );
+operator>>( File& file, Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >& graph );
 
 //! \brief Deserialization of graphs from binary files.
-template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
+template< typename Value,
+          typename Device,
+          typename Index,
+          typename Orientation,
+          template< typename, typename, typename > class Segments,
+          typename AdjacencyMatrix >
 File&
-operator>>( File&& file, Graph< Value, Device, Index, Orientation, AdjacencyMatrix >& graph );
+operator>>( File&& file, Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >& graph );
 
 }  // namespace TNL::Graphs
 

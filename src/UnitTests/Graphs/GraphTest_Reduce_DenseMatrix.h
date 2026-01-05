@@ -15,14 +15,17 @@ class DenseGraphReductionTest : public ::testing::Test
 {
 protected:
    using AdjacencyMatrixType = Matrix;
-   using DirectedGraphType = TNL::Graphs::Graph< typename Matrix::RealType,
-                                                 typename Matrix::DeviceType,
-                                                 typename Matrix::IndexType,
-                                                 TNL::Graphs::DirectedGraph,
-                                                 AdjacencyMatrixType >;
    using ValueType = typename AdjacencyMatrixType::RealType;
    using DeviceType = typename AdjacencyMatrixType::DeviceType;
    using IndexType = typename AdjacencyMatrixType::IndexType;
+
+   using DirectedGraphType =
+      TNL::Graphs::Graph< ValueType,
+                          DeviceType,
+                          IndexType,
+                          TNL::Graphs::DirectedGraph,
+                          TNL::Algorithms::Segments::Ellpack,  // this parameter is ignored for dense matrices
+                          AdjacencyMatrixType >;
 };
 
 // Types for which DenseGraphReductionTest is instantiated
