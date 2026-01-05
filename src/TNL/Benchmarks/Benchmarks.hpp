@@ -124,7 +124,8 @@ Benchmark< Logger >::time( ResetFunction reset,
       monitor.stopMainLoop();
 
    std::string errorMessage;
-   try {
+   auto call_time_function = [ & ]() mutable
+   {
       if( this->reset )
          std::tie( result.loops, result.time, result.time_stddev, result.cpu_cycles, result.cpu_cycles_stddev ) =
             timeFunction< Device >( compute, reset, loops, minTime, monitor );
@@ -133,11 +134,18 @@ Benchmark< Logger >::time( ResetFunction reset,
          std::tie( result.loops, result.time, result.time_stddev, result.cpu_cycles, result.cpu_cycles_stddev ) =
             timeFunction< Device >( compute, noReset, loops, minTime, monitor );
       }
-   }
-   catch( const std::exception& e ) {
-      errorMessage = "timeFunction failed due to a C++ exception with description: " + std::string( e.what() );
-      std::cerr << errorMessage << '\n';
-   }
+   };
+
+   if( catchExceptions )
+      try {
+         call_time_function();
+      }
+      catch( const std::exception& e ) {
+         errorMessage = "timeFunction failed due to a C++ exception with description: " + std::string( e.what() );
+         std::cerr << errorMessage << '\n';
+      }
+   else
+      call_time_function();
 
    result.bandwidth = datasetSize / result.time;
    result.speedup = this->baseTime / result.time;
@@ -178,6 +186,20 @@ Benchmark< Logger >::time( const std::string& performer, ComputeFunction& comput
    BenchmarkResult result;
    time< Device >( performer, compute, result );
    return result;
+}
+
+template< typename Logger >
+void
+Benchmark< Logger >::setCatchExceptions( bool catchExceptions )
+{
+   this->catchExceptions = catchExceptions;
+}
+
+template< typename Logger >
+[[nodiscard]] bool
+Benchmark< Logger >::getCatchExceptions() const
+{
+   return catchExceptions;
 }
 
 template< typename Logger >

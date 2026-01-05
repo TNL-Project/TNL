@@ -175,6 +175,14 @@ public:
    BenchmarkResult
    time( const std::string& performer, ComputeFunction& compute );
 
+   //! \brief Sets whether to catch exceptions during the timing of computations.
+   void
+   setCatchExceptions( bool catchExceptions );
+
+   //! \brief Returns whether exceptions are caught during the timing of computations.
+   [[nodiscard]] bool
+   getCatchExceptions() const;
+
    // Adds an error message to the log. Should be called in places where the
    // "time" method could not be called (e.g. due to failed allocation).
    void
@@ -200,6 +208,8 @@ protected:
    double baseTime = 0.0;
 
    bool reset = true;
+
+   bool catchExceptions = true;
 
    SolverMonitorType monitor;
 };
