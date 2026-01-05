@@ -17,21 +17,19 @@
 
 namespace TNL::Graphs {
 
-template< typename Matrix, typename Vector, typename Index = typename Matrix::IndexType >
+template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
 void
 parallelSingleSourceShortestPath(
-   const Matrix& adjacencyMatrix,
+   const Graph& graph,
    Index start,
    Vector& distances,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
 {
-   TNL_ASSERT_TRUE( adjacencyMatrix.getRows() == adjacencyMatrix.getColumns(), "Adjacency matrix must be square matrix." );
-   TNL_ASSERT_TRUE( distances.getSize() == adjacencyMatrix.getRows(),
-                    "v must have the same size as the number of rows in adjacencyMatrix" );
-
-   using Real = typename Matrix::RealType;
-   using Device = typename Matrix::DeviceType;
-   const Index n = adjacencyMatrix.getRows();
+   using Real = typename Graph::ValueType;
+   using Device = typename Graph::DeviceType;
+   const auto& adjacencyMatrix = graph.getAdjacencyMatrix();
+   const Index n = graph.getVertexCount();
+   distances.setSize( n );
 
    Vector y( distances.getSize() );
    Containers::Vector< Index, Device, Index > predecesors( n, -1 ), marks( n ), marks_scan( n, 0 ), frontier( n, 0 );
@@ -156,7 +154,7 @@ singleSourceShortestPath( const Graph& graph,
       }
    }
    else {
-      parallelSingleSourceShortestPath( graph.getAdjacencyMatrix(), start, distances, launchConfig );
+      parallelSingleSourceShortestPath( graph, start, distances, launchConfig );
    }
    distances.forAllElements(
       [] __cuda_callable__( Index i, Real & x )
