@@ -26,11 +26,13 @@
 #include <TNL/Algorithms/SegmentsReductionKernels/SlicedEllpackKernel.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/BiEllpackKernel.h>
 #include <TNL/Algorithms/SegmentsReductionKernels/ChunkedEllpackKernel.h>
+#include <TNL/Algorithms/Segments/TraversingLaunchConfigurations.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/MatrixOperations.h>
 #include "BoostGraph.h"
 #include "GunrockBenchmark.h"
-#include "LaunchConfigurationsSetup.h"
+#include "SemiringBFS.h"
+#include "SemiringSSSP.h"
 
 namespace TNL::Benchmarks::Graphs {
 
@@ -68,6 +70,8 @@ struct GraphsBenchmark
       config.addEntry< bool >( "with-bfs", "Run breadth-first search benchmark.", true );
       config.addEntry< bool >( "with-sssp", "Run single-source shortest paths benchmark.", true );
       config.addEntry< bool >( "with-mst", "Run minimum spanning tree benchmark.", true );
+      config.addEntry< bool >( "with-semirings", "Run semiring-based BFS and SSSP benchmarks.", false );
+      config.addEntry< bool >( "with-boost", "Run Boost benchmarks.", false );
 
       config.addDelimiter( "Device settings:" );
       config.addEntry< TNL::String >( "device", "Device the computation will run on.", "all" );
@@ -291,7 +295,7 @@ struct GraphsBenchmark
          this->gunrockBfsDistancesDirected = gunrock_bfs_dist;
 
    #ifdef HAVE_BOOST
-         if( this->boostBfsDistancesDirected != this->gunrockBfsDistancesDirected ) {
+         if( this->withBoost && this->boostBfsDistancesDirected != this->gunrockBfsDistancesDirected ) {
             std::cout << "BFS distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
             this->errors++;
          }
@@ -313,7 +317,7 @@ struct GraphsBenchmark
          this->gunrockBfsDistancesUndirected = gunrock_bfs_dist;
 
    #ifdef HAVE_BOOST
-         if( this->boostBfsDistancesUndirected != this->gunrockBfsDistancesUndirected ) {
+         if( this->withBoost && this->boostBfsDistancesUndirected != this->gunrockBfsDistancesUndirected ) {
             std::cout << "BFS distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
             this->errors++;
          }
@@ -339,7 +343,7 @@ struct GraphsBenchmark
          this->gunrockSSSPDistancesDirected = gunrock_sssp_dist;
 
    #ifdef HAVE_BOOST
-         if( this->boostSSSPDistancesDirected != this->gunrockSSSPDistancesDirected ) {
+         if( this->withBoost && this->boostSSSPDistancesDirected != this->gunrockSSSPDistancesDirected ) {
             std::cout << "SSSP distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
             this->errors++;
          }
@@ -362,7 +366,7 @@ struct GraphsBenchmark
          this->gunrockSSSPDistancesUndirected = gunrock_sssp_dist;
 
    #ifdef HAVE_BOOST
-         if( this->boostSSSPDistancesUndirected != this->gunrockSSSPDistancesUndirected ) {
+         if( this->withBoost && this->boostSSSPDistancesUndirected != this->gunrockSSSPDistancesUndirected ) {
             std::cout << "SSSP distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
             this->errors++;
          }
@@ -380,8 +384,7 @@ struct GraphsBenchmark
                   IndexType smallestNode,
                   IndexType largestNode,
                   TNL::Benchmarks::Benchmark<>& benchmark,
-                  const TNL::String& device,
-                  const TNL::String& segments )
+                  const TNL::String& device )
    {
       using Matrix = TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
       using Graph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::UndirectedGraph >;
@@ -396,6 +399,7 @@ struct GraphsBenchmark
       Digraph digraph( hostDigraph );
       Graph graph( hostGraph );
       benchmark.setMetadataElement( { "solver", "TNL" } );
+      auto segments = graph.getAdjacencyMatrix().getSegments().getSegmentsType();
 
       if( this->withBfs ) {
          // Benchmarking breadth-first search with directed graph
@@ -404,7 +408,9 @@ struct GraphsBenchmark
          benchmark.setMetadataElement( { "problem", "BFS dir" } );
          benchmark.setMetadataElement( { "format", segments } );
 
-         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( auto [ launchConfig, tag ] :
+              Algorithms::Segments::traversingLaunchConfigurations( digraph.getAdjacencyMatrix().getSegments() ) )
+         {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto bfs_tnl_dir = [ & ]() mutable
             {
@@ -412,13 +418,9 @@ struct GraphsBenchmark
             };
             benchmark.time< Device >( device, bfs_tnl_dir );
 #ifdef HAVE_BOOST
-            if( bfsDistances != this->boostBfsDistancesDirected ) {
+            if( this->withBoost && bfsDistances != this->boostBfsDistancesDirected ) {
                std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << std::endl;
                this->errors++;
-               //for( Index i = 0; i < digraph.getVertexCount(); i++ )
-               //   if( bfsDistances.getElement( i ) != this->boostBfsDistancesDirected[ i ] )
-               //      std::cerr << "i = " << i << " TNL -> " << bfsDistances.getElement( i ) << " Boost -> "
-               //                << this->boostBfsDistancesDirected[ i ] << std::endl;
             }
 #endif
 #ifdef HAVE_GUNROCK
@@ -433,8 +435,10 @@ struct GraphsBenchmark
          benchmark.setMetadataElement( { "problem", "BFS undir" } );
          benchmark.setMetadataElement( { "format", segments } );
 
-         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
-            benchmark.setMetadataElement( { "threads mapping", tag } );
+         for( auto [ launchConfig, tag ] :
+              Algorithms::Segments::traversingLaunchConfigurations( graph.getAdjacencyMatrix().getSegments() ) )
+         {
+            benchmark.setMetadataElement( std::make_pair( "threads mapping", tag ) );
 
             auto bfs_tnl_undir = [ & ]() mutable
             {
@@ -442,13 +446,9 @@ struct GraphsBenchmark
             };
             benchmark.time< Device >( device, bfs_tnl_undir );
 #ifdef HAVE_BOOST
-            if( bfsDistances != this->boostBfsDistancesUndirected ) {
+            if( this->withBoost && bfsDistances != this->boostBfsDistancesUndirected ) {
                std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << std::endl;
                this->errors++;
-               //for( Index i = 0; i < digraph.getVertexCount(); i++ )
-               //   if( bfsDistances.getElement( i ) != this->boostBfsDistancesUndirected[ i ] )
-               //      std::cerr << "i = " << i << " TNL -> " << bfsDistances.getElement( i ) << " Boost -> "
-               //                << this->boostBfsDistancesUndirected[ i ] << std::endl;
             }
 #endif
 #ifdef HAVE_GUNROCK
@@ -467,7 +467,9 @@ struct GraphsBenchmark
          benchmark.setMetadataElement( { "problem", "SSSP dir" } );
          benchmark.setMetadataElement( { "format", segments } );
 
-         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( auto [ launchConfig, tag ] :
+              Algorithms::Segments::traversingLaunchConfigurations( digraph.getAdjacencyMatrix().getSegments() ) )
+         {
             benchmark.setMetadataElement( { "threads mapping", tag } );
 
             RealVector ssspDistances( digraph.getVertexCount(), 0 );
@@ -483,7 +485,7 @@ struct GraphsBenchmark
                benchmark.time< Device >( device, sssp_tnl_dir );
 
 #ifdef HAVE_BOOST
-            if( ssspDistances != this->boostSSSPDistancesDirected ) {
+            if( this->withBoost && ssspDistances != this->boostSSSPDistancesDirected ) {
                std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!" << std::endl;
                this->errors++;
             }
@@ -502,7 +504,9 @@ struct GraphsBenchmark
          benchmark.setMetadataElement( { "problem", "SSSP undir" } );
          benchmark.setMetadataElement( { "format", segments } );
 
-         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( auto [ launchConfig, tag ] :
+              Algorithms::Segments::traversingLaunchConfigurations( graph.getAdjacencyMatrix().getSegments() ) )
+         {
             benchmark.setMetadataElement( { "threads mapping", tag } );
 
             RealVector ssspDistances( digraph.getVertexCount(), 0 );
@@ -512,7 +516,7 @@ struct GraphsBenchmark
             };
             benchmark.time< Device >( device, sssp_tnl_undir );
 #ifdef HAVE_BOOST
-            if( ssspDistances != this->boostSSSPDistancesUndirected ) {
+            if( this->withBoost && ssspDistances != this->boostSSSPDistancesUndirected ) {
                std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!" << std::endl;
                this->errors++;
             }
@@ -548,13 +552,76 @@ struct GraphsBenchmark
          }
 #ifdef HAVE_BOOST
          Real mstTotalWeight = TNL::Graphs::getTotalWeight( mstGraph );
-         if( mstTotalWeight != boostMSTTotalWeight ) {
+         if( this->withBoost && mstTotalWeight != boostMSTTotalWeight ) {
             std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!" << std::endl;
             std::cout << "Boost MST total weight: " << boostMSTTotalWeight << std::endl;
             std::cout << "TNL MST total weight: " << mstTotalWeight << std::endl;
             this->errors++;
          }
 #endif
+      }
+
+      if( this->withSemirings && ! std::is_same_v< Device, TNL::Devices::Sequential > ) {
+         // Benchmarking semiring-based BFS with directed graph
+         IndexVector semiringBfsDistances( digraph.getVertexCount() );
+         benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
+         benchmark.setMetadataElement( { "problem", "Semiring BFS dir" } );
+         benchmark.setMetadataElement( { "format", segments } );
+         benchmark.setMetadataElement( { "threads mapping", "" } );
+
+         auto semiring_bfs_dir = [ & ]() mutable
+         {
+            semiringBFS( digraph, largestNode, semiringBfsDistances );
+         };
+         benchmark.time< Device >( device, semiring_bfs_dir );
+
+         // Benchmarking semiring-based BFS with undirected graph
+         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
+         benchmark.setMetadataElement( { "problem", "Semiring BFS undir" } );
+         benchmark.setMetadataElement( { "format", segments } );
+         benchmark.setMetadataElement( { "threads mapping", "" } );
+
+         auto semiring_bfs_undir = [ & ]() mutable
+         {
+            semiringBFS( graph, largestNode, semiringBfsDistances );
+         };
+         benchmark.time< Device >( device, semiring_bfs_undir );
+
+         // Benchmarking semiring-based SSSP with directed graph
+         RealVector semiringSsspDistances( digraph.getVertexCount() );
+         semiringSsspDistances = std::numeric_limits< Real >::max();
+         semiringSsspDistances.setElement( largestNode, 0 );
+         benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount()
+                                   * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataElement( { "problem", "Semiring SSSP dir" } );
+         benchmark.setMetadataElement( { "format", segments } );
+         benchmark.setMetadataElement( { "threads mapping", "" } );
+
+         auto semiring_sssp_dir = [ & ]() mutable
+         {
+            semiringSSSP( digraph, largestNode, semiringSsspDistances );
+         };
+         if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
+            std::cout << "ERROR: Negative weights in the graph! Skipping semiring SSSP benchmark." << std::endl;
+            this->errors++;
+         }
+         else
+            benchmark.time< Device >( device, semiring_sssp_dir );
+
+         // Benchmarking semiring-based SSSP with undirected graph
+         semiringSsspDistances = std::numeric_limits< Real >::max();
+         semiringSsspDistances.setElement( largestNode, 0 );
+         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount()
+                                   * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setMetadataElement( { "problem", "Semiring SSSP undir" } );
+         benchmark.setMetadataElement( { "format", segments } );
+         benchmark.setMetadataElement( { "threads mapping", "" } );
+
+         auto semiring_sssp_undir = [ & ]() mutable
+         {
+            semiringSSSP( graph, largestNode, semiringSsspDistances );
+         };
+         benchmark.time< Device >( device, semiring_sssp_undir );
       }
    }
 
@@ -569,6 +636,8 @@ struct GraphsBenchmark
       this->withBfs = parameters.getParameter< bool >( "with-bfs" );
       this->withSssp = parameters.getParameter< bool >( "with-sssp" );
       this->withMst = parameters.getParameter< bool >( "with-mst" );
+      this->withSemirings = parameters.getParameter< bool >( "with-semirings" );
+      this->withBoost = parameters.getParameter< bool >( "with-boost" );
 
       size_t dotPosition = inputFile.find_last_of( '.' );
       std::string inputFileExtension = "";
@@ -623,31 +692,32 @@ struct GraphsBenchmark
          { "threads", 5 },
       } );
 
-      boostBenchmarks( digraph, graph, smallest, largest, benchmark );
+      if( this->withBoost )
+         boostBenchmarks( digraph, graph, smallest, largest, benchmark );
       gunrockBenchmarks( digraph, graph, smallest, largest, benchmark );
 
       if( device == "sequential" || device == "all" )
          TNLBenchmarks< TNL::Devices::Sequential, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            digraph, graph, smallest, largest, benchmark, "sequential", "CSR" );
+            digraph, graph, smallest, largest, benchmark, "sequential" );
       if( device == "host" || device == "all" )
          TNLBenchmarks< TNL::Devices::Host, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            digraph, graph, smallest, largest, benchmark, "host", "CSR" );
+            digraph, graph, smallest, largest, benchmark, "host" );
 #ifdef __CUDACC__
       if( device == "cuda" || device == "all" ) {
          TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            digraph, graph, smallest, largest, benchmark, "cuda", "CSR" );
+            digraph, graph, smallest, largest, benchmark, "cuda" );
          TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments, TNL::Algorithms::SegmentsReductionKernels::EllpackKernel >(
-            digraph, graph, smallest, largest, benchmark, "cuda", "Ellpack" );
+            digraph, graph, smallest, largest, benchmark, "cuda" );
          TNLBenchmarks< TNL::Devices::Cuda,
                         SlicedEllpackSegments,
                         TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >(
-            digraph, graph, smallest, largest, benchmark, "cuda", "SlicedEllpack" );
+            digraph, graph, smallest, largest, benchmark, "cuda" );
          TNLBenchmarks< TNL::Devices::Cuda, BiEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel >(
-            digraph, graph, smallest, largest, benchmark, "cuda", "BiEllpack" );
+            digraph, graph, smallest, largest, benchmark, "cuda" );
          TNLBenchmarks< TNL::Devices::Cuda,
                         ChunkedEllpackSegments,
                         TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel >(
-            digraph, graph, smallest, largest, benchmark, "cuda", "ChunkedEllpack" );
+            digraph, graph, smallest, largest, benchmark, "cuda" );
       }
 #endif
       if( errors == 0 )
@@ -669,7 +739,7 @@ protected:
 
    int errors;
 
-   bool withBfs, withSssp, withMst;
+   bool withBfs, withSssp, withMst, withSemirings, withBoost;
 };
 
 }  // namespace TNL::Benchmarks::Graphs
