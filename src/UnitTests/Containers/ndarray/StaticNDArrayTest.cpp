@@ -5,11 +5,12 @@
 using namespace TNL::Containers;
 using std::index_sequence;
 
-template< typename Array >
+template< typename ArrayView >
 void
-expect_identity( const Array& a )
+expect_identity( const ArrayView& a )
 {
-   Array identity;
+   Array< typename ArrayView::ValueType, typename ArrayView::DeviceType, typename ArrayView::IndexType > identity;
+   identity.setLike( a );
    for( int i = 0; i < identity.getSize(); i++ )
       identity[ i ] = i;
    EXPECT_EQ( a, identity );
@@ -26,7 +27,7 @@ TEST( StaticNDArrayTest, Static_2D_Identity )
       for( int j = 0; j < J; j++ )
          a( i, j ) = v++;
 
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 }
 
 TEST( StaticNDArrayTest, Static_2D_Permuted )
@@ -40,7 +41,7 @@ TEST( StaticNDArrayTest, Static_2D_Permuted )
       for( int i = 0; i < I; i++ )
          a( i, j ) = v++;
 
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 }
 
 TEST( StaticNDArrayTest, Static_6D_Permuted )
@@ -62,7 +63,7 @@ TEST( StaticNDArrayTest, Static_6D_Permuted )
                   for( int j = 0; j < J; j++ )
                      a( i, j, k, l, m, n ) = v++;
 
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 }
 
 TEST( StaticNDArrayTest, CopySemantics )
@@ -78,7 +79,7 @@ TEST( StaticNDArrayTest, CopySemantics )
       for( int j = 0; j < J; j++ )
          a( i, j ) = v++;
 
-   expect_identity( a.getStorageArray() );
+   expect_identity( a.getStorageArrayView() );
 
    b = a;
    EXPECT_EQ( a, b );

@@ -25,5 +25,5 @@ main()
       for( int j = 0; j < num_cols; j++ )
          a( i, j ) = value++;
 
-   std::cout << "a = " << a.getStorageArray() << '\n';
+   std::cout << "a = " << a.getStorageArrayView() << '\n';
 }
