@@ -13,13 +13,11 @@
 namespace TNL::Algorithms::Segments {
 
 /**
- * \brief Data structure sorted segments.
- *
+ * \brief Data structure for sorted segments.
  *
  * See \ref TNL::Algorithms::Segments for more details about segments.
  *
- * \tparam Device The type of device on which the segments will operate.
- * \tparam Index The type used for indexing elements managed by the segments.
+ * \tparam EmbeddedSegments The type of embedded segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
 template< typename EmbeddedSegments, typename IndexAllocator = typename EmbeddedSegments::IndexAllocatorType >
