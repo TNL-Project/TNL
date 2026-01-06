@@ -7,6 +7,13 @@
 
 namespace TNL::Graphs::Writers {
 
+/**
+ * \brief Writer for graphs in edge list format.
+ *
+ * See \ref TNL::Graphs::Readers::EdgeListReader for details about the format.
+ *
+ * \tparam Graph The type of the graph to be written.
+ */
 template< typename Graph >
 struct EdgeListWriter
 {
@@ -17,6 +24,12 @@ struct EdgeListWriter
    using IndexType = typename GraphType::IndexType;
    using HostAdjacencyMatrixType = typename AdjacencyMatrixType::template Self< ValueType, Devices::Host >;
 
+   /**
+    * \brief Writes a graph to an output stream in edge list format.
+    *
+    * \param str is the output stream to write to.
+    * \param graph is the graph object to be written.
+    */
    static void
    write( std::ostream& str, const Graph& graph )
    {
@@ -29,6 +42,12 @@ struct EdgeListWriter
          writeEdgeList( str, graph.getAdjacencyMatrix() );
    }
 
+   /**
+    * \brief Writes a graph to a file in edge list format.
+    *
+    * \param fileName is the name of the file to write to.
+    * \param graph is the graph object to be written.
+    */
    static void
    write( const TNL::String& fileName, const Graph& graph )
    {
