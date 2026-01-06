@@ -18,14 +18,7 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRScalarKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRVectorKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRLightKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRAdaptiveKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/SlicedEllpackKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/BiEllpackKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/ChunkedEllpackKernel.h>
+#include <TNL/Algorithms/Segments/SortedSegments.h>
 #include <TNL/Algorithms/Segments/TraversingLaunchConfigurations.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/MatrixOperations.h>
@@ -47,16 +40,59 @@ struct GraphsBenchmark
    using HostIndexVector = TNL::Containers::Vector< Index, TNL::Devices::Host, Index >;
    using HostRealVector = TNL::Containers::Vector< Real, TNL::Devices::Host, Index >;
 
+   // Template aliases for segments types
    template< typename Device_, typename Index_, typename IndexAllocator_ >
    using CSRSegments = TNL::Algorithms::Segments::CSR< Device_, Index_, IndexAllocator_ >;
+
    template< typename Device_, typename Index_, typename IndexAllocator_ >
    using EllpackSegments = TNL::Algorithms::Segments::Ellpack< Device_, Index_, IndexAllocator_ >;
-   template< typename Device_, typename Index_, typename IndexAllocator_ >
-   using SlicedEllpackSegments = TNL::Algorithms::Segments::SlicedEllpack< Device_, Index_, IndexAllocator_ >;
+
+   template< int SliceSize >
+   struct RowMajorSlicedEllpackSegments
+   {
+      template< typename Device_, typename Index_, typename IndexAllocator_ >
+      using type = TNL::Algorithms::Segments::RowMajorSlicedEllpack< Device_, Index_, IndexAllocator_, SliceSize >;
+   };
+
+   template< int SliceSize >
+   struct ColumnMajorSlicedEllpackSegments
+   {
+      template< typename Device_, typename Index_, typename IndexAllocator_ >
+      using type = TNL::Algorithms::Segments::RowMajorSlicedEllpack< Device_, Index_, IndexAllocator_, SliceSize >;
+   };
+
    template< typename Device_, typename Index_, typename IndexAllocator_ >
    using BiEllpackSegments = TNL::Algorithms::Segments::BiEllpack< Device_, Index_, IndexAllocator_ >;
+
    template< typename Device_, typename Index_, typename IndexAllocator_ >
    using ChunkedEllpackSegments = TNL::Algorithms::Segments::ChunkedEllpack< Device_, Index_, IndexAllocator_ >;
+
+   // Template aliases for sorted segments types
+   template< typename Device_, typename Index_, typename IndexAllocator_ >
+   using SortedCSRSegments = TNL::Algorithms::Segments::SortedCSR< Device_, Index_, IndexAllocator_ >;
+
+   template< typename Device_, typename Index_, typename IndexAllocator_ >
+   using SortedEllpackSegments = TNL::Algorithms::Segments::SortedEllpack< Device_, Index_, IndexAllocator_ >;
+
+   template< int SliceSize >
+   struct SortedRowMajorSlicedEllpackSegments
+   {
+      template< typename Device_, typename Index_, typename IndexAllocator_ >
+      using type = TNL::Algorithms::Segments::SortedRowMajorSlicedEllpack< Device_, Index_, IndexAllocator_, SliceSize >;
+   };
+
+   template< int SliceSize >
+   struct SortedColumnMajorSlicedEllpackSegments
+   {
+      template< typename Device_, typename Index_, typename IndexAllocator_ >
+      using type = TNL::Algorithms::Segments::SortedColumnMajorSlicedEllpack< Device_, Index_, IndexAllocator_, SliceSize >;
+   };
+
+   template< typename Device_, typename Index_, typename IndexAllocator_ >
+   using SortedBiEllpackSegments = TNL::Algorithms::Segments::SortedBiEllpack< Device_, Index_, IndexAllocator_ >;
+
+   template< typename Device_, typename Index_, typename IndexAllocator_ >
+   using SortedChunkedEllpackSegments = TNL::Algorithms::Segments::SortedChunkedEllpack< Device_, Index_, IndexAllocator_ >;
 
    static void
    configSetup( TNL::Config::ConfigDescription& config )
@@ -67,6 +103,7 @@ struct GraphsBenchmark
       config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
       config.addEntryEnum( "append" );
       config.addEntryEnum( "overwrite" );
+      config.addEntry< bool >( "with-sorted-segments", "Run benchmark with sorted segments.", true );
       config.addEntry< bool >( "with-bfs", "Run breadth-first search benchmark.", true );
       config.addEntry< bool >( "with-sssp", "Run single-source shortest paths benchmark.", true );
       config.addEntry< bool >( "with-mst", "Run minimum spanning tree benchmark.", true );
@@ -375,9 +412,7 @@ struct GraphsBenchmark
 #endif  // HAVE_GUNROCK
    }
 
-   template< typename Device,
-             template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
-             template< typename Index_, typename Device_ > class SegmentsKernel >
+   template< typename Device, template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments >
    void
    TNLBenchmarks( const HostDigraph& hostDigraph,
                   const HostGraph& hostGraph,
@@ -387,12 +422,11 @@ struct GraphsBenchmark
                   const TNL::String& device )
    {
       using Matrix = TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
-      using Graph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::UndirectedGraph >;
-      using Digraph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::DirectedGraph >;
+      using Graph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::UndirectedGraph, Segments >;
+      using Digraph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::DirectedGraph, Segments >;
       using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
       using RealVector = TNL::Containers::Vector< Real, Device, Index >;
       using SegmentsType = typename Matrix::SegmentsType;
-      //using KernelType = SegmentsKernel< Index, Device >;
 
       // TODO: Find a way how to use various reduction kernels for segments in the algorithms.
 
@@ -633,11 +667,12 @@ struct GraphsBenchmark
       const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
       const int loops = parameters.getParameter< int >( "loops" );
       const int verbose = parameters.getParameter< int >( "verbose" );
-      this->withBfs = parameters.getParameter< bool >( "with-bfs" );
-      this->withSssp = parameters.getParameter< bool >( "with-sssp" );
-      this->withMst = parameters.getParameter< bool >( "with-mst" );
-      this->withSemirings = parameters.getParameter< bool >( "with-semirings" );
-      this->withBoost = parameters.getParameter< bool >( "with-boost" );
+      withSortedSegments = parameters.getParameter< bool >( "with-sorted-segments" );
+      withBfs = parameters.getParameter< bool >( "with-bfs" );
+      withSssp = parameters.getParameter< bool >( "with-sssp" );
+      withMst = parameters.getParameter< bool >( "with-mst" );
+      withSemirings = parameters.getParameter< bool >( "with-semirings" );
+      withBoost = parameters.getParameter< bool >( "with-boost" );
 
       size_t dotPosition = inputFile.find_last_of( '.' );
       std::string inputFileExtension = "";
@@ -697,27 +732,75 @@ struct GraphsBenchmark
       gunrockBenchmarks( digraph, graph, smallest, largest, benchmark );
 
       if( device == "sequential" || device == "all" )
-         TNLBenchmarks< TNL::Devices::Sequential, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            digraph, graph, smallest, largest, benchmark, "sequential" );
+         TNLBenchmarks< TNL::Devices::Sequential, CSRSegments >( digraph, graph, smallest, largest, benchmark, "sequential" );
       if( device == "host" || device == "all" )
-         TNLBenchmarks< TNL::Devices::Host, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
-            digraph, graph, smallest, largest, benchmark, "host" );
+         TNLBenchmarks< TNL::Devices::Host, CSRSegments >( digraph, graph, smallest, largest, benchmark, "host" );
+
 #ifdef __CUDACC__
       if( device == "cuda" || device == "all" ) {
-         TNLBenchmarks< TNL::Devices::Cuda, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
+         TNLBenchmarks< TNL::Devices::Cuda, CSRSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
+         TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
+
+         // Row-major sliced Ellpack with various segment sizes
+         TNLBenchmarks< TNL::Devices::Cuda, RowMajorSlicedEllpackSegments< 2 >::template type >(
             digraph, graph, smallest, largest, benchmark, "cuda" );
-         TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments, TNL::Algorithms::SegmentsReductionKernels::EllpackKernel >(
+         TNLBenchmarks< TNL::Devices::Cuda, RowMajorSlicedEllpackSegments< 4 >::template type >(
             digraph, graph, smallest, largest, benchmark, "cuda" );
-         TNLBenchmarks< TNL::Devices::Cuda,
-                        SlicedEllpackSegments,
-                        TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >(
+         TNLBenchmarks< TNL::Devices::Cuda, RowMajorSlicedEllpackSegments< 8 >::template type >(
             digraph, graph, smallest, largest, benchmark, "cuda" );
-         TNLBenchmarks< TNL::Devices::Cuda, BiEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel >(
+         TNLBenchmarks< TNL::Devices::Cuda, RowMajorSlicedEllpackSegments< 16 >::template type >(
             digraph, graph, smallest, largest, benchmark, "cuda" );
-         TNLBenchmarks< TNL::Devices::Cuda,
-                        ChunkedEllpackSegments,
-                        TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel >(
+         TNLBenchmarks< TNL::Devices::Cuda, RowMajorSlicedEllpackSegments< 32 >::template type >(
             digraph, graph, smallest, largest, benchmark, "cuda" );
+
+         // Column-major sliced Ellpack with various segment sizes
+         TNLBenchmarks< TNL::Devices::Cuda, ColumnMajorSlicedEllpackSegments< 2 >::template type >(
+            digraph, graph, smallest, largest, benchmark, "cuda" );
+         TNLBenchmarks< TNL::Devices::Cuda, ColumnMajorSlicedEllpackSegments< 4 >::template type >(
+            digraph, graph, smallest, largest, benchmark, "cuda" );
+         TNLBenchmarks< TNL::Devices::Cuda, ColumnMajorSlicedEllpackSegments< 8 >::template type >(
+            digraph, graph, smallest, largest, benchmark, "cuda" );
+         TNLBenchmarks< TNL::Devices::Cuda, ColumnMajorSlicedEllpackSegments< 16 >::template type >(
+            digraph, graph, smallest, largest, benchmark, "cuda" );
+         TNLBenchmarks< TNL::Devices::Cuda, ColumnMajorSlicedEllpackSegments< 32 >::template type >(
+            digraph, graph, smallest, largest, benchmark, "cuda" );
+
+         TNLBenchmarks< TNL::Devices::Cuda, BiEllpackSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
+         TNLBenchmarks< TNL::Devices::Cuda, ChunkedEllpackSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
+
+         if( withSortedSegments ) {
+            TNLBenchmarks< TNL::Devices::Cuda, SortedCSRSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
+            TNLBenchmarks< TNL::Devices::Cuda, SortedEllpackSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
+
+            // Row-major sliced Ellpack with various segment sizes
+            TNLBenchmarks< TNL::Devices::Cuda, SortedRowMajorSlicedEllpackSegments< 2 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+            TNLBenchmarks< TNL::Devices::Cuda, SortedRowMajorSlicedEllpackSegments< 4 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+            TNLBenchmarks< TNL::Devices::Cuda, SortedRowMajorSlicedEllpackSegments< 8 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+            TNLBenchmarks< TNL::Devices::Cuda, SortedRowMajorSlicedEllpackSegments< 16 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+            TNLBenchmarks< TNL::Devices::Cuda, SortedRowMajorSlicedEllpackSegments< 32 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+
+            // Column-major sliced Ellpack with various segment sizes
+            TNLBenchmarks< TNL::Devices::Cuda, SortedColumnMajorSlicedEllpackSegments< 2 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+            TNLBenchmarks< TNL::Devices::Cuda, SortedColumnMajorSlicedEllpackSegments< 4 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+            TNLBenchmarks< TNL::Devices::Cuda, SortedColumnMajorSlicedEllpackSegments< 8 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+            TNLBenchmarks< TNL::Devices::Cuda, SortedColumnMajorSlicedEllpackSegments< 16 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+            TNLBenchmarks< TNL::Devices::Cuda, SortedColumnMajorSlicedEllpackSegments< 32 >::template type >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+
+            TNLBenchmarks< TNL::Devices::Cuda, SortedBiEllpackSegments >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+            TNLBenchmarks< TNL::Devices::Cuda, SortedChunkedEllpackSegments >(
+               digraph, graph, smallest, largest, benchmark, "cuda" );
+         }
       }
 #endif
       if( errors == 0 )
@@ -739,7 +822,7 @@ protected:
 
    int errors;
 
-   bool withBfs, withSssp, withMst, withSemirings, withBoost;
+   bool withSortedSegments, withBfs, withSssp, withMst, withSemirings, withBoost;
 };
 
 }  // namespace TNL::Benchmarks::Graphs
