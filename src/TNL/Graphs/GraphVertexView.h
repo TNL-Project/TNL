@@ -24,7 +24,7 @@ struct GraphVertexView;
 template< typename Real,
           typename Device,
           typename Index,
-          Algorithms::Segments::ElementsOrganization Organization,
+          TNL::Algorithms::Segments::ElementsOrganization Organization,
           typename GraphType_ >
 struct GraphVertexView< Matrices::DenseMatrixView< Real, Device, Index, Organization >, GraphType_ >
 : public Matrices::DenseMatrixRowView< typename Matrices::DenseMatrixView< Real, Device, Index, Organization >::SegmentViewType,

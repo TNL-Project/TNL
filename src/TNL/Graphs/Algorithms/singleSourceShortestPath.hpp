@@ -14,16 +14,16 @@
 #include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "singleSourceShortestPath.h"
 
-namespace TNL::Graphs {
+namespace TNL::Graphs::Algorithms {
 
 template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
 void
-parallelSingleSourceShortestPath(
-   const Graph& graph,
-   Index start,
-   Vector& distances,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
+parallelSingleSourceShortestPath( const Graph& graph,
+                                  Index start,
+                                  Vector& distances,
+                                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
@@ -49,17 +49,17 @@ parallelSingleSourceShortestPath(
             frontier,
             0,
             frontier_size,
-            [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+            [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
             {
-               if( columnIdx != Matrices::paddingIndex< Index > ) {
-                  Real new_distance = y_view[ rowIdx ] + value;
-                  if( new_distance < y_view[ columnIdx ] ) {
+               if( targetIdx != Matrices::paddingIndex< Index > ) {
+                  Real new_distance = y_view[ sourceIdx ] + weight;
+                  if( new_distance < y_view[ targetIdx ] ) {
 #pragma omp atomic write
-                     y_view[ columnIdx ] = new_distance;
+                     y_view[ targetIdx ] = new_distance;
 #pragma omp atomic write
-                     predecesors_view[ columnIdx ] = rowIdx;
+                     predecesors_view[ targetIdx ] = sourceIdx;
 #pragma omp atomic write
-                     marks_view[ columnIdx ] = 1;
+                     marks_view[ targetIdx ] = 1;
                   }
                }
             },
@@ -69,23 +69,23 @@ parallelSingleSourceShortestPath(
             frontier,
             0,
             frontier_size,
-            [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+            [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
             {
-               TNL_ASSERT_GE( rowIdx, 0, "" );
-               TNL_ASSERT_LT( rowIdx, y_view.getSize(), "" );
-               TNL_ASSERT_GE( columnIdx, 0, "" );
-               TNL_ASSERT_LT( columnIdx, y_view.getSize(), "" );
-               if( columnIdx != Matrices::paddingIndex< Index > ) {
-                  Real new_distance = y_view[ rowIdx ] + value;
-                  if( new_distance < y_view[ columnIdx ] ) {
-                     atomicMin( &y_view[ columnIdx ], new_distance );
-                     atomicMin( &predecesors_view[ columnIdx ], rowIdx );
-                     atomicMax( &marks_view[ columnIdx ], 1 );
+               TNL_ASSERT_GE( sourceIdx, 0, "" );
+               TNL_ASSERT_LT( sourceIdx, y_view.getSize(), "" );
+               TNL_ASSERT_GE( targetIdx, 0, "" );
+               TNL_ASSERT_LT( targetIdx, y_view.getSize(), "" );
+               if( targetIdx != Matrices::paddingIndex< Index > ) {
+                  Real new_distance = y_view[ sourceIdx ] + weight;
+                  if( new_distance < y_view[ targetIdx ] ) {
+                     atomicMin( &y_view[ targetIdx ], new_distance );
+                     atomicMin( &predecesors_view[ targetIdx ], sourceIdx );
+                     atomicMax( &marks_view[ targetIdx ], 1 );
                   }
                }
             },
             launchConfig );
-      Algorithms::inclusiveScan( marks, marks_scan );
+      TNL::Algorithms::inclusiveScan( marks, marks_scan );
       frontier_size = marks_scan.getElement( n - 1 );
       if( frontier_size == 0 )
          break;
@@ -105,12 +105,12 @@ parallelSingleSourceShortestPath(
    }
 }
 
-template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
+template< typename Graph, typename Vector, typename Index >
 void
 singleSourceShortestPath( const Graph& graph,
                           Index start,
                           Vector& distances,
-                          Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
+                          TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
@@ -163,4 +163,4 @@ singleSourceShortestPath( const Graph& graph,
       } );
 }
 
-}  // namespace TNL::Graphs
+}  //namespace TNL::Graphs::Algorithms

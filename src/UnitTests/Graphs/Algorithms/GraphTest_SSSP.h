@@ -1,4 +1,4 @@
-#include <TNL/Graphs/singleSourceShortestPath.h>
+#include <TNL/Graphs/Algorithms/singleSourceShortestPath.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Containers/StaticVector.h>
 
@@ -59,7 +59,7 @@ TYPED_TEST( GraphTest, test_BFS_small )
                                                 { 3.5, 3.7, 2.3, 1.5, 0.0 } };
 
    for( int start_node = 0; start_node < graph.getVertexCount(); ++start_node ) {
-      TNL::Graphs::singleSourceShortestPath( graph, start_node, distances );
+      TNL::Graphs::Algorithms::singleSourceShortestPath( graph, start_node, distances );
       ASSERT_EQ( distances, expectedDistances[ start_node ] ) << "start_node: " << start_node;
    }
 }
@@ -100,7 +100,7 @@ TYPED_TEST( GraphTest, test_BFS_larger )
    };
 
    for( int start_node = 0; start_node < graph.getVertexCount(); start_node++ ) {
-      TNL::Graphs::singleSourceShortestPath( graph, start_node, distances );
+      TNL::Graphs::Algorithms::singleSourceShortestPath( graph, start_node, distances );
       for( IndexType i = 0; i < graph.getVertexCount(); i++ )
          ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances[ start_node ].getElement( i ) )
             << "start_node: " << start_node << " distances[ " << i << " ]: " << distances.getElement( i )
@@ -145,7 +145,7 @@ TYPED_TEST( GraphTest, test_BFS_largest )
    };
 
    for( int start_node = 0; start_node < graph.getVertexCount(); start_node++ ) {
-      TNL::Graphs::singleSourceShortestPath( graph, start_node, distances );
+      TNL::Graphs::Algorithms::singleSourceShortestPath( graph, start_node, distances );
       for( IndexType i = 0; i < graph.getVertexCount(); i++ )
          ASSERT_FLOAT_EQ( distances.getElement( i ), expectedDistances[ start_node ].getElement( i ) )
             << "start_node: " << start_node << " distances[ " << i << " ]: " << distances.getElement( i )
@@ -154,4 +154,4 @@ TYPED_TEST( GraphTest, test_BFS_largest )
    }
 }
 
-#include "../main.h"
+#include "../../main.h"
