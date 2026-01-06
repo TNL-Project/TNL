@@ -3,6 +3,7 @@
 
 #pragma once
 #include <TNL/Backend/KernelLaunch.h>
+#include <TNL/Backend/LaunchHelpers.h>
 
 namespace TNL::Algorithms::Segments {
 
