@@ -9,10 +9,10 @@
 #include <TNL/Graphs/Readers/EdgeListReader.h>
 #include <TNL/Graphs/Readers/MtxReader.h>
 #include <TNL/Graphs/Writers/EdgeListWriter.h>
-#include <TNL/Graphs/breadthFirstSearch.h>
-#include <TNL/Graphs/singleSourceShortestPath.h>
-#include <TNL/Graphs/minimumSpanningTree.h>
-#include <TNL/Graphs/trees.h>
+#include <TNL/Graphs/Algorithms/breadthFirstSearch.h>
+#include <TNL/Graphs/Algorithms/singleSourceShortestPath.h>
+#include <TNL/Graphs/Algorithms/minimumSpanningTree.h>
+#include <TNL/Graphs/Algorithms/trees.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
@@ -448,7 +448,7 @@ struct GraphsBenchmark
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto bfs_tnl_dir = [ & ]() mutable
             {
-               TNL::Graphs::breadthFirstSearch( digraph, largestNode, bfsDistances, launchConfig );
+               TNL::Graphs::Algorithms::breadthFirstSearch( digraph, largestNode, bfsDistances, launchConfig );
             };
             benchmark.time< Device >( device, bfs_tnl_dir );
 #ifdef HAVE_BOOST
@@ -476,7 +476,7 @@ struct GraphsBenchmark
 
             auto bfs_tnl_undir = [ & ]() mutable
             {
-               TNL::Graphs::breadthFirstSearch( graph, largestNode, bfsDistances, launchConfig );
+               TNL::Graphs::Algorithms::breadthFirstSearch( graph, largestNode, bfsDistances, launchConfig );
             };
             benchmark.time< Device >( device, bfs_tnl_undir );
 #ifdef HAVE_BOOST
@@ -509,7 +509,7 @@ struct GraphsBenchmark
             RealVector ssspDistances( digraph.getVertexCount(), 0 );
             auto sssp_tnl_dir = [ & ]() mutable
             {
-               TNL::Graphs::singleSourceShortestPath( digraph, largestNode, ssspDistances, launchConfig );
+               TNL::Graphs::Algorithms::singleSourceShortestPath( digraph, largestNode, ssspDistances, launchConfig );
             };
             if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
                std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark." << std::endl;
@@ -546,7 +546,7 @@ struct GraphsBenchmark
             RealVector ssspDistances( digraph.getVertexCount(), 0 );
             auto sssp_tnl_undir = [ & ]() mutable
             {
-               TNL::Graphs::singleSourceShortestPath( graph, largestNode, ssspDistances, launchConfig );
+               TNL::Graphs::Algorithms::singleSourceShortestPath( graph, largestNode, ssspDistances, launchConfig );
             };
             benchmark.time< Device >( device, sssp_tnl_undir );
 #ifdef HAVE_BOOST
@@ -575,12 +575,12 @@ struct GraphsBenchmark
 
          auto mst_tnl = [ & ]() mutable
          {
-            TNL::Graphs::minimumSpanningTree( graph, mstGraph, roots );
+            TNL::Graphs::Algorithms::minimumSpanningTree( graph, mstGraph, roots );
          };
          benchmark.time< Device >( device, mst_tnl );
          auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
          TNL::Graphs::Writers::EdgeListWriter< Graph >::write( filename + "-tnl-mst.txt", mstGraph );
-         if( ! TNL::Graphs::isForest( mstGraph ) ) {
+         if( ! TNL::Graphs::Algorithms::isForest( mstGraph ) ) {
             std::cout << "ERROR: TNL MST is not a forest!" << std::endl;
             this->errors++;
          }

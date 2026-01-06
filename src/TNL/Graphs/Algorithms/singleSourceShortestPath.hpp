@@ -14,16 +14,16 @@
 #include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "singleSourceShortestPath.h"
 
-namespace TNL::Graphs {
+namespace TNL::Graphs::Algorithms {
 
 template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
 void
-parallelSingleSourceShortestPath(
-   const Graph& graph,
-   Index start,
-   Vector& distances,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
+parallelSingleSourceShortestPath( const Graph& graph,
+                                  Index start,
+                                  Vector& distances,
+                                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
@@ -32,14 +32,17 @@ parallelSingleSourceShortestPath(
    distances.setSize( n );
 
    Vector y( distances.getSize() );
-   Containers::Vector< Index, Device, Index > predecesors( n, -1 ), marks( n ), marks_scan( n, 0 ), frontier( n, 0 );
+   Containers::Vector< Index, Device, Index > predecessors( n, -1 );
+   Containers::Vector< Index, Device, Index > marks( n );
+   Containers::Vector< Index, Device, Index > marks_scan( n, 0 );
+   Containers::Vector< Index, Device, Index > frontier( n, 0 );
    distances = std::numeric_limits< Real >::max();
    distances.setElement( start, 0 );
    frontier.setElement( 0, start );
    Index frontier_size( 1 );
    y = distances;
    auto y_view = y.getView();
-   auto predecesors_view = predecesors.getView();
+   auto predecessors_view = predecessors.getView();
    auto marks_view = marks.getView();
    auto marks_scan_view = marks_scan.getView();
    for( Index i = 0; i <= n; i++ ) {
@@ -49,17 +52,23 @@ parallelSingleSourceShortestPath(
             frontier,
             0,
             frontier_size,
-            [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+            [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
             {
-               if( columnIdx != Matrices::paddingIndex< Index > ) {
-                  Real new_distance = y_view[ rowIdx ] + value;
-                  if( new_distance < y_view[ columnIdx ] ) {
-#pragma omp atomic write
-                     y_view[ columnIdx ] = new_distance;
-#pragma omp atomic write
-                     predecesors_view[ columnIdx ] = rowIdx;
-#pragma omp atomic write
-                     marks_view[ columnIdx ] = 1;
+               if( targetIdx != Matrices::paddingIndex< Index > ) {
+                  Real new_distance = y_view[ sourceIdx ] + weight;
+                  if( new_distance < y_view[ targetIdx ] ) {
+#if defined( _OPENMP )
+               #pragma omp atomic write
+#endif
+                     y_view[ targetIdx ] = new_distance;
+#if defined( _OPENMP )
+               #pragma omp atomic write
+#endif
+                     predecessors_view[ targetIdx ] = sourceIdx;
+#if defined( _OPENMP )
+               #pragma omp atomic write
+#endif
+                     marks_view[ targetIdx ] = 1;
                   }
                }
             },
@@ -69,23 +78,23 @@ parallelSingleSourceShortestPath(
             frontier,
             0,
             frontier_size,
-            [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+            [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
             {
-               TNL_ASSERT_GE( rowIdx, 0, "" );
-               TNL_ASSERT_LT( rowIdx, y_view.getSize(), "" );
-               TNL_ASSERT_GE( columnIdx, 0, "" );
-               TNL_ASSERT_LT( columnIdx, y_view.getSize(), "" );
-               if( columnIdx != Matrices::paddingIndex< Index > ) {
-                  Real new_distance = y_view[ rowIdx ] + value;
-                  if( new_distance < y_view[ columnIdx ] ) {
-                     atomicMin( &y_view[ columnIdx ], new_distance );
-                     atomicMin( &predecesors_view[ columnIdx ], rowIdx );
-                     atomicMax( &marks_view[ columnIdx ], 1 );
+               TNL_ASSERT_GE( sourceIdx, 0, "" );
+               TNL_ASSERT_LT( sourceIdx, y_view.getSize(), "" );
+               TNL_ASSERT_GE( targetIdx, 0, "" );
+               TNL_ASSERT_LT( targetIdx, y_view.getSize(), "" );
+               if( targetIdx != Matrices::paddingIndex< Index > ) {
+                  Real new_distance = y_view[ sourceIdx ] + weight;
+                  if( new_distance < y_view[ targetIdx ] ) {
+                     atomicMin( &y_view[ targetIdx ], new_distance );
+                     atomicMin( &predecessors_view[ targetIdx ], sourceIdx );
+                     atomicMax( &marks_view[ targetIdx ], 1 );
                   }
                }
             },
             launchConfig );
-      Algorithms::inclusiveScan( marks, marks_scan );
+      TNL::Algorithms::inclusiveScan( marks, marks_scan );
       frontier_size = marks_scan.getElement( n - 1 );
       if( frontier_size == 0 )
          break;
@@ -105,12 +114,12 @@ parallelSingleSourceShortestPath(
    }
 }
 
-template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
+template< typename Graph, typename Vector, typename Index >
 void
 singleSourceShortestPath( const Graph& graph,
                           Index start,
                           Vector& distances,
-                          Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
+                          TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
@@ -122,10 +131,7 @@ singleSourceShortestPath( const Graph& graph,
    // In the sequential version, we use the Dijkstra algorithm.
    if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
       // The priority queue stores pairs of (distance, vertex)
-      std::priority_queue< std::pair< Real, Index >,
-                           std::vector< std::pair< Real, Index > >,
-                           std::greater< std::pair< Real, Index > > >
-         pq;
+      std::priority_queue< std::pair< Real, Index >, std::vector< std::pair< Real, Index > >, std::greater<> > pq;
       pq.emplace( 0, start );
 
       while( ! pq.empty() ) {
@@ -163,4 +169,4 @@ singleSourceShortestPath( const Graph& graph,
       } );
 }
 
-}  // namespace TNL::Graphs
+}  //namespace TNL::Graphs::Algorithms

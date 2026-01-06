@@ -13,17 +13,17 @@
 #include <TNL/Algorithms/contains.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include "breadthFirstSearch.h"
 
-namespace TNL::Graphs {
+namespace TNL::Graphs::Algorithms {
 
-template< bool haveExplorer, typename Graph, typename Vector, typename Visitor, typename Explorer >
+template< typename Graph, typename Vector, typename Visitor >
 void
 breadthFirstSearchParallel( const Graph& graph,
                             typename Graph::IndexType start,
                             Vector& distances,
                             Visitor&& visitor,
-                            Explorer&& explorer,
-                            Algorithms::Segments::LaunchConfiguration launchConfig )
+                            const TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
@@ -33,14 +33,17 @@ breadthFirstSearchParallel( const Graph& graph,
    distances.setSize( n );
 
    Vector y( distances.getSize() );
-   Containers::Vector< Index, Device, Index > predecesors( n, -1 ), marks( n ), marks_scan( n, 0 ), frontier( n, 0 );
+   Containers::Vector< Index, Device, Index > predecessors( n, -1 );
+   Containers::Vector< Index, Device, Index > marks( n );
+   Containers::Vector< Index, Device, Index > marks_scan( n, 0 );
+   Containers::Vector< Index, Device, Index > frontier( n, 0 );
    distances = -1;
    distances.setElement( start, 0 );
    frontier.setElement( 0, start );
    Index frontier_size( 1 );
    y = distances;
    auto y_view = y.getView();
-   auto predecesors_view = predecesors.getView();
+   auto predecessors_view = predecessors.getView();
    auto marks_view = marks.getView();
    auto marks_scan_view = marks_scan.getView();
    for( Index i = 0; i <= n; i++ ) {
@@ -50,15 +53,22 @@ breadthFirstSearchParallel( const Graph& graph,
             frontier,
             0,
             frontier_size,
-            [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+            [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
             {
-               if( columnIdx != Matrices::paddingIndex< Index > && y_view[ columnIdx ] == -1 ) {
-#pragma omp atomic write
-                  y_view[ columnIdx ] = i + 1;
-#pragma omp atomic write
-                  predecesors_view[ columnIdx ] = rowIdx;
-#pragma omp atomic write
-                  marks_view[ columnIdx ] = 1;
+               if( targetIdx != Matrices::paddingIndex< Index > && y_view[ targetIdx ] == -1 ) {
+#if defined( HAVE_OPENMP )
+            #pragma omp atomic write
+#endif
+                  y_view[ targetIdx ] = i + 1;
+#if defined( HAVE_OPENMP )
+            #pragma omp atomic write
+#endif
+                  predecessors_view[ targetIdx ] = sourceIdx;
+#if defined( HAVE_OPENMP )
+            #pragma omp atomic write
+#endif
+                  marks_view[ targetIdx ] = 1;
+                  visitor( targetIdx, i + 1 );
                }
             },
             launchConfig );
@@ -67,20 +77,21 @@ breadthFirstSearchParallel( const Graph& graph,
             frontier,
             0,
             frontier_size,
-            [ = ] __cuda_callable__( Index rowIdx, Index localIdx, Index columnIdx, const Real& value ) mutable
+            [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
             {
-               TNL_ASSERT_GE( rowIdx, 0, "" );
-               TNL_ASSERT_LT( rowIdx, y_view.getSize(), "" );
-               TNL_ASSERT_GE( columnIdx, 0, "" );
-               TNL_ASSERT_LT( columnIdx, y_view.getSize(), "" );
-               if( columnIdx != Matrices::paddingIndex< Index > && y_view[ columnIdx ] == -1 ) {
-                  atomicMax( &y_view[ columnIdx ], i + 1 );
-                  atomicMax( &predecesors_view[ columnIdx ], rowIdx );
-                  atomicMax( &marks_view[ columnIdx ], 1 );
+               TNL_ASSERT_GE( sourceIdx, 0, "" );
+               TNL_ASSERT_LT( sourceIdx, y_view.getSize(), "" );
+               TNL_ASSERT_GE( targetIdx, 0, "" );
+               TNL_ASSERT_LT( targetIdx, y_view.getSize(), "" );
+               if( targetIdx != Matrices::paddingIndex< Index > && y_view[ targetIdx ] == -1 ) {
+                  atomicMax( &y_view[ targetIdx ], i + 1 );
+                  atomicMax( &predecessors_view[ targetIdx ], sourceIdx );
+                  atomicMax( &marks_view[ targetIdx ], 1 );
+                  visitor( targetIdx, i + 1 );
                }
             },
             launchConfig );
-      Algorithms::inclusiveScan( marks, marks_scan );
+      TNL::Algorithms::inclusiveScan( marks, marks_scan );
       frontier_size = marks_scan.getElement( n - 1 );
       if( frontier_size == 0 )
          break;
@@ -100,14 +111,13 @@ breadthFirstSearchParallel( const Graph& graph,
    }
 }
 
-template< bool haveExplorer, typename Graph, typename Vector, typename Visitor, typename Explorer >
+template< typename Graph, typename Vector, typename Visitor >
 void
 breadthFirstSearch_impl( const Graph& graph,
                          typename Graph::IndexType start,
                          Vector& distances,
                          Visitor&& visitor,
-                         Explorer&& explorer,
-                         const Algorithms::Segments::LaunchConfiguration& launchConfig )
+                         const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
    using Index = typename Graph::IndexType;
    using Device = typename Graph::DeviceType;
@@ -132,8 +142,6 @@ breadthFirstSearch_impl( const Graph& graph,
             if( neighbor == Matrices::paddingIndex< Index > )
                continue;
 
-            if constexpr( haveExplorer )
-               explorer( neighbor );
             if( distances[ neighbor ] == -1 ) {
                Index distance = distances[ current ] + 1;
                distances[ neighbor ] = distance;
@@ -144,11 +152,7 @@ breadthFirstSearch_impl( const Graph& graph,
       }
    }
    else {
-      if constexpr( haveExplorer )
-         breadthFirstSearchParallel< true >( graph, start, distances, visitor, explorer, launchConfig );
-      else
-         breadthFirstSearchParallel< false >(
-            graph, start, distances, visitor, [] __cuda_callable__( Index ) {}, launchConfig );
+      breadthFirstSearchParallel( graph, start, distances, visitor, launchConfig );
    }
 }
 
@@ -157,11 +161,10 @@ void
 breadthFirstSearch( const Graph& graph,
                     typename Graph::IndexType start,
                     Vector& distances,
-                    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
+                    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using Index = typename Graph::IndexType;
-   breadthFirstSearch_impl< false >(
-      graph, start, distances, [] __cuda_callable__( Index, Index ) {}, [] __cuda_callable__( Index ) {}, launchConfig );
+   breadthFirstSearch_impl( graph, start, distances, [] __cuda_callable__( Index, Index ) {}, launchConfig );
 }
 
 template< typename Graph, typename Vector, typename Visitor >
@@ -170,22 +173,9 @@ breadthFirstSearch( const Graph& graph,
                     typename Graph::IndexType start,
                     Vector& distances,
                     Visitor&& visitor,
-                    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
+                    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Index = typename Graph::IndexType;
-   breadthFirstSearch_impl< false >( graph, start, distances, visitor, [] __cuda_callable__( Index ) {}, launchConfig );
+   breadthFirstSearch_impl( graph, start, distances, visitor, launchConfig );
 }
 
-template< typename Graph, typename Vector, typename Visitor, typename Explorer >
-void
-breadthFirstSearch( const Graph& graph,
-                    typename Graph::IndexType start,
-                    Vector& distances,
-                    Visitor&& visitor,
-                    Explorer&& explorer,
-                    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() )
-{
-   breadthFirstSearch_impl< true >( graph, start, distances, visitor, explorer, launchConfig );
-}
-
-}  // namespace TNL::Graphs
+}  // namespace TNL::Graphs::Algorithms
