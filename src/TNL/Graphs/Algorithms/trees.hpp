@@ -8,8 +8,9 @@
 #include <TNL/Algorithms/AtomicOperations.h>
 #include <TNL/Algorithms/find.h>
 #include <TNL/Matrices/MatrixBase.h>
+#include "trees.h"
 
-namespace TNL::Graphs {
+namespace TNL::Graphs::Algorithms {
 
 enum class TreeType : std::uint8_t
 {
@@ -92,12 +93,12 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
             visited_old = visited;
             auto visited_view = visited.getView();
             auto visited_old_view = visited_old.getView();
-            // NVCC does not support constepxr if inside a lambda
+            // NVCC does not support constexpr if inside a lambda
             auto symmetric_fetch =
                [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const ValueType& value ) mutable -> IndexType
             {
                if( ! visited_old_view[ columnIdx ] )
-                  Algorithms::AtomicOperations< DeviceType >::add( visited_view[ columnIdx ], visited_old_view[ rowIdx ] );
+                  TNL::Algorithms::AtomicOperations< DeviceType >::add( visited_view[ columnIdx ], visited_old_view[ rowIdx ] );
                if( visited_old_view[ rowIdx ] )
                   return 0;
                return visited_old_view[ columnIdx ] != 0;
@@ -135,13 +136,13 @@ isTree_impl( const Graph& graph, const Vector& roots, TreeType treeType = TreeTy
             return false;
       }
       else
-         start_node = Algorithms::find( visited, 0 ).second;
+         start_node = TNL::Algorithms::find( visited, 0 ).second;
    }
 }
 
 template< typename Graph >
 bool
-isTree( const Graph& graph, typename Graph::IndexType start_node = 0 )
+isTree( const Graph& graph, typename Graph::IndexType start_node )
 {
    using IndexType = typename Graph::IndexType;
 
@@ -164,4 +165,4 @@ isForest( const Graph& graph )
    return isTree_impl( graph, roots, TreeType::Forest );
 }
 
-}  // namespace TNL::Graphs
+}  //namespace TNL::Graphs::Algorithms

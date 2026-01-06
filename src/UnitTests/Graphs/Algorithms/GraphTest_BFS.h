@@ -1,4 +1,4 @@
-#include <TNL/Graphs/breadthFirstSearch.h>
+#include <TNL/Graphs/Algorithms/breadthFirstSearch.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Containers/StaticVector.h>
@@ -57,7 +57,7 @@ TYPED_TEST( GraphTest, test_BFS_small )
    };
 
    for( int start_node = 0; start_node < graph.getVertexCount(); ++start_node ) {
-      TNL::Graphs::breadthFirstSearch( graph, start_node, distances );
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start_node, distances );
       ASSERT_EQ( distances, expectedDistances[ start_node ] ) << "start_node: " << start_node;
    }
 }
@@ -96,7 +96,7 @@ TYPED_TEST( GraphTest, test_BFS_larger )
    };
 
    for( int start_node = 0; start_node < graph.getVertexCount(); ++start_node ) {
-      TNL::Graphs::breadthFirstSearch( graph, start_node, distances );
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start_node, distances );
       ASSERT_EQ( distances, expectedDistances[ start_node ] ) << "start_node: " << start_node;
    }
 }
@@ -135,9 +135,9 @@ TYPED_TEST( GraphTest, test_BFS_largest )
    };
 
    for( int start_node = 0; start_node < graph.getVertexCount(); start_node++ ) {
-      TNL::Graphs::breadthFirstSearch( graph, start_node, distances );
+      TNL::Graphs::Algorithms::breadthFirstSearch( graph, start_node, distances );
       ASSERT_EQ( distances, expectedDistances[ start_node ] ) << "start_node: " << start_node;
    }
 }
 
-#include "../main.h"
+#include "../../main.h"
