@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstdint>
-#include <TNL/Graphs/trees.h>
+#include <TNL/Graphs/Algorithms/trees.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Containers/StaticVector.h>
 #include <TNL/Graphs/Graph.h>
@@ -53,8 +53,7 @@ TYPED_TEST( GraphTest, test_isTree_small )
         }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    // clang-format on
 
-   std::cout << graph << std::endl;
-   ASSERT_TRUE( TNL::Graphs::isTree( graph ) );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( graph ) );
 }
 
 TYPED_TEST( GraphTest, test_isTree_not_tree )
@@ -75,7 +74,7 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
         }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    // clang-format on
 
-   ASSERT_FALSE( TNL::Graphs::isTree( graph ) );
+   ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph ) );
 
    // Create another sample graph.
    // clang-format off
@@ -91,7 +90,7 @@ TYPED_TEST( GraphTest, test_isTree_not_tree )
         }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    // clang-format on
 
-   ASSERT_FALSE( TNL::Graphs::isTree( graph2 ) );
+   ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph2 ) );
 }
 
 TYPED_TEST( GraphTest, test_large_tree )
@@ -106,7 +105,7 @@ TYPED_TEST( GraphTest, test_large_tree )
                      { 6, 11, 3.0 },  { 9, 17, 3.0 },  { 21, 23, 3.0 }, { 8, 27, 4.0 } },
                    TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
 
-   ASSERT_TRUE( TNL::Graphs::isTree( tree ) );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( tree ) );
 }
 
 TYPED_TEST( GraphTest, test_small_forest )
@@ -115,8 +114,8 @@ TYPED_TEST( GraphTest, test_small_forest )
 
    GraphType graph( 5, { { 0, 3, 1.0 }, { 0, 4, 1.0 } }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
 
-   ASSERT_FALSE( TNL::Graphs::isTree( graph ) );
-   ASSERT_TRUE( TNL::Graphs::isForest( graph ) );
+   ASSERT_FALSE( TNL::Graphs::Algorithms::isTree( graph ) );
+   ASSERT_TRUE( TNL::Graphs::Algorithms::isForest( graph ) );
 }
 
-#include "../main.h"
+#include "../../main.h"
