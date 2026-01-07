@@ -40,40 +40,47 @@ template< typename Real, typename Device, typename Index, ElementsOrganization O
 template< typename Value >
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::DenseMatrix(
    std::initializer_list< std::initializer_list< Value > > data,
+   MatrixElementsEncoding encoding,
    const RealAllocatorType& allocator )
 : values( allocator )
 {
-   this->setElements( data );
+   this->setElements( data, encoding );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Value >
 void
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
-   std::initializer_list< std::initializer_list< Value > > data )
+   std::initializer_list< std::initializer_list< Value > > data,
+   MatrixElementsEncoding encoding )
 {
-   Index rows = data.size();
-   Index columns = 0;
-   for( auto row : data )
-      columns = max( columns, row.size() );
-   this->setDimensions( rows, columns );
-   if constexpr( std::is_same_v< Device, Devices::Cuda > ) {
-      DenseMatrix< Real, Devices::Host, Index > hostDense( rows, columns );
-      Index rowIdx = 0;
-      for( auto row : data ) {
-         Index columnIdx = 0;
-         for( auto element : row )
-            hostDense.setElement( rowIdx, columnIdx++, element );
-         rowIdx++;
-      }
-      *this = hostDense;
+   if constexpr( ! std::is_same_v< Device, Devices::Host > && ! std::is_same_v< Device, Devices::Sequential > ) {
+      DenseMatrix< Real, Devices::Host, Index, Organization > hostMatrix( this->getRows(), this->getColumns() );
+      hostMatrix.setElements( data, encoding );
+      *this = hostMatrix;
    }
    else {
+      Index rows = data.size();
+      Index columns = 0;
+      for( auto row : data )
+         columns = max( columns, row.size() );
+      this->setDimensions( rows, columns );
       Index rowIdx = 0;
       for( auto row : data ) {
          Index columnIdx = 0;
-         for( auto element : row )
-            this->setElement( rowIdx, columnIdx++, element );
+         for( auto element : row ) {
+            this->setElement( rowIdx, columnIdx, element );
+            if( encoding == MatrixElementsEncoding::SymmetricLower ) {
+               if( columnIdx < rowIdx )
+                  this->setElement( columnIdx, rowIdx, element );
+               else if( columnIdx > rowIdx )
+                  throw std::logic_error(
+                     "The input data are supposed to be a lower part of a symmetric matrix (matrix elements encoding equals "
+                     "SymmetricLower) but it is not. The matrix element at position ("
+                     + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") is located above the diagonal." );
+            }
+            columnIdx++;
+         }
          rowIdx++;
       }
    }
