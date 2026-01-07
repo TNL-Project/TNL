@@ -11,7 +11,7 @@ namespace TNL::Graphs::Readers {
  * \brief Reader for graphs in edge list format.
  *
  * This reader reads a graph from a file in edge list format, where each line
- * represents an edge between two nodes, optionally with a weight. Lines starting
+ * represents an edge between two vertices, optionally with a weight. Lines starting
  * with '#' are treated as comments and ignored.
  *
  * Example of weighted edge list format:
@@ -52,7 +52,7 @@ struct EdgeListReader
    {
       using Edge = std::pair< IndexType, IndexType >;
       std::ifstream file( file_name );
-      IndexType nodes( 0 );
+      IndexType vertices( 0 );
       std::map< Edge, ValueType > edges;
 
       std::string line;
@@ -69,15 +69,15 @@ struct EdgeListReader
          int from_node;
          int to_node;
          ss >> from_node >> to_node;
-         nodes = std::max( nodes, std::max( from_node, to_node ) );
+         vertices = std::max( vertices, std::max( from_node, to_node ) );
          ValueType weight = 1.0;
          if( ! ss.eof() ) {
             ss >> weight;
          }
          edges.emplace( Edge( from_node, to_node ), weight );
       }
-      nodes++;  // nodes are numbered from 0
-      graph.setVertexCount( nodes );
+      vertices++;  // vertices are numbered from 0
+      graph.setVertexCount( vertices );
       graph.setEdges( edges );
    }
 };
