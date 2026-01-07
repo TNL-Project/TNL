@@ -115,6 +115,7 @@ public:
     */
    template< typename Value >
    DenseMatrix( std::initializer_list< std::initializer_list< Value > > data,
+                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
                 const RealAllocatorType& allocator = RealAllocatorType() );
 
    /**
@@ -177,6 +178,15 @@ public:
     *
     * \param data is a initializer list of initializer lists representing
     * list of matrix rows.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
+    * - if \e encoding is \ref MatrixElementsEncoding::Complete - the input data can contain any elements and is stored as is.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricLower - the input data is assumed to contain only lower part
+    * and diagonal, otherwise an exception is thrown. The upper part above the diagonal is reconstructed from the lower part.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricUpper - the input data is assumed to contain only upper part
+    * and diagonal, otherwise an exception is thrown. The lower part below the diagonal is reconstructed from the upper part.
+    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricMixed - for each couple of non-zero elements a_ij and a_ji,
+    * at least one is provided. If both are provided, they must be equal, otherwise an exception is thrown. The missing elements
+    * are reconstructed and only the lower part and diagonal are stored.
     *
     * \par Example
     * \include Matrices/DenseMatrix/DenseMatrixExample_setElements.cpp
@@ -185,7 +195,8 @@ public:
     */
    template< typename Value >
    void
-   setElements( std::initializer_list< std::initializer_list< Value > > data );
+   setElements( std::initializer_list< std::initializer_list< Value > > data,
+                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
 
    /**
     * \brief This method sets the dense matrix elements from std::map.
@@ -204,12 +215,7 @@ public:
     * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
     * - if \e encoding is \ref MatrixElementsEncoding::Complete - the input data can contain any elements and is stored as is.
     * - if \e encoding is \ref MatrixElementsEncoding::SymmetricLower - the input data is assumed to contain only lower part
-    * and diagonal. otherwise an exception is thrown. The upper part above the diagonal is reconstructed from the lower part.
-    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricUpper - the input data is assumed to contain only upper part
-    * and diagonal. otherwise an exception is thrown. The lower part below the diagonal is reconstructed from the upper part.
-    * - if \e encoding is \ref MatrixElementsEncoding::SymmetricMixed - for each couple of non-zero elements a_ij and a_ji,
-    * at least one is provided. If both are provided, they must be equal, otherwise an exception is thrown. The missing elements
-    * are reconstructed and only the lower part and diagonal are stored.
+    * and diagonal, otherwise an exception is thrown. The upper part above the diagonal is reconstructed from the lower part.
     */
    template< typename MapIndex, typename MapValue >
    void
