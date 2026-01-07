@@ -90,23 +90,44 @@ test_SetElements()
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
 
-   Matrix m( {
+   Matrix m_full( {
       { 1, 2, 3 },
       { 4, 5, 6 },
       { 7, 8, 9 },
    } );
 
-   EXPECT_EQ( m.getRows(), 3 );
-   EXPECT_EQ( m.getColumns(), 3 );
-   EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
-   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 2 } );
-   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 3 } );
-   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 4 } );
-   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 5 } );
-   EXPECT_EQ( m.getElement( 1, 2 ), RealType{ 6 } );
-   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 7 } );
-   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 8 } );
-   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 9 } );
+   EXPECT_EQ( m_full.getRows(), 3 );
+   EXPECT_EQ( m_full.getColumns(), 3 );
+   EXPECT_EQ( m_full.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m_full.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( m_full.getElement( 0, 2 ), RealType{ 3 } );
+   EXPECT_EQ( m_full.getElement( 1, 0 ), RealType{ 4 } );
+   EXPECT_EQ( m_full.getElement( 1, 1 ), RealType{ 5 } );
+   EXPECT_EQ( m_full.getElement( 1, 2 ), RealType{ 6 } );
+   EXPECT_EQ( m_full.getElement( 2, 0 ), RealType{ 7 } );
+   EXPECT_EQ( m_full.getElement( 2, 1 ), RealType{ 8 } );
+   EXPECT_EQ( m_full.getElement( 2, 2 ), RealType{ 9 } );
+
+   // Test with symmetric matrix - the initializer list provides only the lower part
+   // clang-format off
+   Matrix m_lower( {
+      { 1 },
+      { 2, 3 },
+      { 4, 5, 6 },
+   }, TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+   // clang-format on
+
+   EXPECT_EQ( m_lower.getRows(), 3 );
+   EXPECT_EQ( m_lower.getColumns(), 3 );
+   EXPECT_EQ( m_lower.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m_lower.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( m_lower.getElement( 0, 2 ), RealType{ 4 } );
+   EXPECT_EQ( m_lower.getElement( 1, 0 ), RealType{ 2 } );
+   EXPECT_EQ( m_lower.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m_lower.getElement( 1, 2 ), RealType{ 5 } );
+   EXPECT_EQ( m_lower.getElement( 2, 0 ), RealType{ 4 } );
+   EXPECT_EQ( m_lower.getElement( 2, 1 ), RealType{ 5 } );
+   EXPECT_EQ( m_lower.getElement( 2, 2 ), RealType{ 6 } );
 
    // Test with symmetric matrix - map provides only the lower part
    // clang-format off
@@ -151,7 +172,7 @@ test_SetElements()
    // Test with symmetric matrix storing lower part - map provides full matrix
    // clang-format off
    std::map< std::pair< IndexType, IndexType >, RealType > symmetric_map_mixed{
-      { { 0, 0 }, 1 }, { { 0, 1 }, 2 }, 
+      { { 0, 0 }, 1 }, { { 0, 1 }, 2 },
                        { { 1, 1 }, 3 },
       { { 2, 0 }, 4 }, { { 2, 1 }, 5 }, { { 2, 2 }, 6 },
    };
