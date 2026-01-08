@@ -119,13 +119,13 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__( IndexType indexOfRowIdx, IndexType rowIdx, const FetchValue& value ) mutable
+      auto storeWrapper = [ = ] __cuda_callable__( IndexType indexOfRowIdx, IndexType rowIdx, const FetchValue& value ) mutable
       {
          store( indexOfRowIdx, rowIdx, value );
       };
 
       Algorithms::Segments::reduceSegments(
-         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
@@ -154,13 +154,13 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__( IndexType indexOfRowIdx, IndexType rowIdx, const FetchValue& value ) mutable
+      auto storeWrapper = [ = ] __cuda_callable__( IndexType indexOfRowIdx, IndexType rowIdx, const FetchValue& value ) mutable
       {
          store( indexOfRowIdx, rowIdx, value );
       };
 
       Algorithms::Segments::reduceSegments(
-         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
    }
 
    template< typename IndexBegin,
@@ -287,14 +287,27 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto storeWrapper =
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         store( rowIdx, localIdx, columnIdx, value );
+         if( ! emptySegment ) {
+            TNL_ASSERT_LT( rowIdx, matrix.getRows(), "Row index out of bounds in reduceRowsWithArgument." );
+            TNL_ASSERT_LT( localIdx,
+                           segmentsView.getSegmentSize( rowIdx ),
+                           "Local index out of bounds for segment in reduceRowsWithArgument." );
+            TNL_ASSERT_LT( segmentsView.getGlobalIndex( rowIdx, localIdx ),
+                           columnIndexes_view.getSize(),
+                           "Global index out of bounds for columnIndexes_view in reduceRowsWithArgument." );
+            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
+            store( rowIdx, localIdx, columnIdx, value, emptySegment );
+         }
+         else {
+            store( rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+         }
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
-         matrix.getSegments(), begin, end, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
+         matrix.getSegments(), begin, end, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
@@ -325,14 +338,20 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto storeWrapper =
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         store( rowIdx, localIdx, columnIdx, value );
+         if( ! emptySegment ) {
+            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
+            store( rowIdx, localIdx, columnIdx, value, emptySegment );
+         }
+         else {
+            store( rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+         }
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
-         matrix.getSegments(), begin, end, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
+         matrix.getSegments(), begin, end, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
@@ -361,15 +380,21 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__(
-                            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto storeWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         if( ! emptySegment ) {
+            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
+            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
+         }
+         else {
+            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+         }
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
-         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
@@ -399,15 +424,21 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__(
-                            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto storeWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         if( ! emptySegment ) {
+            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
+            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
+         }
+         else {
+            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+         }
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
-         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
+         matrix.getSegments(), rowIndexes, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
    }
 
    template< typename IndexBegin,
@@ -449,11 +480,17 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          return identity;
       };
 
-      auto keepWrapper = [ = ] __cuda_callable__(
-                            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto storeWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         if( ! emptySegment ) {
+            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
+            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
+         }
+         else {
+            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+         }
       };
 
       return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
@@ -462,7 +499,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                                                                  std::forward< Condition >( condition ),
                                                                  fetchWrapper,
                                                                  reduction,
-                                                                 keepWrapper,
+                                                                 storeWrapper,
                                                                  identity,
                                                                  launchConfig );
    }
@@ -502,11 +539,17 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__(
-                            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto storeWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         if( ! emptySegment ) {
+            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
+            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
+         }
+         else {
+            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+         }
       };
 
       return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
@@ -515,7 +558,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                                                                  std::forward< Condition >( condition ),
                                                                  fetchWrapper,
                                                                  reduction,
-                                                                 keepWrapper,
+                                                                 storeWrapper,
                                                                  identity,
                                                                  launchConfig );
    }
@@ -560,11 +603,17 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__(
-                            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto storeWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         if( ! emptySegment ) {
+            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
+            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
+         }
+         else {
+            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+         }
       };
 
       return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
@@ -572,7 +621,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                                                                  std::forward< Condition >( condition ),
                                                                  fetchWrapper,
                                                                  reduction,
-                                                                 keepWrapper,
+                                                                 storeWrapper,
                                                                  identity,
                                                                  launchConfig );
    }
@@ -614,11 +663,17 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__(
-                            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto storeWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
-         store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value );
+         if( ! emptySegment ) {
+            const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
+            store( indexOfRowIdx, rowIdx, localIdx, columnIdx, value, emptySegment );
+         }
+         else {
+            store( indexOfRowIdx, rowIdx, localIdx, IndexType( 0 ), value, emptySegment );
+         }
       };
 
       return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
@@ -626,7 +681,7 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                                                                  std::forward< Condition >( condition ),
                                                                  fetchWrapper,
                                                                  reduction,
-                                                                 keepWrapper,
+                                                                 storeWrapper,
                                                                  identity,
                                                                  launchConfig );
    }

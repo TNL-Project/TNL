@@ -266,7 +266,8 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
                globalIdx = globalIdxBack + groupSize;
                groupHeight /= 2;
             }
-            storer( segmentIdx, argument, result );
+            bool emptySegment = ( groupsCount == 0 );
+            storer( segmentIdx, argument, result, emptySegment );
          }
       }
       else {
@@ -359,7 +360,8 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
                globalIdx = globalIdxBack + groupSize;
                groupHeight /= 2;
             }
-            storer( segmentIdx_idx, segmentIdx, argument, result );
+            bool emptySegment = ( groupsCount == 0 );
+            storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
          }
       }
       else {

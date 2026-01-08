@@ -433,6 +433,8 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                           detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
                           argument,
                           localIdx );
+            bool emptySegment = ( segmentSize == 0 );
+            storer( segmentIdx, argument, result, emptySegment );
          }
          else {
             (void) sliceSegmentSizes;  // ignore warning due to unused capture - let the compiler
@@ -445,8 +447,9 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                           detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
                           argument,
                           localIdx );
+            bool emptySegment = ( begin == end );
+            storer( segmentIdx, argument, result, emptySegment );
          }
-         storer( segmentIdx, argument, result );
       };
 
       Algorithms::parallelFor< Device >( begin, end, l );
@@ -493,6 +496,8 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                           detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
                           argument,
                           localIdx );
+            bool emptySegment = ( segmentSize == 0 );
+            storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
          }
          else {
             (void) sliceSegmentSizes;  // ignore warning due to unused capture - let the compiler
@@ -505,8 +510,9 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                           detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
                           argument,
                           localIdx );
+            bool emptySegment = ( begin == end );
+            storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
          }
-         storer( segmentIdx_idx, segmentIdx, argument, result );
       };
 
       Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );

@@ -324,8 +324,10 @@ EllpackCudaReductionKernelWithArgument( const Segments segments,
    #endif
 
    // Write the result
-   if( laneIdx == 0 )
-      store( segmentIdx, argument, result );
+   if( laneIdx == 0 ) {
+      bool emptySegment = ( segmentSize == 0 );
+      store( segmentIdx, argument, result, emptySegment );
+   }
 
 #endif
 }
@@ -430,8 +432,10 @@ EllpackCudaReductionKernelWithSegmentIndexesAndArgument( const Segments segments
    #endif
 
    // Write the result
-   if( laneIdx == 0 )
-      store( segmentIdx_idx, segmentIdx, argument, result );
+   if( laneIdx == 0 ) {
+      bool emptySegment = ( segmentSize == 0 );
+      store( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
+   }
 
 #endif
 }
