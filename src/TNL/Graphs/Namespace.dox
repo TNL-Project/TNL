@@ -1,0 +1,5 @@
+/**
+ * \namespace TNL::Graphs
+ * \brief Graph algorithms and data structures.
+ *
+ */
