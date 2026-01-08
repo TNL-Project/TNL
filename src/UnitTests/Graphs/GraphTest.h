@@ -244,7 +244,7 @@ TYPED_TEST( GraphBasicTest, ConstructorWithMap )
    }
 }
 
-TYPED_TEST( GraphBasicTest, SetEdges )
+TYPED_TEST( GraphBasicTest, SetEdgesWithInitializerList )
 {
    using GraphType = typename TestFixture::DirectedGraphType;
    using AdjacencyMatrixType = typename GraphType::AdjacencyMatrixType;
@@ -252,6 +252,73 @@ TYPED_TEST( GraphBasicTest, SetEdges )
    using DeviceType = typename GraphType::DeviceType;
    using IndexType = typename GraphType::IndexType;
 
+   // Test directed graph with initializer_list variant of setEdges
+   GraphType graph;
+   graph.setVertexCount( 4 );
+   graph.setEdges( { { 0, 1, 1.5 }, { 1, 2, 2.5 }, { 0, 2, 3.5 }, { 2, 3, 4.5 } } );
+
+   EXPECT_EQ( graph.getVertexCount(), 4 );
+   EXPECT_EQ( graph.getEdgeCount(), 4 );
+
+   EXPECT_EQ( graph.getEdgeWeight( 0, 1 ), 1.5 );
+   EXPECT_EQ( graph.getEdgeWeight( 1, 2 ), 2.5 );
+   EXPECT_EQ( graph.getEdgeWeight( 0, 2 ), 3.5 );
+   EXPECT_EQ( graph.getEdgeWeight( 2, 3 ), 4.5 );
+
+   // Verify non-existing edges have weight 0
+   EXPECT_EQ( graph.getEdgeWeight( 1, 0 ), 0.0 );
+   EXPECT_EQ( graph.getEdgeWeight( 3, 2 ), 0.0 );
+
+   // Test updating existing graph with new edges
+   graph.setEdges( { { 0, 3, 5.5 }, { 1, 3, 6.5 } } );
+   EXPECT_EQ( graph.getEdgeCount(), 2 );
+   EXPECT_EQ( graph.getEdgeWeight( 0, 3 ), 5.5 );
+   EXPECT_EQ( graph.getEdgeWeight( 1, 3 ), 6.5 );
+   // Old edges should be gone after reset
+   EXPECT_EQ( graph.getEdgeWeight( 0, 1 ), 0.0 );
+
+   // Test undirected graph with initializer_list variant
+   using UndirectedGraphType = typename TestFixture::UndirectedGraphType;
+   UndirectedGraphType undirectedGraph;
+   undirectedGraph.setVertexCount( 3 );
+   undirectedGraph.setEdges( { { 0, 1, 1.5 }, { 1, 2, 2.5 }, { 0, 2, 3.5 } } );
+
+   EXPECT_EQ( undirectedGraph.getVertexCount(), 3 );
+   EXPECT_EQ( undirectedGraph.getEdgeCount(), 3 );
+
+   // Check symmetry for undirected graph
+   EXPECT_EQ( undirectedGraph.getEdgeWeight( 0, 1 ), 1.5 );
+   EXPECT_EQ( undirectedGraph.getEdgeWeight( 1, 0 ), 1.5 );
+   EXPECT_EQ( undirectedGraph.getEdgeWeight( 1, 2 ), 2.5 );
+   EXPECT_EQ( undirectedGraph.getEdgeWeight( 2, 1 ), 2.5 );
+   EXPECT_EQ( undirectedGraph.getEdgeWeight( 0, 2 ), 3.5 );
+   EXPECT_EQ( undirectedGraph.getEdgeWeight( 2, 0 ), 3.5 );
+
+   // Test undirected graph using symmetric sparse matrix
+   if constexpr( TNL::Matrices::is_sparse_matrix< AdjacencyMatrixType >() ) {
+      using SymmetricGraphType = TNL::Graphs::Graph< ValueType, DeviceType, IndexType, TNL::Graphs::UndirectedGraph >;
+      SymmetricGraphType symmetricGraph( 3 );
+      symmetricGraph.setEdges( { { 0, 1, 1.5 }, { 1, 2, 2.5 }, { 0, 2, 3.5 } } );
+      EXPECT_EQ( symmetricGraph.getVertexCount(), 3 );
+      EXPECT_EQ( symmetricGraph.getEdgeCount(), 3 );
+      EXPECT_EQ( symmetricGraph.getEdgeWeight( 0, 1 ), 1.5 );
+      EXPECT_EQ( symmetricGraph.getEdgeWeight( 1, 0 ), 1.5 );
+      EXPECT_EQ( symmetricGraph.getEdgeWeight( 1, 2 ), 2.5 );
+      EXPECT_EQ( symmetricGraph.getEdgeWeight( 2, 1 ), 2.5 );
+      EXPECT_EQ( symmetricGraph.getEdgeWeight( 0, 2 ), 3.5 );
+      EXPECT_EQ( symmetricGraph.getEdgeWeight( 2, 0 ), 3.5 );
+   }
+}
+
+TYPED_TEST( GraphBasicTest, SetEdgesWithMap )
+{
+   using GraphType = typename TestFixture::DirectedGraphType;
+   using AdjacencyMatrixType = typename GraphType::AdjacencyMatrixType;
+   using ValueType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+
+   // Test directed graph with map variant of setEdges
    GraphType graph;
    graph.setVertexCount( 3 );
 
