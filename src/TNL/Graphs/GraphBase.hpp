@@ -78,36 +78,36 @@ GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getEdgeCount() 
 template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] __cuda_callable__
 auto
-GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getVertex( IndexType nodeIdx ) const -> ConstVertexView
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getVertex( IndexType vertexIdx ) const -> ConstVertexView
 {
-   return { adjacencyMatrixView.getSegments().getSegmentView( nodeIdx ), adjacencyMatrixView.getValues().getView() };
+   return { adjacencyMatrixView.getRow( vertexIdx ) };
 }
 
 template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] __cuda_callable__
 auto
-GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getVertex( IndexType nodeIdx ) -> VertexView
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getVertex( IndexType vertexIdx ) -> VertexView
 {
-   return { adjacencyMatrixView.getSegments().getSegmentView( nodeIdx ), adjacencyMatrixView.getValues().getView() };
+   return { adjacencyMatrixView.getRow( vertexIdx ) };
 }
 
 template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 __cuda_callable__
 void
-GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::setEdgeWeight( IndexType nodeIdx,
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::setEdgeWeight( IndexType vertexIdx,
                                                                                 IndexType edgeIdx,
                                                                                 const ValueType& value )
 {
-   adjacencyMatrixView.setElement( nodeIdx, edgeIdx, value );
+   adjacencyMatrixView.setElement( vertexIdx, edgeIdx, value );
 }
 
 template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 [[nodiscard]] __cuda_callable__
 auto
-GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getEdgeWeight( IndexType nodeIdx, IndexType edgeIdx ) const
+GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getEdgeWeight( IndexType vertexIdx, IndexType edgeIdx ) const
    -> ValueType
 {
-   return adjacencyMatrixView.getElement( nodeIdx, edgeIdx );
+   return adjacencyMatrixView.getElement( vertexIdx, edgeIdx );
 }
 
 template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
