@@ -57,10 +57,12 @@ reduceRowsWithArgumentExample()
       }
    };
 
-   auto storeRange = [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
+   auto storeRange =
+      [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
    {
       rangeMaxValues_view[ rowIdx - rangeBegin ] = value;
-      rangeMaxColumns_view[ rowIdx - rangeBegin ] = columnIdx;
+      if( ! emptyRow )
+         rangeMaxColumns_view[ rowIdx - rangeBegin ] = columnIdx;
    };
 
    TNL::Matrices::reduceRowsWithArgument(
@@ -95,13 +97,15 @@ reduceRowsWithArgumentExample()
       }
    };
 
-   auto storeArray =
-      [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
+   auto storeArray = [ = ] __cuda_callable__(
+                        int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
    {
       arrayMinValues_view[ rowIdx ] = value;
-      arrayMinColumns_view[ rowIdx ] = columnIdx;
       compressedMinValues_view[ indexOfRowIdx ] = value;
-      compressedMinColumns_view[ indexOfRowIdx ] = columnIdx;
+      if( ! emptyRow ) {
+         arrayMinColumns_view[ rowIdx ] = columnIdx;
+         compressedMinColumns_view[ indexOfRowIdx ] = columnIdx;
+      }
    };
 
    TNL::Matrices::reduceRowsWithArgument(

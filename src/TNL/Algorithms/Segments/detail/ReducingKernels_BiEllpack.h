@@ -314,7 +314,8 @@ reduceSegmentsKernelWithAllParametersWithArgument( SegmentsView segments,
       }
       groupHeight /= 2;
    }
-   storer( segmentIdx, argument, result );
+   bool emptySegment = ( groupsCount == 0 );
+   storer( segmentIdx, argument, result, emptySegment );
 #endif
 }
 
@@ -400,7 +401,8 @@ BiEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
       }
       groupHeight /= 2;
    }
-   storer( segmentIdx_idx, segmentIdx, argument, result );
+   bool emptySegment = ( groupsCount == 0 );
+   storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
 #endif
 }
 

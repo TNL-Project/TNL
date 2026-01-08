@@ -244,7 +244,8 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                 localIdx );
                }
             }
-            storer( segmentIdx, argument, result );
+            bool emptySegment = ( segmentChunksCount == 0 );
+            storer( segmentIdx, argument, result, emptySegment );
          }
       }
       else {
@@ -329,7 +330,8 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                                 localIdx );
                }
             }
-            storer( segmentIdx_idx, segmentIdx, argument, result );
+            bool emptySegment = ( segmentChunksCount == 0 );
+            storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
          }
       }
       else {

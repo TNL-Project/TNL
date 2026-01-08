@@ -120,8 +120,13 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
    {
       using FetchValue = decltype( fetch( IndexType(), IndexType(), ValueType() ) );
       const FetchValue identity = reduction.template getIdentity< FetchValue >();
-      reduceRows(
-         matrix, rowIndexes, std::forward< Fetch >( fetch ), reduction, std::forward< Store >( store ), identity, launchConfig );
+      reduceRows( matrix,
+                  rowIndexes,
+                  std::forward< Fetch >( fetch ),
+                  reduction,
+                  std::forward< Store >( store ),
+                  identity,
+                  launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Store >
@@ -135,8 +140,13 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
    {
       using FetchValue = decltype( fetch( IndexType(), IndexType(), ValueType() ) );
       const FetchValue identity = reduction.template getIdentity< FetchValue >();
-      reduceRows(
-         matrix, rowIndexes, std::forward< Fetch >( fetch ), reduction, std::forward< Store >( store ), identity, launchConfig );
+      reduceRows( matrix,
+                  rowIndexes,
+                  std::forward< Fetch >( fetch ),
+                  reduction,
+                  std::forward< Store >( store ),
+                  identity,
+                  launchConfig );
    }
 
    template< typename IndexBegin,
@@ -233,9 +243,10 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
             return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto keepWrapper =
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         store( rowIdx, localIdx, localIdx, value );
+         store( rowIdx, localIdx, localIdx, value, emptySegment );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -261,9 +272,10 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
             return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto keepWrapper =
+         [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         store( rowIdx, localIdx, localIdx, value );
+         store( rowIdx, localIdx, localIdx, value, emptySegment );
       };
       Algorithms::Segments::reduceSegmentsWithArgument(
          matrix.getSegments(), begin, end, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
@@ -289,10 +301,11 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
             return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__(
-                            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto keepWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value );
+         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -318,10 +331,11 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
             return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__(
-                            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto keepWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value );
+         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
       };
 
       Algorithms::Segments::reduceSegmentsWithArgument(
@@ -354,10 +368,11 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
             return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__(
-                            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto keepWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value );
+         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
       };
 
       return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
@@ -397,10 +412,11 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
             return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
          return identity;
       };
-      auto keepWrapper = [ = ] __cuda_callable__(
-                            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value ) mutable
+      auto keepWrapper =
+         [ = ] __cuda_callable__(
+            IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, const FetchValue& value, bool emptySegment ) mutable
       {
-         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value );
+         store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
       };
 
       return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
