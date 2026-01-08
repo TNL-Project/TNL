@@ -637,13 +637,9 @@ forAllEdgesIf( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVertices-1.cpp
+ * \include Graphs/Traverse/GraphExample_forVertices.cpp
  * \par Output
- * \include GraphExample_forVertices-1.out
- *
- * \include Graphs/Traverse/GraphExample_forVertices-2.cpp
- * \par Output
- * \include GraphExample_forVertices-2.out
+ * \include GraphExample_forVertices.out
  */
 template< typename Graph,
           typename IndexBegin,
@@ -679,13 +675,9 @@ forVertices( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVertices-1.cpp
+ * \include Graphs/Traverse/GraphExample_forVertices.cpp
  * \par Output
- * \include GraphExample_forVertices-1.out
- *
- * \include Graphs/Traverse/GraphExample_forVertices-2.cpp
- * \par Output
- * \include GraphExample_forVertices-2.out
+ * \include GraphExample_forVertices.out
  */
 template< typename Graph,
           typename IndexBegin,
@@ -712,13 +704,9 @@ forVertices( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVertices-1.cpp
+ * \include Graphs/Traverse/GraphExample_forVertices.cpp
  * \par Output
- * \include GraphExample_forVertices-1.out
- *
- * \include Graphs/Traverse/GraphExample_forVertices-2.cpp
- * \par Output
- * \include GraphExample_forVertices-2.out
+ * \include GraphExample_forVertices.out
  */
 template< typename Graph, typename Function >
 void
@@ -741,13 +729,9 @@ forAllVertices( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVertices-1.cpp
+ * \include Graphs/Traverse/GraphExample_forVertices.cpp
  * \par Output
- * \include GraphExample_forVertices-1.out
- *
- * \include Graphs/Traverse/GraphExample_forVertices-2.cpp
- * \par Output
- * \include GraphExample_forVertices-2.out
+ * \include GraphExample_forVertices.out
  */
 template< typename Graph, typename Function >
 void
