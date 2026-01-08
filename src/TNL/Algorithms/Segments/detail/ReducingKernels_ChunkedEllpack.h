@@ -223,8 +223,10 @@ ChunkedEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
          reduction( result, chunksResults[ chunkIndex ], argument, chunksArguments[ chunkIndex ] );
          chunkIndex++;
       }
-      if( segment >= begin && segment < end )
-         storer( segment, argument, result );
+      if( segment >= begin && segment < end ) {
+         bool emptySegment = ( chunkSize == 0 );
+         storer( segment, argument, result, emptySegment );
+      }
    }
 #endif
 }
@@ -287,7 +289,8 @@ ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
          }
       }
    }
-   storer( segmentIdx_idx, segmentIdx, argument, result );
+   bool emptySegment = ( chunkSize == 0 );
+   storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
 #endif
 }
 
