@@ -201,7 +201,8 @@ reduceSegmentsCSRAdaptiveKernelWithArgument( int gridIdx,
          Index localIdx = 0;
          for( Index sharedIdx = offsets[ i ] - begin; sharedIdx < sharedEnd; sharedIdx++, localIdx++ )
             reduction( result, streamShared_result[ warpIdx ][ sharedIdx ], argument, localIdx );
-         store( i, argument, result );
+         bool emptySegment = ( offsets[ i ] == offsets[ i + 1 ] );
+         store( i, argument, result, emptySegment );
       }
    }
    else if( block.getType() == detail::Type::VECTOR )  // Vector kernel - one segment per warp
@@ -216,8 +217,10 @@ reduceSegmentsCSRAdaptiveKernelWithArgument( int gridIdx,
       using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< 256, Reduction, ReturnType, Index >;
       auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduction, result, argument );
 
-      if( laneIdx == 0 )
-         store( segmentIdx, argument_, result_ );
+      if( laneIdx == 0 ) {
+         bool emptySegment = ( begin == end );
+         store( segmentIdx, argument_, result_, emptySegment );
+      }
    }
    else  // block.getType() == Type::LONG - several warps per segment
    {
@@ -283,7 +286,8 @@ reduceSegmentsCSRAdaptiveKernelWithArgument( int gridIdx,
          }
          if( laneIdx == 0 ) {
             //printf( "Long: segmentIdx %d -> %d \n", segmentIdx, multivectorShared_result[ 0 ] );
-            store( segmentIdx, multivectorShared_argument[ 0 ], multivectorShared_result[ 0 ] );
+            bool emptySegment = ( begin == end );
+            store( segmentIdx, multivectorShared_argument[ 0 ], multivectorShared_result[ 0 ], emptySegment );
          }
       }
    }

@@ -65,13 +65,15 @@ reduceRowsWithArgumentIfExample()
       return rowIdx % 2 == 0;
    };
 
-   auto storeRange =
-      [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
+   auto storeRange = [ = ] __cuda_callable__(
+                        int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
    {
       rangeMaxValues_view[ rowIdx - rangeBegin ] = value;
-      rangeMaxColumns_view[ rowIdx - rangeBegin ] = columnIdx;
       compressedMaxValues_view[ indexOfRowIdx ] = value;
-      compressedMaxColumns_view[ indexOfRowIdx ] = columnIdx;
+      if( ! emptyRow ) {
+         rangeMaxColumns_view[ rowIdx - rangeBegin ] = columnIdx;
+         compressedMaxColumns_view[ indexOfRowIdx ] = columnIdx;
+      }
    };
 
    rangeMaxValues.setValue( -1.0 );
@@ -116,12 +118,15 @@ reduceRowsWithArgumentIfExample()
    };
 
    auto storeOddMin =
-      [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
+      [ = ] __cuda_callable__(
+         int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
    {
       oddMinValues_view[ rowIdx - 5 ] = value;
-      oddMinColumns_view[ rowIdx - 5 ] = columnIdx;
       compressedOddMinValues_view[ indexOfRowIdx ] = value;
-      compressedOddMinColumns_view[ indexOfRowIdx ] = columnIdx;
+      if( ! emptyRow ) {
+         oddMinColumns_view[ rowIdx - 5 ] = columnIdx;
+         compressedOddMinColumns_view[ indexOfRowIdx ] = columnIdx;
+      }
    };
 
    oddMinValues.setValue( -1.0 );

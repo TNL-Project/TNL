@@ -64,12 +64,14 @@ reduceAllRowsWithArgumentIfExample()
    };
 
    auto store =
-      [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
+      [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
    {
       maxValues_view[ rowIdx ] = value;
-      maxColumns_view[ rowIdx ] = columnIdx;
       compressedMaxValues_view[ indexOfRowIdx ] = value;
-      compressedMaxColumns_view[ indexOfRowIdx ] = columnIdx;
+      if( ! emptyRow ) {
+         maxColumns_view[ rowIdx ] = columnIdx;
+         compressedMaxColumns_view[ indexOfRowIdx ] = columnIdx;
+      }
    };
 
    // Initialize with -1 to see which rows were processed
