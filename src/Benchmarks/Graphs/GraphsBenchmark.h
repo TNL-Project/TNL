@@ -739,7 +739,7 @@ struct GraphsBenchmark
 #ifdef __CUDACC__
       if( device == "cuda" || device == "all" ) {
          TNLBenchmarks< TNL::Devices::Cuda, CSRSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
-         TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
+         /*TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
 
          // Row-major sliced Ellpack with various segment sizes
          TNLBenchmarks< TNL::Devices::Cuda, RowMajorSlicedEllpackSegments< 2 >::template type >(
@@ -800,7 +800,7 @@ struct GraphsBenchmark
                digraph, graph, smallest, largest, benchmark, "cuda" );
             TNLBenchmarks< TNL::Devices::Cuda, SortedChunkedEllpackSegments >(
                digraph, graph, smallest, largest, benchmark, "cuda" );
-         }
+         }*/
       }
 #endif
       if( errors == 0 )
