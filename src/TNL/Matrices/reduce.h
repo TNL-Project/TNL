@@ -218,14 +218,19 @@ namespace TNL::Matrices {
  * \subsection StoreLambda_WithLocalIdx Store With Argument (Position Tracking)
  *
  * ```cpp
- * auto store = [=] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const Value& value ) { ... }
+ * auto store = [=] __cuda_callable__ ( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, const Value& value, bool
+ * emptySegment ) { ... }
  * ```
  *
  * **Parameters:**
  * - \e rowIdx - The index of the row
- * - \e localIdx - The local index of the element within the row (when tracking positions)
- * - \e columnIdx - The column index of the element within the row (when tracking positions)
+ * - \e localIdx - The local index of the element within the row (when tracking positions). Has no meaning when emptySegment is
+ * true.
+ * - \e columnIdx - The column index of the element within the row (when tracking positions). Has no meaning when emptySegment
+ * is true.
  * - \e value - The result of the reduction for this row
+ * - \e emptySegment - True if the row is empty (contains no elements), false otherwise. When true, localIdx and columnIdx are
+ * meaningless.
  *
  * \subsection StoreLambda_WithIndexArray Store With Row Index Array Or Condition
  *
@@ -239,11 +244,11 @@ namespace TNL::Matrices {
  * - \e rowIdx - The actual index of the row
  * - \e value - The result of the reduction for this row
  *
- * \subsection StoreLambda_WithIndexArrayAndLocalIdx Store With Row Index Array and Local Index
+ * \subsection StoreLambda_WithIndexArrayAndLocalIdx Store With Row Index Array and  With Argument (Position Tracking)
  *
  * ```cpp
  * auto store = [=] __cuda_callable__ ( IndexType indexOfRowIdx, IndexType rowIdx, IndexType localIdx, IndexType columnIdx,
- * const FetchValue& value ) { ...
+ * const FetchValue& value, bool emptySegment ) { ...
  * }
  * ```
  *
@@ -251,9 +256,11 @@ namespace TNL::Matrices {
  * - \e indexOfRowIdx - The position within the \e rowIndexes array or the rank in the set of rows for which the condition was
  * true.
  * - \e rowIdx - The actual index of the row
- * - \e localIdx - The position of the element within the row
- * - \e columnIdx - The column index of the element within the row
+ * - \e localIdx - The position of the element within the row. Has no meaning when emptySegment is true.
+ * - \e columnIdx - The column index of the element within the row. Has no meaning when emptySegment is true.
  * - \e value - The result of the reduction for this row
+ * - \e emptySegment - True if the row is empty (contains no elements), false otherwise. When true, localIdx and columnIdx are
+ * meaningless.
  *
  * \section ConditionLambdas Condition Lambda Functions
  *

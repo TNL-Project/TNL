@@ -152,26 +152,29 @@ struct StoreIntoVectorWithArgument
    mutable ValueView valueView;
    mutable IndexView indexView;
 
-   // For range-based reductions (4 parameters)
+   // For range-based reductions with emptySegment (5 parameters)
    __cuda_callable__
    void
-   operator()( IndexType vertexIdx, IndexType localIdx, IndexType columnIdx, const ValueType& value ) const
+   operator()( IndexType vertexIdx, IndexType localIdx, IndexType columnIdx, const ValueType& value, bool emptySegment ) const
    {
       valueView[ vertexIdx ] = value;
-      indexView[ vertexIdx ] = columnIdx;
+      if( ! emptySegment )
+         indexView[ vertexIdx ] = columnIdx;
    }
 
-   // For array-based reductions (5 parameters)
+   // For array-based reductions with emptySegment (6 parameters)
    __cuda_callable__
    void
    operator()( IndexType indexOfVertexIdx,
                IndexType vertexIdx,
                IndexType localIdx,
                IndexType columnIdx,
-               const ValueType& value ) const
+               const ValueType& value,
+               bool emptySegment ) const
    {
       valueView[ vertexIdx ] = value;
-      indexView[ vertexIdx ] = columnIdx;
+      if( ! emptySegment )
+         indexView[ vertexIdx ] = columnIdx;
    }
 };
 
