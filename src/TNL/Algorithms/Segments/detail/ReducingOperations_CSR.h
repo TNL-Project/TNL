@@ -648,7 +648,8 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                reduction( result, fetch( globalIdx ), argument, localIdx );
             localIdx++;
          }
-         storer( segmentIdx, argument, result );
+         bool emptySegment = ( begin == end );
+         storer( segmentIdx, argument, result, emptySegment );
       };
 
       if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
@@ -941,7 +942,8 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                else
                   reduction( result, fetch( globalIdx ), argument, localIdx );
          }
-         storer( segmentIdx_idx, segmentIdx, argument, result );
+         bool emptySegment = ( begin == end );
+         storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
       };
 
       if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {

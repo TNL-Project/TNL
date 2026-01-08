@@ -68,11 +68,12 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   auto store = [ = ] __cuda_callable__( int indexOfSegmentIdx, int segmentIdx, int localIdx, const double& value ) mutable
+   auto store = [ = ] __cuda_callable__( int indexOfSegmentIdx, int segmentIdx, int localIdx, const double& value, bool emptySegment ) mutable
    {
       compressedSums_view[ indexOfSegmentIdx ] = value;
       sums_view[ segmentIdx ] = value;
-      positions_view[ segmentIdx ] = localIdx;
+      if( ! emptySegment )
+         positions_view[ segmentIdx ] = localIdx;
    };
 
    TNL::Algorithms::Segments::reduceAllSegmentsWithArgumentIf( segments, condition, fetch_full, TNL::MaxWithArg{}, store );

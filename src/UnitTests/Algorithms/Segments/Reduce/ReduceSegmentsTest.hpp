@@ -263,10 +263,11 @@ test_reduceSegmentsWithArgument_MaximumInSegments()
             return v_view[ globalIdx ];
          return 0;
       };
-      auto keep = [ = ] __cuda_callable__( const IndexType segmentIdx, const IndexType localIdx, const IndexType res ) mutable
+      auto keep = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType res, bool emptySegment ) mutable
       {
          result_view[ segmentIdx ] = res;
-         args_view[ segmentIdx ] = localIdx;
+         if( ! emptySegment )
+            args_view[ segmentIdx ] = localIdx;
       };
       TNL::Algorithms::Segments::reduceAllSegmentsWithArgument( segments, fetch, TNL::MaxWithArg{}, keep, launch_config );
 
@@ -439,13 +440,13 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
             return v_view[ globalIdx ];
          return 0;
       };
-      auto keep = [ = ] __cuda_callable__( const IndexType indexOfSegmentIdx,
-                                           const IndexType segmentIdx,
-                                           const IndexType localIdx,
-                                           const IndexType res ) mutable
+      auto keep =
+         [ = ] __cuda_callable__(
+            IndexType indexOfSegmentIdx, IndexType segmentIdx, IndexType localIdx, IndexType res, bool emptySegment ) mutable
       {
+         if( ! emptySegment )
+            args_view[ segmentIdx ] = localIdx;
          result_view[ segmentIdx ] = res;
-         args_view[ segmentIdx ] = localIdx;
       };
       TNL::Algorithms::Segments::reduceSegmentsWithArgument(
          segments, segmentIndexes, fetch, TNL::MaxWithArg{}, keep, launch_config );
@@ -626,13 +627,13 @@ test_reduceSegmentsWithArgumentIf_MaximumInSegments()
             return v_view[ globalIdx ];
          return 0;
       };
-      auto keep = [ = ] __cuda_callable__( const IndexType indexOfSegmentIdx,
-                                           const IndexType segmentIdx,
-                                           const IndexType localIdx,
-                                           const IndexType res ) mutable
+      auto keep =
+         [ = ] __cuda_callable__(
+            IndexType indexOfSegmentIdx, IndexType segmentIdx, IndexType localIdx, IndexType res, bool emptySegment ) mutable
       {
          result_view[ segmentIdx ] = res;
-         args_view[ segmentIdx ] = localIdx;
+         if( ! emptySegment )
+            args_view[ segmentIdx ] = localIdx;
       };
       TNL::Algorithms::Segments::reduceAllSegmentsWithArgumentIf(
          segments, condition, fetch, TNL::MaxWithArg{}, keep, launch_config );

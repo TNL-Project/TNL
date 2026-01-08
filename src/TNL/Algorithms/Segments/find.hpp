@@ -8,58 +8,60 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Segments, typename Condition, typename ResultKeeper >
+template< typename Segments, typename Condition, typename ResultStorer >
 static void
-findInAllSegments( const Segments& segments, Condition&& condition, ResultKeeper&& keeper, LaunchConfiguration launchConfig )
+findInAllSegments( const Segments& segments, Condition&& condition, ResultStorer&& storer, LaunchConfiguration launchConfig )
 {
    findInSegments( segments,
                    (typename Segments::IndexType) 0,
                    segments.getSegmentsCount(),
                    std::forward< Condition >( condition ),
-                   std::forward< ResultKeeper >( keeper ),
+                   std::forward< ResultStorer >( storer ),
                    launchConfig );
 }
 
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename ResultKeeper, typename T >
+template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename ResultStorer, typename T >
 static void
 findInSegments( const Segments& segments,
                 IndexBegin begin,
                 IndexEnd end,
                 Condition&& condition,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 LaunchConfiguration launchConfig )
 {
-   reduceSegmentsWithArgument( segments,
-                               begin,
-                               end,
-                               std::forward< Condition >( condition ),
-                               AnyWithArg{},
-                               std::forward< ResultKeeper >( keeper ),
-                               launchConfig );
+   using IndexType = typename Segments::IndexType;
+   auto store_ = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, bool found, bool emptySegment ) mutable
+   {
+      storer( segmentIdx, localIdx, found );
+   };
+   reduceSegmentsWithArgument(
+      segments, begin, end, std::forward< Condition >( condition ), AnyWithArg{}, std::move( store_ ), launchConfig );
 }
 
-template< typename Segments, typename Array, typename Condition, typename ResultKeeper, typename T >
+template< typename Segments, typename Array, typename Condition, typename ResultStorer, typename T >
 static void
 findInSegments( const Segments& segments,
                 const Array& segmentIndexes,
                 Condition&& condition,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 LaunchConfiguration launchConfig )
 {
-   reduceSegmentsWithArgument( segments,
-                               segmentIndexes,
-                               std::forward< Condition >( condition ),
-                               AnyWithArg{},
-                               std::forward< ResultKeeper >( keeper ),
-                               launchConfig );
+   using IndexType = typename Segments::IndexType;
+   auto store_ = [ = ] __cuda_callable__(
+                    IndexType segmentIdx_idx, IndexType segmentIdx, IndexType localIdx, bool found, bool emptySegment ) mutable
+   {
+      storer( segmentIdx_idx, segmentIdx, localIdx, found );
+   };
+   reduceSegmentsWithArgument(
+      segments, segmentIndexes, std::forward< Condition >( condition ), AnyWithArg{}, std::move( store_ ), launchConfig );
 }
 
-template< typename Segments, typename SegmentCondition, typename Condition, typename ResultKeeper >
+template< typename Segments, typename SegmentCondition, typename Condition, typename ResultStorer >
 static void
 findInAllSegmentsIf( const Segments& segments,
                      SegmentCondition&& segmentCondition,
                      Condition&& condition,
-                     ResultKeeper&& keeper,
+                     ResultStorer&& storer,
                      LaunchConfiguration launchConfig )
 {
    findInSegmentsIf( segments,
@@ -67,7 +69,7 @@ findInAllSegmentsIf( const Segments& segments,
                      segments.getSegmentsCount(),
                      std::forward< SegmentCondition >( segmentCondition ),
                      std::forward< Condition >( condition ),
-                     std::forward< ResultKeeper >( keeper ),
+                     std::forward< ResultStorer >( storer ),
                      launchConfig );
 }
 
@@ -76,7 +78,7 @@ template< typename Segments,
           typename IndexEnd,
           typename SegmentCondition,
           typename Condition,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T >
 static void
 findInSegmentsIf( const Segments& segments,
@@ -84,15 +86,14 @@ findInSegmentsIf( const Segments& segments,
                   IndexEnd end,
                   SegmentCondition&& segmentCondition,
                   Condition&& condition,
-                  ResultKeeper&& keeper,
+                  ResultStorer&& storer,
                   LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
-   auto keep_ =
-      [ = ] __cuda_callable__(
-         const IndexType segmentIdx_idx, const IndexType segmentIdx, const IndexType localIdx, const bool found ) mutable
+   auto store_ = [ = ] __cuda_callable__(
+                    IndexType segmentIdx_idx, IndexType segmentIdx, IndexType localIdx, bool found, bool emptySegment ) mutable
    {
-      keeper( segmentIdx, localIdx, found );
+      storer( segmentIdx, localIdx, found );
    };
    reduceSegmentsWithArgumentIf( segments,
                                  begin,
@@ -100,7 +101,7 @@ findInSegmentsIf( const Segments& segments,
                                  std::forward< SegmentCondition >( segmentCondition ),
                                  std::forward< Condition >( condition ),
                                  AnyWithArg{},
-                                 keep_,
+                                 std::move( store_ ),
                                  launchConfig );
 }
 

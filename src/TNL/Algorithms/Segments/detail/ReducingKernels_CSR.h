@@ -664,8 +664,8 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
       constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
       if( inWarpLaneIdx < segmentsCount && segmentIdx_idx + inWarpLaneIdx < segmentIndexes.getSize() ) {
          store( segmentIdx_idx,
-               segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
-               shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
+                segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
+                shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
       }
    }
 #endif
@@ -803,9 +803,9 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
 
       // Write the result
       if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 )  // first lane in the warp
-         store( warps_scheduler[ warp_idx ],          // segmentIdx_idx
-               scheduled_segment,
-               result );
+         store( warps_scheduler[ warp_idx ],         // segmentIdx_idx
+                scheduled_segment,
+                result );
       warp_idx += warpsPerBlock;
    }
 
@@ -879,8 +879,10 @@ reduceSegmentsCSRVectorKernelWithArgument( Index gridIdx,
    auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduction, result, argument );
 
    // Write the result
-   if( laneIdx == 0 )
-      store( segmentIdx, argument_, result_ );
+   if( laneIdx == 0 ) {
+      bool emptySegment = ( segments.getOffsets()[ segmentIdx ] == endIdx );
+      store( segmentIdx, argument_, result_, emptySegment );
+   }
 #endif
 }
 
@@ -981,8 +983,11 @@ reduceSegmentsCSRVariableVectorKernelWithArgument( const Index gridID,
    #endif
 
    // Write the result
-   if( laneID == 0 )
-      store( segmentIdx, argument, result );
+   if( laneID == 0 ) {
+      TNL_ASSERT_LT( segmentIdx + 1, segments.getOffsets().getSize(), "" );
+      bool emptySegment = ( segments.getOffsets()[ segmentIdx ] == segments.getOffsets()[ segmentIdx + 1 ] );
+      store( segmentIdx, argument, result, emptySegment );
+   }
 #endif
 }
 
@@ -1103,9 +1108,12 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
           && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
           && segmentIdx + inWarpLaneIdx < end )
       {
-         store( segmentIdx + inWarpLaneIdx,
-               shared_arguments[ inWarpLaneIdx * warpsPerSegment ],
-               shared_results[ inWarpLaneIdx * warpsPerSegment ] );
+         const Index currentSegmentIdx = segmentIdx + inWarpLaneIdx;
+         bool emptySegment = ( segments.getOffsets()[ currentSegmentIdx ] == segments.getOffsets()[ currentSegmentIdx + 1 ] );
+         store( currentSegmentIdx,
+                shared_arguments[ inWarpLaneIdx * warpsPerSegment ],
+                shared_results[ inWarpLaneIdx * warpsPerSegment ],
+                emptySegment );
       }
    }
 #endif
@@ -1190,8 +1198,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
       auto [ result_, argument_ ] = BlockReduce::reduceWithArgument( reduce, identity, result, argument, threadIdx.x, storage );
 
       // Write the result
-      if( threadIdx.x == 0 )
-         store( scheduled_segment[ 0 ], argument_, result_ );
+      if( threadIdx.x == 0 ) {
+         TNL_ASSERT_LT( scheduled_segment[ 0 ] + 1, offsets.getSize(), "" );
+         bool emptySegment = ( offsets[ scheduled_segment[ 0 ] ] == offsets[ scheduled_segment[ 0 ] + 1 ] );
+         store( scheduled_segment[ 0 ], argument_, result_, emptySegment );
+      }
    }
 
    // Processing segments smaller than BlockSize and larger the warp size
@@ -1232,8 +1243,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
       auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduce, result, argument );
 
       // Write the result
-      if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 )  // first lane in the warp
-         store( scheduled_segment, argument_, result_ );
+      if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 ) {  // first lane in the warp
+         TNL_ASSERT_LT( scheduled_segment + 1, offsets.getSize(), "" );
+         bool emptySegment = ( offsets[ scheduled_segment ] == offsets[ scheduled_segment + 1 ] );
+         store( scheduled_segment, argument_, result_, emptySegment );
+      }
       warp_idx += warpsPerBlock;
    }
 
@@ -1252,7 +1266,8 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
          localIdx++;
       }
       // Write the result
-      store( segmentIdx, argument, result );
+      bool emptySegment = ( offsets[ segmentIdx ] == endIdx );
+      store( segmentIdx, argument, result, emptySegment );
    }
 #endif
 }
@@ -1310,8 +1325,10 @@ reduceSegmentsCSRVectorKernelWithIndexesAndArgument( Index gridIdx,
    auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduction, result, argument );
 
    // Write the result
-   if( laneIdx == 0 )
-      store( segmentIdx_idx, segmentIdx, argument_, result_ );
+   if( laneIdx == 0 ) {
+      bool emptySegment = ( segments.getOffsets()[ segmentIdx ] == endIdx );
+      store( segmentIdx_idx, segmentIdx, argument_, result_, emptySegment );
+   }
 
 #endif
 }
@@ -1414,8 +1431,11 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument( const Index gridID,
    #endif
 
    // Write the result
-   if( laneID == 0 )
-      store( segmentIdx_idx, segmentIdx, argument, result );
+   if( laneID == 0 ) {
+      TNL_ASSERT_LT( segmentIdx + 1, segments.getOffsets().getSize(), "" );
+      bool emptySegment = ( segments.getOffsets()[ segmentIdx ] == segments.getOffsets()[ segmentIdx + 1 ] );
+      store( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
+   }
 #endif
 }
 
@@ -1536,10 +1556,13 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
           && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
           && segmentIdx_idx + inWarpLaneIdx < segmentIndexes.getSize() )
       {
+         const Index currentSegmentIdx = segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ];
+         bool emptySegment = ( segments.getOffsets()[ currentSegmentIdx ] == segments.getOffsets()[ currentSegmentIdx + 1 ] );
          store( segmentIdx_idx,
-               segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
-               shared_arguments[ inWarpLaneIdx * warpsPerSegment ],
-               shared_results[ inWarpLaneIdx * warpsPerSegment ] );
+                segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
+                shared_arguments[ inWarpLaneIdx * warpsPerSegment ],
+                shared_results[ inWarpLaneIdx * warpsPerSegment ],
+                emptySegment );
       }
    }
 #endif
@@ -1628,8 +1651,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
       auto [ result_, argument_ ] = BlockReduce::reduceWithArgument( reduce, identity, result, argument, threadIdx.x, storage );
 
       // Write the result
-      if( threadIdx.x == 0 )
-         store( scheduled_segment_idx[ 0 ], scheduled_segment, argument_, result_ );
+      if( threadIdx.x == 0 ) {
+         TNL_ASSERT_LT( scheduled_segment + 1, offsets.getSize(), "" );
+         bool emptySegment = ( offsets[ scheduled_segment ] == offsets[ scheduled_segment + 1 ] );
+         store( scheduled_segment_idx[ 0 ], scheduled_segment, argument_, result_, emptySegment );
+      }
    }
 
    // Processing segments smaller than BlockSize and larger the warp size
@@ -1672,8 +1698,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
       auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduce, result, argument );
 
       // Write the result
-      if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 )  // first lane in the warp
-         store( scheduled_segment_idx[ 0 ], scheduled_segment, argument_, result_ );
+      if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 ) {  // first lane in the warp
+         TNL_ASSERT_LT( scheduled_segment + 1, offsets.getSize(), "" );
+         bool emptySegment = ( offsets[ scheduled_segment ] == offsets[ scheduled_segment + 1 ] );
+         store( scheduled_segment_idx[ 0 ], scheduled_segment, argument_, result_, emptySegment );
+      }
       warp_idx += warpsPerBlock;
    }
 
@@ -1692,7 +1721,8 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
          localIdx++;
       }
       // Write the result
-      store( segmentIdx_idx, segmentIdx, argument, result );
+      bool emptySegment = ( offsets[ segmentIdx ] == endIdx );
+      store( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
    }
 #endif
 }

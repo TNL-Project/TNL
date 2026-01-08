@@ -53,10 +53,11 @@ reduceAllRowsWithArgumentExample()
       }
    };
 
-   auto store = [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
+   auto store = [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
    {
       maxValues_view[ rowIdx ] = value;
-      maxColumns_view[ rowIdx ] = columnIdx;
+      if( ! emptyRow )
+         maxColumns_view[ rowIdx ] = columnIdx;
    };
 
    TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, reduction, store, std::numeric_limits< double >::lowest() );
@@ -84,10 +85,11 @@ reduceAllRowsWithArgumentExample()
       }
    };
 
-   auto storeMin = [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value ) mutable
+   auto storeMin = [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
    {
       minValues_view[ rowIdx ] = value;
-      minColumns_view[ rowIdx ] = columnIdx;
+      if( ! emptyRow )
+         minColumns_view[ rowIdx ] = columnIdx;
    };
 
    TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, reductionMin, storeMin, std::numeric_limits< double >::max() );

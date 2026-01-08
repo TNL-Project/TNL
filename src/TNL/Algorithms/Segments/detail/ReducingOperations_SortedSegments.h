@@ -254,9 +254,10 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                   return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
                },
                reduction,
-               [ = ] __cuda_callable__( IndexType segmentIdx, IndexType argument, const ReturnType& result ) mutable
+               [ = ] __cuda_callable__(
+                  IndexType segmentIdx, IndexType argument, const ReturnType& result, bool emptySegment ) mutable
                {
-                  storer( inverseSegmentsPermutationView[ segmentIdx ], argument, result );
+                  storer( inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
                },
                identity,
                launchConfig );
@@ -268,9 +269,10 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                end,
                fetch,
                reduction,
-               [ = ] __cuda_callable__( IndexType segmentIdx, IndexType argument, const ReturnType& result ) mutable
+               [ = ] __cuda_callable__(
+                  IndexType segmentIdx, IndexType argument, const ReturnType& result, bool emptySegment ) mutable
                {
-                  storer( inverseSegmentsPermutationView[ segmentIdx ], argument, result );
+                  storer( inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
                },
                identity,
                launchConfig );
@@ -287,10 +289,13 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                segments.getSegmentsPermutationView().getConstView( begin, end ),
                fetch_,
                reduction,
-               [ = ] __cuda_callable__(
-                  IndexType segmentIdx_idx, IndexType segmentIdx, IndexType argument, const ReturnType& result ) mutable
+               [ = ] __cuda_callable__( IndexType segmentIdx_idx,
+                                        IndexType segmentIdx,
+                                        IndexType argument,
+                                        const ReturnType& result,
+                                        bool emptySegment ) mutable
                {
-                  storer( inverseSegmentsPermutationView[ segmentIdx ], argument, result );
+                  storer( inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
                },
                identity,
                launchConfig );
@@ -301,10 +306,13 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                segments.getSegmentsPermutationView().getConstView( begin, end ),
                fetch,
                reduction,
-               [ = ] __cuda_callable__(
-                  IndexType segmentdIdx_idx, IndexType segmentIdx, IndexType argument, const ReturnType& result ) mutable
+               [ = ] __cuda_callable__( IndexType segmentdIdx_idx,
+                                        IndexType segmentIdx,
+                                        IndexType argument,
+                                        const ReturnType& result,
+                                        bool emptySegment ) mutable
                {
-                  storer( inverseSegmentsPermutationView[ segmentIdx ], argument, result );
+                  storer( inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
                },
                identity,
                launchConfig );
@@ -347,10 +355,13 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
             },
             reduction,
-            [ = ] __cuda_callable__(
-               IndexType segmentIdx_idx, IndexType segmentIdx, IndexType argument, const ReturnType& result ) mutable
+            [ = ] __cuda_callable__( IndexType segmentIdx_idx,
+                                     IndexType segmentIdx,
+                                     IndexType argument,
+                                     const ReturnType& result,
+                                     bool emptySegment ) mutable
             {
-               storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result );
+               storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
             },
             identity,
             launchConfig );
@@ -361,10 +372,13 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             aux.getConstView(),
             fetch,
             reduction,
-            [ = ] __cuda_callable__(
-               IndexType segmentIdx_idx, IndexType segmentIdx, IndexType argument, const ReturnType& result ) mutable
+            [ = ] __cuda_callable__( IndexType segmentIdx_idx,
+                                     IndexType segmentIdx,
+                                     IndexType argument,
+                                     const ReturnType& result,
+                                     bool emptySegment ) mutable
             {
-               storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result );
+               storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
             },
             identity,
             launchConfig );
@@ -482,10 +496,13 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
             },
             reduction,
-            [ = ] __cuda_callable__(
-               IndexType segmentIdx_idx, IndexType segmentIdx, IndexType argument, const ReturnType& result ) mutable
+            [ = ] __cuda_callable__( IndexType segmentIdx_idx,
+                                     IndexType segmentIdx,
+                                     IndexType argument,
+                                     const ReturnType& result,
+                                     bool emptySegment ) mutable
             {
-               storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result );
+               storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
             },
             identity,
             launchConfig );
@@ -496,10 +513,13 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             indexes.getConstView(),
             fetch,
             reduction,
-            [ = ] __cuda_callable__(
-               IndexType segmentIdx_idx, IndexType segmentIdx, IndexType argument, const ReturnType& result ) mutable
+            [ = ] __cuda_callable__( IndexType segmentIdx_idx,
+                                     IndexType segmentIdx,
+                                     IndexType argument,
+                                     const ReturnType& result,
+                                     bool emptySegment ) mutable
             {
-               storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result );
+               storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
             },
             identity,
             launchConfig );

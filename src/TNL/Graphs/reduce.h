@@ -207,7 +207,8 @@ namespace TNL::Graphs {
  * \subsection StoreLambda_WithLocalIdx Store With Argument (Position Tracking)
  *
  * ```cpp
- * auto store = [=] __cuda_callable__ ( IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const Value& weight ) {
+ * auto store = [=] __cuda_callable__ ( IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const Value& weight, bool
+ * isolatedVertex ) {
  * ... }
  * ```
  *
@@ -216,6 +217,8 @@ namespace TNL::Graphs {
  * - \e localIdx - The local index of the edge within the vertex (when tracking positions)
  * - \e targetIdx - The index of the target vertex of given edge (when tracking positions)
  * - \e weight - The result of the reduction for this vertex
+ * - \e isolatedVertex - Boolean flag indicating whether the vertex has no edges (true if empty). When true, localIdx and
+ * targetIdx values are meaningless and should not be used.
  *
  * \subsection StoreLambda_WithIndexArray Store With Vertex Index Array Or Condition
  *
@@ -229,11 +232,11 @@ namespace TNL::Graphs {
  * - \e sourceIdx - The actual index of the vertex
  * - \e weight - The result of the reduction for this vertex
  *
- * \subsection StoreLambda_WithIndexArrayAndLocalIdx Store With Vertex Index Array and Local Index
+ * \subsection StoreLambda_WithIndexArrayAndLocalIdx Store With Vertex Index Array and With Argument
  *
  * ```cpp
  * auto store = [=] __cuda_callable__ ( IndexType indexOfVertexIdx, IndexType sourceIdx, IndexType localIdx, IndexType
- * targetIdx, const FetchValue& weight ) { ...
+ * targetIdx, const FetchValue& weight, bool isolatedVertex ) { ...
  * }
  * ```
  *
@@ -244,6 +247,8 @@ namespace TNL::Graphs {
  * - \e localIdx - The position of the edge within the vertex
  * - \e targetIdx - The index of the target vertex of given edge
  * - \e weight - The result of the reduction for this vertex
+ * - \e isolatedVertex - Boolean flag indicating whether the vertex has no edges (true if empty). When true, localIdx and
+ * targetIdx values are meaningless and should not be used.
  *
  * \section ConditionLambdas Condition Lambda Functions
  *
