@@ -297,6 +297,11 @@ namespace TNL::Graphs {
  * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
+ *
+ * \par Example
+ * \includelineno Graphs/Reduce/GraphExample_reduceVertices.cpp
+ * \par Output
+ * \include GraphExample_reduceVertices.out
  */
 template< typename Graph, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
@@ -324,6 +329,11 @@ reduceAllVertices( Graph& graph,
  * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
+ *
+ * \par Example
+ * \includelineno Graphs/Reduce/GraphExample_reduceVertices.cpp
+ * \par Output
+ * \include GraphExample_reduceVertices.out
  */
 template< typename Graph, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
@@ -352,9 +362,9 @@ reduceAllVertices( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forAllEdges.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVertices.cpp
  * \par Output
- * \include GraphExample_forAllEdges.out
+ * \include GraphExample_reduceVertices.out
  */
 template< typename Graph, typename Fetch, typename Reduction, typename Store >
 void
@@ -382,9 +392,9 @@ reduceAllVertices( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forAllEdges.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVertices.cpp
  * \par Output
- * \include GraphExample_forAllEdges.out
+ * \include GraphExample_reduceVertices.out
  */
 template< typename Graph, typename Fetch, typename Reduction, typename Store >
 void
@@ -421,9 +431,9 @@ reduceAllVertices( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forEdges.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVertices.cpp
  * \par Output
- * \include GraphExample_forEdges.out
+ * \include GraphExample_reduceVertices.out
  */
 template< typename Graph,
           typename IndexBegin,
@@ -468,6 +478,11 @@ reduceVertices( Graph& graph,
  * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
+ *
+ * \par Example
+ * \includelineno Graphs/Reduce/GraphExample_reduceVertices.cpp
+ * \par Output
+ * \include GraphExample_reduceVertices.out
  */
 template< typename Graph,
           typename IndexBegin,
@@ -513,9 +528,9 @@ reduceVertices( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forEdges.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVertices.cpp
  * \par Output
- * \include GraphExample_forEdges.out
+ * \include GraphExample_reduceVertices.out
  */
 template< typename Graph,
           typename IndexBegin,
@@ -559,9 +574,9 @@ reduceVertices( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forEdges.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVertices.cpp
  * \par Output
- * \include GraphExample_forEdges.out
+ * \include GraphExample_reduceVertices.out
  */
 template< typename Graph,
           typename IndexBegin,
@@ -602,6 +617,11 @@ reduceVertices( const Graph& graph,
  * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
+ *
+ * \par Example
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithIndexes.cpp
+ * \par Output
+ * \include GraphExample_reduceVerticesWithIndexes.out
  */
 template< typename Graph,
           typename Array,
@@ -638,6 +658,11 @@ reduceVertices( Graph& graph,
  * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
+ *
+ * \par Example
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithIndexes.cpp
+ * \par Output
+ * \include GraphExample_reduceVerticesWithIndexes.out
  */
 template< typename Graph,
           typename Array,
@@ -675,9 +700,9 @@ reduceVertices( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forVerticesWithIndexes.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithIndexes.cpp
  * \par Output
- * \include GraphExample_forVerticesWithIndexes.out
+ * \include GraphExample_reduceVerticesWithIndexes.out
  */
 template< typename Graph,
           typename Array,
@@ -713,9 +738,9 @@ reduceVertices( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forVerticesWithIndexes.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithIndexes.cpp
  * \par Output
- * \include GraphExample_forVerticesWithIndexes.out
+ * \include GraphExample_reduceVerticesWithIndexes.out
  */
 template< typename Graph,
           typename Array,
@@ -754,9 +779,9 @@ reduceVertices( const Graph& graph,
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forAllVerticesIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesIf.cpp
  * \par Output
- * \include GraphExample_forAllVerticesIf.out
+ * \include GraphExample_reduceVerticesIf.out
  */
 template< typename Graph, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Graph::IndexType
@@ -791,9 +816,9 @@ reduceAllVerticesIf( Graph& graph,
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forAllVerticesIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesIf.cpp
  * \par Output
- * \include GraphExample_forAllVerticesIf.out
+ * \include GraphExample_reduceVerticesIf.out
  */
 template< typename Graph, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Graph::IndexType
@@ -827,9 +852,9 @@ reduceAllVerticesIf( const Graph& graph,
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forAllVerticesIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesIf.cpp
  * \par Output
- * \include GraphExample_forAllVerticesIf.out
+ * \include GraphExample_reduceVerticesIf.out
  */
 template< typename Graph, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Graph::IndexType
@@ -862,9 +887,9 @@ reduceAllVerticesIf( Graph& graph,
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forAllVerticesIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesIf.cpp
  * \par Output
- * \include GraphExample_forAllVerticesIf.out
+ * \include GraphExample_reduceVerticesIf.out
  */
 template< typename Graph, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Graph::IndexType
@@ -904,9 +929,9 @@ reduceAllVerticesIf( const Graph& graph,
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forVerticesIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesIf.cpp
  * \par Output
- * \include GraphExample_forVerticesIf.out
+ * \include GraphExample_reduceVerticesIf.out
  */
 template< typename Graph,
           typename IndexBegin,
@@ -957,9 +982,9 @@ reduceVerticesIf( Graph& graph,
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forVerticesIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesIf.cpp
  * \par Output
- * \include GraphExample_forVerticesIf.out
+ * \include GraphExample_reduceVerticesIf.out
  */
 template< typename Graph,
           typename IndexBegin,
@@ -1008,9 +1033,9 @@ reduceVerticesIf( const Graph& graph,
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forVerticesIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesIf.cpp
  * \par Output
- * \include GraphExample_forVerticesIf.out
+ * \include GraphExample_reduceVerticesIf.out
  */
 template< typename Graph,
           typename IndexBegin,
@@ -1057,9 +1082,9 @@ reduceVerticesIf( Graph& graph,
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_forVerticesIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesIf.cpp
  * \par Output
- * \include GraphExample_forVerticesIf.out
+ * \include GraphExample_reduceVerticesIf.out
  */
 template< typename Graph,
           typename IndexBegin,
@@ -1098,7 +1123,7 @@ reduceVerticesIf( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_reduceAllVerticesWithArgument.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithArgument.cpp
  * \par Output
  * \include GraphExample_reduceVerticesWithArgument.out
  */
@@ -1132,7 +1157,7 @@ reduceAllVerticesWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_reduceAllVerticesWithArgument.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithArgument.cpp
  * \par Output
  * \include GraphExample_reduceVerticesWithArgument.out
  */
@@ -1164,7 +1189,7 @@ reduceAllVerticesWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_reduceAllVerticesWithArgument.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithArgument.cpp
  * \par Output
  * \include GraphExample_reduceVerticesWithArgument.out
  */
@@ -1195,7 +1220,7 @@ reduceAllVerticesWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_reduceAllVerticesWithArgument.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithArgument.cpp
  * \par Output
  * \include GraphExample_reduceVerticesWithArgument.out
  */
@@ -1564,7 +1589,7 @@ reduceVerticesWithArgument(
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_reduceAllVerticesWithArgumentIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithArgumentIf.cpp
  * \par Output
  * \include GraphExample_reduceVerticesWithArgumentIf.out
  */
@@ -1608,7 +1633,7 @@ reduceAllVerticesWithArgumentIf(
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_reduceAllVerticesWithArgumentIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithArgumentIf.cpp
  * \par Output
  * \include GraphExample_reduceVerticesWithArgumentIf.out
  */
@@ -1650,7 +1675,7 @@ reduceAllVerticesWithArgumentIf(
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_reduceAllVerticesWithArgumentIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithArgumentIf.cpp
  * \par Output
  * \include GraphExample_reduceVerticesWithArgumentIf.out
  */
@@ -1686,7 +1711,7 @@ reduceAllVerticesWithArgumentIf(
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
  *
  * \par Example
- * \include Graphs/Reduce/GraphExample_reduceAllVerticesWithArgumentIf.cpp
+ * \includelineno Graphs/Reduce/GraphExample_reduceVerticesWithArgumentIf.cpp
  * \par Output
  * \include GraphExample_reduceVerticesWithArgumentIf.out
  */

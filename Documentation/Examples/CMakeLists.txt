@@ -1,5 +1,6 @@
 add_subdirectory(Algorithms)
 add_subdirectory(Containers)
+add_subdirectory(Graphs)
 add_subdirectory(Pointers)
 add_subdirectory(Matrices)
 add_subdirectory(Meshes)
