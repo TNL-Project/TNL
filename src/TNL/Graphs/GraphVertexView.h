@@ -62,7 +62,7 @@ struct GraphVertexView< Matrices::DenseMatrixView< Real, Device, Index, Organiza
 
    __cuda_callable__
    GraphVertexView( MatrixRowView&& matrixRowView )
-   : Base( std::forward( matrixRowView ) )
+   : Base( std::forward< MatrixRowView >( matrixRowView ) )
    {}
 
    __cuda_callable__
@@ -178,7 +178,7 @@ struct GraphVertexView< Matrices::SparseMatrixView< Real, Device, Index, MatrixT
 
    __cuda_callable__
    GraphVertexView( MatrixRowView&& matrixRowView )
-   : Base( std::forward( matrixRowView ) )
+   : Base( std::forward< MatrixRowView >( matrixRowView ) )
    {}
 
    __cuda_callable__
