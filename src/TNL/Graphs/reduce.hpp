@@ -55,7 +55,8 @@ reduceAllVertices( Graph& graph,
                    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVertices( graph,
                    (IndexType) 0,
                    graph.getVertexCount(),
@@ -75,7 +76,8 @@ reduceAllVertices( const Graph& graph,
                    Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVertices( graph,
                    (IndexType) 0,
                    graph.getVertexCount(),
@@ -153,7 +155,8 @@ reduceVertices( Graph& graph,
                 Store&& store,
                 Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVertices( graph,
                    begin,
                    end,
@@ -174,7 +177,8 @@ reduceVertices( const Graph& graph,
                 Store&& store,
                 Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVertices( graph,
                    begin,
                    end,
@@ -233,7 +237,8 @@ reduceVertices( Graph& graph,
                 Store&& store,
                 Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVertices( graph,
                    vertexIndexes,
                    std::forward< Fetch >( fetch ),
@@ -252,7 +257,8 @@ reduceVertices( const Graph& graph,
                 Store&& store,
                 Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVertices( graph.getConstView(),
                    vertexIndexes,
                    0,
@@ -315,7 +321,8 @@ reduceAllVerticesIf( Graph& graph,
                      Store&& store,
                      Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesIf( graph,
                             (decltype( graph.getVertexCount() )) 0,
                             graph.getVertexCount(),
@@ -336,7 +343,8 @@ reduceAllVerticesIf( const Graph& graph,
                      Store&& store,
                      Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesIf( graph,
                             (decltype( graph.getVertexCount() )) 0,
                             graph.getVertexCount(),
@@ -427,7 +435,8 @@ reduceVerticesIf( Graph& graph,
                   Store&& store,
                   Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesIf( graph,
                             begin,
                             end,
@@ -456,7 +465,8 @@ reduceVerticesIf( const Graph& graph,
                   Store&& store,
                   Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesIf( graph,
                             begin,
                             end,
@@ -514,7 +524,8 @@ reduceAllVerticesWithArgument( Graph& graph,
                                Store&& store,
                                Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVerticesWithArgument( graph,
                                0,
                                graph.getVertexCount(),
@@ -533,7 +544,8 @@ reduceAllVerticesWithArgument( const Graph& graph,
                                Store&& store,
                                Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVerticesWithArgument( graph,
                                0,
                                graph.getVertexCount(),
@@ -611,7 +623,8 @@ reduceVerticesWithArgument( Graph& graph,
                             Store&& store,
                             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVerticesWithArgument( graph,
                                begin,
                                end,
@@ -632,7 +645,8 @@ reduceVerticesWithArgument( const Graph& graph,
                             Store&& store,
                             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVerticesWithArgument( graph.getConstView(),
                                begin,
                                end,
@@ -691,7 +705,8 @@ reduceVerticesWithArgument( Graph& graph,
                             Store&& store,
                             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVerticesWithArgument( graph,
                                vertexIndexes,
                                std::forward< Fetch >( fetch ),
@@ -717,7 +732,8 @@ reduceVerticesWithArgument( const Graph& graph,
                             Store&& store,
                             Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    reduceVerticesWithArgument( graph.getConstView(),
                                vertexIndexes,
                                std::forward< Fetch >( fetch ),
@@ -778,7 +794,8 @@ reduceAllVerticesWithArgumentIf( Graph& graph,
                                  Store&& store,
                                  Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesWithArgumentIf( graph,
                                         (decltype( graph.getVertexCount() )) 0,
                                         graph.getVertexCount(),
@@ -799,7 +816,8 @@ reduceAllVerticesWithArgumentIf( const Graph& graph,
                                  Store&& store,
                                  Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesWithArgumentIf( graph,
                                         (decltype( graph.getVertexCount() )) 0,
                                         graph.getVertexCount(),
@@ -891,7 +909,8 @@ reduceVerticesWithArgumentIf( Graph& graph,
                               Store&& store,
                               Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesWithArgumentIf( graph,
                                         begin,
                                         end,
@@ -920,7 +939,8 @@ reduceVerticesWithArgumentIf( const Graph& graph,
                               Store&& store,
                               Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using FetchValue = decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::RealType() ) );
+   using FetchValue =
+      decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
    return reduceVerticesWithArgumentIf( graph.getConstView(),
                                         begin,
                                         end,
