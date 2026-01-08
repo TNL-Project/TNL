@@ -126,7 +126,7 @@ public:
    /**
     * \brief Constructor with number of nodes and edges given as initializer list.
     *
-    * \param nodesCount is the number of nodes in the graph.
+    * \param vertexCount is the number of nodes in the graph.
     * \param data is the initializer list of tuples (source node, target node, edge weight).
     * \param encoding is the encoding for symmetric matrices (used only for undirected graphs).
     *
@@ -136,7 +136,7 @@ public:
     * will create a symmetric adjacency matrix by adding both (source, target) and (target, source)
     * entries for each edge.
     */
-   Graph( IndexType nodesCount,
+   Graph( IndexType vertexCount,
           const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
           Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
                                                                    : Matrices::MatrixElementsEncoding::SymmetricMixed );
@@ -144,7 +144,7 @@ public:
    /**
     * \brief Constructor with number of nodes and edges given as a map.
     *
-    * \param nodesCount is the number of nodes in the graph.
+    * \param vertexCount is the number of nodes in the graph.
     * \param map is the map with keys as (source node, target node) pairs and values as edge weights.
     * \param encoding is the encoding for symmetric matrices (used only for undirected graphs).
     *
@@ -155,7 +155,7 @@ public:
     * entries for each edge.
     */
    template< typename MapIndex, typename MapValue >
-   Graph( IndexType nodesCount,
+   Graph( IndexType vertexCount,
           const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
           Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
                                                                    : Matrices::MatrixElementsEncoding::SymmetricMixed );
@@ -185,16 +185,55 @@ public:
    setVertexCount( IndexType nodesCount );
 
    /**
+    * \brief Sets the edge counts (capacities) for all vertices in the graph.
+    *
+    * \tparam Vector is type of the vector holding the edge counts.
+    *
+    * \param edgeCounts is the vector holding the number of edges for each vertex.
+    *
+    * This method sets the row capacities of the adjacency matrix to the provided edge counts.
+    * For undirected graphs with symmetric adjacency matrix, only capacities for edges in one
+    * direction should be provided.
+    */
+   template< typename Vector >
+   void
+   setEdgeCounts( const Vector& edgeCounts );
+
+   /**
+    * \brief Sets the edges of the graph from an initializer list.
+    *
+    * The edge values are given as a list \e data of triples:
+    * { { source1, target1, weight1 },
+    *   { source2, target2, weight2 },
+    * ... }.
+    *
+    * \param data is an initializer list of tuples representing edges (source, target, weight).
+    * \param encoding defines encoding for symmetric matrices (used only for undirected graphs).
+    *
+    * See \ref TNL::Matrices::SparseMatrix::setElements for details on how the \e encoding parameter works.
+    */
+   void
+   setEdges( const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
+             Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                                      : Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   /**
     * \brief Sets the edges of the graph from a map.
     *
     * \tparam MapIndex is type for indexing of the nodes in the map.
     * \tparam MapValue is type for weights of the edges in the map.
     *
+
     * \param map is the map with keys as (source node, target node) pairs and values as edge weights.
+    * \param encoding defines encoding for symmetric matrices (used only for undirected graphs).
+    *
+    * See \ref TNL::Matrices::SparseMatrix::setElements for details on how the \e encoding parameter works.
     */
    template< typename MapIndex, typename MapValue >
    void
-   setEdges( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map );
+   setEdges( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+             Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                                      : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    /**
     * \brief Sets the capacities of the graph nodes.
@@ -239,6 +278,15 @@ public:
    template< typename Matrix_ >
    void
    setAdjacencyMatrix( const Matrix_& matrix );
+
+   /**
+    * \brief Resets the graph to zero vertices and edges.
+    *
+    * This method resets the adjacency matrix to zero dimensions, effectively
+    * removing all vertices and edges from the graph.
+    */
+   void
+   reset();
 
    //! \brief Destructor.
    ~Graph() = default;

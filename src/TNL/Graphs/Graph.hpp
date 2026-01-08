@@ -38,6 +38,19 @@ template< typename Value,
           typename Orientation,
           template< typename, typename, typename > class Segments,
           typename AdjacencyMatrix >
+void
+Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::reset()
+{
+   this->adjacencyMatrix.reset();
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+}
+
+template< typename Value,
+          typename Device,
+          typename Index,
+          typename Orientation,
+          template< typename, typename, typename > class Segments,
+          typename AdjacencyMatrix >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph( AdjacencyMatrixType&& matrix )
 : AdjacencyMatrixType( std::move( matrix ) )
 {
@@ -91,38 +104,12 @@ template< typename Value,
           template< typename, typename, typename > class Segments,
           typename AdjacencyMatrix >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph(
-   IndexType nodesCount,
+   IndexType vertexCount,
    const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
    Matrices::MatrixElementsEncoding encoding )
 {
-   if( isUndirected() && ! AdjacencyMatrixType::isSymmetric() ) {
-      std::map< std::pair< IndexType, IndexType >, ValueType > symmetric_map;
-      for( const auto& [ source, target, weight ] : data ) {
-         symmetric_map[ { source, target } ] = weight;
-         symmetric_map[ { target, source } ] = weight;
-      }
-      if constexpr( Matrices::is_dense_matrix< AdjacencyMatrixType >::value ) {
-         Matrices::SparseMatrix< ValueType, typename AdjacencyMatrixType::DeviceType, IndexType > tempMatrix(
-            nodesCount, nodesCount, symmetric_map );
-         this->adjacencyMatrix = tempMatrix;
-      }
-      else {
-         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
-         this->adjacencyMatrix.setElements( symmetric_map );
-      }
-   }
-   else {
-      if constexpr( Matrices::is_dense_matrix< AdjacencyMatrixType >::value ) {
-         Matrices::SparseMatrix< ValueType, typename AdjacencyMatrixType::DeviceType, IndexType > tempMatrix(
-            nodesCount, nodesCount, data, encoding );
-         this->adjacencyMatrix = tempMatrix;
-      }
-      else {
-         this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
-         this->adjacencyMatrix.setElements( data, encoding );
-      }
-   }
-   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+   setVertexCount( vertexCount );
+   setEdges( data, encoding );
 }
 
 template< typename Value,
@@ -133,24 +120,12 @@ template< typename Value,
           typename AdjacencyMatrix >
 template< typename MapIndex, typename MapValue >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph(
-   IndexType nodesCount,
+   IndexType vertexCount,
    const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
    Matrices::MatrixElementsEncoding encoding )
 {
-   if( isUndirected() && ! AdjacencyMatrixType::isSymmetric() ) {
-      std::map< std::pair< MapIndex, MapIndex >, MapValue > symmetric_map;
-      for( const auto& [ key, value ] : map ) {
-         symmetric_map[ { key.second, key.first } ] = value;
-         symmetric_map[ { key.first, key.second } ] = value;
-      }
-      this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
-      this->adjacencyMatrix.setElements( symmetric_map );
-   }
-   else {
-      this->adjacencyMatrix.setDimensions( nodesCount, nodesCount );
-      this->adjacencyMatrix.setElements( map, encoding );
-   }
-   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+   setVertexCount( vertexCount );
+   setEdges( map, encoding );
 }
 
 template< typename Value,
@@ -239,16 +214,76 @@ template< typename Value,
           typename Orientation,
           template< typename, typename, typename > class Segments,
           typename AdjacencyMatrix >
+template< typename Vector >
+void
+Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdgeCounts( const Vector& edgeCounts )
+{
+   this->adjacencyMatrix.setRowCapacities( edgeCounts );
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+}
+
+template< typename Value,
+          typename Device,
+          typename Index,
+          typename Orientation,
+          template< typename, typename, typename > class Segments,
+          typename AdjacencyMatrix >
+void
+Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdges(
+   const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
+   Matrices::MatrixElementsEncoding encoding )
+{
+   if( isUndirected() && ! AdjacencyMatrixType::isSymmetric() ) {
+      std::map< std::pair< IndexType, IndexType >, ValueType > symmetric_map;
+      for( const auto& [ source, target, weight ] : data ) {
+         symmetric_map[ { source, target } ] = weight;
+         symmetric_map[ { target, source } ] = weight;
+      }
+      if constexpr( Matrices::is_dense_matrix< AdjacencyMatrixType >::value ) {
+         Matrices::SparseMatrix< ValueType, typename AdjacencyMatrixType::DeviceType, IndexType > tempMatrix(
+            this->getVertexCount(), this->getVertexCount(), symmetric_map );
+         this->adjacencyMatrix = tempMatrix;
+      }
+      else {
+         this->adjacencyMatrix.setElements( symmetric_map );
+      }
+   }
+   else {
+      if constexpr( Matrices::is_dense_matrix< AdjacencyMatrixType >::value ) {
+         Matrices::SparseMatrix< ValueType, typename AdjacencyMatrixType::DeviceType, IndexType > tempMatrix(
+            this->getVertexCount(), this->getVertexCount(), data, encoding );
+         this->adjacencyMatrix = tempMatrix;
+      }
+      else {
+         this->adjacencyMatrix.setElements( data, encoding );
+      }
+   }
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+}
+
+template< typename Value,
+          typename Device,
+          typename Index,
+          typename Orientation,
+          template< typename, typename, typename > class Segments,
+          typename AdjacencyMatrix >
 template< typename MapIndex, typename MapValue >
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdges(
-   const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map )
+   const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+   Matrices::MatrixElementsEncoding encoding )
 {
-   if constexpr( isUndirected() ) {
-      this->adjacencyMatrix.setElements( map, Matrices::MatrixElementsEncoding::SymmetricMixed );
+   this->adjacencyMatrix.setDimensions( this->getVertexCount(), this->getVertexCount() );
+   if( isUndirected() && ! AdjacencyMatrixType::isSymmetric() ) {
+      std::map< std::pair< MapIndex, MapIndex >, MapValue > symmetric_map;
+      for( const auto& [ key, value ] : map ) {
+         symmetric_map[ { key.second, key.first } ] = value;
+         symmetric_map[ { key.first, key.second } ] = value;
+      }
+      this->adjacencyMatrix.setElements( symmetric_map );
    }
    else
-      this->adjacencyMatrix.setElements( map );
+      this->adjacencyMatrix.setElements( map, encoding );
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
