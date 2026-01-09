@@ -1,6 +1,11 @@
-set(COMMON_TESTS 
-    DenseMatrixTraverseTest 
-    SparseMatrixTraverseTest_CSR 
+set(COMMON_TESTS
+    DenseMatrixTraverseTest
+    SparseMatrixTraverseTest_CSR
+    SparseMatrixTraverseTest_Ellpack
+    SparseMatrixTraverseTest_BiEllpack
+    SparseMatrixTraverseTest_ChunkedEllpack
+    SparseMatrixTraverseTest_SlicedEllpack
+    SparseMatrixTraverseTest_AdaptiveCSR
 )
 
 if(TNL_BUILD_CUDA)
