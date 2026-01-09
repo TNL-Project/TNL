@@ -1,17 +1,6 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 
-#include "ReduceSegmentsTest.hpp"
-#include <iostream>
-
 #include <gtest/gtest.h>
-
-// test fixture for typed tests
-template< typename Segments >
-class SlicedEllpackReduceSegmentsTest : public ::testing::Test
-{
-protected:
-   using SegmentsType = Segments;
-};
 
 template< typename Device, typename Index, int SliceSize >
 using RowMajorSlicedEllpackType = TNL::Algorithms::Segments::
@@ -57,56 +46,8 @@ using SlicedEllpackSegmentsTypes =
 #endif
                      >;
 
-TYPED_TEST_SUITE( SlicedEllpackReduceSegmentsTest, SlicedEllpackSegmentsTypes );
+#include "ReduceSegmentsTestSuite.hpp"
 
-TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduceSegments_MaximumInSegments )
-{
-   test_reduceSegments_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduceSegments_MaximumInTriangularSegments )
-{
-   test_reduceSegments_MaximumInTriangularSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduceSegments_MaximumInSegments_short_fetch )
-{
-   test_reduceSegments_MaximumInSegments_short_fetch< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduceSegmentsWithArgument_MaximumInSegments )
-{
-   test_reduceSegmentsWithArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexes_MaximumInSegments )
-{
-   test_reduceSegmentsWithSegmentIndexes_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments )
-{
-   test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduceSegmentsIf_MaximumInSegments )
-{
-   test_reduceSegmentsIf_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduceSegmentsWithArgumentIf_MaximumInSegments )
-{
-   test_reduceSegmentsWithArgumentIf_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduce_SumOfMaximums )
-{
-   test_reduce_SumOfMaximums< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SlicedEllpackReduceSegmentsTest, reduce_ProductOfSums )
-{
-   test_reduce_ProductOfSums< typename TestFixture::SegmentsType >();
-}
+INSTANTIATE_TYPED_TEST_SUITE_P( SlicedEllpackSegments, ReduceSegmentsTest, SlicedEllpackSegmentsTypes );
 
 #include "../../../main.h"

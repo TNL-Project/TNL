@@ -1,18 +1,7 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/SortedSegments.h>
 
-#include "TraverseSegmentsTest.hpp"
-#include <iostream>
-
 #include <gtest/gtest.h>
-
-// test fixture for typed tests
-template< typename Segments >
-class SortedSlicedEllpackTraverseSegmentsTest : public ::testing::Test
-{
-protected:
-   using SegmentsType = Segments;
-};
 
 // types for which MatrixTest is instantiated
 using SortedSlicedEllpackSegmentsTypes = ::testing::Types<
@@ -35,56 +24,8 @@ using SortedSlicedEllpackSegmentsTypes = ::testing::Types<
 #endif
    >;
 
-TYPED_TEST_SUITE( SortedSlicedEllpackTraverseSegmentsTest, SortedSlicedEllpackSegmentsTypes );
+#include "TraverseSegmentsTestSuite.hpp"
 
-TYPED_TEST( SortedSlicedEllpackTraverseSegmentsTest, forElements_EmptySegments )
-{
-   test_forElements_EmptySegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackTraverseSegmentsTest, forElements_EqualSizes )
-{
-   test_forElements_EqualSizes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackTraverseSegmentsTest, forElements )
-{
-   test_forElements< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackTraverseSegmentsTest, forElementsIf )
-{
-   test_forElementsIf< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
-{
-   test_forElementsWithSegmentIndexes_EmptySegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes )
-{
-   test_forElementsWithSegmentIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackTraverseSegmentsTest, forSegments )
-{
-   test_forSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackTraverseSegmentsTest, forSegmentsWithIndexes )
-{
-   test_forSegmentsWithIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackTraverseSegmentsTest, forSegmentsIf )
-{
-   test_forSegmentsIf< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackTraverseSegmentsTest, forSegmentsSequential )
-{
-   test_forSegmentsSequential< typename TestFixture::SegmentsType >();
-}
+INSTANTIATE_TYPED_TEST_SUITE_P( SortedSlicedEllpackSegments, TraverseSegmentsTest, SortedSlicedEllpackSegmentsTypes );
 
 #include "../../../main.h"

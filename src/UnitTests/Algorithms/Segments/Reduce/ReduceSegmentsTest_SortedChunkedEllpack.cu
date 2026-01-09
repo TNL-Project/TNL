@@ -1,1 +1,1 @@
-#include "ReduceSegmentsTest_SortedChunkedEllpack.h"
+ReduceSegmentsTest_SortedChunkedEllpack.cpp

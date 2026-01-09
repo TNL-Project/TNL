@@ -1,19 +1,9 @@
+#pragma once
+
 #include <TNL/Algorithms/Segments/BiEllpack.h>
-
-#include "SegmentsTest.hpp"
-#include <iostream>
-
 #include <gtest/gtest.h>
 
-// test fixture for typed tests
-template< typename Segments >
-class BiEllpackSegmentsTest : public ::testing::Test
-{
-protected:
-   using SegmentsType = Segments;
-};
-
-// types for which MatrixTest is instantiated
+// Types for which SegmentsTest is instantiated - BiEllpack segments
 using BiEllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::RowMajorBiEllpack< TNL::Devices::Host, int >,
                                                  TNL::Algorithms::Segments::RowMajorBiEllpack< TNL::Devices::Host, long >,
                                                  TNL::Algorithms::Segments::ColumnMajorBiEllpack< TNL::Devices::Host, int >,
@@ -33,66 +23,8 @@ using BiEllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::RowM
 #endif
                                                  >;
 
-TYPED_TEST_SUITE( BiEllpackSegmentsTest, BiEllpackSegmentsTypes );
+#include "SegmentsTestSuite.hpp"
 
-TYPED_TEST( BiEllpackSegmentsTest, isSegments )
-{
-   test_isSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( BiEllpackSegmentsTest, getView )
-{
-   test_getView< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( BiEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
-{
-   test_setSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( BiEllpackSegmentsTest, findInSegments )
-{
-   test_findInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( BiEllpackSegmentsTest, findInSegmentsWithIndexes )
-{
-   test_findInSegmentsWithIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( BiEllpackSegmentsTest, findInSegmentsIf )
-{
-   test_findInSegmentsIf< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( BiEllpackSegmentsTest, sortSegments )
-{
-   test_sortSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( BiEllpackSegmentsTest, sortSegmentsWithSegmentIndexes )
-{
-   test_sortSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( BiEllpackSegmentsTest, sortSegmentsIf )
-{
-   test_sortSegmentsIf< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( BiEllpackSegmentsTest, scanSegments )
-{
-   test_scanSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( BiEllpackSegmentsTest, scanSegmentsWithIndexes )
-{
-   test_scanSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( BiEllpackSegmentsTest, scanSegmentsIf )
-{
-   test_scanSegmentsIf< typename TestFixture::SegmentsType >();
-}
+INSTANTIATE_TYPED_TEST_SUITE_P( BiEllpackSegments, SegmentsTest, BiEllpackSegmentsTypes );
 
 #include "../../main.h"

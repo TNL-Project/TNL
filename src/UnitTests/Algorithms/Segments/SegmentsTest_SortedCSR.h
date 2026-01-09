@@ -1,19 +1,9 @@
+#pragma once
+
 #include <TNL/Algorithms/Segments/CSR.h>
-
-#include "SegmentsTest.hpp"
-#include <iostream>
-
 #include <gtest/gtest.h>
 
-// test fixture for typed tests
-template< typename Segments >
-class SortedCSRSegmentsTest : public ::testing::Test
-{
-protected:
-   using SegmentsType = Segments;
-};
-
-// types for which MatrixTest is instantiated
+// Types for which SegmentsTest is instantiated - SortedCSR segments
 using SortedCSRSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::SortedCSR< TNL::Devices::Host, int >,
                                                  TNL::Algorithms::Segments::SortedCSR< TNL::Devices::Host, long >
 #if defined( __CUDACC__ )
@@ -27,66 +17,8 @@ using SortedCSRSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::Sort
 #endif
                                                  >;
 
-TYPED_TEST_SUITE( SortedCSRSegmentsTest, SortedCSRSegmentsTypes );
+#include "SegmentsTestSuite.hpp"
 
-TYPED_TEST( SortedCSRSegmentsTest, isSegments )
-{
-   test_isSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedCSRSegmentsTest, getView )
-{
-   test_getView< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedCSRSegmentsTest, setSegmentsSizes_EqualSizes )
-{
-   test_setSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedCSRSegmentsTest, findInSegments )
-{
-   test_findInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedCSRSegmentsTest, findInSegmentsWithIndexes )
-{
-   test_findInSegmentsWithIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedCSRSegmentsTest, findInSegmentsIf )
-{
-   test_findInSegmentsIf< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedCSRSegmentsTest, sortSegments )
-{
-   test_sortSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedCSRSegmentsTest, sortSegmentsWithIndexes )
-{
-   test_sortSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedCSRSegmentsTest, sortSegmentsIf )
-{
-   test_sortSegmentsIf< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedCSRSegmentsTest, scanSegments )
-{
-   test_scanSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedCSRSegmentsTest, scanSegmentsWithIndexes )
-{
-   test_scanSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedCSRSegmentsTest, scanSegmentsIf )
-{
-   test_scanSegmentsIf< typename TestFixture::SegmentsType >();
-}
+INSTANTIATE_TYPED_TEST_SUITE_P( SortedCSRSegments, SegmentsTest, SortedCSRSegmentsTypes );
 
 #include "../../main.h"
