@@ -1,1 +1,1 @@
-#include "SparseMatrixReduceTest_CSR.h"
+SparseMatrixReduceTest_CSR.cpp
