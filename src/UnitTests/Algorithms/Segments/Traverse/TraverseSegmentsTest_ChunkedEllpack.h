@@ -1,17 +1,6 @@
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
 
-#include "TraverseSegmentsTest.hpp"
-#include <iostream>
-
 #include <gtest/gtest.h>
-
-// test fixture for typed tests
-template< typename Segments >
-class ChunkedEllpackTraverseSegmentsTest : public ::testing::Test
-{
-protected:
-   using SegmentsType = Segments;
-};
 
 // types for which MatrixTest is instantiated
 using ChunkedEllpackSegmentsTypes =
@@ -34,56 +23,8 @@ using ChunkedEllpackSegmentsTypes =
 #endif
                      >;
 
-TYPED_TEST_SUITE( ChunkedEllpackTraverseSegmentsTest, ChunkedEllpackSegmentsTypes );
+#include "TraverseSegmentsTestSuite.hpp"
 
-TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forElements_EmptySegments )
-{
-   test_forElements_EmptySegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forElements_EqualSizes )
-{
-   test_forElements_EqualSizes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forElements )
-{
-   test_forElements< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forElementsIf )
-{
-   test_forElementsIf< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes_EmptySegments )
-{
-   test_forElementsWithSegmentIndexes_EmptySegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forElementsWithSegmentIndexes )
-{
-   test_forElementsWithSegmentIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forSegments )
-{
-   test_forSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forSegmentsWithIndexes )
-{
-   test_forSegmentsWithIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forSegmentsIf )
-{
-   test_forSegmentsIf< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( ChunkedEllpackTraverseSegmentsTest, forSegmentsSequential )
-{
-   test_forSegmentsSequential< typename TestFixture::SegmentsType >();
-}
+INSTANTIATE_TYPED_TEST_SUITE_P( ChunkedEllpackSegments, TraverseSegmentsTest, ChunkedEllpackSegmentsTypes );
 
 #include "../../../main.h"

@@ -1,18 +1,7 @@
 #include <TNL/Algorithms/Segments/Ellpack.h>
 #include <TNL/Algorithms/Segments/SortedSegments.h>
 
-#include "ReduceSegmentsTest.hpp"
-#include <iostream>
-
 #include <gtest/gtest.h>
-
-// test fixture for typed tests
-template< typename Segments >
-class SortedEllpackReduceSegmentsTest : public ::testing::Test
-{
-protected:
-   using SegmentsType = Segments;
-};
 
 // types for which MatrixTest is instantiated
 using SortedEllpackSegmentsTypes = ::testing::Types<
@@ -35,56 +24,8 @@ using SortedEllpackSegmentsTypes = ::testing::Types<
 #endif
    >;
 
-TYPED_TEST_SUITE( SortedEllpackReduceSegmentsTest, SortedEllpackSegmentsTypes );
+#include "ReduceSegmentsTestSuite.hpp"
 
-TYPED_TEST( SortedEllpackReduceSegmentsTest, reduceSegments_MaximumInSegments )
-{
-   test_reduceSegments_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedEllpackReduceSegmentsTest, reduceSegments_MaximumInTriangularSegments )
-{
-   test_reduceSegments_MaximumInTriangularSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedEllpackReduceSegmentsTest, reduceSegments_MaximumInSegments_short_fetch )
-{
-   test_reduceSegments_MaximumInSegments_short_fetch< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedEllpackReduceSegmentsTest, reduceSegmentsWithArgument_MaximumInSegments )
-{
-   test_reduceSegmentsWithArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedEllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexes_MaximumInSegments )
-{
-   test_reduceSegmentsWithSegmentIndexes_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedEllpackReduceSegmentsTest, reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments )
-{
-   test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedEllpackReduceSegmentsTest, reduceSegmentsIf_MaximumInSegments )
-{
-   test_reduceSegmentsIf_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedEllpackReduceSegmentsTest, reduceSegmentsWithArgumentIf_MaximumInSegments )
-{
-   test_reduceSegmentsWithArgumentIf_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedEllpackReduceSegmentsTest, reduce_SumOfMaximums )
-{
-   test_reduce_SumOfMaximums< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedEllpackReduceSegmentsTest, reduce_ProductOfSums )
-{
-   test_reduce_ProductOfSums< typename TestFixture::SegmentsType >();
-}
+INSTANTIATE_TYPED_TEST_SUITE_P( SortedEllpackSegments, ReduceSegmentsTest, SortedEllpackSegmentsTypes );
 
 #include "../../../main.h"
