@@ -1,1 +1,1 @@
-#include "ReduceSegmentsTest_BiEllpack.h"
+ReduceSegmentsTest_BiEllpack.cpp

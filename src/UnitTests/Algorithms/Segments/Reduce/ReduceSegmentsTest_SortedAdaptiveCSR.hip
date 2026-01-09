@@ -1,1 +1,1 @@
-#include "ReduceSegmentsTest_SortedAdaptiveCSR.h"
+ReduceSegmentsTest_SortedAdaptiveCSR.cpp

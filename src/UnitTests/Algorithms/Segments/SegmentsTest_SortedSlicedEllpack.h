@@ -1,20 +1,10 @@
+#pragma once
+
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/SortedSegments.h>
-
-#include "SegmentsTest.hpp"
-#include <iostream>
-
 #include <gtest/gtest.h>
 
-// test fixture for typed tests
-template< typename Segments >
-class SortedSlicedEllpackSegmentsTest : public ::testing::Test
-{
-protected:
-   using SegmentsType = Segments;
-};
-
-// types for which MatrixTest is instantiated
+// Types for which SegmentsTest is instantiated - SortedSlicedEllpack segments
 using SortedSlicedEllpackSegmentsTypes = ::testing::Types<
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, int > >,
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, long > >,
@@ -35,66 +25,8 @@ using SortedSlicedEllpackSegmentsTypes = ::testing::Types<
 #endif
    >;
 
-TYPED_TEST_SUITE( SortedSlicedEllpackSegmentsTest, SortedSlicedEllpackSegmentsTypes );
+#include "SegmentsTestSuite.hpp"
 
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, isSegments )
-{
-   test_isSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, getView )
-{
-   test_getView< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
-{
-   test_setSegmentsSizes_EqualSizes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, findInSegments )
-{
-   test_findInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, findInSegmentsWithIndexes )
-{
-   test_findInSegmentsWithIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, findInSegmentsIf )
-{
-   test_findInSegmentsIf< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, sortSegments )
-{
-   test_sortSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, sortSegmentsWithSegmentIndexes )
-{
-   test_sortSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, sortSegmentsIf )
-{
-   test_sortSegmentsIf< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, scanSegments )
-{
-   test_scanSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, scanSegmentsWithIndexes )
-{
-   test_scanSegmentsWithSegmentIndexes< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( SortedSlicedEllpackSegmentsTest, scanSegmentsIf )
-{
-   test_scanSegmentsIf< typename TestFixture::SegmentsType >();
-}
+INSTANTIATE_TYPED_TEST_SUITE_P( SortedSlicedEllpackSegments, SegmentsTest, SortedSlicedEllpackSegmentsTypes );
 
 #include "../../main.h"
