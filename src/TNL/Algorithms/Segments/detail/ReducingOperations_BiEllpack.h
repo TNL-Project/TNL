@@ -225,7 +225,7 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
-         for( IndexType segmentIdx = 0; segmentIdx < segments.getSegmentsCount(); segmentIdx++ ) {
+         for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
             const IndexType stripIdx = segmentIdx / SegmentsViewType::getWarpSize();
             const IndexType groupIdx = stripIdx * ( SegmentsViewType::getLogWarpSize() + 1 );
             const IndexType inStripIdx =
