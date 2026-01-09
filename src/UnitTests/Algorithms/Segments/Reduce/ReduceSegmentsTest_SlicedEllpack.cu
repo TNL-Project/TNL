@@ -1,1 +1,1 @@
-#include "ReduceSegmentsTest_SlicedEllpack.h"
+ReduceSegmentsTest_SlicedEllpack.cpp

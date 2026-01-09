@@ -1,17 +1,6 @@
 #include <TNL/Algorithms/Segments/AdaptiveCSR.h>
 
-#include "ReduceSegmentsTest.hpp"
-#include <iostream>
-
 #include <gtest/gtest.h>
-
-// test fixture for typed tests
-template< typename Segments >
-class AdaptiveCSRReduceSegmentsTest : public ::testing::Test
-{
-protected:
-   using SegmentsType = Segments;
-};
 
 // types for which MatrixTest is instantiated
 using AdaptiveCSRSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::AdaptiveCSR< TNL::Devices::Host, int >,
@@ -27,56 +16,8 @@ using AdaptiveCSRSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::Ad
 #endif
                                                    >;
 
-TYPED_TEST_SUITE( AdaptiveCSRReduceSegmentsTest, AdaptiveCSRSegmentsTypes );
+#include "ReduceSegmentsTestSuite.hpp"
 
-TYPED_TEST( AdaptiveCSRReduceSegmentsTest, reduceSegments_MaximumInSegments )
-{
-   test_reduceSegments_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( AdaptiveCSRReduceSegmentsTest, reduceSegments_MaximumInTriangularSegments )
-{
-   test_reduceSegments_MaximumInTriangularSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( AdaptiveCSRReduceSegmentsTest, reduceSegments_MaximumInSegments_short_fetch )
-{
-   test_reduceSegments_MaximumInSegments_short_fetch< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( AdaptiveCSRReduceSegmentsTest, reduceSegmentsWithArgument_MaximumInSegments )
-{
-   test_reduceSegmentsWithArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( AdaptiveCSRReduceSegmentsTest, reduceSegmentsWithSegmentIndexes_MaximumInSegments )
-{
-   test_reduceSegmentsWithSegmentIndexes_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( AdaptiveCSRReduceSegmentsTest, reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments )
-{
-   test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( AdaptiveCSRReduceSegmentsTest, reduceSegmentsIf_MaximumInSegments )
-{
-   test_reduceSegmentsIf_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( AdaptiveCSRReduceSegmentsTest, reduceSegmentsWithArgumentIf_MaximumInSegments )
-{
-   test_reduceSegmentsWithArgumentIf_MaximumInSegments< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( AdaptiveCSRReduceSegmentsTest, reduce_SumOfMaximums )
-{
-   test_reduce_SumOfMaximums< typename TestFixture::SegmentsType >();
-}
-
-TYPED_TEST( AdaptiveCSRReduceSegmentsTest, reduce_ProductOfSums )
-{
-   test_reduce_ProductOfSums< typename TestFixture::SegmentsType >();
-}
+INSTANTIATE_TYPED_TEST_SUITE_P( AdaptiveCSRSegments, ReduceSegmentsTest, AdaptiveCSRSegmentsTypes );
 
 #include "../../../main.h"
