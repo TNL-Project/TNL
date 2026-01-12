@@ -41,8 +41,8 @@ template< typename Value,
 void
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::reset()
 {
-   this->adjacencyMatrix.reset();
-   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+   adjacencyMatrix.reset();
+   Base::adjacencyMatrixView.bind( adjacencyMatrix.getView() );
 }
 
 template< typename Value,
@@ -52,9 +52,9 @@ template< typename Value,
           template< typename, typename, typename > class Segments,
           typename AdjacencyMatrix >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph( AdjacencyMatrixType&& matrix )
-: AdjacencyMatrixType( std::move( matrix ) )
 {
-   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+   adjacencyMatrix = std::forward< AdjacencyMatrixType >( matrix );
+   Base::adjacencyMatrixView.bind( adjacencyMatrix.getView() );
 }
 
 template< typename Value,
@@ -106,6 +106,22 @@ template< typename Value,
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph(
    IndexType vertexCount,
    const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
+   Matrices::MatrixElementsEncoding encoding )
+{
+   setVertexCount( vertexCount );
+   setEdges( data, encoding );
+}
+
+template< typename Value,
+          typename Device,
+          typename Index,
+          typename Orientation,
+          template< typename, typename, typename > class Segments,
+          typename AdjacencyMatrix >
+template< typename T, typename C >
+Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::Graph(
+   IndexType vertexCount,
+   const std::initializer_list< std::initializer_list< ValueType > >& data,
    Matrices::MatrixElementsEncoding encoding )
 {
    setVertexCount( vertexCount );
@@ -258,6 +274,22 @@ Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdges(
          this->adjacencyMatrix.setElements( data, encoding );
       }
    }
+   Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
+}
+
+template< typename Value,
+          typename Device,
+          typename Index,
+          typename Orientation,
+          template< typename, typename, typename > class Segments,
+          typename AdjacencyMatrix >
+template< typename T, typename C >
+void
+Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdges(
+   const std::initializer_list< std::initializer_list< ValueType > >& data,
+   Matrices::MatrixElementsEncoding encoding )
+{
+   this->adjacencyMatrix.setElements( data, encoding );
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );
 }
 
