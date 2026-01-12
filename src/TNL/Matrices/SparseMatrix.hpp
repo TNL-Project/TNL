@@ -358,6 +358,10 @@ SparseMatrix< Real, Device, Index, MatrixType_, Segments, ComputeReal, RealAlloc
             throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
          if( columnIdx >= this->getColumns() )
             throw std::logic_error( "Wrong column index " + std::to_string( columnIdx ) + " in the input data structure." );
+         if( encoding == MatrixElementsEncoding::SymmetricLower && columnIdx > rowIdx )
+            throw std::logic_error( "Only lower part of the symmetric matrix is expected." );
+         if( encoding == MatrixElementsEncoding::SymmetricUpper && rowIdx > columnIdx )
+            throw std::logic_error( "Only upper part of the symmetric matrix is expected." );
          if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
             auto query = map.find( { columnIdx, rowIdx } );
             if( query != map.end() && query->second != value )
