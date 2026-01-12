@@ -18,6 +18,10 @@ namespace TNL::Graphs {
  *
  * \tparam Matrix is type of matrix used to store the adjacency matrix of the graph.
  * \tparam GraphType is type of the graph - directed or undirected.
+ *
+ * \par Examples
+ * See \ref GraphExample_Constructors.cpp, \ref GraphExample_setEdges.cpp, and \ref GraphExample_VertexView.cpp for usage
+ * examples.
  */
 template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 struct GraphBase
@@ -144,7 +148,7 @@ struct GraphBase
    void
    setEdgeWeight( IndexType nodeIdx, IndexType edgeIdx, const ValueType& value );
 
-   // TODO: Added eraseEdge - works only for sparse adjacencymatrices
+   // TODO: Add eraseEdge - works only for sparse adjacency matrices
    /***
     * \brief Returns the weight of the edge between given node and its edge index.
     *
