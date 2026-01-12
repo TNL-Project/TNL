@@ -192,6 +192,120 @@ test_SetElements()
 
 template< typename Matrix >
 void
+test_ConstructorWithInitializerListSparse()
+{
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+
+   // Test constructor with sparse data in tuple format
+   Matrix m( 4, 4, { { 0, 0, 1 }, { 0, 2, 2 }, { 1, 1, 3 }, { 1, 3, 4 }, { 2, 0, 5 }, { 2, 2, 6 }, { 3, 1, 7 }, { 3, 3, 8 } } );
+
+   EXPECT_EQ( m.getRows(), 4 );
+   EXPECT_EQ( m.getColumns(), 4 );
+
+   // Check non-zero elements
+   EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 2 } );
+   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m.getElement( 1, 3 ), RealType{ 4 } );
+   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 5 } );
+   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 6 } );
+   EXPECT_EQ( m.getElement( 3, 1 ), RealType{ 7 } );
+   EXPECT_EQ( m.getElement( 3, 3 ), RealType{ 8 } );
+
+   // Check zero elements
+   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 0, 3 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 3, 0 ), RealType{ 0 } );
+
+   // Test with symmetric lower encoding
+   // clang-format off
+   Matrix m_lower( 3, 3,
+      { { 0, 0, 1 },
+        { 1, 0, 2 }, { 1, 1, 3 },
+        { 2, 0, 4 }, { 2, 1, 5 }, { 2, 2, 6 } },
+      TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
+   // clang-format on
+
+   EXPECT_EQ( m_lower.getRows(), 3 );
+   EXPECT_EQ( m_lower.getColumns(), 3 );
+   EXPECT_EQ( m_lower.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m_lower.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( m_lower.getElement( 0, 2 ), RealType{ 4 } );
+   EXPECT_EQ( m_lower.getElement( 1, 0 ), RealType{ 2 } );
+   EXPECT_EQ( m_lower.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m_lower.getElement( 1, 2 ), RealType{ 5 } );
+   EXPECT_EQ( m_lower.getElement( 2, 0 ), RealType{ 4 } );
+   EXPECT_EQ( m_lower.getElement( 2, 1 ), RealType{ 5 } );
+   EXPECT_EQ( m_lower.getElement( 2, 2 ), RealType{ 6 } );
+}
+
+template< typename Matrix >
+void
+test_ConstructorWithStdMap()
+{
+   using RealType = typename Matrix::RealType;
+   using IndexType = typename Matrix::IndexType;
+
+   // Test constructor with std::map
+   // clang-format off
+   std::map< std::pair< IndexType, IndexType >, RealType > data{
+      { { 0, 0 }, 1 }, { { 0, 2 }, 2 },
+      { { 1, 1 }, 3 }, { { 1, 3 }, 4 },
+      { { 2, 0 }, 5 }, { { 2, 2 }, 6 },
+      { { 3, 1 }, 7 }, { { 3, 3 }, 8 }
+   };
+   // clang-format on
+
+   Matrix m( 4, 4, data );
+
+   EXPECT_EQ( m.getRows(), 4 );
+   EXPECT_EQ( m.getColumns(), 4 );
+
+   // Check non-zero elements
+   EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m.getElement( 0, 2 ), RealType{ 2 } );
+   EXPECT_EQ( m.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m.getElement( 1, 3 ), RealType{ 4 } );
+   EXPECT_EQ( m.getElement( 2, 0 ), RealType{ 5 } );
+   EXPECT_EQ( m.getElement( 2, 2 ), RealType{ 6 } );
+   EXPECT_EQ( m.getElement( 3, 1 ), RealType{ 7 } );
+   EXPECT_EQ( m.getElement( 3, 3 ), RealType{ 8 } );
+
+   // Check zero elements
+   EXPECT_EQ( m.getElement( 0, 1 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 0, 3 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 1, 0 ), RealType{ 0 } );
+   EXPECT_EQ( m.getElement( 2, 1 ), RealType{ 0 } );
+
+   // Test with symmetric upper encoding
+   // clang-format off
+   std::map< std::pair< IndexType, IndexType >, RealType > symmetric_data{
+      { { 0, 0 }, 1 }, { { 0, 1 }, 2 }, { { 0, 2 }, 4 },
+                       { { 1, 1 }, 3 }, { { 1, 2 }, 5 },
+                                        { { 2, 2 }, 6 }
+   };
+   // clang-format on
+
+   Matrix m_upper( 3, 3, symmetric_data, TNL::Matrices::MatrixElementsEncoding::SymmetricUpper );
+
+   EXPECT_EQ( m_upper.getRows(), 3 );
+   EXPECT_EQ( m_upper.getColumns(), 3 );
+   EXPECT_EQ( m_upper.getElement( 0, 0 ), RealType{ 1 } );
+   EXPECT_EQ( m_upper.getElement( 0, 1 ), RealType{ 2 } );
+   EXPECT_EQ( m_upper.getElement( 0, 2 ), RealType{ 4 } );
+   EXPECT_EQ( m_upper.getElement( 1, 0 ), RealType{ 2 } );
+   EXPECT_EQ( m_upper.getElement( 1, 1 ), RealType{ 3 } );
+   EXPECT_EQ( m_upper.getElement( 1, 2 ), RealType{ 5 } );
+   EXPECT_EQ( m_upper.getElement( 2, 0 ), RealType{ 4 } );
+   EXPECT_EQ( m_upper.getElement( 2, 1 ), RealType{ 5 } );
+   EXPECT_EQ( m_upper.getElement( 2, 2 ), RealType{ 6 } );
+}
+
+template< typename Matrix >
+void
 test_GetCompressedRowLengths()
 {
    using IndexType = typename Matrix::IndexType;
@@ -1545,6 +1659,20 @@ TYPED_TEST( MatrixTest, setElementsTest )
    using MatrixType = typename TestFixture::MatrixType;
 
    test_SetElements< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, constructorWithInitializerListSparseTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ConstructorWithInitializerListSparse< MatrixType >();
+}
+
+TYPED_TEST( MatrixTest, constructorWithStdMapTest )
+{
+   using MatrixType = typename TestFixture::MatrixType;
+
+   test_ConstructorWithStdMap< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, getAllocatedElementsCountTest )

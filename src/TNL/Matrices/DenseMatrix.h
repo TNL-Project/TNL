@@ -124,6 +124,61 @@ public:
                 const RealAllocatorType& allocator = RealAllocatorType() );
 
    /**
+    * \brief Constructor with matrix dimensions and sparse data in initializer list.
+    *
+    * The matrix elements values are given as a list \e data of triples:
+    * { { row1, column1, value1 },
+    *   { row2, column2, value2 },
+    * ... }.
+    *
+    * \param rows is number of matrix rows.
+    * \param columns is number of matrix columns.
+    * \param data is a list of matrix elements values.
+    * \param realAllocator is used for allocation of matrix elements values.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
+    * \param indexAllocator is used for allocation of matrix elements column indexes.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixExample_Constructor_sparse_init_list.cpp
+    * \par Output
+    * \include DenseMatrixExample_Constructor_sparse_init_list.out
+    */
+   explicit DenseMatrix( Index rows,
+                         Index columns,
+                         const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+                         MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
+                         const RealAllocatorType& allocator = RealAllocatorType() );
+
+   /**
+    * \brief Constructor with matrix dimensions and data in std::map.
+    *
+    * The matrix elements values are given as a map \e data where keys are
+    * std::pair of matrix coordinates ( {row, column} ) and value is the
+    * matrix element value.
+    *
+    * \tparam MapIndex is a type for indexing rows and columns.
+    * \tparam MapValue is a type for matrix elements values in the map.
+    *
+    * \param rows is number of matrix rows.
+    * \param columns is number of matrix columns.
+    * \param map is std::map containing matrix elements.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
+    * \param realAllocator is used for allocation of matrix elements values.
+    * \param indexAllocator is used for allocation of matrix elements column indexes.
+    *
+    * \par Example
+    * \include Matrices/DenseMatrix/DenseMatrixExample_Constructor_std_map.cpp
+    * \par Output
+    * \include DenseMatrixExample_Constructor_std_map.out
+    */
+   template< typename MapIndex, typename MapValue >
+   explicit DenseMatrix( Index rows,
+                         Index columns,
+                         const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+                         MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete,
+                         const RealAllocatorType& allocator = RealAllocatorType() );
+
+   /**
     * \brief Returns a modifiable view of the dense matrix.
     *
     * See \ref DenseMatrixView.
@@ -201,6 +256,30 @@ public:
    template< typename Value >
    void
    setElements( std::initializer_list< std::initializer_list< Value > > data,
+                MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
+
+   /**
+    * \brief This method sets the matrix elements from initializer list with sparse data.
+    *
+    * The number of matrix rows and columns must be set already.
+    * The matrix elements values are given as a list \e data of triples:
+    * { { row1, column1, value1 },
+    *   { row2, column2, value2 },
+    * ... }.
+    *
+    * \param data is a initializer list of initializer lists representing
+    * list of matrix rows.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
+    *
+    * See \ref TNL::Matrices::SparseMatrix::setElements for details on how the \e encoding parameter works.
+    *
+    * \par Example
+    * \include Matrices/SparseMatrix/SparseMatrixExample_setElements.cpp
+    * \par Output
+    * \include SparseMatrixExample_setElements.out
+    */
+   void
+   setElements( const std::initializer_list< std::tuple< Index, Index, Real > >& data,
                 MatrixElementsEncoding encoding = MatrixElementsEncoding::Complete );
 
    /**
