@@ -5,6 +5,7 @@
 
 #include <map>
 #include <ostream>
+#include <type_traits>
 #include <TNL/TypeTraits.h>
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Matrices/TypeTraits.h>
@@ -39,6 +40,11 @@ namespace TNL::Graphs {
  * \tparam Index is type for indexing of the graph nodes.
  * \tparam Orientation is type of the graph - directed or undirected.
  * \tparam AdjacencyMatrix is type of matrix used to store the adjacency matrix of the graph.
+ *
+ * \par Example
+ * \include GraphExample_Constructors.cpp
+ * \par Output
+ * \include GraphExample_Constructors.out
  */
 template< typename Value,
           typename Device,
@@ -139,9 +145,36 @@ struct Graph
     * If the graph is undirected and the adjacency matrix type is not symmetric, the constructor
     * will create a symmetric adjacency matrix by adding both (source, target) and (target, source)
     * entries for each edge.
+    *
+    * \par Example
+    * See \ref GraphExample_Constructors.cpp for detailed examples of graph construction.
     */
    Graph( IndexType vertexCount,
           const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
+          Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                                   : Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   /**
+    * \brief Constructor with number of nodes and edges given as nested initializer list (for dense adjacency matrix).
+    *
+    * This constructor is only available when the adjacency matrix is a dense matrix type.
+    * The edges are specified as a nested initializer list where each inner list represents
+    * all edge weights from a single vertex.
+    *
+    * \param vertexCount is the number of nodes in the graph (can be inferred from data size).
+    * \param data is the nested initializer list where data[i] contains all edge weights from vertex i.
+    *             Use 0.0 for non-existent edges.
+    * \param encoding is the encoding for symmetric matrices (used only for undirected graphs).
+    *
+    * For dense matrices, the graph represents a complete graph where all possible edges are present.
+    * Zero-weighted edges does not indicate the absence of an edge in the logical graph structure.
+    *
+    * \par Example
+    * See \ref GraphExample_Constructors.cpp for detailed examples including dense matrix construction.
+    */
+   template< typename T = AdjacencyMatrixType, typename C = std::enable_if_t< Matrices::is_dense_matrix_v< T > > >
+   Graph( IndexType vertexCount,
+          const std::initializer_list< std::initializer_list< ValueType > >& data,
           Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
                                                                    : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
@@ -157,6 +190,9 @@ struct Graph
     * If the graph is undirected and the adjacency matrix type is not symmetric, the constructor
     * will create a symmetric adjacency matrix by adding both (source, target) and (target, source)
     * entries for each edge.
+    *
+    * \par Example
+    * See \ref GraphExample_Constructors.cpp for detailed examples of graph construction.
     */
    template< typename MapIndex, typename MapValue >
    Graph( IndexType vertexCount,
@@ -215,11 +251,45 @@ struct Graph
     * \param encoding defines encoding for symmetric matrices (used only for undirected graphs).
     *
     * See \ref TNL::Matrices::SparseMatrix::setElements for details on how the \e encoding parameter works.
+    *
+    * \par Example
+    * \include GraphExample_setEdges.cpp
+    * \par Output
+    * \include GraphExample_setEdges.out
     */
    void
    setEdges( const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
              Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
                                                                       : Matrices::MatrixElementsEncoding::SymmetricMixed );
+
+   /**
+    * \brief Sets the edges of the graph from a nested initializer list (for dense adjacency matrix).
+    *
+    * This method is only available when the adjacency matrix is a dense matrix type.
+    * The edges are specified as a nested initializer list where each inner list represents
+    * all edge weights from a single vertex.
+    *
+    * The edge values are given as nested lists \e data:
+    * { { weight_0_0, weight_0_1, weight_0_2, ... },  // edges from vertex 0
+    *   { weight_1_0, weight_1_1, weight_1_2, ... },  // edges from vertex 1
+    * ... }.
+    *
+    * \param data is a nested initializer list where data[i][j] is the weight of edge from vertex i to vertex j.
+    *             Use 0.0 for non-existent edges.
+    * \param encoding defines encoding for symmetric matrices (used only for undirected graphs).
+    *
+    * See \ref TNL::Matrices::DenseMatrix::setElements for details on how the \e encoding parameter works.
+    *
+    * \par Example
+    * \include GraphExample_setEdges.cpp
+    * \par Output
+    * \include GraphExample_setEdges.out
+    */
+   template< typename T = AdjacencyMatrixType, typename C = std::enable_if_t< Matrices::is_dense_matrix_v< T > > >
+   void
+   setEdges( const std::initializer_list< std::initializer_list< ValueType > >& data,
+             Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                                      : Matrices::MatrixElementsEncoding::SymmetricLower );
 
    /**
     * \brief Sets the edges of the graph from a map.
@@ -232,6 +302,9 @@ struct Graph
     * \param encoding defines encoding for symmetric matrices (used only for undirected graphs).
     *
     * See \ref TNL::Matrices::SparseMatrix::setElements for details on how the \e encoding parameter works.
+    *
+    * \par Example
+    * See \ref GraphExample_setEdges.cpp for examples of using setEdges with maps and initializer lists.
     */
    template< typename MapIndex, typename MapValue >
    void
