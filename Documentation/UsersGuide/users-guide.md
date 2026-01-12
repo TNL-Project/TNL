@@ -17,8 +17,9 @@
 1. [Multidimensional arrays](#ug_NDArrays)
 2. [Matrices](#ug_Matrices)
 3. [Segments (sparse formats)](#ug_Segments)
-4. [Orthogonal grids](#ug_Grids)
-5. [Unstructured meshes](#ug_Meshes)
+4. [Graphs](#ug_Graphs)
+5. [Orthogonal grids](#ug_Grids)
+6. [Unstructured meshes](#ug_Meshes)
 
 ## Numerical solvers
 
