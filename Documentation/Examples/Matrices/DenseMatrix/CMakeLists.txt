@@ -1,5 +1,7 @@
 set(COMMON_EXAMPLES
     DenseMatrixExample_Constructor_init_list
+    DenseMatrixExample_Constructor_sparse_init_list
+    DenseMatrixExample_Constructor_std_map
     DenseMatrixExample_setElements
     DenseMatrixViewExample_constructor
     DenseMatrixViewExample_getCompressedRowLengths
