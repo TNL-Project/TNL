@@ -7,6 +7,13 @@
 
 namespace TNL::Graphs {
 
+/**
+ * \brief View type for Graph class.
+ *
+ * GraphView provides a lightweight, non-owning view of a Graph object. It can be used to access
+ * graph data without copying, making it efficient for passing graphs to functions or kernels.
+ *
+ */
 template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrixView_ >
 struct GraphView : public GraphBase< Value, Device, Index, Orientation, AdjacencyMatrixView_ >
 {
