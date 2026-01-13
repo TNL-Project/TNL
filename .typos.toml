@@ -21,6 +21,7 @@ extend-ignore-re = [
 ]
 
 [default.extend-words]
+CMO = "CMO"   # ignore "CMO" -> "COM" hint
 EIS = "EIS"   # acronym
 HSA = "HSA"   # acronym
 ND = "ND"     # ignore "ND" -> "AND" hint
