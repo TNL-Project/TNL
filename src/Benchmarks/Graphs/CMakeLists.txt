@@ -1,3 +1,6 @@
+set(GRAPH_BENCHMARKS bfs sssp mst)
+
+
 find_package(Boost OPTIONAL_COMPONENTS graph)
 if(Boost_GRAPH_FOUND)
     message(STATUS "Boost found ${Boost_INCLUDE_DIRS}")
@@ -19,29 +22,47 @@ if(TNL_BUILD_CUDA)
         message(STATUS "Gunrock not found.")
     endif()
 
-    add_executable(tnl-benchmark-graphs-cuda tnl-benchmark-graphs.cu)
-    target_compile_options(tnl-benchmark-graphs-cuda PUBLIC ${GUNROCK_FLAGS})
-    target_link_libraries(tnl-benchmark-graphs-cuda PUBLIC TNL::TNL)
 
-    if(Boost_GRAPH_FOUND)
-        target_link_libraries(tnl-benchmark-graphs-cuda PUBLIC Boost::graph)
-        target_compile_definitions(tnl-benchmark-graphs-cuda PUBLIC "-DHAVE_BOOST")
-    endif()
+    set(GRAPH_BENCHMARK_TARGETS_CUDA)
+
+    foreach(bench IN LISTS GRAPH_BENCHMARKS)
+        set(target tnl-benchmark-graphs-${bench}-cuda)
+        add_executable(${target} tnl-benchmark-graphs-${bench}.cu)
+        target_link_libraries(${target} PUBLIC TNL::TNL)
+
+        if(NOT bench STREQUAL "mst")
+            target_compile_options(${target} PUBLIC ${GUNROCK_FLAGS})
+        endif()
+
+        if(Boost_GRAPH_FOUND)
+            target_link_libraries(${target} PUBLIC Boost::graph)
+            target_compile_definitions(${target} PUBLIC "-DHAVE_BOOST")
+        endif()
+
+        list(APPEND GRAPH_BENCHMARK_TARGETS_CUDA ${target})
+    endforeach()
 
     # NOTE: the following parameters are just for performance debugging
     # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#printing-code-generation-statistics
     # target_compile_options( tnl-benchmark-graphs PUBLIC --resource-usage )
     # set_target_properties( tnl-benchmark-graphs PROPERTIES CUDA_SEPARABLE_COMPILATION OFF )
 
-    install(TARGETS tnl-benchmark-graphs-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
+    install(TARGETS ${GRAPH_BENCHMARK_TARGETS_CUDA} RUNTIME DESTINATION bin COMPONENT benchmarks)
 endif()
 
-add_executable(tnl-benchmark-graphs tnl-benchmark-graphs.cpp)
-target_link_libraries(tnl-benchmark-graphs PUBLIC TNL::TNL)
+set(GRAPH_BENCHMARK_TARGETS)
 
-if(Boost_GRAPH_FOUND)
-    target_link_libraries(tnl-benchmark-graphs PUBLIC Boost::graph)
-    target_compile_definitions(tnl-benchmark-graphs PUBLIC "-DHAVE_BOOST")
-endif()
+foreach(bench IN LISTS GRAPH_BENCHMARKS)
+    set(target tnl-benchmark-graphs-${bench})
+    add_executable(${target} tnl-benchmark-graphs-${bench}.cpp)
+    target_link_libraries(${target} PUBLIC TNL::TNL)
 
-install(TARGETS tnl-benchmark-graphs RUNTIME DESTINATION bin COMPONENT benchmarks)
+    if(Boost_GRAPH_FOUND)
+        target_link_libraries(${target} PUBLIC Boost::graph)
+        target_compile_definitions(${target} PUBLIC "-DHAVE_BOOST")
+    endif()
+
+    list(APPEND GRAPH_BENCHMARK_TARGETS ${target})
+endforeach()
+
+install(TARGETS ${GRAPH_BENCHMARK_TARGETS} RUNTIME DESTINATION bin COMPONENT benchmarks)

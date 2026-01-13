@@ -4,13 +4,11 @@
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include "GraphsBenchmark.h"
+#include "GraphBenchmarkBFS.h"
 
 void
 configSetup( TNL::Config::ConfigDescription& config )
 {
-   //config.addDelimiter( "General settings:" );
-
    config.addDelimiter( "Precision settings:" );
    config.addEntry< TNL::String >( "precision", "Precision of the arithmetics.", "double" );
    config.addEntryEnum( "float" );
@@ -22,7 +20,7 @@ template< typename Real >
 bool
 startBenchmark( TNL::Config::ParameterContainer& parameters )
 {
-   TNL::Benchmarks::Graphs::GraphsBenchmark< Real > benchmark( parameters );
+   TNL::Benchmarks::Graphs::GraphBenchmarkBFS< Real > benchmark( parameters );
    return benchmark.runBenchmark();
 }
 
@@ -43,7 +41,7 @@ main( int argc, char* argv[] )
 {
    TNL::Config::ConfigDescription config;
    configSetup( config );
-   TNL::Benchmarks::Graphs::GraphsBenchmark<>::configSetup( config );
+   TNL::Benchmarks::Graphs::GraphBenchmarkBFS<>::configSetup( config );
 
    TNL::Config::ParameterContainer parameters;
 
