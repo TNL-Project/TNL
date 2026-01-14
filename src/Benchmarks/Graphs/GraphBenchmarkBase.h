@@ -271,7 +271,6 @@ protected:
                      const TNL::String& device )
    {
       auto& derived = static_cast< Derived& >( *this );
-      using Matrix = TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
       using Graph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::UndirectedGraph, Segments >;
       using Digraph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::DirectedGraph, Segments >;
 

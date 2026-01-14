@@ -195,7 +195,6 @@ void
 test_ConstructorWithInitializerListSparse()
 {
    using RealType = typename Matrix::RealType;
-   using IndexType = typename Matrix::IndexType;
 
    // Test constructor with sparse data in tuple format
    Matrix m( 4, 4, { { 0, 0, 1 }, { 0, 2, 2 }, { 1, 1, 3 }, { 1, 3, 4 }, { 2, 0, 5 }, { 2, 2, 6 }, { 3, 1, 7 }, { 3, 3, 8 } } );
