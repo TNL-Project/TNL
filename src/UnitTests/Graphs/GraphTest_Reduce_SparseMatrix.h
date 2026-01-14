@@ -66,9 +66,10 @@ createSimpleDirectedGraph( GraphType& graph )
 template< typename IndexType >
 struct MaxWeightFetch
 {
+   template< typename WeightType >
    __cuda_callable__
-   auto
-   operator()( IndexType sourceIdx, IndexType targetIdx, const auto& weight ) const
+   WeightType
+   operator()( IndexType sourceIdx, IndexType targetIdx, const WeightType& weight ) const
    {
       return weight;
    }
@@ -114,9 +115,10 @@ struct SumReduction
 template< typename IndexType >
 struct EdgeCountFetch
 {
+   template< typename WeightType >
    __cuda_callable__
    IndexType
-   operator()( IndexType sourceIdx, IndexType targetIdx, const auto& weight ) const
+   operator()( IndexType sourceIdx, IndexType targetIdx, const WeightType& weight ) const
    {
       return IndexType( 1 );
    }
