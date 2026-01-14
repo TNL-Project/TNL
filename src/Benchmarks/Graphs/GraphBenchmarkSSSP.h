@@ -186,13 +186,16 @@ public:
       benchmark.setMetadataElement( { "problem", "SSSP dir" } );
       benchmark.setMetadataElement( { "format", segments } );
 
-      for( auto [ launchConfig, tag ] :
+      for( const auto& launchEntry :
            Algorithms::Segments::traversingLaunchConfigurations( digraph.getAdjacencyMatrix().getSegments() ) )
       {
+         const auto& launchConfig = launchEntry.first;
+         const auto& tag = launchEntry.second;
+
          benchmark.setMetadataElement( { "threads mapping", tag } );
 
          RealVector ssspDistances( digraph.getVertexCount(), 0 );
-         auto sssp_tnl_dir = [ & ]() mutable
+         auto sssp_tnl_dir = [ &, launchConfig ]() mutable
          {
             TNL::Graphs::Algorithms::singleSourceShortestPath( digraph, largestNode, ssspDistances, launchConfig );
          };
@@ -222,13 +225,16 @@ public:
       benchmark.setMetadataElement( { "problem", "SSSP undir" } );
       benchmark.setMetadataElement( { "format", segments } );
 
-      for( auto [ launchConfig, tag ] :
+      for( const auto& launchEntry :
            Algorithms::Segments::traversingLaunchConfigurations( graph.getAdjacencyMatrix().getSegments() ) )
       {
+         const auto& launchConfig = launchEntry.first;
+         const auto& tag = launchEntry.second;
+
          benchmark.setMetadataElement( { "threads mapping", tag } );
 
          RealVector ssspDistances( digraph.getVertexCount(), 0 );
-         auto sssp_tnl_undir = [ & ]() mutable
+         auto sssp_tnl_undir = [ &, launchConfig ]() mutable
          {
             TNL::Graphs::Algorithms::singleSourceShortestPath( graph, largestNode, ssspDistances, launchConfig );
          };

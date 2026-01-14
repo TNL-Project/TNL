@@ -186,11 +186,14 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       benchmark.setMetadataElement( { "problem", "BFS dir" } );
       benchmark.setMetadataElement( { "format", segments } );
 
-      for( auto [ launchConfig, tag ] :
+      for( const auto& launchEntry :
            Algorithms::Segments::traversingLaunchConfigurations( digraph.getAdjacencyMatrix().getSegments() ) )
       {
+         const auto& launchConfig = launchEntry.first;
+         const auto& tag = launchEntry.second;
+
          benchmark.setMetadataElement( { "threads mapping", tag } );
-         auto bfs_tnl_dir = [ & ]() mutable
+         auto bfs_tnl_dir = [ &, launchConfig ]() mutable
          {
             TNL::Graphs::Algorithms::breadthFirstSearch( digraph, largestNode, bfsDistances, launchConfig );
          };
@@ -215,12 +218,15 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       benchmark.setMetadataElement( { "problem", "BFS undir" } );
       benchmark.setMetadataElement( { "format", segments } );
 
-      for( auto [ launchConfig, tag ] :
+      for( const auto& launchEntry :
            Algorithms::Segments::traversingLaunchConfigurations( graph.getAdjacencyMatrix().getSegments() ) )
       {
+         const auto& launchConfig = launchEntry.first;
+         const auto& tag = launchEntry.second;
+
          benchmark.setMetadataElement( std::make_pair( "threads mapping", tag ) );
 
-         auto bfs_tnl_undir = [ & ]() mutable
+         auto bfs_tnl_undir = [ &, launchConfig ]() mutable
          {
             TNL::Graphs::Algorithms::breadthFirstSearch( graph, largestNode, bfsDistances, launchConfig );
          };
