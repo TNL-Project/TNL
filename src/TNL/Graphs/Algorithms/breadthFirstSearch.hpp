@@ -53,11 +53,17 @@ breadthFirstSearchParallel( const Graph& graph,
             [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
             {
                if( targetIdx != Matrices::paddingIndex< Index > && y_view[ targetIdx ] == -1 ) {
-#pragma omp atomic write
+#if defined( _OPENMP )
+   #pragma omp atomic write
+#endif
                   y_view[ targetIdx ] = i + 1;
-#pragma omp atomic write
+#if defined( _OPENMP )
+   #pragma omp atomic write
+#endif
                   predecesors_view[ targetIdx ] = sourceIdx;
-#pragma omp atomic write
+#if defined( _OPENMP )
+   #pragma omp atomic write
+#endif
                   marks_view[ targetIdx ] = 1;
                   visitor( targetIdx, i + 1 );
                }
@@ -166,7 +172,6 @@ breadthFirstSearch( const Graph& graph,
                     Visitor&& visitor,
                     TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   using Index = typename Graph::IndexType;
    breadthFirstSearch_impl( graph, start, distances, visitor, launchConfig );
 }
 

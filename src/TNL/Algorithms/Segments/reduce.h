@@ -135,7 +135,7 @@ namespace TNL::Algorithms::Segments {
  * **Note:** The actual behavior depends on the kernel type used for the reduction. Some optimized kernels
  * may perform significantly better with the brief variant of the \e fetch lambda function.
  *
- * \section SegmentReductionLambdas Reduction Lambda Functions
+ * \section SegmentReductionLambdaFunctions Reduction Lambda Functions
  *
  * The \e reduction lambda defines how values are combined during the reduction operation.
  *
