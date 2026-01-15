@@ -67,7 +67,7 @@ class SparseMatrix
                                   ComputeReal >;
 
 public:
-   using Base::MatrixType;
+   using typename Base::MatrixType;
 
    /**
     * \brief Type of vector holding values of matrix elements.
