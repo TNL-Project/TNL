@@ -77,8 +77,8 @@ namespace TNL::Algorithms::Segments {
  * All traversal functions share these common parameters:
  *
  * - **segments**: The segments container to traverse
- * - **f**: Lambda function to apply (see \ref SegmentElementLambda_Full, \ref SegmentElementLambda_Brief, or \ref
- * SegmentViewLambda)
+ * - **f**: Lambda function to apply (see \ref SegmentTraversalElementLambda_Full, \ref SegmentTraversalElementLambda_Brief, or
+ * \ref SegmentTraversalViewLambda)
  * - **launchConfig**: Configuration for parallel execution (optional)
  *
  * Additional parameters for specific variants:
@@ -99,11 +99,11 @@ namespace TNL::Algorithms::Segments {
  *
  * \tableofcontents
  *
- * \section SegmentElementLambdas Element Traversal Lambda Functions
+ * \section SegmentTraversalElementLambdas Element Traversal Lambda Functions
  *
  * These lambda functions are used when iterating over individual elements within segments.
  *
- * \subsection SegmentElementLambda_Full Full Form (With All Parameters)
+ * \subsection SegmentTraversalElementLambda_Full Full Form (With All Parameters)
  *
  * ```cpp
  * auto f = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) {...}
@@ -114,7 +114,7 @@ namespace TNL::Algorithms::Segments {
  * - \e localIdx - The rank (position) of the element within the segment
  * - \e globalIdx - The global index of the element within the range of all elements managed by the segments
  *
- * \subsection SegmentElementLambda_Brief Brief Form (Without Local Index)
+ * \subsection SegmentTraversalElementLambda_Brief Brief Form (Without Local Index)
  *
  * ```cpp
  * auto f = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType globalIdx ) {...}
@@ -127,11 +127,11 @@ namespace TNL::Algorithms::Segments {
  * - \e segmentIdx - The index of the segment to which the given element belongs
  * - \e globalIdx - The global index of the element within the range of all elements managed by the segments
  *
- * \section SegmentViewLambdas Segment View Lambda Functions
+ * \section SegmentTraversalViewLambdas Segment View Lambda Functions
  *
  * These lambda functions are used when iterating over segments as a whole, operating on SegmentView objects.
  *
- * \subsection SegmentViewLambda Segment View Lambda
+ * \subsection SegmentTraversalViewLambda Segment View Lambda
  *
  * ```cpp
  * auto f = [=] __cuda_callable__ ( const SegmentView& segment ) {...}
@@ -141,11 +141,11 @@ namespace TNL::Algorithms::Segments {
  * - \e segment - A view representing the given segment (see \ref TNL::Algorithms::Segments::SegmentView).
  *   The segment view provides access to segment properties and its elements.
  *
- * \section SegmentConditionLambdas Segment Condition Lambda Functions
+ * \section SegmentTraversalConditionLambdas Segment Condition Lambda Functions
  *
  * These lambda functions are used to determine whether a segment should be processed (used in "If" variants).
  *
- * \subsection SegmentConditionLambda Condition Check
+ * \subsection SegmentTraversalConditionLambda Condition Check
  *
  * ```cpp
  * auto f = [=] __cuda_callable__ ( IndexType segmentIdx ) -> bool {...}
@@ -169,8 +169,8 @@ namespace TNL::Algorithms::Segments {
  * \tparam Function The type of the lambda function to be applied to each element.
  *
  * \param segments The segments whose elements will be processed using the lambda function.
- * \param function The lambda function to be applied to each element. See \ref SegmentElementLambda_Full or \ref
- * SegmentElementLambda_Brief.
+ * \param function The lambda function to be applied to each element. See \ref SegmentTraversalElementLambda_Full or \ref
+ * SegmentTraversalElementLambda_Brief.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -201,8 +201,8 @@ forAllElements( const Segments& segments,
  *    will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of segments whose elements
  *    will be processed using the lambda function.
- * \param function The lambda function to be applied to each element. See \ref SegmentElementLambda_Full or \ref
- * SegmentElementLambda_Brief.
+ * \param function The lambda function to be applied to each element. See \ref SegmentTraversalElementLambda_Full or \ref
+ * SegmentTraversalElementLambda_Brief.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -231,8 +231,8 @@ forElements( const Segments& segments,
  *
  * \param segments The segments whose elements will be processed using the lambda function.
  * \param segmentIndexes The array containing the indexes of the segments to iterate over.
- * \param function The lambda function to be applied to each element. See \ref SegmentElementLambda_Full or \ref
- * SegmentElementLambda_Brief.
+ * \param function The lambda function to be applied to each element. See \ref SegmentTraversalElementLambda_Full or \ref
+ * SegmentTraversalElementLambda_Brief.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -263,8 +263,8 @@ forElements( const Segments& segments,
  *
  * \param segments The segments whose elements will be processed using the lambda function.
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
- * \param function The lambda function to be applied to each element. See \ref SegmentElementLambda_Full or \ref
- * SegmentElementLambda_Brief.
+ * \param function The lambda function to be applied to each element. See \ref SegmentTraversalElementLambda_Full or \ref
+ * SegmentTraversalElementLambda_Brief.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -303,8 +303,8 @@ forAllElementsIf( const Segments& segments,
  * \param end The end of the interval [ \e begin, \e end ) of segments whose elements
  *    will be processed using the lambda function.
  * \param condition Lambda function for condition checking. See \ref SegmentConditionLambda.
- * \param function The lambda function to be applied to each element. See \ref SegmentElementLambda_Full or \ref
- * SegmentElementLambda_Brief.
+ * \param function The lambda function to be applied to each element. See \ref SegmentTraversalElementLambda_Full or \ref
+ * SegmentTraversalElementLambda_Brief.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -346,7 +346,7 @@ forElementsIfSparse( const Segments& segments,
  * \tparam Function The type of the lambda function to be executed on each segment.
  *
  * \param segments The segments on which the lambda function will be applied.
- * \param function The lambda function to be applied to each segment. See \ref SegmentViewLambda.
+ * \param function The lambda function to be applied to each segment. See \ref SegmentTraversalViewLambda.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -382,7 +382,7 @@ forAllSegments( const Segments& segments,
  *    that will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of segments
  *    that will be processed using the lambda function.
- * \param function The lambda function to be applied to each segment. See \ref SegmentViewLambda.
+ * \param function The lambda function to be applied to each segment. See \ref SegmentTraversalViewLambda.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -420,7 +420,7 @@ forSegments( const Segments& segments,
  *
  * \param segments The segments on which the lambda function will be applied.
  * \param segmentIndexes The array containing the indexes of the segments to iterate over.
- * \param function The lambda function to be applied to each segment. See \ref SegmentViewLambda.
+ * \param function The lambda function to be applied to each segment. See \ref SegmentTraversalViewLambda.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -450,7 +450,7 @@ forSegments( const Segments& segments,
  *
  * \param segments The segments on which the lambda function will be applied.
  * \param segmentCondition Lambda function for condition checking. See \ref SegmentConditionLambda.
- * \param function The lambda function to be applied to each segment. See \ref SegmentViewLambda.
+ * \param function The lambda function to be applied to each segment. See \ref SegmentTraversalViewLambda.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -489,7 +489,7 @@ forAllSegmentsIf( const Segments& segments,
  * \param end The end of the interval [ \e begin, \e end ) of segment indexes
  *    whose corresponding segments will be processed using the lambda function.
  * \param segmentCondition Lambda function for condition checking. See \ref SegmentConditionLambda.
- * \param function The lambda function to be applied to each segment. See \ref SegmentViewLambda.
+ * \param function The lambda function to be applied to each segment. See \ref SegmentTraversalViewLambda.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example

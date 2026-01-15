@@ -97,13 +97,13 @@ namespace TNL::Graphs {
  * All traversal functions share these common parameters:
  *
  * - `graph`  The graph to traverse (const or non-const)
- * - `function`  Lambda function to apply (see \ref TraversalFunction_NonConst, \ref TraversalFunction_Const, \ref
+ * - `function`  Lambda function to apply (see \ref GraphTraversalFunction_NonConst, \ref GraphTraversalFunction_Const, \ref
  * TraversalVertexFunction_NonConst, or \ref TraversalVertexFunction_Const)
  * - `launchConfig`  Configuration for parallel execution (optional)
  *
  * Additional parameters:
  * - **Scope variants**: `begin`, `end` (range) or `vertexIndexes` (array)
- * - **If variants**: `condition` lambda for filtering (see \ref TraversalConditionLambda)
+ * - **If variants**: `condition` lambda for filtering (see \ref GraphTraversalConditionLambda)
  *
  * \section GraphTraversalUsageGuidelines Usage Guidelines
  *
@@ -126,7 +126,7 @@ namespace TNL::Graphs {
  *
  * This page documents the lambda function signatures used in graph traversal operations.
  *
- * \section TraversalFunction_NonConst Traversal Function (Non-Const Graph)
+ * \section GraphTraversalFunction_NonConst Traversal Function (Non-Const Graph)
  *
  * For **non-const graphs with sparse adjacency matrix** (\ref Matrices::SparseMatrix), the traversal function has full access
  * to modify edge indices and weights:
@@ -158,7 +158,7 @@ namespace TNL::Graphs {
  * - `targetIdx` - The index of the target vertex
  * - `weight` - Reference to the edge weight (can be modified)
  *
- * \section TraversalFunction_Const Traversal Function (Const Graph)
+ * \section GraphTraversalFunction_Const Traversal Function (Const Graph)
  *
  * For constant graphs, the traversal function has read-only access:
  *
@@ -196,7 +196,7 @@ namespace TNL::Graphs {
  * **Parameters:**
  * - `vertex` - The constant view of graph vertex being processed
  *
- * \section TraversalConditionLambda Condition Lambda
+ * \section GraphTraversalConditionLambda Condition Lambda
  *
  * For conditional traversal operations (`forEdgesIf`, `forVerticesIf`), a condition function determines
  * which vertices to process:
@@ -226,7 +226,7 @@ namespace TNL::Graphs {
  * \tparam Function The type of the lambda function to be applied to each edge.
  *
  * \param graph The graph whose edges will be processed using the lambda function.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_NonConst.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -250,7 +250,7 @@ forAllEdges( Graph& graph,
  * \tparam Function The type of the lambda function to be applied to each edge.
  *
  * \param graph The graph whose edges will be processed using the lambda function.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_Const.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -281,7 +281,7 @@ forAllEdges( const Graph& graph,
  *    will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of vertices whose edges
  *    will be processed using the lambda function.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_NonConst.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -315,7 +315,7 @@ forEdges( Graph& graph,
  *    will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of vertices whose edges
  *    will be processed using the lambda function.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_Const.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -353,7 +353,7 @@ forEdges( const Graph& graph,
  *    will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of vertex indexes whose edges
  *    will be processed using the lambda function.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_NonConst.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -392,7 +392,7 @@ forEdges( Graph& graph,
  *    will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of vertex indexes whose edges
  *    will be processed using the lambda function.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_Const.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -423,7 +423,7 @@ forEdges( const Graph& graph,
  *
  * \param graph The graph whose edges will be processed using the lambda function.
  * \param vertexIndexes The array containing the indexes of the graph vertices to iterate over.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_NonConst.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -452,7 +452,7 @@ forEdges( Graph& graph,
  *
  * \param graph The graph whose edges will be processed using the lambda function.
  * \param vertexIndexes The array containing the indexes of the graph vertices to iterate over.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_Const.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -491,8 +491,8 @@ forEdges( const Graph& graph,
  *    will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of vertices whose edges
  *    will be processed using the lambda function.
- * \param condition Lambda function to check vertex condition. See \ref TraversalConditionLambda.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_NonConst.
+ * \param condition Lambda function to check vertex condition. See \ref GraphTraversalConditionLambda.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -533,8 +533,8 @@ forEdgesIf( Graph& graph,
  *    will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of vertices whose edges
  *    will be processed using the lambda function.
- * \param condition Lambda function to check vertex condition. See \ref TraversalConditionLambda.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_Const.
+ * \param condition Lambda function to check vertex condition. See \ref GraphTraversalConditionLambda.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -566,8 +566,8 @@ forEdgesIf( const Graph& graph,
  * \tparam Function The type of the lambda function to be applied to each edge.
  *
  * \param graph The graph whose edges will be processed using the lambda function.
- * \param condition Lambda function to check vertex condition. See \ref TraversalConditionLambda.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_NonConst.
+ * \param condition Lambda function to check vertex condition. See \ref GraphTraversalConditionLambda.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -599,8 +599,8 @@ forAllEdgesIf( Graph& graph,
  * \tparam Function The type of the lambda function to be applied to each edge.
  *
  * \param graph The graph whose edges will be processed using the lambda function.
- * \param condition Lambda function to check vertex condition. See \ref TraversalConditionLambda.
- * \param function Lambda function to be applied to each edge. See \ref TraversalFunction_Const.
+ * \param condition Lambda function to check vertex condition. See \ref GraphTraversalConditionLambda.
+ * \param function Lambda function to be applied to each edge. See \ref GraphTraversalFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -909,7 +909,7 @@ forVertices( const Graph& graph,
  *    whose corresponding vertices will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of vertex indexes
  *    whose corresponding vertices will be processed using the lambda function.
- * \param vertexCondition Lambda function to check vertex condition. See \ref TraversalConditionLambda.
+ * \param vertexCondition Lambda function to check vertex condition. See \ref GraphTraversalConditionLambda.
  * \param function Lambda function to be applied to each vertex. See \ref TraversalVertexFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -955,7 +955,7 @@ forVerticesIf( Graph& graph,
  *    whose corresponding vertices will be processed using the lambda function.
  * \param end The end of the interval [ \e begin, \e end ) of vertex indexes
  *    whose corresponding vertices will be processed using the lambda function.
- * \param vertexCondition Lambda function to check vertex condition. See \ref TraversalConditionLambda.
+ * \param vertexCondition Lambda function to check vertex condition. See \ref GraphTraversalConditionLambda.
  * \param function Lambda function to be applied to each vertex. See \ref TraversalVertexFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -993,7 +993,7 @@ forVerticesIf( const Graph& graph,
  * \tparam Function The type of the lambda function to be executed on each vertex.
  *
  * \param graph The graph on which the lambda function will be applied.
- * \param vertexCondition Lambda function to check vertex condition. See \ref TraversalConditionLambda.
+ * \param vertexCondition Lambda function to check vertex condition. See \ref GraphTraversalConditionLambda.
  * \param function Lambda function to be applied to each vertex. See \ref TraversalVertexFunction_NonConst.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1024,7 +1024,7 @@ forAllVerticesIf( Graph& graph,
  * \tparam Function The type of the lambda function to be executed on each vertex.
  *
  * \param graph The graph on which the lambda function will be applied.
- * \param vertexCondition Lambda function to check vertex condition. See \ref TraversalConditionLambda.
+ * \param vertexCondition Lambda function to check vertex condition. See \ref GraphTraversalConditionLambda.
  * \param function Lambda function to be applied to each vertex. See \ref TraversalVertexFunction_Const.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *

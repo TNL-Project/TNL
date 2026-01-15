@@ -90,7 +90,7 @@ namespace TNL::Graphs {
  * - **fetch**: Lambda that retrieves edge weights (see \ref FetchLambda_NonConst or \ref FetchLambda_Const)
  * - **reduction**: Lambda or function object that combines weights (see \ref ReductionLambda_Basic or \ref
  * ReductionLambda_WithArgument)
- * - **store**: Lambda that stores the reduction results (see \ref StoreLambda_Basic or variants)
+ * - **store**: Lambda that stores the reduction results (see \ref GraphStoreLambda_Basic or variants)
  * - **identity**: The identity edge for the reduction (e.g., 0 for addition, 1 for multiplication)
  * - **launchConfig**: Configuration for parallel execution (optional)
  *
@@ -190,11 +190,11 @@ namespace TNL::Graphs {
  * Note: This variant is used when you need to track which edge produced the final result
  * (e.g., finding the maximum weight and its position).
  *
- * \section StoreLambdas Store Lambda Functions
+ * \section GraphStoreLambdas Store Lambda Functions
  *
  * The \e store lambda is used to store the final reduction result for each vertex.
  *
- * \subsection StoreLambda_Basic Basic Store (Vertex Index Only)
+ * \subsection GraphStoreLambda_Basic Basic Store (Vertex Index Only)
  *
  * ```cpp
  * auto store = [=] __cuda_callable__ ( IndexType sourceIdx, const FetchValue& weight ) { ... }
@@ -204,7 +204,7 @@ namespace TNL::Graphs {
  * - \e sourceIdx - The index of the source graph vertex
  * - \e weight - The result of the reduction for this vertex
  *
- * \subsection StoreLambda_WithLocalIdx Store With Argument (Position Tracking)
+ * \subsection GraphStoreLambda_WithLocalIdx Store With Argument (Position Tracking)
  *
  * ```cpp
  * auto store = [=] __cuda_callable__ ( IndexType sourceIdx, IndexType localIdx, IndexType targetIdx, const Value& weight, bool
@@ -220,7 +220,7 @@ namespace TNL::Graphs {
  * - \e isolatedVertex - Boolean flag indicating whether the vertex has no edges (true if empty). When true, localIdx and
  * targetIdx values are meaningless and should not be used.
  *
- * \subsection StoreLambda_WithIndexArray Store With Vertex Index Array Or Condition
+ * \subsection GraphStoreLambda_WithIndexArray Store With Vertex Index Array Or Condition
  *
  * ```cpp
  * auto store = [=] __cuda_callable__ ( IndexType indexOfVertexIdx, IndexType sourceIdx, const FetchValue& weight ) { ... }
@@ -232,7 +232,7 @@ namespace TNL::Graphs {
  * - \e sourceIdx - The actual index of the vertex
  * - \e weight - The result of the reduction for this vertex
  *
- * \subsection StoreLambda_WithIndexArrayAndLocalIdx Store With Vertex Index Array and With Argument
+ * \subsection GraphStoreLambda_WithIndexArrayAndLocalIdx Store With Vertex Index Array and With Argument
  *
  * ```cpp
  * auto store = [=] __cuda_callable__ ( IndexType indexOfVertexIdx, IndexType sourceIdx, IndexType localIdx, IndexType
@@ -250,11 +250,11 @@ namespace TNL::Graphs {
  * - \e isolatedVertex - Boolean flag indicating whether the vertex has no edges (true if empty). When true, localIdx and
  * targetIdx values are meaningless and should not be used.
  *
- * \section ConditionLambdas Condition Lambda Functions
+ * \section GraphConditionLambdas Condition Lambda Functions
  *
  * The \e condition lambda determines which vertices should be processed (used in "If" variants).
  *
- * \subsection ConditionLambda Condition Check
+ * \subsection GraphConditionLambda Condition Check
  *
  * ```cpp
  * auto condition = [=] __cuda_callable__ ( IndexType sourceIdx ) -> bool { ... }
@@ -264,7 +264,7 @@ namespace TNL::Graphs {
  * - \e sourceIdx - The index of the graph vertex
  * - Returns: \e true if the vertex should be processed, \e false otherwise
  *
- * \section ReductionFunctionObjects Reduction Function Objects
+ * \section GraphReductionFunctionObjects Reduction Function Objects
  *
  * Instead of lambda functions, reduction operations can also be specified using function objects
  * from \ref TNL::Algorithms::Segments::ReductionFunctionObjects or
@@ -294,7 +294,7 @@ namespace TNL::Graphs {
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -326,7 +326,7 @@ reduceAllVertices( Graph& graph,
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -357,8 +357,8 @@ reduceAllVertices( const Graph& graph,
  *
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -387,8 +387,8 @@ reduceAllVertices( Graph& graph,
  *
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -426,7 +426,7 @@ reduceAllVertices( const Graph& graph,
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Lambda function for the reduction operation. See \ref ReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -475,7 +475,7 @@ reduceVertices( Graph& graph,
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Lambda function for the reduction operation. See \ref ReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -523,8 +523,8 @@ reduceVertices( const Graph& graph,
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -569,8 +569,8 @@ reduceVertices( Graph& graph,
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction
  *    will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -618,7 +618,7 @@ reduceVertices( const Graph& graph,
  *    whose corresponding vertices will be processed for reduction.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref StoreLambda_WithIndexArray.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -659,7 +659,7 @@ reduceVertices( Graph& graph,
  * \param vertexIndexes The array containing the indexes of the vertices to iterate over.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref StoreLambda_WithIndexArray.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithIndexArray.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -699,8 +699,8 @@ reduceVertices( const Graph& graph,
  * \param graph The graph on which the reduction will be performed.
  * \param vertexIndexes The array containing the indexes of the vertices to iterate over.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_WithIndexArray.
+ * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithIndexArray.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -737,8 +737,8 @@ reduceVertices( Graph& graph,
  * \param graph The graph on which the reduction will be performed.
  * \param vertexIndexes The array containing the indexes of the vertices to iterate over.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_WithIndexArray.
+ * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithIndexArray.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -773,10 +773,10 @@ reduceVertices( const Graph& graph,
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
+ * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -810,10 +810,10 @@ reduceAllVerticesIf( Graph& graph,
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
+ * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -847,10 +847,10 @@ reduceAllVerticesIf( const Graph& graph,
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
+ * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
@@ -882,10 +882,10 @@ reduceAllVerticesIf( Graph& graph,
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
+ * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
@@ -923,10 +923,10 @@ reduceAllVerticesIf( const Graph& graph,
  * \param graph The graph on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
+ * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -976,10 +976,10 @@ reduceVerticesIf( Graph& graph,
  * \param graph The graph on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
+ * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Lambda function for reduction operation. See \ref ReductionLambda_Basic.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1028,10 +1028,10 @@ reduceVerticesIf( const Graph& graph,
  * \param graph The graph on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
+ * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
@@ -1077,10 +1077,10 @@ reduceVerticesIf( Graph& graph,
  * \param graph The graph on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param condition Lambda function for condition check. See \ref ConditionLambda.
+ * \param condition Lambda function for condition check. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction operation. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_Basic.
+ * \param reduction Function object for reduction operation. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_Basic.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
@@ -1122,7 +1122,7 @@ reduceVerticesIf( const Graph& graph,
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Lambda function for reduction with argument tracking. See \ref ReductionLambda_WithArgument.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1156,7 +1156,7 @@ reduceAllVerticesWithArgument(
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Lambda function for reduction with argument tracking. See \ref ReductionLambda_WithArgument.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1188,8 +1188,8 @@ reduceAllVerticesWithArgument(
  *
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -1219,8 +1219,8 @@ reduceAllVerticesWithArgument(
  *
  * \param graph The graph on which the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -1258,7 +1258,7 @@ reduceAllVerticesWithArgument(
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Lambda function for reduction operation with argument. See \ref ReductionLambda_WithArgument.
- * \param store Lambda function for storing results. See \ref StoreLambda_WithLocalIdx.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
@@ -1302,7 +1302,7 @@ reduceVerticesWithArgument(
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Lambda function for reduction operation with argument. See \ref ReductionLambda_WithArgument.
- * \param store Lambda function for storing results. See \ref StoreLambda_WithLocalIdx.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
@@ -1344,8 +1344,8 @@ reduceVerticesWithArgument(
  * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction operation with argument. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction operation with argument. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
 template< typename Graph,
@@ -1384,8 +1384,8 @@ reduceVerticesWithArgument(
  * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction operation with argument. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction operation with argument. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results. See \ref GraphStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
 template< typename Graph,
@@ -1422,7 +1422,7 @@ reduceVerticesWithArgument(
  * \param vertexIndexes The array containing the indexes of the vertices to iterate over.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
  * \param reduction Lambda function for reduction with argument tracking. See \ref ReductionLambda_WithArgument.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithIndexArrayAndLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithIndexArrayAndLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1465,7 +1465,7 @@ reduceVerticesWithArgument(
  * \param vertexIndexes The array containing the indexes of the vertices to iterate over.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
  * \param reduction Lambda function for reduction with argument tracking. See \ref ReductionLambda_WithArgument.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithIndexArrayAndLocalIdx.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithIndexArrayAndLocalIdx.
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1506,8 +1506,8 @@ reduceVerticesWithArgument(
  * \param graph The graph on which the reduction will be performed.
  * \param vertexIndexes The array containing the indexes of the vertices to iterate over.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithIndexArrayAndLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithIndexArrayAndLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -1545,8 +1545,8 @@ reduceVerticesWithArgument(
  * \param graph The graph on which the reduction will be performed.
  * \param vertexIndexes The array containing the indexes of the vertices to iterate over.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithIndexArrayAndLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithIndexArrayAndLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
@@ -1583,10 +1583,10 @@ reduceVerticesWithArgument(
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param condition Lambda function for vertex condition checking. See \ref ConditionLambda.
+ * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param identity The identity edge for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1627,10 +1627,10 @@ reduceAllVerticesWithArgumentIf(
  * \tparam FetchValue The type returned by the \e Fetch lambda function.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param condition Lambda function for vertex condition checking. See \ref ConditionLambda.
+ * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param identity The identity edge for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1670,10 +1670,10 @@ reduceAllVerticesWithArgumentIf(
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param condition Lambda function for vertex condition checking. See \ref ConditionLambda.
+ * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
@@ -1706,10 +1706,10 @@ reduceAllVerticesWithArgumentIf(
  * \tparam Store The type of the lambda function used for storing results from individual vertices.
  *
  * \param graph The graph on which the reduction will be performed.
- * \param condition Lambda function for vertex condition checking. See \ref ConditionLambda.
+ * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
@@ -1749,10 +1749,10 @@ reduceAllVerticesWithArgumentIf(
  * \param graph The graph on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param condition Lambda function for vertex condition checking. See \ref ConditionLambda.
+ * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param identity The identity edge for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1803,10 +1803,10 @@ reduceVerticesWithArgumentIf(
  * \param graph The graph on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param condition Lambda function for vertex condition checking. See \ref ConditionLambda.
+ * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param identity The identity edge for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
@@ -1856,10 +1856,10 @@ reduceVerticesWithArgumentIf(
  * \param graph The graph on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param condition Lambda function for vertex condition checking. See \ref ConditionLambda.
+ * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_NonConst.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
@@ -1906,10 +1906,10 @@ reduceVerticesWithArgumentIf(
  * \param graph The graph on which the reduction will be performed.
  * \param begin The beginning of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
  * \param end The end of the interval [ \e begin, \e end ) of vertices where the reduction will be performed.
- * \param condition Lambda function for vertex condition checking. See \ref ConditionLambda.
+ * \param condition Lambda function for vertex condition checking. See \ref GraphConditionLambda.
  * \param fetch Lambda function for fetching data. See \ref FetchLambda_Const.
- * \param reduction Function object for reduction with argument tracking. See \ref ReductionFunctionObjects.
- * \param store Lambda function for storing results with position tracking. See \ref StoreLambda_WithLocalIdx.
+ * \param reduction Function object for reduction with argument tracking. See \ref GraphReductionFunctionObjects.
+ * \param store Lambda function for storing results with position tracking. See \ref GraphStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \return The number of processed vertices, i.e. vertices for which the condition was true.
