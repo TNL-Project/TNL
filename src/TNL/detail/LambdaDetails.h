@@ -9,6 +9,8 @@
 
 namespace TNL::detail {
 
+//! \cond INTERNAL_DOXYGEN_SKIP
+
 /***
  * Adopted from https://stackoverflow.com/questions/54389831/count-the-number-of-arguments-in-a-lambda
  */
@@ -56,5 +58,7 @@ struct lambda_details_impl< Lambda, Max, N, std::enable_if_t< can_accept< Lambda
 template< typename Lambda, std::size_t Max = 50 >
 struct LambdaDetails : lambda_details_impl< Lambda, Max, Max >
 {};
+
+//! \endcond
 
 }  //namespace TNL::detail
