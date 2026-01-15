@@ -33,6 +33,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
       const IndexType alignedSize = segments.getAlignedSize();
       auto l = [ segmentSize, storageSize, alignedSize, function ] __cuda_callable__( const IndexType segmentIdx ) mutable
       {
+         (void) segmentSize;  // To suppress unused variable warning
+         (void) storageSize;
+         (void) alignedSize;
          if constexpr( Organization == RowMajorOrder ) {
             const IndexType begin = segmentIdx * segmentSize;
             const IndexType end = begin + segmentSize;
@@ -152,6 +155,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
       auto l = [ segmentSize, storageSize, alignedSize, segmentIndexesView, function ] __cuda_callable__(
                   const IndexType idx ) mutable
       {
+         (void) segmentSize;  // To suppress unused variable warning
+         (void) storageSize;
+         (void) alignedSize;
          const IndexType segmentIdx = segmentIndexesView[ idx ];
          if constexpr( Organization == RowMajorOrder ) {
             const IndexType begin = segmentIdx * segmentSize;
@@ -272,6 +278,9 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
       auto l =
          [ segmentSize, storageSize, alignedSize, condition, function ] __cuda_callable__( const IndexType segmentIdx ) mutable
       {
+         (void) segmentSize;  // To suppress unused variable warning
+         (void) storageSize;
+         (void) alignedSize;
          if( ! condition( segmentIdx ) )
             return;
          if constexpr( Organization == RowMajorOrder ) {

@@ -13,7 +13,8 @@ protected:
    using RealType = typename Matrix::RealType;
    using DeviceType = typename Matrix::DeviceType;
    using IndexType = typename Matrix::IndexType;
-   using SymmetricMatrixType = typename Matrix::Self< RealType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
+   using SymmetricMatrixType =
+      typename Matrix::template Self< RealType, DeviceType, IndexType, TNL::Matrices::SymmetricMatrix >;
 };
 
 TYPED_TEST_SUITE( SparseDenseMatrixOperationsTest, MatrixTypes );

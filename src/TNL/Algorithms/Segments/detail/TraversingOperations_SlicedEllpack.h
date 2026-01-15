@@ -33,6 +33,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
       const auto sliceOffsets_view = segments.getSliceOffsetsView();
       auto l = [ sliceSegmentSizes_view, sliceOffsets_view, function ] __cuda_callable__( const IndexType segmentIdx ) mutable
       {
+         (void) sliceSegmentSizes_view;  // To suppress unused variable warning
          const IndexType sliceIdx = segmentIdx / SliceSize;
          const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
          if constexpr( Organization == RowMajorOrder ) {
@@ -174,6 +175,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
       auto l = [ segmentIndexes_view, sliceSegmentSizes_view, sliceOffsets_view, function ] __cuda_callable__(
                   const IndexType idx ) mutable
       {
+         (void) sliceSegmentSizes_view;  // To suppress unused variable warning
          const IndexType segmentIdx = segmentIndexes_view[ idx ];
          const IndexType sliceIdx = segmentIdx / SliceSize;
          const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
@@ -315,6 +317,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
       auto l = [ sliceSegmentSizes_view, sliceOffsets_view, condition, function ] __cuda_callable__(
                   const IndexType segmentIdx ) mutable
       {
+         (void) sliceSegmentSizes_view;  // To suppress unused variable warning
          if( ! condition( segmentIdx ) )
             return;
          const IndexType sliceIdx = segmentIdx / SliceSize;

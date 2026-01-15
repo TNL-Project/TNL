@@ -80,7 +80,7 @@ class SparseMatrixView : public SparseMatrixBase< Real,
                                   ComputeReal >;
 
 public:
-   using Base::MatrixType;
+   using typename Base::MatrixType;
 
    /**
     * \brief Templated type of segments view, i.e. sparse matrix format.
