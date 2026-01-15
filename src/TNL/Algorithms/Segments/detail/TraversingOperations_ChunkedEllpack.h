@@ -34,6 +34,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
       auto work = [ chunksInSlice, segmentToChunkMapping, segmentToSliceMapping, slices, function ] __cuda_callable__(
                      IndexType segmentIdx ) mutable
       {
+         (void) chunksInSlice;  // To suppress unused variable warning
          const IndexType sliceIdx = segmentToSliceMapping[ segmentIdx ];
 
          IndexType firstChunkOfSegment( 0 );
@@ -104,6 +105,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
                     segmentIndexesView,
                     function ] __cuda_callable__( IndexType idx ) mutable
       {
+         (void) chunksInSlice;  // To suppress unused variable warning
          const IndexType segmentIdx = segmentIndexesView[ idx ];
          const IndexType sliceIdx = segmentToSliceMapping[ segmentIdx ];
 
@@ -173,6 +175,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
          [ chunksInSlice, segmentToChunkMapping, segmentToSliceMapping, slices, condition, function ] __cuda_callable__(
             IndexType segmentIdx ) mutable
       {
+         (void) chunksInSlice;  // To suppress unused variable warning
          if( ! condition( segmentIdx ) )
             return;
          const IndexType sliceIdx = segmentToSliceMapping[ segmentIdx ];

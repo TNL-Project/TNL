@@ -83,9 +83,12 @@ struct GraphVertexView< Matrices::SparseMatrixView< Real, Device, Index, MatrixT
    using ConstMatrixRowView = typename MatrixRowView::ConstRowView;
 
    //! \brief Base type.
-   using Base = Matrices::SparseMatrixRowView< typename MatrixView::SegmentsViewType::SegmentViewType,
-                                               typename MatrixView::ValuesViewType,
-                                               typename MatrixView::ColumnIndexesViewType >;
+   using Base = Matrices::SparseMatrixRowView<
+      typename Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >::SegmentsViewType::
+         SegmentViewType,
+      typename Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >::ValuesViewType,
+      typename Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >::
+         ColumnIndexesViewType >;
 
    using ColumnIndexesViewType = typename Base::ColumnsIndexesViewType;  // TODO: Rename ColumnsIndexesViewType in Base
 
