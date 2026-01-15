@@ -188,7 +188,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel( const int gridIdx,
    //
    // In this case each slice is processed by one warp (Slice 0 by threads T0-T7 and Slice 1 by threads T8-T15).
    // If we had ThreadsPerSegment = 4, then each slice would be processed by two warps which is also allowed in this
-   // kernel. Since we need to perform reduction over all threads processing one segment (i.e. recution within rows),
+   // kernel. Since we need to perform reduction over all threads processing one segment (i.e. reduction within rows),
    // in the later case we would need to perform reduction over more warps and that requires usage of shared memory.
    /////
 
@@ -428,7 +428,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel( const int gridIdx,
    #endif
 
       /////
-      // Finaly, we write the result. The mapping of threads having the result of the reduction is as follows:
+      // Finally, we write the result. The mapping of threads having the result of the reduction is as follows:
       //
       //          +---------+
       //          |   T0/W0 |

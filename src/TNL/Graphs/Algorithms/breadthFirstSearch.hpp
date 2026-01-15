@@ -33,14 +33,14 @@ breadthFirstSearchParallel( const Graph& graph,
    distances.setSize( n );
 
    Vector y( distances.getSize() );
-   Containers::Vector< Index, Device, Index > predecesors( n, -1 ), marks( n ), marks_scan( n, 0 ), frontier( n, 0 );
+   Containers::Vector< Index, Device, Index > predecessors( n, -1 ), marks( n ), marks_scan( n, 0 ), frontier( n, 0 );
    distances = -1;
    distances.setElement( start, 0 );
    frontier.setElement( 0, start );
    Index frontier_size( 1 );
    y = distances;
    auto y_view = y.getView();
-   auto predecesors_view = predecesors.getView();
+   auto predecessors_view = predecessors.getView();
    auto marks_view = marks.getView();
    auto marks_scan_view = marks_scan.getView();
    for( Index i = 0; i <= n; i++ ) {
@@ -60,7 +60,7 @@ breadthFirstSearchParallel( const Graph& graph,
 #if defined( _OPENMP )
    #pragma omp atomic write
 #endif
-                  predecesors_view[ targetIdx ] = sourceIdx;
+                  predecessors_view[ targetIdx ] = sourceIdx;
 #if defined( _OPENMP )
    #pragma omp atomic write
 #endif
@@ -82,7 +82,7 @@ breadthFirstSearchParallel( const Graph& graph,
                TNL_ASSERT_LT( targetIdx, y_view.getSize(), "" );
                if( targetIdx != Matrices::paddingIndex< Index > && y_view[ targetIdx ] == -1 ) {
                   atomicMax( &y_view[ targetIdx ], i + 1 );
-                  atomicMax( &predecesors_view[ targetIdx ], sourceIdx );
+                  atomicMax( &predecessors_view[ targetIdx ], sourceIdx );
                   atomicMax( &marks_view[ targetIdx ], 1 );
                   visitor( targetIdx, i + 1 );
                }

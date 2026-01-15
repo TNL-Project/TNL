@@ -39,7 +39,7 @@ SegmentsExample()
    /***
     * Print the data by the segments.
     */
-   std::cout << "Values of elements after intial setup: " << std::endl;
+   std::cout << "Values of elements after initial setup: " << std::endl;
    auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];

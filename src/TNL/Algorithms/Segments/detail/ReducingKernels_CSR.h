@@ -8,7 +8,7 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-// TODO: The following vector kernel is special case of the general variabel vector kernel.
+// TODO: The following vector kernel is special case of the general variable vector kernel.
 // Check the performance and if it is the same, we can erase this kernel.
 template< typename Segments, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
@@ -186,7 +186,7 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
    constexpr int shared_size = TNL::max( BlockSize / Backend::getWarpSize(), Backend::getWarpSize() );
    __shared__ ReturnType shared[ shared_size ];
    if( threadIdx.x < shared_size )
-      shared[ threadIdx.x ] = identity;  // (*) we sychronize threads later
+      shared[ threadIdx.x ] = identity;  // (*) we synchronize threads later
 
    const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
    const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
@@ -415,7 +415,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
 
 // Reduction with segment indexes
 
-// TODO: The following vector kernel is special case of the general variabel vector kernel.
+// TODO: The following vector kernel is special case of the general variable vector kernel.
 // Check the performance and if it is the same, we can erase this kernel.
 template< typename Segments,
           typename ArrayView,
@@ -602,7 +602,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
    __shared__ ReturnType shared[ shared_size ];
 
    if( threadIdx.x < BlockSize / Backend::getWarpSize() )
-      shared[ threadIdx.x ] = identity;  // (*) we sychronize threads later
+      shared[ threadIdx.x ] = identity;  // (*) we synchronize threads later
 
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
    const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
@@ -1023,7 +1023,7 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
    __shared__ ReturnType shared_results[ shared_size ];
    __shared__ Index shared_arguments[ shared_size ];
    if( threadIdx.x < shared_size ) {
-      shared_results[ threadIdx.x ] = identity;  // (*) we sychronize threads later
+      shared_results[ threadIdx.x ] = identity;  // (*) we synchronize threads later
       shared_arguments[ threadIdx.x ] = 0;
    }
 
@@ -1274,7 +1274,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
 
 // Reduction with segment indexes and argument
 
-// TODO: The following vector kernel is special case of the general variabel vector kernel.
+// TODO: The following vector kernel is special case of the general variable vector kernel.
 // Check the performance and if it is the same, we can erase this kernel.
 template< typename Segments,
           typename ArrayView,
@@ -1471,7 +1471,7 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
    __shared__ ReturnType shared_results[ shared_size ];
    __shared__ Index shared_arguments[ shared_size ];
    if( threadIdx.x < shared_size ) {
-      shared_results[ threadIdx.x ] = identity;  // (*) we sychronize threads later
+      shared_results[ threadIdx.x ] = identity;  // (*) we synchronize threads later
       shared_arguments[ threadIdx.x ] = 0;
    }
 

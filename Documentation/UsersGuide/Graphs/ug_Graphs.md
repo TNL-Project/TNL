@@ -231,7 +231,7 @@ Iterate over all vertices in parallel:
 TNL::Graphs::forAllVertices(
     graph,
     [] __cuda_callable__ ( typename GraphType::VertexView& vertex ) {
-        // Proces vertex ...
+        // Process vertex ...
     }
 );
 ```
