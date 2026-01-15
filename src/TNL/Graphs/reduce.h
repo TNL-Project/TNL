@@ -35,8 +35,8 @@ namespace TNL::Graphs {
  * | **Non-const** | Yes | Can modify graph edges during reduction |
  * | **Const** | No | Read-only access to graph edges |
  *
- * Note: Each reduction function has both const and non-const overloads. The possiblity
- * to modify the graph during reduction alows to fuse reduction with traversing operations
+ * Note: Each reduction function has both const and non-const overloads. The possibility
+ * to modify the graph during reduction allows to fuse reduction with traversing operations
  * into a single pass. This can improve performance by reducing memory accesses.
  *
  * \subsection GraphReductionBasicVsArgument Basic vs. WithArgument Variants
