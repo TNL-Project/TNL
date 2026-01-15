@@ -200,7 +200,7 @@ Ellpack-based formats. As mentioned earlier, these formats often use
 For example, the \ref TNL::Algorithms::Segments::ChunkedEllpack
 format includes many such elements. However, this overhead is mainly
 a result of the very small example presented here;
-on large data, the overhead is usualy not so significant.
+on large data, the overhead is usually not so significant.
 
 Let us remind the reader that segments represent a sparse format
 rather than a data structure, as they do not store any data themselves.
@@ -591,7 +591,7 @@ which is specified using a lambda function.
 
 ### Function reduceSegments
 
-Redcution within segments is demosntrated in the following code snippet:
+Redcution within segments is demonstrated in the following code snippet:
 
 \snippet Algorithms/Segments/SegmentsExample_reduceSegments.cpp reduction
 
@@ -653,7 +653,7 @@ each segment into the vector sums.
 Finally, we call the function `reduceAllSegments`
 (\ref TNL::Algorithms::Segments::reduceAllSegments)
 to compute the reductions in the segments, first, using `fetch_full`
-and then, using `fetch_brief`. In both cases, we use tghe functor `TNL::Plus`
+and then, using `fetch_brief`. In both cases, we use the functor `TNL::Plus`
 for the reduction operation. We then print the results, which
 is supposed be the same for both variants.
 

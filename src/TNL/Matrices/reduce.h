@@ -39,8 +39,8 @@ namespace TNL::Matrices {
  * | **Non-const** | Yes | Can modify matrix elements during reduction |
  * | **Const** | No | Read-only access to matrix elements |
  *
- * Note: Each reduction function has both const and non-const overloads. The possiblity
- * to modify the matrix during reduction alows to fuse reduction with traversing operations
+ * Note: Each reduction function has both const and non-const overloads. The possibility
+ * to modify the matrix during reduction allows to fuse reduction with traversing operations
  * into a single pass. This can improve performance by reducing memory accesses.
  *
  * \subsection MatrixReductionBasicVsArgument Basic vs. WithArgument Variants

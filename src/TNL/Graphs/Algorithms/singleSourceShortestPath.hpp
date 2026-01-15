@@ -32,14 +32,14 @@ parallelSingleSourceShortestPath( const Graph& graph,
    distances.setSize( n );
 
    Vector y( distances.getSize() );
-   Containers::Vector< Index, Device, Index > predecesors( n, -1 ), marks( n ), marks_scan( n, 0 ), frontier( n, 0 );
+   Containers::Vector< Index, Device, Index > predecessors( n, -1 ), marks( n ), marks_scan( n, 0 ), frontier( n, 0 );
    distances = std::numeric_limits< Real >::max();
    distances.setElement( start, 0 );
    frontier.setElement( 0, start );
    Index frontier_size( 1 );
    y = distances;
    auto y_view = y.getView();
-   auto predecesors_view = predecesors.getView();
+   auto predecessors_view = predecessors.getView();
    auto marks_view = marks.getView();
    auto marks_scan_view = marks_scan.getView();
    for( Index i = 0; i <= n; i++ ) {
@@ -61,7 +61,7 @@ parallelSingleSourceShortestPath( const Graph& graph,
 #if defined( _OPENMP )
 #pragma omp atomic write
 #endif
-                     predecesors_view[ targetIdx ] = sourceIdx;
+                     predecessors_view[ targetIdx ] = sourceIdx;
 #if defined( _OPENMP )
 #pragma omp atomic write
 #endif
@@ -85,7 +85,7 @@ parallelSingleSourceShortestPath( const Graph& graph,
                   Real new_distance = y_view[ sourceIdx ] + weight;
                   if( new_distance < y_view[ targetIdx ] ) {
                      atomicMin( &y_view[ targetIdx ], new_distance );
-                     atomicMin( &predecesors_view[ targetIdx ], sourceIdx );
+                     atomicMin( &predecessors_view[ targetIdx ], sourceIdx );
                      atomicMax( &marks_view[ targetIdx ], 1 );
                   }
                }

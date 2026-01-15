@@ -5,8 +5,8 @@
 
 const char* saveAndLoadFileName = "test_SparseMatrixTest_Ellpack_segments";
 
-template< typename Device, typename Index, typename IndexAlocator >
-using RowMajorEllpack = TNL::Algorithms::Segments::RowMajorEllpack< Device, Index, IndexAlocator >;
+template< typename Device, typename Index, typename IndexAllocator >
+using RowMajorEllpack = TNL::Algorithms::Segments::RowMajorEllpack< Device, Index, IndexAllocator >;
 
 template< typename Device, typename Index, typename IndexAllocator >
 using ColumnMajorEllpack = TNL::Algorithms::Segments::ColumnMajorEllpack< Device, Index, IndexAllocator >;

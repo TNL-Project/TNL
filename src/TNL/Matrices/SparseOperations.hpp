@@ -219,7 +219,7 @@ copySparseToSparseMatrix( TargetMatrix& A, const SourceMatrix& B )
             const SourceIndexType rowIdx = row.getRowIndex();
             for( SourceIndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
                const SourceIndexType columnIndex = row.getColumnIndex( localIdx );
-               if( generalToSymmetric )  // TOOD: make this constexpr when nvcc allows it
+               if( generalToSymmetric )  // TODO: make this constexpr when nvcc allows it
                   if( columnIndex > rowIdx )
                      continue;
                const SourceRealType& value = row.getValue( localIdx );
