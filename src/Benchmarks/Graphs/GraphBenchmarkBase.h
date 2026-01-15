@@ -23,6 +23,7 @@
 #include <vector>
 
 //#define WITH_ROW_MAJOR_SLICED_ELLPACK
+//#define WITH_SORTED_SEGMENTS
 
 namespace TNL::Benchmarks::Graphs {
 
@@ -92,8 +93,9 @@ public:
       config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
       config.addEntryEnum( "append" );
       config.addEntryEnum( "overwrite" );
+#ifdef WITH_SORTED_SEGMENTS
       config.addEntry< bool >( "with-sorted-segments", "Run benchmark with sorted segments.", true );
-
+#endif
       config.addDelimiter( "Device settings:" );
       config.addEntry< TNL::String >( "device", "Device the computation will run on.", "all" );
       config.addEntryEnum< TNL::String >( "all" );
@@ -123,7 +125,9 @@ public:
       const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
       const int loops = parameters.getParameter< int >( "loops" );
       verbose = parameters.getParameter< int >( "verbose" );
+#ifdef WITH_SORTED_SEGMENTS
       withSortedSegments = parameters.getParameter< bool >( "with-sorted-segments" );
+#endif
 
       size_t dotPosition = inputFile.find_last_of( '.' );
       std::string inputFileExtension = "";
@@ -223,10 +227,11 @@ public:
          runTNLBenchmarks< TNL::Devices::Cuda, BiEllpackSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
          runTNLBenchmarks< TNL::Devices::Cuda, ChunkedEllpackSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
 
+   #ifdef WITH_SORTED_SEGMENTS
          if( withSortedSegments ) {
             runTNLBenchmarks< TNL::Devices::Cuda, SortedCSRSegments >( digraph, graph, smallest, largest, benchmark, "cuda" );
 
-   #ifdef WITH_ROW_MAJOR_SLICED_ELLPACK
+      #ifdef WITH_ROW_MAJOR_SLICED_ELLPACK
             // Row-major sliced Ellpack with various segment sizes
             runTNLBenchmarks< TNL::Devices::Cuda, SortedRowMajorSlicedEllpackSegments< 2 >::template type >(
                digraph, graph, smallest, largest, benchmark, "cuda" );
@@ -238,7 +243,7 @@ public:
             //   digraph, graph, smallest, largest, benchmark, "cuda" );
             runTNLBenchmarks< TNL::Devices::Cuda, SortedRowMajorSlicedEllpackSegments< 32 >::template type >(
                digraph, graph, smallest, largest, benchmark, "cuda" );
-   #endif
+      #endif
 
             // Column-major sliced Ellpack with various segment sizes
             runTNLBenchmarks< TNL::Devices::Cuda, SortedColumnMajorSlicedEllpackSegments< 2 >::template type >(
@@ -252,8 +257,9 @@ public:
             runTNLBenchmarks< TNL::Devices::Cuda, SortedColumnMajorSlicedEllpackSegments< 32 >::template type >(
                digraph, graph, smallest, largest, benchmark, "cuda" );
          }
+   #endif  // WITH_SORTED_SEGMENTS
       }
-#endif
+#endif  // __CUDACC__
 
       if( errors == 0 )
          return true;
@@ -285,9 +291,9 @@ protected:
 
    // Common data members
    const TNL::Config::ParameterContainer& parameters;
-   int verbose;
-   int errors;
-   bool withSortedSegments;
+   int verbose = 0;
+   int errors = 0;
+   bool withSortedSegments = false;
 };
 
 }  // namespace TNL::Benchmarks::Graphs
