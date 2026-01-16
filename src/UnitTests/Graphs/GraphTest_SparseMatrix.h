@@ -3,7 +3,6 @@
 
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Containers/Vector.h>
 
 #include <iostream>
@@ -32,17 +31,13 @@ protected:
 
 // types for which GraphBasicTest is instantiated
 using GraphBasicTestTypes = ::testing::Types< TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >,
-                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >,
-                                              TNL::Matrices::DenseMatrix< double, TNL::Devices::Sequential, int >,
-                                              TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int >
+                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >
 #if defined( __CUDACC__ )
                                               ,
-                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >,
-                                              TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int >
+                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >
 #elif defined( __HIP__ )
                                               ,
-                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >,
-                                              TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int >
+                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >
 #endif
                                               >;
 
@@ -417,7 +412,7 @@ TYPED_TEST( GraphBasicTest, CopyConstructor )
 
    GraphType graph1( 3, { { 0, 1, 1.0 }, { 1, 2, 2.0 }, { 0, 2, 3.0 } } );
 
-   GraphType graph2( graph1 );
+   GraphType graph2( graph1 );  // NOLINT(performance-unnecessary-copy-initialization)
 
    EXPECT_EQ( graph2.getVertexCount(), 3 );
    EXPECT_EQ( graph2.getEdgeCount(), 3 );
