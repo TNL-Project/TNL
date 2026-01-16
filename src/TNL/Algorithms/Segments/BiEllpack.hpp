@@ -17,8 +17,10 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::BiEllpack( c
   groupPointers( segments.groupPointers )
 {
    // update the base
-   Base::bind(
-      segments.getSize(), segments.getStorageSize(), this->segmentsPermutation.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getElementCount(),
+               segments.getStorageSize(),
+               this->segmentsPermutation.getView(),
+               this->groupPointers.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
@@ -43,8 +45,10 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=( c
    this->segmentsPermutation = segments.segmentsPermutation;
    this->groupPointers = segments.groupPointers;
    // update the base
-   Base::bind(
-      segments.getSize(), segments.getStorageSize(), this->segmentsPermutation.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getElementCount(),
+               segments.getStorageSize(),
+               this->segmentsPermutation.getView(),
+               this->groupPointers.getView() );
    return *this;
 }
 
@@ -55,8 +59,10 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=( B
    this->segmentsPermutation = std::move( segments.segmentsPermutation );
    this->groupPointers = std::move( segments.groupPointers );
    // update the base
-   Base::bind(
-      segments.getSize(), segments.getStorageSize(), this->segmentsPermutation.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getElementCount(),
+               segments.getStorageSize(),
+               this->segmentsPermutation.getView(),
+               this->groupPointers.getView() );
    return *this;
 }
 
@@ -69,8 +75,10 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=(
    this->segmentsPermutation = segments.getSegmentsPermutationView();
    this->groupPointers = segments.getGroupPointersView();
    // update the base
-   Base::bind(
-      segments.getSize(), segments.getStorageSize(), this->segmentsPermutation.getView(), this->groupPointers.getView() );
+   Base::bind( segments.getElementCount(),
+               segments.getStorageSize(),
+               this->segmentsPermutation.getView(),
+               this->groupPointers.getView() );
    return *this;
 }
 
@@ -78,14 +86,14 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 typename BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::ViewType
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getView()
 {
-   return { this->getSize(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
+   return { this->getElementCount(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
 auto
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::getConstView() const -> ConstViewType
 {
-   return { this->getSize(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
+   return { this->getElementCount(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >

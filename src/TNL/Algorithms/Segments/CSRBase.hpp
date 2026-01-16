@@ -84,6 +84,14 @@ CSRBase< Device, Index >::getSize() const -> IndexType
 template< typename Device, typename Index >
 __cuda_callable__
 auto
+CSRBase< Device, Index >::getElementCount() const -> IndexType
+{
+   return this->getStorageSize();
+}
+
+template< typename Device, typename Index >
+__cuda_callable__
+auto
 CSRBase< Device, Index >::getStorageSize() const -> IndexType
 {
    if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {

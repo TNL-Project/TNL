@@ -22,7 +22,7 @@ __cuda_callable__
 void
 SlicedEllpackView< Device, Index, Organization, SliceSize >::bind( SlicedEllpackView view )
 {
-   Base::bind( view.getSize(),
+   Base::bind( view.getElementCount(),
                view.getStorageSize(),
                view.getSegmentsCount(),
                view.getSliceOffsetsView(),
@@ -34,7 +34,7 @@ __cuda_callable__
 typename SlicedEllpackView< Device, Index, Organization, SliceSize >::ViewType
 SlicedEllpackView< Device, Index, Organization, SliceSize >::getView()
 {
-   return { this->getSize(),
+   return { this->getElementCount(),
             this->getStorageSize(),
             this->getSegmentsCount(),
             this->getSliceOffsetsView(),
@@ -46,7 +46,7 @@ __cuda_callable__
 auto
 SlicedEllpackView< Device, Index, Organization, SliceSize >::getConstView() const -> ConstViewType
 {
-   return { this->getSize(),
+   return { this->getElementCount(),
             this->getStorageSize(),
             this->getSegmentsCount(),
             this->getSliceOffsetsView(),

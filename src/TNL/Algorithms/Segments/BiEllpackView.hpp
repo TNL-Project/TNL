@@ -32,7 +32,7 @@ __cuda_callable__
 typename BiEllpackView< Device, Index, Organization, WarpSize >::ViewType
 BiEllpackView< Device, Index, Organization, WarpSize >::getView()
 {
-   return { this->getSize(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
+   return { this->getElementCount(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -40,7 +40,7 @@ __cuda_callable__
 auto
 BiEllpackView< Device, Index, Organization, WarpSize >::getConstView() const -> ConstViewType
 {
-   return { this->getSize(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
+   return { this->getElementCount(), this->getStorageSize(), this->getSegmentsPermutationView(), this->getGroupPointersView() };
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >

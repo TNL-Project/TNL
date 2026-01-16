@@ -83,6 +83,14 @@ __cuda_callable__
 auto
 BiEllpackBase< Device, Index, Organization, WarpSize >::getSize() const -> IndexType
 {
+   return this->getElementCount();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+__cuda_callable__
+auto
+BiEllpackBase< Device, Index, Organization, WarpSize >::getElementCount() const -> IndexType
+{
    return this->size;
 }
 

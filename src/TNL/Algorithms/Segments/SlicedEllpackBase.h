@@ -123,9 +123,14 @@ public:
    getSegmentSize( IndexType segmentIdx ) const;
 
    //! \brief Returns the number of elements managed by all segments.
-   [[nodiscard]] __cuda_callable__
+   [[deprecated( "Use getElementCount() instead." )]] [[nodiscard]] __cuda_callable__
    IndexType
    getSize() const;
+
+   //! \brief Returns the number of elements managed by all segments.
+   [[nodiscard]] __cuda_callable__
+   IndexType
+   getElementCount() const;
 
    //! \brief Returns number of elements that needs to be allocated by a
    //! container connected to this segments.
