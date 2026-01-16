@@ -101,8 +101,6 @@ The multidiagonal matrix type is especially suitable for the finite difference m
 
 ### Indexing of nonzero matrix elements in sparse matrices
 
-\anchor indexing-of-nonzero-matrix-elements-in-sparse-matrices
-
 The sparse matrix formats usually, in the first step, compress the matrix rows by omitting the zero matrix elements as follows
 
 \f[
@@ -1558,15 +1556,12 @@ The result looks as follows:
 
 ### Benchmark of dense matrix setup
 
-\anchor benchmark-of-dense-matrix-setup
 \includelineno DenseMatrixSetup_Benchmark.cpp
 
 ### Benchmark of sparse matrix setup
 
-\anchor benchmark-of-sparse-matrix-setup
 \includelineno SparseMatrixSetup_Benchmark.cpp
 
 ### Benchmark of multidiagonal matrix setup
 
-\anchor benchmark-of-multidiagonal-matrix-setup
 \includelineno MultidiagonalMatrixSetup_Benchmark.cpp
