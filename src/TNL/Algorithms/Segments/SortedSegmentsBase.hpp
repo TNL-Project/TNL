@@ -52,7 +52,15 @@ __cuda_callable__
 auto
 SortedSegmentsBase< EmbeddedSegments >::getSize() const -> IndexType
 {
-   return this->embeddedSegmentsView.getSize();
+   return this->embeddedSegmentsView.getElementCount();
+}
+
+template< typename EmbeddedSegments >
+__cuda_callable__
+auto
+SortedSegmentsBase< EmbeddedSegments >::getElementCount() const -> IndexType
+{
+   return this->embeddedSegmentsView.getElementCount();
 }
 
 template< typename EmbeddedSegments >
