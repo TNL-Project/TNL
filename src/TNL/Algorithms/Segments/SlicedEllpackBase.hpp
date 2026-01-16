@@ -86,6 +86,14 @@ __cuda_callable__
 auto
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSize() const -> IndexType
 {
+   return this->getElementCount();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+__cuda_callable__
+auto
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::getElementCount() const -> IndexType
+{
    return this->size;
 }
 

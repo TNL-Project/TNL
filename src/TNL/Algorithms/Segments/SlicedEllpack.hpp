@@ -17,7 +17,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::SlicedE
   sliceSegmentSizes( segments.sliceSegmentSizes )
 {
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
                segments.getSegmentsCount(),
                this->sliceOffsets.getView(),
@@ -46,7 +46,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    this->sliceOffsets = segments.sliceOffsets;
    this->sliceSegmentSizes = segments.sliceSegmentSizes;
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
                segments.getSegmentsCount(),
                this->sliceOffsets.getView(),
@@ -61,7 +61,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    this->sliceOffsets = std::move( segments.sliceOffsets );
    this->sliceSegmentSizes = std::move( segments.sliceSegmentSizes );
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
                segments.getSegmentsCount(),
                this->sliceOffsets.getView(),
@@ -78,7 +78,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    this->sliceOffsets = segments.getSliceOffsetsView();
    this->sliceSegmentSizes = segments.getSliceSegmentSizesView();
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
                segments.getSegmentsCount(),
                this->sliceOffsets.getView(),
@@ -90,7 +90,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 typename SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::ViewType
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::getView()
 {
-   return { this->getSize(),
+   return { this->getElementCount(),
             this->getStorageSize(),
             this->getSegmentsCount(),
             this->getSliceOffsetsView(),
@@ -101,7 +101,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 auto
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::getConstView() const -> ConstViewType
 {
-   return { this->getSize(),
+   return { this->getElementCount(),
             this->getStorageSize(),
             this->getSegmentsCount(),
             this->getSliceOffsetsView(),
