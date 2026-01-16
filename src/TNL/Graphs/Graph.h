@@ -159,9 +159,8 @@ struct Graph
     *
     * This constructor is only available when the adjacency matrix is a dense matrix type.
     * The edges are specified as a nested initializer list where each inner list represents
-    * all edge weights from a single vertex.
+    * all edge weights from a single vertex. The number of vertices is inferred from the size of the outer list.
     *
-    * \param vertexCount is the number of nodes in the graph (can be inferred from data size).
     * \param data is the nested initializer list where data[i] contains all edge weights from vertex i.
     *             Use 0.0 for non-existent edges.
     * \param encoding is the encoding for symmetric matrices (used only for undirected graphs).
@@ -173,8 +172,7 @@ struct Graph
     * See \ref GraphExample_Constructors.cpp for detailed examples including dense matrix construction.
     */
    template< typename T = AdjacencyMatrixType, typename C = std::enable_if_t< Matrices::is_dense_matrix_v< T > > >
-   Graph( IndexType vertexCount,
-          const std::initializer_list< std::initializer_list< ValueType > >& data,
+   Graph( const std::initializer_list< std::initializer_list< ValueType > >& data,
           Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
                                                                    : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
