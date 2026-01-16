@@ -44,11 +44,11 @@ setEdgesExample()
    graph1b.setVertexCount( 4 );
 
    // clang-format off
-   graph1b.setEdges( { { 0.0, 10.0, 20.0,  0.0,  0.0 },  // edges from vertex 0
-                       { 0.0,  0.0, 30.0, 40.0, 50.0 },  // edges from vertex 1
-                       { 0.0,  0.0,  0.0, 60.0,  0.0 },  // edges from vertex 2
-                       {70.0,  0.0,  0.0,  0.0, 80.0 },  // edges from vertex 3
-                       { 0.0,  0.0,  0.0,  0.0,  0.0 } } ); // edges from vertex 4
+   graph1b.setDenseEdges( { {  0.0, 10.0, 20.0,  0.0,  0.0 },  // edges from vertex 0
+                            {  0.0,  0.0, 30.0, 40.0, 50.0 },  // edges from vertex 1
+                            {  0.0,  0.0,  0.0, 60.0,  0.0 },  // edges from vertex 2
+                            { 70.0,  0.0,  0.0,  0.0, 80.0 },  // edges from vertex 3
+                            {  0.0,  0.0,  0.0,  0.0,  0.0 } } ); // edges from vertex 4
    // clang-format on
 
    std::cout << "Dense graph after setEdges:\n" << graph1b << std::endl;
