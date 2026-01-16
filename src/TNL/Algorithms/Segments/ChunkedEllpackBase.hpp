@@ -107,6 +107,14 @@ __cuda_callable__
 auto
 ChunkedEllpackBase< Device, Index, Organization >::getSize() const -> IndexType
 {
+   return this->getElementCount();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpackBase< Device, Index, Organization >::getElementCount() const -> IndexType
+{
    return this->size;
 }
 

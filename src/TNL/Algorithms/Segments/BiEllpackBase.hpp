@@ -83,6 +83,14 @@ __cuda_callable__
 auto
 BiEllpackBase< Device, Index, Organization, WarpSize >::getSize() const -> IndexType
 {
+   return this->getElementCount();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+__cuda_callable__
+auto
+BiEllpackBase< Device, Index, Organization, WarpSize >::getElementCount() const -> IndexType
+{
    return this->size;
 }
 
@@ -358,7 +366,7 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 void
 BiEllpackBase< Device, Index, Organization, WarpSize >::printStructure( std::ostream& str ) const
 {
-   const IndexType stripsCount = roundUpDivision( this->getSize(), getWarpSize() );
+   const IndexType stripsCount = roundUpDivision( this->getElementCount(), getWarpSize() );
    for( IndexType stripIdx = 0; stripIdx < stripsCount; stripIdx++ ) {
       str << "Strip: " << stripIdx << std::endl;
       const IndexType firstGroupIdx = stripIdx * ( getLogWarpSize() + 1 );
