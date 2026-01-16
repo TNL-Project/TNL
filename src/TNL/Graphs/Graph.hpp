@@ -284,7 +284,7 @@ template< typename Value,
           typename AdjacencyMatrix >
 template< typename T, typename C >
 void
-Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setEdges(
+Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::setDenseEdges(
    const std::initializer_list< std::initializer_list< ValueType > >& data,
    Matrices::MatrixElementsEncoding encoding )
 {

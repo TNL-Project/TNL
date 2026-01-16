@@ -285,9 +285,9 @@ struct Graph
     */
    template< typename T = AdjacencyMatrixType, typename C = std::enable_if_t< Matrices::is_dense_matrix_v< T > > >
    void
-   setEdges( const std::initializer_list< std::initializer_list< ValueType > >& data,
-             Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
-                                                                      : Matrices::MatrixElementsEncoding::SymmetricLower );
+   setDenseEdges( const std::initializer_list< std::initializer_list< ValueType > >& data,
+                  Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                                           : Matrices::MatrixElementsEncoding::SymmetricLower );
 
    /**
     * \brief Sets the edges of the graph from a map.
