@@ -18,7 +18,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::ChunkedEllpack( c
   slices( segments.slices )
 {
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
                segments.getNumberOfSlices(),
                segments.getChunksInSlice(),
@@ -55,7 +55,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=( const 
    this->chunksToSegmentsMapping = segments.chunksToSegmentsMapping;
    this->slices = segments.slices;
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
                segments.getNumberOfSlices(),
                segments.getChunksInSlice(),
@@ -78,7 +78,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=( Chunke
    this->chunksToSegmentsMapping = std::move( segments.chunksToSegmentsMapping );
    this->slices = std::move( segments.slices );
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
                segments.getNumberOfSlices(),
                segments.getChunksInSlice(),
@@ -103,7 +103,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=(
    this->chunksToSegmentsMapping = segments.getChunksToSegmentsMappingView();
    this->slices = segments.getSlicesView();
    // update the base
-   Base::bind( segments.getSize(),
+   Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
                segments.getNumberOfSlices(),
                segments.getChunksInSlice(),
@@ -120,7 +120,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 typename ChunkedEllpack< Device, Index, IndexAllocator, Organization >::ViewType
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getView()
 {
-   return { this->getSize(),
+   return { this->getElementCount(),
             this->getStorageSize(),
             this->getNumberOfSlices(),
             this->getChunksInSlice(),
@@ -136,7 +136,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 auto
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::getConstView() const -> ConstViewType
 {
-   return { this->getSize(),
+   return { this->getElementCount(),
             this->getStorageSize(),
             this->getNumberOfSlices(),
             this->getChunksInSlice(),

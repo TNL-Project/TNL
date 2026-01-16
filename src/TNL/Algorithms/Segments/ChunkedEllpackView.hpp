@@ -55,7 +55,7 @@ __cuda_callable__
 typename ChunkedEllpackView< Device, Index, Organization >::ViewType
 ChunkedEllpackView< Device, Index, Organization >::getView()
 {
-   return { this->getSize(),
+   return { this->getElementCount(),
             this->getStorageSize(),
             this->getNumberOfSlices(),
             this->getChunksInSlice(),
@@ -72,7 +72,7 @@ __cuda_callable__
 auto
 ChunkedEllpackView< Device, Index, Organization >::getConstView() const -> ConstViewType
 {
-   return { this->getSize(),
+   return { this->getElementCount(),
             this->getStorageSize(),
             this->getNumberOfSlices(),
             this->getChunksInSlice(),
