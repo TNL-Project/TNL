@@ -83,13 +83,11 @@ SortedSegmentsView< EmbeddedSegments >::getConstView() const -> ConstViewType
 {
    EmbeddedSegmentsConstView embeddedSegmentsView;
    embeddedSegmentsView.bind( this->getEmbeddedSegmentsView() );
-   ConstPermutationView segmentsPermutation =
-      const_cast< std::remove_const_t< decltype( this ) > >( this )->getSegmentsPermutationView();
-   ConstPermutationView inverseSegmentsPermutation =
-      const_cast< std::remove_const_t< decltype( this ) > >( this )->getInverseSegmentsPermutationView();
-   ViewType view;
+   ConstPermutationView segmentsPermutation = this->getSegmentsPermutationView();
+   ConstPermutationView inverseSegmentsPermutation = this->getInverseSegmentsPermutationView();
+   ConstViewType view;
    view.bind( embeddedSegmentsView, segmentsPermutation, inverseSegmentsPermutation );
-   return *(ConstViewType*) &view;
+   return view;
 }
 
 }  // namespace TNL::Algorithms::Segments
