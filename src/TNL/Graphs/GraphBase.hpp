@@ -66,6 +66,12 @@ template< typename Value, typename Device, typename Index, typename Orientation,
 auto
 GraphBase< Value, Device, Index, Orientation, AdjacencyMatrix >::getEdgeCount() const -> IndexType
 {
+   if constexpr( Matrices::is_dense_matrix_v< AdjacencyMatrix > ) {
+      if constexpr( isUndirected() )
+         return getVertexCount() * ( getVertexCount() - 1 ) / 2;
+      else
+         return getVertexCount() * ( getVertexCount() );
+   }
    if constexpr( isUndirected() ) {
       auto diagonalEntries = sum( notEqualTo( Matrices::getDiagonal( adjacencyMatrixView ), 0 ) );
       return ( adjacencyMatrixView.getNonzeroElementsCount() - diagonalEntries ) / 2 + diagonalEntries;
