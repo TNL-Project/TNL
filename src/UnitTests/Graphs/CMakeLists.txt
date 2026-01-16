@@ -1,4 +1,4 @@
-set(COMMON_TESTS GraphTest GraphTest_Traverse_SparseMatrix GraphTest_Traverse_DenseMatrix GraphTest_Reduce_SparseMatrix GraphTest_Reduce_DenseMatrix)
+set(COMMON_TESTS GraphTest_SparseMatrix GraphTest_DenseMatrix GraphTest_Traverse_SparseMatrix GraphTest_Traverse_DenseMatrix GraphTest_Reduce_SparseMatrix GraphTest_Reduce_DenseMatrix)
 
 add_subdirectory(Algorithms)
 

@@ -3,7 +3,6 @@
 
 #include <TNL/Graphs/Graph.h>
 #include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Containers/Vector.h>
 
 #include <iostream>
@@ -32,17 +31,13 @@ protected:
 
 // types for which GraphBasicTest is instantiated
 using GraphBasicTestTypes = ::testing::Types< TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >,
-                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >,
-                                              TNL::Matrices::DenseMatrix< double, TNL::Devices::Sequential, int >,
-                                              TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int >
+                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >
 #if defined( __CUDACC__ )
                                               ,
-                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >,
-                                              TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int >
+                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >
 #elif defined( __HIP__ )
                                               ,
-                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >,
-                                              TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int >
+                                              TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >
 #endif
                                               >;
 
