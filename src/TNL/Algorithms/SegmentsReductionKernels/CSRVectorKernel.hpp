@@ -96,7 +96,7 @@ CSRVectorKernel< Index, Device >::reduceAllSegments( const SegmentsView& segment
                                                      ResultKeeper& keeper,
                                                      const Value& identity )
 {
-   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
+   reduceSegments( segments, 0, segments.getSegmentCount(), fetch, reduction, keeper, identity );
 }
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

@@ -346,8 +346,8 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifySegmen
    for( Index strip = 0; strip < numberOfStrips; strip++ ) {
       Index begin = strip * Base::getWarpSize();
       Index end = ( strip + 1 ) * Base::getWarpSize();
-      if( this->getSegmentsCount() < end )
-         end = this->getSegmentsCount();
+      if( this->getSegmentCount() < end )
+         end = this->getSegmentCount();
       for( Index i = begin; i < end - 1; i++ ) {
          Index permIndex1 = 0;
          Index permIndex2 = 0;
@@ -380,7 +380,7 @@ template< typename SizesHolder >
 void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::verifySegmentLengths( const SizesHolder& segmentsSizes )
 {
-   for( Index segmentIdx = 0; segmentIdx < this->getSegmentsCount(); segmentIdx++ ) {
+   for( Index segmentIdx = 0; segmentIdx < this->getSegmentCount(); segmentIdx++ ) {
       const Index strip = segmentIdx / Base::getWarpSize();
       const Index stripLength = this->getStripLength( strip );
       const Index groupBegin = ( Base::getLogWarpSize() + 1 ) * strip;

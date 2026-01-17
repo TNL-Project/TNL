@@ -48,13 +48,13 @@ newSlotTest()
    {
       data_view[ segments.newSlot( i ) ] = 1;
    };
-   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentsCount(), f1 );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentCount(), f1 );
    EXPECT_EQ( sum( data ), 10 );
    auto f2 = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       data_view[ segments.newSlot( i ) ] = 2;
    };
-   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentsCount(), f2 );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentCount(), f2 );
    EXPECT_EQ( sum( data ), 30 );
 }
 
@@ -82,14 +82,14 @@ deleteSlotTest()
       data_view[ segments.newSlot( i ) ] = 1;
       data_view[ segments.newSlot( i ) ] = 2;
    };
-   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentsCount(), f1 );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentCount(), f1 );
    EXPECT_EQ( sum( data ), 30 );
 
    auto f2 = [ = ] __cuda_callable__( IndexType i ) mutable
    {
       data_view[ segments.deleteSlot( i ) ] = 0;
    };
-   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentsCount(), f2 );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentCount(), f2 );
    EXPECT_EQ( sum( data ), 10 );
 }
 
@@ -117,7 +117,7 @@ forElementsTest()
       for( IndexType j = 0; j <= i; j++ )
          data_view[ segments.newSlot( i ) ] = j + 1;
    };
-   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentsCount(), f1 );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentCount(), f1 );
 
    EXPECT_EQ( sum( data ), 220 );
    auto f2 = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
@@ -152,7 +152,7 @@ reduceSegmentsTest()
       for( IndexType j = 0; j <= i; j++ )
          data_view[ segments.newSlot( i ) ] = j + 1;
    };
-   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentsCount(), f1 );
+   TNL::Algorithms::parallelFor< DeviceType >( 0, segments.getSegmentCount(), f1 );
    EXPECT_EQ( sum( data ), 220 );
    data.forAllElements(
       [] __cuda_callable__( IndexType i, IndexType & value ) mutable
@@ -161,7 +161,7 @@ reduceSegmentsTest()
             value = -5;
       } );
 
-   VectorType result( segments.getSegmentsCount(), 0 );
+   VectorType result( segments.getSegmentCount(), 0 );
    auto result_view = result.getView();
    auto fetch = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx, bool compute )
    {
