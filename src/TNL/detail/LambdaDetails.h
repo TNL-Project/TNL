@@ -45,7 +45,7 @@ struct lambda_details_impl< Lambda, Max, N, std::enable_if_t< can_accept< Lambda
    static constexpr bool
    isVariadic()
    {
-      return ( N == Max );
+      return N == Max;
    }
 
    static constexpr std::size_t
