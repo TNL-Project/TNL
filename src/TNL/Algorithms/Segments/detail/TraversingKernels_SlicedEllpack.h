@@ -160,7 +160,7 @@ forElementsKernel_SlicedEllpack( const Index gridIdx,
 
       TNL_ASSERT_LT( sliceIdx, segments.getSliceSegmentSizesView().getSize(), "" );
       TNL_ASSERT_LT( inSliceSegmentIdx, SliceSize, "" );
-      TNL_ASSERT_LT( segmentIdx, segments.getSegmentsCount(), "" );
+      TNL_ASSERT_LT( segmentIdx, segments.getSegmentCount(), "" );
       Index localIdx = inSliceIdx / SliceSize;
 
       const Index beginIdx = segments.getSliceOffsetsView()[ sliceIdx ] + inSliceSegmentIdx + localIdx * SliceSize;
@@ -204,7 +204,7 @@ forElementsWithSegmentIndexesKernel_SlicedEllpack( const Index gridIdx,
    TNL_ASSERT_LT( idx, segmentIndexes.getSize(), "" );
    const Index segmentIdx = segmentIndexes[ idx ];
    TNL_ASSERT_GE( segmentIdx, 0, "Wrong index segment index - smaller that 0." );
-   TNL_ASSERT_LT( segmentIdx, segments.getSegmentsCount(), "Wrong index segment index - larger that the number of indexes." );
+   TNL_ASSERT_LT( segmentIdx, segments.getSegmentCount(), "Wrong index segment index - larger that the number of indexes." );
    const Index sliceIdx = segmentIdx / SliceSize;
    const Index inSliceOffset = segmentIdx % SliceSize;
 
@@ -267,7 +267,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
       shared_segment_indexes[ threadIdx.x ] = seg_idx;
       TNL_ASSERT_GE( shared_segment_indexes[ threadIdx.x ], 0, "" );
-      TNL_ASSERT_LT( shared_segment_indexes[ threadIdx.x ], segments.getSegmentsCount(), "" );
+      TNL_ASSERT_LT( shared_segment_indexes[ threadIdx.x ], segments.getSegmentCount(), "" );
       shared_global_offsets[ threadIdx.x ] = segments.getGlobalIndex( seg_idx, 0 );
    }
 
@@ -288,7 +288,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
       TNL_ASSERT_GE( seg_idx, 0, "Wrong index of segment index - smaller that 0." );
       TNL_ASSERT_LT(
-         seg_idx, segments.getSegmentsCount(), "Wrong index of segment index - larger that the number of indexes." );
+         seg_idx, segments.getSegmentCount(), "Wrong index of segment index - larger that the number of indexes." );
       value = segments.getSegmentSize( seg_idx );
    }
    const Index v = CudaScan::scan( Plus{}, (Index) 0, value, threadIdx.x, scan_storage );
@@ -303,7 +303,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
          const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
          TNL_ASSERT_GE( seg_idx, 0, "Wrong index of segment index - smaller that 0." );
          TNL_ASSERT_LT(
-            seg_idx, segments.getSegmentsCount(), "Wrong index of segment index - larger that the number of indexes." );
+            seg_idx, segments.getSegmentCount(), "Wrong index of segment index - larger that the number of indexes." );
          shared_offsets[ threadIdx.x + 1 ] = shared_offsets[ threadIdx.x ] + segments.getSegmentSize( seg_idx );
       }
    __syncthreads();
@@ -320,7 +320,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
          TNL_ASSERT_LT( local_segmentIdx, last_local_segment_idx, "" );
          TNL_ASSERT_LT( local_segmentIdx, SegmentsPerBlock, "" );
          TNL_ASSERT_GE( shared_segment_indexes[ local_segmentIdx ], 0, "" );
-         TNL_ASSERT_LT( shared_segment_indexes[ local_segmentIdx ], segments.getSegmentsCount(), "" );
+         TNL_ASSERT_LT( shared_segment_indexes[ local_segmentIdx ], segments.getSegmentCount(), "" );
 
          if constexpr( Organization == RowMajorOrder ) {
             const Index localIdx = idx - shared_offsets[ local_segmentIdx ];
@@ -496,7 +496,7 @@ forElementsIfBlockMergeKernel_SlicedEllpack( const Index gridIdx,
          const Index seg_idx = shared_segment_indexes[ threadIdx.x ];
          TNL_ASSERT_GE( seg_idx, 0, "Wrong index of segment index - smaller that 0." );
          TNL_ASSERT_LT(
-            seg_idx, segments.getSegmentsCount() - 1, "Wrong index of segment index - larger that the number of indexes." );
+            seg_idx, segments.getSegmentCount() - 1, "Wrong index of segment index - larger that the number of indexes." );
          shared_offsets[ threadIdx.x + 1 ] = shared_offsets[ threadIdx.x ] + segments.getSegmentSize( seg_idx );
       }
    __syncthreads();
@@ -513,7 +513,7 @@ forElementsIfBlockMergeKernel_SlicedEllpack( const Index gridIdx,
          TNL_ASSERT_LT( local_segmentIdx, activeSegmentsCount, "" );
          TNL_ASSERT_LT( local_segmentIdx, SegmentsPerBlock, "" );
          TNL_ASSERT_GE( shared_segment_indexes[ local_segmentIdx ], 0, "" );
-         TNL_ASSERT_LT( shared_segment_indexes[ local_segmentIdx ], segments.getSegmentsCount(), "" );
+         TNL_ASSERT_LT( shared_segment_indexes[ local_segmentIdx ], segments.getSegmentCount(), "" );
 
          if constexpr( Organization == RowMajorOrder ) {
             const Index localIdx = idx - shared_offsets[ local_segmentIdx ];

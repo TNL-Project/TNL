@@ -13,7 +13,7 @@ std::ostream&
 operator<<( std::ostream& str, const Segments& segments )
 {
    using IndexType = typename Segments::IndexType;
-   auto segmentsCount = segments.getSegmentsCount();
+   auto segmentsCount = segments.getSegmentCount();
    str << " [";
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
       auto segmentSize = segments.getSegmentSize( segmentIdx );
@@ -47,7 +47,7 @@ operator<<( std::ostream& str, const SegmentsPrinter< SegmentsView, Fetch >& pri
    using ValueType = decltype( printer.fetch( IndexType() ) );
 
    TNL::Containers::Array< ValueType, DeviceType > aux( 1 );
-   for( IndexType segmentIdx = 0; segmentIdx < printer.segments.getSegmentsCount(); segmentIdx++ ) {
+   for( IndexType segmentIdx = 0; segmentIdx < printer.segments.getSegmentCount(); segmentIdx++ ) {
       str << "Segment " << segmentIdx << ": [ ";
       const IndexType segmentSize = printer.segments.getSegmentSize( segmentIdx );
       for( IndexType localIdx = 0; localIdx < segmentSize; localIdx++ ) {
@@ -61,7 +61,7 @@ operator<<( std::ostream& str, const SegmentsPrinter< SegmentsView, Fetch >& pri
             str << ", ";
       }
       str << " ]";
-      if( segmentIdx < printer.segments.getSegmentsCount() - 1 )
+      if( segmentIdx < printer.segments.getSegmentCount() - 1 )
          str << std::endl;
    }
    return str;

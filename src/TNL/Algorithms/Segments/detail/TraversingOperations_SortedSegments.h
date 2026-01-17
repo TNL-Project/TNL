@@ -32,7 +32,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          return;
 
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
-      if( begin == 0 && end == segments.getSegmentsCount() ) {
+      if( begin == 0 && end == segments.getSegmentCount() ) {
          if constexpr( argumentCount< Function >() == 3 ) {
             TraversingOperations< EmbeddedSegmentsView >::forElements(
                segments.getEmbeddedSegmentsView(),
@@ -134,7 +134,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
    {
       if( end <= begin )
          return;
-      if( begin == 0 && end == segments.getSegmentsCount() ) {
+      if( begin == 0 && end == segments.getSegmentCount() ) {
          auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
          if constexpr( argumentCount< Function >() == 3 ) {
             TraversingOperations< EmbeddedSegmentsView >::forElementsIf(
@@ -211,11 +211,11 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          return;
 
       auto segments_view = segments.getConstView();
-      if( begin == 0 && end == segments.getSegmentsCount() ) {
+      if( begin == 0 && end == segments.getSegmentCount() ) {
          TraversingOperations< EmbeddedSegmentsView >::forSegments(
             segments.getEmbeddedSegmentsView(),
             0,
-            segments.getSegmentsCount(),
+            segments.getSegmentCount(),
             [ = ] __cuda_callable__( SegmentView & segment ) mutable
             {
                segment.setSegmentIndex( segments_view.getInverseSegmentsPermutationView()[ segment.getSegmentIndex() ] );
@@ -229,7 +229,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          segmentIndexes.forAllElements(
             [ = ] __cuda_callable__( IndexType i, IndexType & value )
             {
-               TNL_ASSERT_LT( i + begin, segments.getSegmentsCount(), "" );
+               TNL_ASSERT_LT( i + begin, segments.getSegmentCount(), "" );
                value = segmentsPermutationView[ i + begin ];
             } );
          TraversingOperations< EmbeddedSegmentsView >::forSegments(

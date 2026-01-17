@@ -45,7 +45,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          return;
 
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
-      if( begin == 0 && end == segments.getSegmentsCount() ) {
+      if( begin == 0 && end == segments.getSegmentCount() ) {
          if constexpr( argumentCount< Fetch >() == 3 ) {
             ReducingOperations< EmbeddedSegmentsView >::reduceSegments(
                segments.getEmbeddedSegmentsView(),
@@ -243,7 +243,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          return;
 
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
-      if( begin == 0 && end == segments.getSegmentsCount() ) {
+      if( begin == 0 && end == segments.getSegmentCount() ) {
          if constexpr( argumentCount< Fetch >() == 3 ) {
             ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithArgument(
                segments.getEmbeddedSegmentsView(),
@@ -409,7 +409,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       if( end <= begin )
          return 0;
 
-      VectorType conditions( segments.getSegmentsCount() );
+      VectorType conditions( segments.getSegmentCount() );
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       auto conditionsView = conditions.getView();
       Algorithms::parallelFor< DeviceType >( begin,
@@ -476,7 +476,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       if( end <= begin )
          return 0;
 
-      VectorType conditions( segments.getSegmentsCount() );
+      VectorType conditions( segments.getSegmentCount() );
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       auto conditionsView = conditions.getView();
       Algorithms::parallelFor< DeviceType >( begin,

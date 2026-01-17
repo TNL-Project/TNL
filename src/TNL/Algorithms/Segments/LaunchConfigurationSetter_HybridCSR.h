@@ -35,7 +35,7 @@ struct LaunchConfigurationSetter_HybridCSR
    {
       LaunchConfiguration launchConfig;
       launchConfig.blockSize = 256;
-      const Index segmentsCount = segments.getSegmentsCount();
+      const Index segmentsCount = segments.getSegmentCount();
       if( segmentsCount <= 0 )
          return launchConfig;
 

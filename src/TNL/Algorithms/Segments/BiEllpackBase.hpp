@@ -54,9 +54,17 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentsType()
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
 auto
-BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentsCount() const -> IndexType
+BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentCount() const -> IndexType
 {
    return this->segmentsPermutation.getSize();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
+__cuda_callable__
+auto
+BiEllpackBase< Device, Index, Organization, WarpSize >::getSegmentsCount() const -> IndexType
+{
+   return this->getSegmentCount();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -177,7 +185,7 @@ __cuda_callable__
 auto
 BiEllpackBase< Device, Index, Organization, WarpSize >::getVirtualSegments() const -> IndexType
 {
-   return this->getVirtualSegments( this->getSegmentsCount() );
+   return this->getVirtualSegments( this->getSegmentCount() );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -233,7 +241,7 @@ template< typename Function >
 void
 BiEllpackBase< Device, Index, Organization, WarpSize >::forAllElements( Function&& function ) const
 {
-   this->forElements( 0, this->getSegmentsCount(), function );
+   this->forElements( 0, this->getSegmentCount(), function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -337,7 +345,7 @@ template< typename Condition, typename Function >
 void
 BiEllpackBase< Device, Index, Organization, WarpSize >::forAllElementsIf( Condition condition, Function function ) const
 {
-   this->forElementsIf( 0, this->getSegmentsCount(), condition, function );
+   this->forElementsIf( 0, this->getSegmentCount(), condition, function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
@@ -359,7 +367,7 @@ template< typename Function >
 void
 BiEllpackBase< Device, Index, Organization, WarpSize >::forAllSegments( Function&& function ) const
 {
-   this->forSegments( 0, this->getSegmentsCount(), function );
+   this->forSegments( 0, this->getSegmentCount(), function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
