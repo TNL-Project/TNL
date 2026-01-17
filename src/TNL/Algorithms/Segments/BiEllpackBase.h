@@ -117,6 +117,11 @@ public:
    //! \brief Returns the number of segments.
    [[nodiscard]] __cuda_callable__
    IndexType
+   getSegmentCount() const;
+
+   //! \brief Returns the number of segments. Deprecated, use getSegmentCount().
+   [[deprecated( "Use getSegmentCount() instead." )]] [[nodiscard]] __cuda_callable__
+   IndexType
    getSegmentsCount() const;
 
    //! \brief Returns the size of a particular segment denoted by \e segmentIdx.

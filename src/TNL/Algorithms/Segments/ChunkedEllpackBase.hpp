@@ -77,9 +77,17 @@ ChunkedEllpackBase< Device, Index, Organization >::getSegmentsType()
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 auto
-ChunkedEllpackBase< Device, Index, Organization >::getSegmentsCount() const -> IndexType
+ChunkedEllpackBase< Device, Index, Organization >::getSegmentCount() const -> IndexType
 {
    return this->segmentToChunkMapping.getSize();
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization >
+__cuda_callable__
+auto
+ChunkedEllpackBase< Device, Index, Organization >::getSegmentsCount() const -> IndexType
+{
+   return this->getSegmentCount();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -320,7 +328,7 @@ template< typename Function >
 void
 ChunkedEllpackBase< Device, Index, Organization >::forAllElements( Function&& function ) const
 {
-   this->forElements( 0, this->getSegmentsCount(), function );
+   this->forElements( 0, this->getSegmentCount(), function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -436,7 +444,7 @@ template< typename Condition, typename Function >
 void
 ChunkedEllpackBase< Device, Index, Organization >::forAllElementsIf( Condition condition, Function function ) const
 {
-   this->forElementsIf( 0, this->getSegmentsCount(), condition, function );
+   this->forElementsIf( 0, this->getSegmentCount(), condition, function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -458,20 +466,20 @@ template< typename Function >
 void
 ChunkedEllpackBase< Device, Index, Organization >::forAllSegments( Function&& function ) const
 {
-   this->forSegments( 0, this->getSegmentsCount(), function );
+   this->forSegments( 0, this->getSegmentCount(), function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 void
 ChunkedEllpackBase< Device, Index, Organization >::printStructure( std::ostream& str ) const
 {
-   str << "Segments count: " << this->getSegmentsCount() << std::endl << "Slices: " << this->getNumberOfSlices() << std::endl;
+   str << "Segments count: " << this->getSegmentCount() << std::endl << "Slices: " << this->getNumberOfSlices() << std::endl;
    for( IndexType i = 0; i < this->getNumberOfSlices(); i++ )
       str << "   Slice " << i << " : size = " << this->slices.getElement( i ).size
           << " chunkSize = " << this->slices.getElement( i ).chunkSize
           << " firstSegment = " << this->slices.getElement( i ).firstSegment
           << " pointer = " << this->slices.getElement( i ).pointer << std::endl;
-   for( IndexType i = 0; i < this->getSegmentsCount(); i++ )
+   for( IndexType i = 0; i < this->getSegmentCount(); i++ )
       str << "Segment " << i << " : slice = " << this->segmentToSliceMapping.getElement( i )
           << " chunk = " << this->segmentToChunkMapping.getElement( i ) << std::endl;
 }

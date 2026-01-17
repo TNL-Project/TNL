@@ -86,7 +86,7 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
 {
    using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
-      for( IndexType segmentIdx = 0; segmentIdx < segments.getSegmentsCount(); segmentIdx++ ) {
+      for( IndexType segmentIdx = 0; segmentIdx < segments.getSegmentCount(); segmentIdx++ ) {
          const IndexType stripIdx = segmentIdx / SegmentsView::getWarpSize();
          const IndexType groupIdx = stripIdx * ( SegmentsView::getLogWarpSize() + 1 );
          const IndexType inStripIdx =
@@ -156,7 +156,7 @@ BiEllpackKernel< Index, Device >::reduceAllSegments( const SegmentsView& segment
                                                      ResultKeeper& keeper,
                                                      const Value& identity )
 {
-   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
+   reduceSegments( segments, 0, segments.getSegmentCount(), fetch, reduction, keeper, identity );
 }
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

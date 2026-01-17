@@ -52,9 +52,17 @@ CSRBase< Device, Index >::getSegmentsType()
 template< typename Device, typename Index >
 __cuda_callable__
 auto
-CSRBase< Device, Index >::getSegmentsCount() const -> IndexType
+CSRBase< Device, Index >::getSegmentCount() const -> IndexType
 {
    return this->offsets.getSize() - 1;
+}
+
+template< typename Device, typename Index >
+__cuda_callable__
+auto
+CSRBase< Device, Index >::getSegmentsCount() const -> IndexType
+{
+   return this->getSegmentCount();
 }
 
 template< typename Device, typename Index >
@@ -96,13 +104,13 @@ CSRBase< Device, Index >::getStorageSize() const -> IndexType
 {
    if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
-      return offsets[ getSegmentsCount() ];
+      return offsets[ getSegmentCount() ];
 #else
-      return offsets.getElement( getSegmentsCount() );
+      return offsets.getElement( getSegmentCount() );
 #endif
    }
    else
-      return offsets[ getSegmentsCount() ];
+      return offsets[ getSegmentCount() ];
 }
 
 template< typename Device, typename Index >
@@ -210,7 +218,7 @@ template< typename Function >
 void
 CSRBase< Device, Index >::forAllElements( Function function ) const
 {
-   this->forElements( 0, this->getSegmentsCount(), function );
+   this->forElements( 0, this->getSegmentCount(), function );
 }
 
 template< typename Device, typename Index >
@@ -331,7 +339,7 @@ template< typename Condition, typename Function >
 void
 CSRBase< Device, Index >::forAllElementsIf( Condition condition, Function function ) const
 {
-   this->forElementsIf( 0, this->getSegmentsCount(), condition, function );
+   this->forElementsIf( 0, this->getSegmentCount(), condition, function );
 }
 
 template< typename Device, typename Index >
@@ -353,7 +361,7 @@ template< typename Function >
 void
 CSRBase< Device, Index >::forAllSegments( Function&& function ) const
 {
-   this->forSegments( 0, this->getSegmentsCount(), function );
+   this->forSegments( 0, this->getSegmentCount(), function );
 }
 
 template< typename Device, typename Index >
@@ -370,7 +378,7 @@ template< typename Function >
 void
 CSRBase< Device, Index >::sequentialForAllSegments( Function&& function ) const
 {
-   this->sequentialForSegments( 0, this->getSegmentsCount(), function );
+   this->sequentialForSegments( 0, this->getSegmentCount(), function );
 }
 
 }  // namespace TNL::Algorithms::Segments

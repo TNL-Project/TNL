@@ -225,7 +225,7 @@ SparseMatrix< Real, Device, Index, MatrixType_, Segments, ComputeReal, RealAlloc
    Index columns,
    SegmentsType segments )
 {
-   if( segments.getSegmentsCount() != rows )
+   if( segments.getSegmentCount() != rows )
       throw std::invalid_argument( "the number of segments not match the number of matrix rows" );
 
    this->segments = segments;
@@ -273,7 +273,7 @@ SparseMatrix< Real, Device, Index, MatrixType_, Segments, ComputeReal, RealAlloc
    this->segments.setSegmentsSizes( Containers::Vector< Index, Device, Index >( matrix.getRows(), 0 ) );
    // update the base
    Base::bind( matrix.getRows(), matrix.getColumns(), values.getView(), columnIndexes.getView(), segments.getView() );
-   TNL_ASSERT_EQ( this->getRows(), segments.getSegmentsCount(), "mismatched segments count" );
+   TNL_ASSERT_EQ( this->getRows(), segments.getSegmentCount(), "mismatched segments count" );
 }
 
 template< typename Real,

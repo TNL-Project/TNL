@@ -28,7 +28,7 @@ printSegments( std::ostream& str, const Segments& segments )
 {
    using IndexType = typename Segments::IndexType;
 
-   auto segmentsCount = segments.getSegmentsCount();
+   auto segmentsCount = segments.getSegmentCount();
    str << " [";
    for( IndexType segmentIdx = 0; segmentIdx < segmentsCount; segmentIdx++ ) {
       auto segmentSize = segments.getSegmentSize( segmentIdx );
@@ -50,7 +50,7 @@ printSegments( std::ostream& str, const Segments& segments, Fetch&& fetch )
 
    TNL::Containers::Array< ValueType, DeviceType > aux( 1 );
    auto view = segments.getConstView();
-   for( IndexType segmentIdx = 0; segmentIdx < segments.getSegmentsCount(); segmentIdx++ ) {
+   for( IndexType segmentIdx = 0; segmentIdx < segments.getSegmentCount(); segmentIdx++ ) {
       str << "Seg. " << segmentIdx << ": [ ";
       const IndexType segmentSize = segments.getSegmentSize( segmentIdx );
       for( IndexType localIdx = 0; localIdx < segmentSize; localIdx++ ) {

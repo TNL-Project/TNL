@@ -19,7 +19,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::SlicedE
    // update the base
    Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
-               segments.getSegmentsCount(),
+               segments.getSegmentCount(),
                this->sliceOffsets.getView(),
                this->sliceSegmentSizes.getView() );
 }
@@ -48,7 +48,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    // update the base
    Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
-               segments.getSegmentsCount(),
+               segments.getSegmentCount(),
                this->sliceOffsets.getView(),
                this->sliceSegmentSizes.getView() );
    return *this;
@@ -63,7 +63,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    // update the base
    Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
-               segments.getSegmentsCount(),
+               segments.getSegmentCount(),
                this->sliceOffsets.getView(),
                this->sliceSegmentSizes.getView() );
    return *this;
@@ -80,7 +80,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    // update the base
    Base::bind( segments.getElementCount(),
                segments.getStorageSize(),
-               segments.getSegmentsCount(),
+               segments.getSegmentCount(),
                this->sliceOffsets.getView(),
                this->sliceSegmentSizes.getView() );
    return *this;
@@ -92,7 +92,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::getView
 {
    return { this->getElementCount(),
             this->getStorageSize(),
-            this->getSegmentsCount(),
+            this->getSegmentCount(),
             this->getSliceOffsetsView(),
             this->getSliceSegmentSizesView() };
 }
@@ -103,7 +103,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::getCons
 {
    return { this->getElementCount(),
             this->getStorageSize(),
-            this->getSegmentsCount(),
+            this->getSegmentCount(),
             this->getSliceOffsetsView(),
             this->getSliceSegmentSizesView() };
 }

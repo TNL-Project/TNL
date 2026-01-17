@@ -58,9 +58,17 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentsType()
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 __cuda_callable__
 auto
-SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentsCount() const -> IndexType
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentCount() const -> IndexType
 {
    return this->segmentsCount;
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
+__cuda_callable__
+auto
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSegmentsCount() const -> IndexType
+{
+   return this->getSegmentCount();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
@@ -242,7 +250,7 @@ template< typename Function >
 void
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::forAllElements( Function&& function ) const
 {
-   this->forElements( 0, this->getSegmentsCount(), function );
+   this->forElements( 0, this->getSegmentCount(), function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
@@ -373,7 +381,7 @@ template< typename Condition, typename Function >
 void
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::forAllElementsIf( Condition condition, Function function ) const
 {
-   this->forElementsIf( 0, this->getSegmentsCount(), condition, function );
+   this->forElementsIf( 0, this->getSegmentCount(), condition, function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
@@ -397,7 +405,7 @@ template< typename Function >
 void
 SlicedEllpackBase< Device, Index, Organization, SliceSize >::forAllSegments( Function&& function ) const
 {
-   this->forSegments( 0, this->getSegmentsCount(), function );
+   this->forSegments( 0, this->getSegmentCount(), function );
 }
 
 }  // namespace TNL::Algorithms::Segments
