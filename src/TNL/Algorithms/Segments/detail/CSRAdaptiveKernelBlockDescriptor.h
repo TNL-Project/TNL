@@ -86,7 +86,7 @@ union CSRAdaptiveKernelBlockDescriptor
    const Index
    getSegmentsInBlock() const
    {
-      return ( twobytes[ sizeof( Index ) == 4 ? 3 : 5 ] & 0x3FFF );
+      return twobytes[ sizeof( Index ) == 4 ? 3 : 5 ] & 0x3FFF;
    }
 
    __cuda_callable__

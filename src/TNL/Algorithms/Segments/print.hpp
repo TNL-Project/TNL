@@ -28,7 +28,10 @@ operator<<( std::ostream& str, const Segments& segments )
 template< typename SegmentsView, typename Fetch >
 struct SegmentsPrinter
 {
-   SegmentsPrinter( const SegmentsView& segments, Fetch&& fetch ) : segments( segments ), fetch( fetch ) {}
+   SegmentsPrinter( const SegmentsView& segments, Fetch&& fetch )
+   : segments( segments ),
+     fetch( fetch )
+   {}
 
    const SegmentsView segments;
    Fetch fetch;

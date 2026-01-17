@@ -56,7 +56,8 @@ reduceRowsWithArgumentExample()
       }
    };
 
-   auto storeRange = [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
+   auto storeRange =
+      [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
    {
       rangeMaxValues_view[ rowIdx - rangeBegin ] = value;
       if( ! emptyRow )
@@ -95,8 +96,8 @@ reduceRowsWithArgumentExample()
       }
    };
 
-   auto storeArray =
-      [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
+   auto storeArray = [ = ] __cuda_callable__(
+                        int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
    {
       arrayMinValues_view[ rowIdx ] = value;
       compressedMinValues_view[ indexOfRowIdx ] = value;

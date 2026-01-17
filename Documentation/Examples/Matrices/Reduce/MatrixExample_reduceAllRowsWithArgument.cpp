@@ -85,7 +85,8 @@ reduceAllRowsWithArgumentExample()
       }
    };
 
-   auto storeMin = [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
+   auto storeMin =
+      [ = ] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
    {
       minValues_view[ rowIdx ] = value;
       if( ! emptyRow )

@@ -63,8 +63,8 @@ reduceAllRowsWithArgumentIfExample()
       return rowIdx % 2 == 0;  // Only even row indices
    };
 
-   auto store =
-      [ = ] __cuda_callable__( int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
+   auto store = [ = ] __cuda_callable__(
+                   int indexOfRowIdx, int rowIdx, int localIdx, int columnIdx, const double& value, bool emptyRow ) mutable
    {
       maxValues_view[ rowIdx ] = value;
       compressedMaxValues_view[ indexOfRowIdx ] = value;

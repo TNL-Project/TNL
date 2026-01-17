@@ -145,7 +145,13 @@ reduceRows( const Matrix& matrix,
                                                                               launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename T >
+template< typename Matrix,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Fetch,
+          typename Reduction,
+          typename Store,
+          typename T >
 void
 reduceRows( Matrix& matrix,
             IndexBegin begin,
@@ -167,7 +173,13 @@ reduceRows( Matrix& matrix,
                launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename T >
+template< typename Matrix,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Fetch,
+          typename Reduction,
+          typename Store,
+          typename T >
 void
 reduceRows( const Matrix& matrix,
             IndexBegin begin,
@@ -612,7 +624,13 @@ reduceRowsWithArgument( const Matrix& matrix,
                                                                                           launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename T >
+template< typename Matrix,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Fetch,
+          typename Reduction,
+          typename Store,
+          typename T >
 void
 reduceRowsWithArgument( Matrix& matrix,
                         IndexBegin begin,
@@ -634,7 +652,13 @@ reduceRowsWithArgument( Matrix& matrix,
                            launchConfig );
 }
 
-template< typename Matrix, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename T >
+template< typename Matrix,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Fetch,
+          typename Reduction,
+          typename Store,
+          typename T >
 void
 reduceRowsWithArgument( const Matrix& matrix,
                         IndexBegin begin,
