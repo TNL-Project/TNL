@@ -201,7 +201,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel( const int gridIdx,
    if( segmentIdx >= begin && segmentIdx < end ) {
       TNL_ASSERT_LT( sliceIdx, segments.getSliceSegmentSizesView().getSize(), "" );
       TNL_ASSERT_LT( inSliceSegmentIdx, SliceSize, "" );
-      TNL_ASSERT_LT( segmentIdx, segments.getSegmentsCount(), "" );
+      TNL_ASSERT_LT( segmentIdx, segments.getSegmentCount(), "" );
 
       Index localIdx = inSliceThreadIdx / SliceSize;
       const Index beginIdx = segments.getSliceOffsetsView()[ sliceIdx ] + inSliceSegmentIdx + localIdx * SliceSize;

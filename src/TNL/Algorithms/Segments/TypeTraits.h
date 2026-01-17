@@ -12,7 +12,7 @@ struct HasGetSegmentCountMethod
 private:
    template< typename U >
    static constexpr auto
-   check( U* ) -> std::enable_if_t< std::is_integral_v< decltype( std::declval< U >().getSegmentsCount() ) >, std::true_type >;
+   check( U* ) -> std::enable_if_t< std::is_integral_v< decltype( std::declval< U >().getSegmentCount() ) >, std::true_type >;
 
    template< typename >
    static constexpr std::false_type

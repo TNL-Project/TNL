@@ -42,7 +42,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
       if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
             const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
-            TNL_ASSERT_LE( sliceIndex, segments.getSegmentsCount(), "" );
+            TNL_ASSERT_LE( sliceIndex, segments.getSegmentCount(), "" );
             IndexType firstChunkOfSegment = 0;
             if( segmentIdx != segments.getSlicesView()[ sliceIndex ].firstSegment )
                firstChunkOfSegment = segments.getSegmentToChunkMappingView()[ segmentIdx - 1 ];
@@ -122,7 +122,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
             const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
             const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
-            TNL_ASSERT_LE( sliceIndex, segments.getSegmentsCount(), "" );
+            TNL_ASSERT_LE( sliceIndex, segments.getSegmentCount(), "" );
             IndexType firstChunkOfSegment = 0;
             if( segmentIdx != segments.getSlicesView()[ sliceIndex ].firstSegment )
                firstChunkOfSegment = segments.getSegmentToChunkMappingView()[ segmentIdx - 1 ];
@@ -210,7 +210,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
             const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
-            TNL_ASSERT_LE( sliceIndex, segments.getSegmentsCount(), "" );
+            TNL_ASSERT_LE( sliceIndex, segments.getSegmentCount(), "" );
             IndexType firstChunkOfSegment = 0;
             if( segmentIdx != segments.getSlicesView()[ sliceIndex ].firstSegment )
                firstChunkOfSegment = segments.getSegmentToChunkMappingView()[ segmentIdx - 1 ];
@@ -296,7 +296,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
             const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
             const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
-            TNL_ASSERT_LE( sliceIndex, segments.getSegmentsCount(), "" );
+            TNL_ASSERT_LE( sliceIndex, segments.getSegmentCount(), "" );
             IndexType firstChunkOfSegment = 0;
             if( segmentIdx != segments.getSlicesView()[ sliceIndex ].firstSegment )
                firstChunkOfSegment = segments.getSegmentToChunkMappingView()[ segmentIdx - 1 ];

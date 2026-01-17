@@ -33,7 +33,7 @@ sortAllSegments( const Segments& segments, Fetch&& fetch, Compare&& compare, Swa
 {
    sortSegments( segments,
                  0,
-                 segments.getSegmentsCount(),
+                 segments.getSegmentCount(),
                  std::forward< Fetch >( fetch ),
                  std::forward< Compare >( compare ),
                  std::forward< Swap >( swap ),
@@ -93,7 +93,7 @@ sortAllSegmentsIf( const Segments& segments,
 {
    sortSegmentsIf( segments,
                    0,
-                   segments.getSegmentsCount(),
+                   segments.getSegmentCount(),
                    std::forward< Condition >( condition ),
                    std::forward< Fetch >( fetch ),
                    std::forward< Compare >( compare ),

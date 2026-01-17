@@ -24,7 +24,7 @@ SlicedEllpackView< Device, Index, Organization, SliceSize >::bind( SlicedEllpack
 {
    Base::bind( view.getElementCount(),
                view.getStorageSize(),
-               view.getSegmentsCount(),
+               view.getSegmentCount(),
                view.getSliceOffsetsView(),
                view.getSliceSegmentSizesView() );
 }
@@ -36,7 +36,7 @@ SlicedEllpackView< Device, Index, Organization, SliceSize >::getView()
 {
    return { this->getElementCount(),
             this->getStorageSize(),
-            this->getSegmentsCount(),
+            this->getSegmentCount(),
             this->getSliceOffsetsView(),
             this->getSliceSegmentSizesView() };
 }
@@ -48,7 +48,7 @@ SlicedEllpackView< Device, Index, Organization, SliceSize >::getConstView() cons
 {
    return { this->getElementCount(),
             this->getStorageSize(),
-            this->getSegmentsCount(),
+            this->getSegmentCount(),
             this->getSliceOffsetsView(),
             this->getSliceSegmentSizesView() };
 }

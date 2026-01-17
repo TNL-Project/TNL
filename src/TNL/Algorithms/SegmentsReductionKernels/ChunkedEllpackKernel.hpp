@@ -63,7 +63,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
       for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ ) {
          const IndexType sliceIndex = segments.getSegmentToSliceMappingView()[ segmentIdx ];
-         TNL_ASSERT_LE( sliceIndex, segments.getSegmentsCount(), "" );
+         TNL_ASSERT_LE( sliceIndex, segments.getSegmentCount(), "" );
          IndexType firstChunkOfSegment = 0;
          if( segmentIdx != segments.getSlicesView()[ sliceIndex ].firstSegment )
             firstChunkOfSegment = segments.getSegmentToChunkMappingView()[ segmentIdx - 1 ];
@@ -129,7 +129,7 @@ ChunkedEllpackKernel< Index, Device >::reduceAllSegments( const SegmentsView& se
                                                           ResultKeeper& keeper,
                                                           const Value& identity )
 {
-   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
+   reduceSegments( segments, 0, segments.getSegmentCount(), fetch, reduction, keeper, identity );
 }
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels

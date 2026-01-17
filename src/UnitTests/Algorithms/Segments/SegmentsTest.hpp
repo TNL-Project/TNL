@@ -36,13 +36,13 @@ void
 test_getView()
 {
    Segments segments;
-   EXPECT_EQ( segments.getSegmentsCount(), 0 );
+   EXPECT_EQ( segments.getSegmentCount(), 0 );
 
    auto view = segments.getView();
-   EXPECT_EQ( view.getSegmentsCount(), 0 );
+   EXPECT_EQ( view.getSegmentCount(), 0 );
 
    auto const_view = segments.getConstView();
-   EXPECT_EQ( const_view.getSegmentsCount(), 0 );
+   EXPECT_EQ( const_view.getSegmentCount(), 0 );
 }
 
 template< typename Segments >
@@ -55,7 +55,7 @@ test_setSegmentsSizes_EqualSizes()
    // Test default-initialized segment acts the same as an empty segment
    Segments defaultSegments;
 
-   EXPECT_EQ( defaultSegments.getSegmentsCount(), 0 );
+   EXPECT_EQ( defaultSegments.getSegmentCount(), 0 );
    EXPECT_EQ( defaultSegments.getElementCount(), 0 );
    EXPECT_LE( defaultSegments.getElementCount(), defaultSegments.getStorageSize() );
 
@@ -65,7 +65,7 @@ test_setSegmentsSizes_EqualSizes()
 
    Segments oneSegments( oneSegmentsSizes );
 
-   EXPECT_EQ( oneSegments.getSegmentsCount(), 1 );
+   EXPECT_EQ( oneSegments.getSegmentCount(), 1 );
    EXPECT_EQ( oneSegments.getElementCount(), 1 );
    EXPECT_LE( oneSegments.getElementCount(), oneSegments.getStorageSize() );
 
@@ -75,7 +75,7 @@ test_setSegmentsSizes_EqualSizes()
 
    Segments emptySegments( emptySegmentsSizes );
 
-   EXPECT_EQ( emptySegments.getSegmentsCount(), 0 );
+   EXPECT_EQ( emptySegments.getSegmentCount(), 0 );
    EXPECT_EQ( emptySegments.getElementCount(), 0 );
    EXPECT_LE( emptySegments.getElementCount(), emptySegments.getStorageSize() );
 
@@ -86,7 +86,7 @@ test_setSegmentsSizes_EqualSizes()
 
    Segments segments( segmentsSizes );
 
-   EXPECT_EQ( segments.getSegmentsCount(), segmentsCount );
+   EXPECT_EQ( segments.getSegmentCount(), segmentsCount );
    EXPECT_EQ( segments.getElementCount(), segmentsCount * segmentSize );
    EXPECT_LE( segments.getElementCount(), segments.getStorageSize() );
 
@@ -95,7 +95,7 @@ test_setSegmentsSizes_EqualSizes()
       EXPECT_GE( segments.getSegmentSize( i ), segmentSize );
 
    Segments segments2( segments );
-   EXPECT_EQ( segments2.getSegmentsCount(), segmentsCount );
+   EXPECT_EQ( segments2.getSegmentCount(), segmentsCount );
    EXPECT_EQ( segments2.getElementCount(), segmentsCount * segmentSize );
    EXPECT_LE( segments2.getElementCount(), segments2.getStorageSize() );
    for( IndexType i = 0; i < segmentsCount; i++ )
@@ -105,7 +105,7 @@ test_setSegmentsSizes_EqualSizes()
    Segments segments3;
    segments3.setSegmentsSizes( segmentsSizes );
 
-   EXPECT_EQ( segments3.getSegmentsCount(), segmentsCount );
+   EXPECT_EQ( segments3.getSegmentCount(), segmentsCount );
    EXPECT_EQ( segments3.getElementCount(), segmentsCount * segmentSize );
    EXPECT_LE( segments3.getElementCount(), segments3.getStorageSize() );
 
@@ -116,7 +116,7 @@ test_setSegmentsSizes_EqualSizes()
    using SegmentsView = typename Segments::ViewType;
 
    SegmentsView segmentsView = segments.getView();
-   EXPECT_EQ( segmentsView.getSegmentsCount(), segmentsCount );
+   EXPECT_EQ( segmentsView.getSegmentCount(), segmentsCount );
    EXPECT_EQ( segmentsView.getElementCount(), segmentsCount * segmentSize );
    EXPECT_LE( segmentsView.getElementCount(), segments.getStorageSize() );
 
@@ -136,7 +136,7 @@ test_setSegmentsSizes_EqualSizes_EllpackOnly()
 
    Segments segments( segmentsCount, segmentSize );
 
-   EXPECT_EQ( segments.getSegmentsCount(), segmentsCount );
+   EXPECT_EQ( segments.getSegmentCount(), segmentsCount );
    EXPECT_EQ( segments.getElementCount(), segmentsCount * segmentSize );
    EXPECT_LE( segments.getElementCount(), segments.getStorageSize() );
 
@@ -144,7 +144,7 @@ test_setSegmentsSizes_EqualSizes_EllpackOnly()
       EXPECT_EQ( segments.getSegmentSize( i ), segmentSize );
 
    Segments segments2( segments );
-   EXPECT_EQ( segments2.getSegmentsCount(), segmentsCount );
+   EXPECT_EQ( segments2.getSegmentCount(), segmentsCount );
    EXPECT_EQ( segments2.getElementCount(), segmentsCount * segmentSize );
    EXPECT_LE( segments2.getElementCount(), segments2.getStorageSize() );
 
@@ -154,7 +154,7 @@ test_setSegmentsSizes_EqualSizes_EllpackOnly()
    Segments segments3;
    segments3.setSegmentsSizes( segmentsCount, segmentSize );
 
-   EXPECT_EQ( segments3.getSegmentsCount(), segmentsCount );
+   EXPECT_EQ( segments3.getSegmentCount(), segmentsCount );
    EXPECT_EQ( segments3.getElementCount(), segmentsCount * segmentSize );
    EXPECT_LE( segments3.getElementCount(), segments3.getStorageSize() );
 
@@ -164,7 +164,7 @@ test_setSegmentsSizes_EqualSizes_EllpackOnly()
    using SegmentsView = typename Segments::ViewType;
 
    SegmentsView segmentsView = segments.getView();
-   EXPECT_EQ( segmentsView.getSegmentsCount(), segmentsCount );
+   EXPECT_EQ( segmentsView.getSegmentCount(), segmentsCount );
    EXPECT_EQ( segmentsView.getElementCount(), segmentsCount * segmentSize );
    EXPECT_LE( segmentsView.getElementCount(), segments.getStorageSize() );
 

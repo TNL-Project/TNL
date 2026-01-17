@@ -65,7 +65,7 @@ struct TraversingOperationsBase
       auto f = [ = ] __cuda_callable__( IndexType segmentIdx_idx ) mutable
       {
          TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes_view.getSize(), "" );
-         TNL_ASSERT_LT( segmentIndexes_view[ segmentIdx_idx ], segments_view.getSegmentsCount(), "" );
+         TNL_ASSERT_LT( segmentIndexes_view[ segmentIdx_idx ], segments_view.getSegmentCount(), "" );
          auto segment = segments_view.getSegmentView( segmentIndexes_view[ segmentIdx_idx ] );
          function( segment );
       };

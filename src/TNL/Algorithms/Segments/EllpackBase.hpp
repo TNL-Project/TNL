@@ -49,9 +49,17 @@ EllpackBase< Device, Index, Organization, Alignment >::getSegmentsType()
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 __cuda_callable__
 auto
-EllpackBase< Device, Index, Organization, Alignment >::getSegmentsCount() const -> IndexType
+EllpackBase< Device, Index, Organization, Alignment >::getSegmentCount() const -> IndexType
 {
    return this->segmentsCount;
+}
+
+template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
+__cuda_callable__
+auto
+EllpackBase< Device, Index, Organization, Alignment >::getSegmentsCount() const -> IndexType
+{
+   return this->getSegmentCount();
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
@@ -162,7 +170,7 @@ template< typename Function >
 void
 EllpackBase< Device, Index, Organization, Alignment >::forAllElements( Function&& function ) const
 {
-   this->forElements( 0, this->getSegmentsCount(), function );
+   this->forElements( 0, this->getSegmentCount(), function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
@@ -255,7 +263,7 @@ template< typename Condition, typename Function >
 void
 EllpackBase< Device, Index, Organization, Alignment >::forAllElementsIf( Condition condition, Function function ) const
 {
-   this->forElementsIf( 0, this->getSegmentsCount(), condition, function );
+   this->forElementsIf( 0, this->getSegmentCount(), condition, function );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
@@ -277,7 +285,7 @@ template< typename Function >
 void
 EllpackBase< Device, Index, Organization, Alignment >::forAllSegments( Function&& function ) const
 {
-   this->forSegments( 0, this->getSegmentsCount(), function );
+   this->forSegments( 0, this->getSegmentCount(), function );
 }
 
 }  // namespace TNL::Algorithms::Segments

@@ -32,7 +32,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >&
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::operator=( const Ellpack& segments )
 {
-   Base::bind( segments.getSegmentsCount(), segments.getSegmentSize( 0 ), segments.getAlignedSize() );
+   Base::bind( segments.getSegmentCount(), segments.getSegmentSize( 0 ), segments.getAlignedSize() );
    return *this;
 }
 
@@ -40,7 +40,7 @@ template< typename Device, typename Index, typename IndexAllocator, ElementsOrga
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >&
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::operator=( Ellpack&& segments ) noexcept
 {
-   Base::bind( segments.getSegmentsCount(), segments.getSegmentSize( 0 ), segments.getAlignedSize() );
+   Base::bind( segments.getSegmentCount(), segments.getSegmentSize( 0 ), segments.getAlignedSize() );
    return *this;
 }
 
@@ -50,7 +50,7 @@ Ellpack< Device, Index, IndexAllocator, Organization, Alignment >&
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::operator=(
    const Ellpack< Device_, Index_, IndexAllocator_, Organization_, Alignment_ >& segments )
 {
-   setSegmentsSizes( segments.getSegmentsCount(), segments.getSegmentSize( 0 ) );
+   setSegmentsSizes( segments.getSegmentCount(), segments.getSegmentSize( 0 ) );
    return *this;
 }
 
