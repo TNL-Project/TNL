@@ -59,7 +59,7 @@ struct GrowingSegmentsView : public SegmentsView_
    void
    forAllElements( Function&& f )
    {
-      forElements( 0, this->getSegmentsCount(), f );
+      forElements( 0, this->getSegmentCount(), f );
    }
 
    /*template< typename Function >
@@ -111,7 +111,7 @@ struct GrowingSegmentsView : public SegmentsView_
    void
    reduceAllSegments( Fetch& fetch, const Reduction& reduction, ResultKeeper& keeper, const Value& identity ) const
    {
-      this->reduceSegments( 0, this->segments.getSegmentsCount(), fetch, reduction, keeper, identity );
+      this->reduceSegments( 0, this->segments.getSegmentCount(), fetch, reduction, keeper, identity );
    }
 
    void

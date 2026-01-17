@@ -108,7 +108,7 @@ CSRAdaptiveKernelView< Index, Device >::reduceAllSegments( const SegmentsView& s
                                                            ResultKeeper& keeper,
                                                            const Value& identity ) const
 {
-   reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
+   reduceSegments( segments, 0, segments.getSegmentCount(), fetch, reduction, keeper, identity );
 }
 
 template< typename Index, typename Device >
