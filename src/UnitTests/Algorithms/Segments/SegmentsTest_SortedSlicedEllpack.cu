@@ -1,1 +1,1 @@
-#include "SegmentsTest_SortedSlicedEllpack.h" 
+#include "SegmentsTest_SortedSlicedEllpack.h"
