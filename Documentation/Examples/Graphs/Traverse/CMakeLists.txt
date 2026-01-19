@@ -1,7 +1,9 @@
 set(COMMON_EXAMPLES
+    GraphExample_forAllEdges
     GraphExample_forEdges
     GraphExample_forEdgesIf
     GraphExample_forEdgesWithIndexes
+    GraphExample_forAllVertices
     GraphExample_forVertices
     GraphExample_forVerticesIf
     GraphExample_forVerticesWithIndexes

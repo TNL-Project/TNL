@@ -27,15 +27,16 @@ reduceVerticesWithIndexesExample()
     */
    std::cout << "Graph:\n" << graph << std::endl;
 
+   //! [reduce vertices with indecis]
    /***
     * Compute sum of edge weights for specific vertices (0, 2, 3).
     */
    TNL::Containers::Vector< int, Device > vertexIndices( { 0, 2, 3 } );
-   TNL::Containers::Vector< float, Device > vertexSums( 5, -1 ), compressedVertexSums( 5 );
+   TNL::Containers::Vector< float, Device > vertexSums( 5, -1 ), compressedVertexSums( 3, -1 );
    auto vertexSums_view = vertexSums.getView();
    auto compressedVertexSums_view = compressedVertexSums.getView();
 
-   auto fetch = [] __cuda_callable__( int source, int target, const float& weight ) -> float
+   auto fetch = [] __cuda_callable__( int sourceIdx, int targetIdx, const float& weight ) -> float
    {
       return weight;
    };
@@ -47,6 +48,7 @@ reduceVerticesWithIndexesExample()
    };
 
    TNL::Graphs::reduceVertices( graph, vertexIndices, fetch, TNL::Plus{}, store );
+   //! [reduce vertices with indecis]
 
    /***
     * Print results.

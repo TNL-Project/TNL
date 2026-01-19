@@ -15,15 +15,12 @@ Internally, TNL represents graphs using an **adjacency matrix**, which stores in
 
 ## Graph Orientation: Directed vs. Undirected Graphs
 
-TNL supports both directed and undirected graphs through the type tags \ref TNL::Graphs::DirectedGraph and \ref TNL::Graphs::UndirectedGraph:
-
-```cpp
-using DirectedGraphType = TNL::Graphs::Graph< float, TNL::Devices::Host, int, TNL::Graphs::DirectedGraph >;
-using UndirectedGraphType = TNL::Graphs::Graph< float, TNL::Devices::Host, int, TNL::Graphs::UndirectedGraph >;
-```
+TNL supports both directed and undirected graphs through the type tags \ref TNL::Graphs::DirectedGraph and \ref TNL::Graphs::UndirectedGraph :
 
 * **Directed graphs**: Each edge has a direction. An edge from vertex `u` to vertex `v` does not imply an edge from `v` to `u`.
+\snippet Graphs/GraphExample_Constructors.cpp graph type definition
 * **Undirected graphs**: Edges have no direction. If there's an edge between vertices `u` and `v`, it can be traversed in both directions.
+\snippet Graphs/GraphExample_Constructors.cpp undirected graph type definition
 
 ## Sparse vs. Dense Adjacency Matrices
 
@@ -35,26 +32,20 @@ TNL graphs can use either **sparse** or **dense** adjacency matrices to store ed
 
 By default, graphs use sparse matrix representations (typically CSR format). A sparse graph only stores information about edges that actually exist:
 
-```cpp
-// Sparse graph - only stores existing edges
-TNL::Graphs::Graph< float, TNL::Devices::Host, int, TNL::Graphs::DirectedGraph, TNL::Algorithms::Segments::CSR > graph;
-```
+\snippet Graphs/GraphExample_Constructors.cpp graph type definition
 
-The memory usage is proportional to the number of edges in the graph. For unweighted graphs, using `ValueType = bool` avoids storing numerical edge weights and reduces memory overhead, as only the presence or absence of edges is represented.
+The memory usage is proportional to the number of edges in the graph. By default, the sparse adjacency matrix is stored in the CSR format (segments) but any other format (segments) defined in \ref TNL::Algorithms::Segments can be used instead. For unweighted graphs, using `ValueType = bool` avoids storing numerical edge weights and reduces memory overhead, as only the presence or absence of edges is represented.
 
 ### Dense Adjacency Matrices And Dense Graphs
 
 Dense graphs store information about all possible edges between all vertex pairs:
 
-```cpp
-// Dense graph - stores all possible edges
-using DenseGraphType = TNL::Graphs::Graph< float, TNL::Devices::Host, int,
-                                           TNL::Graphs::DirectedGraph,
-                                           TNL::Algorithms::Segments::CSR, // this is ignored for dense adjacency matrix
-                                           TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int > >;
-```
+\snippet Graphs/GraphExample_Constructors.cpp dense graph type definition
 
-The memory usage is proportional to the square of the number of vertices (O(V²)). It is best for complete or nearly complete graphs where most vertex pairs are connected. Missing edges must be represented explicitly by the user (e.g., by a chosen sentinel/encoding), since the matrix representation assumes all vertex pairs are present.
+Memory usage is proportional to the square of the number of vertices (O(V²)).
+This representation is best suited for complete or nearly complete graphs, where most vertex pairs are connected.
+Missing edges must be represented explicitly by the user (e.g., via a chosen sentinel value or encoding), since the matrix representation assumes that all vertex pairs are present, including diagonal entries representing self-loops.
+It is therefore the user’s responsibility to omit such edges when they are not desired.
 
 ### Comparison Table
 
@@ -64,322 +55,310 @@ The memory usage is proportional to the square of the number of vertices (O(V²)
 | **Edge lookup** | O(degree)           | O(1)               |
 | **Best for**    | Sparse connectivity | Dense connectivity |
 
+In the following examples, we assume the following graph types:
+
+* Sparse directed graph:
+\snippet Graphs/GraphExample_Constructors.cpp graph type definition
+* Sparse undirected graph:
+\snippet Graphs/GraphExample_Constructors.cpp undirected graph type definition
+* Dense directed graph:
+\snippet Graphs/GraphExample_Constructors.cpp dense graph type definition
+
+
 ## Constructing Graphs
 
-TNL provides several ways to construct graphs, demonstrated in \ref GraphExample_Constructors.cpp.
+TNL provides several ways to construct graphs.
 
 ### Default Constructor
 
-TODO: Use code snippets from the example.
+To create an empty graph, the default constructor can be used:
 
-\include GraphExample_Constructors.cpp
-
-Creates an empty graph:
-
-```cpp
-GraphType graph;  // Empty graph with no vertices or edges
-```
+\snippet Graphs/GraphExample_Constructors.cpp default constructor
 
 ### Constructor with Vertex Count
 
-Creates a graph with specified number of vertices but no edges:
+Constructor with vertex count creates a graph with specified number of vertices but no edges:
 
-```cpp
-GraphType graph( 5 );  // 5 vertices, 0 edges
-```
+\snippet Graphs/GraphExample_Constructors.cpp constructor with vertex count
 
-### Constructor with Initializer List (Sparse)
+### Constructor with Initializer List for Sparse and Dense Graphs
 
-For both **sparse** and **dense** graphs, specify edges as tuples `(source, target, weight)`:
+Edges in both **sparse** and **dense** graphs can be specified as `(sourceIdx, targetIdx, weight)` tuples in an initializer list, together with the number of vertices:
 
-```cpp
-GraphType graph( 5,  // number of vertices
-    {  // edges: {source, target, weight}
-       { 0, 1, 10.0 }, { 0, 2, 20.0 },
-       { 1, 2, 30.0 }, { 1, 3, 40.0 },
-       { 2, 3, 50.0 },
-       { 3, 0, 60.0 }, { 3, 4, 70.0 }
-    } );
-```
+\snippet Graphs/GraphExample_Constructors.cpp constructor with edges
 
 In a sparse graph, unspecified edges are considered missing.
 In a dense graph, unspecified edges are represented by zero weights.
 
-### Constructor with Initializer List (Dense)
+### Constructor with Initializer List for Sparse Undirected Graphs
 
-For **dense graphs**, specify all edge weights in a 2D structure:
+Edges of sparse undirected graphs can be specified in the same way, but only half of them are required:
 
-```cpp
-DenseGraphType graph( { { 0.0, 10.0, 20.0,  0.0,  0.0 },
-                        { 0.0,  0.0, 30.0, 40.0,  0.0 },
-                        { 0.0,  0.0,  0.0, 50.0,  0.0 },
-                        {60.0,  0.0,  0.0,  0.0, 70.0 },
-                        { 0.0,  0.0,  0.0,  0.0,  0.0 } } );
-```
+\snippet Graphs/GraphExample_Constructors.cpp constructor with edges for undirected graph
+
+The last parameter specifies the encoding of the edges (see also \ref TNL::Matrices::MatrixElementsEncoding):
+
+- `Complete` – all edges must be specified explicitly, and symmetry is required.
+- `SymmetricLower` – only the lower triangular part of the adjacency matrix is specified, i.e. edges `(u, v)` with `u > v`.
+- `SymmetricUpper` – only the upper triangular part of the adjacency matrix is specified, i.e. edges `(u, v)` with `u < v`.
+- `SymmetricMixed` – elements from both the lower and upper triangular parts of the adjacency matrix may be specified; the corresponding symmetric elements are filled automatically. This is the default setting for the undirected graphs.
+
+By default, undirected graphs are represented by a symmetric sparse matrix, i.e. a matrix in which only the lower triangular part is stored. This behavior can be changed by explicitly selecting a general adjacency matrix type (see also \ref TNL::Matrices::SparseMatrix).
+
+### Constructor with Initializer List for Dense Graphs
+
+Edges of **dense graphs** can be specified by providing all edge weights in a two-dimensional structure:
+
+\snippet Graphs/GraphExample_Constructors.cpp constructor with edges for dense graph
 
 ### Constructor with std::map
 
-Build graphs from a map of edge pairs to weights:
+This constructor builds graphs from a map of edge pairs to weights:
 
-```cpp
-std::map< std::pair< int, int >, float > edgeMap;
-edgeMap[ {0, 1} ] = 1.5;
-edgeMap[ {0, 2} ] = 2.5;
-edgeMap[ {1, 2} ] = 3.5;
+\snippet Graphs/GraphExample_Constructors.cpp constructor with edge map
 
-GraphType graph( 4, edgeMap );
-```
+If the graph is **dense**, unspecified edges are assigned zero weight.
+If the graph is **undirected**, the `SymmetricMixed` encoding of adjacency matrix elements is required.
+The encoding can be changed using the third constructor parameter, in the same way as for the constructor that takes an initializer list.
+
+### Copy constructor
+
+The copy constructor creates a copy of another graph.
+
+\snippet Graphs/GraphExample_Constructors.cpp copy constructor
+
 
 ### Constructor from Adjacency Matrix
 
-Create a graph from an existing adjacency matrix:
+This constructor creates a graph from an existing adjacency matrix:
 
-```cpp
-using MatrixType = typename GraphType::AdjacencyMatrixType;
-MatrixType matrix( 3, 3 );
-matrix.setElements( { {0, 1, 1.0}, {0, 2, 2.0}, {1, 2, 3.0}, {2, 0, 4.0} } );
+\snippet Graphs/GraphExample_Constructors.cpp constructor from adjacency matrix
 
-GraphType graph( matrix );
-```
+The whole example reads as follows:
+
+\includelineno Graphs/GraphExample_Constructors.cpp
+
+And the output looks as follows:
+
+\include GraphExample_Constructors.out
+
 
 ## Setting Edges
 
-After creating a graph, you can set or modify its edges using the `setEdges` method, as shown in \ref GraphExample_setEdges.cpp.
+After creating a graph, you can set or modify its edges using the `setEdges` and `setDenseEdges` methods. These methods behave similarly to the corresponding constructors.
 
 ### Setting Edges with Initializer List (Sparse)
 
 For **sparse** and **dense** graphs:
 
-```cpp
-GraphType graph;
-graph.setVertexCount( 5 );
-graph.setEdgeCounts( TNL::Containers::Vector< int, Device >( { 2, 3, 1, 2, 0 } ) );
+\snippet Graphs/GraphExample_setEdges.cpp setEdges with initializer list
 
-graph.setEdges( {
-    { 0, 1, 10.0 }, { 0, 2, 20.0 },
-    { 1, 2, 30.0 }, { 1, 3, 40.0 }, { 1, 4, 50.0 },
-    { 2, 3, 60.0 },
-    { 3, 0, 70.0 }, { 3, 4, 80.0 }
-} );
-```
+The method \ref TNL::Graphs::Graph::setEdges also accepts a matrix elements encoding (see \ref TNL::Matrices::MatrixElementsEncoding) as the second parameter, following the initializer list. This is particularly useful when setting undirected graphs.
 
 ### Setting Edges with Initializer List (Dense)
 
-For **dense graphs**, provide the complete adjacency matrix:
+For **dense** graphs, the method \ref TNL::Graphs::Graph::setDenseEdges sets the graph edges based on the complete adjacency matrix:
 
-```cpp
-DenseGraphType graph;
-graph.setDimensions( 5, 5 );
-
-graph.setEdges( { { 0.0, 10.0, 20.0,  0.0,  0.0 },
-                  { 0.0,  0.0, 30.0, 40.0, 50.0 },
-                  { 0.0,  0.0,  0.0, 60.0,  0.0 },
-                  {70.0,  0.0,  0.0,  0.0, 80.0 },
-                  { 0.0,  0.0,  0.0,  0.0,  0.0 } } );
-```
+\snippet Graphs/GraphExample_setEdges.cpp setDenseEdges with initializer list
 
 ### Setting Edges with std::map
 
-```cpp
-std::map< std::pair< int, int >, float > edgeMap;
-edgeMap[ {0, 1} ] = 1.5;
-edgeMap[ {0, 2} ] = 2.5;
-// ... more edges
+The graph edges can also be set using a `std::map`:
 
-graph.setEdges( edgeMap );
-```
+\snippet Graphs/GraphExample_setEdges.cpp setEdges with std map
 
 ## Graph Traversal
 
-TNL provides powerful parallel traversal capabilities through the \ref TNL::Graphs::forVertices function and related utilities.
+TNL provides powerful parallel traversal capabilities through the functions
+\ref TNL::Graphs::forVertices, \ref TNL::Graphs::forEdges, and related utilities.
+A graph can be traversed either by **vertices** or by **edges**. Vertex-based traversal is performed using a vertex view.
 
-The graph can be traversed either by **vertices** or by **edges**. Vertex-based traversal is performed using a vertex view.
+The following provides an overview of graph traversal functions:
 
-A \ref TNL::Graphs::GraphVertexView provides access to a single vertex and its outgoing edges. Vertex views are the primary way to interact with graph structure in parallel GPU code.
+1. TNL distinguishes between **vertex-based** and **edge-based traversal**. Vertex-based traversal assigns at most one thread to each vertex, while edge-based traversal enables finer-grained parallelism by distributing work across edges.
+| Category                                          | Operates On         | Lambda Parameter       | Use Case                         |
+| ------------------------------------------------- | ------------------- | ---------------------- | -------------------------------- |
+| **Edge-wise** (`forEdges`, `forAllEdges`)         | Individual edges    | Edge indices & weights | Operate on each  edge separately |
+| **Vertex-wise** (`forVertices`, `forAllVertices`) | Individual vertices | VertexView object      | Operate on vertices              |
+2. The scope of vertex traversal can be defined in several ways: **all vertices**, **a vertex range**, **an explicit list of vertex indices**, or **a condition on the vertex index**.
+| Scope     | Vertices Processed               | Parameters                                        |
+| --------- | -------------------------------- | ------------------------------------------------- |
+| **All**   | All vertices                     | No range/array parameters                         |
+| **Range** | Vertices in `[begin, end)`       | `begin` and `end` indices                         |
+| **Array** | Specific vertices                | Array of vertex indices                           |
+| **If**    | Vertices filtered by a condition | Process vertices based on vertex-level properties |
+3. All functions can be called for both **constant** and **non-constant** graphs.
+| Category      | Graph Modifiable? | Use Case                                     |
+| ------------- | ----------------- | -------------------------------------------- |
+| **Non-const** | Yes               | Can modify graph edges and structure         |
+| **Const**     | No                | Read-only access to graph vertices and edges |
 
-```cpp
-TNL::Graphs::forAllVertices(
-    graph,
-    [] __cuda_callable__ ( typename GraphType::VertexView vertex ) {
-        int idx = vertex.getVertexIndex();      // Vertex index
-        int degree = vertex.getDegree();        // Number of outgoing edges
-    }
-);
-```
-
-Vertex views also allow modifying edge weights:
-
-```cpp
-TNL::Graphs::forAllVertices(
-    graph,
-    3, 4,  // Process only vertex 3
-    [] __cuda_callable__ ( typename GraphType::VertexView vertex ) mutable {
-        for( int i = 0; i < vertex.getDegree(); i++ ) {
-            vertex.getEdgeWeight( i ) *= 2.0;  // Double all edge weights
-        }
-    }
-);
-```
+See also \ref GraphTraversalOverview for more details.
 
 ### Traversing By Vertices
 
-#### Processing All Vertices
+A \ref TNL::Graphs::GraphVertexView provides access to a single vertex and its outgoing edges. Vertex views are the primary way to interact with graph structure in parallel GPU code.
 
-Iterate over all vertices in parallel:
+#### Traversing All Vertices
 
-```cpp
-TNL::Graphs::forAllVertices(
-    graph,
-    [] __cuda_callable__ ( typename GraphType::VertexView& vertex ) {
-        // Process vertex ...
-    }
-);
-```
+Functions \ref TNL::Graphs::forAllVertices iterates over all vertices in parallel:
 
-#### Processing a Range of Vertices
+\snippet Graphs/Traverse/GraphExample_forAllVertices.cpp traverse all vertices
 
-Process vertices in a specific range `[begin, end)`:
+If the function is called with the constant graphs the `typename GraphType::VertexType` needs to be replaced with `typename GraphType::ConstVertexView`.
 
-```cpp
-// Process only vertices 1-3 (range [1, 4))
-TNL::Graphs::forAllVertices(
-    graph,
-    1, 4,  // begin, end
-    [] __cuda_callable__ ( typename GraphType::VertexView& vertex ) {
-        // Process vertex...
-    }
-);
-```
+The whole example reads as:
 
-#### Processing Vertices with a Condition
+\includelineno Graphs/Traverse/GraphExample_forAllVertices.cpp
 
-Use `forAllVerticesIf` to process only vertices that meet certain criteria given by the lambda function `condition`:
+and the output reads as:
 
-```cpp
-// Define condition: vertices with more than 2 edges
-auto condition = [] __cuda_callable__ ( int vertexIdx ) -> bool {
-    return graph.getVertexDegree( vertexIdx ) > 2;
-};
-```
+\include GraphExample_forAllVertices.out
+
+#### Traversing a Range of Vertices
+
+Traversing vertices in a specific range `[begin, end)` can be done using the function \ref TNL::Graphs::forVertices :
+
+\snippet Graphs/Traverse/GraphExample_forVertices.cpp traverse vertices in range
+
+If the function is called with the constant graphs the `typename GraphType::VertexType` needs to be replaced with `typename GraphType::ConstVertexView`.
+
+The whole example reads as:
+
+\includelineno Graphs/Traverse/GraphExample_forVertices.cpp
+
+and the output reads as:
+
+\include GraphExample_forVertices.out
+
+#### Traversing Vertices with a Given Indecis
+
+The function \ref TNL::Graphs::forVertices also allows traversing vertices with explicitly specified indices.
+The indices are provided as an array:
+
+\snippet Graphs/Traverse/GraphExample_forVerticesWithIndexes.cpp create vertex index array
+
+The vertices with these indecis can be traversed as follows:
+
+\snippet Graphs/Traverse/GraphExample_forVerticesWithIndexes.cpp traverse only specified vertices
+
+If the function is called with the constant graphs the `typename GraphType::VertexType` needs to be replaced with `typename GraphType::ConstVertexView`.
+
+The whole example reads as:
+
+\includelineno Graphs/Traverse/GraphExample_forVerticesWithIndexes.cpp
+
+and the output reads as:
+
+\include GraphExample_forVerticesWithIndexes.out
+
+#### Traversing Vertices with a Condition
+
+Use `forAllVerticesIf` to process only vertices that meet criteria specified by the lambda function `condition`:
+
+\snippet Graphs/Traverse/GraphExample_forVerticesIf.cpp condition lambda
 
 The lambda function takes a vertex index and returns `true` for vertices that should be traversed; all other vertices are skipped.
-The function `forAllVerticesIf` is invoked as:
+The function `forAllVerticesIf` is invoked as follows:
 
-```cpp
-// Process only vertices that satisfy the condition
-TNL::Graphs::forAllVerticesIf(
-    graph,
-    condition,
-    [] __cuda_callable__ ( typename GraphType::VertexView& vertex ) mutable {
-        // Process high-degree vertices...
-    }
-);
-```
+\snippet Graphs/Traverse/GraphExample_forVerticesIf.cpp traverse vertices with condition
 
-See \ref GraphExample_forVerticesIf.cpp for a complete example.
+There is also an alternative function, \ref TNL::Graphs::forVerticesIf, which accepts a range of vertex indices `[begin, end)`.
+Only vertices within this range are considered for traversal.
+
+If the function is called with the constant graphs the `typename GraphType::VertexType` needs to be replaced with `typename GraphType::ConstVertexView`.
+
+The complete example reads as:
+
+\includelineno Graphs/Traverse/GraphExample_forVerticesIf.cpp
+
+The output looks as follows:
+
+\include GraphExample_forVerticesIf.out
 
 ### Traversing By Edges
 
-Access edges from a vertex:
+Accessing edges from a vertex is possible; however, in this mode each vertex is processed by at most one thread. For higher degrees of parallelism, specialized traversal functions must be used.
 
-```cpp
-TNL::Graphs::forAllVertices(
-    graph,
-    [] __cuda_callable__ ( auto vertex ) {
-        for( int i = 0; i < vertex.getDegree(); i++ ) {
-            int target = vertex.getTargetIndex( i );    // Target vertex
-            auto weight = vertex.getEdgeWeight( i );    // Edge weight
-            // Process edges ...
-        }
-    }
-);
-```
-
-This way, each vertex is processed by at most one thread. For higher degrees of parallelism, specialized traversal functions must be used.
-
-#### Processing All Edges
+#### Traversing All Edges
 
 The \ref TNL::Graphs::forAllEdges function iterates over all edges in the graph:
 
-```cpp
-TNL::Graphs::forAllEdges(
-    graph,
-    [] __cuda_callable__ ( int source, int local, int& target, float& weight ) mutable {
-        // Process each edge
-        // source: source vertex index
-        // local: edge index within the source vertex (0-based)
-        // target: target vertex index (modifiable)
-        // weight: edge weight (modifiable)
-    }
-);
-```
+\snippet Graphs/Traverse/GraphExample_forAllEdges.cpp traverse all edges
 
+The `localIdx` index specifies the rank of an edge within the set of all edges incident to the vertex `sourceIdx`.
+Note that for sparse, non-constant graphs, both `targetIdx` and `weight` can be modified. For dense graphs, only `weight` can be modified, and the `localIdx` index is equal to `targetIdx`.
 
-**Important notes:**
-- Use `mutable` in the lambda when modifying edge targets or weights
-- For sparse graphs, you can modify both `target` and `weight`
-- For dense/structured graphs, only `weight` can be modified (target is implicit)
-- Multiple threads may process edges of the same vertex in parallel
+The whole example reads as follows:
 
-#### Processing Edges in a Range
+\includelineno Graphs/Traverse/GraphExample_forAllEdges.cpp
 
-Process only edges connected to vertices in a specific range `[begin, end)`:
+The output looks as follows:
 
-```cpp
-// Process edges from vertices 1-3 (range [1, 4))
-TNL::Graphs::forEdges(
-    graph,
-    1, 4,  // begin, end
-    [] __cuda_callable__ ( int source, int local, int& target, float& weight ) mutable {
-        // Process edges...
-    }
-);
-```
+\include GraphExample_forAllEdges.out
 
-#### Processing Edges for Specific Vertices
+#### Traversing Edges in a Range
 
-Use an array to specify which vertices' edges to process:
+Traversing only edges connected to vertices in a specific range `[begin, end)` can be done as follows:
 
-```cpp
-TNL::Containers::Array< int, Device > vertexIndexes{ 0, 2, 4 };
+\snippet Graphs/Traverse/GraphExample_forEdges.cpp traverse edges in range
 
-TNL::Graphs::forEdges(
-    graph,
-    vertexIndexes,
-    0, vertexIndexes.getSize(),  // Process entire array
-    [] __cuda_callable__ ( int source, int local, int& target, float& weight ) mutable {
-        // Process edges of vertices 0, 2, and 4
-    }
-);
-```
+The whole example reads as follows:
+
+\includelineno Graphs/Traverse/GraphExample_forEdges.cpp
+
+The output looks as follows:
+
+\include GraphExample_forEdges.out
+
+#### Traversing Edges for Specific Vertices
+
+The function \ref TNL::Graphs::forEdges can traverse only edges of **vertices** with **explicitly specified indices**, similarly to \ref TNL::Graphs::forVertices.
+
+The indecis of vertices for traversing are specified as follows:
+
+\snippet Graphs/Traverse/GraphExample_forEdgesWithIndexes.cpp vertex indexes for traversing
+
+The traversal itself is performed as follows:
+
+\snippet Graphs/Traverse/GraphExample_forEdgesWithIndexes.cpp traverse edges from specified vertices
+
+The whole example reads as follows:
+
+\includelineno Graphs/Traverse/GraphExample_forEdgesWithIndexes.cpp
+
+The output looks as follows:
+
+\include GraphExample_forEdgesWithIndexes.out
 
 #### Conditional Edge Traversal
 
-Use \ref TNL::Graphs::forAllEdgesIf to process edges only from vertices meeting specific criteria:
+For conditional traversal of edges, the function \ref TNL::Graphs::forAllEdgesIf can be used.
+The condition is expressed by a lambda function `condition`:
 
-```cpp
-// Define condition: vertices with degree > 2
-auto condition = [] __cuda_callable__ ( int vertexIdx ) -> bool {
-    return graph.getVertexDegree( vertexIdx ) > 2;
-};
+\snippet Graphs/Traverse/GraphExample_forEdgesIf.cpp condition lambda
 
-// Process edges only from high-degree vertices
-TNL::Graphs::forAllEdgesIf(
-    graph,
-    condition,
-    [] __cuda_callable__ ( int source, int local, int& target, float& weight ) mutable {
-        // Process edges...
-    }
-);
-```
+The lambda function takes a **vertex index** and returns `true` if **the edges incident to that vertex**
+should be traversed; otherwise, it returns `false`. The traversal is executed as follows:
+
+\snippet Graphs/Traverse/GraphExample_forEdgesIf.cpp traverse edges from vertices satisfying condition
+
+The function \ref TNL::Graphs::forEdgesIf behaves in the same way and additionally accepts a range of
+vertex indices to be traversed.
+
+The whole example reads as follows:
+
+\includelineno Graphs/Traverse/GraphExample_forEdgesIf.cpp
+
+The output looks as follows:
+
+\include GraphExample_forEdgesIf.out
 
 #### Const vs. Non-Const Edge Traversal
 
-For const graphs, edge data is read-only:
+For constant graphs, edge data is read-only:
 
 ```cpp
-const auto& constGraph = graph;
-
 TNL::Graphs::forAllEdges(
     constGraph,
     [] __cuda_callable__ ( int source, int local, int target, const float& weight ) {
@@ -389,184 +368,212 @@ TNL::Graphs::forAllEdges(
 );
 ```
 
-A complete example is available in \ref GraphExample_forEdges.cpp.
-
-
-**Important**: Use `mutable` in the lambda when modifying the graph!
-
-### Computing Vertex Properties
-
-Use vertex views to compute aggregate properties:
-
-```cpp
-// Compute sum of outgoing edge weights for each vertex
-TNL::Containers::Array< float, Device > weightSums( graph.getVertexCount() );
-auto weightSumsView = weightSums.getView();
-
-TNL::Graphs::forAllVertices(
-    graph,
-    [=] __cuda_callable__ ( typename GraphType::VertexView vertex ) mutable {
-        float sum = 0.0;
-        for( int i = 0; i < vertex.getDegree(); i++ ) {
-            sum += vertex.getEdgeWeight( i );
-        }
-        weightSumsView[ vertex.getVertexIndex() ] = sum;
-    }
-);
-```
-
-### Const Vertex Views
-
-When working with const graphs, vertex views are also const:
-
-```cpp
-const auto& constGraph = graph;
-
-TNL::Graphs::forAllVertices(
-    constGraph,
-    [] __cuda_callable__ ( typename GraphType::VertexView vertex ) {
-        // vertex is const - can read but not modify
-        int degree = vertex.getDegree();
-        auto weight = vertex.getEdgeWeight( 0 );
-        // vertex.getEdgeWeight( 0 ) = 5.0;  // ❌ Error: vertex is const
-    }
-);
-```
-
-A complete example is available in \ref GraphExample_VertexView.cpp.
-
 ## Reductions on Graphs
 
-Graph reductions allow you to compute aggregate values across edges or vertices efficiently. TNL provides specialized reduction operations for graph structures.
+Graph reductions allow efficient computation of aggregate values over edges or vertices.
+Such computations can also be implemented using vertex traversal functions
+(\ref TNL::Graphs::forAllVertices, \ref TNL::Graphs::forVertices,
+\ref TNL::Graphs::forAllVerticesIf, \ref TNL::Graphs::forVerticesIf).
+However, to achieve a higher level of parallelism, TNL provides specialized reduction
+operations for graph data structures.
+
+The following provides an overview of graph reduction functions:
+
+1. Reductions can be performed either in a **basic** mode or **with arguments**, which additionally return the position of the edge being searched for.
+| Category         | Tracks Position? | Use Case                                                                   |
+| ---------------- | ---------------- | -------------------------------------------------------------------------- |
+| **Basic**        | No               | Only the reduced weight is needed (e.g., vertex sum, vertex max)           |
+| **WithArgument** | Yes              | Need weight and target vertex index (e.g., max weight and where it occurs) |
+2. The scope of reduction can be defined in several ways: **all vertices**,  **a vertex range**, **an explicit list of vertex indices**, or **a condition on the vertex index**.
+| Scope     | Vertices Processed               | Parameters                                        |
+| --------- | -------------------------------- | ------------------------------------------------- |
+| **All**   | All vertices                     | No range/array parameters                         |
+| **Range** | Vertices `[begin, end)`          | `begin` and `end` indices                         |
+| **Array** | Specific vertices                | Array of vertex indices                           |
+| **If**    | Vertices filtered by a condition | Process vertices based on vertex-level properties |
+3. All functions can be called for both **constant** and **non-constant** graphs.
+| Category      | Graph Modifiable? | Use Case                                |
+| ------------- | ----------------- | --------------------------------------- |
+| **Non-const** | Yes               | Can modify graph edges during reduction |
+| **Const**     | No                | Read-only access to graph edges         |
+
+See also \ref GraphReductionOverview for more details.
 
 ### Reducing Over Edges of a Vertex
 
-Compute aggregate values from edges using reductions:
+The function \ref TNL::Graphs::reduceVertices computes a reduction over edges adjacent to the specified vertices.
+First, we define a vector `vertexMaxWeights` (together with the corresponding vector view `vertexMaxWeights_view `)
+to store the results of the reduction:
 
-```cpp
-// Find maximum edge weight for each vertex
-TNL::Containers::Array< float, Device > maxWeights( graph.getVertexCount() );
-auto maxWeightsView = maxWeights.getView();
+\snippet Graphs/Reduce/GraphExample_reduceVertices.cpp vector for results
 
-TNL::Graphs::forAllVertices(
-    graph,
-    [=] __cuda_callable__ ( auto vertex ) mutable {
-        float maxWeight = 0.0;
-        for( int i = 0; i < vertex.getDegree(); i++ ) {
-            maxWeight = max( maxWeight, vertex.getEdgeWeight( i ) );
-        }
-        maxWeightsView[ vertex.getVertexIndex() ] = maxWeight;
-    }
-);
-```
+Next, we define the `fetch` lambda function responsible for reading the required data:
 
-### Common Reduction Patterns
+\snippet Graphs/Reduce/GraphExample_reduceVertices.cpp fetch lambda
 
-**Sum of edge weights**:
-```cpp
-float sum = 0.0;
-for( int i = 0; i < vertex.getDegree(); i++ ) {
-    sum += vertex.getEdgeWeight( i );
-}
-```
+The lambda function `fetch` takes the indices `sourceIdx` and `targetIdx` of the source and target vertices of an edge,
+respectively. The third parameter is the edge `weight`. For non-constant graphs, the `weight` parameter may be passed
+by reference and can be modified during the `fetch` operation. This allows the reduction and graph modification to be performed simultaneously. For sparse graphs, the `targetIdx` index can also be modified.
 
-**Count edges satisfying a condition**:
-```cpp
-int count = 0;
-for( int i = 0; i < vertex.getDegree(); i++ ) {
-    if( vertex.getEdgeWeight( i ) > threshold ) {
-        count++;
-    }
-}
-```
+Next, we define the `store` lambda function, which is responsible for storing the reduction results for individual vertices:
 
-**Find edge with maximum weight**:
-```cpp
-int maxIdx = -1;
-float maxWeight = -INFINITY;
-for( int i = 0; i < vertex.getDegree(); i++ ) {
-    if( vertex.getEdgeWeight( i ) > maxWeight ) {
-        maxWeight = vertex.getEdgeWeight( i );
-        maxIdx = vertex.getTargetIndex( i );
-    }
-}
-```
+\snippet Graphs/Reduce/GraphExample_reduceVertices.cpp store lambda
+
+Finally, the reduction is executed as follows:
+
+\snippet Graphs/Reduce/GraphExample_reduceVertices.cpp reduce vertices
+
+Here, we use \ref TNL::Max for reduction (see also \ref ReductionFunctionObjects for other
+functionals). Another variant of \ref TNL::Graphs::reduceVertices allows to define the reduction operation via a lambda function.
+
+Note that the function \ref TNL::Graphs::reduceAllVertices is also available for performing reductions over all vertices.
+
+The whole example reads as follows:
+
+\includelineno Graphs/Reduce/GraphExample_reduceVertices.cpp
+
+The output looks as follows:
+
+\include GraphExample_reduceVertices.out
+
+### Reducing Over Edges of Specific Vertices and Conditional Reduction
+
+Reductions over a specified set of vertices can be performed using \ref TNL::Graphs::reduceVertices.
+Conditional reductions are provided by \ref TNL::Graphs::reduceAllVerticesIf and \ref TNL::Graphs::reduceVerticesIf.
+Their behavior is analogous to the corresponding vertex traversal functions; however, they differ in how the results of the reduction are stored, as demonstrated in the following code snippet.
+
+Assume that we perform a reduction over a given set of vertices:
+
+\snippet Graphs/Reduce/GraphExample_reduceVerticesWithIndexes.cpp reduce vertices with indecis
+
+The `store` lambda function takes the following parameters:
+
+- `indexOfVertexIdx` – the rank of the vertex within the set of vertices being processed.
+In this example, the reduction is performed only for vertices 0, 2, and 3.
+Their corresponding `indexOfVertexIdx` values are 0, 1, and 2, respectively.
+- `vertexIdx` – the index of the vertex whose reduction result is currently being stored.
+- `sum` – the result of the reduction, i.e. the sum of the weights of all edges connected to the vertex.
+
+The whole exmpale reads as follows:
+
+\includelineno Graphs/Reduce/GraphExample_reduceVerticesWithIndexes.cpp
+
+The output looks as follows:
+
+\include GraphExample_reduceVerticesWithIndexes.out
+
+The `store` lambda function behaves in the same way for conditional reductions, as demonstrated by the following code snippet:
+
+\snippet Graphs/Reduce/GraphExample_reduceVerticesIf.cpp reduce vertices if
+
+The function \ref TNL::Graphs::reduceVerticesIf also returns the number of vertices (`reducedVertexCount`) for which the
+reduction has been performed. This is particularly useful for subsequent processing of data stored in arrays with
+compressed results (for example, `compressedVertexMinWeights_view` in this example).
+
+The whole example reads as:
+
+\includelineno Graphs/Reduce/GraphExample_reduceVerticesIf.cpp
+
+The output looks as follows:
+
+\include GraphExample_reduceVerticesIf.out
+
+### Reducing Over Edges of a Vertex with Argument
+
+Reductions with arguments allow tracking graph edges during the computation.
+This is useful, for example, when searching for the edge with the maximal (or minimal) weight among edges adjacent to given vertices,
+or for similar operations. Such functionality is provided by \ref TNL::Graphs::reduceVerticesWithArgument and related functions
+(\ref TNL::Graphs::reduceAllVerticesWithArgument, \ref TNL::Graphs::reduceVerticesWithArgumentIf, \ref TNL::Graphs::reduceAllVerticesWithArgumentIf).
+
+In the following example, for each vertex in a given range, we search for the edge with the minimal weight.
+We begin by defining vectors and corresponding vector views to store the results of the reduction:
+
+\snippet Graphs/Reduce/GraphExample_reduceVerticesWithArgument.cpp vectors for results
+
+The `fetch` lambda function behaves in the same way as in a standard reduction:
+
+\snippet Graphs/Reduce/GraphExample_reduceVerticesWithArgument.cpp fetch lambda
+
+The `store` lambda function is defined as follows:
+
+\snippet Graphs/Reduce/GraphExample_reduceVerticesWithArgument.cpp store lambda
+
+In addition to the reduction result, it receives the parameters `localIdx`, `targetIdx`, and the boolean flag `isolatedVertex`:
+
+- `vertexIdx` is the index of the vertex for which the result is being stored.
+- `targetIdx` is the index of the target vertex of the edge with the minimal weight.
+- `localIdx` is the position of the edge with the minimal weight within the set of all edges adjacent to the vertex `vertexIdx`.
+If the graph is dense (i.e., the adjacency matrix is dense), `localIdx` has the same value as `targetIdx` and may be omitted.
+- `result` is the value of the minimal edge weight.
+- `isolatedVertex` is a boolean flag. If it is set to `true`, the vertex with index `vertexIdx` is isolated and has no adjacent edges.
+In this case, result is equal to the identity value of the reduction operation, and both `localIdx` and `targetIdx` are undefined and must be ignored.
+
+The reduction is performed as follows:
+
+\snippet Graphs/Reduce/GraphExample_reduceVerticesWithArgument.cpp reduce vertices with argument
+
+We use \ref TNL::MinWithArg for reduction (see also \ref ReductionFunctionObjectsWithArgument for other
+functionals). Another variant of \ref TNL::Graphs::reduceVerticesWithArgument allows to define the reduction operation via
+a lambda function.
+
+The whole example reads as follows:
+
+\includelineno Graphs/Reduce/GraphExample_reduceVerticesWithArgument.cpp
+
+The output looks as follows:
+
+\include GraphExample_reduceVerticesWithArgument.out
+
+### Reducing Over Edges of Specific Vertices and Conditional Reduction With Argument
+
+The following example demonstrates a reduction with arguments over a specific set of vertices, specified either by their indices or by a condition:
+
+\snippet Graphs/Reduce/GraphExample_reduceVerticesWithArgumentIf.cpp reduce vertices with argument if
+
+The lambda functions `condition` and `fetch` remain unchanged.
+The `store` lambda function accepts the following parameters:
+
+- `indexOfVertexIdx` – the position of the vertex whose result is being stored within the set of all vertices reduced during the operation.
+This index can be used to store results in a compressed form.
+- `vertexIdx` – the index of the vertex whose reduction result is being stored.
+- `localIdx` – the position of the edge with the minimal weight within the set of all edges adjacent to the vertex `vertexIdx`.
+- `targetIdx` – the index of the target vertex of the edge with the minimal weight.
+- `minWeight` – the weight value of the edge with the minimal weight.
+- `isolatedVertex` – indicates (if set to `true`) that the vertex with index `vertexIdx` is isolated and has no adjacent edges over which the reduction can be performed.
+
+In this case, the reduction result (minWeight in this example) is set to the identity value of the reduction operation, and the variables `localIdx` and `targetIdx` are undefined and must not be used.
+
+The whole example reads as follows:
+
+\includelineno Graphs/Reduce/GraphExample_reduceVerticesWithArgumentIf.cpp
+
+The output looks as follows:
+
+\include GraphExample_reduceVerticesWithArgumentIf.out
 
 ## Graph Views
 
-Similar to matrix views, graph views (\ref TNL::Graphs::GraphView) are lightweight reference objects that allow passing graphs to GPU kernels:
-
-```cpp
-template< typename Device >
-void processGraph()
-{
-    using GraphType = TNL::Graphs::Graph< float, Device, int, TNL::Graphs::DirectedGraph >;
-    GraphType graph( 5, { {0, 1, 1.0}, {1, 2, 2.0}, {2, 3, 3.0} } );
-
-    auto graphView = graph.getView();  // Get view
-
-    // Pass view to parallel operations
-    TNL::Graphs::forAllVertices(
-        graphView,  // Use view instead of graph
-        [] __cuda_callable__ ( auto vertex ) {
-            // Process vertex...
-        }
-    );
-}
-```
+Similar to matrix views, graph views (\ref TNL::Graphs::GraphView) are lightweight reference objects that allow passing graphs to GPU kernels. The graph views can be obtained from the graph using the method \ref TNL::Graphs::Graph::getView or \ref TNL::Graphs::Graph::getConstView.
 
 Graph views are particularly useful when:
 - Passing graphs to custom GPU kernels
 - Working with graphs in lambda functions
 - Creating shallow copies for parallel algorithms
 
-## Undirected Graphs
-
-For undirected graphs, edges are bidirectional. When constructing an undirected graph, you typically only specify each edge once:
-
-```cpp
-using UndirectedGraphType = TNL::Graphs::Graph< float, Device, int, TNL::Graphs::UndirectedGraph >;
-
-UndirectedGraphType graph( 4,
-    {  // Only specify edges once
-       { 0, 1, 1.0 },
-       { 0, 2, 2.0 },
-       { 1, 2, 3.0 },
-       { 2, 3, 4.0 }
-    },
-    TNL::Matrices::MatrixElementsEncoding::SymmetricMixed
-);
-```
-
-The `SymmetricMixed` encoding ensures that the graph properly maintains symmetry (bidirectional edges).
-
 ## Performance Considerations
 
 ### Choosing the Right Matrix Format
 
-For sparse graphs, different segment formats offer different performance characteristics:
+For sparse graphs, different segment formats offer different performance characteristics. The user may choose any type of segments
+ - see \ref TNL::Algorithms::Segments.
 
-- **CSR** (Compressed Sparse Row): General-purpose, good memory efficiency
-- **Ellpack**: Better GPU performance for graphs with similar vertex degrees
-- **ChunkedEllpack**: Balanced performance for varying vertex degrees
-- **SlicedEllpack**: Excellent GPU performance with moderate memory overhead
+For example graph with Ellpack format can be obtained as follows:
 
-Example with Ellpack format:
 ```cpp
 using EllpackGraph = TNL::Graphs::Graph< float, Device, int,
                                          TNL::Graphs::DirectedGraph,
                                          TNL::Algorithms::Segments::Ellpack >;
 ```
-
-## Summary
-
-For complete working examples, see:
-- \ref GraphExample_Constructors.cpp - Various graph construction methods
-- \ref GraphExample_setEdges.cpp - Setting and modifying edges
-- \ref GraphExample_VertexView.cpp - Working with vertex views and parallel traversal
-- \ref GraphExample_forEdges.cpp - Direct edge traversal
-- \ref GraphExample_forEdgesIf.cpp - Conditional edge traversal
-- \ref GraphExample_forEdgesWithIndexes.cpp - Edge traversal for specific vertices
 
 ## Further Reading
 
@@ -579,3 +586,4 @@ For complete working examples, see:
 - \ref TNL::Graphs::forEdges - Range-based edge traversal
 - \ref TNL::Graphs::forAllEdgesIf - Conditional edge traversal
 - \ref GraphTraversalOverview - Complete overview of all traversal functions
+- \ref GraphReductionOverview - Complete overview of all traversal functions

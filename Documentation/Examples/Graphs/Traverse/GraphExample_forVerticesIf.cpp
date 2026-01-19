@@ -26,6 +26,7 @@ forAllVerticesIfExample()
     */
    std::cout << "Graph:\n" << graph << std::endl;
 
+   //! [condition lambda]
    /***
     * Define a condition: process only vertices with more than one edge.
     */
@@ -33,7 +34,9 @@ forAllVerticesIfExample()
    {
       return graph.getVertexDegree( vertexIdx ) > 1;
    };
+   //! [condition lambda]
 
+   //! [traverse vertices with condition]
    /***
     * Traverse vertices that satisfy the condition.
     */
@@ -43,6 +46,7 @@ forAllVerticesIfExample()
          vertex.setEdge( i, ( vertex.getTargetIndex( i ) + 1 ) % 5, vertex.getEdgeWeight( i ) + 5 );
    };
    TNL::Graphs::forAllVerticesIf( graph, condition, processVertex );
+   //! [traverse vertices with condition]
 
    /***
     * Print the modified graph.
