@@ -3,11 +3,10 @@
 #include <TNL/Graphs/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Containers/Vector.h>
 
 template< typename Device >
 void
-forEdgesWithIndexesExample()
+forAllEdgesExample()
 {
    /***
     * Create a directed graph with 5 vertices.
@@ -19,7 +18,7 @@ forEdgesWithIndexesExample()
           { 0, 1, 10.0 }, { 0, 2, 20.0 },
                           { 1, 2, 30.0 }, { 1, 3, 40.0 }, { 1, 4, 50.0 },
                                           { 2, 3, 60.0 },
-          { 3, 0, 70.0 },                                 { 3, 4, 80.0 } } );
+          { 3, 0, 70.0 },                                { 3, 4, 80.0 } } );
    // clang-format on
 
    /***
@@ -27,24 +26,17 @@ forEdgesWithIndexesExample()
     */
    std::cout << "Graph:\n" << graph << std::endl;
 
-   //! [vertex indexes for traversing]
+   //! [traverse all edges]
    /***
-    * Create an array of vertex indices to process.
+    * Traverse all edges and modify them.
     */
-   TNL::Containers::Vector< int, Device > vertices( { 0, 2, 3 } );
-   //! [vertex indexes for traversing]
-
-   //! [traverse edges from specified vertices]
-   /***
-    * Traverse edges only from the specified vertices.
-    */
-   auto modifyEdge = [] __cuda_callable__( int sourceIdx, int localIdx, int targetIdx, float weight ) mutable
+   auto modifyEdge = [] __cuda_callable__( int sourceIdx, int localIdx, int& targetIdx, float& weight ) mutable
    {
       targetIdx = ( targetIdx + 1 ) % 5;
       weight += 5;
    };
-   TNL::Graphs::forEdges( graph, vertices, modifyEdge );
-   //! [traverse edges from specified vertices]
+   TNL::Graphs::forAllEdges( graph, modifyEdge );
+   //! [traverse all edges]
 
    /***
     * Print the modified graph.
@@ -56,11 +48,11 @@ int
 main( int argc, char* argv[] )
 {
    std::cout << "Running on host:" << std::endl;
-   forEdgesWithIndexesExample< TNL::Devices::Host >();
+   forAllEdgesExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
    std::cout << "Running on CUDA device:" << std::endl;
-   forEdgesWithIndexesExample< TNL::Devices::Cuda >();
+   forAllEdgesExample< TNL::Devices::Cuda >();
 #endif
 
    return EXIT_SUCCESS;
