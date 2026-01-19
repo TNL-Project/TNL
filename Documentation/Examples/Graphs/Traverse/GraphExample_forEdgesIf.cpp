@@ -26,6 +26,7 @@ forAllEdgesIfExample()
     */
    std::cout << "Graph:\n" << graph << std::endl;
 
+   //! [condition lambda]
    /***
     * Define a condition: process only vertices with even indices.
     */
@@ -33,17 +34,19 @@ forAllEdgesIfExample()
    {
       return vertexIdx % 2 == 0;
    };
+   //! [condition lambda]
 
+   //! [traverse edges from vertices satisfying condition]
    /***
     * Traverse edges only from vertices that satisfy the condition.
     */
-   auto printEdge = [] __cuda_callable__( int source, int local, int target, float weight ) mutable
+   auto modifyEdge = [] __cuda_callable__( int sourceIdx, int localIdx, int targetIdx, float weight ) mutable
    {
-      target = ( target + 1 ) % 5;
+      targetIdx = ( targetIdx + 1 ) % 5;
       weight += 5;
    };
-
-   TNL::Graphs::forAllEdgesIf( graph, condition, printEdge );
+   TNL::Graphs::forAllEdgesIf( graph, condition, modifyEdge );
+   //! [traverse edges from vertices satisfying condition]
 
    /***
     * Print the modified graph.

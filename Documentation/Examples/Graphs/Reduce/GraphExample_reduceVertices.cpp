@@ -30,20 +30,28 @@ reduceVerticesExample()
    /***
     * Compute maximum edge weight for vertices in range [1, 4).
     */
-   TNL::Containers::Vector< float, Device > vertexMaxWeights( 5 );
+   //! [vector for results]
+   TNL::Containers::Vector< float, Device > vertexMaxWeights( 5, -1 );
    auto vertexMaxWeights_view = vertexMaxWeights.getView();
+   //! [vector for results]
 
-   auto fetch = [] __cuda_callable__( int source, int target, const float& weight ) -> float
+   //! [fetch lambda]
+   auto fetch = [] __cuda_callable__( int sourceIdx, int targetIdx, const float& weight ) -> float
    {
       return weight;
    };
+   //! [fetch lambda]
 
+   //! [store lambda]
    auto store = [ = ] __cuda_callable__( int vertexIdx, const float& maxWeight ) mutable
    {
       vertexMaxWeights_view[ vertexIdx ] = maxWeight;
    };
+   //! [store lambda]
 
+   //! [reduce vertices]
    TNL::Graphs::reduceVertices( graph, 1, 4, fetch, TNL::Max{}, store );
+   //! [reduce vertices]
 
    /***
     * Print results.

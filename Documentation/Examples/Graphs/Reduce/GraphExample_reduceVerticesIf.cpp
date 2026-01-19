@@ -27,6 +27,7 @@ reduceVerticesIfExample()
     */
    std::cout << "Graph:\n" << graph << std::endl;
 
+   //! [reduce vertices if]
    /***
     * Compute minimum edge weight for vertices in range [1, 4) with degree >= 2.
     */
@@ -39,7 +40,7 @@ reduceVerticesIfExample()
       return graph.getVertexDegree( vertexIdx ) >= 2;
    };
 
-   auto fetch = [] __cuda_callable__( int source, int target, const float& weight ) -> float
+   auto fetch = [] __cuda_callable__( int sourceIdx, int targetIdx, const float& weight ) -> float
    {
       return weight;
    };
@@ -50,14 +51,15 @@ reduceVerticesIfExample()
       vertexMinWeights_view[ vertexIdx ] = minWeight;
    };
 
-   int traversedVertexCount = TNL::Graphs::reduceVerticesIf( graph, 1, 4, condition, fetch, TNL::Min{}, store );
+   int reducedVertexCount = TNL::Graphs::reduceVerticesIf( graph, 1, 4, condition, fetch, TNL::Min{}, store );
+   //! [reduce vertices if]
 
    /***
     * Print results.
     */
-   std::cout << "Number of traversed vertices: " << traversedVertexCount << std::endl;
+   std::cout << "Number of reduced vertices: " << reducedVertexCount << std::endl;
    std::cout << "Minimum edge weight for vertices 1-3 with degree >= 2:" << vertexMinWeights << std::endl;
-   std::cout << "Compressed minimum weights:" << compressedVertexMinWeights.getView( 0, traversedVertexCount ) << std::endl;
+   std::cout << "Compressed minimum weights:" << compressedVertexMinWeights.getView( 0, reducedVertexCount ) << std::endl;
 }
 
 int

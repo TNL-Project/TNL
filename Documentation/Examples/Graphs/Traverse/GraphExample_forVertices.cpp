@@ -26,8 +26,9 @@ forVerticesExample()
     */
    std::cout << "Graph:\n" << graph << std::endl;
 
+   //! [traverse vertices in range]
    /***
-    * Traverse vertices in range [1, 4) and print their information.
+    * Traverse vertices in range [1, 4) and modify their edges.
     */
    auto processVertex = [] __cuda_callable__( typename GraphType::VertexView vertex ) mutable
    {
@@ -35,6 +36,7 @@ forVerticesExample()
          vertex.setEdge( i, ( vertex.getTargetIndex( i ) + 1 ) % 5, vertex.getEdgeWeight( i ) + 5 );
    };
    TNL::Graphs::forVertices( graph, 1, 4, processVertex );
+   //! [traverse vertices in range]
 
    /***
     * Print the modified graph.

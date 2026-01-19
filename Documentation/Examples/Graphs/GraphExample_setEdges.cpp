@@ -11,6 +11,7 @@ setEdgesExample()
 {
    using GraphType = TNL::Graphs::Graph< float, Device, int, TNL::Graphs::DirectedGraph >;
 
+   //! [setEdges with initializer list]
    /***
     * Example 1: setEdges with initializer list (sparse graph)
     */
@@ -28,7 +29,9 @@ setEdgesExample()
    // clang-format on
 
    std::cout << "Sparse graph after setEdges:\n" << graph1 << std::endl;
+   //! [setEdges with initializer list]
 
+   //! [setDenseEdges with initializer list]
    /***
     * Example 1b: setEdges with initializer list (dense adjacency matrix)
     * For dense matrix graphs, use nested initializer lists {{row1}, {row2}, ...}
@@ -51,8 +54,10 @@ setEdgesExample()
                             {  0.0,  0.0,  0.0,  0.0,  0.0 } } ); // edges from vertex 4
    // clang-format on
 
-   std::cout << "Dense graph after setEdges:\n" << graph1b << std::endl;
+   std::cout << "Dense graph after setDenseEdges:\n" << graph1b << std::endl;
+   //! [setDenseEdges with initializer list]
 
+   //! [setEdges with std map]
    /***
     * Example 2: setEdges with std::map
     */
@@ -71,6 +76,7 @@ setEdgesExample()
 
    graph2.setEdges( edgeMap );
    std::cout << "Graph from map:\n" << graph2 << std::endl;
+   //! [setEdges with std map]
 
    /***
     * Example 3: Updating edges
@@ -108,27 +114,6 @@ setEdgesExample()
                                     { 1, 2, 3.0 },
                                                    { 2, 3, 4.0 } }, TNL::Matrices::MatrixElementsEncoding::SymmetricMixed );
    // clang-format on
-
-   std::cout << "Undirected graph:\n" << graph4 << std::endl;
-
-   /***
-    * Example 5: Building graph incrementally
-    */
-   std::cout << "Example 5: Building graph incrementally" << std::endl;
-   GraphType graph5;
-   graph5.setVertexCount( 3 );
-
-   // First, set edge capacities
-   graph5.setEdgeCounts( TNL::Containers::Vector< int, Device >( { 1, 1, 1 } ) );
-
-   // Then set edges
-   // clang-format off
-   graph5.setEdges( { { 0, 1, 5.0 },
-                                      { 1, 2, 10.0 },
-                                                      { 2, 0, 15.0 } } );
-   // clang-format on
-
-   std::cout << "Incrementally built graph:\n" << graph5 << std::endl;
 }
 
 int

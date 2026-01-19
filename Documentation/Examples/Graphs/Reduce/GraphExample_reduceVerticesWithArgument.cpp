@@ -30,30 +30,37 @@ reduceVerticesWithArgumentExample()
    /***
     * Find minimum edge weight and target vertex for vertices in range [1, 4).
     */
-   TNL::Containers::Vector< float, Device > minWeights( 5 );
-   TNL::Containers::Vector< int, Device > minTargets( 5 );
+   //! [vectors for results]
+   TNL::Containers::Vector< float, Device > minWeights( 5, -1 );
+   TNL::Containers::Vector< int, Device > minTargets( 5, -1 );
    auto minWeights_view = minWeights.getView();
    auto minTargets_view = minTargets.getView();
+   //! [vectors for results]
 
-   auto fetch = [] __cuda_callable__( int source, int target, const float& weight ) -> float
+   //! [fetch lambda]
+   auto fetch = [] __cuda_callable__( int sourceIdx, int targetIdx, const float& weight ) -> float
    {
       return weight;
    };
+   //! [fetch lambda]
 
-   auto store =
-      [ = ] __cuda_callable__( int vertexIdx, int localIdx, int targetIdx, float minWeight, bool isolatedVertex ) mutable
+   //! [store lambda]
+   auto store = [ = ] __cuda_callable__( int vertexIdx, int localIdx, int targetIdx, float result, bool isolatedVertex ) mutable
    {
-      minWeights_view[ vertexIdx ] = minWeight;
+      minWeights_view[ vertexIdx ] = result;
       if( ! isolatedVertex )
          minTargets_view[ vertexIdx ] = targetIdx;
    };
+   //! [store lambda]
 
-   TNL::Graphs::reduceVerticesWithArgument( graph, 1, 4, fetch, TNL::MinWithArg{}, store );
+   //! [reduce vertices with argument]
+   TNL::Graphs::reduceVerticesWithArgument( graph, 1, 5, fetch, TNL::MinWithArg{}, store );
+   //! [reduce vertices with argument]
 
    /***
     * Print results.
     */
-   std::cout << "Minimum edge weight for vertices 1-3:" << minWeights << std::endl;
+   std::cout << "Minimum edge weight for vertices 1-4:" << minWeights << std::endl;
    std::cout << "Target vertex for minimum edge:" << minTargets << std::endl;
 }
 
