@@ -389,8 +389,8 @@ The result of the entire example looks as follows:
 
 \include SegmentsExample_forElements.out
 
-Note, that the function \ref TNL::Algorithms::Segments:forElements allows to specify range of segments
-over which we aim to traverse.
+Note, that the function \ref Segments_forElements_range allows to specify range of segments over 
+which we aim to traverse.
 
 ### Function forElements with segment indexes
 
@@ -496,8 +496,8 @@ The result looks as follows:
 \include SegmentsExample_forSegments-1.out
 
 **Note:** The cumulative sum of elements within segments — also referred to as a
-*scan* or *prefix sum* — can also be computed using the function
-\ref TNL::Algorithms::Segments::scan.
+*scan* or *prefix sum* — can also be computed using the functions 
+described in \ref SegmentScanOverview.
 
 #### Common computations
 
@@ -575,16 +575,14 @@ store the result in an output array.
 There are several ways to specify which segments should be included in the reduction:
 
 1. **All Segments**
-Use the functions `reduceSegments`(\ref TNL::Algorithms::Segments::reduceSegments) and
-`reduceAllSegments`(\ref TNL::Algorithms::Segments::reduceAllSegments) to perform
+Use the functions `reduceSegments` and `reduceAllSegments` to perform
 reduction over all segments (or a specified range of segments).
 2. **Selected Segments by Index**
-The same function, `reduceSegments`(\ref TNL::Algorithms::Segments::reduceSegments),
+The same function, `reduceSegments`,
 can also be provided with an array of segment indices. In this case, reduction is
 performed only within the specified segments.
 3. **Conditional Segment Selection**
-Use the functions `reduceSegmentsIf`(\ref TNL::Algorithms::Segments::reduceSegmentsIf) and
-`reduceAllSegmentsIf`(\ref TNL::Algorithms::Segments::reduceAllSegmentsIf)
+Use the functions `reduceSegmentsIf` and `reduceAllSegmentsIf`
 to perform reduction only in segments that fulfill a given condition,
 which is specified using a lambda function.
 
@@ -629,7 +627,7 @@ which makes both variants easy to use.
    ```
 
    Alternatively, you can simply use the predefined functors like
-   \ref TNL::Plus, \ref TNL::Times etc.
+   \ref TNL::Plus, \ref TNL::Multiplies etc.
 2. `keep` is a lambda function responsible for storing the results of
    the reduction. It should be defined as:
 
@@ -650,8 +648,7 @@ via `fetch_full` and the brief form via `fetch_brief`.
 Next, we define the lambda function `keep`, which stores the sum from
 each segment into the vector sums.
 
-Finally, we call the function `reduceAllSegments`
-(\ref TNL::Algorithms::Segments::reduceAllSegments)
+Finally, we call the function \ref Segments_reduceAllSegments "reduceAllSegments"
 to compute the reductions in the segments, first, using `fetch_full`
 and then, using `fetch_brief`. In both cases, we use the functor `TNL::Plus`
 for the reduction operation. We then print the results, which
@@ -672,7 +669,7 @@ This is demonstrated in the following code snippet:
 
 \snippet Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexes.cpp reduction
 
-Here, we call the function \ref TNL::Algorithms::Segments::reduceSegments which
+Here, we call the function \ref Segments_reduceSegments_with_segment_indices which
 takes, as its second parameter, an array `segmentIndexes` containing the indices
 of segments in which we want to perform the reduction. This function also accepts
 a lambda function for fetching data in either the *full* or *brief* form,
@@ -792,16 +789,16 @@ And the output looks as:
 \include SegmentsExample_reduceAll.cpp
 
 **Note:** To perform complete reduction on only specific segments,
-you can use the functions \ref TNL::Algorithms::Segments::reduceAll
-with segment indexes or \ref TNL::Algorithms::Segments::reduceAllIf
+you can use the functions \ref Segments_reduceSegments_with_segment_indices "reduceSegments"
+with segment indexes or \ref Segments_reduceSegmentsIf "reduceSegmentsIf"
 with a condition on segment indexes. These functions behave the same
-way as \ref TNL::Algorithms::Segments::reduceSegments with segment
-indexes and \ref TNL::Algorithms::Segments::reduceSegmentsIf, and
+way as \ref Segments_reduceSegments_with_segment_indices "reduceSegments" with segment
+indexes and \ref Segments_reduceSegmentsIf "reduceSegmentsIf", and
 therefore we do not cover them in more detail in this user guide.
 
 ## Scan (prefix-sum)
 
-With the function \ref TNL::Algorithms::Segments::scan, you can perform
+With the function \ref SegmentScanOverview "scan", you can perform
 scan (or prefix-sum) within segments. Both *inclusive* and *exclusive*
 scans are supported, as demonstrated by the following code snippet:
 
@@ -841,7 +838,7 @@ where segments are selected based on a condition on their index.
 
 ## Find
 
-The function \ref TNL::Algorithms::Segments::findInSegments is used
+The functions \ref SegmentFindOverview "findInSegments" are used
 for parallel searching within segments. The following code snippet
 shows how to find a specific number in each segment:
 
@@ -871,7 +868,7 @@ The output reads as:
 
 ## Sort
 
-The function \ref TNL::Algorithms::Segments::sortSegments sorts data managed by the segments:
+The functions \ref SegmentSortOverview "sortSegments" sorts data managed by the segments:
 
 \snippet Algorithms/Segments/SegmentsExample_sort.cpp ascending sort
 
@@ -888,7 +885,7 @@ As demonstrated in the snippet above, three lambda functions must be provided:
 3. `swap` - This lambda performs the actual swap of two elements at positions `globalIdx1` and `globalIdx2`.
 
 The following code snippet demonstrates sorting with the function
-\ref TNL::Algorithms::Segments::sortSegments using specified segment
+\ref Segments_sortSegments_with_segment_indices "sortSegments" using specified segment
 indexes and in descending order:
 
 \snippet Algorithms/Segments/SegmentsExample_sort.cpp descending sort
@@ -899,7 +896,7 @@ should be sorted. The `compare` lambda function (which evaluates the condition `
 for ascending order) is replaced with the `compareDesc` function, which evaluates
 the condition `a >= b` for descending order.
 
-The full example showcasing also use of function \ref TNL::Algorithms::Segments::sortAllSegmentsIf
+The full example showcasing also use of function \ref Segments_sortAllSegmentsIf "sortAllSegmentsIf"
 reads as:
 
 \includelineno Algorithms/Segments/SegmentsExample_sort.cpp

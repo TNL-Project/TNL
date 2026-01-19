@@ -27,11 +27,14 @@ forVerticesWithIndexesExample()
     */
    std::cout << "Graph:\n" << graph << std::endl;
 
+   //! [create vertex index array]
    /***
     * Create an array of vertex indices.
     */
    TNL::Containers::Vector< int, Device > vertices( { 0, 2, 4 } );
+   //! [create vertex index array]
 
+   //! [traverse only specified vertices]
    /***
     * Traverse only the specified vertices.
     */
@@ -41,6 +44,7 @@ forVerticesWithIndexesExample()
          vertex.setEdge( i, ( vertex.getTargetIndex( i ) + 1 ) % 5, vertex.getEdgeWeight( i ) + 5 );
    };
    TNL::Graphs::forVertices( graph, vertices, processVertex );
+   //! [traverse only specified vertices]
 
    /***
     * Print the modified graph.

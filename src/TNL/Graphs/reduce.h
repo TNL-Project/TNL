@@ -267,8 +267,7 @@ namespace TNL::Graphs {
  * \section GraphReductionFunctionObjects Reduction Function Objects
  *
  * Instead of lambda functions, reduction operations can also be specified using function objects
- * from \ref TNL::Algorithms::Segments::ReductionFunctionObjects or
- * \ref TNL::Algorithms::Segments::ReductionFunctionObjectsWithArgument.
+ * from \ref ReductionFunctionObjects or \ref ReductionFunctionObjectsWithArgument.
  *
  * When using function objects:
  * - They must provide a static template method \e getIdentity to automatically deduce the identity value
