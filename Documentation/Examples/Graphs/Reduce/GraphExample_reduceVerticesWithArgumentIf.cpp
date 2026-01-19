@@ -27,6 +27,7 @@ reduceVerticesWithArgumentIfExample()
     */
    std::cout << "Graph:\n" << graph << std::endl;
 
+   //! [reduce vertices with argument if]
    /***
     * Find minimum edge weight and target vertex for vertices in range [1, 4) with degree >= 2.
     */
@@ -42,7 +43,7 @@ reduceVerticesWithArgumentIfExample()
       return graph.getVertexDegree( vertexIdx ) >= 2;
    };
 
-   auto fetch = [] __cuda_callable__( int source, int target, const float& weight ) -> float
+   auto fetch = [] __cuda_callable__( int sourceIdx, int targetIdx, const float& weight ) -> float
    {
       return weight;
    };
@@ -61,6 +62,7 @@ reduceVerticesWithArgumentIfExample()
 
    int traversedVertexCount =
       TNL::Graphs::reduceVerticesWithArgumentIf( graph, 1, 4, condition, fetch, TNL::MinWithArg{}, store );
+   //! [reduce vertices with argument if]
 
    /***
     * Print results.

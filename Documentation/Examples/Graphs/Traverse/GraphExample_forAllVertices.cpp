@@ -3,11 +3,10 @@
 #include <TNL/Graphs/traverse.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Containers/Vector.h>
 
 template< typename Device >
 void
-forEdgesWithIndexesExample()
+forAllVerticesExample()
 {
    /***
     * Create a directed graph with 5 vertices.
@@ -27,24 +26,17 @@ forEdgesWithIndexesExample()
     */
    std::cout << "Graph:\n" << graph << std::endl;
 
-   //! [vertex indexes for traversing]
+   //! [traverse all vertices]
    /***
-    * Create an array of vertex indices to process.
+    * Traverse all vertices and modify their edges.
     */
-   TNL::Containers::Vector< int, Device > vertices( { 0, 2, 3 } );
-   //! [vertex indexes for traversing]
-
-   //! [traverse edges from specified vertices]
-   /***
-    * Traverse edges only from the specified vertices.
-    */
-   auto modifyEdge = [] __cuda_callable__( int sourceIdx, int localIdx, int targetIdx, float weight ) mutable
+   auto processVertex = [] __cuda_callable__( typename GraphType::VertexView vertex ) mutable
    {
-      targetIdx = ( targetIdx + 1 ) % 5;
-      weight += 5;
+      for( int i = 0; i < vertex.getDegree(); i++ )
+         vertex.setEdge( i, ( vertex.getTargetIndex( i ) + 1 ) % 5, vertex.getEdgeWeight( i ) + 5 );
    };
-   TNL::Graphs::forEdges( graph, vertices, modifyEdge );
-   //! [traverse edges from specified vertices]
+   TNL::Graphs::forAllVertices( graph, processVertex );
+   //! [traverse all vertices]
 
    /***
     * Print the modified graph.
@@ -56,11 +48,11 @@ int
 main( int argc, char* argv[] )
 {
    std::cout << "Running on host:" << std::endl;
-   forEdgesWithIndexesExample< TNL::Devices::Host >();
+   forAllVerticesExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
    std::cout << "Running on CUDA device:" << std::endl;
-   forEdgesWithIndexesExample< TNL::Devices::Cuda >();
+   forAllVerticesExample< TNL::Devices::Cuda >();
 #endif
 
    return EXIT_SUCCESS;

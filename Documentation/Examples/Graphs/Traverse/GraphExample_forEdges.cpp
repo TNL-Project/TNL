@@ -26,15 +26,17 @@ forAllEdgesExample()
     */
    std::cout << "Graph:\n" << graph << std::endl;
 
+   //! [traverse edges in range]
    /***
-    * Traverse all edges and modify them.
+    * Traverse edges in range [1, 4) and modify them.
     */
-   auto printEdge = [] __cuda_callable__( int source, int local, int& target, float& weight ) mutable
+   auto modifyEdge = [] __cuda_callable__( int sourceIdx, int localIdx, int& targetIdx, float& weight ) mutable
    {
-      target = ( target + 1 ) % 5;
+      targetIdx = ( targetIdx + 1 ) % 5;
       weight += 5;
    };
-   TNL::Graphs::forAllEdges( graph, printEdge );
+   TNL::Graphs::forEdges( graph, 1, 4, modifyEdge );
+   //! [traverse edges in range]
 
    /***
     * Print the modified graph.
