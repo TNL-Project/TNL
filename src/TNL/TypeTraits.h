@@ -165,10 +165,9 @@ struct IsScalarType
  */
 template< typename T >
 struct IsArrayType
-: public std::integral_constant< bool,
-            HasGetArrayDataMethod< T >::value &&
-            HasGetSizeMethod< T >::value &&
-            HasSubscriptOperator< T >::value >
+: public std::conjunction< HasGetArrayDataMethod< T >,
+            HasSubscriptOperator< T >,
+            HasGetSizeMethod< T > >
 {};
 
 /**
