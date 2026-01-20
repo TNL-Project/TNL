@@ -62,7 +62,7 @@ operator<<( std::ostream& str, const SegmentsPrinter< SegmentsView, Fetch >& pri
       }
       str << " ]";
       if( segmentIdx < printer.segments.getSegmentCount() - 1 )
-         str << std::endl;
+         str << '\n';
    }
    return str;
 }

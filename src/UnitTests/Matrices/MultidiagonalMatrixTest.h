@@ -1316,7 +1316,8 @@ test_AssignmentOperator()
 
    using MultidiagonalHost = TNL::Matrices::MultidiagonalMatrix< RealType, TNL::Devices::Host, IndexType, organization >;
 
-   const IndexType rows( 10 ), columns( 10 );
+   const IndexType rows( 10 );
+   const IndexType columns( 10 );
    DiagonalOffsetsType diagonalsOffsets( { -4, -2, 0, 2, 3, 5 } );
    MultidiagonalHost hostMatrix( rows, columns, diagonalsOffsets );
    for( IndexType i = 0; i < rows; i++ )

@@ -1234,7 +1234,8 @@ test_AssignmentOperator()
 
    using TridiagonalHost = TNL::Matrices::TridiagonalMatrix< RealType, TNL::Devices::Host, IndexType, organization >;
 
-   const IndexType rows( 10 ), columns( 10 );
+   const IndexType rows( 10 );
+   const IndexType columns( 10 );
    TridiagonalHost hostMatrix( rows, columns );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < columns; j++ )

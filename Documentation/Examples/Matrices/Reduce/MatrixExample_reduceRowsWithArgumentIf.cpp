@@ -33,7 +33,8 @@ reduceRowsWithArgumentIfExample()
    /***
     * Find argmax for rows 3-8, but only for even-indexed rows (range + condition).
     */
-   int rangeBegin = 3, rangeEnd = 9;
+   int rangeBegin = 3;
+   int rangeEnd = 9;
    int rangeSize = rangeEnd - rangeBegin;
    TNL::Containers::Vector< double, Device > rangeMaxValues( rangeSize );
    TNL::Containers::Vector< int, Device > rangeMaxColumns( rangeSize );

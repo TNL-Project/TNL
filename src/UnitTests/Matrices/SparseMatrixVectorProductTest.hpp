@@ -459,7 +459,8 @@ test_VectorProduct_largeMatrix()
    }
 
    // Test with large triangular matrix
-   const int rows( size ), columns( size );
+   const int rows( size );
+   const int columns( size );
    Matrix m2( rows, columns );
    rowCapacities.setSize( rows );
    rowCapacities.forAllElements(

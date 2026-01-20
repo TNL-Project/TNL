@@ -18,7 +18,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
    using ViewType = SlicedEllpackView< Device, Index, Organization, SliceSize >;
    using ConstViewType = typename ViewType::ConstViewType;
    using DeviceType = Device;
-   using IndexType = typename std::remove_const< Index >::type;
+   using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename ViewType::ConstOffsetsView;
 
    template< typename IndexBegin, typename IndexEnd, typename Function >

@@ -19,7 +19,7 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    using SegmentsViewType = EllpackView< Device, Index, Organization, Alignment >;
    using ConstViewType = typename SegmentsViewType::ConstViewType;
    using DeviceType = Device;
-   using IndexType = typename std::remove_const< Index >::type;
+   using IndexType = std::remove_const_t< Index >;
 
    template< typename IndexBegin,
              typename IndexEnd,

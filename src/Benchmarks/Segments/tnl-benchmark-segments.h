@@ -38,11 +38,11 @@ main( int argc, char* argv[] )
       benchmark.setupBenchmark();
    }
    catch( std::exception& e ) {
-      std::cerr << e.what() << std::endl;
+      std::cerr << e.what() << '\n';
       return EXIT_FAILURE;
    }
    catch( ... ) {
-      std::cerr << "Unknown exception." << std::endl;
+      std::cerr << "Unknown exception." << '\n';
       return EXIT_FAILURE;
    }
    return EXIT_SUCCESS;

@@ -16,7 +16,7 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
    using ViewType = BiEllpackView< Device, Index, Organization, WarpSize >;
    using ConstViewType = typename ViewType::ConstViewType;
    using DeviceType = Device;
-   using IndexType = typename std::remove_const< Index >::type;
+   using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename ViewType::ConstOffsetsView;
 
    [[nodiscard]] static constexpr int
