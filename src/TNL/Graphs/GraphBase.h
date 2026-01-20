@@ -126,7 +126,7 @@ struct GraphBase
     */
    [[nodiscard]] __cuda_callable__
    ConstVertexView
-   getVertex( IndexType nodeIdx ) const;
+   getVertex( IndexType vertexIdx ) const;
 
    /***
     * \brief Returns the modifiable view of the graph node with given index.
@@ -135,7 +135,7 @@ struct GraphBase
     */
    [[nodiscard]] __cuda_callable__
    VertexView
-   getVertex( IndexType nodeIdx );
+   getVertex( IndexType vertexIdx );
 
    /***
     * \brief Sets the weight of the edge between given node and its edge index.
@@ -146,7 +146,7 @@ struct GraphBase
     */
    __cuda_callable__
    void
-   setEdgeWeight( IndexType nodeIdx, IndexType edgeIdx, const ValueType& value );
+   setEdgeWeight( IndexType vertexIdx, IndexType edgeIdx, const ValueType& value );
 
    // TODO: Add eraseEdge - works only for sparse adjacency matrices
    /***
@@ -157,7 +157,7 @@ struct GraphBase
     */
    [[nodiscard]] __cuda_callable__
    ValueType
-   getEdgeWeight( IndexType nodeIdx, IndexType edgeIdx ) const;
+   getEdgeWeight( IndexType vertexIdx, IndexType edgeIdx ) const;
 
    [[nodiscard]] __cuda_callable__
    IndexType

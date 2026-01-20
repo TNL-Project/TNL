@@ -33,7 +33,8 @@ reduceRowsWithArgumentExample()
    /***
     * Find argmax for rows 2-6 (range variant).
     */
-   int rangeBegin = 2, rangeEnd = 7;
+   int rangeBegin = 2;
+   int rangeEnd = 7;
    int rangeSize = rangeEnd - rangeBegin;
    TNL::Containers::Vector< double, Device > rangeMaxValues( rangeSize );
    TNL::Containers::Vector< int, Device > rangeMaxColumns( rangeSize );

@@ -33,7 +33,10 @@ breadthFirstSearchParallel( const Graph& graph,
    distances.setSize( n );
 
    Vector y( distances.getSize() );
-   Containers::Vector< Index, Device, Index > predecessors( n, -1 ), marks( n ), marks_scan( n, 0 ), frontier( n, 0 );
+   Containers::Vector< Index, Device, Index > predecessors( n, -1 );
+   Containers::Vector< Index, Device, Index > marks( n );
+   Containers::Vector< Index, Device, Index > marks_scan( n, 0 );
+   Containers::Vector< Index, Device, Index > frontier( n, 0 );
    distances = -1;
    distances.setElement( start, 0 );
    frontier.setElement( 0, start );

@@ -18,7 +18,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
    // ViewType is the same as ConstViewType for Ellpack !!!!!
    //using ConstViewType = typename ViewType::ConstViewType;
    using DeviceType = Device;
-   using IndexType = typename std::remove_const< Index >::type;
+   using IndexType = std::remove_const_t< Index >;
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
