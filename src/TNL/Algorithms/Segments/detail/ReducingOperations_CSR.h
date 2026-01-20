@@ -65,7 +65,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       }
       else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
+         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
 #endif
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
             l( segmentIdx );
@@ -357,7 +357,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       }
       else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
+         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
 #endif
          for( IndexType segmentIdx = 0; segmentIdx < segmentIndexes.getSize(); segmentIdx++ )
             l( segmentIdx );
@@ -658,7 +658,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       }
       else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
+         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
 #endif
          for( IndexType segmentIdx = begin; segmentIdx < end; segmentIdx++ )
             l( segmentIdx );
@@ -952,7 +952,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
       }
       else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
+         #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
 #endif
          for( IndexType segmentIdx = 0; segmentIdx < segmentIndexes.getSize(); segmentIdx++ )
             l( segmentIdx );

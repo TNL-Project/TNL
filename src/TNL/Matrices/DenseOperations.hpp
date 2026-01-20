@@ -137,8 +137,8 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
 
       __syncthreads();
 
-   // Perform the multiplication for the current tile
-   #pragma unroll
+      // Perform the multiplication for the current tile
+      #pragma unroll
       for( IndexType k = 0; k < tileDim; ++k ) {
          CValue += tileA[ ty ][ k ] * tileB[ k ][ tx ];
       }

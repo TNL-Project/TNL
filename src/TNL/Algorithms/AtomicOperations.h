@@ -27,7 +27,7 @@ struct AtomicOperations< Devices::Host >
    {
       Value old;
 #ifdef HAVE_OPENMP
-   #pragma omp atomic capture
+      #pragma omp atomic capture
 #endif
       {
          old = v;

@@ -81,7 +81,7 @@ CSRScalarKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
    }
    else if constexpr( std::is_same_v< Device, TNL::Devices::Host > ) {
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel for firstprivate( l ) schedule( dynamic, 100 ), if( Devices::Host::isOMPEnabled() )
 #endif
       for( Index segmentIdx = begin; segmentIdx < end; segmentIdx++ )
          l( segmentIdx );
