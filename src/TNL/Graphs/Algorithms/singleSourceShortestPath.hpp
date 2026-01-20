@@ -55,15 +55,15 @@ parallelSingleSourceShortestPath( const Graph& graph,
                   Real new_distance = y_view[ sourceIdx ] + weight;
                   if( new_distance < y_view[ targetIdx ] ) {
 #if defined( _OPENMP )
-   #pragma omp atomic write
+               #pragma omp atomic write
 #endif
                      y_view[ targetIdx ] = new_distance;
 #if defined( _OPENMP )
-   #pragma omp atomic write
+               #pragma omp atomic write
 #endif
                      predecessors_view[ targetIdx ] = sourceIdx;
 #if defined( _OPENMP )
-   #pragma omp atomic write
+               #pragma omp atomic write
 #endif
                      marks_view[ targetIdx ] = 1;
                   }

@@ -287,8 +287,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
    if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x <= SegmentsPerBlock ) {
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
       TNL_ASSERT_GE( seg_idx, 0, "Wrong index of segment index - smaller that 0." );
-      TNL_ASSERT_LT(
-         seg_idx, segments.getSegmentCount(), "Wrong index of segment index - larger that the number of indexes." );
+      TNL_ASSERT_LT( seg_idx, segments.getSegmentCount(), "Wrong index of segment index - larger that the number of indexes." );
       value = segments.getSegmentSize( seg_idx );
    }
    const Index v = CudaScan::scan( Plus{}, (Index) 0, value, threadIdx.x, scan_storage );
