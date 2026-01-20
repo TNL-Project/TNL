@@ -1,9 +1,5 @@
-set(COMMON_EXAMPLES
-    GraphExample_reduceVertices
-    GraphExample_reduceVerticesIf
-    GraphExample_reduceVerticesWithArgument
-    GraphExample_reduceVerticesWithArgumentIf
-    GraphExample_reduceVerticesWithIndexes
+set(COMMON_EXAMPLES GraphExample_reduceVertices GraphExample_reduceVerticesIf GraphExample_reduceVerticesWithArgument
+                    GraphExample_reduceVerticesWithArgumentIf GraphExample_reduceVerticesWithIndexes
 )
 
 if(TNL_BUILD_CUDA)
@@ -32,4 +28,3 @@ add_custom_target(RunGraphsReduceExamples ALL DEPENDS ${DOC_OUTPUTS})
 
 # add the dependency to the main target
 add_dependencies(run-doc-examples RunGraphsReduceExamples)
-

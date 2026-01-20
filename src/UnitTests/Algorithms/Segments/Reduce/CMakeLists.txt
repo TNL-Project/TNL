@@ -1,5 +1,16 @@
-set(COMMON_TESTS ReduceSegmentsTest_AdaptiveCSR ReduceSegmentsTest_BiEllpack ReduceSegmentsTest_ChunkedEllpack ReduceSegmentsTest_CSR ReduceSegmentsTest_Ellpack
-    ReduceSegmentsTest_SlicedEllpack ReduceSegmentsTest_SortedAdaptiveCSR ReduceSegmentsTest_SortedBiEllpack ReduceSegmentsTest_SortedChunkedEllpack ReduceSegmentsTest_SortedCSR ReduceSegmentsTest_SortedEllpack ReduceSegmentsTest_SortedSlicedEllpack
+set(COMMON_TESTS
+    ReduceSegmentsTest_AdaptiveCSR
+    ReduceSegmentsTest_BiEllpack
+    ReduceSegmentsTest_ChunkedEllpack
+    ReduceSegmentsTest_CSR
+    ReduceSegmentsTest_Ellpack
+    ReduceSegmentsTest_SlicedEllpack
+    ReduceSegmentsTest_SortedAdaptiveCSR
+    ReduceSegmentsTest_SortedBiEllpack
+    ReduceSegmentsTest_SortedChunkedEllpack
+    ReduceSegmentsTest_SortedCSR
+    ReduceSegmentsTest_SortedEllpack
+    ReduceSegmentsTest_SortedSlicedEllpack
 )
 
 set(CPP_TESTS)

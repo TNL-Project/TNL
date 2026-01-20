@@ -1,12 +1,13 @@
 set(GRAPH_BENCHMARKS bfs sssp mst)
 
-
 find_package(Boost OPTIONAL_COMPONENTS graph)
 if(Boost_GRAPH_FOUND)
     message(STATUS "Boost found ${Boost_INCLUDE_DIRS}")
 else()
     if(Boost_FOUND)
-        message(STATUS "Boost found ${Boost_INCLUDE_DIRS} but not Boost::Graph. Benchmarks with Boost::Graph will not be built.")
+        message(
+            STATUS "Boost found ${Boost_INCLUDE_DIRS} but not Boost::Graph. Benchmarks with Boost::Graph will not be built."
+        )
     else()
         message(STATUS "Boost not found. Benchmarks with Boost::Graph will not be built.")
     endif()
@@ -21,7 +22,6 @@ if(TNL_BUILD_CUDA)
     else()
         message(STATUS "Gunrock not found.")
     endif()
-
 
     set(GRAPH_BENCHMARK_TARGETS_CUDA)
 
