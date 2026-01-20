@@ -39,7 +39,7 @@ struct LaunchConfiguration : public Backend::LaunchConfiguration
       this->setThreadsPerSegmentCount( threadsPerSegmentCount );
    }
 
-   ThreadsToSegmentsMapping
+   [[nodiscard]] ThreadsToSegmentsMapping
    getThreadsToSegmentsMapping() const
    {
       return threadsToSegmentsMapping;
@@ -60,7 +60,7 @@ struct LaunchConfiguration : public Backend::LaunchConfiguration
       this->threadsPerSegmentCount = Backend::getWarpSize();
    }
 
-   int
+   [[nodiscard]] int
    getThreadsPerSegmentCount() const
    {
       return threadsPerSegmentCount;
@@ -72,7 +72,7 @@ struct LaunchConfiguration : public Backend::LaunchConfiguration
       this->threadsToSegmentsMapping = threadsToSegmentsMapping;
    }
 
-   const Backend::LaunchConfiguration&
+   [[nodiscard]] const Backend::LaunchConfiguration&
    getBackendLaunchConfiguration() const
    {
       return *this;

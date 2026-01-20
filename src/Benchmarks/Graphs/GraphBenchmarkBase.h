@@ -110,9 +110,7 @@ public:
    }
 
    GraphBenchmarkBase( const TNL::Config::ParameterContainer& parameters_ )
-   : parameters( parameters_ ),
-     errors( 0 ),
-     withSortedSegments( false )
+   : parameters( parameters_ )
    {}
 
    virtual ~GraphBenchmarkBase() = default;
@@ -130,7 +128,7 @@ public:
 #endif
 
       size_t dotPosition = inputFile.find_last_of( '.' );
-      std::string inputFileExtension = "";
+      std::string inputFileExtension;
       if( dotPosition != std::string::npos )
          inputFileExtension = inputFile.substr( dotPosition + 1 );
 
@@ -151,7 +149,7 @@ public:
       std::cout << "Graphs benchmark with " << TNL::getType< Real >() << " precision and device: " << device << std::endl;
 
       HostDigraph digraph;
-      std::cout << "Reading graph from file " << inputFile << std::endl;
+      std::cout << "Reading graph from file " << inputFile << '\n';
       if( inputFileExtension == "mtx" )
          TNL::Graphs::Readers::MtxReader< HostDigraph >::read( inputFile, digraph );
       else

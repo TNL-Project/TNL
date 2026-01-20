@@ -19,7 +19,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
    using SegmentsViewType = AdaptiveCSRView< Device, Index >;
    using ConstViewType = typename SegmentsViewType::ConstViewType;
    using DeviceType = Device;
-   using IndexType = typename std::remove_const< Index >::type;
+   using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename SegmentsViewType::ConstOffsetsView;
    using CSRViewType = CSRView< Device, Index >;
    using ReducingOperationsCSR = ReducingOperations< CSRViewType >;

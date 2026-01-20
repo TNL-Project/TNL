@@ -208,14 +208,14 @@ struct Graph
 
    //! \brief Move-assignment operator.
    Graph&
-   operator=( Graph&& other );
+   operator=( Graph&& other ) noexcept;
 
    //! \brief Returns the modifiable view of the graph.
    ViewType
    getView();
 
    //! \brief Returns the constant view of the graph.
-   ConstViewType
+   [[nodiscard]] ConstViewType
    getConstView() const;
 
    //! \brief Sets the number of nodes in the graph.

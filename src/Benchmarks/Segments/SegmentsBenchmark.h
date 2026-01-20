@@ -103,7 +103,7 @@ struct SegmentsBenchmark
 
       benchmark.setMetadataElement( { "function", "forElements" } );
       benchmark.setDatasetSize( sum( segmentsSizes ) * sizeof( Index ) );
-      for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+      for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
          benchmark.setMetadataElement( { "threads mapping", tag } );
          auto segmentsView = segments.getView();
          auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -145,7 +145,7 @@ struct SegmentsBenchmark
                                       },
                                       TNL::Plus{} )
                                    * sizeof( Index ) );
-         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
             auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -177,7 +177,7 @@ struct SegmentsBenchmark
                                       TNL::Plus{} )
                                    * sizeof( Index ) );
 
-         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
             auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -200,7 +200,7 @@ struct SegmentsBenchmark
          }
 
          benchmark.setMetadataElement( { "function", "forElementsIfSparse with stride " + convertToString( stride ) } );
-         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
             auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -237,7 +237,7 @@ struct SegmentsBenchmark
          } );
       benchmark.setMetadataElement( { "function", "reduceSegments" } );
       benchmark.setDatasetSize( sum( segmentsSizes ) * sizeof( Index ) );
-      for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+      for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
          benchmark.setMetadataElement( { "threads mapping", tag } );
          auto segmentsView = segments.getView();
          auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -283,7 +283,7 @@ struct SegmentsBenchmark
                                       },
                                       TNL::Plus{} )
                                    * sizeof( Index ) );
-         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
             auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -331,7 +331,7 @@ struct SegmentsBenchmark
                                       },
                                       TNL::Plus{} )
                                    * sizeof( Index ) );
-         for( auto [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
             auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20

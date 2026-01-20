@@ -109,15 +109,15 @@ public:
    destroy()
    {
 #ifdef HAVE_CUDSS
-      if( A ) {
+      if( A != nullptr ) {
          cudssMatrixDestroy( A );
          A = nullptr;
       }
-      if( x ) {
+      if( x != nullptr ) {
          cudssMatrixDestroy( x );
          x = nullptr;
       }
-      if( b ) {
+      if( b != nullptr ) {
          cudssMatrixDestroy( b );
          b = nullptr;
       }

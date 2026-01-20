@@ -40,7 +40,6 @@ public:
       withSemirings = this->parameters.template getParameter< bool >( "with-semirings" );
    }
 
-public:
    void
    runOtherBenchmarks( const HostDigraph& digraph,
                        const HostGraph& graph,
@@ -167,7 +166,6 @@ public:
 #endif  // HAVE_GUNROCK
    }
 
-public:
    template< typename Digraph, typename Graph >
    void
    runTNLAlgorithm( Digraph& digraph,
@@ -200,7 +198,7 @@ public:
             TNL::Graphs::Algorithms::singleSourceShortestPath( digraph, largestNode, ssspDistances, launchConfig );
          };
          if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
-            std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark." << std::endl;
+            std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark." << '\n';
             this->errors++;
          }
          else
@@ -208,7 +206,7 @@ public:
 
 #ifdef HAVE_BOOST
          if( withBoost && ssspDistances != this->boostSSSPDistancesDirected ) {
-            std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!" << std::endl;
+            std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!" << '\n';
             this->errors++;
          }
 #endif
@@ -242,7 +240,7 @@ public:
 
 #ifdef HAVE_BOOST
          if( withBoost && ssspDistances != this->boostSSSPDistancesUndirected ) {
-            std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!" << std::endl;
+            std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!" << '\n';
             this->errors++;
          }
 #endif
@@ -270,7 +268,7 @@ public:
             semiringSSSP( digraph, largestNode, semiringSsspDistances );
          };
          if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
-            std::cout << "ERROR: Negative weights in the graph! Skipping semiring SSSP benchmark." << std::endl;
+            std::cout << "ERROR: Negative weights in the graph! Skipping semiring SSSP benchmark." << '\n';
             this->errors++;
          }
          else

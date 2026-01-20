@@ -32,7 +32,10 @@ parallelSingleSourceShortestPath( const Graph& graph,
    distances.setSize( n );
 
    Vector y( distances.getSize() );
-   Containers::Vector< Index, Device, Index > predecessors( n, -1 ), marks( n ), marks_scan( n, 0 ), frontier( n, 0 );
+   Containers::Vector< Index, Device, Index > predecessors( n, -1 );
+   Containers::Vector< Index, Device, Index > marks( n );
+   Containers::Vector< Index, Device, Index > marks_scan( n, 0 );
+   Containers::Vector< Index, Device, Index > frontier( n, 0 );
    distances = std::numeric_limits< Real >::max();
    distances.setElement( start, 0 );
    frontier.setElement( 0, start );
@@ -128,10 +131,7 @@ singleSourceShortestPath( const Graph& graph,
    // In the sequential version, we use the Dijkstra algorithm.
    if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {
       // The priority queue stores pairs of (distance, vertex)
-      std::priority_queue< std::pair< Real, Index >,
-                           std::vector< std::pair< Real, Index > >,
-                           std::greater< std::pair< Real, Index > > >
-         pq;
+      std::priority_queue< std::pair< Real, Index >, std::vector< std::pair< Real, Index > >, std::greater<> > pq;
       pq.emplace( 0, start );
 
       while( ! pq.empty() ) {

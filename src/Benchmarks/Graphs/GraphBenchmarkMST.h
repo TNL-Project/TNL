@@ -36,7 +36,6 @@ public:
       withBoost = this->parameters.template getParameter< bool >( "with-boost" );
    }
 
-public:
    void
    runOtherBenchmarks( const HostDigraph& digraph,
                        const HostGraph& graph,
@@ -95,7 +94,6 @@ public:
       // Gunrock doesn't have MST implementation, so this is empty
    }
 
-public:
    template< typename Digraph, typename Graph >
    void
    runTNLAlgorithm( Digraph& digraph,
@@ -126,14 +124,14 @@ public:
       TNL::Graphs::Writers::EdgeListWriter< Graph >::write( filename + "-tnl-mst.txt", mstGraph );
 
       if( ! TNL::Graphs::Algorithms::isForest( mstGraph ) ) {
-         std::cout << "ERROR: TNL MST is not a forest!" << std::endl;
+         std::cout << "ERROR: TNL MST is not a forest!" << '\n';
          this->errors++;
       }
 
 #ifdef HAVE_BOOST
       Real mstTotalWeight = TNL::Graphs::getTotalWeight( mstGraph );
       if( withBoost && mstTotalWeight != boostMSTTotalWeight ) {
-         std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!" << std::endl;
+         std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!" << '\n';
          std::cout << "Boost MST total weight: " << boostMSTTotalWeight << std::endl;
          std::cout << "TNL MST total weight: " << mstTotalWeight << std::endl;
          this->errors++;

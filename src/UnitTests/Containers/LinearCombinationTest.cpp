@@ -259,7 +259,7 @@ TYPED_TEST( LinearCombinationTest, TypeTest_0 )
    using ResultType = decltype( linearCombination< Coefficients >( std::declval< VectorType >() ) );
    using TrueResultType = RealType;
 
-   static_assert( std::is_same< ResultType, TrueResultType >::value );
+   static_assert( std::is_same_v< ResultType, TrueResultType > );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_1 )
@@ -270,7 +270,7 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1 )
    using ResultType = decltype( linearCombination< Coefficients >( std::declval< VectorType >() ) );
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType, TrueResultType >::value );
+   static_assert( std::is_same_v< ResultType, TrueResultType > );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_0_1 )
@@ -282,7 +282,7 @@ TYPED_TEST( LinearCombinationTest, TypeTest_0_1 )
       decltype( linearCombination< Coefficients >( std::declval< VectorType >(), std::declval< VectorType >() ) );
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType, TrueResultType >::value );
+   static_assert( std::is_same_v< ResultType, TrueResultType > );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_1_0 )
@@ -294,7 +294,7 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1_0 )
       decltype( linearCombination< Coefficients >( std::declval< VectorType >(), std::declval< VectorType >() ) );
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType, TrueResultType >::value );
+   static_assert( std::is_same_v< ResultType, TrueResultType > );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_1_2 )
@@ -306,7 +306,7 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1_2 )
       decltype( linearCombination< Coefficients >( std::declval< VectorType >(), std::declval< VectorType >() ) );
    using TrueResultType = decltype( 1.0 * std::declval< VectorType >() + 2.0 * std::declval< VectorType >() );
 
-   static_assert( std::is_same< ResultType, TrueResultType >::value );
+   static_assert( std::is_same_v< ResultType, TrueResultType > );
 }
 
 TYPED_TEST( LinearCombinationTest, TypeTest_1_0_0 )

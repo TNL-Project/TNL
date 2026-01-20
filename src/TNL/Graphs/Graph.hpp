@@ -179,7 +179,7 @@ template< typename Value,
           template< typename, typename, typename > class Segments,
           typename AdjacencyMatrix >
 Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >&
-Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::operator=( Graph&& other )
+Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >::operator=( Graph&& other ) noexcept
 {
    this->adjacencyMatrix = std::move( other.adjacencyMatrix );
    Base::adjacencyMatrixView.bind( this->adjacencyMatrix.getView() );

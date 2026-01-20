@@ -199,7 +199,8 @@ test_SetElements()
                                                           { { 1, 2 }, 4 }, { { 1, 3 }, 6 }, { { 2, 0 }, 3 }, { { 2, 1 }, 4 },
                                                           { { 2, 2 }, 1 }, { { 2, 3 }, 7 }, { { 3, 0 }, 5 }, { { 3, 3 }, 3 } };
 
-   Matrix m1( 4, 4, map_lower_part ), m2( 4, 4 );
+   Matrix m1( 4, 4, map_lower_part );
+   Matrix m2( 4, 4 );
    EXPECT_THROW( m2.setElements( map_complete_non_symmetric ), std::logic_error );
    EXPECT_THROW( m2.setElements( map_complete, TNL::Matrices::MatrixElementsEncoding::SymmetricLower ), std::logic_error );
    EXPECT_THROW( m2.setElements( map_complete, TNL::Matrices::MatrixElementsEncoding::SymmetricUpper ), std::logic_error );

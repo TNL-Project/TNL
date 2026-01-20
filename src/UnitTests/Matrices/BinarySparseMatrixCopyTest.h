@@ -432,7 +432,8 @@ tridiagonalMatrixAssignment()
 
    using TridiagonalHost = TNL::Matrices::TridiagonalMatrix< RealType, TNL::Devices::Host, IndexType >;
 
-   const IndexType rows( 10 ), columns( 10 );
+   const IndexType rows( 10 );
+   const IndexType columns( 10 );
    TridiagonalHost hostMatrix( rows, columns );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = TNL::max( 0, i - 1 ); j < TNL::min( columns, i + 2 ); j++ )
@@ -482,7 +483,8 @@ multidiagonalMatrixAssignment()
    using DiagonalsOffsetsType = typename MultidiagonalHost::DiagonalOffsetsType;
    DiagonalsOffsetsType diagonals{ -4, -2, 0, 1, 3, 5 };
 
-   const IndexType rows( 10 ), columns( 10 );
+   const IndexType rows( 10 );
+   const IndexType columns( 10 );
    MultidiagonalHost hostMatrix( rows, columns, diagonals );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < columns; j++ )
@@ -534,7 +536,8 @@ denseMatrixAssignment()
 
    using DenseHost = TNL::Matrices::DenseMatrix< RealType, TNL::Devices::Host, IndexType >;
 
-   const IndexType rows( 10 ), columns( 10 );
+   const IndexType rows( 10 );
+   const IndexType columns( 10 );
    DenseHost hostMatrix( rows, columns );
    for( IndexType i = 0; i < columns; i++ )
       for( IndexType j = 0; j <= i; j++ )

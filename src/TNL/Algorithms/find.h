@@ -67,7 +67,8 @@ findUpperBound( const Value* array, Index size, const Value& value )
 {
    if( array[ size - 1 ] <= value )
       return { false, size };
-   Index left( 0 ), right( size - 1 );
+   Index left( 0 );
+   Index right( size - 1 );
    while( left < right ) {
       Index mid = left + ( right - left ) / 2;
       if( array[ mid ] <= value )

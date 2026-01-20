@@ -201,7 +201,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
 
 #ifdef HAVE_BOOST
          if( withBoost && bfsDistances != this->boostBfsDistancesDirected ) {
-            std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << std::endl;
+            std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << '\n';
             this->errors++;
          }
 #endif
@@ -234,7 +234,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
 
 #ifdef HAVE_BOOST
          if( withBoost && bfsDistances != this->boostBfsDistancesUndirected ) {
-            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << std::endl;
+            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << '\n';
             this->errors++;
          }
 #endif

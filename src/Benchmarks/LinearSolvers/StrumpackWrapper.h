@@ -36,7 +36,7 @@ public:
    }
 
    void
-   setMatrix( const MatrixPointer& matrix )
+   setMatrix( const MatrixPointer& matrix ) override
    {
 #ifdef HAVE_STRUMPACK
       this->solver.set_csr_matrix( matrix->getRows(),

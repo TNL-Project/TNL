@@ -28,7 +28,7 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    using SegmentsViewType = SlicedEllpackView< Device, Index, Organization, SliceSize >;
    using ConstViewType = typename SegmentsViewType::ConstViewType;
    using DeviceType = Device;
-   using IndexType = typename std::remove_const< Index >::type;
+   using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename SegmentsViewType::ConstOffsetsView;
 
    template< typename IndexBegin,

@@ -32,7 +32,7 @@ resolveReal( TNL::Config::ParameterContainer& parameters )
       return startBenchmark< float >( parameters );
    if( precision == "double" )
       return startBenchmark< double >( parameters );
-   std::cerr << "Unknown precision " << precision << "." << std::endl;
+   std::cerr << "Unknown precision " << precision << ".\n";
    return false;
 }
 
