@@ -20,14 +20,14 @@ protected:
                           typename Matrix::DeviceType,
                           typename Matrix::IndexType,
                           TNL::Graphs::DirectedGraph,
-                          TNL::Algorithms::Segments::Ellpack,  // this parameter is ignored for dense matrices
+                          TNL::Algorithms::Segments::CSR,  // this parameter is ignored for dense matrices
                           Matrix >;
    using UndirectedGraphType =
       TNL::Graphs::Graph< typename Matrix::RealType,
                           typename Matrix::DeviceType,
                           typename Matrix::IndexType,
                           TNL::Graphs::UndirectedGraph,
-                          TNL::Algorithms::Segments::Ellpack,  // this parameter is ignored for dense matrices
+                          TNL::Algorithms::Segments::CSR,  // this parameter is ignored for dense matrices
                           Matrix >;
    using ValueType = typename AdjacencyMatrixType::RealType;
    using DeviceType = typename AdjacencyMatrixType::DeviceType;
