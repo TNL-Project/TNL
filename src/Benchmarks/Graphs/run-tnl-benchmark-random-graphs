@@ -5,7 +5,6 @@ set -o errexit
 # abort when an unset variable is used
 set -o nounset
 
-# Parameters
 NUM_GRAPHS="10"
 START_NODES="10"
 NODES_INCREMENT="0"
@@ -13,44 +12,133 @@ START_EDGES="25"
 EDGES_INCREMENT="0"
 EDGE_WEIGHTS_DISTRIBUTION="normal"
 BASE_FILE_NAME="random-graph"
+OUTPUT_DIR="."
 
-# Python script name for generating graphs
 GENERATE_GRAPH_SCRIPT="tnl-graph-generator.py"
+BENCHMARK="tnl-benchmark-graphs-dbg"
+BENCHMARK_LOOPS="0"
+GRAPHVIZ="yes"
 
-# Loop to generate graphs and run the tnl-benchmark-graph program
-for i in $(seq 1 $NUM_GRAPHS); do
-   # Compute number of nodes and edges
-   NODES=$((START_NODES + (i-1) * NODES_INCREMENT))
-   EDGES=$((START_EDGES + (i-1) * EDGES_INCREMENT))
+usage() {
+   cat <<EOF
+Usage: $0 [options]
+  -n, --num-graphs N           Number of graphs to generate (default: $NUM_GRAPHS)
+  -N, --start-nodes N          Starting node count (default: $START_NODES)
+  -I, --nodes-increment N      Increment for nodes per graph (default: $NODES_INCREMENT)
+  -E, --start-edges N          Starting edge count (default: $START_EDGES)
+  -J, --edges-increment N      Increment for edges per graph (default: $EDGES_INCREMENT)
+  -w, --weights DIST           Edge weight distribution (default: $EDGE_WEIGHTS_DISTRIBUTION)
+  -b, --base-name NAME         Base filename prefix (default: $BASE_FILE_NAME)
+  -o, --output-dir DIR         Directory for generated graphs (default: $OUTPUT_DIR)
+  -g, --generator SCRIPT       Graph generator script (default: $GENERATE_GRAPH_SCRIPT)
+  -B, --benchmark BIN          Benchmark binary to run (default: $BENCHMARK)
+  -l, --loops N                Loops passed to benchmark binary (default: $BENCHMARK_LOOPS)
+  --graphviz yes|no            Render Graphviz outputs when available (default: $GRAPHVIZ)
+  -h, --help                   Show this help and exit
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+   case $1 in
+      -n|--num-graphs)
+         NUM_GRAPHS="$2"
+         shift
+         ;;
+      -N|--start-nodes)
+         START_NODES="$2"
+         shift
+         ;;
+      -I|--nodes-increment)
+         NODES_INCREMENT="$2"
+         shift
+         ;;
+      -E|--start-edges)
+         START_EDGES="$2"
+         shift
+         ;;
+      -J|--edges-increment)
+         EDGES_INCREMENT="$2"
+         shift
+         ;;
+      -w|--weights)
+         EDGE_WEIGHTS_DISTRIBUTION="$2"
+         shift
+         ;;
+      -b|--base-name)
+         BASE_FILE_NAME="$2"
+         shift
+         ;;
+      -o|--output-dir)
+         OUTPUT_DIR="$2"
+         shift
+         ;;
+      -g|--generator)
+         GENERATE_GRAPH_SCRIPT="$2"
+         shift
+         ;;
+      -B|--benchmark)
+         BENCHMARK="$2"
+         shift
+         ;;
+      -l|--loops)
+         BENCHMARK_LOOPS="$2"
+         shift
+         ;;
+      --graphviz)
+         GRAPHVIZ="$2"
+         shift
+         ;;
+      -h|--help)
+         usage
+         exit 0
+         ;;
+      *)
+         echo "Unknown option: $1" >&2
+         usage >&2
+         exit 1
+         ;;
+   esac
+   shift
+done
+
+mkdir -p "$OUTPUT_DIR"
+
+run_benchmark() {
+   set +e
+   "$@"
+   local status=$?
+   set -e
+   return $status
+}
+
+for i in $(seq 1 "$NUM_GRAPHS"); do
+   NODES=$((START_NODES + (i - 1) * NODES_INCREMENT))
+   EDGES=$((START_EDGES + (i - 1) * EDGES_INCREMENT))
 
    FILE_NAME="${BASE_FILE_NAME}-${NODES}N-${EDGES}E.txt"
+   FILE_PATH="$OUTPUT_DIR/$FILE_NAME"
 
-   # Generate graph
-   echo "Generating graph with $NODES nodes and $EDGES edges int file $FILE_NAME ..."
-   $GENERATE_GRAPH_SCRIPT --nodes $NODES --edges $EDGES --edge-weights-distribution $EDGE_WEIGHTS_DISTRIBUTION --file-name $FILE_NAME
+   echo "Generating graph with $NODES nodes and $EDGES edges into $FILE_PATH ..."
+   "$GENERATE_GRAPH_SCRIPT" --nodes "$NODES" --edges "$EDGES" --edge-weights-distribution "$EDGE_WEIGHTS_DISTRIBUTION" --file-name "$FILE_PATH"
 
-   # Call tnl-benchmark-graph program
-   command="tnl-benchmark-graphs-dbg --input-file  $FILE_NAME --loops 0"
-   echo $command
-   $command
-   retvalue=$?
-
-   if [[ -e "$FILE_NAME-boost-mst.txt" ]]; then
-      graphs-graphviz.py --graph undirected --file-name $FILE_NAME-boost-mst.txt
-   fi
-   if [[ -e "$FILE_NAME-tnl-mst.txt" ]]; then
-      graphs-graphviz.py --graph undirected --file-name $FILE_NAME-tnl-mst.txt
-   fi
-
-   graphs-graphviz.py --graph directed --file-name $FILE_NAME
-   graphs-graphviz.py --graph undirected --file-name $FILE_NAME-undirected.txt
-
-   if [ $retvalue  -ne 0 ]; then
+   COMMAND=("$BENCHMARK" --input-file "$FILE_PATH" --loops "$BENCHMARK_LOOPS")
+   echo "${COMMAND[*]}"
+   if ! run_benchmark "${COMMAND[@]}"; then
       timestamp=$(date +%s)
-      echo "Error running tnl-benchmark-graphs. Creating file $FILE_NAME to $FILE_NAME-error-$timestamp.txt ..."
-      echo "Test it with: tnl-benchmark-graphs-dbg --input-file $FILE_NAME-error-$timestamp.txt --loops 0"
-      cp $FILE_NAME $FILE_NAME-error-$timestamp.txt
+      echo "Error running benchmark. Copying $FILE_PATH to ${FILE_PATH}-error-$timestamp ..."
+      cp "$FILE_PATH" "${FILE_PATH}-error-$timestamp"
+      echo "Test it with: $BENCHMARK --input-file ${FILE_PATH}-error-$timestamp --loops $BENCHMARK_LOOPS"
       exit 1
    fi
 
+   if [[ "$GRAPHVIZ" == "yes" ]]; then
+      if [[ -e "${FILE_PATH}-boost-mst.txt" ]]; then
+         graphs-graphviz.py --graph undirected --file-name "${FILE_PATH}-boost-mst.txt"
+      fi
+      if [[ -e "${FILE_PATH}-tnl-mst.txt" ]]; then
+         graphs-graphviz.py --graph undirected --file-name "${FILE_PATH}-tnl-mst.txt"
+      fi
+      graphs-graphviz.py --graph directed --file-name "$FILE_PATH"
+      graphs-graphviz.py --graph undirected --file-name "${FILE_PATH}-undirected.txt"
+   fi
 done
