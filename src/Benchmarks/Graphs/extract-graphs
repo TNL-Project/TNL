@@ -3,560 +3,567 @@
 input_dir=$1
 output_dir=$2
 
-#Small graphs
-gset_graphs="\
-suitesparse-collection-website.herokuapp.com/MM/Gset/G10/G10.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G11/G11.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G12/G12.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G13/G13.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G14/G14.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G15/G15.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G16/G16.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G17/G17.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G18/G18.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G19/G19.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G1/G1.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G20/G20.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G21/G21.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G22/G22.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G23/G23.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G24/G24.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G25/G25.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G26/G26.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G27/G27.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G28/G28.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G29/G29.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G2/G2.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G30/G30.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G31/G31.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G32/G32.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G33/G33.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G34/G34.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G35/G35.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G36/G36.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G37/G37.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G38/G38.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G39/G39.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G3/G3.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G40/G40.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G41/G41.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G42/G42.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G43/G43.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G44/G44.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G45/G45.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G46/G46.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G47/G47.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G48/G48.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G49/G49.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G4/G4.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G50/G50.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G51/G51.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G52/G52.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G53/G53.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G54/G54.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G55/G55.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G56/G56.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G57/G57.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G58/G58.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G59/G59.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G5/G5.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G60/G60.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G61/G61.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G62/G62.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G63/G63.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G64/G64.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G65/G65.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G66/G66.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G67/G67.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G6/G6.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G7/G7.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G8/G8.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gset/G9/G9.mtx"
-
+# Small graphs
+gset_graphs=(
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G10/G10.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G11/G11.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G12/G12.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G13/G13.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G14/G14.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G15/G15.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G16/G16.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G17/G17.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G18/G18.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G19/G19.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G1/G1.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G20/G20.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G21/G21.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G22/G22.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G23/G23.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G24/G24.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G25/G25.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G26/G26.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G27/G27.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G28/G28.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G29/G29.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G2/G2.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G30/G30.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G31/G31.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G32/G32.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G33/G33.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G34/G34.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G35/G35.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G36/G36.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G37/G37.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G38/G38.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G39/G39.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G3/G3.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G40/G40.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G41/G41.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G42/G42.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G43/G43.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G44/G44.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G45/G45.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G46/G46.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G47/G47.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G48/G48.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G49/G49.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G4/G4.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G50/G50.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G51/G51.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G52/G52.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G53/G53.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G54/G54.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G55/G55.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G56/G56.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G57/G57.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G58/G58.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G59/G59.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G5/G5.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G60/G60.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G61/G61.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G62/G62.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G63/G63.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G64/G64.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G65/G65.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G66/G66.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G67/G67.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G6/G6.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G7/G7.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G8/G8.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gset/G9/G9.mtx"
+)
 
 # Small to large graphs
-dimacs_graphs="\
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/144/144.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/333SP/333SP_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/333SP/333SP.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/598a/598a.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/adaptive/adaptive.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ak2010/ak2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ak2010/ak2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ak2010/ak2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ak2010/ak2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/al2010/al2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/al2010/al2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/al2010/al2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/al2010/al2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ar2010/ar2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ar2010/ar2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ar2010/ar2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ar2010/ar2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/AS365/AS365_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/AS365/AS365.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/asia_osm/asia_osm_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/asia_osm/asia_osm.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/auto/auto.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/az2010/az2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/az2010/az2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/az2010/az2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/az2010/az2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/belgium_osm/belgium_osm_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/belgium_osm/belgium_osm.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ca2010/ca2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ca2010/ca2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ca2010/ca2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ca2010/ca2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/caidaRouterLevel/caidaRouterLevel.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/channel-500x100x100-b050/channel-500x100x100-b050.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/chesapeake/chesapeake.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/citationCiteseer/citationCiteseer.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/co2010/co2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/co2010/co2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/co2010/co2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/co2010/co2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/coAuthorsCiteseer/coAuthorsCiteseer.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/coAuthorsDBLP/coAuthorsDBLP.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/coPapersCiteseer/coPapersCiteseer.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/coPapersDBLP/coPapersDBLP.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/cs4/cs4.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ct2010/ct2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ct2010/ct2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ct2010/ct2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ct2010/ct2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/cti/cti.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/data/data.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/de2010/de2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/de2010/de2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/de2010/de2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/de2010/de2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n10/delaunay_n10.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n11/delaunay_n11.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n12/delaunay_n12.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n13/delaunay_n13.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n14/delaunay_n14.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n15/delaunay_n15.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n16/delaunay_n16.mtxv \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n17/delaunay_n17.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n18/delaunay_n18.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n19/delaunay_n19.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n20/delaunay_n20.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n21/delaunay_n21.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n22/delaunay_n22.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n23/delaunay_n23.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n24/delaunay_n24.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/europe_osm/europe_osm_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/europe_osm/europe_osm.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_4elt2/fe_4elt2.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_body/fe_body.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_ocean/fe_ocean.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_rotor/fe_rotor.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_sphere/fe_sphere.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_tooth/fe_tooth.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fl2010/fl2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fl2010/fl2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fl2010/fl2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fl2010/fl2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ga2010/ga2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ga2010/ga2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ga2010/ga2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ga2010/ga2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/germany_osm/germany_osm_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/germany_osm/germany_osm.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/G_n_pin_pout/G_n_pin_pout.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/great-britain_osm/great-britain_osm_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/great-britain_osm/great-britain_osm.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hi2010/hi2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hi2010/hi2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hi2010/hi2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hi2010/hi2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00000/hugebubbles-00000_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00000/hugebubbles-00000.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00010/hugebubbles-00010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00010/hugebubbles-00010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00020/hugebubbles-00020_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00020/hugebubbles-00020.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00000/hugetrace-00000_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00000/hugetrace-00000.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00010/hugetrace-00010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00010/hugetrace-00010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00020/hugetrace-00020_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00020/hugetrace-00020.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00000/hugetric-00000_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00000/hugetric-00000.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00010/hugetric-00010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00010/hugetric-00010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00020/hugetric-00020_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00020/hugetric-00020.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ia2010/ia2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ia2010/ia2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ia2010/ia2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ia2010/ia2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/id2010/id2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/id2010/id2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/id2010/id2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/id2010/id2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/il2010/il2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/il2010/il2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/il2010/il2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/il2010/il2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/in2010/in2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/in2010/in2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/in2010/in2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/in2010/in2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/italy_osm/italy_osm_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/italy_osm/italy_osm.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn16/kron_g500-logn16.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn17/kron_g500-logn17.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn18/kron_g500-logn18.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn19/kron_g500-logn19.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn20/kron_g500-logn20.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn21/kron_g500-logn21.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ks2010/ks2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ks2010/ks2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ks2010/ks2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ks2010/ks2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ky2010/ky2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ky2010/ky2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ky2010/ky2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ky2010/ky2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/la2010/la2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/la2010/la2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/la2010/la2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/la2010/la2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/luxembourg_osm/luxembourg_osm_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/luxembourg_osm/luxembourg_osm.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/m14b/m14b.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/M6/M6_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/M6/M6.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ma2010/ma2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ma2010/ma2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ma2010/ma2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ma2010/ma2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/md2010/md2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/md2010/md2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/md2010/md2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/md2010/md2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/me2010/me2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/me2010/me2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/me2010/me2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/me2010/me2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mi2010/mi2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mi2010/mi2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mi2010/mi2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mi2010/mi2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mn2010/mn2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mn2010/mn2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mn2010/mn2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mn2010/mn2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mo2010/mo2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mo2010/mo2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mo2010/mo2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mo2010/mo2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ms2010/ms2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ms2010/ms2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ms2010/ms2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ms2010/ms2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mt2010/mt2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mt2010/mt2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mt2010/mt2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mt2010/mt2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/NACA0015/NACA0015_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/NACA0015/NACA0015.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nc2010/nc2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nc2010/nc2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nc2010/nc2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nc2010/nc2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nd2010/nd2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nd2010/nd2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nd2010/nd2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nd2010/nd2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ne2010/ne2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ne2010/ne2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ne2010/ne2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ne2010/ne2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/netherlands_osm/netherlands_osm_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/netherlands_osm/netherlands_osm.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nh2010/nh2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nh2010/nh2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nh2010/nh2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nh2010/nh2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nj2010/nj2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nj2010/nj2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nj2010/nj2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nj2010/nj2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/NLR/NLR_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/NLR/NLR.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nm2010/nm2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nm2010/nm2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nm2010/nm2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nm2010/nm2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nv2010/nv2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nv2010/nv2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nv2010/nv2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nv2010/nv2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ny2010/ny2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ny2010/ny2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ny2010/ny2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ny2010/ny2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/oh2010/oh2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/oh2010/oh2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/oh2010/oh2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/oh2010/oh2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ok2010/ok2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ok2010/ok2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ok2010/ok2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ok2010/ok2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/or2010/or2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/or2010/or2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/or2010/or2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/or2010/or2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/pa2010/pa2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/pa2010/pa2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/pa2010/pa2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/pa2010/pa2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/packing-500x100x100-b050/packing-500x100x100-b050.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/preferentialAttachment/preferentialAttachment.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_15_s0/rgg_n_2_15_s0_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_15_s0/rgg_n_2_15_s0.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_16_s0/rgg_n_2_16_s0_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_16_s0/rgg_n_2_16_s0.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_17_s0/rgg_n_2_17_s0_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_17_s0/rgg_n_2_17_s0.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_18_s0/rgg_n_2_18_s0_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_18_s0/rgg_n_2_18_s0.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_19_s0/rgg_n_2_19_s0_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_19_s0/rgg_n_2_19_s0.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_20_s0/rgg_n_2_20_s0_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_20_s0/rgg_n_2_20_s0.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_21_s0/rgg_n_2_21_s0_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_21_s0/rgg_n_2_21_s0.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_22_s0/rgg_n_2_22_s0_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_22_s0/rgg_n_2_22_s0.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_23_s0/rgg_n_2_23_s0_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_23_s0/rgg_n_2_23_s0.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_24_s0/rgg_n_2_24_s0_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_24_s0/rgg_n_2_24_s0.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ri2010/ri2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ri2010/ri2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ri2010/ri2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ri2010/ri2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/road_central/road_central.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/road_usa/road_usa.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sc2010/sc2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sc2010/sc2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sc2010/sc2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sc2010/sc2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sd2010/sd2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sd2010/sd2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sd2010/sd2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sd2010/sd2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/smallworld/smallworld.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/t60k/t60k.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tn2010/tn2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tn2010/tn2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tn2010/tn2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tn2010/tn2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tx2010/tx2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tx2010/tx2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tx2010/tx2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tx2010/tx2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/uk/uk.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ut2010/ut2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ut2010/ut2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ut2010/ut2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ut2010/ut2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/va2010/va2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/va2010/va2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/va2010/va2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/va2010/va2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/venturiLevel3/venturiLevel3.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_barth5_1Ksep_50in_5Kout/vsp_barth5_1Ksep_50in_5Kout.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_bcsstk30_500sep_10in_1Kout/vsp_bcsstk30_500sep_10in_1Kout.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_befref_fxm_2_4_air02/vsp_befref_fxm_2_4_air02.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_bump2_e18_aa01_model1_crew1/vsp_bump2_e18_aa01_model1_crew1.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_c-30_data_data/vsp_c-30_data_data.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_c-60_data_cti_cs4/vsp_c-60_data_cti_cs4.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_data_and_seymourl/vsp_data_and_seymourl.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_finan512_scagr7-2c_rlfddd/vsp_finan512_scagr7-2c_rlfddd.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_mod2_pgp2_slptsk/vsp_mod2_pgp2_slptsk.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_model1_crew1_cr42_south31/vsp_model1_crew1_cr42_south31.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_msc10848_300sep_100in_1Kout/vsp_msc10848_300sep_100in_1Kout.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_p0291_seymourl_iiasa/vsp_p0291_seymourl_iiasa.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_sctap1-2b_and_seymourl/vsp_sctap1-2b_and_seymourl.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_south31_slptsk/vsp_south31_slptsk.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_vibrobox_scagr7-2c_rlfddd/vsp_vibrobox_scagr7-2c_rlfddd.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vt2010/vt2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vt2010/vt2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vt2010/vt2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vt2010/vt2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wa2010/wa2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wa2010/wa2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wa2010/wa2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wa2010/wa2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wi2010/wi2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wi2010/wi2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wi2010/wi2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wi2010/wi2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wing_nodal/wing_nodal.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wing/wing.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wv2010/wv2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wv2010/wv2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wv2010/wv2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wv2010/wv2010_population.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wy2010/wy2010_area.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wy2010/wy2010_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wy2010/wy2010.mtx \
-suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wy2010/wy2010_population.mtx"
+dimacs_graphs=(
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/144/144.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/333SP/333SP_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/333SP/333SP.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/598a/598a.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/adaptive/adaptive.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ak2010/ak2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ak2010/ak2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ak2010/ak2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ak2010/ak2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/al2010/al2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/al2010/al2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/al2010/al2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/al2010/al2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ar2010/ar2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ar2010/ar2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ar2010/ar2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ar2010/ar2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/AS365/AS365_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/AS365/AS365.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/asia_osm/asia_osm_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/asia_osm/asia_osm.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/auto/auto.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/az2010/az2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/az2010/az2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/az2010/az2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/az2010/az2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/belgium_osm/belgium_osm_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/belgium_osm/belgium_osm.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ca2010/ca2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ca2010/ca2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ca2010/ca2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ca2010/ca2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/caidaRouterLevel/caidaRouterLevel.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/channel-500x100x100-b050/channel-500x100x100-b050.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/chesapeake/chesapeake.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/citationCiteseer/citationCiteseer.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/co2010/co2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/co2010/co2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/co2010/co2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/co2010/co2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/coAuthorsCiteseer/coAuthorsCiteseer.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/coAuthorsDBLP/coAuthorsDBLP.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/coPapersCiteseer/coPapersCiteseer.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/coPapersDBLP/coPapersDBLP.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/cs4/cs4.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ct2010/ct2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ct2010/ct2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ct2010/ct2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ct2010/ct2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/cti/cti.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/data/data.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/de2010/de2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/de2010/de2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/de2010/de2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/de2010/de2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n10/delaunay_n10.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n11/delaunay_n11.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n12/delaunay_n12.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n13/delaunay_n13.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n14/delaunay_n14.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n15/delaunay_n15.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n16/delaunay_n16.mtxv"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n17/delaunay_n17.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n18/delaunay_n18.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n19/delaunay_n19.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n20/delaunay_n20.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n21/delaunay_n21.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n22/delaunay_n22.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n23/delaunay_n23.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/delaunay_n24/delaunay_n24.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/europe_osm/europe_osm_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/europe_osm/europe_osm.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_4elt2/fe_4elt2.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_body/fe_body.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_ocean/fe_ocean.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_rotor/fe_rotor.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_sphere/fe_sphere.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fe_tooth/fe_tooth.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fl2010/fl2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fl2010/fl2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fl2010/fl2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/fl2010/fl2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ga2010/ga2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ga2010/ga2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ga2010/ga2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ga2010/ga2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/germany_osm/germany_osm_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/germany_osm/germany_osm.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/G_n_pin_pout/G_n_pin_pout.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/great-britain_osm/great-britain_osm_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/great-britain_osm/great-britain_osm.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hi2010/hi2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hi2010/hi2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hi2010/hi2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hi2010/hi2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00000/hugebubbles-00000_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00000/hugebubbles-00000.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00010/hugebubbles-00010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00010/hugebubbles-00010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00020/hugebubbles-00020_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugebubbles-00020/hugebubbles-00020.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00000/hugetrace-00000_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00000/hugetrace-00000.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00010/hugetrace-00010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00010/hugetrace-00010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00020/hugetrace-00020_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetrace-00020/hugetrace-00020.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00000/hugetric-00000_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00000/hugetric-00000.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00010/hugetric-00010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00010/hugetric-00010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00020/hugetric-00020_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/hugetric-00020/hugetric-00020.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ia2010/ia2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ia2010/ia2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ia2010/ia2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ia2010/ia2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/id2010/id2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/id2010/id2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/id2010/id2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/id2010/id2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/il2010/il2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/il2010/il2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/il2010/il2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/il2010/il2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/in2010/in2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/in2010/in2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/in2010/in2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/in2010/in2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/italy_osm/italy_osm_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/italy_osm/italy_osm.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn16/kron_g500-logn16.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn17/kron_g500-logn17.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn18/kron_g500-logn18.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn19/kron_g500-logn19.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn20/kron_g500-logn20.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/kron_g500-logn21/kron_g500-logn21.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ks2010/ks2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ks2010/ks2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ks2010/ks2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ks2010/ks2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ky2010/ky2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ky2010/ky2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ky2010/ky2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ky2010/ky2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/la2010/la2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/la2010/la2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/la2010/la2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/la2010/la2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/luxembourg_osm/luxembourg_osm_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/luxembourg_osm/luxembourg_osm.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/m14b/m14b.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/M6/M6_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/M6/M6.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ma2010/ma2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ma2010/ma2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ma2010/ma2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ma2010/ma2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/md2010/md2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/md2010/md2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/md2010/md2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/md2010/md2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/me2010/me2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/me2010/me2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/me2010/me2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/me2010/me2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mi2010/mi2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mi2010/mi2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mi2010/mi2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mi2010/mi2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mn2010/mn2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mn2010/mn2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mn2010/mn2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mn2010/mn2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mo2010/mo2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mo2010/mo2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mo2010/mo2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mo2010/mo2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ms2010/ms2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ms2010/ms2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ms2010/ms2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ms2010/ms2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mt2010/mt2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mt2010/mt2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mt2010/mt2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/mt2010/mt2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/NACA0015/NACA0015_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/NACA0015/NACA0015.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nc2010/nc2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nc2010/nc2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nc2010/nc2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nc2010/nc2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nd2010/nd2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nd2010/nd2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nd2010/nd2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nd2010/nd2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ne2010/ne2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ne2010/ne2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ne2010/ne2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ne2010/ne2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/netherlands_osm/netherlands_osm_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/netherlands_osm/netherlands_osm.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nh2010/nh2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nh2010/nh2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nh2010/nh2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nh2010/nh2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nj2010/nj2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nj2010/nj2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nj2010/nj2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nj2010/nj2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/NLR/NLR_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/NLR/NLR.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nm2010/nm2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nm2010/nm2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nm2010/nm2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nm2010/nm2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nv2010/nv2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nv2010/nv2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nv2010/nv2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/nv2010/nv2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ny2010/ny2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ny2010/ny2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ny2010/ny2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ny2010/ny2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/oh2010/oh2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/oh2010/oh2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/oh2010/oh2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/oh2010/oh2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ok2010/ok2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ok2010/ok2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ok2010/ok2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ok2010/ok2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/or2010/or2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/or2010/or2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/or2010/or2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/or2010/or2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/pa2010/pa2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/pa2010/pa2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/pa2010/pa2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/pa2010/pa2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/packing-500x100x100-b050/packing-500x100x100-b050.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/preferentialAttachment/preferentialAttachment.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_15_s0/rgg_n_2_15_s0_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_15_s0/rgg_n_2_15_s0.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_16_s0/rgg_n_2_16_s0_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_16_s0/rgg_n_2_16_s0.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_17_s0/rgg_n_2_17_s0_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_17_s0/rgg_n_2_17_s0.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_18_s0/rgg_n_2_18_s0_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_18_s0/rgg_n_2_18_s0.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_19_s0/rgg_n_2_19_s0_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_19_s0/rgg_n_2_19_s0.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_20_s0/rgg_n_2_20_s0_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_20_s0/rgg_n_2_20_s0.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_21_s0/rgg_n_2_21_s0_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_21_s0/rgg_n_2_21_s0.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_22_s0/rgg_n_2_22_s0_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_22_s0/rgg_n_2_22_s0.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_23_s0/rgg_n_2_23_s0_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_23_s0/rgg_n_2_23_s0.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_24_s0/rgg_n_2_24_s0_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/rgg_n_2_24_s0/rgg_n_2_24_s0.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ri2010/ri2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ri2010/ri2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ri2010/ri2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ri2010/ri2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/road_central/road_central.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/road_usa/road_usa.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sc2010/sc2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sc2010/sc2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sc2010/sc2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sc2010/sc2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sd2010/sd2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sd2010/sd2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sd2010/sd2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/sd2010/sd2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/smallworld/smallworld.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/t60k/t60k.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tn2010/tn2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tn2010/tn2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tn2010/tn2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tn2010/tn2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tx2010/tx2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tx2010/tx2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tx2010/tx2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/tx2010/tx2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/uk/uk.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ut2010/ut2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ut2010/ut2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ut2010/ut2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/ut2010/ut2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/va2010/va2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/va2010/va2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/va2010/va2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/va2010/va2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/venturiLevel3/venturiLevel3.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_barth5_1Ksep_50in_5Kout/vsp_barth5_1Ksep_50in_5Kout.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_bcsstk30_500sep_10in_1Kout/vsp_bcsstk30_500sep_10in_1Kout.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_befref_fxm_2_4_air02/vsp_befref_fxm_2_4_air02.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_bump2_e18_aa01_model1_crew1/vsp_bump2_e18_aa01_model1_crew1.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_c-30_data_data/vsp_c-30_data_data.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_c-60_data_cti_cs4/vsp_c-60_data_cti_cs4.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_data_and_seymourl/vsp_data_and_seymourl.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_finan512_scagr7-2c_rlfddd/vsp_finan512_scagr7-2c_rlfddd.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_mod2_pgp2_slptsk/vsp_mod2_pgp2_slptsk.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_model1_crew1_cr42_south31/vsp_model1_crew1_cr42_south31.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_msc10848_300sep_100in_1Kout/vsp_msc10848_300sep_100in_1Kout.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_p0291_seymourl_iiasa/vsp_p0291_seymourl_iiasa.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_sctap1-2b_and_seymourl/vsp_sctap1-2b_and_seymourl.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_south31_slptsk/vsp_south31_slptsk.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vsp_vibrobox_scagr7-2c_rlfddd/vsp_vibrobox_scagr7-2c_rlfddd.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vt2010/vt2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vt2010/vt2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vt2010/vt2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/vt2010/vt2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wa2010/wa2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wa2010/wa2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wa2010/wa2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wa2010/wa2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wi2010/wi2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wi2010/wi2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wi2010/wi2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wi2010/wi2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wing_nodal/wing_nodal.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wing/wing.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wv2010/wv2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wv2010/wv2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wv2010/wv2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wv2010/wv2010_population.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wy2010/wy2010_area.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wy2010/wy2010_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wy2010/wy2010.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/DIMACS10/wy2010/wy2010_population.mtx"
+)
 
 # Small to medium size graphs
-ml_graph_graphs="\
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Binaryalphadigs_10NN/Binaryalphadigs_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Binaryalphadigs_10NN/Binaryalphadigs_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/breasttissue_10NN/breasttissue_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/breasttissue_10NN/breasttissue_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/cnae9_10NN/cnae9_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/cnae9_10NN/cnae9_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/collins_15NN/collins_15NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/collins_15NN/collins_15NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset12mfeatfactors_10NN/dataset12mfeatfactors_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset12mfeatfactors_10NN/dataset12mfeatfactors_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset16mfeatkarhunen_10NN/dataset16mfeatkarhunen_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset16mfeatkarhunen_10NN/dataset16mfeatkarhunen_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset18mfeatmorphological_10NN/dataset18mfeatmorphological_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset18mfeatmorphological_10NN/dataset18mfeatmorphological_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset20mfeatpixel_10NN/dataset20mfeatpixel_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset20mfeatpixel_10NN/dataset20mfeatpixel_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset22mfeatzernike_10NN/dataset22mfeatzernike_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset22mfeatzernike_10NN/dataset22mfeatzernike_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dermatology_5NN/dermatology_5NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dermatology_5NN/dermatology_5NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Ecoli_10NN/Ecoli_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Ecoli_10NN/Ecoli_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Fashion_MNIST_norm_10NN/Fashion_MNIST_norm_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Fashion_MNIST_norm_10NN/Fashion_MNIST_norm_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Glass_10NN/Glass_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Glass_10NN/Glass_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/har_10NN/har_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/har_10NN/har_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/indianpines_10NN/indianpines_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/indianpines_10NN/indianpines_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/iris_dataset_30NN/iris_dataset_30NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/iris_dataset_30NN/iris_dataset_30NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/JapaneseVowelsSmall_10NN/JapaneseVowelsSmall_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/JapaneseVowelsSmall_10NN/JapaneseVowelsSmall_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/k49_norm_10NN/k49_norm_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/k49_norm_10NN/k49_norm_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/kmnist_norm_10NN/kmnist_norm_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/kmnist_norm_10NN/kmnist_norm_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/mice_10NN/mice_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/mice_10NN/mice_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/micromass_10NN/micromass_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/micromass_10NN/micromass_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/mnist_test_norm_10NN/mnist_test_norm_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/mnist_test_norm_10NN/mnist_test_norm_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Olivetti_norm_10NN/Olivetti_norm_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Olivetti_norm_10NN/Olivetti_norm_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/optdigits_10NN/optdigits_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/optdigits_10NN/optdigits_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Plants_10NN/Plants_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Plants_10NN/Plants_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/plantsmargin_12NN/plantsmargin_12NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/plantsmargin_12NN/plantsmargin_12NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/plantstexture_10NN/plantstexture_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/plantstexture_10NN/plantstexture_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/semeion_10NN/semeion_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/semeion_10NN/semeion_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Spectro_10NN/Spectro_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Spectro_10NN/Spectro_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/umistfacesnorm_10NN/umistfacesnorm_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/umistfacesnorm_10NN/umistfacesnorm_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/usps_norm_5NN/usps_norm_5NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/usps_norm_5NN/usps_norm_5NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Vehicle_10NN/Vehicle_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Vehicle_10NN/Vehicle_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/worms20_10NN/worms20_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/worms20_10NN/worms20_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/YaleA_10NN/YaleA_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/YaleA_10NN/YaleA_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/YaleB_10NN/YaleB_10NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/YaleB_10NN/YaleB_10NN.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/yeast_30NN/yeast_30NN_label.mtx \
-suitesparse-collection-website.herokuapp.com/MM/ML_Graph/yeast_30NN/yeast_30NN.mtx"
+ml_graph_graphs=(
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Binaryalphadigs_10NN/Binaryalphadigs_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Binaryalphadigs_10NN/Binaryalphadigs_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/breasttissue_10NN/breasttissue_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/breasttissue_10NN/breasttissue_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/cnae9_10NN/cnae9_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/cnae9_10NN/cnae9_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/collins_15NN/collins_15NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/collins_15NN/collins_15NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset12mfeatfactors_10NN/dataset12mfeatfactors_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset12mfeatfactors_10NN/dataset12mfeatfactors_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset16mfeatkarhunen_10NN/dataset16mfeatkarhunen_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset16mfeatkarhunen_10NN/dataset16mfeatkarhunen_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset18mfeatmorphological_10NN/dataset18mfeatmorphological_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset18mfeatmorphological_10NN/dataset18mfeatmorphological_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset20mfeatpixel_10NN/dataset20mfeatpixel_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset20mfeatpixel_10NN/dataset20mfeatpixel_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset22mfeatzernike_10NN/dataset22mfeatzernike_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dataset22mfeatzernike_10NN/dataset22mfeatzernike_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dermatology_5NN/dermatology_5NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/dermatology_5NN/dermatology_5NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Ecoli_10NN/Ecoli_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Ecoli_10NN/Ecoli_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Fashion_MNIST_norm_10NN/Fashion_MNIST_norm_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Fashion_MNIST_norm_10NN/Fashion_MNIST_norm_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Glass_10NN/Glass_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Glass_10NN/Glass_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/har_10NN/har_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/har_10NN/har_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/indianpines_10NN/indianpines_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/indianpines_10NN/indianpines_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/iris_dataset_30NN/iris_dataset_30NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/iris_dataset_30NN/iris_dataset_30NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/JapaneseVowelsSmall_10NN/JapaneseVowelsSmall_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/JapaneseVowelsSmall_10NN/JapaneseVowelsSmall_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/k49_norm_10NN/k49_norm_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/k49_norm_10NN/k49_norm_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/kmnist_norm_10NN/kmnist_norm_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/kmnist_norm_10NN/kmnist_norm_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/mice_10NN/mice_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/mice_10NN/mice_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/micromass_10NN/micromass_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/micromass_10NN/micromass_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/mnist_test_norm_10NN/mnist_test_norm_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/mnist_test_norm_10NN/mnist_test_norm_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Olivetti_norm_10NN/Olivetti_norm_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Olivetti_norm_10NN/Olivetti_norm_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/optdigits_10NN/optdigits_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/optdigits_10NN/optdigits_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Plants_10NN/Plants_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Plants_10NN/Plants_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/plantsmargin_12NN/plantsmargin_12NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/plantsmargin_12NN/plantsmargin_12NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/plantstexture_10NN/plantstexture_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/plantstexture_10NN/plantstexture_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/semeion_10NN/semeion_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/semeion_10NN/semeion_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Spectro_10NN/Spectro_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Spectro_10NN/Spectro_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/umistfacesnorm_10NN/umistfacesnorm_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/umistfacesnorm_10NN/umistfacesnorm_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/usps_norm_5NN/usps_norm_5NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/usps_norm_5NN/usps_norm_5NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Vehicle_10NN/Vehicle_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/Vehicle_10NN/Vehicle_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/worms20_10NN/worms20_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/worms20_10NN/worms20_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/YaleA_10NN/YaleA_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/YaleA_10NN/YaleA_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/YaleB_10NN/YaleB_10NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/YaleB_10NN/YaleB_10NN.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/yeast_30NN/yeast_30NN_label.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/ML_Graph/yeast_30NN/yeast_30NN.mtx"
+)
 
 # Medium size graphs
-belcastro_graphs="\
-suitesparse-collection-website.herokuapp.com/MM/Belcastro/human_gene1/human_gene1.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Belcastro/human_gene2/human_gene2.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Belcastro/mouse_gene/mouse_gene.mtx"
+belcastro_graphs=(
+"suitesparse-collection-website.herokuapp.com/MM/Belcastro/human_gene1/human_gene1.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Belcastro/human_gene2/human_gene2.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Belcastro/mouse_gene/mouse_gene.mtx"
+)
 
 # Small and medium size graphs
-newman_graphs="\
-suitesparse-collection-website.herokuapp.com/MM/Newman/adjnoun/adjnoun.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/adjnoun/adjnoun_nodevalue.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/as-22july06/as-22july06.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/astro-ph/astro-ph.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/celegansneural/celegansneural.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/cond-mat-2003/cond-mat-2003.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/cond-mat-2005/cond-mat-2005.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/cond-mat/cond-mat.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/dolphins/dolphins.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/football/football.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/football/football_nodevalue.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/hep-th/hep-th.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/karate/karate.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/lesmis/lesmis.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/netscience/netscience.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/polblogs/polblogs.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/polblogs/polblogs_nodevalue.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/polbooks/polbooks.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Newman/power/power.mtx"
+newman_graphs=(
+"suitesparse-collection-website.herokuapp.com/MM/Newman/adjnoun/adjnoun.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/adjnoun/adjnoun_nodevalue.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/as-22july06/as-22july06.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/astro-ph/astro-ph.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/celegansneural/celegansneural.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/cond-mat-2003/cond-mat-2003.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/cond-mat-2005/cond-mat-2005.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/cond-mat/cond-mat.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/dolphins/dolphins.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/football/football.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/football/football_nodevalue.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/hep-th/hep-th.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/karate/karate.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/lesmis/lesmis.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/netscience/netscience.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/polblogs/polblogs.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/polblogs/polblogs_nodevalue.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/polbooks/polbooks.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Newman/power/power.mtx"
+)
 
 # Large graphs
-mawi_graphs="\
-suitesparse-collection-website.herokuapp.com/MM/MAWI/mawi_201512012345/mawi_201512012345.mtx \
-suitesparse-collection-website.herokuapp.com/MM/MAWI/mawi_201512020000/mawi_201512020000.mtx \
-suitesparse-collection-website.herokuapp.com/MM/MAWI/mawi_201512020030/mawi_201512020030.mtx \
-suitesparse-collection-website.herokuapp.com/MM/MAWI/mawi_201512020130/mawi_201512020130.mtx"
+mawi_graphs=(
+"suitesparse-collection-website.herokuapp.com/MM/MAWI/mawi_201512012345/mawi_201512012345.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/MAWI/mawi_201512020000/mawi_201512020000.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/MAWI/mawi_201512020030/mawi_201512020030.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/MAWI/mawi_201512020130/mawi_201512020130.mtx"
+)
 
 # Large graphs
-genbank_graphs="\
-suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_A2a/kmer_A2a.mtx \
-suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_P1a/kmer_P1a.mtx \
-suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_U1a/kmer_U1a.mtx \
-suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_V2a/kmer_V2a.mtx"
+genbank_graphs=(
+"suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_A2a/kmer_A2a.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_P1a/kmer_P1a.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_U1a/kmer_U1a.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/GenBank/kmer_V2a/kmer_V2a.mtx"
+)
 
 # Small to medium size graphs
-gleich_graphs="\
-suitesparse-collection-website.herokuapp.com/MM/Gleich/flickr/flickr.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/minnesota/minnesota_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/minnesota/minnesota.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads-48/usroads-48_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads-48/usroads-48.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads/usroads_coord.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads/usroads.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/wb-cs-stanford/wb-cs-stanford.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/wb-edu/wb-edu.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20051105/wikipedia-20051105.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20060925/wikipedia-20060925.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20061104/wikipedia-20061104.mtx \
-suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20070206/wikipedia-20070206.mtx"
+gleich_graphs=(
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/flickr/flickr.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/minnesota/minnesota_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/minnesota/minnesota.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads-48/usroads-48_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads-48/usroads-48.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads/usroads_coord.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/usroads/usroads.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/wb-cs-stanford/wb-cs-stanford.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/wb-edu/wb-edu.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20051105/wikipedia-20051105.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20060925/wikipedia-20060925.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20061104/wikipedia-20061104.mtx"
+"suitesparse-collection-website.herokuapp.com/MM/Gleich/wikipedia-20070206/wikipedia-20070206.mtx"
+)
 
-graphs="\
-$gset_graphs \
-$dimacs_graphs \
-$ml_graph_graphs \
-$belcastro_graphs \
-$newman_graphs \
-$mawi_graphs \
-$genbank_graphs \
-$gleich_graphs"
+graphs=(
+    "${gset_graphs[@]}"
+    "${dimacs_graphs[@]}"
+    "${ml_graph_graphs[@]}"
+    "${belcastro_graphs[@]}"
+    "${newman_graphs[@]}"
+    "${mawi_graphs[@]}"
+    "${genbank_graphs[@]}"
+    "${gleich_graphs[@]}"
+)
 
-for graph in $graphs
-do
+for graph in "${graphs[@]}"; do
     echo "ln -s $input_dir/$graph $output_dir/$graph"
     directory=$(dirname "$output_dir/$graph")
-    mkdir -p $directory
-    cp $input_dir/$graph $output_dir/$graph
+    mkdir -p "$directory"
+    cp "$input_dir/$graph" "$output_dir/$graph"
 done
