@@ -24,7 +24,7 @@ protected:
                           DeviceType,
                           IndexType,
                           TNL::Graphs::DirectedGraph,
-                          TNL::Algorithms::Segments::Ellpack,  // this parameter is ignored for dense matrices
+                          TNL::Algorithms::Segments::CSR,  // this parameter is ignored for dense matrices
                           AdjacencyMatrixType >;
 };
 
