@@ -7,6 +7,7 @@
 
 namespace TNL::Algorithms::Segments {
 
+// clang-format off
 /**
  * \page SegmentTraversalOverview Overview of Segment Traversal Functions
  *
@@ -21,12 +22,10 @@ namespace TNL::Algorithms::Segments {
  *
  * \subsection SegmentTraversalElementVsSegment Element-wise vs. Segment-wise Traversal
  *
- * | Category | Operates On | Lambda Parameter | Use Case |
- * |----------|------------|------------------|----------|
- * | **Element-wise** (`forElements`, `forAllElements`) | Individual elements | Element indices | Operate on each element
- * separately |
- * | **Segment-wise** (`forSegments`, `forAllSegments`) | Whole segments | SegmentView object | Operate on segments
- * as units |
+ * | Category                                            | Operates On         | Lambda Parameter   | Use Case                              |
+ * |-----------------------------------------------------|---------------------|--------------------|---------------------------------------|
+ * | **Element-wise** (`forElements`, `forAllElements`)  | Individual elements | Element indices    | Operate on each element separately    |
+ * | **Segment-wise** (`forSegments`, `forAllSegments`)  | Whole segments      | SegmentView object | Operate on segments as units          |
  *
  * **When to use:**
  * - **Element-wise**: When you need to process each element independently (e.g., apply transformation, update values)
@@ -37,12 +36,12 @@ namespace TNL::Algorithms::Segments {
  *
  * Similar to other segment operations, traversal functions come in different scopes and conditional variants.
  *
- * | Scope | Segments Processed | Parameters |
- * |-------|-------------------|------------|
- * | **All** | All segments | No range/array parameters |
- * | **Range** | Segments [begin, end) | `begin` and `end` indices |
- * | **Array** | Specific segments | Array of segment indices |
- * | **If** | Segment condition | Process segments based on segment-level properties |
+ * | Scope     | Segments Processed    | Parameters                                         |
+ * |-----------|-----------------------|----------------------------------------------------|
+ * | **All**   | All segments          | No range/array parameters                          |
+ * | **Range** | Segments [begin, end) | `begin` and `end` indices                          |
+ * | **Array** | Specific segments     | Array of segment indices                           |
+ * | **If**    | Segment condition     | Process segments based on segment-level properties |
  *
  * \section SegmentTraversalElementFunctions Element-wise Traversal Functions
  *
@@ -50,13 +49,13 @@ namespace TNL::Algorithms::Segments {
  *
  * \subsection SegmentTraversalBasicElementFunctions Basic Element Traversal
  *
- * | Function | Segments Processed | Description |
- * |----------|-------------------|-------------|
- * | \ref forAllElements | All segments | Process all elements in all segments |
- * | \ref forElements (range) | Segments [begin, end) | Process elements in segment range |
- * | \ref forElements (array) | Segments in array | Process elements in specified segments |
- * | \ref forAllElementsIf | All segments | Segment-level condition |
- * | \ref forElementsIf | Segments [begin, end) | Segment-level condition |
+ * | Function                    | Segments Processed    | Description                                |
+ * |-----------------------------|-----------------------|--------------------------------------------|
+ * | \ref forAllElements         | All segments          | Process all elements in all segments       |
+ * | \ref forElements (range)    | Segments [begin, end) | Process elements in segment range          |
+ * | \ref forElements (array)    | Segments in array     | Process elements in specified segments     |
+ * | \ref forAllElementsIf       | All segments          | Segment-level condition                    |
+ * | \ref forElementsIf          | Segments [begin, end) | Segment-level condition                    |
  *
  * \section SegmentTraversalSegmentFunctions Segment-wise Traversal Functions
  *
@@ -64,13 +63,13 @@ namespace TNL::Algorithms::Segments {
  *
  * \subsection SegmentTraversalBasicSegmentFunctions Basic Segment Traversal
  *
- * | Function | Segments Processed | Description |
- * |----------|-------------------|-------------|
- * | \ref forAllSegments | All segments | Process all segments |
- * | \ref forSegments (range) | Segments [begin, end) | Process segments in range |
- * | \ref forSegments (array) | Segments in array | Process specified segments |
- * | \ref forAllSegmentsIf | All segments | Segment-level condition |
- * | \ref forSegmentsIf | Segments [begin, end) | Segment-level condition |
+ * | Function                 | Segments Processed    | Description                    |
+ * |--------------------------|-----------------------|--------------------------------|
+ * | \ref forAllSegments      | All segments          | Process all segments           |
+ * | \ref forSegments (range) | Segments [begin, end) | Process segments in range      |
+ * | \ref forSegments (array) | Segments in array     | Process specified segments     |
+ * | \ref forAllSegmentsIf    | All segments          | Segment-level condition        |
+ * | \ref forSegmentsIf       | Segments [begin, end) | Segment-level condition        |
  *
  * \section SegmentTraversalParameters Common Parameters
  *
@@ -90,6 +89,7 @@ namespace TNL::Algorithms::Segments {
  * - \ref SegmentTraversalLambdas - Detailed lambda function signatures
  * - \ref TNL::Algorithms::Segments::SegmentView - Segment view documentation
  */
+// clang-format on
 
 /**
  * \page SegmentTraversalLambdas Segment Traversal Lambda Function Reference

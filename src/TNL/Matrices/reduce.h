@@ -11,6 +11,7 @@ namespace TNL::Matrices {
 // for traversing of graphs and it currently supports sparse and dense matrices only. It should be extended to support
 // other matrix types as well. Also, documentation and examples should be added.
 
+// clang-format off
 /**
  * \page MatrixReductionOverview Overview of Matrix Reduction Functions
  *
@@ -34,10 +35,10 @@ namespace TNL::Matrices {
  *
  * \subsection MatrixReductionConstVsNonConst Const vs. Non-Const Matrix
  *
- * | Category | Matrix Modifiable? | Use Case |
- * |----------|-------------------|----------|
- * | **Non-const** | Yes | Can modify matrix elements during reduction |
- * | **Const** | No | Read-only access to matrix elements |
+ * | Category      | Matrix Modifiable? | Use Case                                         |
+ * |---------------|--------------------|--------------------------------------------------|
+ * | **Non-const** | Yes                | Can modify matrix elements during reduction      |
+ * | **Const**     | No                 | Read-only access to matrix elements              |
  *
  * Note: Each reduction function has both const and non-const overloads. The possibility
  * to modify the matrix during reduction allows to fuse reduction with traversing operations
@@ -45,19 +46,19 @@ namespace TNL::Matrices {
  *
  * \subsection MatrixReductionBasicVsArgument Basic vs. WithArgument Variants
  *
- * | Category | Tracks Position? | Use Case |
- * |----------|-----------------|----------|
- * | **Basic** | No | Only the reduced value is needed (e.g., row sum, row max) |
- * | **WithArgument** | Yes | Need value and column position (e.g., max value and where it occurs) |
+ * | Category         | Tracks Position? | Use Case                                                  |
+ * |------------------|------------------|-----------------------------------------------------------|
+ * | **Basic**        | No               | Only the reduced value is needed (e.g., row sum, row max) |
+ * | **WithArgument** | Yes              | Need value and column position (e.g., max value location) |
  *
  * \subsection MatrixReductionScopeAndConditionalVariants Scope and Conditional Variants (Which Rows to Process)
  *
- * | Scope | Rows Processed | Parameters |
- * |-------|---------------|------------|
- * | **All** | All rows | No range/array parameters |
- * | **Range** | Rows [begin, end) | `begin` and `end` indices |
- * | **Array** | Specific rows | Array of row indices |
- * | **If** | Rows filtered by a condition | Process rows based on row-level properties |
+ * | Scope     | Rows Processed               | Parameters                                      |
+ * |-----------|------------------------------|-------------------------------------------------|
+ * | **All**   | All rows                     | No range/array parameters                       |
+ * | **Range** | Rows [begin, end)            | `begin` and `end` indices                       |
+ * | **Array** | Specific rows                | Array of row indices                            |
+ * | **If**    | Rows filtered by a condition | Process rows based on row-level properties      |
  *
  * \section MatrixReductionCompleteMatrix Complete Function Matrix
  *
@@ -68,23 +69,23 @@ namespace TNL::Matrices {
  *
  * \subsection MatrixReductionBasicFunctions Basic Reduction Functions
  *
- * | Function | Scope | Conditional | Tracks Position | Overloads |
- * |----------|-------|-------------|-----------------|----------|
- * | \ref reduceAllRows | All | No | No | const & non-const |
- * | \ref reduceRows (range) | Range [begin,end) | No | No | const & non-const |
- * | \ref reduceRows (array) | Row array | No | No | const & non-const |
- * | \ref reduceAllRowsIf | All | Yes | No | const & non-const |
- * | \ref reduceRowsIf | Range [begin,end) | Yes | No | const & non-const |
+ * | Function                | Scope             | Conditional | Tracks Position | Overloads          |
+ * |-------------------------|-------------------|-------------|-----------------|--------------------|
+ * | \ref reduceAllRows      | All               | No          | No              | const & non-const  |
+ * | \ref reduceRows (range) | Range [begin,end) | No          | No              | const & non-const  |
+ * | \ref reduceRows (array) | Row array         | No          | No              | const & non-const  |
+ * | \ref reduceAllRowsIf    | All               | Yes         | No              | const & non-const  |
+ * | \ref reduceRowsIf       | Range [begin,end) | Yes         | No              | const & non-const  |
  *
  * \subsection MatrixReductionWithArgumentFunctions WithArgument Reduction Functions
  *
- * | Function | Scope | Conditional | Tracks Position | Overloads |
- * |----------|-------|-------------|-----------------|----------|
- * | \ref reduceAllRowsWithArgument | All | No | Yes | const & non-const |
- * | \ref reduceRowsWithArgument (range) | Range [begin,end) | No | Yes | const & non-const |
- * | \ref reduceRowsWithArgument (array) | Row array | No | Yes | const & non-const |
- * | \ref reduceAllRowsWithArgumentIf | All | Yes | Yes | const & non-const |
- * | \ref reduceRowsWithArgumentIf | Range [begin,end) | Yes | Yes | const & non-const |
+ * | Function                           | Scope             | Conditional | Tracks Position | Overloads          |
+ * |------------------------------------|-------------------|-------------|-----------------|--------------------|
+ * | \ref reduceAllRowsWithArgument     | All               | No          | Yes             | const & non-const  |
+ * | \ref reduceRowsWithArgument (range)| Range [begin,end) | No          | Yes             | const & non-const  |
+ * | \ref reduceRowsWithArgument (array)| Row array         | No          | Yes             | const & non-const  |
+ * | \ref reduceAllRowsWithArgumentIf   | All               | Yes         | Yes             | const & non-const  |
+ * | \ref reduceRowsWithArgumentIf      | Range [begin,end) | Yes         | Yes             | const & non-const  |
  *
  * \section MatrixReductionParameters Common Parameters
  *
@@ -116,6 +117,7 @@ namespace TNL::Matrices {
  * - \ref MatrixReductionLambdas - Detailed lambda function signatures
  * - \ref MatrixTraversalOverview - Matrix traversal operations
  */
+// clang-format on
 
 /**
  * \page MatrixReductionLambdas Matrix Reduction Lambda Function Reference
