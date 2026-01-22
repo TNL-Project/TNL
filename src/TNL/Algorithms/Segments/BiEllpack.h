@@ -305,21 +305,13 @@ template< typename Device, typename Index, ElementsOrganization Organization, in
 struct isBiEllpackSegments< BiEllpackView< Device, Index, Organization, WarpSize_ > > : std::true_type
 {};
 
-template< typename Segments >
-struct isSortedBiEllpackSegments : std::false_type
-{};
-
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize_ >
-struct isSortedBiEllpackSegments< SortedBiEllpack< Device, Index, IndexAllocator, Organization, WarpSize_ > > : std::true_type
+struct isSortedSegments< SortedBiEllpack< Device, Index, IndexAllocator, Organization, WarpSize_ > > : std::true_type
 {};
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize_ >
-struct isSortedBiEllpackSegments< SortedBiEllpackView< Device, Index, Organization, WarpSize_ > > : std::true_type
+struct isSortedSegments< SortedBiEllpackView< Device, Index, Organization, WarpSize_ > > : std::true_type
 {};
-
-//! \brief Returns true if the given type is sorted BiEllpack segments.
-template< typename Segments >
-inline constexpr bool isSortedBiEllpackSegments_v = isSortedBiEllpackSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 
