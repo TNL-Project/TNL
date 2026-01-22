@@ -8,6 +8,7 @@
 #include <TNL/TypeTraits.h>
 #include "LaunchConfiguration.h"
 
+// clang-format off
 /**
  * \page SegmentScanOverview Overview of Segment Scan Functions
  *
@@ -22,14 +23,14 @@
  *
  * These functions compute scan within specified segments:
  *
- * | Function | Segments Scanned | Scan Type |
- * |----------|-----------------|-----------|
- * | \ref Segments_inclusiveScanAllSegments | All segments | Inclusive |
- * | \ref Segments_exclusiveScanAllSegments | All segments | Exclusive |
- * | \ref Segments_inclusiveScanSegments_range (range) | Segments [begin, end) | Inclusive |
- * | \ref Segments_exclusiveScanSegments_range (range) | Segments [begin, end) | Exclusive |
- * | \ref Segments_inclusiveScanSegments_with_segment_indices (array) | Segments in array | Inclusive |
- * | \ref Segments_exclusiveScanSegments_with_segment_indices (array) | Segments in array | Exclusive |
+ * | Function                                                         | Segments Scanned      | Scan Type |
+ * |------------------------------------------------------------------|-----------------------|-----------|
+ * | \ref Segments_inclusiveScanAllSegments                           | All segments          | Inclusive |
+ * | \ref Segments_exclusiveScanAllSegments                           | All segments          | Exclusive |
+ * | \ref Segments_inclusiveScanSegments_range (range)                | Segments [begin, end) | Inclusive |
+ * | \ref Segments_exclusiveScanSegments_range (range)                | Segments [begin, end) | Exclusive |
+ * | \ref Segments_inclusiveScanSegments_with_segment_indices (array) | Segments in array     | Inclusive |
+ * | \ref Segments_exclusiveScanSegments_with_segment_indices (array) | Segments in array     | Exclusive |
  *
  * **When to use:**
  * - Use `*AllSegments` when you need to scan all segments
@@ -40,12 +41,12 @@
  *
  * These functions add segment-level conditions, including only segments that satisfy the condition in the scan:
  *
- * | Function | Segments Scanned | Scan Type |
- * |----------|-----------------|-----------|
- * | \ref Segments_inclusiveScanAllSegmentsIf | All segments | Inclusive with segment filter |
- * | \ref Segments_exclusiveScanAllSegmentsIf | All segments | Exclusive with segment filter |
- * | \ref Segments_inclusiveScanSegmentsIf_range | Segments [begin, end) | Inclusive with segment filter |
- * | \ref Segments_exclusiveScanSegmentsIf_range | Segments [begin, end) | Exclusive with segment filter |
+ * | Function                                                         | Segments Scanned      | Scan Type                     |
+ * |------------------------------------------------------------------|-----------------------|-------------------------------|
+ * | \ref Segments_inclusiveScanAllSegmentsIf                         | All segments          | Inclusive with segment filter |
+ * | \ref Segments_exclusiveScanAllSegmentsIf                         | All segments          | Exclusive with segment filter |
+ * | \ref Segments_inclusiveScanSegmentsIf_range                      | Segments [begin, end) | Inclusive with segment filter |
+ * | \ref Segments_exclusiveScanSegmentsIf_range                      | Segments [begin, end) | Exclusive with segment filter |
  *
  * **When to use:**
  * - Use these when you want to skip certain elements within segments
@@ -53,10 +54,10 @@
  *
  * \subsection SegmentScanLowLevelFunctions Low-Level Functions
  *
- * | Function | Purpose |
- * |----------|---------|
- * | \ref Segments_inclusiveScanSegment | Computes inclusive scan for a single segment view |
- * | \ref Segments_exclusiveScanSegment | Computes exclusive scan for a single segment view |
+ * | Function                                                         | Purpose                                           |
+ * |------------------------------------------------------------------|---------------------------------------------------|
+ * | \ref Segments_inclusiveScanSegment                               | Computes inclusive scan for a single segment view |
+ * | \ref Segments_exclusiveScanSegment                               | Computes exclusive scan for a single segment view |
  *
  * **When to use:**
  * - Use these when you have a `SegmentView` object and need fine-grained control
@@ -93,6 +94,7 @@
  * - \ref SegmentScanLambdas - Detailed lambda function signatures
  * - \ref ReductionFunctionObjects - Available reduction operations
  */
+// clang-format on
 
 /**
  * \page SegmentScanLambdas Lambda Functions for Segment Scan Operations

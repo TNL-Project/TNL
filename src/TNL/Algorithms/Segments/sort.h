@@ -6,6 +6,7 @@
 #include <TNL/TypeTraits.h>
 #include "LaunchConfiguration.h"
 
+// clang-format off
 /**
  * \page SegmentSortOverview Overview of Segment Sort Functions
  *
@@ -22,12 +23,11 @@
  *
  * These functions sort elements within segments:
  *
- * | Function | Segments Sorted | Description |
- * |----------|----------------|-------------|
- * | \ref Segments_sortAllSegments | All segments | Sorts all segments in the container |
- * | \ref Segments_sortSegments_range (range) | Segments [begin, end) | Sorts segments in a specified range |
- * | \ref Segments_sortSegments_with_segment_indices (array) | Segments in array | Sorts only segments whose indices are in the
- * provided array |
+ * | Function                                                         | Segments Sorted       | Description                                                 |
+ * |------------------------------------------------------------------|-----------------------|-------------------------------------------------------------|
+ * | \ref Segments_sortAllSegments                                    | All segments          | Sorts all segments in the container                         |
+ * | \ref Segments_sortSegments_range (range)                         | Segments [begin, end) | Sorts segments in a specified range                         |
+ * | \ref Segments_sortSegments_with_segment_indices (array)          | Segments in array     | Sorts only segments whose indices are in the provided array |
  *
  * **When to use:**
  * - Use `sortAllSegments` when you need to sort all segments
@@ -38,20 +38,17 @@
  *
  * These functions add a segment-level condition, sorting only segments that satisfy the condition:
  *
- * | Function | Segments Sorted | Description |
- * |----------|----------------|-------------|
- * | \ref Segments_sortAllSegmentsIf | All segments matching condition | Sorts all segments that satisfy the segment condition |
- * | \ref Segments_sortSegmentsIf_range | Segments [begin, end) matching condition | Sorts segments in range that satisfy the
- * segment condition |
+ * | Function                           | Segments Sorted                          | Description                                                |
+ * |------------------------------------|------------------------------------------|------------------------------------------------------------|
+ * | \ref Segments_sortAllSegmentsIf    | All segments matching condition          | Sorts all segments that satisfy the segment condition      |
+ * | \ref Segments_sortSegmentsIf_range | Segments [begin, end) matching condition | Sorts segments in range that satisfy the segment condition |
  *
  * **When to use:**
  * - Use these variants when you want to skip sorting certain segments based on segment-level properties
  *
  * \subsection SegmentSortLowLevelFunctions Low-Level Functions
  *
- * | Function | Purpose |
- * |----------|---------|
- * | \ref Segments_segmentInsertionSort | Sorts a single segment view using insertion sort |
+ * The function \ref Segments_segmentInsertionSort sorts a single segment view using insertion sort.
  *
  * **When to use:**
  * - Use this when you have a `SegmentView` object and need fine-grained control
@@ -76,6 +73,7 @@
  *
  * - \ref SegmentSortLambdas - Detailed lambda function signatures
  */
+// clang-format on
 
 /**
  * \page SegmentSortLambdas Lambda Functions for Segment Sort Operations

@@ -7,6 +7,7 @@
 
 namespace TNL::Graphs {
 
+// clang-format off
 /**
  * \page GraphTraversalOverview Overview of Graph Traversal Functions
  *
@@ -21,33 +22,31 @@ namespace TNL::Graphs {
  *
  * \subsection GraphTraversalConstVsNonConst Const vs. Non-Const Graph
  *
- * | Category | Graph Modifiable? | Use Case |
- * |----------|-------------------|----------|
- * | **Non-const** | Yes | Can modify graph edges and structure |
- * | **Const** | No | Read-only access to graph edges |
+ * | Category      | Graph Modifiable? | Use Case                                        |
+ * |---------------|-------------------|-------------------------------------------------|
+ * | **Non-const** | Yes               | Can modify graph edges and structure            |
+ * | **Const**     | No                | Read-only access to graph edges                 |
  *
  * Note: Each traversal function has **both const and non-const overloads**.
  *
  * \subsection GraphTraversalEdgeVsVertex Edge-wise vs. Vertex-wise Traversal
  *
- * | Category | Operates On | Lambda Parameter | Use Case |
- * |----------|------------|------------------|----------|
- * | **Edge-wise** (`forEdges`, `forAllEdges`) | Individual edges | Edge indices & weights | Operate on each
- * edge separately |
- * | **Vertex-wise** (`forVertices`, `forAllVertices`) | Individual vertices | VertexView object | Operate on vertices
- * |
+ * | Category                                    | Operates On         | Lambda Parameter        | Use Case                               |
+ * |---------------------------------------------|---------------------|-------------------------|----------------------------------------|
+ * | **Edge-wise** (`forEdges`, `forAllEdges`)   | Individual edges    | Edge indices & weights  | Operate on each edge separately        |
+ * | **Vertex-wise** (`forVertices`, `forAllVertices`) | Individual vertices | VertexView object | Operate on vertices as units           |
  *
  * \subsection GraphTraversalScopeAndConditional Scope and Conditional Variants
  *
  * Similar to other graph operations, traversal functions have different scope and conditional variants.
  * All traversal functions follow this naming pattern: `for[All]Vertices[If]` or `for[All]Edges[If]`
  *
- * | Scope | Vertices Processed | Parameters |
- * |-------|---------------|------------|
- * | **All** | All vertices | No range/array parameters |
- * | **Range** | Vertices in [begin, end) | `begin` and `end` indices |
- * | **Array** | Specific vertices | Array of vertex indices |
- * | **If** | Vertices filtered by a condition | Process vertices based on vertex-level properties |
+ * | Scope     | Vertices Processed               | Parameters                                          |
+ * |-----------|----------------------------------|-----------------------------------------------------|
+ * | **All**   | All vertices                     | No range/array parameters                           |
+ * | **Range** | Vertices in [begin, end)         | `begin` and `end` indices                           |
+ * | **Array** | Specific vertices                | Array of vertex indices                             |
+ * | **If**    | Vertices filtered by a condition | Process vertices based on vertex-level properties   |
  *
  * \section GraphTraversalEdgeFunctions Edge-wise Traversal Functions
  *
@@ -55,14 +54,13 @@ namespace TNL::Graphs {
  *
  * \subsection GraphTraversalBasicEdgeFunctions Basic Edge Traversal
  *
- * | Function | Vertices Processed | Description | Overloads |
- * |----------|---------------|-------------|----------|
- * | \ref forAllEdges | All vertices | Process all edges connected to all vertices | const & non-const |
- * | \ref forEdges (range) | Vertices in [begin, end) | Process edges connected to vertices in given range vertex indexes  |
- * const & non-const |
- * | \ref forEdges (array) | Vertices in array | Process edges connected to specified vertices | const & non-const | | \ref
- * forAllEdgesIf | All vertices | Vertex-level condition | const & non-const | | \ref forEdgesIf | Vertices in [begin, end) |
- * Vertex-level condition | const & non-const |
+ * | Function                 | Vertices Processed        | Description                                         | Overloads         |
+ * |--------------------------|---------------------------|-----------------------------------------------------|-------------------|
+ * | \ref forAllEdges         | All vertices              | Process all edges connected to all vertices         | const & non-const |
+ * | \ref forEdges (range)    | Vertices in [begin, end)  | Process edges connected to vertices in given range  | const & non-const |
+ * | \ref forEdges (array)    | Vertices in array         | Process edges connected to specified vertices       | const & non-const |
+ * | \ref forAllEdgesIf       | All vertices              | Vertex-level condition                              | const & non-const |
+ * | \ref forEdgesIf          | Vertices in [begin, end)  | Vertex-level condition                              | const & non-const |
  *
  * Note: Edge-wise traversal functions iterates over the given set of vertices and they traverse all edges connected to
  * each vertex in parallel. Therefore some edges may be traversed twice if both source and target vertices are included in the
@@ -78,13 +76,13 @@ namespace TNL::Graphs {
  *
  * \subsection GraphTraversalBasicVertexFunctions Basic Vertex Traversal
  *
- * | Function | Vertices Processed | Description | Overloads |
- * |----------|---------------|-------------|----------|
- * | \ref forAllVertices | All vertices | Process all vertices | const & non-const |
- * | \ref forVertices (range) | Vertices in [begin, end) | Process vertices in range | const & non-const |
- * | \ref forVertices (array) | Vertices in array | Process specified vertices | const & non-const |
- * | \ref forAllVerticesIf | All vertices | Vertex-level condition | const & non-const |
- * | \ref forVerticesIf | Vertices in [begin, end) | Vertex-level condition | const & non-const |
+ * | Function                | Vertices Processed        | Description                    | Overloads         |
+ * |-------------------------|---------------------------|--------------------------------|-------------------|
+ * | \ref forAllVertices     | All vertices              | Process all vertices           | const & non-const |
+ * | \ref forVertices (range)| Vertices in [begin, end)  | Process vertices in range      | const & non-const |
+ * | \ref forVertices (array)| Vertices in array         | Process specified vertices     | const & non-const |
+ * | \ref forAllVerticesIf   | All vertices              | Vertex-level condition         | const & non-const |
+ * | \ref forVerticesIf      | Vertices in [begin, end)  | Vertex-level condition         | const & non-const |
  *
  * Note: Vertex-wise traversal functions process each vertex as a whole using \e VertexView. No vertex is processed by
  * multiple threads at the same time.
@@ -107,19 +105,20 @@ namespace TNL::Graphs {
  *
  * \section GraphTraversalUsageGuidelines Usage Guidelines
  *
- * **Performance considerations: **
+ * **Performance considerations:**
  *
  * Edge-wise traversal allows parallel processing of edges incident to the same vertex; multiple threads may therefore operate
  * on edges associated with a single vertex.
  *
  * Vertex-wise traversal assigns at most one thread to each vertex and never maps multiple threads to the same vertex. This
- * traversal mode is therefore preferred when vertex-level context or per-vertex state updates are required. *
+ * traversal mode is therefore preferred when vertex-level context or per-vertex state updates are required.
  *
  * \section GraphTraversalRelatedPages Related Pages
  *
  * - \ref GraphTraversalLambdas - Detailed lambda function signatures
  * - \ref GraphReductionOverview - Graph reduction operations
  */
+// clang-format on
 
 /**
  * \page GraphTraversalLambdas Graph Traversal Lambda Functions Reference
