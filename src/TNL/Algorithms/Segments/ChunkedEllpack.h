@@ -300,21 +300,13 @@ struct isChunkedEllpackSegments< ChunkedEllpackView< Device, Index, Organization
 template< typename Segments >
 inline constexpr bool isChunkedEllpackSegments_v = isChunkedEllpackSegments< Segments >::value;
 
-template< typename Segments >
-struct isSortedChunkedEllpackSegments : std::false_type
-{};
-
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
-struct isSortedChunkedEllpackSegments< SortedChunkedEllpack< Device, Index, IndexAllocator, Organization > > : std::true_type
+struct isSortedSegments< SortedChunkedEllpack< Device, Index, IndexAllocator, Organization > > : std::true_type
 {};
 
 template< typename Device, typename Index, ElementsOrganization Organization >
-struct isSortedChunkedEllpackSegments< SortedChunkedEllpackView< Device, Index, Organization > > : std::true_type
+struct isSortedSegments< SortedChunkedEllpackView< Device, Index, Organization > > : std::true_type
 {};
-
-//! \brief Returns true if the given type is sorted ChunkedEllpack segments.
-template< typename Segments >
-inline constexpr bool isSortedChunkedEllpackSegments_v = isSortedChunkedEllpackSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 
