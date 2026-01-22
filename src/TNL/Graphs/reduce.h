@@ -7,6 +7,7 @@
 
 namespace TNL::Graphs {
 
+// clang-format off
 /**
  * \page GraphReductionOverview Overview of Graph Reduction Functions
  *
@@ -30,10 +31,10 @@ namespace TNL::Graphs {
  *
  * \subsection GraphReductionConstVsNonConst Const vs. Non-Const Graph
  *
- * | Category | Graph Modifiable? | Use Case |
- * |----------|-------------------|----------|
- * | **Non-const** | Yes | Can modify graph edges during reduction |
- * | **Const** | No | Read-only access to graph edges |
+ * | Category      | Graph Modifiable? | Use Case                                          |
+ * |---------------|-------------------|---------------------------------------------------|
+ * | **Non-const** | Yes               | Can modify graph edges during reduction           |
+ * | **Const**     | No                | Read-only access to graph edges                   |
  *
  * Note: Each reduction function has both const and non-const overloads. The possibility
  * to modify the graph during reduction allows to fuse reduction with traversing operations
@@ -41,19 +42,19 @@ namespace TNL::Graphs {
  *
  * \subsection GraphReductionBasicVsArgument Basic vs. WithArgument Variants
  *
- * | Category | Tracks Position? | Use Case |
- * |----------|-----------------|----------|
- * | **Basic** | No | Only the reduced weight is needed (e.g., vertex sum, vertex max) |
- * | **WithArgument** | Yes | Need weight and target vertex index (e.g., max weight and where it occurs) |
+ * | Category         | Tracks Position? | Use Case                                                         |
+ * |------------------|------------------|------------------------------------------------------------------|
+ * | **Basic**        | No               | Only the reduced weight is needed (e.g., vertex sum, vertex max) |
+ * | **WithArgument** | Yes              | Need weight and target vertex index (e.g., max weight location)  |
  *
  * \subsection GraphReductionScopeAndConditionalVariants Scope and Conditional Variants (Which Vertices to Process)
  *
- * | Scope | Vertices Processed | Parameters |
- * |-------|---------------|------------|
- * | **All** | All vertices | No range/array parameters |
- * | **Range** | Vertices [begin, end) | `begin` and `end` indices |
- * | **Array** | Specific vertices | Array of vertex indices |
- * | **If** | Vertices filtered by a condition | Process vertices based on vertex-level properties |
+ * | Scope     | Vertices Processed               | Parameters                                          |
+ * |-----------|----------------------------------|-----------------------------------------------------|
+ * | **All**   | All vertices                     | No range/array parameters                           |
+ * | **Range** | Vertices [begin, end)            | `begin` and `end` indices                           |
+ * | **Array** | Specific vertices                | Array of vertex indices                             |
+ * | **If**    | Vertices filtered by a condition | Process vertices based on vertex-level properties   |
  *
  * \section GraphReductionCompleteGraph Complete Function Graph
  *
@@ -64,23 +65,23 @@ namespace TNL::Graphs {
  *
  * \subsection GraphReductionBasicFunctions Basic Reduction Functions
  *
- * | Function | Scope | Conditional | Tracks Position | Overloads |
- * |----------|-------|-------------|-----------------|----------|
- * | \ref reduceAllVertices | All | No | No | const & non-const |
- * | \ref reduceVertices (range) | Range [begin,end) | No | No | const & non-const |
- * | \ref reduceVertices (array) | Vertex array | No | No | const & non-const |
- * | \ref reduceAllVerticesIf | All | Yes | No | const & non-const |
- * | \ref reduceVerticesIf | Range [begin,end) | Yes | No | const & non-const |
+ * | Function                    | Scope             | Conditional | Tracks Position | Overloads          |
+ * |-----------------------------|-------------------|-------------|-----------------|--------------------|
+ * | \ref reduceAllVertices      | All               | No          | No              | const & non-const  |
+ * | \ref reduceVertices (range) | Range [begin,end) | No          | No              | const & non-const  |
+ * | \ref reduceVertices (array) | Vertex array      | No          | No              | const & non-const  |
+ * | \ref reduceAllVerticesIf    | All               | Yes         | No              | const & non-const  |
+ * | \ref reduceVerticesIf       | Range [begin,end) | Yes         | No              | const & non-const  |
  *
  * \subsection GraphReductionWithArgumentFunctions WithArgument Reduction Functions
  *
- * | Function | Scope | Conditional | Tracks Position | Overloads |
- * |----------|-------|-------------|-----------------|----------|
- * | \ref reduceAllVerticesWithArgument | All | No | Yes | const & non-const |
- * | \ref reduceVerticesWithArgument (range) | Range [begin,end) | No | Yes | const & non-const |
- * | \ref reduceVerticesWithArgument (array) | Vertex array | No | Yes | const & non-const |
- * | \ref reduceAllVerticesWithArgumentIf | All | Yes | Yes | const & non-const |
- * | \ref reduceVerticesWithArgumentIf | Range [begin,end) | Yes | Yes | const & non-const |
+ * | Function                               | Scope             | Conditional | Tracks Position | Overloads          |
+ * |----------------------------------------|-------------------|-------------|-----------------|--------------------|
+ * | \ref reduceAllVerticesWithArgument     | All               | No          | Yes             | const & non-const  |
+ * | \ref reduceVerticesWithArgument (range)| Range [begin,end) | No          | Yes             | const & non-const  |
+ * | \ref reduceVerticesWithArgument (array)| Vertex array      | No          | Yes             | const & non-const  |
+ * | \ref reduceAllVerticesWithArgumentIf   | All               | Yes         | Yes             | const & non-const  |
+ * | \ref reduceVerticesWithArgumentIf      | Range [begin,end) | Yes         | Yes             | const & non-const  |
  *
  * \section GraphReductionParameters Common Parameters
  *
@@ -103,6 +104,7 @@ namespace TNL::Graphs {
  * - \ref GraphReductionLambdas - Detailed lambda function signatures
  * - \ref GraphTraversalOverview - Graph traversal operations
  */
+// clang-format on
 
 /**
  * \page GraphReductionLambdas Graph Reduction Lambda Function Reference
