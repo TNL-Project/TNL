@@ -46,21 +46,21 @@ namespace TNL::Algorithms::Segments {
  *
  * | Function | Scope | Conditional | Tracks Position |
  * |----------|-------|-------------|-----------------|
- * | \ref reduceAllSegments | All | No | No |
- * | \ref reduceSegments (range) | Range [begin,end) | No | No |
- * | \ref reduceSegments (array) | Segment array | No | No |
- * | \ref reduceAllSegmentsIf | All | Yes | No |
- * | \ref reduceSegmentsIf | Range [begin,end) | Yes | No |
+ * | \ref Segments_reduceAllSegments | All | No | No |
+ * | \ref Segments_reduceSegments_range (range) | Range [begin,end) | No | No |
+ * | \ref Segments_reduceSegments_with_segment_indices (array) | Segment array | No | No |
+ * | \ref Segments_reduceAllSegmentsIf | All | Yes | No |
+ * | \ref Segments_reduceSegmentsIf | Range [begin,end) | Yes | No |
  *
  * \subsection SegmentReductionWithArgumentFunctions WithArgument Reduction Functions
  *
  * | Function | Scope | Conditional | Tracks Position |
  * |----------|-------|-------------|-----------------|
- * | \ref reduceAllSegmentsWithArgument | All | No | Yes |
- * | \ref reduceSegmentsWithArgument (range) | Range [begin,end) | No | Yes |
- * | \ref reduceSegmentsWithArgument (array) | Segment array | No | Yes |
- * | \ref reduceAllSegmentsWithArgumentIf | All | Yes | Yes |
- * | \ref reduceSegmentsWithArgumentIf | Range [begin,end) | Yes | Yes |
+ * | \ref Segments_reduceAllSegmentsWithArgument | All | No | Yes |
+ * | \ref Segments_reduceSegmentsWithArgument_range (range) | Range [begin,end) | No | Yes |
+ * | \ref Segments_reduceSegmentsWithArgument_with_segment_indices (array) | Segment array | No | Yes |
+ * | \ref Segments_reduceAllSegmentsWithArgumentIf | All | Yes | Yes |
+ * | \ref Segments_reduceSegmentsWithArgumentIf | Range [begin,end) | Yes | Yes |
  *
  * \section SegmentReductionParameters Common Parameters
  *
@@ -249,6 +249,7 @@ namespace TNL::Algorithms::Segments {
 
 /**
  * \brief Performs parallel reduction within each segment.
+ * \anchor Segments_reduceAllSegments_identity
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -266,7 +267,7 @@ namespace TNL::Algorithms::Segments {
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegments.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegments.cpp
  * \par Output
  * \include SegmentsExample_reduceSegments.out
  */
@@ -285,6 +286,7 @@ reduceAllSegments( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment.
+ * \anchor Segments_reduceAllSegments
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -299,7 +301,7 @@ reduceAllSegments( const Segments& segments,
  * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegments.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegments.cpp
  * \par Output
  * \include SegmentsExample_reduceSegments.out
  */
@@ -313,6 +315,7 @@ reduceAllSegments( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes.
+ * \anchor Segments_reduceSegments_range_identity
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -339,7 +342,7 @@ reduceAllSegments( const Segments& segments,
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegments.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegments.cpp
  * \par Output
  * \include SegmentsExample_reduceSegments.out
  */
@@ -363,6 +366,7 @@ reduceSegments( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes.
+ * \anchor Segments_reduceSegments_range
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -385,7 +389,7 @@ reduceSegments( const Segments& segments,
  * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_Basic.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegments.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegments.cpp
  * \par Output
  * \include SegmentsExample_reduceSegments.out
  */
@@ -407,6 +411,7 @@ reduceSegments( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes.
+ * \anchor Segments_reduceSegments_with_segment_indices_identity
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -427,7 +432,7 @@ reduceSegments( const Segments& segments,
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexes.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexes.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithSegmentIndexes.out
  */
@@ -449,6 +454,7 @@ reduceSegments( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes.
+ * \anchor Segments_reduceSegments_with_segment_indices
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -465,7 +471,7 @@ reduceSegments( const Segments& segments,
  * \param storer Lambda function for storing results. See \ref SegmentStorerLambda_WithIndexArray.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexes.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexes.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithSegmentIndexes.out
  */
@@ -485,6 +491,7 @@ reduceSegments( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
+ * \anchor Segments_reduceAllSegmentsIf_identity
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -507,7 +514,7 @@ reduceSegments( const Segments& segments,
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsIf.out
  */
@@ -528,6 +535,7 @@ reduceAllSegmentsIf( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
+ * \anchor Segments_reduceAllSegmentsIf
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -546,7 +554,7 @@ reduceAllSegmentsIf( const Segments& segments,
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsIf.out
  */
@@ -561,6 +569,7 @@ reduceAllSegmentsIf( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
+ * \anchor Segments_reduceSegmentsIf_identity
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -591,7 +600,7 @@ reduceAllSegmentsIf( const Segments& segments,
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsIf.out
  */
@@ -617,6 +626,7 @@ reduceSegmentsIf( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
+ * \anchor Segments_reduceSegmentsIf
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -643,7 +653,7 @@ reduceSegmentsIf( const Segments& segments,
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsIf.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsIf.out
  */
@@ -667,6 +677,7 @@ reduceSegmentsIf( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
+ * \anchor Segments_reduceAllSegmentsWithArgument_identity
  *
  * See also: \ref SegmentReductionOverview
  *  returning also the position of the element of interest.
@@ -686,7 +697,7 @@ reduceSegmentsIf( const Segments& segments,
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgument.out
  */
@@ -705,6 +716,7 @@ reduceAllSegmentsWithArgument( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
+ * \anchor Segments_reduceAllSegmentsWithArgument
  *
  * See also: \ref SegmentReductionOverview
  *  returning also the position of the element of interest.
@@ -720,7 +732,7 @@ reduceAllSegmentsWithArgument( const Segments& segments,
  * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgument.out
  */
@@ -734,6 +746,7 @@ reduceAllSegmentsWithArgument( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
+ * \anchor Segments_reduceSegmentsWithArgument_range_indentity
  *
  * See also: \ref SegmentReductionOverview
  *  returning also the position of the element of interest.
@@ -762,7 +775,7 @@ reduceAllSegmentsWithArgument( const Segments& segments,
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgument.out
  */
@@ -786,6 +799,7 @@ reduceSegmentsWithArgument( const Segments& segments,
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
  *  returning also the position of the element of interest.
+ * \anchor Segments_reduceSegmentsWithArgument_range
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -808,7 +822,7 @@ reduceSegmentsWithArgument( const Segments& segments,
  * \param storer Lambda function for storing results with local index. See \ref SegmentStorerLambda_WithLocalIdx.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgument.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgument.out
  */
@@ -825,6 +839,8 @@ reduceSegmentsWithArgument( const Segments& segments,
 /**
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes while
  *  returning also the position of the element of interest.
+ * \anchor Segments_reduceSegmentsWithArgument_with_segment_indices_identity
+ *
  * See also: \ref SegmentReductionOverview
  *
  * \tparam Segments The type of the segments.
@@ -844,7 +860,7 @@ reduceSegmentsWithArgument( const Segments& segments,
  *                 template \e getIdentity, this value must be supplied explicitly by the user.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument.out
  */
@@ -867,6 +883,7 @@ reduceSegmentsWithArgument( const Segments& segments,
 /**
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes while
  *  returning also the position of the element of interest.
+ * \anchor Segments_reduceSegmentsWithArgument_with_segment_indices
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -884,7 +901,7 @@ reduceSegmentsWithArgument( const Segments& segments,
  * SegmentStorerLambda_WithIndexArrayAndLocalIdx.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument.out
  */
@@ -905,6 +922,7 @@ reduceSegmentsWithArgument( const Segments& segments,
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
  *  returning also the position of the element of interest.
+ * \anchor Segments_reduceAllSegmentsWithArgumentIf_identity
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -928,7 +946,7 @@ reduceSegmentsWithArgument( const Segments& segments,
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
@@ -950,6 +968,7 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
  *  returning also the position of the element of interest.
+ * \anchor Segments_reduceAllSegmentsWithArgumentIf
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -976,7 +995,7 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
@@ -992,6 +1011,7 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
  *  returning also the position of the element of interest.
+ * \anchor Segments_reduceSegmentsWithArgumentIf_identity
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -1022,7 +1042,7 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
@@ -1049,6 +1069,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
  *  returning also the position of the element of interest.
+ * \anchor Segments_reduceSegmentsWithArgumentIf
  *
  * See also: \ref SegmentReductionOverview
  *
@@ -1075,7 +1096,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
  * \return The number of segments that were processed (i.e., for which the condition was true).
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceSegmentsWithArgumentIf.cpp
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
@@ -1099,6 +1120,7 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
 
 /**
  * \brief Performs a complete reduction over all segment reduction results with separate operations.
+ * \anchor Segments_reduceAll_with_identities
  *
  * This function first performs reductions within each segment using segmentFetch and segmentReduction,
  * and then reduces all segment results into a single value using resultFetch and resultReduction.
@@ -1144,6 +1166,7 @@ reduceAll( const Segments& segments,
 
 /**
  * \brief Performs a complete reduction over all segment reduction results with separate operations.
+ * \anchor Segments_reduceAll
  *
  * This function first performs reductions within each segment using segmentFetch and segmentReduction,
  * and then reduces all segment results into a single value using resultFetch and resultReduction.
@@ -1212,7 +1235,7 @@ reduceAll( const Segments& segments,
  * \return The final reduction result combining all segment reduction results.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_reduceAll.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_reduceAll.cpp
  * \par Output
  * \include SegmentsExample_reduceAll.out
  */

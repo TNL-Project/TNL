@@ -111,6 +111,7 @@ public:
     *
     * \param data is a initializer list of initializer lists representing
     * list of matrix rows.
+    * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
     * \param allocator is used for allocation of matrix elements values.
     *
     * \par Example
@@ -134,9 +135,8 @@ public:
     * \param rows is number of matrix rows.
     * \param columns is number of matrix columns.
     * \param data is a list of matrix elements values.
-    * \param realAllocator is used for allocation of matrix elements values.
     * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
-    * \param indexAllocator is used for allocation of matrix elements column indexes.
+    * \param allocator is used for allocation of matrix elements.
     *
     * \par Example
     * \include Matrices/DenseMatrix/DenseMatrixExample_Constructor_sparse_init_list.cpp
@@ -163,8 +163,7 @@ public:
     * \param columns is number of matrix columns.
     * \param map is std::map containing matrix elements.
     * \param encoding defines encoding for sparse symmetric matrices - see \ref TNL::Matrices::MatrixElementsEncoding.
-    * \param realAllocator is used for allocation of matrix elements values.
-    * \param indexAllocator is used for allocation of matrix elements column indexes.
+    * \param allocator is used for allocation of matrix elements values.
     *
     * \par Example
     * \include Matrices/DenseMatrix/DenseMatrixExample_Constructor_std_map.cpp

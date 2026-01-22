@@ -25,9 +25,10 @@
  *
  * | Function | Segments Searched | Description |
  * |----------|------------------|-------------|
- * | \ref findInAllSegments | All segments | Searches all segments in the container |
- * | \ref findInSegments (range) | Segments [begin, end) | Searches segments in a specified range |
- * | \ref findInSegments (array) | Segments in array | Searches only segments whose indices are in the provided array |
+ * | \ref Segments_findInAllSegments | All segments | Searches all segments in the container |
+ * | \ref Segments_findInSegments_range | Segments [begin, end) | Searches segments in a specified range |
+ * | \ref Segments_findInSegments_with_segment_indices | Segments in array | Searches only segments whose indices are in the
+ * provided array |
  *
  * **When to use:**
  * - Use `findInAllSegments` when you need to search through all segments
@@ -41,9 +42,10 @@
  *
  * | Function | Segments Searched | Description |
  * |----------|------------------|-------------|
- * | \ref findInAllSegmentsIf | All segments matching condition | Searches all segments that satisfy the segment condition |
- * | \ref findInSegmentsIf | Segments [begin, end) matching condition | Searches segments in range that satisfy the segment
+ * | \ref Segments_findInAllSegmentsIf | All segments matching condition | Searches all segments that satisfy the segment
  * condition |
+ * | \ref Segments_findInSegmentsIf | Segments [begin, end) matching condition | Searches segments in range that
+ * satisfy the segment condition |
  *
  * Note: The segment condition allows to skip entire segments based on segment-level properties, and so to improve
  * performance.
@@ -142,6 +144,7 @@ namespace TNL::Algorithms::Segments {
 
 /**
  * \brief In each segment, find the first occurrence of an element fulfilling specified condition.
+ * \anchor Segments_findInAllSegments
  *
  * \tparam Segments is the type of the segments.
  * \tparam Condition is the type of the lambda function expressing the condition.
@@ -153,7 +156,7 @@ namespace TNL::Algorithms::Segments {
  * \param launchConfig is the configuration for launching the kernel.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_find.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_find.cpp
  *
  * \par Output
  * \include SegmentsExample_find.out
@@ -170,6 +173,7 @@ findInAllSegments( const Segments& segments,
 
 /**
  * \brief In each segment of given range, find the first occurrence of an element fulfilling specified condition.
+ * \anchor Segments_findInSegments_range
  *
  * \tparam Segments is the type of the segments.
  * \tparam IndexBegin is the type of the index defining the range of segments to search in.
@@ -185,7 +189,7 @@ findInAllSegments( const Segments& segments,
  * \param launchConfig is the configuration for launching the kernel.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_find.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_find.cpp
  *
  * \par Output
  * \include SegmentsExample_find.out
@@ -209,6 +213,7 @@ findInSegments( const Segments& segments,
 
 /**
  * \brief In each segment within given segment indexes, find the first occurrence of an element fulfilling specified condition.
+ * \anchor Segments_findInSegments_with_segment_indices
  *
  * \tparam Segments is the type of the segments.
  * \tparam Array is the type of the array holding the segment indexes.
@@ -222,7 +227,7 @@ findInSegments( const Segments& segments,
  * \param launchConfig is the configuration for launching the kernel.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_find.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_find.cpp
  *
  * \par Output
  * \include SegmentsExample_find.out
@@ -245,6 +250,7 @@ findInSegments( const Segments& segments,
 /**
  * \brief In each segment fulfilling specified segment condition, find the first occurrence of an element fulfilling specified
  * element condition.
+ * \anchor Segments_findInAllSegmentsIf
  *
  * \tparam Segments is the type of the segments.
  * \tparam SegmentCondition is the type lambda function masking the segments to search in.
@@ -259,7 +265,7 @@ findInSegments( const Segments& segments,
  * \param launchConfig is the configuration for launching the kernel.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_find.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_find.cpp
  *
  * \par Output
  * \include SegmentsExample_find.out
@@ -278,6 +284,7 @@ findInAllSegmentsIf( const Segments& segments,
 /**
  * \brief In each segment within given range and fulfilling specified segment condition, find the first occurrence of an element
  * fulfilling specified element condition.
+ * \anchor Segments_findInSegmentsIf
  *
  * \tparam Segments is the type of the segments.
  * \tparam IndexBegin is the type of the index defining the range of segment indexes to search in.
@@ -296,7 +303,7 @@ findInAllSegmentsIf( const Segments& segments,
  * \param launchConfig is the configuration for launching the kernel.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_find.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_find.cpp
  *
  * \par Output
  * \include SegmentsExample_find.out

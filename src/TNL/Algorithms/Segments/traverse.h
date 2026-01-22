@@ -173,8 +173,9 @@ namespace TNL::Algorithms::Segments {
  * SegmentTraversalElementLambda_Brief.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
+ * \anchor Segments_forElements_range
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_forElements.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forElements.cpp
  * \par Output
  * \include SegmentsExample_forElements.out
  */
@@ -186,6 +187,7 @@ forAllElements( const Segments& segments,
 
 /**
  * \brief Iterates in parallel over all elements in the given range of segments and applies the specified lambda function.
+ * \anchor Segments_forElements_range
  *
  * See also: \ref SegmentTraversalOverview
  *
@@ -206,7 +208,7 @@ forAllElements( const Segments& segments,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_forElements.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forElements.cpp
  * \par Output
  * \include SegmentsExample_forElements.out
  */
@@ -236,7 +238,7 @@ forElements( const Segments& segments,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_forElementsWithIndexes.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forElementsWithIndexes.cpp
  * \par Output
  * \include SegmentsExample_forElementsWithIndexes.out
  */
@@ -268,7 +270,7 @@ forElements( const Segments& segments,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_forElementsIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forElementsIf.cpp
  * \par Output
  * \include SegmentsExample_forElementsIf.out
  */
@@ -308,7 +310,7 @@ forAllElementsIf( const Segments& segments,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_forElementsIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forElementsIf.cpp
  * \par Output
  * \include SegmentsExample_forElementsIf.out
  */
@@ -350,11 +352,11 @@ forElementsIfSparse( const Segments& segments,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_forSegments-1.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forSegments-1.cpp
  * \par Output
  * \include SegmentsExample_forSegments-1.out
  *
- * \include Algorithms/Segments/SegmentsExample_forSegments-2.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forSegments-2.cpp
  * \par Output
  * \include SegmentsExample_forSegments-2.out
  */
@@ -386,11 +388,11 @@ forAllSegments( const Segments& segments,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_forSegments-1.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forSegments-1.cpp
  * \par Output
  * \include SegmentsExample_forSegments-1.out
  *
- * \include Algorithms/Segments/SegmentsExample_forSegments-2.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forSegments-2.cpp
  * \par Output
  * \include SegmentsExample_forSegments-2.out
  */
@@ -424,7 +426,7 @@ forSegments( const Segments& segments,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_forSegmentsWithIndexes.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forSegmentsWithIndexes.cpp
  * \par Output
  * \include SegmentsExample_forSegmentsWithIndexes.out
  */
@@ -454,7 +456,7 @@ forSegments( const Segments& segments,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_forSegmentsIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forSegmentsIf.cpp
  * \par Output
  * \include SegmentsExample_forSegmentsIf.out
  */
@@ -493,7 +495,7 @@ forAllSegmentsIf( const Segments& segments,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_forSegmentsIf.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_forSegmentsIf.cpp
  * \par Output
  * \include SegmentsExample_forSegmentsIf.out
  */

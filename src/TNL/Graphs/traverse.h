@@ -230,7 +230,7 @@ namespace TNL::Graphs {
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdges.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdges.cpp
  * \par Output
  * \include GraphExample_forEdges.out
  */
@@ -254,7 +254,7 @@ forAllEdges( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdges.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdges.cpp
  * \par Output
  * \include GraphExample_forEdges.out
  */
@@ -285,7 +285,7 @@ forAllEdges( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdges.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdges.cpp
  * \par Output
  * \include GraphExample_forEdges.out
  */
@@ -319,7 +319,7 @@ forEdges( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdges.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdges.cpp
  * \par Output
  * \include GraphExample_forEdges.out
  */
@@ -357,7 +357,7 @@ forEdges( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdgesWithIndexes.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdgesWithIndexes.cpp
  * \par Output
  * \include GraphExample_forEdgesWithIndexes.out
  */
@@ -396,7 +396,7 @@ forEdges( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdgesWithIndexes.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdgesWithIndexes.cpp
  * \par Output
  * \include GraphExample_forEdgesWithIndexes.out
  */
@@ -427,7 +427,7 @@ forEdges( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdgesWithIndexes.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdgesWithIndexes.cpp
  * \par Output
  * \include GraphExample_forEdgesWithIndexes.out
  */
@@ -456,7 +456,7 @@ forEdges( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdgesWithIndexes.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdgesWithIndexes.cpp
  * \par Output
  * \include GraphExample_forEdgesWithIndexes.out
  */
@@ -496,7 +496,7 @@ forEdges( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdgesIf.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdgesIf.cpp
  * \par Output
  * \include GraphExample_forEdgesIf.out
  */
@@ -538,7 +538,7 @@ forEdgesIf( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdgesIf.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdgesIf.cpp
  * \par Output
  * \include GraphExample_forEdgesIf.out
  */
@@ -571,7 +571,7 @@ forEdgesIf( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdgesIf.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdgesIf.cpp
  * \par Output
  * \include GraphExample_forEdgesIf.out
  */
@@ -604,7 +604,7 @@ forAllEdgesIf( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forEdgesIf.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forEdgesIf.cpp
  * \par Output
  * \include GraphExample_forEdgesIf.out
  */
@@ -637,7 +637,7 @@ forAllEdgesIf( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVertices.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVertices.cpp
  * \par Output
  * \include GraphExample_forVertices.out
  */
@@ -675,7 +675,7 @@ forVertices( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVertices.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVertices.cpp
  * \par Output
  * \include GraphExample_forVertices.out
  */
@@ -704,7 +704,7 @@ forVertices( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVertices.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVertices.cpp
  * \par Output
  * \include GraphExample_forVertices.out
  */
@@ -729,7 +729,7 @@ forAllVertices( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVertices.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVertices.cpp
  * \par Output
  * \include GraphExample_forVertices.out
  */
@@ -765,7 +765,7 @@ forAllVertices( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVerticesWithIndexes.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVerticesWithIndexes.cpp
  * \par Output
  * \include GraphExample_forVerticesWithIndexes.out
  */
@@ -810,7 +810,7 @@ forVertices( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVerticesWithIndexes.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVerticesWithIndexes.cpp
  * \par Output
  * \include GraphExample_forVerticesWithIndexes.out
  */
@@ -847,7 +847,7 @@ forVertices( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVerticesWithIndexes.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVerticesWithIndexes.cpp
  * \par Output
  * \include GraphExample_forVerticesWithIndexes.out
  */
@@ -876,7 +876,7 @@ forVertices( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVerticesWithIndexes.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVerticesWithIndexes.cpp
  * \par Output
  * \include GraphExample_forVerticesWithIndexes.out
  */
@@ -914,7 +914,7 @@ forVertices( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVerticesIf.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVerticesIf.cpp
  * \par Output
  * \include GraphExample_forVerticesIf.out
  */
@@ -960,7 +960,7 @@ forVerticesIf( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVerticesIf.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVerticesIf.cpp
  * \par Output
  * \include GraphExample_forVerticesIf.out
  */
@@ -998,7 +998,7 @@ forVerticesIf( const Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVerticesIf.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVerticesIf.cpp
  * \par Output
  * \include GraphExample_forVerticesIf.out
  */
@@ -1029,7 +1029,7 @@ forAllVerticesIf( Graph& graph,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Graphs/Traverse/GraphExample_forVerticesIf.cpp
+ * \includelineno Graphs/Traverse/GraphExample_forVerticesIf.cpp
  * \par Output
  * \include GraphExample_forVerticesIf.out
  */

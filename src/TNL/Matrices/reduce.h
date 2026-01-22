@@ -101,7 +101,7 @@ namespace TNL::Matrices {
  *
  * Additional parameters:
  * - **Scope variants**: `begin`, `end` (range) or `rowIndexes` (array)
- * - **If variants**: `condition` lambda for row filtering (see \ref RowConditionLambda)
+ * - **If variants**: `condition` lambda for row filtering (see \ref MatrixConditionLambda)
  *
  * \section MatrixReductionUsageGuidelines Usage Guidelines
  *
@@ -364,9 +364,9 @@ reduceAllRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forAllElements.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRows.cpp
  * \par Output
- * \include MatrixExample_forAllElements.out
+ * \include MatrixExample_reduceAllRows.out
  */
 template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
@@ -394,9 +394,9 @@ reduceAllRows( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forAllElements.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRows.cpp
  * \par Output
- * \include MatrixExample_forAllElements.out
+ * \include MatrixExample_reduceAllRows.out
  */
 template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
@@ -433,9 +433,9 @@ reduceAllRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forElements.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRows.cpp
  * \par Output
- * \include MatrixExample_forElements.out
+ * \include MatrixExample_reduceRows.out
  */
 template< typename Matrix,
           typename IndexBegin,
@@ -525,9 +525,9 @@ reduceRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forElements.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRows.cpp
  * \par Output
- * \include MatrixExample_forElements.out
+ * \include MatrixExample_reduceRows.out
  */
 template< typename Matrix,
           typename IndexBegin,
@@ -571,9 +571,9 @@ reduceRows( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forElements.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRows.cpp
  * \par Output
- * \include MatrixExample_forElements.out
+ * \include MatrixExample_reduceRows.out
  */
 template< typename Matrix,
           typename IndexBegin,
@@ -609,10 +609,6 @@ reduceRows( const Matrix& matrix,
  *
  * \param matrix The matrix on which the reduction will be performed.
  * \param rowIndexes The array containing the indexes of the rows to iterate over.
- * \param begin The beginning of the interval [ \e begin, \e end ) of row indexes
- *    whose corresponding rows will be processed for reduction.
- * \param end The end of the interval [ \e begin, \e end ) of row indexes
- *    whose corresponding rows will be processed for reduction.
  * \param fetch Lambda function for fetching data. See \ref MatrixReduceFetchLambda_NonConst.
  * \param reduction Lambda function for reduction operation. See \ref MatrixReduceReductionLambda_Basic.
  * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithIndexArray.
@@ -691,9 +687,9 @@ reduceRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forRowsWithIndexes.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRows.cpp
  * \par Output
- * \include MatrixExample_forRowsWithIndexes.out
+ * \include MatrixExample_reduceRows.out
  */
 template< typename Matrix,
           typename Array,
@@ -729,9 +725,9 @@ reduceRows( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forRowsWithIndexes.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRows.cpp
  * \par Output
- * \include MatrixExample_forRowsWithIndexes.out
+ * \include MatrixExample_reduceRows.out
  */
 template< typename Matrix,
           typename Array,
@@ -770,9 +766,9 @@ reduceRows( const Matrix& matrix,
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forAllRowsIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsIf.cpp
  * \par Output
- * \include MatrixExample_forAllRowsIf.out
+ * \include MatrixExample_reduceAllRowsIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Matrix::IndexType
@@ -807,9 +803,9 @@ reduceAllRowsIf( Matrix& matrix,
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forAllRowsIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsIf.cpp
  * \par Output
- * \include MatrixExample_forAllRowsIf.out
+ * \include MatrixExample_reduceAllRowsIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Matrix::IndexType
@@ -843,9 +839,9 @@ reduceAllRowsIf( const Matrix& matrix,
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forAllRowsIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsIf.cpp
  * \par Output
- * \include MatrixExample_forAllRowsIf.out
+ * \include MatrixExample_reduceAllRowsIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
@@ -878,9 +874,9 @@ reduceAllRowsIf( Matrix& matrix,
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forAllRowsIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsIf.cpp
  * \par Output
- * \include MatrixExample_forAllRowsIf.out
+ * \include MatrixExample_reduceAllRowsIf.out
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
@@ -920,9 +916,9 @@ reduceAllRowsIf( const Matrix& matrix,
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsIf.cpp
  * \par Output
- * \include MatrixExample_forRowsIf.out
+ * \include MatrixExample_reduceRowsIf.out
  */
 template< typename Matrix,
           typename IndexBegin,
@@ -973,9 +969,9 @@ reduceRowsIf( Matrix& matrix,
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsIf.cpp
  * \par Output
- * \include MatrixExample_forRowsIf.out
+ * \include MatrixExample_reduceRowsIf.out
  */
 template< typename Matrix,
           typename IndexBegin,
@@ -1024,9 +1020,9 @@ reduceRowsIf( const Matrix& matrix,
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsIf.cpp
  * \par Output
- * \include MatrixExample_forRowsIf.out
+ * \include MatrixExample_reduceRowsIf.out
  */
 template< typename Matrix,
           typename IndexBegin,
@@ -1073,9 +1069,9 @@ reduceRowsIf( Matrix& matrix,
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsIf.cpp
  * \par Output
- * \include MatrixExample_forRowsIf.out
+ * \include MatrixExample_reduceRowsIf.out
  */
 template< typename Matrix,
           typename IndexBegin,
@@ -1114,7 +1110,7 @@ reduceRowsIf( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgument.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgument.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgument.out
  */
@@ -1148,7 +1144,7 @@ reduceAllRowsWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgument.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgument.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgument.out
  */
@@ -1180,7 +1176,7 @@ reduceAllRowsWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgument.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgument.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgument.out
  */
@@ -1211,7 +1207,7 @@ reduceAllRowsWithArgument(
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgument.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgument.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgument.out
  */
@@ -1411,7 +1407,7 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgument.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgument.cpp
  * \par Output
  * \include MatrixExample_reduceRowsWithArgument.out
  */
@@ -1454,7 +1450,7 @@ reduceRowsWithArgument( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgument.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgument.cpp
  * \par Output
  * \include MatrixExample_reduceRowsWithArgument.out
  */
@@ -1495,7 +1491,7 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgument.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgument.cpp
  * \par Output
  * \include MatrixExample_reduceRowsWithArgument.out
  */
@@ -1534,7 +1530,7 @@ reduceRowsWithArgument( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgument.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgument.cpp
  * \par Output
  * \include MatrixExample_reduceRowsWithArgument.out
  */
@@ -1576,7 +1572,7 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
@@ -1620,7 +1616,7 @@ reduceAllRowsWithArgumentIf(
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
@@ -1662,7 +1658,7 @@ reduceAllRowsWithArgumentIf(
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
@@ -1698,7 +1694,7 @@ reduceAllRowsWithArgumentIf(
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceAllRowsWithArgumentIf.cpp
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
@@ -1742,7 +1738,7 @@ reduceAllRowsWithArgumentIf(
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
  * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
@@ -1796,7 +1792,7 @@ reduceRowsWithArgumentIf(
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
  * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
@@ -1848,7 +1844,7 @@ reduceRowsWithArgumentIf(
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
  * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
@@ -1898,7 +1894,7 @@ reduceRowsWithArgumentIf(
  * \return The number of processed rows, i.e. rows for which the condition was true.
  *
  * \par Example
- * \include Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
+ * \includelineno Matrices/Reduce/MatrixExample_reduceRowsWithArgumentIf.cpp
  * \par Output
  * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
