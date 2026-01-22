@@ -311,21 +311,13 @@ struct isEllpackSegments< EllpackView< Device, Index, Organization, Alignment > 
 template< typename Segments >
 inline constexpr bool isEllpackSegments_v = isEllpackSegments< Segments >::value;
 
-template< typename Segments >
-struct isSortedEllpackSegments : std::false_type
-{};
-
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-struct isSortedEllpackSegments< SortedEllpack< Device, Index, IndexAllocator, Organization, Alignment > > : std::true_type
+struct isSortedSegments< SortedEllpack< Device, Index, IndexAllocator, Organization, Alignment > > : std::true_type
 {};
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
-struct isSortedEllpackSegments< SortedEllpackView< Device, Index, Organization, Alignment > > : std::true_type
+struct isSortedSegments< SortedEllpackView< Device, Index, Organization, Alignment > > : std::true_type
 {};
-
-//! \brief Returns true if the given type is sorted Ellpack segments.
-template< typename Segments >
-inline constexpr bool isSortedEllpackSegments_v = isSortedEllpackSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 

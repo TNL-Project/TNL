@@ -271,21 +271,13 @@ struct isAdaptiveCSRSegments< AdaptiveCSRView< Device, Index > > : std::true_typ
 template< typename Segments >
 inline constexpr bool isAdaptiveCSRSegments_v = isAdaptiveCSRSegments< Segments >::value;
 
-template< typename Segments >
-struct isSortedAdaptiveCSRSegments : std::false_type
-{};
-
 template< typename Device, typename Index, typename IndexAllocator >
-struct isSortedAdaptiveCSRSegments< SortedAdaptiveCSR< Device, Index, IndexAllocator > > : std::true_type
+struct isSortedSegments< SortedAdaptiveCSR< Device, Index, IndexAllocator > > : std::true_type
 {};
 
 template< typename Device, typename Index >
-struct isSortedAdaptiveCSRSegments< SortedAdaptiveCSRView< Device, Index > > : std::true_type
+struct isSortedSegments< SortedAdaptiveCSRView< Device, Index > > : std::true_type
 {};
-
-//! \brief Returns true if the given type is sorted AdaptiveCSR segments.
-template< typename Segments >
-inline constexpr bool isSortedAdaptiveCSRSegments_v = isSortedAdaptiveCSRSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 
