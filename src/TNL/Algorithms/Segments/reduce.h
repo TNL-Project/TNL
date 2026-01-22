@@ -746,7 +746,7 @@ reduceAllSegmentsWithArgument( const Segments& segments,
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
- * \anchor Segments_reduceSegmentsWithArgument_range_indentity
+ * \anchor Segments_reduceSegmentsWithArgument_range_identity
  *
  * See also: \ref SegmentReductionOverview
  *  returning also the position of the element of interest.
