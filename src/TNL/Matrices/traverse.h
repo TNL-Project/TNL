@@ -11,6 +11,7 @@ namespace TNL::Matrices {
 // for traversing of graphs and it currently supports sparse and dense matrices only. It should be extended to support
 // other matrix types as well. Also, documentation and examples should be added.
 
+// clang-format off
 /**
  * \page MatrixTraversalOverview Overview of Matrix Traversal Functions
  *
@@ -33,31 +34,30 @@ namespace TNL::Matrices {
  *
  * \subsection MatrixTraversalConstVsNonConst Const vs. Non-Const Matrix
  *
- * | Category | Matrix Modifiable? | Use Case |
- * |----------|-------------------|----------|
- * | **Non-const** | Yes | Can modify matrix elements and structure |
- * | **Const** | No | Read-only access to matrix elements |
+ * | Category      | Matrix Modifiable? | Use Case                                     |
+ * |---------------|--------------------|----------------------------------------------|
+ * | **Non-const** | Yes                | Can modify matrix elements and structure     |
+ * | **Const**     | No                 | Read-only access to matrix elements          |
  *
  * Note: Each traversal function has **both const and non-const overloads**.
  *
  * \subsection MatrixTraversalElementVsRow Element-wise vs. Row-wise Traversal
  *
- * | Category | Operates On | Lambda Parameter | Use Case |
- * |----------|------------|------------------|----------|
- * | **Element-wise** (`forElements`, `forAllElements`) | Individual elements | Element indices & values | Operate on each
- * element separately |
- * | **Row-wise** (`forRows`, `forAllRows`) | Whole rows | RowView object | Operate on rows as units |
+ * | Category                                           | Operates On        | Lambda Parameter        | Use Case                               |
+ * |----------------------------------------------------|--------------------|-------------------------|----------------------------------------|
+ * | **Element-wise** (`forElements`, `forAllElements`) | Individual elements| Element indices & values| Operate on each element separately     |
+ * | **Row-wise** (`forRows`, `forAllRows`)             | Whole rows         | RowView object          | Operate on rows as units               |
  *
  * \subsection MatrixTraversalScopeAndConditional Scope and Conditional Variants
  *
  * Similar to other matrix operations, traversal functions have different scope and conditional variants.
  *
- * | Scope | Rows Processed | Parameters |
- * |-------|---------------|------------|
- * | **All** | All rows | No range/array parameters |
- * | **Range** | Rows [begin, end) | `begin` and `end` indices |
- * | **Array** | Specific rows | Array of row indices |
- * | **If** | Rows filtered by a condition | Process rows based on row-level properties |
+ * | Scope     | Rows Processed               | Parameters                                     |
+ * |-----------|------------------------------|------------------------------------------------|
+ * | **All**   | All rows                     | No range/array parameters                      |
+ * | **Range** | Rows [begin, end)            | `begin` and `end` indices                      |
+ * | **Array** | Specific rows                | Array of row indices                           |
+ * | **If**    | Rows filtered by a condition | Process rows based on row-level properties     |
  *
  * \section MatrixTraversalElementFunctions Element-wise Traversal Functions
  *
@@ -65,13 +65,13 @@ namespace TNL::Matrices {
  *
  * \subsection MatrixTraversalBasicElementFunctions Basic Element Traversal
  *
- * | Function | Rows Processed | Description | Overloads |
- * |----------|---------------|-------------|----------|
- * | \ref forAllElements | All rows | Process all elements in all rows | const & non-const |
- * | \ref forElements (range) | Rows [begin, end) | Process elements in row range | const & non-const |
- * | \ref forElements (array) | Rows in array | Process elements in specified rows | const & non-const |
- * | \ref forAllElementsIf | All rows | Row-level condition | const & non-const |
- * | \ref forElementsIf | Rows [begin, end) | Row-level condition | const & non-const |
+ * | Function                | Rows Processed        | Description                               | Overloads         |
+ * |-------------------------|-----------------------|-------------------------------------------|-------------------|
+ * | \ref forAllElements     | All rows              | Process all elements in all rows          | const & non-const |
+ * | \ref forElements (range)| Rows [begin, end)     | Process elements in row range             | const & non-const |
+ * | \ref forElements (array)| Rows in array         | Process elements in specified rows        | const & non-const |
+ * | \ref forAllElementsIf   | All rows              | Row-level condition                       | const & non-const |
+ * | \ref forElementsIf      | Rows [begin, end)     | Row-level condition                       | const & non-const |
  *
  * **When to use:**
  * - Matrix elements assembly and updates
@@ -83,13 +83,13 @@ namespace TNL::Matrices {
  *
  * \subsection MatrixTraversalBasicRowFunctions Basic Row Traversal
  *
- * | Function | Rows Processed | Description | Overloads |
- * |----------|---------------|-------------|----------|
- * | \ref forAllRows | All rows | Process all rows | const & non-const |
- * | \ref forRows (range) | Rows [begin, end) | Process rows in range | const & non-const |
- * | \ref forRows (array) | Rows in array | Process specified rows | const & non-const |
- * | \ref forAllRowsIf | All rows | Row-level condition | const & non-const |
- * | \ref forRowsIf | Rows [begin, end) | Row-level condition | const & non-const |
+ * | Function             | Rows Processed        | Description                    | Overloads         |
+ * |----------------------|-----------------------|--------------------------------|-------------------|
+ * | \ref forAllRows      | All rows              | Process all rows               | const & non-const |
+ * | \ref forRows (range) | Rows [begin, end)     | Process rows in range          | const & non-const |
+ * | \ref forRows (array) | Rows in array         | Process specified rows         | const & non-const |
+ * | \ref forAllRowsIf    | All rows              | Row-level condition            | const & non-const |
+ * | \ref forRowsIf       | Rows [begin, end)     | Row-level condition            | const & non-const |
  *
  * **When to use:**
  * - Row-level operations (scaling, normalization)
@@ -226,6 +226,7 @@ namespace TNL::Matrices {
  *
  * - \ref MatrixTraversalOverview - Overview of matrix traversal functions
  */
+// clang-format on
 
 /**
  * \brief Iterates in parallel over all elements of **all** matrix rows and applies the specified lambda function.

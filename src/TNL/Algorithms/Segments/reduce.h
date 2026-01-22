@@ -9,6 +9,7 @@
 
 namespace TNL::Algorithms::Segments {
 
+// clang-format off
 /**
  * \page SegmentReductionOverview Overview of Segment Reduction Functions
  *
@@ -23,19 +24,19 @@ namespace TNL::Algorithms::Segments {
  *
  * \subsection SegmentReductionBasicVsArgument Basic vs. WithArgument Variants
  *
- * | Category | Tracks Position? | Use Case |
- * |----------|-----------------|----------|
- * | **Basic** | No | Only the reduced value is needed (e.g., sum, product) |
- * | **WithArgument** | Yes | Need both the value and its position (e.g., max value and where it occurs) |
+ * | Category         | Tracks Position? | Use Case                                                                   |
+ * |------------------|------------------|----------------------------------------------------------------------------|
+ * | **Basic**        | No               | Only the reduced value is needed (e.g., sum, product)                      |
+ * | **WithArgument** | Yes              | Need both the value and its position (e.g., max value and where it occurs) |
  *
  * \subsection SegmentReductionScopeAndConditionalVariants Scope and Conditional Variants (Which Segments to Process)
  *
- * | Scope | Segments Processed | Parameters |
- * |-------|-------------------|------------|
- * | **All** | All segments | No range/array parameters |
- * | **Range** | Segments [begin, end) | `begin` and `end` indices |
- * | **Array** | Specific segments | Array of segment indices |
- * | **If** | Segment condition | Process segments based on segment-level properties |
+ * | Scope     | Segments Processed    | Parameters                                         |
+ * |-----------|-----------------------|----------------------------------------------------|
+ * | **All**   | All segments          | No range/array parameters                          |
+ * | **Range** | Segments [begin, end) | `begin` and `end` indices                          |
+ * | **Array** | Specific segments     | Array of segment indices                           |
+ * | **If**    | Segment condition     | Process segments based on segment-level properties |
  *
  * \section SegmentReductionCompleteMatrix Complete Function Matrix
  *
@@ -44,23 +45,23 @@ namespace TNL::Algorithms::Segments {
  *
  * \subsection SegmentReductionBasicFunctions Basic Reduction Functions
  *
- * | Function | Scope | Conditional | Tracks Position |
- * |----------|-------|-------------|-----------------|
- * | \ref Segments_reduceAllSegments | All | No | No |
- * | \ref Segments_reduceSegments_range (range) | Range [begin,end) | No | No |
- * | \ref Segments_reduceSegments_with_segment_indices (array) | Segment array | No | No |
- * | \ref Segments_reduceAllSegmentsIf | All | Yes | No |
- * | \ref Segments_reduceSegmentsIf | Range [begin,end) | Yes | No |
+ * | Function                                                  | Scope               | Conditional | Tracks Position |
+ * |-----------------------------------------------------------|---------------------|-------------|-----------------|
+ * | \ref Segments_reduceAllSegments                           | All                 | No          | No              |
+ * | \ref Segments_reduceSegments_range (range)                | Range [begin,end)   | No          | No              |
+ * | \ref Segments_reduceSegments_with_segment_indices (array) | Segment array       | No          | No              |
+ * | \ref Segments_reduceAllSegmentsIf                         | All                 | Yes         | No              |
+ * | \ref Segments_reduceSegmentsIf                            | Range [begin,end)   | Yes         | No              |
  *
  * \subsection SegmentReductionWithArgumentFunctions WithArgument Reduction Functions
  *
- * | Function | Scope | Conditional | Tracks Position |
- * |----------|-------|-------------|-----------------|
- * | \ref Segments_reduceAllSegmentsWithArgument | All | No | Yes |
- * | \ref Segments_reduceSegmentsWithArgument_range (range) | Range [begin,end) | No | Yes |
- * | \ref Segments_reduceSegmentsWithArgument_with_segment_indices (array) | Segment array | No | Yes |
- * | \ref Segments_reduceAllSegmentsWithArgumentIf | All | Yes | Yes |
- * | \ref Segments_reduceSegmentsWithArgumentIf | Range [begin,end) | Yes | Yes |
+ * | Function                                                              | Scope             | Conditional | Tracks Position |
+ * |-----------------------------------------------------------------------|-------------------|-------------|-----------------|
+ * | \ref Segments_reduceAllSegmentsWithArgument                           | All               | No          | Yes             |
+ * | \ref Segments_reduceSegmentsWithArgument_range (range)                | Range [begin,end) | No          | Yes             |
+ * | \ref Segments_reduceSegmentsWithArgument_with_segment_indices (array) | Segment array     | No          | Yes             |
+ * | \ref Segments_reduceAllSegmentsWithArgumentIf                         | All               | Yes         | Yes             |
+ * | \ref Segments_reduceSegmentsWithArgumentIf                            | Range [begin,end) | Yes         | Yes             |
  *
  * \section SegmentReductionParameters Common Parameters
  *
@@ -94,6 +95,7 @@ namespace TNL::Algorithms::Segments {
  * - \ref ReductionFunctionObjects - Pre-defined reduction function objects
  * - \ref ReductionFunctionObjectsWithArgument - Reduction objects with position tracking
  */
+// clang-format on
 
 /**
  * \page SegmentReductionLambdas Segment Reduction Lambda Function Reference
