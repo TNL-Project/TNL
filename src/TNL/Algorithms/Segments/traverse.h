@@ -173,7 +173,7 @@ namespace TNL::Algorithms::Segments {
  * SegmentTraversalElementLambda_Brief.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
- * \anchor Segments_forElements_range
+ * \anchor Segments_forAllElements
  * \par Example
  * \includelineno Algorithms/Segments/SegmentsExample_forElements.cpp
  * \par Output
