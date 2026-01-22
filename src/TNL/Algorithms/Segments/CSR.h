@@ -216,21 +216,13 @@ struct isCSRSegments< CSRView< Device, Index > > : std::true_type
 template< typename Segments >
 inline constexpr bool isCSRSegments_v = isCSRSegments< Segments >::value;
 
-template< typename Segments >
-struct isSortedCSRSegments : std::false_type
-{};
-
 template< typename Device, typename Index, typename IndexAllocator >
-struct isSortedCSRSegments< SortedSegments< CSR< Device, Index, IndexAllocator > > > : std::true_type
+struct isSortedSegments< SortedSegments< CSR< Device, Index, IndexAllocator > > > : std::true_type
 {};
 
 template< typename Device, typename Index >
-struct isSortedCSRSegments< SortedCSRView< Device, Index > > : std::true_type
+struct isSortedSegments< SortedCSRView< Device, Index > > : std::true_type
 {};
-
-//! \brief Returns true if the given type is sorted CSR segments.
-template< typename Segments >
-inline constexpr bool isSortedCSRSegments_v = isSortedCSRSegments< Segments >::value;
 
 }  // namespace TNL::Algorithms::Segments
 
