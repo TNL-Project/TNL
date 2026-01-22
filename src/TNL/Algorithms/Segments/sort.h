@@ -24,9 +24,10 @@
  *
  * | Function | Segments Sorted | Description |
  * |----------|----------------|-------------|
- * | \ref sortAllSegments | All segments | Sorts all segments in the container |
- * | \ref sortSegments (range) | Segments [begin, end) | Sorts segments in a specified range |
- * | \ref sortSegments (array) | Segments in array | Sorts only segments whose indices are in the provided array |
+ * | \ref Segments_sortAllSegments | All segments | Sorts all segments in the container |
+ * | \ref Segments_sortSegments_range (range) | Segments [begin, end) | Sorts segments in a specified range |
+ * | \ref Segments_sortSegments_with_segment_indices (array) | Segments in array | Sorts only segments whose indices are in the
+ * provided array |
  *
  * **When to use:**
  * - Use `sortAllSegments` when you need to sort all segments
@@ -39,9 +40,9 @@
  *
  * | Function | Segments Sorted | Description |
  * |----------|----------------|-------------|
- * | \ref sortAllSegmentsIf | All segments matching condition | Sorts all segments that satisfy the segment condition |
- * | \ref sortSegmentsIf | Segments [begin, end) matching condition | Sorts segments in range that satisfy the segment condition
- * |
+ * | \ref Segments_sortAllSegmentsIf | All segments matching condition | Sorts all segments that satisfy the segment condition |
+ * | \ref Segments_sortSegmentsIf_range | Segments [begin, end) matching condition | Sorts segments in range that satisfy the
+ * segment condition |
  *
  * **When to use:**
  * - Use these variants when you want to skip sorting certain segments based on segment-level properties
@@ -50,7 +51,7 @@
  *
  * | Function | Purpose |
  * |----------|---------|
- * | \ref segmentInsertionSort | Sorts a single segment view using insertion sort |
+ * | \ref Segments_segmentInsertionSort | Sorts a single segment view using insertion sort |
  *
  * **When to use:**
  * - Use this when you have a `SegmentView` object and need fine-grained control
@@ -163,6 +164,7 @@
 namespace TNL::Algorithms::Segments {
 /**
  * \brief Sort elements within all segments.
+ * \anchor Segments_sortAllSegments
  *
  * This is a convenience function that sorts elements in all segments. It internally
  * calls \e sortSegments with the full range of segments.
@@ -191,6 +193,7 @@ sortAllSegments( const Segments& segments,
 
 /**
  * \brief Sort elements within specified segments in a range.
+ * \anchor Segments_sortSegments_range
  *
  * This function sorts elements within segments in the range [\e begin, \e end). Each segment
  * is sorted independently using insertion sort. The sorting is performed based on the
@@ -213,7 +216,7 @@ sortAllSegments( const Segments& segments,
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_sort.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_sort.cpp
  *
  * \par Output
  * \include SegmentsExample_sort.out
@@ -236,6 +239,7 @@ sortSegments( const Segments& segments,
 
 /**
  * \brief Sort elements within all segments specified by a segment index array.
+ * \anchor Segments_sortSegments_with_segment_indices
  *
  * This is a convenience function that sorts elements in all segments specified by
  * the \e segmentIndexes array. It internally calls \e sortSegments with the full range
@@ -273,6 +277,7 @@ sortSegments( const Segments& segments,
 
 /**
  * \brief Sort elements within all segments that satisfy a condition.
+ * \anchor Segments_sortAllSegmentsIf
  *
  * This is a convenience function that sorts elements in all segments that satisfy
  * the given condition. It internally calls \e sortSegmentsIf with the full range of segments.
@@ -304,6 +309,7 @@ sortAllSegmentsIf( const Segments& segments,
 
 /**
  * \brief Sort elements within segments that satisfy a condition.
+ * \anchor Segments_sortSegmentsIf_range
  *
  * This function sorts elements within segments in the range [\e begin, \e end) that satisfy
  * the given condition. Each qualifying segment is sorted independently using insertion sort.
@@ -348,6 +354,7 @@ sortSegmentsIf( const Segments& segments,
 
 /**
  * \brief Sorts a segment using insertion sort.
+ * \anchor Segments_segmentInsertionSort
  *
  * This function sorts the elements of a segment using insertion sort algorithm.
  *

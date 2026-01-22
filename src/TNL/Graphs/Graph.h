@@ -147,7 +147,9 @@ struct Graph
     * entries for each edge.
     *
     * \par Example
-    * See \ref GraphExample_Constructors.cpp for detailed examples of graph construction.
+    * \includelineno Graphs/GraphExample_Constructors.cpp
+    * \par Output
+    * \include GraphExample_Constructors.out
     */
    Graph( IndexType vertexCount,
           const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
@@ -169,7 +171,9 @@ struct Graph
     * Zero-weighted edges does not indicate the absence of an edge in the logical graph structure.
     *
     * \par Example
-    * See \ref GraphExample_Constructors.cpp for detailed examples including dense matrix construction.
+    * \includelineno Graphs/GraphExample_Constructors.cpp
+    * \par Output
+    * \include GraphExample_Constructors.out
     */
    template< typename T = AdjacencyMatrixType, typename C = std::enable_if_t< Matrices::is_dense_matrix_v< T > > >
    Graph( const std::initializer_list< std::initializer_list< ValueType > >& data,
@@ -190,7 +194,9 @@ struct Graph
     * entries for each edge.
     *
     * \par Example
-    * See \ref GraphExample_Constructors.cpp for detailed examples of graph construction.
+    * \includelineno Graphs/GraphExample_Constructors.cpp
+    * \par Output
+    * \include GraphExample_Constructors.out
     */
    template< typename MapIndex, typename MapValue >
    Graph( IndexType vertexCount,
@@ -302,7 +308,9 @@ struct Graph
     * See \ref TNL::Matrices::SparseMatrix::setElements for details on how the \e encoding parameter works.
     *
     * \par Example
-    * See \ref GraphExample_setEdges.cpp for examples of using setEdges with maps and initializer lists.
+    * \includelineno Graphs/GraphExample_setEdges.cpp
+    * \par Output
+    * \include GraphExample_setEdges.out
     */
    template< typename MapIndex, typename MapValue >
    void

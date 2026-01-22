@@ -241,7 +241,7 @@ namespace TNL::Matrices {
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElements.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElements.cpp
  * \par Output
  * \include MatrixExample_forElements.out
  */
@@ -265,7 +265,7 @@ forAllElements( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElements.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElements.cpp
  * \par Output
  * \include MatrixExample_forElements.out
  */
@@ -296,7 +296,7 @@ forAllElements( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElements.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElements.cpp
  * \par Output
  * \include MatrixExample_forElements.out
  */
@@ -330,7 +330,7 @@ forElements( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElements.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElements.cpp
  * \par Output
  * \include MatrixExample_forElements.out
  */
@@ -368,7 +368,7 @@ forElements( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forElementsWithIndexes.out
  */
@@ -407,7 +407,7 @@ forElements( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forElementsWithIndexes.out
  */
@@ -438,7 +438,7 @@ forElements( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forElementsWithIndexes.out
  */
@@ -467,7 +467,7 @@ forElements( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forElementsWithIndexes.out
  */
@@ -507,7 +507,7 @@ forElements( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsIf.cpp
  * \par Output
  * \include MatrixExample_forElementsIf.out
  */
@@ -549,7 +549,7 @@ forElementsIf( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsIf.cpp
  * \par Output
  * \include MatrixExample_forElementsIf.out
  */
@@ -582,7 +582,7 @@ forElementsIf( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsIf.cpp
  * \par Output
  * \include MatrixExample_forElementsIf.out
  */
@@ -615,7 +615,7 @@ forAllElementsIf( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forElementsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forElementsIf.cpp
  * \par Output
  * \include MatrixExample_forElementsIf.out
  */
@@ -648,11 +648,11 @@ forAllElementsIf( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRows-1.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-1.cpp
  * \par Output
  * \include MatrixExample_forRows-1.out
  *
- * \include Matrices/Traverse/MatrixExample_forRows-2.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-2.cpp
  * \par Output
  * \include MatrixExample_forRows-2.out
  */
@@ -690,11 +690,11 @@ forRows( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRows-1.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-1.cpp
  * \par Output
  * \include MatrixExample_forRows-1.out
  *
- * \include Matrices/Traverse/MatrixExample_forRows-2.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-2.cpp
  * \par Output
  * \include MatrixExample_forRows-2.out
  */
@@ -723,11 +723,11 @@ forRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRows-1.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-1.cpp
  * \par Output
  * \include MatrixExample_forRows-1.out
  *
- * \include Matrices/Traverse/MatrixExample_forRows-2.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-2.cpp
  * \par Output
  * \include MatrixExample_forRows-2.out
  */
@@ -752,11 +752,11 @@ forAllRows( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRows-1.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-1.cpp
  * \par Output
  * \include MatrixExample_forRows-1.out
  *
- * \include Matrices/Traverse/MatrixExample_forRows-2.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRows-2.cpp
  * \par Output
  * \include MatrixExample_forRows-2.out
  */
@@ -792,7 +792,7 @@ forAllRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forRowsWithIndexes.out
  */
@@ -837,7 +837,7 @@ forRows( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forRowsWithIndexes.out
  */
@@ -874,7 +874,7 @@ forRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forRowsWithIndexes.out
  */
@@ -903,7 +903,7 @@ forRows( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsWithIndexes.cpp
  * \par Output
  * \include MatrixExample_forRowsWithIndexes.out
  */
@@ -941,7 +941,7 @@ forRows( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsIf.cpp
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */
@@ -987,7 +987,7 @@ forRowsIf( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsIf.cpp
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */
@@ -1025,7 +1025,7 @@ forRowsIf( const Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsIf.cpp
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */
@@ -1056,7 +1056,7 @@ forAllRowsIf( Matrix& matrix,
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  *
  * \par Example
- * \include Matrices/Traverse/MatrixExample_forRowsIf.cpp
+ * \includelineno Matrices/Traverse/MatrixExample_forRowsIf.cpp
  * \par Output
  * \include MatrixExample_forRowsIf.out
  */

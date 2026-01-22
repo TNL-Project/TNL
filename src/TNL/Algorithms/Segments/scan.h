@@ -24,12 +24,12 @@
  *
  * | Function | Segments Scanned | Scan Type |
  * |----------|-----------------|-----------|
- * | \ref inclusiveScanAllSegments | All segments | Inclusive |
- * | \ref exclusiveScanAllSegments | All segments | Exclusive |
- * | \ref inclusiveScanSegments (range) | Segments [begin, end) | Inclusive |
- * | \ref exclusiveScanSegments (range) | Segments [begin, end) | Exclusive |
- * | \ref inclusiveScanSegments (array) | Segments in array | Inclusive |
- * | \ref exclusiveScanSegments (array) | Segments in array | Exclusive |
+ * | \ref Segments_inclusiveScanAllSegments | All segments | Inclusive |
+ * | \ref Segments_exclusiveScanAllSegments | All segments | Exclusive |
+ * | \ref Segments_inclusiveScanSegments_range (range) | Segments [begin, end) | Inclusive |
+ * | \ref Segments_exclusiveScanSegments_range (range) | Segments [begin, end) | Exclusive |
+ * | \ref Segments_inclusiveScanSegments_with_segment_indices (array) | Segments in array | Inclusive |
+ * | \ref Segments_exclusiveScanSegments_with_segment_indices (array) | Segments in array | Exclusive |
  *
  * **When to use:**
  * - Use `*AllSegments` when you need to scan all segments
@@ -42,10 +42,10 @@
  *
  * | Function | Segments Scanned | Scan Type |
  * |----------|-----------------|-----------|
- * | \ref inclusiveScanAllSegmentsIf | All segments | Inclusive with segment filter |
- * | \ref exclusiveScanAllSegmentsIf | All segments | Exclusive with segment filter |
- * | \ref inclusiveScanSegmentsIf | Segments [begin, end) | Inclusive with segment filter |
- * | \ref exclusiveScanSegmentsIf | Segments [begin, end) | Exclusive with segment filter |
+ * | \ref Segments_inclusiveScanAllSegmentsIf | All segments | Inclusive with segment filter |
+ * | \ref Segments_exclusiveScanAllSegmentsIf | All segments | Exclusive with segment filter |
+ * | \ref Segments_inclusiveScanSegmentsIf_range | Segments [begin, end) | Inclusive with segment filter |
+ * | \ref Segments_exclusiveScanSegmentsIf_range | Segments [begin, end) | Exclusive with segment filter |
  *
  * **When to use:**
  * - Use these when you want to skip certain elements within segments
@@ -55,8 +55,8 @@
  *
  * | Function | Purpose |
  * |----------|---------|
- * | \ref inclusiveScanSegment | Computes inclusive scan for a single segment view |
- * | \ref exclusiveScanSegment | Computes exclusive scan for a single segment view |
+ * | \ref Segments_inclusiveScanSegment | Computes inclusive scan for a single segment view |
+ * | \ref Segments_exclusiveScanSegment | Computes exclusive scan for a single segment view |
  *
  * **When to use:**
  * - Use these when you have a `SegmentView` object and need fine-grained control
@@ -180,6 +180,7 @@ namespace TNL::Algorithms::Segments {
 
 /**
  * \brief Compute inclusive prefix-sum (scan) within all segments.
+ * \anchor Segments_inclusiveScanAllSegments
  *
  * This is a convenience function that computes inclusive prefix-sum in all segments. It internally
  * calls \e inclusiveScanSegments with the full range of segments.
@@ -196,7 +197,7 @@ namespace TNL::Algorithms::Segments {
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_scan.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_scan.cpp
  *
  * \par Output
  * \include SegmentsExample_scan.out
@@ -211,6 +212,7 @@ inclusiveScanAllSegments( const Segments& segments,
 
 /**
  * \brief Compute exclusive prefix-sum (scan) within all segments.
+ * \anchor Segments_exclusiveScanAllSegments
  *
  * This is a convenience function that computes exclusive prefix-sum in all segments. It internally
  * calls \e exclusiveScanSegments with the full range of segments.
@@ -227,7 +229,7 @@ inclusiveScanAllSegments( const Segments& segments,
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_scan.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_scan.cpp
  *
  * \par Output
  * \include SegmentsExample_scan.out
@@ -242,6 +244,7 @@ exclusiveScanAllSegments( const Segments& segments,
 
 /**
  * \brief Compute inclusive prefix-sum (scan) within specified segments in a range.
+ * \anchor Segments_inclusiveScanSegments_range
  *
  * This function computes inclusive prefix-sum within segments in the range [ \e begin, \e end).
  * Each segment is processed independently using sequential scan. The scan operation
@@ -263,7 +266,7 @@ exclusiveScanAllSegments( const Segments& segments,
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_scan.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_scan.cpp
  *
  * \par Output
  * \include SegmentsExample_scan.out
@@ -287,6 +290,7 @@ inclusiveScanSegments( const Segments& segments,
 
 /**
  * \brief Compute exclusive prefix-sum (scan) within specified segments in a range.
+ * \anchor Segments_exclusiveScanSegments_range
  *
  * This function computes exclusive prefix-sum within segments in the range [ \e begin, \e end).
  * Each segment is processed independently using sequential scan. The scan operation
@@ -308,7 +312,7 @@ inclusiveScanSegments( const Segments& segments,
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_scan.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_scan.cpp
  *
  * \par Output
  * \include SegmentsExample_scan.out
@@ -332,6 +336,7 @@ exclusiveScanSegments( const Segments& segments,
 
 /**
  * \brief Compute inclusive prefix-sum (scan) within segments specified by a segment index array.
+ * \anchor Segments_inclusiveScanSegments_with_segment_indices
  *
  * This is a convenience function that computes inclusive prefix-sum in segments specified by the \e segmentIndexes array.
  * It internally calls \e inclusiveScanSegments with the full range of the segment index array.
@@ -350,7 +355,7 @@ exclusiveScanSegments( const Segments& segments,
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_scan.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_scan.cpp
  *
  * \par Output
  * \include SegmentsExample_scan.out
@@ -366,6 +371,7 @@ inclusiveScanSegments( const Segments& segments,
 
 /**
  * \brief Compute exclusive prefix-sum (scan) within all segments specified by a segment index array.
+ * \anchor Segments_exclusiveScanSegments_with_segment_indices
  *
  * This is a convenience function that computes exclusive prefix-sum in all segments specified by the \e segmentIndexes array.
  * It internally calls \e exclusiveScanSegments with the full range of the segment index array.
@@ -384,7 +390,7 @@ inclusiveScanSegments( const Segments& segments,
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_scan.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_scan.cpp
  *
  * \par Output
  * \include SegmentsExample_scan.out
@@ -399,6 +405,7 @@ exclusiveScanSegments( const Segments& segments,
                        LaunchConfiguration launchConfig = LaunchConfiguration() );
 /**
  * \brief Compute inclusive conditional prefix-sum (scan) within all segments.
+ * \anchor Segments_inclusiveScanAllSegmentsIf
  *
  * This is a convenience function that computes inclusive prefix-sum in all segments,
  * but only for elements that satisfy the given condition. It internally calls
@@ -418,7 +425,7 @@ exclusiveScanSegments( const Segments& segments,
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_scan.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_scan.cpp
  *
  * \par Output
  * \include SegmentsExample_scan.out
@@ -434,6 +441,7 @@ inclusiveScanAllSegmentsIf( const Segments& segments,
 
 /**
  * \brief Compute exclusive conditional prefix-sum (scan) within all segments.
+ * \anchor Segments_exclusiveScanAllSegmentsIf
  *
  * This is a convenience function that computes exclusive prefix-sum in all segments,
  * but only for elements that satisfy the given condition. It internally calls
@@ -453,7 +461,7 @@ inclusiveScanAllSegmentsIf( const Segments& segments,
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_scan.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_scan.cpp
  *
  * \par Output
  * \include SegmentsExample_scan.out
@@ -469,6 +477,7 @@ exclusiveScanAllSegmentsIf( const Segments& segments,
 
 /**
  * \brief Computes an inclusive scan (or prefix sum) within a segment.
+ * \anchor Segments_inclusiveScanSegment
  *
  * \tparam SegmentView Type of the segment view.
  * \tparam Fetch Type of the fetch function.
@@ -487,6 +496,7 @@ inclusiveScanSegment( SegmentView& segment, Fetch&& fetch, Reduce&& reduce, Writ
 
 /**
  * \brief Computes an exclusive scan (or prefix sum) within a segment.
+ * \anchor Segments_exclusiveScanSegment
  *
  * \tparam SegmentView Type of the segment view.
  * \tparam Fetch Type of the fetch function.
@@ -505,6 +515,7 @@ exclusiveScanSegment( SegmentView& segment, Fetch&& fetch, Reduce&& reduce, Writ
 
 /**
  * \brief Compute inclusive conditional prefix-sum (scan) within specified segments in a range.
+ * \anchor Segments_inclusiveScanSegmentsIf_range
  *
  * This function computes inclusive prefix-sum within segments in the range [ \e begin, \e end),
  * but only for elements that satisfy the given condition. Each segment is processed
@@ -528,7 +539,7 @@ exclusiveScanSegment( SegmentView& segment, Fetch&& fetch, Reduce&& reduce, Writ
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_scan.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_scan.cpp
  *
  * \par Output
  * \include SegmentsExample_scan.out
@@ -553,6 +564,7 @@ inclusiveScanSegmentsIf( const Segments& segments,
 
 /**
  * \brief Compute exclusive conditional prefix-sum (scan) within specified segments in a range.
+ * \anchor Segments_exclusiveScanSegmentsIf_range
  *
  * This function computes exclusive prefix-sum within segments in the range [ \e begin, \e end),
  * but only for elements that satisfy the given condition. Each segment is processed
@@ -576,7 +588,7 @@ inclusiveScanSegmentsIf( const Segments& segments,
  * \param launchConfig Configuration for parallel execution.
  *
  * \par Example
- * \include Algorithms/Segments/SegmentsExample_scan.cpp
+ * \includelineno Algorithms/Segments/SegmentsExample_scan.cpp
  *
  * \par Output
  * \include SegmentsExample_scan.out

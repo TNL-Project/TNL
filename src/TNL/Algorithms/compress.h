@@ -123,6 +123,7 @@ compress( const MarksVector& marksVector, BeginIndex begin = 0, EndIndex end = 0
  * \tparam MarksVector is the type of the input vector.
  * \tparam OutputVector is the type of the output vector.
  * \param marksVector is the input vector.
+ * \param outputVector is the output vector.
  * \param begin  is the beginning of the range.
  * \param end is the end of the range.
  * \return OutputVector is the output vector containing indices of marks equal to 1 or true.
@@ -195,6 +196,7 @@ compressFast( MarksVector& marksVector, BeginIndex begin = 0, EndIndex end = 0 )
  * \tparam MarksVector is the type of the input vector.
  * \tparam OutputVector is the type of the output vector.
  * \param marksVector is the input vector.
+ * \param outputVector is the output vector.
  * \param begin  is the beginning of the range.
  * \param end is the end of the range.
  * \return OutputVector is the output vector containing indices of marks equal to 1 or true.

@@ -13,8 +13,6 @@ namespace TNL::Graphs {
  * GraphView provides a lightweight, non-owning view of a Graph object. It can be used to access
  * graph data without copying, making it efficient for passing graphs to functions or kernels.
  *
- * \par Examples
- * See \ref GraphExample_Constructors.cpp and \ref GraphExample_VertexView.cpp for usage examples.
  */
 template< typename Value, typename Device, typename Index, typename Orientation, typename AdjacencyMatrix >
 struct GraphView
