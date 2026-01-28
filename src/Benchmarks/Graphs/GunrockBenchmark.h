@@ -36,9 +36,9 @@ struct GunrockBenchmark
       TNL::Algorithms::copy( values, adjacencyMatrix.getValues() );
 
       thrust::device_vector< IndexType > d_rowOffsets( adjacencyMatrix.getRows() + 1 );
-      thrust::device_vector< IndexType > d_columnIndices( adjacencyMatrix.getNonzeroElementsCount() );
-      thrust::device_vector< RealType > d_values( adjacencyMatrix.getNonzeroElementsCount() );
-      thrust::device_vector< IndexType > d_rowIndices( adjacencyMatrix.getNonzeroElementsCount() );
+      thrust::device_vector< IndexType > d_columnIndices( adjacencyMatrix.getColumnIndexes().getSize() );
+      thrust::device_vector< RealType > d_values( adjacencyMatrix.getValues().getSize() );
+      thrust::device_vector< IndexType > d_rowIndices( adjacencyMatrix.getValues().getSize() );
       thrust::device_vector< IndexType > d_columnOffsets( adjacencyMatrix.getColumns() + 1 );
 
       thrust::copy( rowOffsets.begin(), rowOffsets.end(), d_rowOffsets.begin() );
@@ -76,6 +76,7 @@ struct GunrockBenchmark
          gunrock::bfs::run( graph, start, d_distances.data().get(), d_predecessors.data().get() );
       };
       benchmark.time< TNL::Devices::Cuda >( "cuda", bfs_gunrock );
+      TNL_ASSERT_EQ( d_distances.size(), distances.size(), "Size mismatch in Gunrock BFS distances." );
       thrust::copy( d_distances.begin(), d_distances.end(), distances.begin() );
 #endif
    }
@@ -97,6 +98,7 @@ struct GunrockBenchmark
          gunrock::sssp::run( graph, start, d_distances.data().get(), d_predecessors.data().get() );
       };
       benchmark.time< TNL::Devices::Cuda >( "cuda", bfs_gunrock );
+      TNL_ASSERT_EQ( d_distances.size(), distances.size(), "Size mismatch in Gunrock BFS distances." );
       thrust::copy( d_distances.begin(), d_distances.end(), distances.begin() );
 #endif
    }

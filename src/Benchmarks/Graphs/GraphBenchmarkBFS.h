@@ -123,11 +123,12 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       benchmark.setMetadataElement( { "problem", "BFS dir" } );
       benchmark.setMetadataElement( { "format", "N/A" } );
 
-      std::vector< Index > bfsDistances;
-      gunrockBenchmark.breadthFirstSearch( benchmark, gunrockGraph, largestNode, digraph.getVertexCount(), bfsDistances );
+      std::vector< Index > bfsDistances( digraph.getVertexCount() );
+      benchmark.setCatchExceptions( false );
+      gunrockBenchmark.breadthFirstSearch( benchmark, gunrockDigraph, largestNode, digraph.getVertexCount(), bfsDistances );
 
       // Convert and normalize distances
-      this->gunrockBfsDistancesDirected = HostIndexVector( bfsDistances );
+      this->gunrockBfsDistancesDirected = bfsDistances;
       this->gunrockBfsDistancesDirected.forAllElements(
          [] __cuda_callable__( Index i, Index & x )
          {
@@ -147,7 +148,14 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       benchmark.setMetadataElement( { "problem", "BFS undir" } );
       benchmark.setMetadataElement( { "threads mapping", "" } );
 
-      gunrockBenchmark.breadthFirstSearch( benchmark, gunrockGraph, largestNode, graph.getVertexCount(), bfsDistances );
+      try {
+         gunrockBenchmark.breadthFirstSearch( benchmark, gunrockGraph, largestNode, graph.getVertexCount(), bfsDistances );
+      }
+      catch( const std::exception& e ) {
+         std::cerr << "Gunrock BFS on undirected graph failed: " << e.what() << std::endl;
+         this->errors++;
+         return;
+      }
 
       // Convert and normalize distances
       this->gunrockBfsDistancesUndirected = HostIndexVector( bfsDistances );
@@ -259,6 +267,12 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
             semiringBFS( digraph, largestNode, semiringBfsDistances );
          };
          benchmark.time< Device >( device, semiring_bfs_dir );
+#ifdef HAVE_BOOST
+         if( withBoost && semiringBfsDistances != this->boostBfsDistancesUndirected ) {
+            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << '\n';
+            this->errors++;
+         }
+#endif
 
          // Benchmarking semiring-based BFS with undirected graph
          benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
@@ -271,6 +285,12 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
             semiringBFS( graph, largestNode, semiringBfsDistances );
          };
          benchmark.time< Device >( device, semiring_bfs_undir );
+#ifdef HAVE_BOOST
+         if( withBoost && semiringBfsDistances != this->boostBfsDistancesUndirected ) {
+            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << '\n';
+            this->errors++;
+         }
+#endif
       }
    }
 
