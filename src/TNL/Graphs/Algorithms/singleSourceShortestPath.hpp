@@ -121,6 +121,9 @@ singleSourceShortestPath( const Graph& graph,
                           Vector& distances,
                           TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
+   static_assert( ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
+                  "SSSP requires general adjacency matrix, not symmetric." );
+
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
 
