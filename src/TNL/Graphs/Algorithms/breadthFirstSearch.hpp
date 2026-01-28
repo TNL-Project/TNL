@@ -119,6 +119,8 @@ breadthFirstSearch_impl( const Graph& graph,
                          Visitor&& visitor,
                          const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
+   static_assert( ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
+                  "BFS requires general adjacency matrix, not symmetric." );
    using Index = typename Graph::IndexType;
    using Device = typename Graph::DeviceType;
    const auto& adjacencyMatrix = graph.getAdjacencyMatrix();
