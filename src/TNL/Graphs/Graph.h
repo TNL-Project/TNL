@@ -15,7 +15,6 @@
 #include "GraphVertexView.h"
 #include "TypeTraits.h"
 #include "GraphOrientation.h"
-#include "detail/DefaultGraphAdjacencyMatrixType.h"
 
 namespace TNL::Graphs {
 
@@ -39,6 +38,7 @@ namespace TNL::Graphs {
  * \tparam Device is type of device where the graph will be operating.
  * \tparam Index is type for indexing of the graph nodes.
  * \tparam Orientation is type of the graph - directed or undirected.
+ * \tparam Segments is template for segments type used to store adjacency matrix.
  * \tparam AdjacencyMatrix is type of matrix used to store the adjacency matrix of the graph.
  *
  * \par Example
@@ -51,7 +51,8 @@ template< typename Value,
           typename Index,
           typename Orientation = DirectedGraph,
           template< typename, typename, typename > class Segments = TNL::Algorithms::Segments::CSR,
-          typename AdjacencyMatrix = detail::DefaultGraphAdjacencyMatrix_t< Value, Device, Index, Segments, Orientation > >
+          typename AdjacencyMatrix =
+             TNL::Matrices::SparseMatrix< Value, Device, Index, TNL::Matrices::GeneralMatrix, Segments > >
 struct Graph
 : public GraphBase< Value,
                     Device,
