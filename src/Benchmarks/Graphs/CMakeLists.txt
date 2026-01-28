@@ -15,7 +15,7 @@ endif()
 
 if(TNL_BUILD_CUDA)
     # Find Gunrock
-    find_path(GUNROCK_INCLUDE_DIR gunrock/algorithms/bfs.hxx)
+    #find_path(GUNROCK_INCLUDE_DIR gunrock/algorithms/bfs.hxx)
     if(GUNROCK_INCLUDE_DIR)
         message(STATUS "Gunrock found ${GUNROCK_INCLUDE_DIR}")
 
@@ -58,6 +58,13 @@ if(TNL_BUILD_CUDA)
         if(Boost_GRAPH_FOUND)
             target_link_libraries(${target} PUBLIC Boost::graph)
             target_compile_definitions(${target} PUBLIC "-DHAVE_BOOST")
+        endif()
+
+        if(GUNROCK_INCLUDE_DIR)
+            target_compile_definitions(${target} PUBLIC
+                HAVE_GUNROCK
+                SM_TARGET=${CMAKE_CUDA_ARCHITECTURES} )
+            target_include_directories(${target} PUBLIC ${GUNROCK_INCLUDE_DIR})
         endif()
 
         list(APPEND GRAPH_BENCHMARK_TARGETS_CUDA ${target})
