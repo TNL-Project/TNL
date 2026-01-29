@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace TNL {
+namespace TNL::Arithmetics::experimental {
 
 class tnlFlopsCounter
 {
@@ -83,4 +83,4 @@ public:
 
 extern tnlFlopsCounter tnl_flops_counter;
 
-}  // namespace TNL
+}  //namespace TNL::Arithmetics::experimental

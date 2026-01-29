@@ -2,14 +2,14 @@
 
 #include <gtest/gtest.h>
 
-#include <TNL/Arithmetics/Quad.h>
+#include <TNL/Arithmetics/experimental/Quad.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/reduce.h>
 #include "../CustomScalar.h"
 
 using namespace TNL;
 using namespace TNL::Containers;
-using namespace TNL::Arithmetics;
+using namespace TNL::Arithmetics::experimental;
 using namespace TNL::Algorithms;
 using namespace TNL::Algorithms::detail;
 

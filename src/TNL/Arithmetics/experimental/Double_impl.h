@@ -14,7 +14,7 @@
 
 #include "Double.h"
 
-namespace TNL::Arithmetics {
+namespace TNL::Arithmetics::experimental {
 
 template< class T >
 Double< T >::Double()
@@ -92,4 +92,4 @@ Double< T >::operator/( const Double< T >& rhs ) const
  TODO COMPARISON OPERATORS
  */
 
-}  // namespace TNL::Arithmetics
+}  //namespace TNL::Arithmetics::experimental
