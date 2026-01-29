@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <TNL/Functions/MeshFunction.h>
+#include "MeshFunction.h"
 
-namespace TNL::Functions {
+namespace TNL::Functions::experimental {
 
 // BoundaryMeshFunction is supposed to store values of a mesh functions only
 // at boundary mesh entities. It is just a small memory optimization.
@@ -25,4 +25,4 @@ public:
    using typename BaseType::VectorType;
 };
 
-}  // namespace TNL::Functions
+}  //namespace TNL::Functions::experimental

@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <TNL/Functions/Domain.h>
+#include "Domain.h"
 
-namespace TNL::Functions {
+namespace TNL::Functions::experimental {
 
 template< typename Operator, typename Function >
 class ExactOperatorFunction : public Domain< Operator::getDomainDimension(), SpaceDomain >
@@ -43,4 +43,4 @@ protected:
    const FunctionType& function;
 };
 
-}  // namespace TNL::Functions
+}  //namespace TNL::Functions::experimental

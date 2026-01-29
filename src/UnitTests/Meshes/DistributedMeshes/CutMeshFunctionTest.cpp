@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <TNL/Functions/CutMeshFunction.h>
-#include <TNL/Functions/MeshFunctionView.h>
+#include <TNL/Functions/experimental/CutMeshFunction.h>
+#include <TNL/Functions/experimental/MeshFunctionView.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Meshes/Grid.h>
 
@@ -9,7 +9,7 @@
 
 using namespace TNL;
 using namespace TNL::Containers;
-using namespace TNL::Functions;
+using namespace TNL::Functions::experimental;
 using namespace TNL::Meshes;
 using namespace TNL::Devices;
 
