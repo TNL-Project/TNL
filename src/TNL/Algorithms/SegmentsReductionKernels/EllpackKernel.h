@@ -42,7 +42,7 @@ struct EllpackKernel
              typename Reduction,
              typename ResultKeeper,
              typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
-   static void
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceSegments instead" )]] static void
    reduceSegments( const SegmentsView& segments,
                    Index begin,
                    Index end,
@@ -56,7 +56,7 @@ struct EllpackKernel
              typename Reduction,
              typename ResultKeeper,
              typename Value = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
-   static void
+   [[deprecated( "Use TNL::Algorithms::Segments::reduceSegments instead" )]] static void
    reduceAllSegments( const SegmentsView& segments,
                       Fetch& fetch,
                       const Reduction& reduction,

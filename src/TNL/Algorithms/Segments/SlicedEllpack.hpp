@@ -8,6 +8,7 @@
 
 #include "Ellpack.h"
 #include "SlicedEllpack.h"
+#include "reduce.h"
 
 namespace TNL::Algorithms::Segments {
 
@@ -130,17 +131,12 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::setSegm
          return sizes_view[ globalIdx ];
       return 0;
    };
-   auto reduce = [] __cuda_callable__( Index a, Index b ) -> Index
-   {
-      return TNL::max( a, b );
-   };
    auto keep = [ = ] __cuda_callable__( Index i, Index res ) mutable
    {
       slices_view[ i ] = res * SliceSize;
       slice_segment_size_view[ i ] = res;
    };
-   using Kernel = SegmentsReductionKernels::EllpackKernel< Index, Device >;
-   Kernel::reduceAllSegments( ellpack, fetch, reduce, keep, std::numeric_limits< Index >::min() );
+   reduceAllSegments( ellpack, fetch, TNL::Max{}, keep );
    Algorithms::inplaceExclusiveScan( this->sliceOffsets );
 
    // update the base
