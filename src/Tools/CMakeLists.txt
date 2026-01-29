@@ -1,6 +1,5 @@
 # Mesh tools: will link to zlib and tinyxml2
 set(MESH_TOOLS
-    tnl-diff
     tnl-decompose-grid
     tnl-grid-to-mesh
     tnl-mesh-converter
