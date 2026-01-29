@@ -26,7 +26,7 @@ CSR< Device, Index, IndexAllocator >::CSR( const CSR& segments )
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
-template< typename SizesContainer, typename T >
+template< typename SizesContainer, std::enable_if_t< IsArrayType< SizesContainer >::value, bool > >
 CSR< Device, Index, IndexAllocator >::CSR( const SizesContainer& segmentsSizes )
 {
    this->setSegmentsSizes( segmentsSizes );

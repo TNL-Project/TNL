@@ -24,7 +24,7 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::BiEllpack( c
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
-template< typename SizesContainer >
+template< typename SizesContainer, std::enable_if_t< IsArrayType< SizesContainer >::value, bool > >
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::BiEllpack( const SizesContainer& segmentsSizes )
 {
    this->setSegmentsSizes( segmentsSizes );

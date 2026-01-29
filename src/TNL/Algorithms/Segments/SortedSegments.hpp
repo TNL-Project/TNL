@@ -29,7 +29,7 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::SortedSegments( const Sorted
 }
 
 template< typename EmbeddedSegments, typename IndexAllocator >
-template< typename SizesContainer, typename T >
+template< typename SizesContainer, std::enable_if_t< IsArrayType< SizesContainer >::value, bool > >
 SortedSegments< EmbeddedSegments, IndexAllocator >::SortedSegments( const SizesContainer& segmentsSizes )
 {
    this->setSegmentsSizes( segmentsSizes );
