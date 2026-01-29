@@ -25,7 +25,7 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::SlicedE
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
-template< typename SizesContainer, typename T >
+template< typename SizesContainer, std::enable_if_t< IsArrayType< SizesContainer >::value, bool > >
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::SlicedEllpack( const SizesContainer& segmentsSizes )
 {
    this->setSegmentsSizes( segmentsSizes );
