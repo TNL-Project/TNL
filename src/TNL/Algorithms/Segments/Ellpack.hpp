@@ -8,7 +8,7 @@
 namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
-template< typename SizesContainer >
+template< typename SizesContainer, std::enable_if_t< IsArrayType< SizesContainer >::value, bool > >
 Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::Ellpack( const SizesContainer& segmentsSizes )
 {
    setSegmentsSizes( segmentsSizes );

@@ -96,7 +96,7 @@ public:
     *
     * \include SegmentsExample_constructor_1.out
     */
-   template< typename SizesContainer >
+   template< typename SizesContainer, std::enable_if_t< IsArrayType< SizesContainer >::value, bool > = true >
    AdaptiveCSR( const SizesContainer& segmentsSizes );
 
    /**
