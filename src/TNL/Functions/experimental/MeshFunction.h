@@ -5,10 +5,17 @@
 
 #include <TNL/File.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Functions/Domain.h>
 #include <TNL/Pointers/SharedPointer.h>
+#include "Domain.h"
 
 namespace TNL::Functions {
+
+/**
+ * \ingroup experimental
+ * \experimental
+ * \brief  Namespace for experimental functions.
+ */
+namespace experimental {
 
 template< typename Mesh, int MeshEntityDimension = Mesh::getMeshDimension(), typename Real = typename Mesh::RealType >
 class MeshFunction : public Domain< Mesh::getMeshDimension(), MeshDomain >
@@ -141,6 +148,7 @@ template< typename Mesh, int MeshEntityDimension, typename Real >
 std::ostream&
 operator<<( std::ostream& str, const MeshFunction< Mesh, MeshEntityDimension, Real >& f );
 
+}  // namespace experimental
 }  // namespace TNL::Functions
 
-#include <TNL/Functions/MeshFunction.hpp>
+#include "MeshFunction.hpp"

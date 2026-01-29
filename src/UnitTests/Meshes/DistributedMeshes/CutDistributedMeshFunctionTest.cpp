@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <TNL/Devices/Host.h>
-#include <TNL/Functions/CutMeshFunction.h>
-#include <TNL/Functions/MeshFunctionView.h>
+#include <TNL/Functions/experimental/CutMeshFunction.h>
+#include <TNL/Functions/experimental/MeshFunctionView.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedMeshSynchronizer.h>
 #include <TNL/Meshes/DistributedMeshes/SubdomainOverlapsGetter.h>
 

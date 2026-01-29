@@ -13,7 +13,7 @@ template< typename, typename, typename >
 class MeshEntity;
 }
 
-namespace Functions {
+namespace Functions::experimental {
 
 class MeshFunctionGnuplotWriterBase
 {
@@ -142,5 +142,5 @@ public:
    }
 };
 
-}  // namespace Functions
+}  //namespace Functions::experimental
 }  // namespace TNL

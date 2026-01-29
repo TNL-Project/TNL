@@ -6,7 +6,7 @@
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Exceptions/NotImplementedError.h>
 
-namespace TNL::Functions {
+namespace TNL::Functions::experimental {
 
 template< typename Mesh >
 class MeshFunctionNormGetter;
@@ -111,4 +111,4 @@ public:
    }
 };
 
-}  // namespace TNL::Functions
+}  //namespace TNL::Functions::experimental

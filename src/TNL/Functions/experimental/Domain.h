@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-namespace TNL::Functions {
+namespace TNL::Functions::experimental {
 
 enum DomainType : std::uint8_t
 {
@@ -35,4 +35,4 @@ public:
    }
 };
 
-}  // namespace TNL::Functions
+}  //namespace TNL::Functions::experimental

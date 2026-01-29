@@ -5,10 +5,10 @@
 
 #include <type_traits>
 #include <TNL/Backend/Macros.h>
-#include <TNL/Functions/MeshFunction.h>
+#include "MeshFunction.h"
 #include <TNL/Solvers/PDE/BoundaryConditionsSetter.h>
 
-namespace TNL::Functions {
+namespace TNL::Functions::experimental {
 
 /***
  * This class evaluates given operator on given preimageFunction. If the flag
@@ -161,7 +161,7 @@ public:
    typedef typename OperatorType::DeviceType DeviceType;
    typedef typename OperatorType::IndexType IndexType;
    typedef PreimageFunction PreimageFunctionType;
-   typedef Functions::MeshFunction< MeshType, Operator::getImageEntitiesDimension() > ImageFunctionType;
+   typedef MeshFunction< MeshType, Operator::getImageEntitiesDimension() > ImageFunctionType;
    typedef OperatorFunction< Operator, PreimageFunction, void, true > OperatorFunctionType;
    typedef typename OperatorType::ExactOperatorType ExactOperatorType;
    typedef Pointers::SharedPointer< MeshType, DeviceType > MeshPointer;
@@ -301,7 +301,7 @@ public:
    typedef typename OperatorType::DeviceType DeviceType;
    typedef typename OperatorType::IndexType IndexType;
    typedef Function PreimageFunctionType;
-   typedef Functions::MeshFunction< MeshType, Operator::getImageEntitiesDimension() > ImageFunctionType;
+   typedef MeshFunction< MeshType, Operator::getImageEntitiesDimension() > ImageFunctionType;
    typedef BoundaryConditions BoundaryConditionsType;
    typedef OperatorFunction< Operator, Function, void, true > OperatorFunctionType;
    typedef typename OperatorType::ExactOperatorType ExactOperatorType;
@@ -493,4 +493,4 @@ protected:
    Operator operator_;
 };
 
-}  // namespace TNL::Functions
+}  //namespace TNL::Functions::experimental
