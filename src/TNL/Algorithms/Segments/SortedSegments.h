@@ -87,7 +87,7 @@ public:
     *
     * \include SegmentsExample_constructor_1.out
     */
-   template< typename SizesContainer, typename T = std::enable_if_t< IsArrayType< SizesContainer >::value > >
+   template< typename SizesContainer, std::enable_if_t< IsArrayType< SizesContainer >::value, bool > = true >
    SortedSegments( const SizesContainer& segmentsSizes );
 
    /**
