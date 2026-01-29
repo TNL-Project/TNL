@@ -67,7 +67,7 @@ operator<<( std::ostream& str, const SegmentsPrinter< SegmentsView, Fetch >& pri
    return str;
 }
 
-template< typename Segments, typename Fetch, typename T >
+template< typename Segments, typename Fetch, std::enable_if_t< isSegments_v< Segments >, bool > >
 SegmentsPrinter< typename Segments::ConstViewType, Fetch >
 print( const Segments& segments, Fetch fetch )  // TODO: Fetch&& does not work with CUDA
 {
