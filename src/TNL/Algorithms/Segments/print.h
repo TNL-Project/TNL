@@ -42,7 +42,7 @@ struct SegmentsPrinter;
  * \par Output
  * \include printSegmentsExample-1.out
  */
-template< typename Segments, typename Fetch, typename T = std::enable_if_t< isSegments_v< Segments > > >
+template< typename Segments, typename Fetch, std::enable_if_t< isSegments_v< Segments >, bool > = true >
 SegmentsPrinter< typename Segments::ConstViewType, Fetch >
 print( const Segments& segments, Fetch fetch );
 
