@@ -1,0 +1,16 @@
+/**
+ * \defgroup experimental Experimental API
+ * \brief Unstable and experimental interfaces.
+ *
+ * This group contains functionality that is under active development.
+ * The interfaces in this group are considered **unstable** and may change
+ * or be removed without prior notice.
+ *
+ * Code in this group:
+ * - is not guaranteed to be backward compatible,
+ * - is not covered by semantic versioning guarantees,
+ * - may have incomplete documentation or limited testing,
+ * - may be incomplete or not fully functional,
+ * - may contain known limitations or unresolved issues.
+ *
+ */
