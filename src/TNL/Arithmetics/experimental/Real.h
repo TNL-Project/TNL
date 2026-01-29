@@ -5,9 +5,9 @@
 
 #include <iostream>
 #include <cmath>
-#include <TNL/Experimental/Arithmetics/FlopsCounter.h>
+#include <TNL/Arithmetics/experimental/FlopsCounter.h>
 
-namespace TNL {
+namespace TNL::Arithmetics::experimental {
 
 template< class T >
 class Real
@@ -516,4 +516,4 @@ operator<<( std::ostream& str, const Real< T >& v )
 typedef Real< float > tnlFloat;
 typedef Real< double > tnlDouble;
 
-}  // namespace TNL
+}  //namespace TNL::Arithmetics::experimental

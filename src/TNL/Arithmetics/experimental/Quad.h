@@ -12,6 +12,13 @@
 
 namespace TNL::Arithmetics {
 
+/**
+ * \ingroup experimental
+ * \experimental
+ * \brief  Namespace for experimental arithmetics.
+ */
+namespace experimental {
+
 template< class T >
 class Quad
 {
@@ -155,4 +162,5 @@ template< typename T >
 void
 printQuad( T* a );  // Print of quad-double
 
+}  // namespace experimental
 }  // namespace TNL::Arithmetics

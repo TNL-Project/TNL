@@ -2,7 +2,7 @@
 
 #include <limits>
 
-#include <TNL/Arithmetics/Quad.h>
+#include <TNL/Arithmetics/experimental/Quad.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include "VectorHelperFunctions.h"
@@ -11,7 +11,7 @@
 
 using namespace TNL;
 using namespace TNL::Containers;
-using namespace TNL::Arithmetics;
+using namespace TNL::Arithmetics::experimental;
 
 // test fixture for typed tests
 template< typename Vector >
