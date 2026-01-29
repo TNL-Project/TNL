@@ -5,9 +5,9 @@
 
 #include <TNL/Backend/Macros.h>
 #include <TNL/Config/ParameterContainer.h>
-#include <TNL/Functions/Domain.h>
+#include "Domain.h"
 
-namespace TNL::Functions {
+namespace TNL::Functions::experimental {
 
 /***
  * MeshType is a type of mesh on which we evaluate the function.
@@ -179,4 +179,4 @@ public:
 };
 #endif
 
-}  // namespace TNL::Functions
+}  //namespace TNL::Functions::experimental
