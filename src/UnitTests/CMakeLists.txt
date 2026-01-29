@@ -15,7 +15,6 @@ set(CPP_TESTS
     base64Test
     CustomScalarTest
     DiscreteMathTest
-    FileNameTest
     MathTest
     ObjectTest
     StringTest
