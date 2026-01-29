@@ -6,8 +6,8 @@
 
 #include <gtest/gtest.h>
 
-#include <TNL/Arithmetics/MultiPrecision.h>
-#include <TNL/Arithmetics/Quad.h>
+#include <TNL/Arithmetics/experimental/MultiPrecision.h>
+#include <TNL/Arithmetics/experimental/Quad.h>
 
 /*NUMBERS*/
 #define num_1 2.1230405067890102030405060708096352410708

@@ -1,10 +1,10 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <TNL/Experimental/Arithmetics/FlopsCounter.h>
+#include <TNL/Arithmetics/experimental/FlopsCounter.h>
 
-namespace TNL {
+namespace TNL::Arithmetics::experimental {
 
 tnlFlopsCounter tnl_flops_counter;
 
-}  // namespace TNL
+}  // namespace TNL::Arithmetics::experimental

@@ -8,7 +8,7 @@
 
 using namespace TNL;
 using namespace TNL::Containers;
-using namespace TNL::Arithmetics;
+using namespace TNL::Arithmetics::experimental;
 
 // should be small enough to have fast tests, but larger than minGPUReductionDataSize
 // and large enough to require multiple CUDA blocks for reduction
