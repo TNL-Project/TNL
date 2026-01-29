@@ -12,9 +12,6 @@ set(CUDA_EXAMPLES FileExampleCuda)
 set(HOST_EXAMPLES
     FileExample
     FileExampleSaveAndLoad
-    FileNameExample
-    FileNameExampleDistributedSystemNodeCoordinates
-    FileNameExampleDistributedSystemNodeId
     ParseObjectTypeExample
     PerformanceCountersExample
     StringExample
