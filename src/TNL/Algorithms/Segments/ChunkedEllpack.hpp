@@ -31,7 +31,7 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::ChunkedEllpack( c
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
-template< typename SizesContainer >
+template< typename SizesContainer, std::enable_if_t< IsArrayType< SizesContainer >::value, bool > >
 ChunkedEllpack< Device, Index, IndexAllocator, Organization >::ChunkedEllpack( const SizesContainer& segmentsSizes )
 {
    this->setSegmentsSizes( segmentsSizes );

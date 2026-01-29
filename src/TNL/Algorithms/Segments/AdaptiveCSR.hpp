@@ -23,7 +23,7 @@ AdaptiveCSR< Device, Index, IndexAllocator >::AdaptiveCSR( const AdaptiveCSR& se
 }
 
 template< typename Device, typename Index, typename IndexAllocator >
-template< typename SizesContainer >
+template< typename SizesContainer, std::enable_if_t< IsArrayType< SizesContainer >::value, bool > >
 AdaptiveCSR< Device, Index, IndexAllocator >::AdaptiveCSR( const SizesContainer& segmentsSizes )
 {
    this->setSegmentsSizes( segmentsSizes );
