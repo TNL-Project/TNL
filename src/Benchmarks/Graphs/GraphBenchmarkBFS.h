@@ -65,8 +65,8 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
 
       // Benchmarking breadth-first search of directed graph
       benchmark.setMetadataElement( { "problem", "BFS dir" } );
-      benchmark.setMetadataElement( { "format", "N/A" } );
-      benchmark.setMetadataElement( { "threads mapping", "" } );
+      benchmark.setMetadataElement( { "kernel", "N/A" } );
+      benchmark.setMetadataElement( { "launch cfg.", "" } );
 
       std::vector< Index > boostBfsDistances( digraph.getVertexCount() );
       auto bfs_boost_dir = [ & ]() mutable
@@ -121,7 +121,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       // Benchmarking breadth-first search of directed graph
       benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataElement( { "problem", "BFS dir" } );
-      benchmark.setMetadataElement( { "format", "N/A" } );
+      benchmark.setMetadataElement( { "kernel", "N/A" } );
 
       std::vector< Index > bfsDistances( digraph.getVertexCount() );
       benchmark.setCatchExceptions( false );
@@ -146,7 +146,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       // Benchmarking breadth-first search of undirected graph
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataElement( { "problem", "BFS undir" } );
-      benchmark.setMetadataElement( { "threads mapping", "" } );
+      benchmark.setMetadataElement( { "launch cfg.", "" } );
 
       try {
          gunrockBenchmark.breadthFirstSearch( benchmark, gunrockGraph, largestNode, graph.getVertexCount(), bfsDistances );
@@ -192,7 +192,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       IndexVector bfsDistances( digraph.getVertexCount() );
       benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataElement( { "problem", "BFS dir" } );
-      benchmark.setMetadataElement( { "format", segments } );
+      benchmark.setMetadataElement( { "kernel", segments } );
 
       for( const auto& launchEntry :
            Algorithms::Segments::traversingLaunchConfigurations( digraph.getAdjacencyMatrix().getSegments() ) )
@@ -200,7 +200,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          const auto& launchConfig = launchEntry.first;
          const auto& tag = launchEntry.second;
 
-         benchmark.setMetadataElement( { "threads mapping", tag } );
+         benchmark.setMetadataElement( { "launch cfg.", tag } );
          auto bfs_tnl_dir = [ &, launchConfig ]() mutable
          {
             TNL::Graphs::Algorithms::breadthFirstSearch( digraph, largestNode, bfsDistances, launchConfig );
@@ -224,7 +224,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       // Benchmarking breadth-first search with undirected graph
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataElement( { "problem", "BFS undir" } );
-      benchmark.setMetadataElement( { "format", segments } );
+      benchmark.setMetadataElement( { "kernel", segments } );
 
       for( const auto& launchEntry :
            Algorithms::Segments::traversingLaunchConfigurations( graph.getAdjacencyMatrix().getSegments() ) )
@@ -232,7 +232,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          const auto& launchConfig = launchEntry.first;
          const auto& tag = launchEntry.second;
 
-         benchmark.setMetadataElement( std::make_pair( "threads mapping", tag ) );
+         benchmark.setMetadataElement( std::make_pair( "launch cfg.", tag ) );
 
          auto bfs_tnl_undir = [ &, launchConfig ]() mutable
          {
@@ -259,8 +259,8 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          IndexVector semiringBfsDistances( digraph.getVertexCount() );
          benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
          benchmark.setMetadataElement( { "problem", "Semiring BFS dir" } );
-         benchmark.setMetadataElement( { "format", segments } );
-         benchmark.setMetadataElement( { "threads mapping", "" } );
+         benchmark.setMetadataElement( { "kernel", segments } );
+         benchmark.setMetadataElement( { "launch cfg.", "" } );
 
          auto semiring_bfs_dir = [ & ]() mutable
          {
@@ -277,8 +277,8 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          // Benchmarking semiring-based BFS with undirected graph
          benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
          benchmark.setMetadataElement( { "problem", "Semiring BFS undir" } );
-         benchmark.setMetadataElement( { "format", segments } );
-         benchmark.setMetadataElement( { "threads mapping", "" } );
+         benchmark.setMetadataElement( { "kernel", segments } );
+         benchmark.setMetadataElement( { "launch cfg.", "" } );
 
          auto semiring_bfs_undir = [ & ]() mutable
          {
