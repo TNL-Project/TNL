@@ -37,8 +37,8 @@ graphs_base_path="./graphs"
 
 for bench in "${ALGORITHMS[@]}";
 do
-   $benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}"                --log-file "./log-files/graphs-benchmark.log"                --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
-   $benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}-cuda-dbg"           --log-file "./log-files/graphs-benchmark-cuda.log"           --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled no
+   $benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}"                --log-file "./log-files/graphs-benchmark-${bench}.log"                --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
+   $benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}-cuda"           --log-file "./log-files/graphs-benchmark-${bench}-cuda.log"           --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled no
    #$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}-legacy"         --log-file "./log-files/graphs-benchmark-legacy.log"         --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
    #$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}-legacy-cuda"    --log-file "./log-files/graphs-benchmark-legacy-cuda.log"    --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
    #$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}-reference"      --log-file "./log-files/graphs-benchmark-reference.log"      --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"

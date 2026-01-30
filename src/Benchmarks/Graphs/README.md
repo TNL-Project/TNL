@@ -68,6 +68,24 @@ Common flags:
 
 Useful flags: `--num-graphs`, `--start-nodes`, `--nodes-increment`, `--start-edges`, `--edges-increment`, `--weights` (edge weight distribution), `--base-name`, `--output-dir`, `--generator` (script path), `--benchmark` (binary), `--loops` (benchmark loops), `--graphviz yes|no`. Use `-h` for help.
 
-## Binaries
+## Processing the results
+`tnl-benchmark-graphs-process-results.py` reads one or more JSON-lines log files from `tnl-benchmark-graphs`, builds a structured Pandas table, computes speedups, and generates HTML summaries and PDF plots.
 
-The directory contains the benchmark sources for CPU and CUDA variants (e.g., `tnl-benchmark-graphs-bfs.cpp`, `tnl-benchmark-graphs-sssp.cu`, `tnl-benchmark-graphs-mst.cpp`). Build with your chosen preset/target (e.g., `ninja -C build/debug tnl-benchmark-graphs-bfs`) to produce the executables consumed by the scripts above.
+### Quick use
+
+```bash
+python3 tnl-benchmark-graphs-process-results.py \
+  -i graphs-benchmark.log other.log   # one or more input logs
+```
+
+Outputs are written to the current directory:
+- `graphs-benchmark-input.html`: concatenated raw input logs
+- `graphs-benchmark.html`: reshaped table with computed speedups
+- `Time/<problem>/<device>/<kernel>-<launch>.pdf`: time profiles (sorted by time)
+- `Speedup/<problem>/<device>/<kernel>-<launch>-vs-{Boost|Gunrock}.pdf` (+ `-log`): speedup profiles
+- `Speedup/<problem>/<device>/<kernel>-<launch>.html`: snapshot of the filtered table
+
+### Assumptions and inputs
+- Speedups are computed vs Boost on CPU, and vs Gunrock on CUDA when available.
+- Requires Python with pandas, numpy, matplotlib, and the TNL Python helpers (`TNL.BenchmarkLogs`, `TNL.MultiindexCreator`).
+
