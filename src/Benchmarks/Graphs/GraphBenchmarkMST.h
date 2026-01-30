@@ -61,8 +61,8 @@ public:
 
       // Benchmarking minimum spanning tree
       benchmark.setMetadataElement( { "problem", "MST undir" } );
-      benchmark.setMetadataElement( { "format", "N/A" } );
-      benchmark.setMetadataElement( { "threads mapping", "" } );
+      benchmark.setMetadataElement( { "kernel", "N/A" } );
+      benchmark.setMetadataElement( { "launch cfg.", "" } );
 
       using BoostEdge = typename BoostGraph< Index, Real, TNL::Graphs::UndirectedGraph >::Edge;
       std::vector< BoostEdge > boostMstEdges;
@@ -112,7 +112,7 @@ public:
       IndexVector roots;
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataElement( { "problem", "MST undir" } );
-      benchmark.setMetadataElement( { "format", segments } );
+      benchmark.setMetadataElement( { "kernel", "N/A" } );
 
       auto mst_tnl = [ & ]() mutable
       {

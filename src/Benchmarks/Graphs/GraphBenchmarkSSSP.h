@@ -67,8 +67,8 @@ public:
 
       // Benchmarking single-source shortest paths of directed graph
       benchmark.setMetadataElement( { "problem", "SSSP dir" } );
-      benchmark.setMetadataElement( { "format", "N/A" } );
-      benchmark.setMetadataElement( { "threads mapping", "" } );
+      benchmark.setMetadataElement( { "kernel", "N/A" } );
+      benchmark.setMetadataElement( { "launch cfg.", "" } );
 
       std::vector< Real > boostSSSPDistances( digraph.getVertexCount() );
       auto sssp_boost_dir = [ & ]() mutable
@@ -86,8 +86,8 @@ public:
 
       // Benchmarking single-source shortest paths of undirected graph
       benchmark.setMetadataElement( { "problem", "SSSP undir" } );
-      benchmark.setMetadataElement( { "format", "N/A" } );
-      benchmark.setMetadataElement( { "threads mapping", "" } );
+      benchmark.setMetadataElement( { "kernel", "N/A" } );
+      benchmark.setMetadataElement( { "launch cfg.", "" } );
 
       auto sssp_boost_undir = [ & ]() mutable
       {
@@ -121,8 +121,8 @@ public:
       // Benchmarking single-source shortest path of directed graph
       benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataElement( { "problem", "SSSP dir" } );
-      benchmark.setMetadataElement( { "format", "N/A" } );
-      benchmark.setMetadataElement( { "threads mapping", "" } );
+      benchmark.setMetadataElement( { "kernel", "N/A" } );
+      benchmark.setMetadataElement( { "launch cfg.", "" } );
 
       std::vector< Real > ssspDistances( digraph.getVertexCount() );
       gunrockBenchmark.singleSourceShortestPath(
@@ -145,8 +145,8 @@ public:
       // Benchmarking single-source shortest path of undirected graph
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataElement( { "problem", "SSSP undir" } );
-      benchmark.setMetadataElement( { "format", "N/A" } );
-      benchmark.setMetadataElement( { "threads mapping", "" } );
+      benchmark.setMetadataElement( { "kernel", "N/A" } );
+      benchmark.setMetadataElement( { "launch cfg.", "" } );
 
       gunrockBenchmark.singleSourceShortestPath( benchmark, gunrockGraph, largestNode, graph.getVertexCount(), ssspDistances );
       gunrock_sssp_dist = ssspDistances;
@@ -182,7 +182,7 @@ public:
       // Benchmarking single-source shortest paths with directed graph
       benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataElement( { "problem", "SSSP dir" } );
-      benchmark.setMetadataElement( { "format", segments } );
+      benchmark.setMetadataElement( { "kernel", segments } );
 
       for( const auto& launchEntry :
            Algorithms::Segments::traversingLaunchConfigurations( digraph.getAdjacencyMatrix().getSegments() ) )
@@ -190,7 +190,7 @@ public:
          const auto& launchConfig = launchEntry.first;
          const auto& tag = launchEntry.second;
 
-         benchmark.setMetadataElement( { "threads mapping", tag } );
+         benchmark.setMetadataElement( { "launch cfg.", tag } );
 
          RealVector ssspDistances( digraph.getVertexCount(), 0 );
          auto sssp_tnl_dir = [ &, launchConfig ]() mutable
@@ -221,7 +221,7 @@ public:
       // Benchmarking single-source shortest paths with undirected graph
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataElement( { "problem", "SSSP undir" } );
-      benchmark.setMetadataElement( { "format", segments } );
+      benchmark.setMetadataElement( { "kernel", segments } );
 
       for( const auto& launchEntry :
            Algorithms::Segments::traversingLaunchConfigurations( graph.getAdjacencyMatrix().getSegments() ) )
@@ -229,7 +229,7 @@ public:
          const auto& launchConfig = launchEntry.first;
          const auto& tag = launchEntry.second;
 
-         benchmark.setMetadataElement( { "threads mapping", tag } );
+         benchmark.setMetadataElement( { "launch cfg.", tag } );
 
          RealVector ssspDistances( digraph.getVertexCount(), 0 );
          auto sssp_tnl_undir = [ &, launchConfig ]() mutable
@@ -260,8 +260,8 @@ public:
          benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount()
                                    * ( sizeof( Index ) + sizeof( Real ) ) );
          benchmark.setMetadataElement( { "problem", "Semiring SSSP dir" } );
-         benchmark.setMetadataElement( { "format", segments } );
-         benchmark.setMetadataElement( { "threads mapping", "" } );
+         benchmark.setMetadataElement( { "kernel", segments } );
+         benchmark.setMetadataElement( { "launch cfg.", "1 TPS" } );
 
          auto semiring_sssp_dir = [ & ]() mutable
          {
@@ -280,8 +280,8 @@ public:
          benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount()
                                    * ( sizeof( Index ) + sizeof( Real ) ) );
          benchmark.setMetadataElement( { "problem", "Semiring SSSP undir" } );
-         benchmark.setMetadataElement( { "format", segments } );
-         benchmark.setMetadataElement( { "threads mapping", "" } );
+         benchmark.setMetadataElement( { "kernel", segments } );
+         benchmark.setMetadataElement( { "launch cfg.", "1 TPS" } );
 
          auto semiring_sssp_undir = [ & ]() mutable
          {
