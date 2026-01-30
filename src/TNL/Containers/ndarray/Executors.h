@@ -48,8 +48,7 @@ template< typename Permutation, typename LevelTag = IndexTag< 0 > >
 struct SequentialExecutor
 {
    template< typename Begins, typename Ends, typename Func, typename... Indices >
-   __cuda_callable__
-   void
+   constexpr void
    operator()( const Begins& begins, const Ends& ends, Func f, Indices&&... indices )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
@@ -66,8 +65,7 @@ template< typename Permutation >
 struct SequentialExecutor< Permutation, IndexTag< Permutation::size() - 1 > >
 {
    template< typename Begins, typename Ends, typename Func, typename... Indices >
-   __cuda_callable__
-   void
+   constexpr void
    operator()( const Begins& begins, const Ends& ends, Func f, Indices&&... indices )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
@@ -87,8 +85,7 @@ template< typename Permutation, typename LevelTag = IndexTag< Permutation::size(
 struct SequentialExecutorRTL
 {
    template< typename Begins, typename Ends, typename Func, typename... Indices >
-   __cuda_callable__
-   void
+   constexpr void
    operator()( const Begins& begins, const Ends& ends, Func f, Indices&&... indices )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
@@ -105,8 +102,7 @@ template< typename Permutation >
 struct SequentialExecutorRTL< Permutation, IndexTag< 0 > >
 {
    template< typename Begins, typename Ends, typename Func, typename... Indices >
-   __cuda_callable__
-   void
+   constexpr void
    operator()( const Begins& begins, const Ends& ends, Func f, Indices&&... indices )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );

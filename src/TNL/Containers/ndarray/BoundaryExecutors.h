@@ -12,8 +12,7 @@ template< typename Permutation, typename LevelTag = IndexTag< 0 > >
 struct SequentialBoundaryExecutor_inner
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func, typename... Indices >
-   __cuda_callable__
-   void
+   constexpr void
    operator()( const Begins& begins,
                const SkipBegins& skipBegins,
                const SkipEnds& skipEnds,
@@ -50,8 +49,7 @@ template< typename Permutation >
 struct SequentialBoundaryExecutor_inner< Permutation, IndexTag< Permutation::size() - 1 > >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func, typename... Indices >
-   __cuda_callable__
-   void
+   constexpr void
    operator()( const Begins& begins,
                const SkipBegins& skipBegins,
                const SkipEnds& skipEnds,
@@ -91,8 +89,7 @@ template< typename Permutation, std::size_t dim = Permutation::size() >
 struct SequentialBoundaryExecutor
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
-   __cuda_callable__
-   void
+   constexpr void
    operator()( const Begins& begins, const SkipBegins& skipBegins, const SkipEnds& skipEnds, const Ends& ends, Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
@@ -107,8 +104,7 @@ template< typename Permutation >
 struct SequentialBoundaryExecutor< Permutation, 0 >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
-   __cuda_callable__
-   void
+   constexpr void
    operator()( const Begins& begins, const SkipBegins& skipBegins, const SkipEnds& skipEnds, const Ends& ends, Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
