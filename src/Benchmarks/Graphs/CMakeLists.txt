@@ -39,9 +39,7 @@ if(TNL_BUILD_CUDA)
         endif()
 
         if(GUNROCK_INCLUDE_DIR)
-            target_compile_definitions(${target} PUBLIC
-                HAVE_GUNROCK
-                SM_TARGET=${CMAKE_CUDA_ARCHITECTURES} )
+            target_compile_definitions(${target} PUBLIC HAVE_GUNROCK SM_TARGET=${CMAKE_CUDA_ARCHITECTURES})
             target_include_directories(${target} PUBLIC ${GUNROCK_INCLUDE_DIR})
         endif()
 
