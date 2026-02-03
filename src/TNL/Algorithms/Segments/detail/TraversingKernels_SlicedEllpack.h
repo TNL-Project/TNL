@@ -3,11 +3,6 @@
 
 #pragma once
 
-//#define USE_CUB
-#ifdef __CUDACC__
-   #include <cub/cub.cuh>
-#endif
-
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename SegmentsConstView,
@@ -271,18 +266,6 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
       shared_global_offsets[ threadIdx.x ] = segments.getGlobalIndex( seg_idx, 0 );
    }
 
-   #ifdef USE_CUB
-   using BlockScan = cub::BlockScan< Index, 256 >;
-   __shared__ typename BlockScan::TempStorage temp_storage;
-   Index value = 0;
-   if( segmentIdx_ptr < end && threadIdx.x <= SegmentsPerBlock ) {
-      const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
-      value = segments.getSegmentSize( seg_idx );
-   }
-   BlockScan( temp_storage ).ExclusiveSum( value, value );
-   if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
-      shared_offsets[ threadIdx.x ] = value;
-   #else  // USE_CUB
    Index value = 0;
    if( segmentIdx_ptr < segmentIndexes.getSize() && threadIdx.x <= SegmentsPerBlock ) {
       const Index seg_idx = segmentIndexes[ segmentIdx_ptr ];
@@ -293,7 +276,6 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
    const Index v = CudaScan::scan( Plus{}, (Index) 0, value, threadIdx.x, scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v;
-   #endif
 
    // Compute the last offset in the block - this is necessary only SegmentsPerBlock == BlockSize
    if constexpr( SegmentsPerBlock == BlockSize )
@@ -453,17 +435,9 @@ forElementsIfBlockMergeKernel_SlicedEllpack( const Index gridIdx,
    }
    __syncthreads();
 
-   #ifdef USE_CUB1
-   using BlockScan = cub::BlockScan< Index, 256 >;
-   __shared__ typename BlockScan::TempStorage temp_storage;
-   BlockScan( temp_storage ).InclusiveSum( conditionValue, conditionValue );
-   if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
-      conditions[ threadIdx.x ] = conditionValue;
-   #else  // USE_CUB
    const Index v1 = InclusiveCudaScan::scan( Plus{}, (Index) 0, conditionValue, threadIdx.x, inclusive_scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       conditions[ threadIdx.x ] = v1;
-   #endif
    __syncthreads();
 
    __shared__ Index activeSegmentsCount;
@@ -478,16 +452,9 @@ forElementsIfBlockMergeKernel_SlicedEllpack( const Index gridIdx,
    __syncthreads();
 
    Index segmentSize = shared_offsets[ threadIdx.x ];
-   #ifdef USE_CUB
-   using BlockScan = cub::BlockScan< Index, 256 >;
-   BlockScan( temp_storage ).ExclusiveSum( segmentSize, segmentSize );
-   if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
-      shared_offsets[ threadIdx.x ] = segmentSize;
-   #else  // USE_CUB
    const Index v2 = ExclusiveCudaScan::scan( Plus{}, (Index) 0, segmentSize, threadIdx.x, exclusive_scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       shared_offsets[ threadIdx.x ] = v2;
-   #endif
 
    // Compute the last offset in the block - this is necessary only SegmentsPerBlock == BlockSize
    if constexpr( SegmentsPerBlock == BlockSize )
