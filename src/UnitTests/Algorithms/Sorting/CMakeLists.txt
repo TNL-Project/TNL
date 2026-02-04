@@ -1,6 +1,6 @@
 set(CPP_TESTS BubbleSortTest)
-set(CUDA_TESTS BitonicSortTest QuicksortTest)
-set(HIP_TESTS BitonicSortTest QuicksortTest)
+set(CUDA_TESTS BitonicSortTest SorterTest)
+set(HIP_TESTS BitonicSortTest SorterTest)
 
 foreach(target IN ITEMS ${CPP_TESTS})
     add_executable(${target} ${target}.cpp)

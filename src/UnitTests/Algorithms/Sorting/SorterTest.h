@@ -7,7 +7,8 @@
 
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/sort.h>
-#include <TNL/Algorithms/Sorting/Quicksort.h>
+#include <TNL/Algorithms/Sorting/experimental/Quicksort.h>
+#include <TNL/Algorithms/Sorting/CUBMergeSort.h>
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    // FIXME: clang 14 fails due to compile errors in thrust or cub
@@ -20,16 +21,29 @@ using namespace TNL;
 using namespace TNL::Algorithms;
 using namespace TNL::Algorithms::Sorting;
 
-TEST( selectedSize, size15 )
+using Sorters = ::testing::Types< Quicksort
+   #if defined( __CUDACC__ )
+                                  ,
+                                  CUBMergeSort
+   #endif
+                                  >;
+
+template< typename Sorter >
+class CudaSorterTest : public ::testing::Test
+{};
+
+TYPED_TEST_SUITE( CudaSorterTest, Sorters );
+
+TYPED_TEST( CudaSorterTest, selectedSize_size15 )
 {
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr{ 5, 9, 4, 8, 6, 1, 2, 3, 4, 8, 1, 6, 9, 4, 9 };
    auto view = cudaArr.getView();
    EXPECT_EQ( 15, view.getSize() ) << "size not 15" << std::endl;
-   Quicksort::sort( view );
+   TypeParam::sort( view );
    EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
 }
 
-TEST( multiblock, 32768_decreasingNegative )
+TYPED_TEST( CudaSorterTest, multiblock_32768_decreasingNegative )
 {
    std::vector< int > arr( 1 << 15 );
    for( size_t i = 0; i < arr.size(); i++ )
@@ -37,12 +51,12 @@ TEST( multiblock, 32768_decreasingNegative )
 
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( arr );
    auto view = cudaArr.getView();
-   Quicksort::sort( view );
+   TypeParam::sort( view );
 
    EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
 }
 
-TEST( randomGenerated, smallArray_randomVal )
+TYPED_TEST( CudaSorterTest, randomGenerated_smallArray_randomVal )
 {
    std::srand( 2006 );
    for( int i = 0; i < 100; i++ ) {
@@ -52,13 +66,13 @@ TEST( randomGenerated, smallArray_randomVal )
 
       TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( arr );
       auto view = cudaArr.getView();
-      Quicksort::sort( view );
+      TypeParam::sort( view );
 
       EXPECT_TRUE( Algorithms::isAscending( view ) );
    }
 }
 
-TEST( randomGenerated, bigArray_randomVal )
+TYPED_TEST( CudaSorterTest, randomGenerated_bigArray_randomVal )
 {
    std::srand( 304 );
    for( int i = 0; i < 50; i++ ) {
@@ -69,12 +83,12 @@ TEST( randomGenerated, bigArray_randomVal )
       TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( arr );
 
       auto view = cudaArr.getView();
-      Quicksort::sort( view );
+      TypeParam::sort( view );
       EXPECT_TRUE( Algorithms::isAscending( view ) );
    }
 }
 
-TEST( noLostElement, smallArray )
+TYPED_TEST( CudaSorterTest, noLostElement_smallArray )
 {
    std::srand( 9151 );
 
@@ -85,14 +99,14 @@ TEST( noLostElement, smallArray )
 
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( arr );
    auto view = cudaArr.getView();
-   Quicksort::sort( view );
+   TypeParam::sort( view );
 
    std::sort( arr.begin(), arr.end() );
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr2( arr );
    EXPECT_TRUE( view == cudaArr2.getView() );
 }
 
-TEST( noLostElement, midSizedArray )
+TYPED_TEST( CudaSorterTest, noLostElement_midSizedArray )
 {
    std::srand( 91503 );
 
@@ -103,14 +117,14 @@ TEST( noLostElement, midSizedArray )
 
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( arr );
    auto view = cudaArr.getView();
-   Quicksort::sort( view );
+   TypeParam::sort( view );
 
    std::sort( arr.begin(), arr.end() );
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr2( arr );
    EXPECT_TRUE( view == cudaArr2.getView() );
 }
 
-TEST( noLostElement, bigSizedArray )
+TYPED_TEST( CudaSorterTest, noLostElement_bigSizedArray )
 {
    std::srand( 15611 );
 
@@ -123,7 +137,7 @@ TEST( noLostElement, bigSizedArray )
 
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr( arr );
    auto view = cudaArr.getView();
-   Quicksort::sort( view );
+   TypeParam::sort( view );
 
    // FIXME: clang 14 fails due to compile errors in thrust or cub
    #if defined( __CUDA__ ) && ! defined( __clang__ )
@@ -133,7 +147,7 @@ TEST( noLostElement, bigSizedArray )
    #endif
 }
 
-TEST( types, type_double )
+TYPED_TEST( CudaSorterTest, types_type_double )
 {
    std::srand( 8451 );
 
@@ -146,7 +160,7 @@ TEST( types, type_double )
 
    TNL::Containers::Array< double, TNL::Devices::Cuda > cudaArr( arr );
    auto view = cudaArr.getView();
-   Quicksort::sort( view );
+   TypeParam::sort( view );
 
    // FIXME: clang 14 fails due to compile errors in thrust or cub
    #if defined( __CUDA__ ) && ! defined( __clang__ )
@@ -250,8 +264,6 @@ TEST( types, struct_64b )
 
    TNL::Containers::Array< TMPSTRUCT_64b, TNL::Devices::Cuda > cudaArr( arr );
    auto view = cudaArr.getView();
-   //thrust::sort(thrust::device, cudaArr.getData(), cudaArr.getData() + cudaArr.getSize());
-   //std::cout << view << std::endl;
    Quicksort::sort( view );
 
    EXPECT_TRUE( Algorithms::isAscending( view ) );
