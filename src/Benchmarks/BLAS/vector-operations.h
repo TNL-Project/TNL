@@ -633,12 +633,12 @@ public:
       benchmark.time< Devices::Cuda >( reset1, "GPU legacy", computeCudaLegacy );
       verify( "GPU legacy", resultDevice, size );
 
-      auto copmuteCudaET = [ & ]()
+      auto computeCudaET = [ & ]()
       {
          using TNL::sum;
          resultDevice = sum( deviceView );
       };
-      benchmark.time< Devices::Cuda >( reset1, "GPU ET", copmuteCudaET );
+      benchmark.time< Devices::Cuda >( reset1, "GPU ET", computeCudaET );
       verify( "GPU ET", resultDevice, size );
 #endif
 
