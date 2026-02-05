@@ -22,7 +22,7 @@ using namespace TNL::Algorithms;
 using namespace TNL::Algorithms::Sorting;
 
 using Sorters = ::testing::Types<  //
-   Quicksort
+   experimental::Quicksort
    #if defined( __CUDACC__ )
    ,
    CUBMergeSort
@@ -203,7 +203,7 @@ operator<<( std::ostream& out, const TMPSTRUCT_xyz& data )
    return out << data.x;
 }
 
-TEST( types, struct_3D_points )
+TYPED_TEST( CudaSorterTest, struct_3D_points )
 {
    std::srand( 46151 );
 
@@ -214,9 +214,7 @@ TEST( types, struct_3D_points )
 
    TNL::Containers::Array< TMPSTRUCT_xyz, TNL::Devices::Cuda > cudaArr( arr );
    auto view = cudaArr.getView();
-   //thrust::sort(thrust::device, cudaArr.getData(), cudaArr.getData() + cudaArr.getSize());
-   //std::cout << view << std::endl;
-   Quicksort::sort( view );
+   TypeParam::sort( view );
 
    EXPECT_TRUE( Algorithms::isAscending( view ) );
 }
@@ -254,7 +252,7 @@ operator<<( std::ostream& out, const TMPSTRUCT_64b& data )
    return out << (unsigned) data.m_Data[ 0 ];
 }
 
-TEST( types, struct_64b )
+TYPED_TEST( CudaSorterTest, struct_64b )
 {
    std::srand( 96 );
 
@@ -265,7 +263,7 @@ TEST( types, struct_64b )
 
    TNL::Containers::Array< TMPSTRUCT_64b, TNL::Devices::Cuda > cudaArr( arr );
    auto view = cudaArr.getView();
-   Quicksort::sort( view );
+   TypeParam::sort( view );
 
    EXPECT_TRUE( Algorithms::isAscending( view ) );
 }

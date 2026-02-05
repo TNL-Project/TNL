@@ -5,7 +5,7 @@
 #include <TNL/Algorithms/Sorting/detail/helpers.h>
 #include <TNL/Containers/Array.h>
 
-namespace TNL::Algorithms::Sorting {
+namespace TNL::Algorithms::Sorting::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -108,4 +108,4 @@ bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > src, 
 
 #endif
 
-}  // namespace TNL::Algorithms::Sorting
+}  //namespace TNL::Algorithms::Sorting::detail

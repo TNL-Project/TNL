@@ -7,7 +7,7 @@
 
 #include <TNL/Backend/Macros.h>
 
-namespace TNL::Algorithms::Sorting {
+namespace TNL::Algorithms::Sorting::experimental::detail {
 
 struct TASK
 {
@@ -66,4 +66,4 @@ operator<<( std::ostream& out, const TASK& task )
    return out << " ] ";
 }
 
-}  // namespace TNL::Algorithms::Sorting
+}  //namespace TNL::Algorithms::Sorting::experimental::detail
