@@ -7,9 +7,9 @@
 #include <TNL/Matrices/Factorization/QR/QR.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/SparseMatrix.h>
-#include <TNL/Matrices/Eigen/PowerIteration.h>
-#include <TNL/Matrices/Eigen/ShiftedPowerIteration.h>
-#include <TNL/Matrices/Eigen/QRAlgorithm.h>
+#include <TNL/Solvers/Eigenvalues/experimental/PowerIteration.h>
+#include <TNL/Solvers/Eigenvalues/experimental/ShiftedPowerIteration.h>
+#include <TNL/Solvers/Eigenvalues/experimental/QRAlgorithm.h>
 
 #include <gtest/gtest.h>
 #include <stdexcept>
@@ -26,7 +26,7 @@ checkPowerIterationDense0D()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -40,7 +40,7 @@ checkPowerIterationDense0D()
 
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeCMO >( B, epsilon, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeCMO >( B, epsilon, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -56,7 +56,7 @@ checkPowerIterationDense0D()
    VectorType initialVecRMO = {};
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeRMO >( C, epsilon, initialVecRMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeRMO >( C, epsilon, initialVecRMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -69,7 +69,7 @@ checkPowerIterationDense0D()
    const MatrixTypeRMO D;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeRMO >( D, epsilon, initialVecRMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeRMO >( D, epsilon, initialVecRMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -92,7 +92,7 @@ checkPowerIterationExceptionSizeSquare()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -108,7 +108,7 @@ checkPowerIterationExceptionSizeSquare()
    VectorType initialVecRMO = { 1, 1, 1 };
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeRMO >( B, epsilon, initialVecRMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeRMO >( B, epsilon, initialVecRMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -131,7 +131,7 @@ checkPowerIterationExceptionSizeVector()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -147,7 +147,7 @@ checkPowerIterationExceptionSizeVector()
    VectorType initialVecRMO = { 1, 1 };
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeRMO >( B, epsilon, initialVecRMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeRMO >( B, epsilon, initialVecRMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -170,7 +170,7 @@ checkPowerIterationExceptionZeroVector()
    RealType epsilon = 1e-8;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixType >( A, epsilon, initialVec, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixType >( A, epsilon, initialVec, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -186,7 +186,7 @@ checkPowerIterationExceptionZeroVector()
    VectorType initialVecRMO = { 0, 0 };
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeRMO >( B, epsilon, initialVecRMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeRMO >( B, epsilon, initialVecRMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -208,7 +208,7 @@ checkPowerIterationDense1D()
    VectorType initialVec = { 2.0 };
    RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::powerIteration< MatrixTypeCMO >( A, epsilon, initialVec, 100 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeCMO >( A, epsilon, initialVec, 100 );
    EXPECT_EQ( eigenvalue, 1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -217,7 +217,7 @@ checkPowerIterationDense1D()
    A.setElement( 0, 0, -1 );
 
    std::tie( eigenvalue, eigenvector, iterations ) =
-      TNL::Matrices::Eigen::powerIteration< MatrixTypeCMO >( A, epsilon, initialVec, 100 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeCMO >( A, epsilon, initialVec, 100 );
    EXPECT_EQ( eigenvalue, -1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -227,7 +227,7 @@ checkPowerIterationDense1D()
    using MatrixTypeRMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationRMO >;
    MatrixTypeRMO B = { { 1.0 } };
    std::tie( eigenvalue, eigenvector, iterations ) =
-      TNL::Matrices::Eigen::powerIteration< MatrixTypeRMO >( B, epsilon, initialVec, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeRMO >( B, epsilon, initialVec, 10000 );
    EXPECT_EQ( eigenvalue, 1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -236,7 +236,7 @@ checkPowerIterationDense1D()
    B.setElement( 0, 0, -1 );
 
    std::tie( eigenvalue, eigenvector, iterations ) =
-      TNL::Matrices::Eigen::powerIteration< MatrixTypeRMO >( B, epsilon, initialVec, 100 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeRMO >( B, epsilon, initialVec, 100 );
    EXPECT_EQ( eigenvalue, -1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -254,7 +254,7 @@ checkPowerIterationDense2D()
    VectorType initialVec = { 1.0, 2.0 };
    const RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::powerIteration< MatrixType >( A, epsilon, initialVec, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixType >( A, epsilon, initialVec, 10000 );
    EXPECT_NEAR( eigenvalue, 3, 1e-7 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_NEAR( eigenvector.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
@@ -264,7 +264,7 @@ checkPowerIterationDense2D()
    using VectorType = TNL::Containers::Vector< RealType, Device >;
    VectorType initialVecB = { 1.0, 2.0 };
    auto [ eigenvalueB, eigenvectorB, iterationsB ] =
-      TNL::Matrices::Eigen::powerIteration< MatrixType >( B, epsilon, initialVecB, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixType >( B, epsilon, initialVecB, 10000 );
    EXPECT_EQ( iterationsB, 0 );
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -272,7 +272,7 @@ checkPowerIterationDense2D()
    const MatrixTypeRMO C = { { 2.0, 1.0 }, { 1.0, 2.0 } };
    VectorType initialVecRMO = { 1.0, 2.0 };
    auto [ eigenvalueRMO, eigenvectorRMO, iterationsRMO ] =
-      TNL::Matrices::Eigen::powerIteration< MatrixTypeRMO >( C, epsilon, initialVecRMO, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeRMO >( C, epsilon, initialVecRMO, 10000 );
    EXPECT_NEAR( eigenvalueRMO, 3, 1e-7 );
    for( int i = 0; i < eigenvectorRMO.getSize(); i++ ) {
       EXPECT_NEAR( eigenvectorRMO.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
@@ -281,7 +281,7 @@ checkPowerIterationDense2D()
    const MatrixTypeRMO D = { { 0, 1 }, { 1, 0 } };
    VectorType initialVecRMOD = { 1.0, 2.0 };
    auto [ eigenvalueRMOD, eigenvectorRMOD, iterationsRMOD ] =
-      TNL::Matrices::Eigen::powerIteration< MatrixTypeRMO >( D, epsilon, initialVecRMOD, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeRMO >( D, epsilon, initialVecRMOD, 10000 );
    EXPECT_EQ( iterationsRMOD, 0 );
 }
 
@@ -296,7 +296,7 @@ checkPowerIterationSparse0D()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -310,7 +310,7 @@ checkPowerIterationSparse0D()
 
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeCMO >( B, epsilon, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeCMO >( B, epsilon, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -332,7 +332,7 @@ checkPowerIterationExceptionSizeSquareSparse()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixType >( A, epsilon, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixType >( A, epsilon, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -357,7 +357,7 @@ checkPowerIterationExceptionSizeVectorSparse()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeCMO >( A, epsilon, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -385,7 +385,7 @@ checkPowerIterationExceptionZeroVectorSparse()
    RealType epsilon = 1e-8;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::powerIteration< MatrixType >( A, epsilon, initialVec, 10 );
+         TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixType >( A, epsilon, initialVec, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -409,7 +409,7 @@ checkPowerIterationSparse1D()
    VectorType initialVec = { 2.0 };
    RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::powerIteration< MatrixTypeCMO >( A, epsilon, initialVec, 100 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeCMO >( A, epsilon, initialVec, 100 );
    EXPECT_EQ( eigenvalue, 1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -417,7 +417,7 @@ checkPowerIterationSparse1D()
 
    A.setElement( 0, 0, -1 );
    std::tie( eigenvalue, eigenvector, iterations ) =
-      TNL::Matrices::Eigen::powerIteration< MatrixTypeCMO >( A, epsilon, initialVec, 100 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixTypeCMO >( A, epsilon, initialVec, 100 );
    EXPECT_EQ( eigenvalue, -1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -440,7 +440,7 @@ checkPowerIterationSparse2D()
    VectorType initialVec = { 1.0, 2.0 };
    RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::powerIteration< MatrixType >( A, epsilon, initialVec, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixType >( A, epsilon, initialVec, 10000 );
    EXPECT_NEAR( eigenvalue, 3, 1e-7 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_NEAR( eigenvector.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
@@ -453,7 +453,7 @@ checkPowerIterationSparse2D()
    B.setElement( 1, 0, 1 );
    VectorType initialVecB = { 1.0, 2.0 };
    auto [ eigenvalueB, eigenvectorB, iterationsB ] =
-      TNL::Matrices::Eigen::powerIteration< MatrixType >( B, epsilon, initialVecB, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::powerIteration< MatrixType >( B, epsilon, initialVecB, 10000 );
    EXPECT_EQ( iterationsB, 0 );
 }
 
@@ -526,7 +526,7 @@ checkShiftedPowerIterationDense0D()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -540,7 +540,7 @@ checkShiftedPowerIterationDense0D()
 
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeCMO >( B, epsilon, 2, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeCMO >( B, epsilon, 2, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -556,7 +556,7 @@ checkShiftedPowerIterationDense0D()
    VectorType initialVecRMO = {};
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeRMO >( C, epsilon, 2, initialVecRMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeRMO >( C, epsilon, 2, initialVecRMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -569,7 +569,7 @@ checkShiftedPowerIterationDense0D()
    const MatrixTypeRMO D;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeRMO >( D, epsilon, 2, initialVecRMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeRMO >( D, epsilon, 2, initialVecRMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -592,7 +592,7 @@ checkShiftedPowerIterationExceptionSizeSquare()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -608,7 +608,7 @@ checkShiftedPowerIterationExceptionSizeSquare()
    VectorType initialVecRMO = { 1, 1, 1 };
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeRMO >( B, epsilon, 2, initialVecRMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeRMO >( B, epsilon, 2, initialVecRMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -631,7 +631,7 @@ checkShiftedPowerIterationExceptionSizeVector()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -647,7 +647,7 @@ checkShiftedPowerIterationExceptionSizeVector()
    VectorType initialVecRMO = { 1, 1 };
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeRMO >( B, epsilon, 2, initialVecRMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeRMO >( B, epsilon, 2, initialVecRMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -670,7 +670,7 @@ checkShiftedPowerIterationExceptionZeroVector()
    const RealType epsilon = 1e-8;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVec, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVec, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -686,7 +686,7 @@ checkShiftedPowerIterationExceptionZeroVector()
    VectorType initialVecRMO = { 0, 0 };
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeRMO >( B, epsilon, 2, initialVecRMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeRMO >( B, epsilon, 2, initialVecRMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -708,7 +708,7 @@ checkShiftedPowerIterationDense1D()
    VectorType initialVec = { 2.0 };
    RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVec, 100 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVec, 100 );
    EXPECT_EQ( eigenvalue, 1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -716,7 +716,7 @@ checkShiftedPowerIterationDense1D()
 
    A.setElement( 0, 0, -1 );
    std::tie( eigenvalue, eigenvector, iterations ) =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVec, 100 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVec, 100 );
    EXPECT_EQ( eigenvalue, -1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -726,7 +726,7 @@ checkShiftedPowerIterationDense1D()
    using MatrixTypeRMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationRMO >;
    MatrixTypeRMO B = { { 1.0 } };
    std::tie( eigenvalue, eigenvector, iterations ) =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeRMO >( B, epsilon, 2, initialVec, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeRMO >( B, epsilon, 2, initialVec, 10000 );
    EXPECT_EQ( eigenvalue, 1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -734,7 +734,7 @@ checkShiftedPowerIterationDense1D()
 
    B.setElement( 0, 0, -1 );
    std::tie( eigenvalue, eigenvector, iterations ) =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeRMO >( B, epsilon, 2, initialVec, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeRMO >( B, epsilon, 2, initialVec, 10000 );
    EXPECT_EQ( eigenvalue, -1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -752,7 +752,7 @@ checkShiftedPowerIterationDense2D()
    VectorType initialVec = { 1.0, 2.0 };
    const RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVec, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVec, 10000 );
    EXPECT_NEAR( eigenvalue, 3, 1e-7 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_NEAR( eigenvector.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
@@ -761,7 +761,7 @@ checkShiftedPowerIterationDense2D()
    const MatrixType B = { { 0, 1 }, { 1, 0 } };
    VectorType initialVecB = { 0.1, 1.2 };
    auto [ eigenvalueB, eigenvectorB, iterationsB ] =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( B, epsilon, 2, initialVecB, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixType >( B, epsilon, 2, initialVecB, 10000 );
    EXPECT_NEAR( eigenvalueB, 1, 1e-7 );
    for( int i = 0; i < eigenvectorB.getSize(); i++ ) {
       EXPECT_NEAR( eigenvectorB.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
@@ -772,7 +772,7 @@ checkShiftedPowerIterationDense2D()
    const MatrixTypeRMO C = { { 2.0, 1.0 }, { 1.0, 2.0 } };
    VectorType initialVecRMO = { 1.0, 2.0 };
    auto [ eigenvalueRMO, eigenvectorRMO, iterationsRMO ] =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeRMO >( C, epsilon, 2, initialVecRMO, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeRMO >( C, epsilon, 2, initialVecRMO, 10000 );
    EXPECT_NEAR( eigenvalueRMO, 3, 1e-7 );
    for( int i = 0; i < eigenvectorRMO.getSize(); i++ ) {
       EXPECT_NEAR( eigenvectorRMO.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
@@ -781,7 +781,7 @@ checkShiftedPowerIterationDense2D()
    const MatrixTypeRMO D = { { 0, 1 }, { 1, 0 } };
    VectorType initialVecRMOD = { 1.0, 2.0 };
    auto [ eigenvalueRMOD, eigenvectorRMOD, iterationsRMOD ] =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeRMO >( D, epsilon, 2, initialVecRMOD, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeRMO >( D, epsilon, 2, initialVecRMOD, 10000 );
    EXPECT_NEAR( eigenvalueRMOD, 1, 1e-7 );
    for( int i = 0; i < eigenvectorRMOD.getSize(); i++ ) {
       EXPECT_NEAR( eigenvectorRMOD.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
@@ -799,7 +799,7 @@ checkShiftedPowerIterationSparse0D()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -813,7 +813,7 @@ checkShiftedPowerIterationSparse0D()
 
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( B, epsilon, 2, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixType >( B, epsilon, 2, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -835,7 +835,7 @@ checkShiftedPowerIterationExceptionSizeSquareSparse()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -860,7 +860,7 @@ checkShiftedPowerIterationExceptionSizeVectorSparse()
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVecCMO, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVecCMO, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -888,7 +888,7 @@ checkShiftedPowerIterationExceptionZeroVectorSparse()
    const RealType epsilon = 1e-8;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVec, 10 );
+         TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVec, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -912,7 +912,7 @@ checkShiftedPowerIterationSparse1D()
    VectorType initialVecCMO = { 2.0 };
    RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 100 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 100 );
    EXPECT_EQ( eigenvalue, 1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -920,7 +920,7 @@ checkShiftedPowerIterationSparse1D()
 
    A.setElement( 0, 0, -1 );
    std::tie( eigenvalue, eigenvector, iterations ) =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 100 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixTypeCMO >( A, epsilon, 2, initialVecCMO, 100 );
    EXPECT_EQ( eigenvalue, -1 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_EQ( eigenvector.getElement( i ), 1 );
@@ -943,7 +943,7 @@ checkShiftedPowerIterationSparse2D()
    VectorType initialVec = { 1.0, 2.0 };
    const RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVec, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixType >( A, epsilon, 2, initialVec, 10000 );
    EXPECT_NEAR( eigenvalue, 3, 1e-7 );
    for( int i = 0; i < eigenvector.getSize(); i++ ) {
       EXPECT_NEAR( eigenvector.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
@@ -956,7 +956,7 @@ checkShiftedPowerIterationSparse2D()
    B.setElement( 1, 0, 1 );
    VectorType initialVecB = { 1.0, 2.0 };
    auto [ eigenvalueB, eigenvectorB, iterationsB ] =
-      TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( B, epsilon, 2, initialVecB, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixType >( B, epsilon, 2, initialVecB, 10000 );
    EXPECT_NEAR( eigenvalueB, 1, 1e-7 );
    for( int i = 0; i < eigenvectorB.getSize(); i++ ) {
       EXPECT_NEAR( eigenvectorB.getElement( i ), TNL::sqrt( 2.0 ) / 2.0, 1e-7 );
@@ -1020,7 +1020,7 @@ checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::FactorizationMe
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -1034,7 +1034,7 @@ checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::FactorizationMe
 
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeCMO >( B, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeCMO >( B, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -1049,7 +1049,7 @@ checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixTypeRMO C = {};
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -1062,7 +1062,7 @@ checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixTypeRMO D;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -1083,7 +1083,7 @@ checkQRAlgorithmExceptionSizeSquare( const TNL::Matrices::Factorization::QR::Fac
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -1098,7 +1098,7 @@ checkQRAlgorithmExceptionSizeSquare( const TNL::Matrices::Factorization::QR::Fac
    MatrixTypeRMO B = { { 1, 2, 3 } };
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -1118,13 +1118,13 @@ checkQRAlgorithmDense1D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixTypeCMO A = { { 1.0 } };
    RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10000 );
    EXPECT_EQ( eigenvalue.getElement( 0, 0 ), 1 );
    EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
 
    A.setElement( 0, 0, -1 );
    std::tie( eigenvalue, eigenvector, iterations ) =
-      TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10000 );
    EXPECT_EQ( eigenvalue.getElement( 0, 0 ), -1 );
    EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
    if( QRmethod == TNL::Matrices::Factorization::QR::FactorizationMethod::Givens ) {
@@ -1132,13 +1132,13 @@ checkQRAlgorithmDense1D( const TNL::Matrices::Factorization::QR::FactorizationMe
       using MatrixTypeRMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationRMO >;
       MatrixTypeRMO B = { { 1.0 } };
       std::tie( eigenvalue, eigenvector, iterations ) =
-         TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10000 );
+         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10000 );
       EXPECT_EQ( eigenvalue.getElement( 0, 0 ), 1 );
       EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
 
       B.setElement( 0, 0, -1 );
       std::tie( eigenvalue, eigenvector, iterations ) =
-         TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10000 );
+         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10000 );
       EXPECT_EQ( eigenvalue.getElement( 0, 0 ), -1 );
       EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
    }
@@ -1153,7 +1153,7 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixType A = { { 2.0, 1.0 }, { 1.0, 2.0 } };
    const RealType epsilon = 1e-8;
    auto [ eigenvalues, eigenvector, iterations ] =
-      TNL::Matrices::Eigen::QRAlgorithm< MatrixType >( A, epsilon, QRmethod, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixType >( A, epsilon, QRmethod, 10000 );
    EXPECT_NEAR( eigenvalues.getElement( 0, 0 ), 3, 1e-5 );
    EXPECT_NEAR( eigenvalues.getElement( 1, 1 ), 1, 1e-5 );
    EXPECT_NEAR( eigenvector.getElement( 0, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
@@ -1163,7 +1163,7 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
 
    MatrixType B = { { 0.0, 1.0 }, { -1.0, 0.0 } };
    auto [ eigenvaluesB, eigenvectorB, iterationsB ] =
-      TNL::Matrices::Eigen::QRAlgorithm< MatrixType >( B, epsilon, QRmethod, 10000 );
+      TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixType >( B, epsilon, QRmethod, 10000 );
    EXPECT_EQ( iterationsB, 0 );
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -1171,7 +1171,7 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixTypeRMO C = { { 2.0, 1.0 }, { 1.0, 2.0 } };
    if( QRmethod == TNL::Matrices::Factorization::QR::FactorizationMethod::Givens ) {
       auto [ eigenvaluesRMO, eigenvectorRMO, iterationsRMO ] =
-         TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10000 );
+         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10000 );
       EXPECT_NEAR( eigenvaluesRMO.getElement( 0, 0 ), 3, 1e-5 );
       EXPECT_NEAR( eigenvaluesRMO.getElement( 1, 1 ), 1, 1e-5 );
       EXPECT_NEAR( eigenvectorRMO.getElement( 0, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
@@ -1182,7 +1182,7 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
    else {
       try {
          auto [ eigenvalue, eigenvector, iterations ] =
-            TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10 );
+            TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10 );
          ADD_FAILURE();
       }
       catch( const std::invalid_argument& e ) {
@@ -1196,13 +1196,13 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixTypeRMO D = { { 0.0, 1.0 }, { -1.0, 0.0 } };
    if( QRmethod == TNL::Matrices::Factorization::QR::FactorizationMethod::Givens ) {
       auto [ eigenvaluesRMO, eigenvectorSRMO, iterationsRMO ] =
-         TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10000 );
+         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10000 );
       EXPECT_NEAR( iterationsRMO, 0, 10000 );
    }
    else {
       try {
          auto [ eigenvaluesRMO, eigenvectorsRMO, iterationsRMO ] =
-            TNL::Matrices::Eigen::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10 );
+            TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10 );
          ADD_FAILURE();
       }
       catch( const std::invalid_argument& e ) {
