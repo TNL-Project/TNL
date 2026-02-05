@@ -34,7 +34,7 @@ test_VectorProduct_zeroMatrix()
    typename Matrix::RowCapacitiesType rowLengths_1{ 1, 2, 1, 1 };
    m_1.setRowCapacities( rowLengths_1 );
 
-   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_1.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_1.getSegments() ) ) {
       SCOPED_TRACE( tag );
 
       VectorType inVector_1;
@@ -58,7 +58,7 @@ test_VectorProduct_zeroMatrix()
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_1_transposed;
       m_1_transposed.getTransposition( m_1 );
-      for( auto [ launch_config, tag ] :
+      for( const auto& [ launch_config, tag ] :
            TNL::Algorithms::Segments::reductionLaunchConfigurations( m_1_transposed.getSegments() ) )
       {
          SCOPED_TRACE( tag );
@@ -102,7 +102,7 @@ test_VectorProduct_smallMatrix1()
                        {3,2,5} } );
    // clang-format on
 
-   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_1.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_1.getSegments() ) ) {
       SCOPED_TRACE( tag );
 
       VectorType inVector_1( m_cols_1, 2 );
@@ -121,7 +121,7 @@ test_VectorProduct_smallMatrix1()
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_1_transposed;
       m_1_transposed.getTransposition( m_1 );
-      for( auto [ launch_config, tag ] :
+      for( const auto& [ launch_config, tag ] :
            TNL::Algorithms::Segments::reductionLaunchConfigurations( m_1_transposed.getSegments() ) )
       {
          SCOPED_TRACE( tag );
@@ -165,7 +165,7 @@ test_VectorProduct_smallMatrix2()
               {3,1,8} } );
    // clang-format on
 
-   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_2.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_2.getSegments() ) ) {
       SCOPED_TRACE( tag );
       VectorType inVector_2( m_cols_2, 2 );
       VectorType outVector_2( m_rows_2, 0 );
@@ -183,7 +183,7 @@ test_VectorProduct_smallMatrix2()
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_2_transposed;
       m_2_transposed.getTransposition( m_2 );
-      for( auto [ launch_config, tag ] :
+      for( const auto& [ launch_config, tag ] :
            TNL::Algorithms::Segments::reductionLaunchConfigurations( m_2_transposed.getSegments() ) )
       {
          SCOPED_TRACE( tag );
@@ -230,7 +230,7 @@ test_VectorProduct_smallMatrix3()
               {3,1,10}, {3,2,11}, {3,3,12} } );
    // clang-format on
 
-   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_3.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_3.getSegments() ) ) {
       SCOPED_TRACE( tag );
 
       VectorType inVector_3( m_cols_3, 2 );
@@ -249,7 +249,7 @@ test_VectorProduct_smallMatrix3()
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_3_transposed;
       m_3_transposed.getTransposition( m_3 );
-      for( auto [ launch_config, tag ] :
+      for( const auto& [ launch_config, tag ] :
            TNL::Algorithms::Segments::reductionLaunchConfigurations( m_3_transposed.getSegments() ) )
       {
          SCOPED_TRACE( tag );
@@ -304,7 +304,7 @@ test_VectorProduct_mediumSizeMatrix1()
      {7,0,31}, {7,1,32}, {7,2,33}, {7,3,34}, {7,4 ,35} } );
    // clang-format on
 
-   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_4.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_4.getSegments() ) ) {
       SCOPED_TRACE( tag );
 
       VectorType inVector_4( m_cols_4, 2 );
@@ -327,7 +327,7 @@ test_VectorProduct_mediumSizeMatrix1()
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_4_transposed;
       m_4_transposed.getTransposition( m_4 );
-      for( auto [ launch_config, tag ] :
+      for( const auto& [ launch_config, tag ] :
            TNL::Algorithms::Segments::reductionLaunchConfigurations( m_4_transposed.getSegments() ) )
       {
          SCOPED_TRACE( tag );
@@ -379,7 +379,7 @@ test_VectorProduct_mediumSizeMatrix2()
      {7,0,29}, {7,1,30}, {7,2,31}, {7,3,32}, {7,4,33}, {7,5,34}, {7,6,35}, {7,7,36} } );
    // clang-format on
 
-   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_5.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m_5.getSegments() ) ) {
       SCOPED_TRACE( tag );
 
       VectorType inVector_5( m_cols_5, 2 );
@@ -402,7 +402,7 @@ test_VectorProduct_mediumSizeMatrix2()
    if constexpr( ! TNL::is_complex_v< RealType > ) {
       Matrix m_5_transposed;
       m_5_transposed.getTransposition( m_5 );
-      for( auto [ launch_config, tag ] :
+      for( const auto& [ launch_config, tag ] :
            TNL::Algorithms::Segments::reductionLaunchConfigurations( m_5_transposed.getSegments() ) )
       {
          SCOPED_TRACE( tag );
@@ -449,10 +449,11 @@ test_VectorProduct_largeMatrix()
    m1.getCompressedRowLengths( rowCapacities );
    EXPECT_EQ( rowCapacities, 1 );
 
-   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m1.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m1.getSegments() ) ) {
       SCOPED_TRACE( tag );
 
-      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 ), out( size, 0.0 );
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 );
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > out( size, 0.0 );
       m1.vectorProduct( in, out, launch_config );
       for( IndexType i = 0; i < size; i++ )
          EXPECT_EQ( out.getElement( i ), OutRealType( i + 1 ) );
@@ -482,10 +483,11 @@ test_VectorProduct_largeMatrix()
    m2.getCompressedRowLengths( rowLengths );
    EXPECT_EQ( rowLengths, rowCapacities );
 
-   for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m2.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m2.getSegments() ) ) {
       SCOPED_TRACE( tag );
 
-      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 ), out( size, 0.0 );
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( size, 1.0 );
+      TNL::Containers::Vector< OutRealType, DeviceType, IndexType > out( size, 0.0 );
       m2.vectorProduct( in, out, launch_config );
       for( IndexType i = 0; i < rows; i++ )
          EXPECT_EQ( out.getElement( i ), OutRealType( ( i + 1 ) * ( i + 2 ) / 2 ) ) << " at row " << i;
@@ -516,10 +518,11 @@ test_VectorProduct_longRowsMatrix()
          value = localIdx + row;
       };
       m3.forAllElements( f );
-      for( auto [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m3.getSegments() ) ) {
+      for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m3.getSegments() ) ) {
          SCOPED_TRACE( tag );
 
-         TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( columns, 1.0 ), out( rows, 0.0 );
+         TNL::Containers::Vector< OutRealType, DeviceType, IndexType > in( columns, 1.0 );
+         TNL::Containers::Vector< OutRealType, DeviceType, IndexType > out( rows, 0.0 );
          m3.vectorProduct( in, out, launch_config );
          for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
             EXPECT_EQ( out.getElement( rowIdx ), OutRealType( columns * ( columns - 1 ) / 2.0 + columns * rowIdx ) );

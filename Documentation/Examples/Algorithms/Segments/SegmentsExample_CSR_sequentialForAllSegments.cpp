@@ -21,7 +21,7 @@ SegmentsExample()
    /***
     * Print the elements mapping using segment view.
     */
-   std::cout << "Elements mapping:" << std::endl;
+   std::cout << "Elements mapping:\n";
    TNL::Algorithms::Segments::sequentialForAllSegments(
       segments,
       [] __cuda_callable__( const SegmentView segment )

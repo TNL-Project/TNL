@@ -24,12 +24,12 @@ vertexViewExample()
            { 4, 0, 90.0 } } );
    // clang-format on
 
-   std::cout << "Graph:\n" << graph << std::endl;
+   std::cout << "Graph:\n" << graph << '\n';
 
    /***
     * Modifying edge weights using forAllVertices
     */
-   std::cout << "\nExample 3: Modifying edge weights" << std::endl;
+   std::cout << "\nExample 3: Modifying edge weights\n";
 
    TNL::Graphs::forAllVertices( graph,
                                 [] __cuda_callable__( typename GraphType::VertexView vertex )
@@ -39,22 +39,22 @@ vertexViewExample()
                                    }
                                 } );
 
-   std::cout << "Graph after modifying edge weights:\n" << graph << std::endl;
+   std::cout << "Graph after modifying edge weights:\n" << graph << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    vertexViewExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    vertexViewExample< TNL::Devices::Cuda >();
 #endif
 
 #ifdef __HIP__
-   std::cout << "Running on HIP device:" << std::endl;
+   std::cout << "Running on HIP device:\n";
    vertexViewExample< TNL::Devices::Hip >();
 #endif
 

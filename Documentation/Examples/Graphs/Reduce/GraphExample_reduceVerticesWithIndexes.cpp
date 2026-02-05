@@ -25,14 +25,15 @@ reduceVerticesWithIndexesExample()
    /***
     * Print the graph.
     */
-   std::cout << "Graph:\n" << graph << std::endl;
+   std::cout << "Graph:\n" << graph << '\n';
 
    //! [reduce vertices with indecis]
    /***
     * Compute sum of edge weights for specific vertices (0, 2, 3).
     */
    TNL::Containers::Vector< int, Device > vertexIndices( { 0, 2, 3 } );
-   TNL::Containers::Vector< float, Device > vertexSums( 5, -1 ), compressedVertexSums( 3, -1 );
+   TNL::Containers::Vector< float, Device > vertexSums( 5, -1 );
+   TNL::Containers::Vector< float, Device > compressedVertexSums( 3, -1 );
    auto vertexSums_view = vertexSums.getView();
    auto compressedVertexSums_view = compressedVertexSums.getView();
 
@@ -53,18 +54,18 @@ reduceVerticesWithIndexesExample()
    /***
     * Print results.
     */
-   std::cout << "Sum of edge weights for specific vertices:" << vertexSums << std::endl;
-   std::cout << "Compressed sums:" << compressedVertexSums.getView( 0, vertexIndices.getSize() ) << std::endl;
+   std::cout << "Sum of edge weights for specific vertices:" << vertexSums << '\n';
+   std::cout << "Compressed sums:" << compressedVertexSums.getView( 0, vertexIndices.getSize() ) << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceVerticesWithIndexesExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    reduceVerticesWithIndexesExample< TNL::Devices::Cuda >();
 #endif
 

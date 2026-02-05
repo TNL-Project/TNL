@@ -15,12 +15,12 @@ namespace TNL::Matrices {
  *
  * \tparam TargetMatrix is the target symmetric sparse matrix type.
  * \tparam SourceMatrix is the source general sparse matrix type.
- * \param target is the target symmetric sparse matrix.
- * \param source is the source general sparse matrix.
+ * \param A is the target symmetric sparse matrix.
+ * \param B is the source general sparse matrix.
  */
 template< typename TargetMatrix, typename SourceMatrix >
 void
-copySparseToSparseMatrix( TargetMatrix& target, const SourceMatrix& source );
+copySparseToSparseMatrix( TargetMatrix& A, const SourceMatrix& B );
 
 template< typename Matrix1, typename Matrix2 >
 void

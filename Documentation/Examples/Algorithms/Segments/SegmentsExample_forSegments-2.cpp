@@ -39,7 +39,7 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
 
    //! [traversing]
    /***
@@ -64,8 +64,8 @@ SegmentsExample()
    /***
     * Print the data managed by the segments.
     */
-   std::cout << "Value of elements after dividing by sum in each segment:" << std::endl;
-   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   std::cout << "Value of elements after dividing by sum in each segment:\n";
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
 }
 
 int

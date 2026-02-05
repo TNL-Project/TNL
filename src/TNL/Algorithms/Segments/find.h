@@ -56,7 +56,7 @@
  *
  * - **segments**: The segments container to search in
  * - **condition**: Lambda that tests if an element matches the search criteria (see \ref SegmentFindConditionLambda)
- * - **keeper**: Lambda that processes the search results for each segment (see \ref SegmentFindResultKeeperLambda)
+ * - **storer**: Lambda that processes the search results for each segment (see \ref SegmentFindResultStorerLambda)
  * - **launchConfig**: Configuration for parallel execution (optional)
  *
  * Conditional variants additionally require:
@@ -100,13 +100,13 @@
  *
  * The lambda should return `true` if the element satisfies the search condition.
  *
- * \section SegmentFindResultKeeperLambda Result Keeper Lambda
+ * \section SegmentFindResultStorerLambda Result Storer Lambda
  *
- * The result keeper lambda manages the results of the search operation.
+ * The result storer lambda manages the results of the search operation.
  * It has the following signature:
  *
  * ```cpp
- * auto keeper = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, bool found )
+ * auto storer = [=] __cuda_callable__ ( IndexType segmentIdx, IndexType localIdx, bool found )
  * {
  *    // Process the search result
  *    if( found ) {
@@ -148,11 +148,11 @@ namespace TNL::Algorithms::Segments {
  *
  * \tparam Segments is the type of the segments.
  * \tparam Condition is the type of the lambda function expressing the condition.
- * \tparam ResultKeeper is the type of the lambda function that will manage the results of searching.
+ * \tparam ResultStorer is the type of the lambda function that will manage the results of searching.
  *
  * \param segments is the segments to search in.
  * \param condition is the lambda function returning true for the found element. See \ref SegmentFindConditionLambda.
- * \param keeper is the lambda function managing the results of the searching. See \ref SegmentFindResultKeeperLambda.
+ * \param storer is the lambda function managing the results of the searching. See \ref SegmentFindResultStorerLambda.
  * \param launchConfig is the configuration for launching the kernel.
  *
  * \par Example
@@ -164,11 +164,11 @@ namespace TNL::Algorithms::Segments {
  * Note: A function like `find` searching for a specific value does not make sense for segments due
  * to the necessity of accessing the data via a lambda function anyway.
  */
-template< typename Segments, typename Condition, typename ResultKeeper >
+template< typename Segments, typename Condition, typename ResultStorer >
 static void
 findInAllSegments( const Segments& segments,
                    Condition&& condition,
-                   ResultKeeper&& keeper,
+                   ResultStorer&& storer,
                    LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -179,13 +179,13 @@ findInAllSegments( const Segments& segments,
  * \tparam IndexBegin is the type of the index defining the range of segments to search in.
  * \tparam IndexEnd is the type of the index defining the range of segments to search in.
  * \tparam Condition is the type of the lambda function expressing the condition.
- * \tparam ResultKeeper is the type of the lambda function that will manage the results of searching.
+ * \tparam ResultStorer is the type of the lambda function that will manage the results of searching.
  *
  * \param segments is the segments to search in.
  * \param begin defines the range [begin,end) of segments to search in.
  * \param end defines the range [begin,end) of segments to search in.
  * \param condition is the lambda function returning true for the found element. See \ref SegmentFindConditionLambda.
- * \param keeper is the lambda function managing the results of the searching. See \ref SegmentFindResultKeeperLambda.
+ * \param storer is the lambda function managing the results of the searching. See \ref SegmentFindResultStorerLambda.
  * \param launchConfig is the configuration for launching the kernel.
  *
  * \par Example
@@ -201,14 +201,14 @@ template< typename Segments,
           typename IndexBegin,
           typename IndexEnd,
           typename Condition,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
 findInSegments( const Segments& segments,
                 IndexBegin begin,
                 IndexEnd end,
                 Condition&& condition,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -218,12 +218,12 @@ findInSegments( const Segments& segments,
  * \tparam Segments is the type of the segments.
  * \tparam Array is the type of the array holding the segment indexes.
  * \tparam Condition is the type of the lambda function expressing the condition.
- * \tparam ResultKeeper is the type of the lambda function that will manage the results of searching.
+ * \tparam ResultStorer is the type of the lambda function that will manage the results of searching.
  *
  * \param segments is the segments to search in.
  * \param segmentIndexes is the array holding the indexes of segments to search in.
  * \param condition is the lambda function returning true for the found element. See \ref SegmentFindConditionLambda.
- * \param keeper is the lambda function managing the results of the searching. See \ref SegmentFindResultKeeperLambda.
+ * \param storer is the lambda function managing the results of the searching. See \ref SegmentFindResultStorerLambda.
  * \param launchConfig is the configuration for launching the kernel.
  *
  * \par Example
@@ -238,13 +238,13 @@ findInSegments( const Segments& segments,
 template< typename Segments,
           typename Array,
           typename Condition,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T = std::enable_if_t< IsArrayType< Array >::value > >
 static void
 findInSegments( const Segments& segments,
                 const Array& segmentIndexes,
                 Condition&& condition,
-                ResultKeeper&& keeper,
+                ResultStorer&& storer,
                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -255,13 +255,13 @@ findInSegments( const Segments& segments,
  * \tparam Segments is the type of the segments.
  * \tparam SegmentCondition is the type lambda function masking the segments to search in.
  * \tparam Condition is the type of the lambda function expressing the condition.
- * \tparam ResultKeeper is the type of the lambda function that will manage the results of searching.
+ * \tparam ResultStorer is the type of the lambda function that will manage the results of searching.
  *
  * \param segments is the segments to search in.
  * \param segmentCondition is the lambda function returning true for the segments to search in. See \ref
  * SegmentFindSegmentConditionLambda.
  * \param condition is the lambda function returning true for the found element. See \ref SegmentFindConditionLambda.
- * \param keeper is the lambda function managing the results of the searching. See \ref SegmentFindResultKeeperLambda.
+ * \param storer is the lambda function managing the results of the searching. See \ref SegmentFindResultStorerLambda.
  * \param launchConfig is the configuration for launching the kernel.
  *
  * \par Example
@@ -273,12 +273,12 @@ findInSegments( const Segments& segments,
  * Note: A function like `find` searching for a specific value does not make sense for segments due
  * to the necessity of accessing the data via a lambda function anyway.
  */
-template< typename Segments, typename SegmentCondition, typename Condition, typename ResultKeeper >
+template< typename Segments, typename SegmentCondition, typename Condition, typename ResultStorer >
 static void
 findInAllSegmentsIf( const Segments& segments,
                      SegmentCondition&& segmentCondition,
                      Condition&& condition,
-                     ResultKeeper&& keeper,
+                     ResultStorer&& storer,
                      LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
@@ -291,7 +291,7 @@ findInAllSegmentsIf( const Segments& segments,
  * \tparam IndexEnd is the type of the index defining the range of segments indexes to search in.
  * \tparam SegmentCondition is the type lambda function masking the segments to search in.
  * \tparam Condition is the type of the lambda function expressing the condition.
- * \tparam ResultKeeper is the type of the lambda function that will manage the results of searching.
+ * \tparam ResultStorer is the type of the lambda function that will manage the results of searching.
  *
  * \param segments is the segments to search in.
  * \param begin defines the range [begin,end) of segments to search in.
@@ -299,7 +299,7 @@ findInAllSegmentsIf( const Segments& segments,
  * \param segmentCondition is the lambda function returning true for the segments to search in. See \ref
  * SegmentFindSegmentConditionLambda.
  * \param condition is the lambda function returning true for the found element. See \ref SegmentFindConditionLambda.
- * \param keeper is the lambda function managing the results of the searching. See \ref SegmentFindResultKeeperLambda.
+ * \param storer is the lambda function managing the results of the searching. See \ref SegmentFindResultStorerLambda.
  * \param launchConfig is the configuration for launching the kernel.
  *
  * \par Example
@@ -316,7 +316,7 @@ template< typename Segments,
           typename IndexEnd,
           typename SegmentCondition,
           typename Condition,
-          typename ResultKeeper,
+          typename ResultStorer,
           typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
 findInSegmentsIf( const Segments& segments,
@@ -324,7 +324,7 @@ findInSegmentsIf( const Segments& segments,
                   IndexEnd end,
                   SegmentCondition&& segmentCondition,
                   Condition&& condition,
-                  ResultKeeper&& keeper,
+                  ResultStorer&& storer,
                   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 }  //namespace TNL::Algorithms::Segments

@@ -29,13 +29,13 @@ sortExample()
       } );
 
    // Print original data
-   std::cout << "Original data in segments:" << std::endl;
+   std::cout << "Original data in segments:\n";
    std::cout << TNL::Algorithms::Segments::print( segments,
                                                   [ = ] __cuda_callable__( Index globalIdx ) -> int
                                                   {
                                                      return data_view[ globalIdx ];
                                                   } )
-             << std::endl;
+             << '\n';
 
    //! [ascending sort]
    // Sort each segment
@@ -56,19 +56,19 @@ sortExample()
    TNL::Algorithms::Segments::sortAllSegments( segments, fetch, compare, swap );
 
    // Print sorted data
-   std::cout << "\nSorted data in segments (ascending order):" << std::endl;
+   std::cout << "\nSorted data in segments (ascending order):\n";
    std::cout << TNL::Algorithms::Segments::print( segments,
                                                   [ = ] __cuda_callable__( Index globalIdx ) -> int
                                                   {
                                                      return data_view[ globalIdx ];
                                                   } )
-             << std::endl;
+             << '\n';
    //! [ascending sort]
 
    //! [descending sort]
    // Sort only specific segments using segmentIndexes
    TNL::Containers::Vector< Index, Device > segmentIndexes{ 1, 3 };
-   std::cout << "\nSorting only segments 1 and 3 in descending order:" << std::endl;
+   std::cout << "\nSorting only segments 1 and 3 in descending order:\n";
 
    auto compareDesc = [] __cuda_callable__( Index a, Index b ) -> bool
    {
@@ -83,11 +83,11 @@ sortExample()
                                                   {
                                                      return data_view[ globalIdx ];
                                                   } )
-             << std::endl;
+             << '\n';
    //! [descending sort]
 
    // Sort segments conditionally (only even-indexed segments)
-   std::cout << "\nSorting even-indexed segments in descending order:" << std::endl;
+   std::cout << "\nSorting even-indexed segments in descending order:\n";
    auto condition = [] __cuda_callable__( Index segmentIdx ) -> bool
    {
       return segmentIdx % 2 == 0;
@@ -101,7 +101,7 @@ sortExample()
                                                   {
                                                      return data_view[ globalIdx ];
                                                   } )
-             << std::endl;
+             << '\n';
 }
 
 int

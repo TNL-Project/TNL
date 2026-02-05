@@ -366,7 +366,7 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const
    const IndexType rows = this->getRows();
 #endif
    const auto indexer = this->indexer;
-   std::cout << rowIndexes_view << std::endl;
+   std::cout << rowIndexes_view << '\n';
    auto f = [ = ] __cuda_callable__( IndexType idx ) mutable
    {
       TNL_ASSERT_LT( idx, rowIndexes_view.getSize(), "Index out of bounds." );

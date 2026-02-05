@@ -17,7 +17,7 @@ SegmentsExample()
     */
    TNL::Containers::Vector< int, Device > segmentsSizes{ 1, 2, 3, 4, 5 };
    Segments segments( segmentsSizes );
-   std::cout << "Segments sizes are: " << segments << std::endl;
+   std::cout << "Segments sizes are: " << segments << '\n';
 
    /***
     * Allocate array for the segments;
@@ -42,26 +42,26 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
    // ![sorted-segments-definition]
-   std::cout << "Example of sorted CSR segments on host: " << std::endl;
+   std::cout << "Example of sorted CSR segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int > > >();
    // ![sorted-segments-definition]
 
-   std::cout << "Example of sorted Ellpack segments on host: " << std::endl;
+   std::cout << "Example of sorted Ellpack segments on host:\n";
    SegmentsExample<
       TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > > >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of sorted CSR segments on CUDA GPU: " << std::endl;
+   std::cout << "Example of sorted CSR segments on CUDA GPU:\n";
    SegmentsExample< TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > > >();
 
-   std::cout << "Example of sorted Ellpack segments on CUDA GPU: " << std::endl;
+   std::cout << "Example of sorted Ellpack segments on CUDA GPU:\n";
    SegmentsExample<
       TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int > > >();
 #endif

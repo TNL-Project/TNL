@@ -27,9 +27,9 @@ struct LaunchConfigurationSetter_Default
                     && (std::is_same_v< typename Segments::DeviceType, Devices::Cuda >
                         || std::is_same_v< typename Segments::DeviceType, Devices::Hip >) )
       {
-         return LaunchConfiguration( ThreadsToSegmentsMapping::Warp, 1 );
+         return { ThreadsToSegmentsMapping::Warp, 1 };
       }
-      return LaunchConfiguration( ThreadsToSegmentsMapping::Fixed, 1 );
+      return { ThreadsToSegmentsMapping::Fixed, 1 };
    }
 };
 

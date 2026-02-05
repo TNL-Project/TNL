@@ -130,7 +130,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                      throw std::invalid_argument( "Unsupported threads per segment ( "
                                                   + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                                                   + " ) count for Ellpack segments." );
-                     break;
                }
             }
             else
@@ -269,7 +268,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                   throw std::invalid_argument( "Unsupported threads per segment ( "
                                                + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                                                + " ) count for Ellpack segments." );
-                  break;
             }
          }
          else {  // CPU
@@ -412,7 +410,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                   throw std::invalid_argument( "Unsupported threads per segment ( "
                                                + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                                                + " ) count for Ellpack segments." );
-                  break;
             }
          }
          else {  // CPU
@@ -563,7 +560,6 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
                   throw std::invalid_argument( "Unsupported threads per segment ( "
                                                + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                                                + " ) count for Ellpack segments." );
-                  break;
             }
          }
          else {  // CPU

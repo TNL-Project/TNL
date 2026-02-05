@@ -89,17 +89,20 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
    else {
       Index rows = data.size();
       Index columns = 0;
-      for( auto row : data )
+      for( const auto& row : data )
          columns = max( columns, row.size() );
       setDimensions( rows, columns );
       Index rowIdx = 0;
-      for( auto row : data ) {
+      for( const auto& row : data ) {
          Index columnIdx = 0;
-         for( auto element : row ) {
+         for( const auto& element : row ) {
             this->setElement( rowIdx, columnIdx, element );
             if( encoding == MatrixElementsEncoding::SymmetricLower ) {
-               if( columnIdx < rowIdx )
-                  this->setElement( columnIdx, rowIdx, element );
+               if( columnIdx < rowIdx ) {
+                  const Index symmetricRow = columnIdx;
+                  const Index symmetricColumn = rowIdx;
+                  this->setElement( symmetricRow, symmetricColumn, element );
+               }
                else if( columnIdx > rowIdx )
                   throw std::logic_error(
                      "The input data are supposed to be a lower part of a symmetric matrix (matrix elements encoding equals "
@@ -136,33 +139,34 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
       DenseMatrix< Real, Devices::Host, Index, Organization > hostMatrix( this->getRows(), this->getColumns() );
       hostMatrix.setElements( map, encoding );
       *this = hostMatrix;
+      return;
    }
-   else {
-      for( const auto& [ coordinates, value ] : map ) {
-         auto [ rowIdx, columnIdx ] = coordinates;
-         if( rowIdx >= this->getRows() )
-            throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
-         if( columnIdx >= this->getColumns() )
-            throw std::logic_error( "Wrong column index " + std::to_string( columnIdx ) + " in the input data structure." );
-         if( encoding == MatrixElementsEncoding::SymmetricLower && columnIdx > rowIdx )
-            throw std::logic_error( "Only lower part of the symmetric matrix is expected." );
-         if( encoding == MatrixElementsEncoding::SymmetricUpper && rowIdx > columnIdx )
-            throw std::logic_error( "Only upper part of the symmetric matrix is expected." );
-         if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
-            auto query = map.find( { columnIdx, rowIdx } );
-            if( query != map.end() && query->second != value )
-               throw std::logic_error( "The input data are supposed to be symmetric (matrix elements encoding equals "
-                                       "SymmetricMixed) but it is not. The matrix elements at position ("
-                                       + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
-         }
+   for( const auto& [ coordinates, value ] : map ) {
+      auto [ rowIdx, columnIdx ] = coordinates;
+      if( rowIdx >= this->getRows() )
+         throw std::logic_error( "Wrong row index " + std::to_string( rowIdx ) + " in the input data structure." );
+      if( columnIdx >= this->getColumns() )
+         throw std::logic_error( "Wrong column index " + std::to_string( columnIdx ) + " in the input data structure." );
+      if( encoding == MatrixElementsEncoding::SymmetricLower && columnIdx > rowIdx )
+         throw std::logic_error( "Only lower part of the symmetric matrix is expected." );
+      if( encoding == MatrixElementsEncoding::SymmetricUpper && rowIdx > columnIdx )
+         throw std::logic_error( "Only upper part of the symmetric matrix is expected." );
+      if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
+         auto query = map.find( { columnIdx, rowIdx } );
+         if( query != map.end() && query->second != value )
+            throw std::logic_error( "The input data are supposed to be symmetric (matrix elements encoding equals "
+                                    "SymmetricMixed) but it is not. The matrix elements at position ("
+                                    + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
+      }
 
-         this->setElement( rowIdx, columnIdx, value );
-         if( ( encoding == MatrixElementsEncoding::SymmetricMixed || encoding == MatrixElementsEncoding::SymmetricLower
-               || encoding == MatrixElementsEncoding::SymmetricUpper )
-             && rowIdx != columnIdx )
-         {
-            this->setElement( columnIdx, rowIdx, value );
-         }
+      this->setElement( rowIdx, columnIdx, value );
+      if( ( encoding == MatrixElementsEncoding::SymmetricMixed || encoding == MatrixElementsEncoding::SymmetricLower
+            || encoding == MatrixElementsEncoding::SymmetricUpper )
+          && rowIdx != columnIdx )
+      {
+         const Index symmetricRow = columnIdx;
+         const Index symmetricColumn = rowIdx;
+         this->setElement( symmetricRow, symmetricColumn, value );
       }
    }
 }

@@ -250,7 +250,6 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                         }
                      default:
                         throw std::invalid_argument( "Unsupported threads per segment count for CSR segments." );
-                        break;
                   }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {

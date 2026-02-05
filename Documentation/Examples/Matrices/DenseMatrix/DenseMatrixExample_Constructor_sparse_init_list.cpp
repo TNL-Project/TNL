@@ -23,7 +23,7 @@ sparseInitializerListExample()
          { 4, 0, 10.0 },                                            { 4, 4, 11.0 } } );
    // clang-format on
 
-   std::cout << "Dense matrix created from sparse tuple data:" << std::endl << sparseMatrix << std::endl;
+   std::cout << "Dense matrix created from sparse tuple data:\n" << sparseMatrix << '\n';
 
    /***
     * You can also create symmetric matrices by providing only the lower
@@ -40,17 +40,17 @@ sparseInitializerListExample()
          { 3, 0, 7.0 }, { 3, 1, 8.0 }, { 3, 2, 9.0 }, { 3, 3, 10.0 } },
       TNL::Matrices::MatrixElementsEncoding::SymmetricLower );
    // clang-format on
-   std::cout << "Symmetric matrix from lower triangular data:" << std::endl << symmetricMatrix << std::endl;
+   std::cout << "Symmetric matrix from lower triangular data:\n" << symmetricMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrices on CPU ... " << std::endl;
+   std::cout << "Creating matrices on CPU ...\n";
    sparseInitializerListExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrices on CUDA GPU ... " << std::endl;
+   std::cout << "Creating matrices on CUDA GPU ...\n";
    sparseInitializerListExample< TNL::Devices::Cuda >();
 #endif
 }

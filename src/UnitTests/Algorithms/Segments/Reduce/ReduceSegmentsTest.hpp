@@ -26,7 +26,7 @@ test_reduceSegments_MaximumInSegments()
 
    Segments segments( segmentsSizes );
 
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
       SCOPED_TRACE( tag );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
@@ -98,7 +98,7 @@ test_reduceSegments_MaximumInTriangularSegments()
 
    Segments segments( segmentsSizes );
 
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
       SCOPED_TRACE( tag );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
@@ -169,7 +169,7 @@ test_reduceSegments_MaximumInSegments_short_fetch()
 
    Segments segments( segmentsSizes );
 
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
       SCOPED_TRACE( tag );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
@@ -236,7 +236,7 @@ test_reduceSegmentsWithArgument_MaximumInSegments()
 
    Segments segments( segmentsSizes );
 
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
       SCOPED_TRACE( tag );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
@@ -254,7 +254,8 @@ test_reduceSegmentsWithArgument_MaximumInSegments()
       };
       TNL::Algorithms::Segments::forAllElements( segments, init );
 
-      TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount ), args( segmentsCount );
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount );
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > args( segmentsCount );
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
@@ -324,7 +325,7 @@ test_reduceSegmentsWithSegmentIndexes_MaximumInSegments()
          value = 2 * idx;
       } );
 
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
       SCOPED_TRACE( tag );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
@@ -413,7 +414,7 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
          value = 2 * idx;
       } );
 
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
       SCOPED_TRACE( tag );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
@@ -431,7 +432,8 @@ test_reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments()
       };
       TNL::Algorithms::Segments::forAllElements( segments, init );
 
-      TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount, -1 ), args( segmentsCount, -1 );
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount, -1 );
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > args( segmentsCount, -1 );
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
@@ -509,7 +511,7 @@ test_reduceSegmentsIf_MaximumInSegments()
 
    Segments segments( segmentsSizes );
 
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
       SCOPED_TRACE( tag );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
@@ -596,7 +598,7 @@ test_reduceSegmentsWithArgumentIf_MaximumInSegments()
 
    Segments segments( segmentsSizes );
 
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
       SCOPED_TRACE( tag );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
@@ -614,7 +616,8 @@ test_reduceSegmentsWithArgumentIf_MaximumInSegments()
       };
       TNL::Algorithms::Segments::forAllElements( segments, init );
 
-      TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount, -1 ), args( segmentsCount, -1 );
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > result( segmentsCount, -1 );
+      TNL::Containers::Vector< IndexType, DeviceType, IndexType > args( segmentsCount, -1 );
 
       const auto v_view = v.getConstView();
       auto result_view = result.getView();
@@ -713,7 +716,7 @@ test_reduce_SumOfMaximums()
    TNL::Algorithms::Segments::forAllElements( segments, init );
 
    // Test complete reduction: find sum of maximum values in each segment
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
       SCOPED_TRACE( tag );
 
       // Define segment fetch and reduction (find maximum in each segment)
@@ -783,7 +786,7 @@ test_reduce_ProductOfSums()
    TNL::Algorithms::Segments::forAllElements( segments, init );
 
    // Test complete reduction: find product of sums in each segment
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( segments ) ) {
       SCOPED_TRACE( tag );
 
       // Define segment fetch and reduction (sum elements in each segment)
