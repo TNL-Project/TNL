@@ -274,7 +274,7 @@ descendingSort( TNL::Containers::ArrayView< int, TNL::Devices::Cuda > view )
    {
       return a > b;
    };
-   bitonicSort( view, cmpDescending );
+   TNL::Algorithms::Sorting::detail::bitonicSort( view, cmpDescending );
 }
 
 TEST( sortWithFunction, descending )
@@ -375,7 +375,7 @@ fetchAndSwapSorter( TNL::Containers::ArrayView< TYPE, TNL::Devices::Cuda > view 
    {
       TNL::swap( view[ i ], view[ j ] );
    };
-   bitonicSort( 0, view.getSize(), Cmp, Swap );
+   TNL::Algorithms::Sorting::detail::bitonicSort( 0, view.getSize(), Cmp, Swap );
 }
 
 TEST( fetchAndSwap, oneBlockSort )
@@ -424,7 +424,7 @@ fetchAndSwap_sortMiddle( TNL::Containers::ArrayView< int, TNL::Devices::Cuda > v
    {
       TNL::swap( view[ i ], view[ j ] );
    };
-   bitonicSort( from, to, Cmp, Swap );
+   TNL::Algorithms::Sorting::detail::bitonicSort( from, to, Cmp, Swap );
 }
 
 TEST( fetchAndSwap, sortMiddle )

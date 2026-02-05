@@ -5,10 +5,10 @@
 
 #include <TNL/Containers/Array.h>
 #include "cassert"
-#include <TNL/Algorithms/Sorting/detail/bitonicSort.h>
+#include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 
-namespace TNL::Algorithms::Sorting {
+namespace TNL::Algorithms::Sorting::experimental::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -20,7 +20,7 @@ externSort( Containers::ArrayView< Value, TNL::Devices::Cuda > src,
             const CMP& Cmp,
             Value* sharedMem )
 {
-   bitonicSort_Block( src, dst, sharedMem, Cmp );
+   TNL::Algorithms::Sorting::detail::bitonicSort_Block( src, dst, sharedMem, Cmp );
 }
 
 template< typename Value, typename CMP >
@@ -28,7 +28,7 @@ __device__
 void
 externSort( Containers::ArrayView< Value, TNL::Devices::Cuda > src, const CMP& Cmp )
 {
-   bitonicSort_Block( src, Cmp );
+   TNL::Algorithms::Sorting::detail::bitonicSort_Block( src, Cmp );
 }
 
 //---------------------------------------------------------------
@@ -135,7 +135,8 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda > arr,
       countElem( src.getView( begin, end ), Cmp, smaller, bigger, pivot );
 
       // synchronization is in this function already
-      using BlockScan = Algorithms::detail::CudaBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
+      using BlockScan =
+         TNL::Algorithms::detail::CudaBlockScan< TNL::Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
       __shared__ typename BlockScan::Storage storage;
       int smallerPrefSumInc = BlockScan::scan( TNL::Plus{}, 0, smaller, threadIdx.x, storage );
       int biggerPrefSumInc = BlockScan::scan( TNL::Plus{}, 0, bigger, threadIdx.x, storage );
@@ -258,4 +259,4 @@ stackPush( int stackArrBegin[],
 
 #endif
 
-}  // namespace TNL::Algorithms::Sorting
+}  //namespace TNL::Algorithms::Sorting::experimental::detail

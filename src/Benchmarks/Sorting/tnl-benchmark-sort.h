@@ -90,7 +90,7 @@ main( int argc, char* argv[] )
    if( argc == 1 ) {
 #ifdef __CUDACC__
       std::cout << "Quicksort on GPU ...\n";
-      start< Quicksort >( cout, "\t" );
+      start< experimental::Quicksort >( cout, "\t" );
       std::cout << "Bitonic sort on GPU ...\n";
       start< BitonicSort >( cout, "\t" );
 
@@ -116,7 +116,7 @@ main( int argc, char* argv[] )
       std::ofstream out( argv[ 1 ] );
 #ifdef __CUDACC__
       std::cout << "Quicksort on GPU ...\n";
-      start< Quicksort >( out, "," );
+      start< experimental::Quicksort >( out, "," );
       std::cout << "Bitonic sort on GPU ...\n";
       start< BitonicSort >( out, "," );
 

@@ -3,25 +3,39 @@
 
 #pragma once
 
-#include <TNL/Algorithms/Sorting/detail/Quicksorter.h>
+#include "detail/Quicksorter.h"
 
 namespace TNL::Algorithms::Sorting {
 
+/**
+ * \ingroup experimental
+ * \experimental
+ * \brief  Namespace for experimental sorting algorithms.
+ */
+namespace experimental {
+
+/**
+ * \ingroup experimental
+ * \experimental
+ * \brief Parallel quicksort for CUDA.
+ *
+ */
 struct Quicksort
 {
    template< typename Array >
    void static sort( Array& array )
    {
-      Quicksorter< typename Array::ValueType, typename Array::DeviceType > qs;
+      detail::Quicksorter< typename Array::ValueType, typename Array::DeviceType > qs;
       qs.sort( array );
    }
 
    template< typename Array, typename Compare >
    void static sort( Array& array, const Compare& compare )
    {
-      Quicksorter< typename Array::ValueType, typename Array::DeviceType > qs;
+      detail::Quicksorter< typename Array::ValueType, typename Array::DeviceType > qs;
       qs.sort( array, compare );
    }
 };
 
+}  // namespace experimental
 }  // namespace TNL::Algorithms::Sorting

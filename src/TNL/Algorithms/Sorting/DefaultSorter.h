@@ -11,6 +11,9 @@
 #include <TNL/Algorithms/Sorting/CUBMergeSort.h>
 #include <TNL/Algorithms/Sorting/STLSort.h>
 
+/**
+ * \brief  Namespace for sorting algorithms.
+ */
 namespace TNL::Algorithms::Sorting {
 
 template< typename Device >

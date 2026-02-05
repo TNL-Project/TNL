@@ -4,10 +4,10 @@
 #pragma once
 
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/Sorting/detail/task.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include "task.h"
 
-namespace TNL::Algorithms::Sorting {
+namespace TNL::Algorithms::Sorting::experimental::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -190,7 +190,7 @@ cudaPartition( Containers::ArrayView< Value, Devices::Cuda > src,
    countElem( srcView, Cmp, smaller, bigger, pivot );
 
    // synchronization is in this function already
-   using BlockScan = Algorithms::detail::CudaBlockScan< Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
+   using BlockScan = TNL::Algorithms::detail::CudaBlockScan< TNL::Algorithms::detail::ScanType::Inclusive, 0, TNL::Plus, int >;
    __shared__ typename BlockScan::Storage storage;
    int smallerPrefSumInc = BlockScan::scan( TNL::Plus{}, 0, smaller, threadIdx.x, storage );
    int biggerPrefSumInc = BlockScan::scan( TNL::Plus{}, 0, bigger, threadIdx.x, storage );
@@ -233,4 +233,4 @@ cudaPartition( Containers::ArrayView< Value, Devices::Cuda > src,
 
 #endif
 
-}  // namespace TNL::Algorithms::Sorting
+}  //namespace TNL::Algorithms::Sorting::experimental::detail

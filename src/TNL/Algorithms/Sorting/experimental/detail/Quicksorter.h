@@ -4,9 +4,9 @@
 #pragma once
 
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/Sorting/detail/task.h>
+#include "task.h"
 
-namespace TNL::Algorithms::Sorting {
+namespace TNL::Algorithms::Sorting::experimental::detail {
 
 template< typename Value, typename Device >
 class Quicksorter;
@@ -104,6 +104,6 @@ protected:
    getSetsNeededFunction( int elemPerBlock, const Quicksorter< T, Devices::Cuda >& quicksort );
 };
 
-}  // namespace TNL::Algorithms::Sorting
+}  //namespace TNL::Algorithms::Sorting::experimental::detail
 
-#include <TNL/Algorithms/Sorting/detail/Quicksorter.hpp>
+#include "Quicksorter.hpp"

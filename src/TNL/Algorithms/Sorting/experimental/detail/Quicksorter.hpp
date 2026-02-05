@@ -6,20 +6,20 @@
 #include <TNL/Backend.h>
 #include <TNL/DiscreteMath.h>
 #include <TNL/Functional.h>
-#include <TNL/Algorithms/Sorting/detail/task.h>
-#include <TNL/Algorithms/Sorting/detail/quicksort_kernel.h>
-#include <TNL/Algorithms/Sorting/detail/quicksort_1Block.h>
-#include <TNL/Algorithms/Sorting/detail/Quicksorter.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
+#include "task.h"
+#include "quicksort_kernel.h"
+#include "quicksort_1Block.h"
+#include "Quicksorter.h"
 
 // TODO: This is to disable Doxygen errors
 /**
  * \cond
  */
 
-namespace TNL::Algorithms::Sorting {
+namespace TNL::Algorithms::Sorting::experimental::detail {
 
 template< typename Value >
 template< typename Array, typename Compare >
@@ -344,18 +344,18 @@ Quicksorter< Value, Devices::Cuda >::initTasks( int elemPerBlock, const CMP& Cmp
    {
       const auto& cuda_tasks = tasks.getConstView( 0, host_1stPhaseTasksAmount );
       auto blocksNeeded = cuda_reductionTaskInitMem.getView( 0, host_1stPhaseTasksAmount );
-      parallelFor< Devices::Cuda >( 0,
-                                    host_1stPhaseTasksAmount,
-                                    [ = ] __cuda_callable__( int i ) mutable
-                                    {
-                                       const TASK& task = cuda_tasks[ i ];
-                                       int size = task.partitionEnd - task.partitionBegin;
-                                       blocksNeeded[ i ] = TNL::roundUpDivision( size, elemPerBlock );
-                                    } );
+      TNL::Algorithms::parallelFor< Devices::Cuda >( 0,
+                                                     host_1stPhaseTasksAmount,
+                                                     [ = ] __cuda_callable__( int i ) mutable
+                                                     {
+                                                        const TASK& task = cuda_tasks[ i ];
+                                                        int size = task.partitionEnd - task.partitionBegin;
+                                                        blocksNeeded[ i ] = TNL::roundUpDivision( size, elemPerBlock );
+                                                     } );
    }
    // cuda_reductionTaskInitMem[i] == how many blocks task i needs
 
-   inplaceInclusiveScan( cuda_reductionTaskInitMem );
+   TNL::Algorithms::inplaceInclusiveScan( cuda_reductionTaskInitMem );
    // cuda_reductionTaskInitMem[i] == how many blocks task [0..i] need
 
    int blocksNeeded = cuda_reductionTaskInitMem.getElement( host_1stPhaseTasksAmount - 1 );
@@ -389,7 +389,7 @@ Quicksorter< Value, Devices::Cuda >::processNewTasks()
    host_2ndPhaseTasksAmount = min( cuda_2ndPhaseTasksAmount.getElement( 0 ), maxTasks );
 }
 
-}  // namespace TNL::Algorithms::Sorting
+}  //namespace TNL::Algorithms::Sorting::experimental::detail
 
 /**
  * \endcond
