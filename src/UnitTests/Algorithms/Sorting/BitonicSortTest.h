@@ -12,6 +12,7 @@
 using namespace TNL;
 using namespace TNL::Algorithms;
 using namespace TNL::Algorithms::Sorting;
+using namespace TNL::Algorithms::Sorting::detail;
 
 TEST( permutations, allPermutationSize_2_to_7 )
 {

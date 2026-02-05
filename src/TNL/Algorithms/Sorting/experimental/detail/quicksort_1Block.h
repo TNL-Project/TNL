@@ -5,10 +5,10 @@
 
 #include <TNL/Containers/Array.h>
 #include "cassert"
-#include <TNL/Algorithms/Sorting/detail/bitonicSort.h>
+#include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 
-namespace TNL::Algorithms::Sorting {
+namespace TNL::Algorithms::Sorting::experimental::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -20,7 +20,7 @@ externSort( Containers::ArrayView< Value, TNL::Devices::Cuda > src,
             const CMP& Cmp,
             Value* sharedMem )
 {
-   bitonicSort_Block( src, dst, sharedMem, Cmp );
+   Sorting::detail::bitonicSort_Block( src, dst, sharedMem, Cmp );
 }
 
 template< typename Value, typename CMP >
@@ -28,7 +28,7 @@ __device__
 void
 externSort( Containers::ArrayView< Value, TNL::Devices::Cuda > src, const CMP& Cmp )
 {
-   bitonicSort_Block( src, Cmp );
+   Sorting::detail::bitonicSort_Block( src, Cmp );
 }
 
 //---------------------------------------------------------------
@@ -258,4 +258,4 @@ stackPush( int stackArrBegin[],
 
 #endif
 
-}  // namespace TNL::Algorithms::Sorting
+}  //namespace TNL::Algorithms::Sorting::experimental::detail

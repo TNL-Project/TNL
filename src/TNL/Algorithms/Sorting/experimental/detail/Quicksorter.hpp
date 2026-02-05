@@ -6,20 +6,20 @@
 #include <TNL/Backend.h>
 #include <TNL/DiscreteMath.h>
 #include <TNL/Functional.h>
-#include <TNL/Algorithms/Sorting/detail/task.h>
-#include <TNL/Algorithms/Sorting/detail/quicksort_kernel.h>
-#include <TNL/Algorithms/Sorting/detail/quicksort_1Block.h>
-#include <TNL/Algorithms/Sorting/detail/Quicksorter.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Algorithms/reduce.h>
 #include <TNL/Algorithms/scan.h>
+#include "task.h"
+#include "quicksort_kernel.h"
+#include "quicksort_1Block.h"
+#include "Quicksorter.h"
 
 // TODO: This is to disable Doxygen errors
 /**
  * \cond
  */
 
-namespace TNL::Algorithms::Sorting {
+namespace TNL::Algorithms::Sorting::experimental::detail {
 
 template< typename Value >
 template< typename Array, typename Compare >
@@ -389,7 +389,7 @@ Quicksorter< Value, Devices::Cuda >::processNewTasks()
    host_2ndPhaseTasksAmount = min( cuda_2ndPhaseTasksAmount.getElement( 0 ), maxTasks );
 }
 
-}  // namespace TNL::Algorithms::Sorting
+}  //namespace TNL::Algorithms::Sorting::experimental::detail
 
 /**
  * \endcond

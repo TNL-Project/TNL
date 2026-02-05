@@ -4,10 +4,10 @@
 #pragma once
 
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/Sorting/detail/task.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include "task.h"
 
-namespace TNL::Algorithms::Sorting {
+namespace TNL::Algorithms::Sorting::experimental::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -233,4 +233,4 @@ cudaPartition( Containers::ArrayView< Value, Devices::Cuda > src,
 
 #endif
 
-}  // namespace TNL::Algorithms::Sorting
+}  //namespace TNL::Algorithms::Sorting::experimental::detail

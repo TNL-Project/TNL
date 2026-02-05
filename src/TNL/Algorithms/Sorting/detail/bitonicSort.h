@@ -9,7 +9,7 @@
 #include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
 #include <TNL/Algorithms/Sorting/detail/helpers.h>
 
-namespace TNL::Algorithms::Sorting {
+namespace TNL::Algorithms::Sorting::detail {
 
 /**
  * this kernel simulates 1 exchange
@@ -415,4 +415,4 @@ bitonicSort( int begin, int end, const CMP& Cmp, SWAP Swap )
    Backend::streamSynchronize( launch_config.stream );
 }
 
-}  // namespace TNL::Algorithms::Sorting
+}  //namespace TNL::Algorithms::Sorting::detail

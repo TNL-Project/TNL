@@ -4,11 +4,11 @@
 #pragma once
 
 #include <TNL/Containers/Array.h>
-#include <TNL/Algorithms/Sorting/detail/task.h>
-#include <TNL/Algorithms/Sorting/detail/cudaPartition.h>
-#include <TNL/Algorithms/Sorting/detail/quicksort_1Block.h>
+#include "task.h"
+#include "cudaPartition.h"
+#include "quicksort_1Block.h"
 
-namespace TNL::Algorithms::Sorting {
+namespace TNL::Algorithms::Sorting::experimental::detail {
 
 template< typename Index >
 __device__
@@ -283,4 +283,4 @@ cudaQuickSort2ndPhase2( Containers::ArrayView< Value, Devices::Cuda > arr,
 #endif
 }
 
-}  // namespace TNL::Algorithms::Sorting
+}  //namespace TNL::Algorithms::Sorting::experimental::detail
