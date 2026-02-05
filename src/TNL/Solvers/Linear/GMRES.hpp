@@ -649,7 +649,7 @@ GMRES< Matrix >::update( const int k, const int m, const HostVector& H, const Ho
          //for( int _i = 0; _i <= i; _i++ ) {
          //    for( int _j = 0; _j < i; _j++ )
          //       std::cout << H[ _i + _j * (m+1) ] << "  ";
-         //   std::cout << std::endl;
+         //   std::cout << '\n';
          //}
          std::cerr << "H.norm = " << lpNorm( H, 2.0 ) << '\n';
          std::cerr << "s = " << s << '\n';

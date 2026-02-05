@@ -39,12 +39,12 @@ SegmentsExample()
    /***
     * Print the data by the segments.
     */
-   std::cout << "Values of elements after initial setup: " << std::endl;
+   std::cout << "Values of elements after initial setup:\n";
    auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];
    };
-   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
 
    /***
     * Create array with the indexes of segments we want to iterate over.
@@ -54,7 +54,9 @@ SegmentsExample()
    /***
     * Find the maximum element in each segment.
     */
-   TNL::Containers::Vector< double, Device > sums( size ), compressedSums( size ), positions( size );
+   TNL::Containers::Vector< double, Device > sums( size );
+   TNL::Containers::Vector< double, Device > compressedSums( size );
+   TNL::Containers::Vector< double, Device > positions( size );
    auto sums_view = sums.getView();
    auto compressedSums_view = compressedSums.getView();
    auto positions_view = positions.getView();
@@ -79,33 +81,33 @@ SegmentsExample()
    };
 
    TNL::Algorithms::Segments::reduceSegmentsWithArgument( segments, segmentIndexes, fetch_full, TNL::MaxWithArg{}, store );
-   std::cout << "The sums with full fetch form are: " << sums << std::endl;
-   std::cout << "The compressed sums with full fetch form are: " << compressedSums << std::endl;
-   std::cout << "The positions of the largest elements are: " << positions << std::endl;
+   std::cout << "The sums with full fetch form are: " << sums << '\n';
+   std::cout << "The compressed sums with full fetch form are: " << compressedSums << '\n';
+   std::cout << "The positions of the largest elements are: " << positions << '\n';
 
    sums = 0;
    compressedSums = 0;
    positions = 0;
    TNL::Algorithms::Segments::reduceSegmentsWithArgument( segments, segmentIndexes, fetch_brief, TNL::MaxWithArg{}, store );
-   std::cout << "The sums with brief fetch form are: " << sums << std::endl << std::endl;
-   std::cout << "The compressed sums with full fetch form are: " << compressedSums << std::endl;
-   std::cout << "The positions of the largest elements are: " << positions << std::endl;
+   std::cout << "The sums with brief fetch form are: " << sums << "\n\n";
+   std::cout << "The compressed sums with full fetch form are: " << compressedSums << '\n';
+   std::cout << "The positions of the largest elements are: " << positions << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int > >();
 
-   std::cout << "Example of Ellpack segments on host: " << std::endl;
+   std::cout << "Example of Ellpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on CUDA device:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > >();
 
-   std::cout << "Example of Ellpack segments on host: " << std::endl;
+   std::cout << "Example of Ellpack segments on CUDA device:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int > >();
 #endif
    return EXIT_SUCCESS;

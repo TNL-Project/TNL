@@ -278,8 +278,8 @@ test_findInSegmentsWithIndexes()
 
    Segments segments( segmentsSizes );
 
-   TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() ),
-      segmentIndexes( segmentsCount / 2 );
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentIndexes( segmentsCount / 2 );
    segmentIndexes.forAllElements(
       [ = ] __cuda_callable__( IndexType idx, IndexType & value )
       {
@@ -548,8 +548,8 @@ test_sortSegmentsWithSegmentIndexes()
 
    Segments segments( segmentsSizes );
 
-   TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() ),
-      segmentIndexes( segmentsCount / 2 );
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize() );
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentIndexes( segmentsCount / 2 );
    v = -1;
    segmentIndexes.forAllElements(
       [ = ] __cuda_callable__( IndexType idx, IndexType & value )
@@ -739,8 +739,9 @@ test_scanSegments()
    Segments segments( segmentsSizes );
 
    // Setup test data
-   TNL::Containers::Vector< ValueType, DeviceType > inclusive_result( segments.getStorageSize() ),
-      exclusive_result( segments.getStorageSize() ), data( segments.getStorageSize() );
+   TNL::Containers::Vector< ValueType, DeviceType > inclusive_result( segments.getStorageSize() );
+   TNL::Containers::Vector< ValueType, DeviceType > exclusive_result( segments.getStorageSize() );
+   TNL::Containers::Vector< ValueType, DeviceType > data( segments.getStorageSize() );
    auto data_view = data.getView();
    auto inclusive_result_view = inclusive_result.getView();
    auto exclusive_result_view = exclusive_result.getView();
@@ -820,12 +821,14 @@ test_scanSegmentsWithSegmentIndexes()
    using HostSegments = typename HostSegmentsGetter< Segments >::type;
 
    // Setup segments with varying sizes
-   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes{ 1, 2, 3, 4, 5 }, segmentIndexes{ 0, 2, 4 };
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentsSizes{ 1, 2, 3, 4, 5 };
+   TNL::Containers::Vector< IndexType, DeviceType, IndexType > segmentIndexes{ 0, 2, 4 };
    Segments segments( segmentsSizes );
 
    // Setup test data
-   TNL::Containers::Vector< ValueType, DeviceType > inclusive_result( segments.getStorageSize() ),
-      exclusive_result( segments.getStorageSize() ), data( segments.getStorageSize() );
+   TNL::Containers::Vector< ValueType, DeviceType > inclusive_result( segments.getStorageSize() );
+   TNL::Containers::Vector< ValueType, DeviceType > exclusive_result( segments.getStorageSize() );
+   TNL::Containers::Vector< ValueType, DeviceType > data( segments.getStorageSize() );
    auto data_view = data.getView();
    auto inclusive_result_view = inclusive_result.getView();
    auto exclusive_result_view = exclusive_result.getView();
@@ -915,8 +918,9 @@ test_scanSegmentsIf()
    Segments segments( segmentsSizes );
 
    // Setup test data
-   TNL::Containers::Vector< ValueType, DeviceType > inclusive_result( segments.getStorageSize() ),
-      exclusive_result( segments.getStorageSize() ), data( segments.getStorageSize() );
+   TNL::Containers::Vector< ValueType, DeviceType > inclusive_result( segments.getStorageSize() );
+   TNL::Containers::Vector< ValueType, DeviceType > exclusive_result( segments.getStorageSize() );
+   TNL::Containers::Vector< ValueType, DeviceType > data( segments.getStorageSize() );
    auto data_view = data.getView();
    auto inclusive_result_view = inclusive_result.getView();
    auto exclusive_result_view = exclusive_result.getView();

@@ -244,7 +244,7 @@ public:
       // if( minCommonVertices > 0 && minCommonVertices != MeshType::Config::dualGraphMinCommonVertices )
       //    std::cerr << "WARNING: the mesh was decomposed with different MinCommonVertices value than the value set in the "
       //              << "mesh configuration (" << minCommonVertices << " vs " << MeshType::Config::dualGraphMinCommonVertices
-      //              << ")." << std::endl;
+      //              << ").\n";
 
       // load the local mesh and check with the subdomain
       typename MeshType::GridType localMesh;

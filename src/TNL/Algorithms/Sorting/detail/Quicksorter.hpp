@@ -136,16 +136,16 @@ Quicksorter< Value, Devices::Cuda, Index >::performSort( const CMP& Cmp )
 #ifdef CHECK_RESULT_SORT
    if( ! is_sorted( arr ) ) {
       std::ofstream out( "error.txt" );
-      out << arr << std::endl;
-      out << aux << std::endl;
-      out << cuda_tasks << std::endl;
-      out << cuda_newTasks << std::endl;
-      out << cuda_2ndPhaseTasks << std::endl;
+      out << arr << '\n';
+      out << aux << '\n';
+      out << cuda_tasks << '\n';
+      out << cuda_newTasks << '\n';
+      out << cuda_2ndPhaseTasks << '\n';
 
-      out << cuda_newTasksAmount << std::endl;
-      out << cuda_2ndPhaseTasksAmount << std::endl;
+      out << cuda_newTasksAmount << '\n';
+      out << cuda_2ndPhaseTasksAmount << '\n';
 
-      out << iteration << std::endl;
+      out << iteration << '\n';
    }
 #endif
 }

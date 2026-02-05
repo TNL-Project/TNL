@@ -280,7 +280,7 @@ template<
    typename Fetch,
    typename Reduce,
    typename Write,
-   typename T = typename std::enable_if< std::is_integral< IndexBegin >::value && std::is_integral< IndexEnd >::value >::type >
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 inclusiveScanSegments( const Segments& segments,
                        IndexBegin begin,
@@ -326,7 +326,7 @@ template<
    typename Fetch,
    typename Reduce,
    typename Write,
-   typename T = typename std::enable_if< std::is_integral< IndexBegin >::value && std::is_integral< IndexEnd >::value >::type >
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 exclusiveScanSegments( const Segments& segments,
                        IndexBegin begin,

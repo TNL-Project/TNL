@@ -64,7 +64,8 @@ TYPED_TEST( CopyTest, copyArrayToSTLVector_host )
    using ValueType = typename TestFixture::ValueType;
 
    Containers::Array< ValueType > array( ARRAY_TEST_SIZE, 13 );
-   std::vector< ValueType > vector1, vector2;
+   std::vector< ValueType > vector1;
+   std::vector< ValueType > vector2;
    copy( vector1, array );
    copy( vector2, array.getView() );
 

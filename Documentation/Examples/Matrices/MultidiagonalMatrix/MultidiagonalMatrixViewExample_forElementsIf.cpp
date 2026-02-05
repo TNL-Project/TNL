@@ -23,17 +23,17 @@ forElementsExample()
    };
 
    matrixView.forElementsIf( 0, matrix.getRows(), condition, f );  // or matrix.forElements
-   std::cout << matrix << std::endl;
+   std::cout << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrix on host: " << std::endl;
+   std::cout << "Creating matrix on host:\n";
    forElementsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrix on CUDA device: " << std::endl;
+   std::cout << "Creating matrix on CUDA device:\n";
    forElementsExample< TNL::Devices::Cuda >();
 #endif
 }

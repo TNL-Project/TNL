@@ -58,7 +58,7 @@ setup( const Config::ParameterContainer& parameters, const std::string& prefix =
    #elif defined( __HIP__ )
       if( GetSize() > 1 ) {
       #if defined( MPIX_ROCM_AWARE_SUPPORT ) && MPIX_ROCM_AWARE_SUPPORT
-         std::cout << "ROCm-aware MPI detected on this system ... " << std::endl;
+         std::cout << "ROCm-aware MPI detected on this system ... \n";
       #elif defined( MPIX_ROCM_AWARE_SUPPORT ) && ! MPIX_ROCM_AWARE_SUPPORT
          std::cerr << "MPI is not ROCm-aware. Please install correct version of MPI.\n";
          return false;

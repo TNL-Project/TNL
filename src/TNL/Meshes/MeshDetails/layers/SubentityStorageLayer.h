@@ -129,8 +129,8 @@ protected:
    {
       BaseType::print( str );
       str << "Adjacency matrix for subentities with dimension " << SubdimensionTag::value << " of entities with dimension "
-          << EntityTopology::dimension << " is: " << std::endl;
-      str << matrix << std::endl;
+          << EntityTopology::dimension << " is: \n";
+      str << matrix << '\n';
    }
 
    bool
@@ -252,8 +252,8 @@ protected:
    {
       BaseType::print( str );
       str << "Adjacency matrix for subentities with dimension " << SubdimensionTag::value << " of entities with dimension "
-          << EntityTopology::dimension << " is: " << std::endl;
-      str << matrix << std::endl;
+          << EntityTopology::dimension << " is:\n";
+      str << matrix << '\n';
    }
 
    bool

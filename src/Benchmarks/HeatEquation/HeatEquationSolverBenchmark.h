@@ -98,7 +98,7 @@ struct HeatEquationSolverBenchmark
       for( Index j = 0; j < ySize; j++ )
          for( Index i = 0; i < xSize; i++ )
             out << i * hx - this->xDomainSize / 2. << " " << j * hy - this->yDomainSize / 2. << " "
-                << this->ux.getElement( j * xSize + i ) << std::endl;
+                << this->ux.getElement( j * xSize + i ) << '\n';
    }
 
    virtual void

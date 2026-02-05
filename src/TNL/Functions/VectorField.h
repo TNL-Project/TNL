@@ -38,7 +38,7 @@ public:
    {
       for( int i = 0; i < Size; i++ )
          if( ! vectorField[ i ].setup( parameters, prefix + convertToString( i ) + "-" ) ) {
-            std::cerr << "Unable to setup " << i << "-th coordinate of the vector field." << std::endl;
+            std::cerr << "Unable to setup " << i << "-th coordinate of the vector field.\n";
             return false;
          }
       return true;
@@ -136,7 +136,7 @@ public:
    {
       for( int i = 0; i < Size; i++ )
          if( ! vectorField[ i ].setup( meshPointer, parameters, prefix + convertToString( i ) + "-" ) ) {
-            std::cerr << "Unable to setup " << i << "-th coordinate of the vector field." << std::endl;
+            std::cerr << "Unable to setup " << i << "-th coordinate of the vector field.\n";
             return false;
          }
       return true;
@@ -216,7 +216,7 @@ public:
       std::fstream file;
       file.open( fileName, std::ios::out );
       if( ! file ) {
-         std::cerr << "Unable to open a file " << fileName << "." << std::endl;
+         std::cerr << "Unable to open a file " << fileName << ".\n";
          return false;
       }
 
@@ -271,7 +271,7 @@ public:
       else if( format == "gnuplot" || format == "gplt" || format == "plt" )
          return VectorFieldGnuplotWriter< VectorField >::write( *this, file );
       else {
-         std::cerr << "Unknown output format: " << format << std::endl;
+         std::cerr << "Unknown output format: " << format << '\n';
          return false;
       }
       return true;
@@ -355,7 +355,7 @@ public:
    {
       for( int i = 0; i < Size; i++ )
          if( ! vectorField[ i ].setup( meshPointer, parameters, prefix + convertToString( i ) + "-" ) ) {
-            std::cerr << "Unable to setup " << i << "-th coordinate of the vector field." << std::endl;
+            std::cerr << "Unable to setup " << i << "-th coordinate of the vector field.\n";
             return false;
          }
       return true;
@@ -469,7 +469,7 @@ public:
       std::fstream file;
       file.open( fileName, std::ios::out );
       if( ! file ) {
-         std::cerr << "Unable to open a file " << fileName << "." << std::endl;
+         std::cerr << "Unable to open a file " << fileName << ".\n";
          return false;
       }
 
@@ -524,7 +524,7 @@ public:
       else if( format == "gnuplot" || format == "gplt" || format == "plt" )
          return VectorFieldGnuplotWriter< VectorField >::write( *this, file );
       else {
-         std::cerr << "Unknown output format: " << format << std::endl;
+         std::cerr << "Unknown output format: " << format << '\n';
          return false;
       }
       return true;

@@ -283,7 +283,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         throw std::runtime_error( "Unsupported number of threads per segment"
                                                   + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                                                   + ". It can be only 2, 4, 8, 16 or 32." );
-                        break;
                   }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
@@ -579,7 +578,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         throw std::runtime_error( "Unsupported number of threads per segment"
                                                   + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                                                   + ". It can be only 2, 4, 8, 16 or 32." );
-                        break;
                   }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
@@ -876,7 +874,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         throw std::runtime_error( "Unsupported number of threads per segment"
                                                   + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                                                   + ". It can be only 2, 4, 8, 16 or 32." );
-                        break;
                   }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
@@ -1176,7 +1173,6 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                         throw std::runtime_error( "Unsupported number of threads per segment"
                                                   + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                                                   + ". It can be only 2, 4, 8, 16 or 32." );
-                        break;
                   }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {

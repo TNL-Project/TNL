@@ -90,7 +90,7 @@ public:
    {
       TimeStepper timeStepper;
       if( ! timeStepper.setup( parameters ) ) {
-         std::cerr << "The time stepper initiation failed!" << std::endl;
+         std::cerr << "The time stepper initiation failed!\n";
          return false;
       }
       SolverStarter< ConfigTag > solverStarter;
@@ -114,7 +114,7 @@ public:
                                                                                                                  parameters );
       if( timeDiscretisation == "semi-implicit" ) {
          if( MPI::GetSize() > 1 ) {
-            std::cerr << "TNL currently does not support semi-implicit solvers with MPI." << std::endl;
+            std::cerr << "TNL currently does not support semi-implicit solvers with MPI.\n";
             return false;
          }
          return SolverStarterTimeDiscretisationSetter< Problem, SemiImplicitTimeDiscretisationTag, ConfigTag >::run(
@@ -122,13 +122,13 @@ public:
       }
       if( timeDiscretisation == "implicit" ) {
          if( MPI::GetSize() > 1 ) {
-            std::cerr << "TNL currently does not support implicit solvers with MPI." << std::endl;
+            std::cerr << "TNL currently does not support implicit solvers with MPI.\n";
             return false;
          }
          return SolverStarterTimeDiscretisationSetter< Problem, ImplicitTimeDiscretisationTag, ConfigTag >::run( problem,
                                                                                                                  parameters );
       }
-      std::cerr << "Unknown time discretisation: " << timeDiscretisation << "." << std::endl;
+      std::cerr << "Unknown time discretisation: " << timeDiscretisation << ".\n";
       return false;
    }
 };
@@ -145,7 +145,7 @@ public:
    run( Problem& problem, const Config::ParameterContainer& parameters )
    {
       std::cerr << "The time discretisation " << parameters.getParameter< std::string >( "time-discretisation" )
-                << " is not supported." << std::endl;
+                << " is not supported.\n";
       return false;
    }
 };
@@ -159,8 +159,7 @@ public:
    {
       const auto& discreteSolver = parameters.getParameter< std::string >( "discrete-solver" );
       if( discreteSolver != "euler" && discreteSolver != "merson" ) {
-         std::cerr << "Unknown explicit discrete solver " << discreteSolver << ". It can be only: euler or merson."
-                   << std::endl;
+         std::cerr << "Unknown explicit discrete solver " << discreteSolver << ". It can be only: euler or merson.\n";
          return false;
       }
       if( discreteSolver == "euler" )
@@ -207,8 +206,7 @@ public:
    static bool
    run( Problem& problem, const Config::ParameterContainer& parameters )
    {
-      std::cerr << "The explicit solver " << parameters.getParameter< std::string >( "discrete-solver" ) << " is not supported."
-                << std::endl;
+      std::cerr << "The explicit solver " << parameters.getParameter< std::string >( "discrete-solver" ) << " is not supported.\n";
       return false;
    }
 };
@@ -243,7 +241,7 @@ SolverStarter< ConfigTag >::runPDESolver( Problem& problem, const Config::Parame
    const auto logFileName = parameters.getParameter< std::string >( "log-file" );
    std::ofstream logFile( logFileName );
    if( ! logFile ) {
-      std::cerr << "Unable to open the log file " << logFileName << "." << std::endl;
+      std::cerr << "Unable to open the log file " << logFileName << ".\n";
       return false;
    }
 
@@ -271,13 +269,13 @@ SolverStarter< ConfigTag >::runPDESolver( Problem& problem, const Config::Parame
             return false;
       }
       catch( const std::exception& e ) {
-         std::cerr << "Setting up the solver failed due to a C++ exception with description: " << e.what() << std::endl;
-         logFile << "Setting up the solver failed due to a C++ exception with description: " << e.what() << std::endl;
+         std::cerr << "Setting up the solver failed due to a C++ exception with description: " << e.what() << '\n';
+         logFile << "Setting up the solver failed due to a C++ exception with description: " << e.what() << '\n';
          return false;
       }
       catch( ... ) {
-         std::cerr << "Setting up the solver failed due to an unknown C++ exception." << std::endl;
-         logFile << "Setting up the solver failed due to an unknown C++ exception." << std::endl;
+         std::cerr << "Setting up the solver failed due to an unknown C++ exception.\n";
+         logFile << "Setting up the solver failed due to an unknown C++ exception.\n";
          throw;
       }
    }
@@ -322,13 +320,13 @@ SolverStarter< ConfigTag >::runPDESolver( Problem& problem, const Config::Parame
          returnCode = solver.solve();
       }
       catch( const std::exception& e ) {
-         std::cerr << "The solver failed due to a C++ exception with description: " << e.what() << std::endl;
-         logFile << "The solver failed due to a C++ exception with description: " << e.what() << std::endl;
+         std::cerr << "The solver failed due to a C++ exception with description: " << e.what() << '\n';
+         logFile << "The solver failed due to a C++ exception with description: " << e.what() << '\n';
          return false;
       }
       catch( ... ) {
-         std::cerr << "The solver failed due to an unknown C++ exception." << std::endl;
-         logFile << "The solver failed due to an unknown C++ exception." << std::endl;
+         std::cerr << "The solver failed due to an unknown C++ exception.\n";
+         logFile << "The solver failed due to an unknown C++ exception.\n";
          throw;
       }
    }
@@ -338,8 +336,8 @@ SolverStarter< ConfigTag >::runPDESolver( Problem& problem, const Config::Parame
 
    if( ! returnCode ) {
       if( verbose )
-         std::cerr << std::endl << "The solver did not converge." << std::endl;
-      logFile << "The solver did not converge." << std::endl;
+         std::cerr << '\n' << "The solver did not converge.\n";
+      logFile << "The solver did not converge.\n";
    }
 
    /****

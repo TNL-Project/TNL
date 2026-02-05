@@ -12,17 +12,17 @@
 #ifdef HAVE_MPI
    #define TNL_MPI_PRINT( message )                                                                                        \
       if( ! TNL::MPI::Initialized() || TNL::MPI::Finalized() )                                                             \
-         std::cerr << message << std::endl;                                                                                \
+         std::cerr << message << '\n';                                                                                \
       else {                                                                                                               \
          if( TNL::MPI::GetRank() > 0 ) {                                                                                   \
             std::stringstream __tnl_mpi_print_stream_;                                                                     \
             __tnl_mpi_print_stream_ << "Node " << TNL::MPI::GetRank() << " of " << TNL::MPI::GetSize() << " : " << message \
-                                    << std::endl;                                                                          \
+                                    << '\n';                                                                          \
             TNL::String __tnl_mpi_print_string_( __tnl_mpi_print_stream_.str() );                                          \
             TNL::MPI::send( __tnl_mpi_print_string_, 0, std::numeric_limits< int >::max() );                               \
          }                                                                                                                 \
          else {                                                                                                            \
-            std::cerr << "Node 0 of " << TNL::MPI::GetSize() << " : " << message << std::endl;                             \
+            std::cerr << "Node 0 of " << TNL::MPI::GetSize() << " : " << message << '\n';                             \
             for( int __tnl_mpi_print_j = 1; __tnl_mpi_print_j < TNL::MPI::GetSize(); __tnl_mpi_print_j++ ) {               \
                TNL::String __tnl_mpi_print_string_;                                                                        \
                TNL::MPI::recv( __tnl_mpi_print_string_, __tnl_mpi_print_j, std::numeric_limits< int >::max() );            \
@@ -31,27 +31,27 @@
          }                                                                                                                 \
       }
 #else
-   #define TNL_MPI_PRINT( message ) std::cerr << message << std::endl;
+   #define TNL_MPI_PRINT( message ) std::cerr << message << '\n';
 #endif
 
 #ifdef HAVE_MPI
    #define TNL_MPI_PRINT_MASTER( message )                         \
       if( ! TNL::MPI::Initialized() || TNL::MPI::Finalized() )     \
-         std::cerr << message << std::endl;                        \
+         std::cerr << message << '\n';                        \
       else {                                                       \
          if( TNL::MPI::GetRank() == 0 ) {                          \
-            std::cerr << "Master node : " << message << std::endl; \
+            std::cerr << "Master node : " << message << '\n'; \
          }                                                         \
       }
 #else
-   #define TNL_MPI_PRINT_MASTER( message ) std::cerr << message << std::endl;
+   #define TNL_MPI_PRINT_MASTER( message ) std::cerr << message << '\n';
 #endif
 
 #ifdef HAVE_MPI
    #define TNL_MPI_PRINT_COND( condition, message )                                                                           \
       if( ! TNL::MPI::Initialized() || TNL::MPI::Finalized() ) {                                                              \
          if( condition )                                                                                                      \
-            std::cerr << message << std::endl;                                                                                \
+            std::cerr << message << '\n';                                                                                \
       }                                                                                                                       \
       else {                                                                                                                  \
          if( TNL::MPI::GetRank() > 0 ) {                                                                                      \
@@ -60,14 +60,14 @@
             if( condition ) {                                                                                                 \
                std::stringstream __tnl_mpi_print_stream_;                                                                     \
                __tnl_mpi_print_stream_ << "Node " << TNL::MPI::GetRank() << " of " << TNL::MPI::GetSize() << " : " << message \
-                                       << std::endl;                                                                          \
+                                       << '\n';                                                                          \
                TNL::String __tnl_mpi_print_string_( __tnl_mpi_print_stream_.str() );                                          \
                TNL::MPI::send( __tnl_mpi_print_string_, 0, std::numeric_limits< int >::max() );                               \
             }                                                                                                                 \
          }                                                                                                                    \
          else {                                                                                                               \
             if( condition )                                                                                                   \
-               std::cerr << "Node 0 of " << TNL::MPI::GetSize() << " : " << message << std::endl;                             \
+               std::cerr << "Node 0 of " << TNL::MPI::GetSize() << " : " << message << '\n';                             \
             for( int __tnl_mpi_print_j = 1; __tnl_mpi_print_j < TNL::MPI::GetSize(); __tnl_mpi_print_j++ ) {                  \
                int __tnl_mpi_print_cond;                                                                                      \
                TNL::MPI::Recv( &__tnl_mpi_print_cond, 1, __tnl_mpi_print_j, 0 );                                              \
@@ -80,5 +80,5 @@
          }                                                                                                                    \
       }
 #else
-   #define TNL_MPI_PRINT_COND( condition, message ) std::cerr << message << std::endl;
+   #define TNL_MPI_PRINT_COND( condition, message ) std::cerr << message << '\n';
 #endif

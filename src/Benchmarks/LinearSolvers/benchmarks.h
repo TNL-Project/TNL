@@ -240,9 +240,9 @@ benchmarkArmadillo( const Config::ParameterContainer& parameters,
 
    arma::vec r = A * arma_x - arma_b;
    //    std::cout << "Converged: " << (time > 0) << ", residue = " << arma::norm( r ) / arma::norm( arma_b ) << " " <<
-   //    std::endl; std::cout << "Mean time: " << time / loops << " seconds." << std::endl;
+   //    '\n'; std::cout << "Mean time: " << time / loops << " seconds.\n";
    std::cout << "Converged: " << std::setw( 5 ) << std::boolalpha << ( time > 0 ) << "   " << "iterations = " << std::setw( 4 )
              << "N/A" << "   " << "residue = " << std::setw( 10 ) << arma::norm( r ) / arma::norm( arma_b ) << "   "
-             << "mean time = " << std::setw( 9 ) << time / loops << " seconds." << std::endl;
+             << "mean time = " << std::setw( 9 ) << time / loops << " seconds.\n";
 }
 #endif

@@ -26,8 +26,8 @@ reduceAllRowsWithArgumentIfExample()
    };
    TNL::Matrices::forAllElements( matrix, fillMatrix );
 
-   std::cout << "Dense matrix:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Dense matrix:\n";
+   std::cout << matrix << '\n';
 
    /***
     * Find argmax only for even-indexed rows.
@@ -82,22 +82,22 @@ reduceAllRowsWithArgumentIfExample()
       matrix, rowCondition, fetch, reduction, store, std::numeric_limits< double >::lowest() );
    // You may also use TNL::MaxWithArg{} instead of defining your own reduction lambda.
 
-   std::cout << "Argmax for even-indexed rows:" << std::endl;
-   std::cout << "  Max values (odd indices show -1): " << maxValues << std::endl;
-   std::cout << "  Column indices: " << maxColumns << std::endl;
-   std::cout << "Compressed argmax for even-indexed rows:" << std::endl;
-   std::cout << "  Max values: " << compressedMaxValues.getView( 0, evenRowsCount ) << std::endl;
-   std::cout << "  Column indices: " << compressedMaxColumns.getView( 0, evenRowsCount ) << std::endl;
+   std::cout << "Argmax for even-indexed rows:\n";
+   std::cout << "  Max values (odd indices show -1): " << maxValues << '\n';
+   std::cout << "  Column indices: " << maxColumns << '\n';
+   std::cout << "Compressed argmax for even-indexed rows:\n";
+   std::cout << "  Max values: " << compressedMaxValues.getView( 0, evenRowsCount ) << '\n';
+   std::cout << "  Column indices: " << compressedMaxColumns.getView( 0, evenRowsCount ) << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceAllRowsWithArgumentIfExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << std::endl << "Running on CUDA device:" << std::endl;
+   std::cout << '\n' << "Running on CUDA device:\n";
    reduceAllRowsWithArgumentIfExample< TNL::Devices::Cuda >();
 #endif
 }

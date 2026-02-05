@@ -65,7 +65,7 @@ protected:
          for( IndexType localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
             auto columnIdx = row.getColumnIndex( localIdx );
             if( columnIdx != Matrices::paddingIndex< IndexType > ) {
-               str << rowIdx << " " << columnIdx << " " << row.getValue( localIdx ) << std::endl;
+               str << rowIdx << " " << columnIdx << " " << row.getValue( localIdx ) << '\n';
             }
          }
       }

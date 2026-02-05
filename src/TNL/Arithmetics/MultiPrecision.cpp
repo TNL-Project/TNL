@@ -188,7 +188,7 @@ MultiPrecision::printMP()
 {
    int precision = mpf_get_default_prec();
    mpf_out_str( stdout, 10, precision, this->number );
-   std::cout << std::endl;
+   std::cout << '\n';
 }
 
 /* DESTRUCTOR */

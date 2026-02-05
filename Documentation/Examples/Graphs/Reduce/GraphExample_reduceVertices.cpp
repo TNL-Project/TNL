@@ -25,7 +25,7 @@ reduceVerticesExample()
    /***
     * Print the graph.
     */
-   std::cout << "Graph:\n" << graph << std::endl;
+   std::cout << "Graph:\n" << graph << '\n';
 
    /***
     * Compute maximum edge weight for vertices in range [1, 4).
@@ -56,17 +56,17 @@ reduceVerticesExample()
    /***
     * Print results.
     */
-   std::cout << "Maximum edge weight for vertices 1-3:" << vertexMaxWeights << std::endl;
+   std::cout << "Maximum edge weight for vertices 1-3:" << vertexMaxWeights << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceVerticesExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    reduceVerticesExample< TNL::Devices::Cuda >();
 #endif
 

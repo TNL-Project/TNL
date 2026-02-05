@@ -147,13 +147,13 @@ public:
    static void
    Test()
    {
-      typedef Grid< dim, double, Host, int > MeshType;
-      typedef MeshFunctionView< MeshType > MeshFunctionType;
-      typedef Vector< double, Host, int > DofType;
+      using MeshType = Grid< dim, double, Host, int >;
+      using MeshFunctionType = MeshFunctionView< MeshType >;
+      using DofType = Vector< double, Host, int >;
 
-      typedef typename MeshType::PointType PointType;
-      typedef typename MeshType::CoordinatesType CoordinatesType;
-      typedef typename MeshType::Cell Cell;
+      using PointType = typename MeshType::PointType;
+      using CoordinatesType = typename MeshType::CoordinatesType;
+      using Cell = typename MeshType::Cell;
 
       PointType origin;
       PointType proportions;
@@ -192,7 +192,10 @@ public:
       CoordinatesType size;
       size.setValue( 8 );
 
-      CopyEntitiesHelper< MeshFunctionType >::Copy( inputMeshFunction, outputMeshFunction, begin, zero, size );
+      // Copy from input offset 'begin' into output starting at zero to validate shifting; parameter order matches
+      // CopyEntitiesHelper::Copy(fromBegin, toBegin, size). NOLINT below silences clang-tidy suspicion.
+      CopyEntitiesHelper< MeshFunctionType >::Copy(
+         inputMeshFunction, outputMeshFunction, begin, zero, size );  // NOLINT(readability-suspicious-call-argument)
 
       TestMovedMeshfunction< MeshFunctionType >::Test( outputMeshFunction );
    }

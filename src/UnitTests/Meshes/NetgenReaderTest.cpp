@@ -81,7 +81,8 @@ test_resolveAndLoadMesh( const MeshType& mesh )
 
       // operator== does not work for instantiations of the wrapper with MeshType2 != MeshType
       //      EXPECT_EQ( mesh2, mesh );
-      std::stringstream str1, str2;
+      std::stringstream str1;
+      std::stringstream str2;
       str1 << mesh;
       str2 << mesh2;
       EXPECT_EQ( str2.str(), str1.str() );

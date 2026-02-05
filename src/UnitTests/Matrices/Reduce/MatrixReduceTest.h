@@ -67,7 +67,7 @@ test_reduceRows()
    {
       rowSums_view[ rowIdx ] = value;
    };
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( matrix.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( matrix.getSegments() ) ) {
       SCOPED_TRACE( tag );
 
       TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, store, RealType( 0 ), launch_config );
@@ -174,7 +174,7 @@ test_reduceRowsIf()
       rowCounts_view[ rowIdx ] = value;
    };
 
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( matrix.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( matrix.getSegments() ) ) {
       SCOPED_TRACE( tag );
 
       rowCounts = 0;
@@ -289,7 +289,7 @@ test_reduceRowsWithArgument()
       //   maxColumns_view[ rowIdx ] = 0;
    };
 
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( matrix.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( matrix.getSegments() ) ) {
       SCOPED_TRACE( tag );
 
       maxValues = 0;
@@ -427,7 +427,7 @@ test_reduceRowsWithArgumentIf()
       //   maxColumns_view[ rowIdx ] = 0;
    };
 
-   for( auto [ launch_config, tag ] : reductionLaunchConfigurations( matrix.getSegments() ) ) {
+   for( const auto& [ launch_config, tag ] : reductionLaunchConfigurations( matrix.getSegments() ) ) {
       SCOPED_TRACE( tag );
 
       maxValues = 0;

@@ -186,7 +186,7 @@ IterativeSolver< Real, Index, SolverMonitor >::setResidue( const Real& residue )
    if( this->residualHistoryFile ) {
       if( this->getIterations() == 0 )
          this->residualHistoryFile << "\n";
-      this->residualHistoryFile << this->getIterations() << "\t" << std::scientific << residue << std::endl;
+      this->residualHistoryFile << this->getIterations() << "\t" << std::scientific << residue << '\n';
    }
 }
 

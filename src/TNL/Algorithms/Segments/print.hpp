@@ -5,6 +5,7 @@
 
 #include <TNL/Containers/Array.h>
 #include <ostream>
+#include <utility>
 
 namespace TNL::Algorithms::Segments {
 
@@ -28,13 +29,13 @@ operator<<( std::ostream& str, const Segments& segments )
 template< typename SegmentsView, typename Fetch >
 struct SegmentsPrinter
 {
-   SegmentsPrinter( const SegmentsView& segments, Fetch&& fetch )
-   : segments( segments ),
-     fetch( fetch )
-   {}
+    SegmentsPrinter( SegmentsView segments, Fetch fetch )
+    : segments( std::move( segments ) ),
+       fetch( std::move( fetch ) )
+    {}
 
-   const SegmentsView segments;
-   Fetch fetch;
+    const SegmentsView segments;
+    Fetch fetch;
 };
 
 template< typename SegmentsView, typename Fetch >

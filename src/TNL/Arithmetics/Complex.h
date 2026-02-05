@@ -299,7 +299,7 @@ operator+( const Value& v, const Complex< Value_ >& c );
 template< typename Value, typename Value_ >
 __cuda_callable__
 Complex< Value >
-operator+( const Complex< Value >& v, const Complex< Value_ >& c );
+operator+( const Complex< Value >& c1, const Complex< Value_ >& c2 );
 
 template< typename Value, typename Value_ >
 Complex< Value >
@@ -324,7 +324,7 @@ operator-( const Value& v, const Complex< Value_ >& c );
 template< typename Value, typename Value_ >
 __cuda_callable__
 Complex< Value >
-operator-( const Complex< Value >& v, const Complex< Value_ >& c );
+operator-( const Complex< Value >& c1, const Complex< Value_ >& c2 );
 
 template< typename Value, typename Value_ >
 Complex< Value >
@@ -349,7 +349,7 @@ operator*( const Value& v, const Complex< Value_ >& c );
 template< typename Value, typename Value_ >
 __cuda_callable__
 Complex< Value >
-operator*( const Complex< Value >& v, const Complex< Value_ >& c );
+operator*( const Complex< Value >& c1, const Complex< Value_ >& c2 );
 
 template< typename Value, typename Value_ >
 Complex< Value >
@@ -374,7 +374,7 @@ operator/( const Value& v, const Complex< Value_ >& c );
 template< typename Value, typename Value_ >
 __cuda_callable__
 Complex< Value >
-operator/( const Complex< Value >& v, const Complex< Value_ >& c );
+operator/( const Complex< Value >& c1, const Complex< Value_ >& c2 );
 
 template< typename Value, typename Value_ >
 Complex< Value >

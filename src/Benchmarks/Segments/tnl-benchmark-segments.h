@@ -42,7 +42,7 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
    }
    catch( ... ) {
-      std::cerr << "Unknown exception." << '\n';
+      std::cerr << "Unknown exception.\n";
       return EXIT_FAILURE;
    }
    return EXIT_SUCCESS;

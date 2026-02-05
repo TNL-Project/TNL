@@ -43,8 +43,7 @@ printInfo( const std::string& fileName, bool verbose = true )
              << "\tStandard deviation of non-zero elements per row:\t" << std_dev << "\n"
              << "\tPercentile 25 of non-zero elements per row:\t" << percentile_25 << "\n"
              << "\tPercentile 50 of non-zero elements per row:\t" << percentile_50 << "\n"
-             << "\tPercentile 75 of non-zero elements per row:\t" << percentile_75 << "\n"
-             << '\n';
+             << "\tPercentile 75 of non-zero elements per row:\t" << percentile_75 << "\n\n";
 
    return true;
 }

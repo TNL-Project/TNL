@@ -314,7 +314,7 @@ MeshFunctionView< Mesh, MeshEntityDimension, Real >::getMaxNorm() const
 }
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
-bool
+[[nodiscard]] bool
 MeshFunctionView< Mesh, MeshEntityDimension, Real >::write( const std::string& functionName,
                                                             const std::string& fileName,
                                                             const std::string& fileFormat ) const

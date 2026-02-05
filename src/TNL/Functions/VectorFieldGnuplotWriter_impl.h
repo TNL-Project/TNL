@@ -13,7 +13,7 @@ bool
 VectorFieldGnuplotWriter< VectorField >::write( const VectorField& vectorField, std::ostream& str )
 {
    std::cerr << "Gnuplot writer for mesh vectorFields defined on mesh type " << getType< typename VectorField::MeshType >()
-             << " is not (yet) implemented." << std::endl;
+             << " is not (yet) implemented.\n";
    return false;
 }
 
@@ -35,7 +35,7 @@ VectorFieldGnuplotWriter<
       str << v.x();
       for( int i = 0; i < VectorFieldSize; i++ )
          str << " " << vectorField[ i ]->getData().getElement( entity.getIndex() );
-      str << std::endl;
+      str << '\n';
    }
    return true;
 }
@@ -58,7 +58,7 @@ VectorFieldGnuplotWriter<
       str << v.x();
       for( int i = 0; i < VectorFieldSize; i++ )
          str << " " << vectorField[ i ]->getData().getElement( entity.getIndex() );
-      str << std::endl;
+      str << '\n';
    }
    return true;
 }
@@ -82,9 +82,9 @@ VectorFieldGnuplotWriter<
          str << v.x() << " " << v.y();
          for( int i = 0; i < VectorFieldSize; i++ )
             str << " " << vectorField[ i ]->getData().getElement( entity.getIndex() );
-         str << std::endl;
+         str << '\n';
       }
-      str << std::endl;
+      str << '\n';
    }
    return true;
 }
@@ -112,9 +112,9 @@ VectorFieldGnuplotWriter<
          str << v.x() << " " << v.y();
          for( int i = 0; i < VectorFieldSize; i++ )
             str << " " << vectorField[ i ]->getData().getElement( entity.getIndex() );
-         str << std::endl;
+         str << '\n';
       }
-      str << std::endl;
+      str << '\n';
    }
 
    entity.setOrientation( EntityOrientation( 0.0, 1.0 ) );
@@ -125,9 +125,9 @@ VectorFieldGnuplotWriter<
          str << v.x() << " " << v.y();
          for( int i = 0; i < VectorFieldSize; i++ )
             str << " " << vectorField[ i ]->getData().getElement( entity.getIndex() );
-         str << std::endl;
+         str << '\n';
       }
-      str << std::endl;
+      str << '\n';
    }
    return true;
 }
@@ -151,9 +151,9 @@ VectorFieldGnuplotWriter<
          str << v.x() << " " << v.y();
          for( int i = 0; i < VectorFieldSize; i++ )
             str << " " << vectorField[ i ]->getData().getElement( entity.getIndex() );
-         str << std::endl;
+         str << '\n';
       }
-      str << std::endl;
+      str << '\n';
    }
    return true;
 }
@@ -178,9 +178,9 @@ VectorFieldGnuplotWriter<
             str << v.x() << " " << v.y() << " " << v.z();
             for( int i = 0; i < VectorFieldSize; i++ )
                str << " " << vectorField[ i ]->getData().getElement( entity.getIndex() );
-            str << std::endl;
+            str << '\n';
          }
-         str << std::endl;
+         str << '\n';
       }
    return true;
 }
@@ -209,9 +209,9 @@ VectorFieldGnuplotWriter<
             str << v.x() << " " << v.y() << " " << v.z();
             for( int i = 0; i < VectorFieldSize; i++ )
                str << " " << vectorField[ i ]->getData().getElement( entity.getIndex() );
-            str << std::endl;
+            str << '\n';
          }
-         str << std::endl;
+         str << '\n';
       }
 
    entity.setOrientation( EntityOrientation( 0.0, 1.0, 0.0 ) );
@@ -223,9 +223,9 @@ VectorFieldGnuplotWriter<
             str << v.x() << " " << v.y() << " " << v.z();
             for( int i = 0; i < VectorFieldSize; i++ )
                str << " " << vectorField[ i ]->getData().getElement( entity.getIndex() );
-            str << std::endl;
+            str << '\n';
          }
-         str << std::endl;
+         str << '\n';
       }
 
    entity.setOrientation( EntityOrientation( 0.0, 0.0, 1.0 ) );
@@ -237,9 +237,9 @@ VectorFieldGnuplotWriter<
             str << v.x() << " " << v.y() << " " << v.z();
             for( int i = 0; i < VectorFieldSize; i++ )
                str << " " << vectorField[ i ]->getData().getElement( entity.getIndex() );
-            str << std::endl;
+            str << '\n';
          }
-         str << std::endl;
+         str << '\n';
       }
    return true;
 }
@@ -264,9 +264,9 @@ VectorFieldGnuplotWriter<
             str << v.x() << " " << v.y() << " " << v.z();
             for( int i = 0; i < VectorFieldSize; i++ )
                str << " " << vectorField[ i ]->getData().getElement( entity.getIndex() );
-            str << std::endl;
+            str << '\n';
          }
-         str << std::endl;
+         str << '\n';
       }
    return true;
 }

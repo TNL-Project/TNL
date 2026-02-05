@@ -266,7 +266,7 @@ TYPED_TEST( GraphBasicTest, CopyConstructor )
 
    GraphType graph1( 3, { { 0, 1, 1.0 }, { 1, 2, 2.0 }, { 0, 2, 3.0 } } );
 
-   GraphType graph2( graph1 );
+   GraphType graph2( graph1 );  // NOLINT(performance-unnecessary-copy-initialization)
 
    EXPECT_EQ( graph2.getVertexCount(), 3 );
    EXPECT_EQ( graph2.getEdgeCount(), 9 );

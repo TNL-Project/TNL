@@ -376,7 +376,7 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::printStructure( std::ost
 {
    const IndexType stripsCount = roundUpDivision( this->getElementCount(), getWarpSize() );
    for( IndexType stripIdx = 0; stripIdx < stripsCount; stripIdx++ ) {
-      str << "Strip: " << stripIdx << std::endl;
+      str << "Strip: " << stripIdx << '\n';
       const IndexType firstGroupIdx = stripIdx * ( getLogWarpSize() + 1 );
       const IndexType lastGroupIdx = firstGroupIdx + getLogWarpSize() + 1;
       IndexType groupHeight = getWarpSize();
@@ -384,7 +384,7 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::printStructure( std::ost
          const IndexType groupSize = groupPointers.getElement( groupIdx + 1 ) - groupPointers.getElement( groupIdx );
          const IndexType groupWidth = groupSize / groupHeight;
          str << "\tGroup: " << groupIdx << " size = " << groupSize << " width = " << groupWidth << " height = " << groupHeight
-             << " offset = " << groupPointers.getElement( groupIdx ) << std::endl;
+             << " offset = " << groupPointers.getElement( groupIdx ) << '\n';
          groupHeight /= 2;
       }
    }

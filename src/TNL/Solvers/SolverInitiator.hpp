@@ -83,7 +83,7 @@ SolverInitiator< ProblemSetter, ConfigTag >::run( const Config::ParameterContain
       return SolverInitiatorRealResolver< ProblemSetter, double, ConfigTag >::run( parameters );
    if( realType == "long-double" )
       return SolverInitiatorRealResolver< ProblemSetter, long double, ConfigTag >::run( parameters );
-   std::cerr << "The real type '" << realType << "' is not defined. " << std::endl;
+   std::cerr << "The real type '" << realType << "' is not defined.\n";
    return false;
 }
 
@@ -106,7 +106,7 @@ public:
          return SolverInitiatorDeviceResolver< ProblemSetter, Real, Devices::Host, ConfigTag >::run( parameters );
       if( device == "cuda" )
          return SolverInitiatorDeviceResolver< ProblemSetter, Real, Devices::Cuda, ConfigTag >::run( parameters );
-      std::cerr << "The device '" << device << "' is not defined. " << std::endl;
+      std::cerr << "The device '" << device << "' is not defined.\n";
       return false;
    }
 };
@@ -125,7 +125,7 @@ public:
    static bool
    run( const Config::ParameterContainer& parameters )
    {
-      std::cerr << "The real type " << parameters.getParameter< String >( "real-type" ) << " is not supported." << std::endl;
+      std::cerr << "The real type " << parameters.getParameter< String >( "real-type" ) << " is not supported.\n";
       return false;
    }
 };
@@ -152,7 +152,7 @@ public:
          return SolverInitiatorIndexResolver< ProblemSetter, Real, Device, int, ConfigTag >::run( parameters );
       if( indexType == "long int" )
          return SolverInitiatorIndexResolver< ProblemSetter, Real, Device, long int, ConfigTag >::run( parameters );
-      std::cerr << "The index type '" << indexType << "' is not defined. " << std::endl;
+      std::cerr << "The index type '" << indexType << "' is not defined.\n";
       return false;
    }
 };
@@ -172,7 +172,7 @@ public:
    static bool
    run( const Config::ParameterContainer& parameters )
    {
-      std::cerr << "The device " << parameters.getParameter< String >( "device" ) << " is not supported." << std::endl;
+      std::cerr << "The device " << parameters.getParameter< String >( "device" ) << " is not supported.\n";
       return false;
    }
 };
@@ -193,7 +193,7 @@ public:
    static bool
    run( const Config::ParameterContainer& parameters )
    {
-      std::cerr << "The index " << parameters.getParameter< String >( "index-type" ) << " is not supported." << std::endl;
+      std::cerr << "The index " << parameters.getParameter< String >( "index-type" ) << " is not supported.\n";
       return false;
    }
 };

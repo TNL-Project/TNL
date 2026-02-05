@@ -25,8 +25,8 @@ forAllElementsExample()
    };
 
    TNL::Matrices::forAllElements( denseMatrix, setLowerTriangular );
-   std::cout << "Dense matrix with lower triangular elements set:" << std::endl;
-   std::cout << denseMatrix << std::endl;
+   std::cout << "Dense matrix with lower triangular elements set:\n";
+   std::cout << denseMatrix << '\n';
 
    /***
     * Create a 5x5 sparse matrix.
@@ -45,18 +45,18 @@ forAllElementsExample()
    };
 
    TNL::Matrices::forAllElements( sparseMatrix, setSparse );
-   std::cout << "Sparse matrix initialized:" << std::endl;
-   std::cout << sparseMatrix << std::endl;
+   std::cout << "Sparse matrix initialized:\n";
+   std::cout << sparseMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    forAllElementsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    forAllElementsExample< TNL::Devices::Cuda >();
 #endif
 }

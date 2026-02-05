@@ -53,7 +53,7 @@ buildTriangleMesh( Mesh< TestTriangleMeshConfig, Device >& mesh )
                   "Testing vertex entity does not store edges as required." );
 
    using PointType = typename VertexMeshEntityType::PointType;
-   static_assert( std::is_same< PointType, Containers::StaticVector< 2, double > >::value );
+   static_assert( std::is_same_v< PointType, Containers::StaticVector< 2, double > > );
 
    /****
     * We set-up the following situation
@@ -250,15 +250,15 @@ testMesh( const Mesh< TestTriangleMeshConfig, Devices::Host >& mesh,
    const std::vector< int > boundaryFaces = { 1, 2, 3, 4 };
    const std::vector< int > interiorFaces = { 0 };
    EXPECT_EQ( mesh.template getBoundaryIndices< 1 >().getSize(), (int) boundaryFaces.size() );
-   for( size_t i = 0; i < boundaryFaces.size(); i++ ) {
-      EXPECT_TRUE( mesh.template isBoundaryEntity< 1 >( edgePermutation[ boundaryFaces[ i ] ] ) );
+   for( const auto face : boundaryFaces ) {
+      EXPECT_TRUE( mesh.template isBoundaryEntity< 1 >( edgePermutation[ face ] ) );
       // boundary indices are always sorted so we can't test this
       //      EXPECT_EQ( mesh.template getBoundaryIndices< 1 >()[ i ], edgePermutation[ boundaryFaces[ i ] ] );
    }
    // Test interior faces
    EXPECT_EQ( mesh.template getInteriorIndices< 1 >().getSize(), (int) interiorFaces.size() );
-   for( size_t i = 0; i < interiorFaces.size(); i++ ) {
-      EXPECT_FALSE( mesh.template isBoundaryEntity< 1 >( edgePermutation[ interiorFaces[ i ] ] ) );
+   for( const auto face : interiorFaces ) {
+      EXPECT_FALSE( mesh.template isBoundaryEntity< 1 >( edgePermutation[ face ] ) );
       // boundary indices are always sorted so we can't test this
       //      EXPECT_EQ( mesh.template getInteriorIndices< 1 >()[ i ], edgePermutation[ interiorFaces[ i ] ] );
    }

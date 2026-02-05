@@ -137,7 +137,7 @@ public:
 
    #ifdef HAVE_BOOST
       if( withBoost && this->boostSSSPDistancesDirected != this->gunrockSSSPDistancesDirected ) {
-         std::cout << "SSSP distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
+         std::cout << "SSSP distances of directed graph from Boost and Gunrock are not equal!\n";
          this->errors++;
       }
    #endif
@@ -159,7 +159,7 @@ public:
 
    #ifdef HAVE_BOOST
       if( withBoost && this->boostSSSPDistancesUndirected != this->gunrockSSSPDistancesUndirected ) {
-         std::cout << "SSSP distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
+         std::cout << "SSSP distances of undirected graph from Boost and Gunrock are not equal!\n";
          this->errors++;
       }
    #endif
@@ -198,7 +198,7 @@ public:
             TNL::Graphs::Algorithms::singleSourceShortestPath( digraph, largestNode, ssspDistances, launchConfig );
          };
          if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
-            std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark." << '\n';
+            std::cout << "ERROR: Negative weights in the graph! Skipping SSSP benchmark.\n";
             this->errors++;
          }
          else
@@ -206,13 +206,13 @@ public:
 
 #ifdef HAVE_BOOST
          if( withBoost && ssspDistances != this->boostSSSPDistancesDirected ) {
-            std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!" << '\n';
+            std::cout << "SSSP distances of directed graph from Boost and TNL are not equal!\n";
             this->errors++;
          }
 #endif
 #ifdef HAVE_GUNROCK
          if( withGunrock && ssspDistances != this->gunrockSSSPDistancesDirected ) {
-            std::cout << "SSSP distances of directed graph from TNL and Gunrock are not equal!" << std::endl;
+            std::cout << "SSSP distances of directed graph from TNL and Gunrock are not equal!\n";
             this->errors++;
          }
 #endif
@@ -240,13 +240,13 @@ public:
 
 #ifdef HAVE_BOOST
          if( withBoost && ssspDistances != this->boostSSSPDistancesUndirected ) {
-            std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!" << '\n';
+            std::cout << "SSSP distances of undirected graph from Boost and TNL are not equal!\n";
             this->errors++;
          }
 #endif
 #ifdef HAVE_GUNROCK
          if( withGunrock && ssspDistances != this->gunrockSSSPDistancesUndirected ) {
-            std::cout << "SSSP distances of undirected graph from TNL and Gunrock are not equal!" << std::endl;
+            std::cout << "SSSP distances of undirected graph from TNL and Gunrock are not equal!\n";
             this->errors++;
          }
 #endif
@@ -268,7 +268,7 @@ public:
             semiringSSSP( digraph, largestNode, semiringSsspDistances );
          };
          if( min( digraph.getAdjacencyMatrix().getValues() ) < 0 ) {
-            std::cout << "ERROR: Negative weights in the graph! Skipping semiring SSSP benchmark." << '\n';
+            std::cout << "ERROR: Negative weights in the graph! Skipping semiring SSSP benchmark.\n";
             this->errors++;
          }
          else

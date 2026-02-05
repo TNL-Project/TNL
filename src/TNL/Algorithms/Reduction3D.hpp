@@ -160,10 +160,10 @@ Reduction3D< Devices::Host >::reduce( Result identity,
 
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
       const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
-      #pragma omp parallel num_threads( threads )
+   #pragma omp parallel num_threads( threads )
       {
-         // first thread initializes the result array
-         #pragma omp single nowait
+   // first thread initializes the result array
+   #pragma omp single nowait
          {
             for( int i = 0; i < m; i++ ) {
                for( int j = 0; j < n; j++ ) {
@@ -178,7 +178,7 @@ Reduction3D< Devices::Host >::reduce( Result identity,
          for( int i = 0; i < m * n * 4; i++ )
             r[ i ] = identity;
 
-         #pragma omp for nowait
+   #pragma omp for nowait
          for( int b = 0; b < blocks; b++ ) {
             const Index offset = b * block_size;
             for( int i = 0; i < m; i++ ) {
@@ -194,8 +194,8 @@ Reduction3D< Devices::Host >::reduce( Result identity,
             }
          }
 
-         // the first thread that reaches here processes the last, incomplete block
-         #pragma omp single nowait
+   // the first thread that reaches here processes the last, incomplete block
+   #pragma omp single nowait
          {
             for( int i = 0; i < m; i++ ) {
                for( int j = 0; j < n; j++ ) {
@@ -216,8 +216,8 @@ Reduction3D< Devices::Host >::reduce( Result identity,
             }
          }
 
-         // inter-thread reduction of local results
-         #pragma omp critical
+   // inter-thread reduction of local results
+   #pragma omp critical
          {
             for( int i = 0; i < m; i++ ) {
                for( int j = 0; j < n; j++ ) {
@@ -261,7 +261,7 @@ Reduction3D< Devices::Cuda >::reduce( Result identity,
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();
    std::cout << "   Reduction3D of " << m << " and " << n << " datasets on GPU to size " << reducedSize << " took "
-             << timer.getRealTime() << " sec. " << std::endl;
+             << timer.getRealTime() << " sec.\n";
    timer.reset();
    timer.start();
 #endif
@@ -272,7 +272,7 @@ Reduction3D< Devices::Cuda >::reduce( Result identity,
 
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();
-   std::cout << "   Transferring data to CPU took " << timer.getRealTime() << " sec. " << std::endl;
+   std::cout << "   Transferring data to CPU took " << timer.getRealTime() << " sec.\n";
    timer.reset();
    timer.start();
 #endif
@@ -286,7 +286,7 @@ Reduction3D< Devices::Cuda >::reduce( Result identity,
 
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();
-   std::cout << "   Reduction3D of small data set on CPU took " << timer.getRealTime() << " sec. " << std::endl;
+   std::cout << "   Reduction3D of small data set on CPU took " << timer.getRealTime() << " sec.\n";
 #endif
 }
 

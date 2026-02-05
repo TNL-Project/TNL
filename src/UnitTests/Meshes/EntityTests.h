@@ -23,7 +23,7 @@ template< int subdimension, typename MeshEntity >
 void
 testSubentities( const MeshEntity& entity )
 {
-   const typename MeshEntity::MeshType mesh = entity.getMesh();
+   const auto& mesh = entity.getMesh();
    const typename MeshEntity::GlobalIndexType index = entity.getIndex();
    constexpr int dimension = MeshEntity::getEntityDimension();
 
@@ -39,7 +39,7 @@ template< int superdimension, typename MeshEntity >
 void
 testSuperentities( const MeshEntity& entity )
 {
-   const typename MeshEntity::MeshType mesh = entity.getMesh();
+   const auto& mesh = entity.getMesh();
    const typename MeshEntity::GlobalIndexType index = entity.getIndex();
    constexpr int dimension = MeshEntity::getEntityDimension();
 
@@ -58,18 +58,17 @@ void
 testEntity( const MeshEntity& entity )
 {
    // static tests for the MeshEntity type
-   static_assert(
-      std::is_constructible< MeshEntity, typename MeshEntity::MeshType, typename MeshEntity::GlobalIndexType >::value,
-      "MeshEntity should be constructible from its MeshType and GlobalIndexType" );
-   static_assert( ! std::is_default_constructible< MeshEntity >::value, "MeshEntity should not be default-constructible" );
-   static_assert( std::is_copy_constructible< MeshEntity >::value, "MeshEntity should be copy-constructible" );
-   static_assert( std::is_move_constructible< MeshEntity >::value, "MeshEntity should be move-constructible" );
-   static_assert( std::is_copy_assignable< MeshEntity >::value, "MeshEntity should be copy-assignable" );
-   static_assert( std::is_move_assignable< MeshEntity >::value, "MeshEntity should be move-assignable" );
-   static_assert( std::is_trivially_destructible< MeshEntity >::value, "MeshEntity should be trivially destructible" );
+   static_assert( std::is_constructible_v< MeshEntity, typename MeshEntity::MeshType, typename MeshEntity::GlobalIndexType >,
+                  "MeshEntity should be constructible from its MeshType and GlobalIndexType" );
+   static_assert( ! std::is_default_constructible_v< MeshEntity >, "MeshEntity should not be default-constructible" );
+   static_assert( std::is_copy_constructible_v< MeshEntity >, "MeshEntity should be copy-constructible" );
+   static_assert( std::is_move_constructible_v< MeshEntity >, "MeshEntity should be move-constructible" );
+   static_assert( std::is_copy_assignable_v< MeshEntity >, "MeshEntity should be copy-assignable" );
+   static_assert( std::is_move_assignable_v< MeshEntity >, "MeshEntity should be move-assignable" );
+   static_assert( std::is_trivially_destructible_v< MeshEntity >, "MeshEntity should be trivially destructible" );
 
    // dynamic tests for the entity
-   const typename MeshEntity::MeshType mesh = entity.getMesh();
+   const auto& mesh = entity.getMesh();
    const typename MeshEntity::GlobalIndexType index = entity.getIndex();
    constexpr int dimension = MeshEntity::getEntityDimension();
 

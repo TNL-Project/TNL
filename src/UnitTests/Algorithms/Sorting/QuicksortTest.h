@@ -24,9 +24,9 @@ TEST( selectedSize, size15 )
 {
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr{ 5, 9, 4, 8, 6, 1, 2, 3, 4, 8, 1, 6, 9, 4, 9 };
    auto view = cudaArr.getView();
-   EXPECT_EQ( 15, view.getSize() ) << "size not 15" << std::endl;
+   EXPECT_EQ( 15, view.getSize() ) << "size not 15\n";
    Quicksort::sort( view );
-   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
 }
 
 TEST( multiblock, 32768_decreasingNegative )
@@ -39,7 +39,7 @@ TEST( multiblock, 32768_decreasingNegative )
    auto view = cudaArr.getView();
    Quicksort::sort( view );
 
-   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
 }
 
 TEST( randomGenerated, smallArray_randomVal )
@@ -200,7 +200,7 @@ TEST( types, struct_3D_points )
    TNL::Containers::Array< TMPSTRUCT_xyz, TNL::Devices::Cuda > cudaArr( arr );
    auto view = cudaArr.getView();
    //thrust::sort(thrust::device, cudaArr.getData(), cudaArr.getData() + cudaArr.getSize());
-   //std::cout << view << std::endl;
+   //std::cout << view << '\n';
    Quicksort::sort( view );
 
    EXPECT_TRUE( Algorithms::isAscending( view ) );
@@ -251,7 +251,7 @@ TEST( types, struct_64b )
    TNL::Containers::Array< TMPSTRUCT_64b, TNL::Devices::Cuda > cudaArr( arr );
    auto view = cudaArr.getView();
    //thrust::sort(thrust::device, cudaArr.getData(), cudaArr.getData() + cudaArr.getSize());
-   //std::cout << view << std::endl;
+   //std::cout << view << '\n';
    Quicksort::sort( view );
 
    EXPECT_TRUE( Algorithms::isAscending( view ) );

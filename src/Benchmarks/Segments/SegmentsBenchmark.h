@@ -94,7 +94,7 @@ struct SegmentsBenchmark
       //using KernelType = SegmentsKernel< Index, Device >;
       // TODO: Find a way how to use various reduction kernels for segments in the algorithms.
 
-      IndexVector segmentsSizes( hostSegmentsSizes );
+      IndexVector segmentsSizes( hostSegmentsSizes );  // NOLINT(performance-unnecessary-copy-initialization)
       auto segmentsSizes_view = segmentsSizes.getConstView();
       SegmentsType segments( segmentsSizes );
       IndexVector data( segments.getStorageSize(), 0 );
@@ -119,7 +119,7 @@ struct SegmentsBenchmark
                launchConfig_ );
          };
          benchmark.time< Device >( device, f );
-         HostVector dataHost( data );
+         HostVector dataHost( data );  // NOLINT(performance-unnecessary-copy-initialization)
          for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
             for( IndexType localIdx = 0; localIdx < segmentsSizes.getElement( segmentIdx ); localIdx++ )
                if( dataHost.getElement( segments.getGlobalIndex( segmentIdx, localIdx ) ) != segmentIdx + localIdx )
@@ -257,7 +257,7 @@ struct SegmentsBenchmark
                launchConfig_ );
          };
          benchmark.time< Device >( device, f );
-         HostVector resultHost( result );
+         HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
          for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
             if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
                throw std::runtime_error( "Error in reduceSegments" );
@@ -305,7 +305,7 @@ struct SegmentsBenchmark
                   launchConfig_ );
             };
             benchmark.time< Device >( device, f );
-            HostVector resultHost( result );
+            HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
             for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
                if( segmentIdx % stride == 0 ) {
                   if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )
@@ -356,7 +356,7 @@ struct SegmentsBenchmark
                   launchConfig_ );
             };
             benchmark.time< Device >( device, f );
-            HostVector resultHost( result );
+            HostVector resultHost( result );  // NOLINT(performance-unnecessary-copy-initialization)
             for( IndexType segmentIdx = 0; segmentIdx < segmentsSizes.getSize(); segmentIdx++ ) {
                if( segmentIdx % stride == 0 ) {
                   if( resultHost[ segmentIdx ] != segmentsSizes.getElement( segmentIdx ) )

@@ -33,8 +33,8 @@ forRowsExample2()
    };
 
    TNL::Matrices::forRows( matrix, 0, size, setupRow );
-   std::cout << "Initial tridiagonal matrix:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Initial tridiagonal matrix:\n";
+   std::cout << matrix << '\n';
 
    /***
     * Normalize each row by dividing by the sum of its elements.
@@ -50,18 +50,18 @@ forRowsExample2()
    };
 
    TNL::Matrices::forRows( matrix, 0, size, normalizeRow );
-   std::cout << "Row-normalized matrix:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Row-normalized matrix:\n";
+   std::cout << matrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    forRowsExample2< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    forRowsExample2< TNL::Devices::Cuda >();
 #endif
 }

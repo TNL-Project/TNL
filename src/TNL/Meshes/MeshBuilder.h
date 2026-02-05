@@ -159,7 +159,7 @@ public:
          return;
 
       std::cout << "Found " << points.getSize() - uniquePointsCount << " duplicate points (total " << points.getSize()
-                << ", unique " << uniquePointsCount << ")" << std::endl;
+                << ", unique " << uniquePointsCount << ")\n";
 
       // copy this->points and this->pointsSet, drop duplicate points
       // (trying to do this in-place is not worth it, since even Array::reallocate
@@ -259,7 +259,7 @@ public:
          return;
 
       std::cout << "Found " << faceSeeds.getEntitiesCount() - uniqueFacesCount << " duplicate faces (total "
-                << faceSeeds.getEntitiesCount() << ", unique " << uniqueFacesCount << ")" << std::endl;
+                << faceSeeds.getEntitiesCount() << ", unique " << uniqueFacesCount << ")\n";
 
       // get corners counts for unique faces
       NeighborCountsArray cornersCounts( uniqueFacesCount );

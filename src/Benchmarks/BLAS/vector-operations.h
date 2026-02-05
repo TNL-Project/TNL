@@ -237,7 +237,7 @@ public:
    {
       if( TNL::abs( result - expected ) > tolerance ) {
          std::cerr << "ERROR: result " << result << " computed by " << performer << " is not equal to the expected value "
-                   << expected << std::endl;
+                   << expected << '\n';
       }
    }
 
@@ -247,7 +247,7 @@ public:
       for( Index i = 0; i < size; i++ ) {
          if( TNL::abs( result[ i ] - expected ) > tolerance ) {
             std::cerr << "ERROR: " << i << "-th value of the result vector " << result[ i ] << " computed by " << performer
-                      << " is not equal to the expected value " << expected << std::endl;
+                      << " is not equal to the expected value " << expected << '\n';
          }
       }
    }

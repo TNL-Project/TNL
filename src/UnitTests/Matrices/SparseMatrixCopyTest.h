@@ -500,9 +500,9 @@ multidiagonalMatrixAssignment()
    RowCapacitiesType rowCapacities;
    matrix.getCompressedRowLengths( rowCapacities );
    RowCapacitiesType exactRowLengths{ 3, 4, 5, 5, 6, 5, 5, 4, 4, 3 };
-   /*std::cerr << "hostMatrix " << hostMatrix << std::endl;
-   std::cerr << "matrix " << matrix << std::endl;
-   std::cerr << "rowCapacities " << rowCapacities << std::endl;*/
+   /*std::cerr << "hostMatrix " << hostMatrix << '\n';
+   std::cerr << "matrix " << matrix << '\n';
+   std::cerr << "rowCapacities " << rowCapacities << '\n';*/
 
    EXPECT_EQ( rowCapacities, exactRowLengths );
    for( IndexType i = 0; i < rows; i++ )

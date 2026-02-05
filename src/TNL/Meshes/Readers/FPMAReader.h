@@ -14,11 +14,16 @@ namespace TNL::Meshes::Readers {
 class FPMAReader : public MeshReader
 {
 public:
-   FPMAReader() = default;
+   FPMAReader()
+   {
+      resetBase();
+   }
 
    FPMAReader( const std::string& fileName )
    : MeshReader( fileName )
-   {}
+   {
+      resetBase();
+   }
 
    void
    detectMesh() override
