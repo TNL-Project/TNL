@@ -5,14 +5,14 @@
 
 #include <stdexcept>
 #include <tuple>
+#include <utility>
 
 #include <TNL/Math.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/fillRandom.h>
-#include <TNL/Matrices/Eigen/ShiftedPowerIteration.h>
-#include <utility>
+#include "ShiftedPowerIteration.h"
 
-namespace TNL::Matrices::Eigen {
+namespace TNL::Solvers::Eigenvalues::experimental {
 
 /**
  * \brief Calculates the largest eigenvalue and its corresponding eigenvector of a given matrix using the power iteration
@@ -61,7 +61,8 @@ powerIteration( const MatrixType& matrix,
       throw std::invalid_argument( "Zero-sized matrices are not allowed" );
    if( matrix.getRows() != initialVec.getSize() )
       throw std::invalid_argument( "The initial vector must have the same size as the matrix" );
-   return TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >( matrix, epsilon, 0, initialVec, maxIterations );
+   return TNL::Solvers::Eigenvalues::experimental::shiftedPowerIteration< MatrixType >(
+      matrix, epsilon, 0, initialVec, maxIterations );
 }
 
 /**
@@ -121,4 +122,4 @@ powerIteration( const MatrixType& matrix, const typename MatrixType::RealType& e
    return powerIteration( matrix, epsilon, initialVec, maxIterations );
 }
 
-}  // namespace TNL::Matrices::Eigen
+}  //namespace TNL::Solvers::Eigenvalues::experimental

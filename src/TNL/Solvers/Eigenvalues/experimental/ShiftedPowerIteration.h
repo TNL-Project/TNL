@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <TNL/Matrices/Eigen/PowerIteration.h>
-#include <TNL/Matrices/LambdaMatrix.h>
 #include <utility>
+#include <TNL/Matrices/LambdaMatrix.h>
+#include "PowerIteration.h"
 
-namespace TNL::Matrices::Eigen {
+namespace TNL::Solvers::Eigenvalues::experimental {
 
 /**
  * \brief Calculates an eigenvalue and its corresponding eigenvector of a matrix using the shifted power iteration method.
@@ -160,4 +160,4 @@ shiftedPowerIteration( const MatrixType& matrix,
    return shiftedPowerIteration( matrix, epsilon, shiftValue, std::move( initialVec ), maxIterations );
 }
 
-}  // namespace TNL::Matrices::Eigen
+}  //namespace TNL::Solvers::Eigenvalues::experimental

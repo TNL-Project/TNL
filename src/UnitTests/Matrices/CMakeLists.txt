@@ -1,4 +1,3 @@
-add_subdirectory(Eigen)
 add_subdirectory(Factorization)
 
 set(COMMON_TESTS
