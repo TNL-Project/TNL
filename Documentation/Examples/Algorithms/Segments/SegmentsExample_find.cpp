@@ -33,18 +33,18 @@ SegmentsExample()
                                               [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
                                               {
                                                  if( localIdx <= segmentIdx )
-                                                    data_view[ globalIdx ] = int( localIdx + segmentIdx ) / 2;
+                                                    data_view[ globalIdx ] = ( localIdx + segmentIdx ) / 2;
                                               } );
 
    /***
     * Print the data by the segments.
     */
-   std::cout << "Values of elements after initial setup: " << std::endl;
+   std::cout << "Values of elements after initial setup:\n";
    auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];
    };
-   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
 
    //! [find]
    TNL::Containers::Vector< bool, Device, int > found( size, false );
@@ -66,25 +66,25 @@ SegmentsExample()
    };
    TNL::Algorithms::Segments::findInAllSegments( segments, condition, keep );
 
-   std::cout << "Found array:     " << found << std::endl;
-   std::cout << "Positions array: " << positions << std::endl;
+   std::cout << "Found array:     " << found << '\n';
+   std::cout << "Positions array: " << positions << '\n';
    //! [find]
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int > >();
 
-   std::cout << "Example of Ellpack segments on host: " << std::endl;
+   std::cout << "Example of Ellpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on CUDA GPU:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > >();
 
-   std::cout << "Example of Ellpack segments on host: " << std::endl;
+   std::cout << "Example of Ellpack segments on CUDA GPU:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int > >();
 #endif
    return EXIT_SUCCESS;

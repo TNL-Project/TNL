@@ -59,9 +59,9 @@ SegmentsExample()
    };
 
    TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_full, TNL::Plus{}, store );
-   std::cout << "The sums with full fetch form are: " << sums << std::endl;
+   std::cout << "The sums with full fetch form are: " << sums << '\n';
    TNL::Algorithms::Segments::reduceAllSegments( segments, fetch_brief, TNL::Plus{}, store );
-   std::cout << "The sums with brief fetch form are: " << sums << std::endl;
+   std::cout << "The sums with brief fetch form are: " << sums << '\n';
 }
 
 int

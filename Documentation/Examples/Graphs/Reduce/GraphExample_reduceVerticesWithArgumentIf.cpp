@@ -25,14 +25,16 @@ reduceVerticesWithArgumentIfExample()
    /***
     * Print the graph.
     */
-   std::cout << "Graph:\n" << graph << std::endl;
+   std::cout << "Graph:\n" << graph << '\n';
 
    //! [reduce vertices with argument if]
    /***
     * Find minimum edge weight and target vertex for vertices in range [1, 4) with degree >= 2.
     */
-   TNL::Containers::Vector< float, Device > vertexMinWeights( 5, -1 ), compressedVertexMinWeights( 5 );
-   TNL::Containers::Vector< int, Device > vertexMinTargets( 5, -1 ), compressedVertexMinTargets( 5 );
+   TNL::Containers::Vector< float, Device > vertexMinWeights( 5, -1 );
+   TNL::Containers::Vector< float, Device > compressedVertexMinWeights( 5 );
+   TNL::Containers::Vector< int, Device > vertexMinTargets( 5, -1 );
+   TNL::Containers::Vector< int, Device > compressedVertexMinTargets( 5 );
    auto vertexMinWeights_view = vertexMinWeights.getView();
    auto compressedVertexMinWeights_view = compressedVertexMinWeights.getView();
    auto vertexMinTargets_view = vertexMinTargets.getView();
@@ -67,21 +69,21 @@ reduceVerticesWithArgumentIfExample()
    /***
     * Print results.
     */
-   std::cout << "Number of traversed vertices: " << traversedVertexCount << std::endl;
-   std::cout << "Minimum edge weight for vertices 1-3 with degree >= 2:" << vertexMinWeights << std::endl;
-   std::cout << "Target vertex for minimum edge:" << vertexMinTargets << std::endl;
-   std::cout << "Compressed minimum weights:" << compressedVertexMinWeights.getView( 0, traversedVertexCount ) << std::endl;
-   std::cout << "Compressed minimum targets:" << compressedVertexMinTargets.getView( 0, traversedVertexCount ) << std::endl;
+   std::cout << "Number of traversed vertices: " << traversedVertexCount << '\n';
+   std::cout << "Minimum edge weight for vertices 1-3 with degree >= 2:" << vertexMinWeights << '\n';
+   std::cout << "Target vertex for minimum edge:" << vertexMinTargets << '\n';
+   std::cout << "Compressed minimum weights:" << compressedVertexMinWeights.getView( 0, traversedVertexCount ) << '\n';
+   std::cout << "Compressed minimum targets:" << compressedVertexMinTargets.getView( 0, traversedVertexCount ) << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceVerticesWithArgumentIfExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    reduceVerticesWithArgumentIfExample< TNL::Devices::Cuda >();
 #endif
 

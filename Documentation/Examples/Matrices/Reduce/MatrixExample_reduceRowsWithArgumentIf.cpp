@@ -27,8 +27,8 @@ reduceRowsWithArgumentIfExample()
    };
    TNL::Matrices::forAllElements( matrix, fillMatrix );
 
-   std::cout << "Matrix:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Matrix:\n";
+   std::cout << matrix << '\n';
 
    /***
     * Find argmax for rows 3-8, but only for even-indexed rows (range + condition).
@@ -84,11 +84,11 @@ reduceRowsWithArgumentIfExample()
       matrix, rangeBegin, rangeEnd, evenRowCondition, fetch, reduction, storeRange, std::numeric_limits< double >::lowest() );
    // You may also use TNL::MaxWithArg{} instead of defining your own reduction lambda.
 
-   std::cout << "Argmax for rows 3-8 (only even indices):" << std::endl;
-   std::cout << "  Max values: " << rangeMaxValues << std::endl;
-   std::cout << "  Column indices: " << rangeMaxColumns << std::endl;
-   std::cout << "  Compressed max values: " << compressedMaxValues.getView( 0, evenRowsCount ) << std::endl;
-   std::cout << "  Compressed column indices: " << compressedMaxColumns.getView( 0, evenRowsCount ) << std::endl;
+   std::cout << "Argmax for rows 3-8 (only even indices):\n";
+   std::cout << "  Max values: " << rangeMaxValues << '\n';
+   std::cout << "  Column indices: " << rangeMaxColumns << '\n';
+   std::cout << "  Compressed max values: " << compressedMaxValues.getView( 0, evenRowsCount ) << '\n';
+   std::cout << "  Compressed column indices: " << compressedMaxColumns.getView( 0, evenRowsCount ) << '\n';
 
    /***
     * Find argmin for rows 5-9, but only for odd-indexed rows.
@@ -137,21 +137,21 @@ reduceRowsWithArgumentIfExample()
       matrix, 5, 10, oddRowCondition, fetch, reductionMin, storeOddMin, std::numeric_limits< double >::max() );
    // You may also use TNL::MinWithArg{} instead of defining your own reduction lambda.
 
-   std::cout << "Argmin for rows 5-9 (only odd indices):" << std::endl;
-   std::cout << "  Min values: " << oddMinValues << std::endl;
-   std::cout << "  Column indices: " << oddMinColumns << std::endl;
-   std::cout << "  Compressed min values: " << compressedOddMinValues.getView( 0, oddRowsCount ) << std::endl;
-   std::cout << "  Compressed column indices: " << compressedOddMinColumns.getView( 0, oddRowsCount ) << std::endl;
+   std::cout << "Argmin for rows 5-9 (only odd indices):\n";
+   std::cout << "  Min values: " << oddMinValues << '\n';
+   std::cout << "  Column indices: " << oddMinColumns << '\n';
+   std::cout << "  Compressed min values: " << compressedOddMinValues.getView( 0, oddRowsCount ) << '\n';
+   std::cout << "  Compressed column indices: " << compressedOddMinColumns.getView( 0, oddRowsCount ) << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceRowsWithArgumentIfExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << std::endl << "Running on CUDA device:" << std::endl;
+   std::cout << '\n' << "Running on CUDA device:\n";
    reduceRowsWithArgumentIfExample< TNL::Devices::Cuda >();
 #endif
 }

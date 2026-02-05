@@ -27,8 +27,8 @@ reduceRowsExample()
    };
    TNL::Matrices::forAllElements( matrix, fillMatrix );
 
-   std::cout << "Dense matrix:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Dense matrix:\n";
+   std::cout << matrix << '\n';
 
    /***
     * Compute sums for rows 2-5 (range variant).
@@ -48,7 +48,7 @@ reduceRowsExample()
 
    TNL::Matrices::reduceRows( matrix, 2, 6, fetch, TNL::Plus{}, storeRange );
 
-   std::cout << "Sums for rows 2-5: " << rangeSums << std::endl;
+   std::cout << "Sums for rows 2-5: " << rangeSums << '\n';
 
    /***
     * Compute sums for specific rows (array variant).
@@ -67,18 +67,18 @@ reduceRowsExample()
 
    TNL::Matrices::reduceRows( matrix, rowIndexes, fetch, TNL::Plus{}, storeArray );
 
-   std::cout << "Sums for rows [0, 2, 4, 6]: " << arraySums << std::endl;
-   std::cout << "Compressed sums for rows [0, 2, 4, 6]: " << compressedSums.getView( 0, rowIndexes.getSize() ) << std::endl;
+   std::cout << "Sums for rows [0, 2, 4, 6]: " << arraySums << '\n';
+   std::cout << "Compressed sums for rows [0, 2, 4, 6]: " << compressedSums.getView( 0, rowIndexes.getSize() ) << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceRowsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << std::endl << "Running on CUDA device:" << std::endl;
+   std::cout << '\n' << "Running on CUDA device:\n";
    reduceRowsExample< TNL::Devices::Cuda >();
 #endif
 }

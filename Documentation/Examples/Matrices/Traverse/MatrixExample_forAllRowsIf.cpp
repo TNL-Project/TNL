@@ -33,8 +33,8 @@ forAllRowsIfExample()
    };
 
    TNL::Matrices::forAllRowsIf( denseMatrix, oddRowCondition, processDenseRow );
-   std::cout << "Dense matrix with only odd rows set:" << std::endl;
-   std::cout << denseMatrix << std::endl;
+   std::cout << "Dense matrix with only odd rows set:\n";
+   std::cout << denseMatrix << '\n';
 
    /***
     * Create a 5x5 sparse matrix.
@@ -60,18 +60,18 @@ forAllRowsIfExample()
    };
 
    TNL::Matrices::forAllRowsIf( sparseMatrix, innerRowCondition, processSparseRow );
-   std::cout << "Sparse matrix with inner rows (1-3) set:" << std::endl;
-   std::cout << sparseMatrix << std::endl;
+   std::cout << "Sparse matrix with inner rows (1-3) set:\n";
+   std::cout << sparseMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    forAllRowsIfExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    forAllRowsIfExample< TNL::Devices::Cuda >();
 #endif
 }

@@ -162,8 +162,7 @@ printInfo( Mesh< MeshConfig, Devices::Host >& mesh, const std::string& fileName 
              << "\tAverage cell diameter:\t" << TNL::sum( diameters ) / cellsCount << "\n"
              << "\tAverage number of subvertices per cell:\t" << avgCellSubvertices << "\n"
              << "\tAverage number of subvertices per face:\t" << avgFaceSubvertices << "\n"
-             << "\tAverage number of faces per cell:\t" << avgSubfaces << "\n"
-             << '\n';
+             << "\tAverage number of faces per cell:\t" << avgSubfaces << "\n\n";
 
    return true;
 }

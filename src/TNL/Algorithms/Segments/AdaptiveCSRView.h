@@ -6,6 +6,7 @@
 #include "CSRView.h"
 #include "detail/CSRAdaptiveKernelBlockDescriptor.h"
 #include "detail/CSRAdaptiveKernelParameters.h"
+#include <TNL/Containers/Vector.h>
 
 namespace TNL::Algorithms::Segments {
 

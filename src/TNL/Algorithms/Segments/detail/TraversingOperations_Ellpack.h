@@ -127,7 +127,6 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                         throw std::invalid_argument( "Unsupported threads per segment ( "
                                                      + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                                                      + " ) count for Ellpack segments." );
-                        break;
                   }
                }
                else
@@ -249,7 +248,6 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                         throw std::invalid_argument( "Unsupported threads per segment ( "
                                                      + std::to_string( launchConfig.getThreadsPerSegmentCount() )
                                                      + " ) count for Ellpack segments." );
-                        break;
                   }
                }
                else

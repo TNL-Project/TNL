@@ -440,7 +440,9 @@ SparseMatrix< Real, Device, Index, MatrixType_, Segments, ComputeReal, RealAlloc
                      || encoding == MatrixElementsEncoding::SymmetricUpper )
                 && rowIdx != columnIdx )
             {
-               this->setElement( columnIdx, rowIdx, value );
+               const Index symmetricRowIdx = columnIdx;
+               const Index symmetricColumnIdx = rowIdx;
+               this->setElement( symmetricRowIdx, symmetricColumnIdx, value );
             }
          }
       }

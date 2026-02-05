@@ -473,15 +473,15 @@ template< typename Device, typename Index, ElementsOrganization Organization >
 void
 ChunkedEllpackBase< Device, Index, Organization >::printStructure( std::ostream& str ) const
 {
-   str << "Segments count: " << this->getSegmentCount() << std::endl << "Slices: " << this->getNumberOfSlices() << std::endl;
+   str << "Segments count: " << this->getSegmentCount() << '\n' << "Slices: " << this->getNumberOfSlices() << '\n';
    for( IndexType i = 0; i < this->getNumberOfSlices(); i++ )
       str << "   Slice " << i << " : size = " << this->slices.getElement( i ).size
           << " chunkSize = " << this->slices.getElement( i ).chunkSize
           << " firstSegment = " << this->slices.getElement( i ).firstSegment
-          << " pointer = " << this->slices.getElement( i ).pointer << std::endl;
+          << " pointer = " << this->slices.getElement( i ).pointer << '\n';
    for( IndexType i = 0; i < this->getSegmentCount(); i++ )
       str << "Segment " << i << " : slice = " << this->segmentToSliceMapping.getElement( i )
-          << " chunk = " << this->segmentToChunkMapping.getElement( i ) << std::endl;
+          << " chunk = " << this->segmentToChunkMapping.getElement( i ) << '\n';
 }
 
 }  // namespace TNL::Algorithms::Segments
