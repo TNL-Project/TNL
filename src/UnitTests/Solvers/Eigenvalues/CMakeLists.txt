@@ -1,6 +1,6 @@
-set(CPP_TESTS EigenTest)
+set(CPP_TESTS PowerMethodTest QRAlgorithmTest)
 
-set(CUDA_TESTS EigenTestCuda)
+set(CUDA_TESTS PowerMethodTestCuda QRAlgorithmTestCuda)
 
 foreach(target IN ITEMS ${CPP_TESTS})
     add_executable(${target} ${target}.cpp)
