@@ -49,7 +49,6 @@ QRFactorization( const MatrixType& A, MatrixType& Q, MatrixType& R, const Factor
             break;
          default:
             throw std::invalid_argument( "Wrong QR factorization type for dense matrix with column-major order organization." );
-            break;
       }
    }
    else {
@@ -59,7 +58,6 @@ QRFactorization( const MatrixType& A, MatrixType& Q, MatrixType& R, const Factor
             break;
          default:
             throw std::invalid_argument( "Wrong QR factorization type for dense matrix with row-major order organization." );
-            break;
       }
    }
 }

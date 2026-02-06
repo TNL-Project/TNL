@@ -94,8 +94,6 @@ shiftedPowerIteration( const MatrixType& matrix,
       eigenVecOld = initialVec;
       normOld = norm;
    }
-   iterations = -1;
-   return std::make_tuple( norm - shiftValue, std::move( initialVec ), iterations );
 }
 
 /**
