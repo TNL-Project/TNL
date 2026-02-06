@@ -123,6 +123,8 @@ TYPED_TEST( DistributedNDArray_2D_test, elementwiseAccess )
    for( IndexType gi = localRangeX.getBegin(); gi < localRangeX.getEnd(); gi++ ) {
       for( IndexType gj = localRangeY.getBegin(); gj < localRangeY.getEnd(); gj++ ) {
          EXPECT_EQ( this->distributedNDArray.getElement( gi, gj ), 0 );
+         EXPECT_EQ( this->distributedNDArray.getView().getElement( gi, gj ), 0 );
+         EXPECT_EQ( this->distributedNDArray.getConstView().getElement( gi, gj ), 0 );
       }
    }
 
@@ -138,6 +140,8 @@ TYPED_TEST( DistributedNDArray_2D_test, elementwiseAccess )
       for( IndexType gi = localRangeX.getBegin(); gi < localRangeX.getEnd(); gi++ ) {
          for( IndexType gj = localRangeY.getBegin(); gj < localRangeY.getEnd(); gj++ ) {
             EXPECT_EQ( this->distributedNDArray.getElement( gi, gj ), gi + 1 );
+            EXPECT_EQ( this->distributedNDArray.getView().getElement( gi, gj ), gi + 1 );
+            EXPECT_EQ( this->distributedNDArray.getConstView().getElement( gi, gj ), gi + 1 );
             EXPECT_EQ( this->distributedNDArray( gi, gj ), gi + 1 );
          }
       }
