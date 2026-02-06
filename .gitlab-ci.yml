@@ -401,9 +401,9 @@ debian:
                 - silkeh/clang:11
                 - silkeh/clang:12
                 - silkeh/clang:13
-                #- silkeh/clang:14  # segfaults in tests execution
-                #- silkeh/clang:15  # segfaults in tests execution
-                #- silkeh/clang:16  # segfaults in tests execution
+                - silkeh/clang:14
+                - silkeh/clang:15
+                - silkeh/clang:16
                 - silkeh/clang:17
                 - silkeh/clang:18
                 - silkeh/clang:19
