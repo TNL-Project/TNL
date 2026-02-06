@@ -4,14 +4,7 @@ install(CODE "file( REMOVE_RECURSE \"${CMAKE_INSTALL_FULL_INCLUDEDIR}/TNL/\" )" 
 
 # install the header files
 install(CODE "message( \"-- Installing include directory: ${CMAKE_INSTALL_FULL_INCLUDEDIR}/TNL/\")" COMPONENT headers)
-install(
-    DIRECTORY TNL
-    TYPE INCLUDE
-    COMPONENT headers
-    MESSAGE_NEVER FILES_MATCHING
-    PATTERN "*.h"
-    PATTERN "*.hpp"
-)
+install(DIRECTORY TNL TYPE INCLUDE COMPONENT headers MESSAGE_NEVER FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
 
 # add all subdirectories
 add_subdirectory(Python)

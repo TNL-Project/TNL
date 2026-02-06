@@ -12,14 +12,18 @@ option(TNL_USE_MPI "Build with MPI support" ON)
 option(TNL_USE_GMP "Build with GMP support" OFF)
 option(TNL_USE_SYSTEM_GTEST "Use GTest installed in the local system and do not download the latest version" OFF)
 option(TNL_USE_CI_FLAGS "Add additional compiler flags like -Werror that are enforced in CI builds" OFF)
-option(TNL_USE_MARCH_NATIVE_FLAG
-       "Add -march=native and -mtune=native to the list of compiler flags for the Release configuration" OFF
+option(
+    TNL_USE_MARCH_NATIVE_FLAG
+    "Add -march=native and -mtune=native to the list of compiler flags for the Release configuration"
+    OFF
 )
 option(TNL_BUILD_COVERAGE "Enable code coverage reports from unit tests" OFF)
 option(TNL_OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF)
 option(TNL_DOXYGEN_USE_CLANG "Instruct Doxygen to use Clang-assisted parsing" OFF)
-option(TNL_EXPORT_INTERFACE_TARGETS "Instruct CMake to generate rules to export the TNL interface target"
-       ${PROJECT_IS_TOP_LEVEL}
+option(
+    TNL_EXPORT_INTERFACE_TARGETS
+    "Instruct CMake to generate rules to export the TNL interface target"
+    ${PROJECT_IS_TOP_LEVEL}
 )
 
 # make cache variables for install destinations
@@ -57,7 +61,9 @@ else()
     set(TNL_SYSTEM SYSTEM)
 endif()
 target_include_directories(
-    TNL ${TNL_SYSTEM} INTERFACE $<BUILD_INTERFACE:${TNL_INCLUDE_DIRS}> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    TNL
+    ${TNL_SYSTEM}
+    INTERFACE $<BUILD_INTERFACE:${TNL_INCLUDE_DIRS}> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 # add compiler features to the interface
 target_compile_features(TNL INTERFACE cxx_std_17)
@@ -209,20 +215,18 @@ if(TNL_EXPORT_INTERFACE_TARGETS)
     # export the interface targets
     install(TARGETS TNL EXPORT TNLTargets)
     # install a CMake file for the interface target
-    install(
-        EXPORT TNLTargets
-        NAMESPACE TNL::
-        DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY}
-        COMPONENT headers
-    )
+    install(EXPORT TNLTargets NAMESPACE TNL:: DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY} COMPONENT headers)
     # install the TNLConfig.cmake file
     include(CMakePackageConfigHelpers)
     configure_package_config_file(
-        "cmake/${PROJECT_NAME}Config.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+        "cmake/${PROJECT_NAME}Config.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         INSTALL_DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY}
     )
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY}
-            COMPONENT headers
+    install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+        DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY}
+        COMPONENT headers
     )
     # install necessary modules
     install(FILES cmake/FindFilesystem.cmake DESTINATION ${TNL_TARGET_CMAKE_DIRECTORY}/Modules COMPONENT headers)
