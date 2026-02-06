@@ -532,12 +532,13 @@ cmake-format:
         - changes:
             - "**/CMakeLists.txt"
             - "**/*.cmake"
-            - .cmake-format.yaml
+            - .gersemirc
             - .gitlab-ci.yml
+    image: "quay.io/archlinux/archlinux:latest"
+    before_script:
+        - pacman -Syu --needed --noconfirm python-gersemi
     script:
-        - shopt -s globstar
-        - cmake-format --in-place **/CMakeLists.txt cmake/**/*.*
-        - git --no-pager diff --color=always --exit-code
+        - gersemi --color --diff --check .
     interruptible: true
 
 copyright-headers:
