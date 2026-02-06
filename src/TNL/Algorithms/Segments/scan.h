@@ -273,14 +273,13 @@ exclusiveScanAllSegments( const Segments& segments,
  * \par Output
  * \include SegmentsExample_scan.out
  */
-template<
-   typename Segments,
-   typename IndexBegin,
-   typename IndexEnd,
-   typename Fetch,
-   typename Reduce,
-   typename Write,
-   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template< typename Segments,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Fetch,
+          typename Reduce,
+          typename Write,
+          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 inclusiveScanSegments( const Segments& segments,
                        IndexBegin begin,
@@ -319,14 +318,13 @@ inclusiveScanSegments( const Segments& segments,
  * \par Output
  * \include SegmentsExample_scan.out
  */
-template<
-   typename Segments,
-   typename IndexBegin,
-   typename IndexEnd,
-   typename Fetch,
-   typename Reduce,
-   typename Write,
-   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template< typename Segments,
+          typename IndexBegin,
+          typename IndexEnd,
+          typename Fetch,
+          typename Reduce,
+          typename Write,
+          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
 exclusiveScanSegments( const Segments& segments,
                        IndexBegin begin,

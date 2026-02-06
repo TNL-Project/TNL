@@ -26,8 +26,8 @@ test_forElements_EmptySegments()
 
    Segments segments( segmentsSizes );
 
-      for( const auto& [ launch_config, tag ] :
-         TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
+   {
       SCOPED_TRACE( tag );
 
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > v( segments.getStorageSize(), -1 );
@@ -73,8 +73,8 @@ test_forElements_EqualSizes()
    segmentsSizes = segmentSize;
    Segments segments( segmentsSizes );
 
-      for( const auto& [ launch_config, tag ] :
-         TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
+   {
       SCOPED_TRACE( tag );
 
       VectorType v( segments.getStorageSize() );
@@ -142,8 +142,8 @@ test_forElements()
 
    Segments segments( segmentsSizes );
 
-      for( const auto& [ launch_config, tag ] :
-         TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
+   {
       SCOPED_TRACE( tag );
 
       VectorType localIdx_v( segments.getStorageSize(), -1 );
@@ -242,8 +242,8 @@ test_forElementsIf()
 
    Segments segments( segmentsSizes );
 
-      for( const auto& [ launch_config, tag ] :
-         TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
+   {
       SCOPED_TRACE( tag );
 
       VectorType v( segments.getStorageSize(), -1 );
@@ -345,8 +345,8 @@ test_forElementsWithSegmentIndexes_EmptySegments()
    VectorType segmentsSizes( segmentsCount, 0 );
    Segments segments( segmentsSizes );
 
-      for( const auto& [ launch_config, tag ] :
-         TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
+   {
       SCOPED_TRACE( tag );
 
       VectorType v( segments.getStorageSize(), -1 );
@@ -416,8 +416,8 @@ test_forElementsWithSegmentIndexes()
 
    Segments segments( segmentsSizes );
 
-      for( const auto& [ launch_config, tag ] :
-         TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) ) {
+   for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations< Segments >( segments ) )
+   {
       SCOPED_TRACE( tag );
 
       VectorType v( segments.getStorageSize(), -1 );

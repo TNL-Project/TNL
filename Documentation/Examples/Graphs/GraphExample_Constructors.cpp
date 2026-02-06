@@ -42,7 +42,8 @@ constructorsExample()
     */
    std::cout << "Example 2: Constructor with vertex count\n";
    GraphType graph2( 5 );  // 5 vertices, no edges
-   std::cout << "Graph with 5 vertices - vertices: " << graph2.getVertexCount() << ", edges: " << graph2.getEdgeCount() << "\n\n";
+   std::cout << "Graph with 5 vertices - vertices: " << graph2.getVertexCount() << ", edges: " << graph2.getEdgeCount()
+             << "\n\n";
    //! [constructor with vertex count]
 
    //! [constructor with edges]
