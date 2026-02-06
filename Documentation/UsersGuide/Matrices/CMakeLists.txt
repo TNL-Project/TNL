@@ -1,6 +1,10 @@
 set(COMMON_EXAMPLES
-    BinarySparseMatrixExample DenseMatrixExample_reduceRows_maxNorm DenseMatrixExample_reduceRows_vectorProduct
-    DenseMatrixViewExample_data_encapsulation SparseMatrixExample_reduceRows_vectorProduct SymmetricSparseMatrixExample
+    BinarySparseMatrixExample
+    DenseMatrixExample_reduceRows_maxNorm
+    DenseMatrixExample_reduceRows_vectorProduct
+    DenseMatrixViewExample_data_encapsulation
+    SparseMatrixExample_reduceRows_vectorProduct
+    SymmetricSparseMatrixExample
 )
 
 ####
@@ -13,8 +17,14 @@ if(TNL_BUILD_CUDA)
         add_executable(${target} ${target}.cu)
         target_link_libraries(${target} PUBLIC TNL::TNL)
         add_custom_command(
-            COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out DEPENDS ${target}
+            COMMAND
+            ${target}
+            >
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            OUTPUT
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            DEPENDS
+            ${target}
         )
         set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
     endforeach()
@@ -31,8 +41,14 @@ else()
         add_executable(${target} ${target}.cpp)
         target_link_libraries(${target} PUBLIC TNL::TNL)
         add_custom_command(
-            COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out DEPENDS ${target}
+            COMMAND
+            ${target}
+            >
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            OUTPUT
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            DEPENDS
+            ${target}
         )
         set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
     endforeach()

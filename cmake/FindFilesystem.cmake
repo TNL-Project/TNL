@@ -186,8 +186,10 @@ endif()
 set(CXX_FILESYSTEM_HAVE_FS ${_have_fs} CACHE BOOL "TRUE if we have the C++ filesystem headers")
 set(CXX_FILESYSTEM_HEADER ${_fs_header} CACHE STRING "The header that should be included to obtain the filesystem APIs")
 set(CXX_FILESYSTEM_NAMESPACE ${_fs_namespace} CACHE STRING "The C++ namespace that contains the filesystem APIs")
-set(CXX_FILESYSTEM_IS_EXPERIMENTAL ${_is_experimental} CACHE BOOL
-                                                             "TRUE if the C++ filesystem library is the experimental version"
+set(CXX_FILESYSTEM_IS_EXPERIMENTAL
+    ${_is_experimental}
+    CACHE BOOL
+    "TRUE if the C++ filesystem library is the experimental version"
 )
 
 set(_found FALSE)
@@ -206,7 +208,7 @@ if(CXX_FILESYSTEM_HAVE_FS)
             return EXIT_SUCCESS;
         }
     ]]
-            code
+        code
         @ONLY
     )
 

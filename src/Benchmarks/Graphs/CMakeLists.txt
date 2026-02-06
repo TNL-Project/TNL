@@ -24,7 +24,8 @@ if(TNL_BUILD_CUDA)
         )
 
         try_compile(
-            GUNROCK_TEST ${CMAKE_CURRENT_BINARY_DIR}
+            GUNROCK_TEST
+            ${CMAKE_CURRENT_BINARY_DIR}
             ${CMAKE_CURRENT_BINARY_DIR}/gunrock-test.cpp
             CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${GUNROCK_INCLUDE_DIR}"
             OUTPUT_VARIABLE GUNROCK_TEST_OUTPUT

@@ -4,7 +4,7 @@ if(DEFINED CUDA_SAMPLES_DIR)
 else()
     message(
         WARNING
-            "The CUDA_SAMPLES_DIR variable was not set, the sorting benchmark will be built without some reference algorithms."
+        "The CUDA_SAMPLES_DIR variable was not set, the sorting benchmark will be built without some reference algorithms."
     )
 endif()
 

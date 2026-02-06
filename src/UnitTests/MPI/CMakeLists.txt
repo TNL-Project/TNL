@@ -14,8 +14,9 @@ if(TNL_BUILD_MPI)
 
         foreach(np IN ITEMS 2 3 4)
             add_test_mpi(
-                NAME ${target}_np${np} NPROC ${np} COMMAND
-                "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+                NAME ${target}_np${np}
+                NPROC ${np}
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
             )
         endforeach()
     endforeach()

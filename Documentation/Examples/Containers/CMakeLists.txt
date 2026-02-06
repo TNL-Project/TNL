@@ -1,4 +1,10 @@
-set(COMMON_EXAMPLES ArrayExample ArrayExample_forElements ArrayViewExample ArrayViewExample_forElements VectorExample)
+set(COMMON_EXAMPLES
+    ArrayExample
+    ArrayExample_forElements
+    ArrayViewExample
+    ArrayViewExample_forElements
+    VectorExample
+)
 
 set(MPI_COMMON_EXAMPLES DistributedArrayExample DistributedVectorExample DistributedNDArrayExample)
 
@@ -18,8 +24,14 @@ endif()
 
 foreach(target IN ITEMS ${COMMON_EXAMPLES})
     add_custom_command(
-        COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out DEPENDS ${target}
+        COMMAND
+        ${target}
+        >
+        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+        OUTPUT
+        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+        DEPENDS
+        ${target}
     )
     set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
 endforeach()
@@ -32,9 +44,16 @@ if(TNL_BUILD_MPI)
         target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
 
         add_custom_command(
-            COMMAND "mpirun" ${mpirun_parameters} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" >
-                    ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out DEPENDS ${target}
+            COMMAND
+            "mpirun"
+            ${mpirun_parameters}
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            >
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            OUTPUT
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            DEPENDS
+            ${target}
         )
         set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
     endforeach()

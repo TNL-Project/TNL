@@ -61,7 +61,7 @@ find_path(
 )
 
 if(HYPRE_INCLUDE_DIR)
-    _hypre_get_version(HYPRE_VERSION ${HYPRE_INCLUDE_DIR}/HYPRE_config.h)
+    _HYPRE_GET_VERSION(HYPRE_VERSION ${HYPRE_INCLUDE_DIR}/HYPRE_config.h)
     set(HYPRE_INCLUDE_DIRS ${HYPRE_INCLUDE_DIR})
 else()
     set(HYPRE_VERSION 0.0.0)

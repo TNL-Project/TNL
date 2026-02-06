@@ -1,15 +1,16 @@
 # set necessary CUDA compiler flags on the interface
 target_compile_options(
     TNL
-    INTERFACE $<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>:
-              --expt-relaxed-constexpr
-              ;
-              --extended-lambda
-              ;
-              --default-stream
-              per-thread
-              ;
-              >
+    INTERFACE
+        $<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>:
+        --expt-relaxed-constexpr
+        ;
+        --extended-lambda
+        ;
+        --default-stream
+        per-thread
+        ;
+        >
 )
 
 # Disable false compiler warnings
@@ -17,29 +18,34 @@ target_compile_options(
 #   incomplete list of tokens: http://www.ssl.berkeley.edu/~jimm/grizzly_docs/SSL/opt/intel/cc/9.0/lib/locale/en_US/mcpcom.msg
 target_compile_options(
     TNL
-    INTERFACE $<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>:
-              -Wno-deprecated-gpu-targets
-              ;
-              "SHELL:-Xcudafe --diag_suppress=code_is_unreachable"
-              ;
-              "SHELL:-Xcudafe --diag_suppress=loop_not_reachable"
-              ;
-              "SHELL:-Xcudafe --diag_suppress=implicit_return_from_non_void_function"
-              ;
-              "SHELL:-Xcudafe --diag_suppress=unsigned_compare_with_zero"
-              ;
-              --display-error-number
-              ;
-              >
+    INTERFACE
+        $<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>:
+        -Wno-deprecated-gpu-targets
+        ;
+        "SHELL:-Xcudafe --diag_suppress=code_is_unreachable"
+        ;
+        "SHELL:-Xcudafe --diag_suppress=loop_not_reachable"
+        ;
+        "SHELL:-Xcudafe --diag_suppress=implicit_return_from_non_void_function"
+        ;
+        "SHELL:-Xcudafe --diag_suppress=unsigned_compare_with_zero"
+        ;
+        --display-error-number
+        ;
+        >
 )
 # This diagnostic is just plain wrong in CUDA 9 and later, see https://github.com/kokkos/kokkos/issues/1470
 target_compile_options(
-    TNL INTERFACE $<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>: "SHELL:-Xcudafe --diag_suppress=esa_on_defaulted_function_ignored" >
+    TNL
+    INTERFACE $<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>: "SHELL:-Xcudafe --diag_suppress=esa_on_defaulted_function_ignored" >
 )
 # nvcc 10 causes many invalid VLA errors in the host code
 target_compile_options(
-    TNL INTERFACE $<$<AND:$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>,$<VERSION_LESS:$<CUDA_COMPILER_VERSION>,11>>:
-                  "SHELL:-Xcompiler -Wno-vla" >
+    TNL
+    INTERFACE
+        $<$<AND:$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>,$<VERSION_LESS:$<CUDA_COMPILER_VERSION>,11>>:
+        "SHELL:-Xcompiler -Wno-vla"
+        >
 )
 
 # set project-specific (i.e. not exported) build options
@@ -88,6 +94,6 @@ endif()
 target_compile_options(
     TNL
     INTERFACE $<$<COMPILE_LANG_AND_ID:CUDA,Clang>:-fcolor-diagnostics> ;
-              # nvcc does not support colored diagnostics
-              #$<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>:> ;
+    # nvcc does not support colored diagnostics
+    #$<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>:> ;
 )

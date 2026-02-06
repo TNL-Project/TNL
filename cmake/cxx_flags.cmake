@@ -1,8 +1,9 @@
 # set default build options
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-   OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
-   OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
-   OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"
+if(
+    CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
+    OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
+    OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"
 )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror=vla")
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
@@ -11,14 +12,17 @@ endif()
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_DEBUG}")
 
 # warn about redundant semicolons
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-   OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
-   OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
-   OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"
+if(
+    CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
+    OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
+    OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"
 )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra-semi")
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR CMAKE_CXX_COMPILER_ID STREQUAL
-                                                                                                "IntelLLVM"
+    if(
+        CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
+        OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
+        OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"
     )
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra-semi-stmt")
     endif()
@@ -32,18 +36,19 @@ endif()
 # disable false compiler warnings for NVHPC - see the cuda_flags.cmake file
 target_compile_options(
     TNL
-    INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,NVHPC>:
-              --diag_suppress=code_is_unreachable
-              ;
-              --diag_suppress=loop_not_reachable
-              ;
-              --diag_suppress=implicit_return_from_non_void_function
-              ;
-              --diag_suppress=unsigned_compare_with_zero
-              ;
-              --display_error_number
-              ;
-              >
+    INTERFACE
+        $<$<COMPILE_LANG_AND_ID:CXX,NVHPC>:
+        --diag_suppress=code_is_unreachable
+        ;
+        --diag_suppress=loop_not_reachable
+        ;
+        --diag_suppress=implicit_return_from_non_void_function
+        ;
+        --diag_suppress=unsigned_compare_with_zero
+        ;
+        --display_error_number
+        ;
+        >
 )
 
 if(TNL_USE_CI_FLAGS AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC")
@@ -83,8 +88,9 @@ if(MINGW)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
     endif()
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT CMAKE_CXX_SIMULATE_ID STREQUAL
-                                                                                           "MSVC")
+    if(
+        CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+        OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
     )
         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O2")
     endif()
@@ -98,11 +104,7 @@ endif()
 # enable sanitizers (does not work with MPI due to many false positives, does not work with nvcc at all)
 # sanitizers are not available for Windows: https://github.com/msys2/MINGW-packages/issues/3163
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    if(NOT WIN32
-       AND NOT TNL_USE_MPI
-       AND NOT TNL_USE_CUDA
-       AND NOT TNL_USE_HIP
-    )
+    if(NOT WIN32 AND NOT TNL_USE_MPI AND NOT TNL_USE_CUDA AND NOT TNL_USE_HIP)
         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer")
         set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG
             "${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS_DEBUG} -fsanitize=address -fsanitize=undefined"
@@ -128,14 +130,15 @@ endif()
 # force colorized output (the automatic detection in compilers does not work with Ninja)
 target_compile_options(
     TNL
-    INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-fcolor-diagnostics>
-              ;
-              $<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-fcolor-diagnostics>
-              ;
-              $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM>:-fcolor-diagnostics>
-              ;
-              $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fdiagnostics-color>
-              ;
-              $<$<COMPILE_LANG_AND_ID:CXX,NVHPC>:-fdiagnostics-color>
-              ;
+    INTERFACE
+        $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-fcolor-diagnostics>
+        ;
+        $<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-fcolor-diagnostics>
+        ;
+        $<$<COMPILE_LANG_AND_ID:CXX,IntelLLVM>:-fcolor-diagnostics>
+        ;
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fdiagnostics-color>
+        ;
+        $<$<COMPILE_LANG_AND_ID:CXX,NVHPC>:-fdiagnostics-color>
+        ;
 )

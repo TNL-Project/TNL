@@ -90,12 +90,14 @@ if(TNL_BUILD_MPI)
     target_link_libraries(DistributedMatrixTest PUBLIC MPI::MPI_CXX)
 
     add_test_mpi(
-        NAME DistributedMatrixTest NPROC 4 COMMAND
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMatrixTest${CMAKE_EXECUTABLE_SUFFIX}"
+        NAME DistributedMatrixTest
+        NPROC 4
+        COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMatrixTest${CMAKE_EXECUTABLE_SUFFIX}"
     )
     add_test_mpi(
-        NAME DistributedMatrixTest_nodistr NPROC 1 COMMAND
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMatrixTest${CMAKE_EXECUTABLE_SUFFIX}"
+        NAME DistributedMatrixTest_nodistr
+        NPROC 1
+        COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMatrixTest${CMAKE_EXECUTABLE_SUFFIX}"
     )
     # add "Matrices" label to the tests
     set_property(TEST DistributedMatrixTest PROPERTY LABELS Matrices)
