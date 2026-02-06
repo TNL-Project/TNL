@@ -119,6 +119,7 @@ TYPED_TEST( DistributedNDArray_1D_test, elementwiseAccess )
    // check initial value
    for( IndexType gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ ) {
       EXPECT_EQ( this->distributedNDArray.getElement( gi ), 0 );
+      EXPECT_EQ( this->distributedNDArray.getView().getElement( gi ), 0 );
       if( std::is_same< typename TestFixture::DeviceType, Devices::Host >::value ) {
          EXPECT_EQ( this->distributedNDArray[ gi ], 0 );
       }
@@ -133,6 +134,7 @@ TYPED_TEST( DistributedNDArray_1D_test, elementwiseAccess )
       // check set value
       for( IndexType gi = localRange.getBegin(); gi < localRange.getEnd(); gi++ ) {
          EXPECT_EQ( this->distributedNDArray.getElement( gi ), gi + 1 );
+         EXPECT_EQ( this->distributedNDArray.getView().getElement( gi ), gi + 1 );
          EXPECT_EQ( this->distributedNDArray( gi ), gi + 1 );
          EXPECT_EQ( this->distributedNDArray[ gi ], gi + 1 );
       }

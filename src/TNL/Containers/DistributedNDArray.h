@@ -265,6 +265,25 @@ public:
    }
 
    /**
+    * \brief A "safe" accessor for array elements.
+    *
+    * It can be called only from the host code and it will do a slow copy from
+    * the device.
+    */
+   template< typename... IndexTypes >
+   [[nodiscard]] ValueType
+   getElement( IndexTypes&&... indices ) const
+   {
+      static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
+      detail::assertIndicesInRange( localBegins, localEnds, getOverlaps(), std::forward< IndexTypes >( indices )... );
+      auto getElement = [ this ]( auto&&... indices )
+      {
+         return this->localArray.getElement( std::forward< decltype( indices ) >( indices )... );
+      };
+      return detail::call_with_unshifted_indices( localBegins, getElement, std::forward< IndexTypes >( indices )... );
+   }
+
+   /**
     * \brief Accesses an element of the array.
     *
     * Only local elements or elements in the overlapping region can be
@@ -691,25 +710,6 @@ public:
       globalSizes = SizesHolderType{};
       localBegins = LocalBeginsType{};
       localEnds = SizesHolderType{};
-   }
-
-   /**
-    * \brief A "safe" accessor for array elements.
-    *
-    * It can be called only from the host code and it will do a slow copy from
-    * the device.
-    */
-   template< typename... IndexTypes >
-   [[nodiscard]] ValueType
-   getElement( IndexTypes&&... indices ) const
-   {
-      static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
-      detail::assertIndicesInRange( localBegins, localEnds, getOverlaps(), std::forward< IndexTypes >( indices )... );
-      auto getElement = [ this ]( auto&&... indices )
-      {
-         return this->localArray.getElement( std::forward< decltype( indices ) >( indices )... );
-      };
-      return detail::call_with_unshifted_indices( localBegins, getElement, std::forward< IndexTypes >( indices )... );
    }
 
    //! \brief Sets all elements of the array to given value.
