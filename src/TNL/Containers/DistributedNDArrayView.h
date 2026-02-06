@@ -408,7 +408,7 @@ public:
    [[nodiscard]] ConstViewType
    getConstView() const
    {
-      return ConstViewType( localView, globalSizes, localBegins, localEnds, communicator );
+      return ConstViewType( localView.getConstView(), globalSizes, localBegins, localEnds, communicator );
    }
 
    //! \brief Compares the array with another distributed N-dimensional array.
