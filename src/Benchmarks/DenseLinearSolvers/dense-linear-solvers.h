@@ -79,8 +79,7 @@ benchmarkDenseLinearSolvers( TNL::Config::ParameterContainer& parameters )
    };
    benchmark.time< TNL::Devices::Host >( reset_host, "CPU", compute_host );
    if( max( host_x - 1 ) > 1e-5 )
-      std::cout << "Warning: the result of the CPU solver is not equal to the expected result: " << max( host_x - 1 )
-                << '\n';
+      std::cout << "Warning: the result of the CPU solver is not equal to the expected result: " << max( host_x - 1 ) << '\n';
 
 #ifdef __CUDACC__
    using CudaMatrixType = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Cuda, Index >;

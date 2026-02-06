@@ -206,7 +206,8 @@ public:
    static bool
    run( Problem& problem, const Config::ParameterContainer& parameters )
    {
-      std::cerr << "The explicit solver " << parameters.getParameter< std::string >( "discrete-solver" ) << " is not supported.\n";
+      std::cerr << "The explicit solver " << parameters.getParameter< std::string >( "discrete-solver" )
+                << " is not supported.\n";
       return false;
    }
 };

@@ -165,7 +165,7 @@ TYPED_TEST( ArrayTest, constructors )
    using ArrayType = typename TestFixture::ArrayType;
 
    ArrayType empty_u;
-   ArrayType empty_v( empty_u ); // NOLINT(performance-unnecessary-copy-initialization) intentional copy for coverage
+   ArrayType empty_v( empty_u );  // NOLINT(performance-unnecessary-copy-initialization) intentional copy for coverage
    EXPECT_EQ( empty_u.getSize(), 0 );
    EXPECT_EQ( empty_v.getSize(), 0 );
 
@@ -194,7 +194,7 @@ TYPED_TEST( ArrayTest, constructors )
    EXPECT_EQ( w.getSize(), 10 );
 
    Containers::Array< int > int_array( 10, 1 );
-   ArrayType int_array_copy( int_array ); // NOLINT(performance-unnecessary-copy-initialization) exercising copy constructor
+   ArrayType int_array_copy( int_array );  // NOLINT(performance-unnecessary-copy-initialization) exercising copy constructor
    for( int i = 0; i < 10; i++ )
       EXPECT_EQ( int_array_copy.getElement( i ), 1 );
 
@@ -648,8 +648,7 @@ TYPED_TEST( ArrayTest, assignmentOperator )
 }
 
 // test works only for arithmetic types
-template< typename ArrayType,
-          typename = std::enable_if_t< std::is_arithmetic_v< typename ArrayType::ValueType > > >
+template< typename ArrayType, typename = std::enable_if_t< std::is_arithmetic_v< typename ArrayType::ValueType > > >
 void
 testArrayAssignmentWithDifferentType()
 {

@@ -124,10 +124,10 @@ Reduction2D< Devices::Host >::reduce( Result identity, Fetch fetch, Reduction re
 
    if( Devices::Host::isOMPEnabled() && blocks >= 2 ) {
       const int threads = TNL::min( blocks, Devices::Host::getMaxThreadsCount() );
-   #pragma omp parallel num_threads( threads )
+      #pragma omp parallel num_threads( threads )
       {
-   // first thread initializes the result array
-   #pragma omp single nowait
+         // first thread initializes the result array
+         #pragma omp single nowait
          {
             for( int k = 0; k < n; k++ )
                result( k ) = identity;
@@ -139,7 +139,7 @@ Reduction2D< Devices::Host >::reduce( Result identity, Fetch fetch, Reduction re
          for( int k = 0; k < n * 4; k++ )
             r[ k ] = identity;
 
-   #pragma omp for nowait
+         #pragma omp for nowait
          for( int b = 0; b < blocks; b++ ) {
             const Index offset = b * block_size;
             for( int k = 0; k < n; k++ ) {
@@ -153,8 +153,8 @@ Reduction2D< Devices::Host >::reduce( Result identity, Fetch fetch, Reduction re
             }
          }
 
-   // the first thread that reaches here processes the last, incomplete block
-   #pragma omp single nowait
+         // the first thread that reaches here processes the last, incomplete block
+         #pragma omp single nowait
          {
             for( int k = 0; k < n; k++ ) {
                Result* _r = r.get() + 4 * k;
@@ -171,8 +171,8 @@ Reduction2D< Devices::Host >::reduce( Result identity, Fetch fetch, Reduction re
             _r[ 0 ] = reduction( _r[ 0 ], _r[ 3 ] );
          }
 
-   // inter-thread reduction of local results
-   #pragma omp critical
+         // inter-thread reduction of local results
+         #pragma omp critical
          {
             for( int k = 0; k < n; k++ )
                result( k ) = reduction( result( k ), r[ 4 * k ] );
