@@ -157,7 +157,7 @@ EulerNonET< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, Real
    }
    if( std::is_same_v< DeviceType, Devices::Host > ) {
 #ifdef HAVE_OPENMP
-   #pragma omp parallel for reduction( + : localResidue ) firstprivate( _u, _k1, tau ) if( Devices::Host::isOMPEnabled() )
+      #pragma omp parallel for reduction( + : localResidue ) firstprivate( _u, _k1, tau ) if( Devices::Host::isOMPEnabled() )
 #endif
       for( IndexType i = 0; i < size; i++ ) {
          const RealType add = tau * _k1[ i ];
