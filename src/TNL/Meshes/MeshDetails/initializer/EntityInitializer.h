@@ -271,8 +271,9 @@ public:
 
       // initialize the entities (this allows us to create subentity seeds from existing entities instead of intermediate seeds)
       for( const auto& [ seed, entityIndex ] : seedsIndexedSet ) {
-         for( LocalIndexType i = 0; i < seed.getCornerIds().getSize(); i++ )
-            meshInitializer.template setSubentityIndex< EntityDimension, 0 >( entityIndex, i, seed.getCornerIds()[ i ] );
+         const auto& cornerIds = seed.getCornerIds();
+         for( LocalIndexType i = 0; i < cornerIds.getSize(); i++ )
+            meshInitializer.template setSubentityIndex< EntityDimension, 0 >( entityIndex, i, cornerIds[ i ] );
       }
 
       // initialize links between the entities and all superentities
