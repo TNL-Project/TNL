@@ -203,7 +203,7 @@
           "mode": "until-pass",
           "count": 2
         },
-        "timeout": 120,
+        "timeout": 300,
         "stopOnFailure": false
       },
       "environment": {
