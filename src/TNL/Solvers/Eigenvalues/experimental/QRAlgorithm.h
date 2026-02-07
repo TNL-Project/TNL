@@ -90,4 +90,4 @@ QRAlgorithm( MatrixType matrix,
    return std::make_tuple( std::move( matrix ), std::move( accQ ), iterations );
 }
 
-}  //namespace TNL::Solvers::Eigenvalues::experimental
+}  // namespace TNL::Solvers::Eigenvalues::experimental

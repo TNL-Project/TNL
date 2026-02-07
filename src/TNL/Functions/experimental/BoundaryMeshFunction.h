@@ -25,4 +25,4 @@ public:
    using typename BaseType::VectorType;
 };
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental

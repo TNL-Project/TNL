@@ -152,6 +152,6 @@ public:
    }
 };
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental
 
 #include "VectorFieldEvaluator_impl.h"

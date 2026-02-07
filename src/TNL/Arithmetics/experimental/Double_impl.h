@@ -92,4 +92,4 @@ Double< T >::operator/( const Double< T >& rhs ) const
  TODO COMPARISON OPERATORS
  */
 
-}  //namespace TNL::Arithmetics::experimental
+}  // namespace TNL::Arithmetics::experimental

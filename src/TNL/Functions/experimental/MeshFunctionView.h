@@ -160,6 +160,6 @@ template< typename Mesh, int MeshEntityDimension, typename Real >
 std::ostream&
 operator<<( std::ostream& str, const MeshFunctionView< Mesh, MeshEntityDimension, Real >& f );
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental
 
 #include "MeshFunctionView.hpp"

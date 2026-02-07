@@ -140,6 +140,6 @@ public:
    }
 };
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental
 
 #include "MeshFunctionEvaluator_impl.h"

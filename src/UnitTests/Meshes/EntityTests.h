@@ -100,7 +100,7 @@ testEntities( const Mesh& mesh )
    }
 }
 
-}  //namespace EntityTests
+}  // namespace EntityTests
 
 template< typename Mesh >
 void

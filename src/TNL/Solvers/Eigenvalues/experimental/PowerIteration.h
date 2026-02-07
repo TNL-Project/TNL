@@ -122,4 +122,4 @@ powerIteration( const MatrixType& matrix, const typename MatrixType::RealType& e
    return powerIteration( matrix, epsilon, initialVec, maxIterations );
 }
 
-}  //namespace TNL::Solvers::Eigenvalues::experimental
+}  // namespace TNL::Solvers::Eigenvalues::experimental

@@ -547,4 +547,4 @@ operator<<( std::ostream& str, const VectorField< Dimension, Function >& f )
    return str;
 }
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental
