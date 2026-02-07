@@ -108,4 +108,4 @@ bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > src, 
 
 #endif
 
-}  //namespace TNL::Algorithms::Sorting::detail
+}  // namespace TNL::Algorithms::Sorting::detail

@@ -43,4 +43,4 @@ protected:
    const FunctionType& function;
 };
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental

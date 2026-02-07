@@ -148,6 +148,6 @@ public:
    write( const VectorFieldType& function, std::ostream& str );
 };
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental
 
 #include "VectorFieldGnuplotWriter_impl.h"

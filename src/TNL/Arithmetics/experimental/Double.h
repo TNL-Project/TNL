@@ -89,4 +89,4 @@ template< typename T >
 void
 printDouble( T* d );
 
-}  //namespace TNL::Arithmetics::experimental
+}  // namespace TNL::Arithmetics::experimental

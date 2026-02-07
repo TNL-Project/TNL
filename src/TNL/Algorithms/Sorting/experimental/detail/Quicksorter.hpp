@@ -389,7 +389,7 @@ Quicksorter< Value, Devices::Cuda >::processNewTasks()
    host_2ndPhaseTasksAmount = min( cuda_2ndPhaseTasksAmount.getElement( 0 ), maxTasks );
 }
 
-}  //namespace TNL::Algorithms::Sorting::experimental::detail
+}  // namespace TNL::Algorithms::Sorting::experimental::detail
 
 /**
  * \endcond

@@ -750,4 +750,4 @@ printQuad( T* a )
    printf( "%.15le + %.15le + %.15le + %.15le\n", a[ 0 ], a[ 1 ], a[ 2 ], a[ 3 ] );
 }
 
-}  //namespace TNL::Arithmetics::experimental
+}  // namespace TNL::Arithmetics::experimental

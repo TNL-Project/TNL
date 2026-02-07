@@ -195,6 +195,6 @@ MultiPrecision::printMP()
 
 MultiPrecision::~MultiPrecision() {}
 
-}  //namespace TNL::Arithmetics::experimental
+}  // namespace TNL::Arithmetics::experimental
 
 #endif

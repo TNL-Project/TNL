@@ -258,4 +258,4 @@ stackPush( int stackArrBegin[],
 
 #endif
 
-}  //namespace TNL::Algorithms::Sorting::experimental::detail
+}  // namespace TNL::Algorithms::Sorting::experimental::detail

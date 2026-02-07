@@ -331,4 +331,4 @@ operator<<( std::ostream& str, const MeshFunctionView< Mesh, MeshEntityDimension
    return str;
 }
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental

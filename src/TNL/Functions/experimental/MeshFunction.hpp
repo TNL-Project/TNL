@@ -248,4 +248,4 @@ operator<<( std::ostream& str, const MeshFunction< Mesh, MeshEntityDimension, Re
    return str;
 }
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental
