@@ -104,6 +104,6 @@ protected:
    getSetsNeededFunction( int elemPerBlock, const Quicksorter< T, Devices::Cuda >& quicksort );
 };
 
-}  //namespace TNL::Algorithms::Sorting::experimental::detail
+}  // namespace TNL::Algorithms::Sorting::experimental::detail
 
 #include "Quicksorter.hpp"

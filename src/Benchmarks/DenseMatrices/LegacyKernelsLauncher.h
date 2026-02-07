@@ -519,4 +519,4 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixTransposit
 #endif
 }
 
-}  //namespace TNL::Benchmarks::DenseMatrices
+}  // namespace TNL::Benchmarks::DenseMatrices

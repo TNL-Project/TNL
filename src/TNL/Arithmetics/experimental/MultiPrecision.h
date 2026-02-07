@@ -95,4 +95,4 @@ sqrt( const MultiPrecision );
 MultiPrecision
 cqrt( const MultiPrecision );
 
-}  //namespace TNL::Arithmetics::experimental
+}  // namespace TNL::Arithmetics::experimental

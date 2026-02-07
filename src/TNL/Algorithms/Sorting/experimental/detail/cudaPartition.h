@@ -233,4 +233,4 @@ cudaPartition( Containers::ArrayView< Value, Devices::Cuda > src,
 
 #endif
 
-}  //namespace TNL::Algorithms::Sorting::experimental::detail
+}  // namespace TNL::Algorithms::Sorting::experimental::detail

@@ -179,4 +179,4 @@ public:
 };
 #endif
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental

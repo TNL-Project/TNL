@@ -143,4 +143,4 @@ VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateEntities( OutVect
    }
 }
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental

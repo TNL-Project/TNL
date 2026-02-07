@@ -158,4 +158,4 @@ shiftedPowerIteration( const MatrixType& matrix,
    return shiftedPowerIteration( matrix, epsilon, shiftValue, std::move( initialVec ), maxIterations );
 }
 
-}  //namespace TNL::Solvers::Eigenvalues::experimental
+}  // namespace TNL::Solvers::Eigenvalues::experimental

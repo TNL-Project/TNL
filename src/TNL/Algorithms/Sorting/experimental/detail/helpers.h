@@ -57,4 +57,4 @@ cmpSwap( Value& a, Value& b, bool ascending, const CMP& Cmp )
       TNL::swap( a, b );
 }
 
-}  //namespace TNL::Algorithms::Sorting::experimental::detail
+}  // namespace TNL::Algorithms::Sorting::experimental::detail

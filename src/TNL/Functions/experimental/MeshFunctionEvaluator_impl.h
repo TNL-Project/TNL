@@ -145,4 +145,4 @@ MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateEntities( OutMeshF
    }*/
 }
 
-}  //namespace TNL::Functions::experimental
+}  // namespace TNL::Functions::experimental

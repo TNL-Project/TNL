@@ -283,4 +283,4 @@ cudaQuickSort2ndPhase2( Containers::ArrayView< Value, Devices::Cuda > arr,
 #endif
 }
 
-}  //namespace TNL::Algorithms::Sorting::experimental::detail
+}  // namespace TNL::Algorithms::Sorting::experimental::detail

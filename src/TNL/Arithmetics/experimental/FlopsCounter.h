@@ -83,4 +83,4 @@ public:
 
 extern tnlFlopsCounter tnl_flops_counter;
 
-}  //namespace TNL::Arithmetics::experimental
+}  // namespace TNL::Arithmetics::experimental
