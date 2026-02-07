@@ -36,7 +36,13 @@ else()
 endif()
 
 # special tests needing external libraries
-set(SPECIAL_TESTS NetgenReaderTest VTKReaderTest VTUReaderTest VTIReaderTest FPMAReaderTest)
+set(SPECIAL_TESTS
+    NetgenReaderTest
+    VTKReaderTest
+    VTUReaderTest
+    VTIReaderTest
+    FPMAReaderTest
+)
 
 if(DEFINED ENV{GITLAB_CI} AND CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC")
     # FIXME: VTIReaderTest fails when compiled with nvc++ in Release mode

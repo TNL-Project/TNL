@@ -9,7 +9,8 @@ if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
             RESULT_VARIABLE _status
             OUTPUT_VARIABLE _stdout
             ERROR_VARIABLE _stderr
-            OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_STRIP_TRAILING_WHITESPACE
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_STRIP_TRAILING_WHITESPACE
         )
         if(${_status} EQUAL 0)
             string(REPLACE "." "" _stdout ${_stdout})

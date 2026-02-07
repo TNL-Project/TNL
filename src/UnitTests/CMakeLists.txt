@@ -88,7 +88,9 @@ if(TNL_BUILD_MPI)
 
             add_test_mpi(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
             add_test_mpi(
-                NAME ${target}_nodistr NPROC 1 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+                NAME ${target}_nodistr
+                NPROC 1
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
             )
         endforeach()
     endif()

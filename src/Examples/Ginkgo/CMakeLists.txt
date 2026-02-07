@@ -1,10 +1,18 @@
 find_package(Ginkgo)
 
-set(CPP_EXAMPLES tnl-ginkgo-converted-ellpack tnl-ginkgo-wrapped-csr tnl-ginkgo-wrapped-operator tnl-ginkgo-PoissonEquation2D
-                 tnl-ginkgo-PoissonEquation3D
+set(CPP_EXAMPLES
+    tnl-ginkgo-converted-ellpack
+    tnl-ginkgo-wrapped-csr
+    tnl-ginkgo-wrapped-operator
+    tnl-ginkgo-PoissonEquation2D
+    tnl-ginkgo-PoissonEquation3D
 )
-set(CUDA_EXAMPLES tnl-ginkgo-converted-ellpack-cuda tnl-ginkgo-wrapped-csr-cuda tnl-ginkgo-wrapped-operator-cuda
-                  tnl-ginkgo-PoissonEquation2D-cuda tnl-ginkgo-PoissonEquation3D-cuda
+set(CUDA_EXAMPLES
+    tnl-ginkgo-converted-ellpack-cuda
+    tnl-ginkgo-wrapped-csr-cuda
+    tnl-ginkgo-wrapped-operator-cuda
+    tnl-ginkgo-PoissonEquation2D-cuda
+    tnl-ginkgo-PoissonEquation3D-cuda
 )
 
 # FIXME: we can't link to ginkgo when using LLVM's libc++: https://github.com/ginkgo-project/ginkgo/issues/1571

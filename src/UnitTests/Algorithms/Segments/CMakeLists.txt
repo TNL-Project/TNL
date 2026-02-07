@@ -1,5 +1,10 @@
-set(COMMON_TESTS SegmentsTest_BiEllpack SegmentsTest_ChunkedEllpack SegmentsTest_CSR SegmentsTest_Ellpack
-                 SegmentsTest_SlicedEllpack GrowingSegmentsTest
+set(COMMON_TESTS
+    SegmentsTest_BiEllpack
+    SegmentsTest_ChunkedEllpack
+    SegmentsTest_CSR
+    SegmentsTest_Ellpack
+    SegmentsTest_SlicedEllpack
+    GrowingSegmentsTest
 )
 
 set(CPP_TESTS)
