@@ -14,8 +14,8 @@
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Solvers/Eigenvalues/experimental/PowerIteration.h>
-#include <TNL/Solvers/Eigenvalues/experimental/QRAlgorithm.h>
+#include <TNL/Solvers/Eigen/experimental/PowerIteration.h>
+#include <TNL/Solvers/Eigen/experimental/QRAlgorithm.h>
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Algorithms/fillRandom.h>
 
@@ -95,7 +95,7 @@ benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, const Matrices::Factor
       auto testFunction = [ & ]()
       {
          std::tie( eigenvalues, eigenvectors, iter ) =
-            Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixType >( matrix, epsilon, factorMethod, 10000 );
+            Solvers::Eigen::experimental::QRAlgorithm< MatrixType >( matrix, epsilon, factorMethod, 10000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testFunction, eigenBenchmarkResult );
