@@ -12,7 +12,14 @@
 #include <TNL/Algorithms/fillRandom.h>
 #include "ShiftedPowerIteration.h"
 
-namespace TNL::Solvers::Eigen::experimental {
+namespace TNL::Solvers::Eigen {
+
+/**
+ * \ingroup experimental
+ * \experimental
+ * \brief  Namespace for experimental eigenvalue solvers.
+ */
+namespace experimental {
 
 /**
  * \brief Calculates the largest eigenvalue and its corresponding eigenvector of a given matrix using the power iteration
@@ -121,4 +128,5 @@ powerIteration( const MatrixType& matrix, const typename MatrixType::RealType& e
    return powerIteration( matrix, epsilon, initialVec, maxIterations );
 }
 
-}  // namespace TNL::Solvers::Eigen::experimental
+}  // namespace experimental
+}  // namespace TNL::Solvers::Eigen
