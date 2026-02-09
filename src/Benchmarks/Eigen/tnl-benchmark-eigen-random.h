@@ -15,8 +15,8 @@
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
-#include <TNL/Solvers/Eigenvalues/experimental/PowerIteration.h>
-#include <TNL/Solvers/Eigenvalues/experimental/QRAlgorithm.h>
+#include <TNL/Solvers/Eigen/experimental/PowerIteration.h>
+#include <TNL/Solvers/Eigen/experimental/QRAlgorithm.h>
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Algorithms/fillRandom.h>
 
@@ -113,7 +113,7 @@ benchmark_pi( Benchmark<>& benchmark, MatrixType& matrix, VectorType& initialVec
       auto testfunction = [ & ]()
       {
          std::tie( eigenvalue, eigenvector, iter ) =
-            Solvers::Eigenvalues::experimental::powerIteration< MatrixType >( matrix, epsilon, initialVec, 100000 );
+            Solvers::Eigen::experimental::powerIteration< MatrixType >( matrix, epsilon, initialVec, 100000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testfunction, eigenBenchmarkResult );
@@ -158,7 +158,7 @@ benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, Matrices::Factorizatio
       auto testfunction = [ & ]()
       {
          std::tie( eigenvalues, eigenvectors, iter ) =
-            Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixType >( matrix, epsilon, factorType, 5000 );
+            Solvers::Eigen::experimental::QRAlgorithm< MatrixType >( matrix, epsilon, factorType, 5000 );
       };
       EigenBenchmarkResult eigenBenchmarkResult( epsilon, iterations, error );
       benchmark.time< Device >( resetFunction, performer< Device >(), testfunction, eigenBenchmarkResult );

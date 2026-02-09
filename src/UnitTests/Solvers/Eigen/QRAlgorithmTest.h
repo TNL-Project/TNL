@@ -6,7 +6,7 @@
 #include <TNL/Math.h>
 #include <TNL/Matrices/Factorization/QR/QR.h>
 #include <TNL/Matrices/DenseMatrix.h>
-#include <TNL/Solvers/Eigenvalues/experimental/QRAlgorithm.h>
+#include <TNL/Solvers/Eigen/experimental/QRAlgorithm.h>
 
 #include <gtest/gtest.h>
 #include <stdexcept>
@@ -21,7 +21,7 @@ checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::FactorizationMe
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -35,7 +35,7 @@ checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::FactorizationMe
 
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeCMO >( B, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeCMO >( B, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -50,7 +50,7 @@ checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixTypeRMO C = {};
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -63,7 +63,7 @@ checkQRAlgorithmDense0D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixTypeRMO D;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -84,7 +84,7 @@ checkQRAlgorithmExceptionSizeSquare( const TNL::Matrices::Factorization::QR::Fac
    RealType epsilon = 1e-6;
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -99,7 +99,7 @@ checkQRAlgorithmExceptionSizeSquare( const TNL::Matrices::Factorization::QR::Fac
    MatrixTypeRMO B = { { 1, 2, 3 } };
    try {
       auto [ eigenvalue, eigenvector, iterations ] =
-         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10 );
+         TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10 );
       ADD_FAILURE();
    }
    catch( const std::invalid_argument& e ) {
@@ -119,13 +119,13 @@ checkQRAlgorithmDense1D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixTypeCMO A = { { 1.0 } };
    RealType epsilon = 1e-8;
    auto [ eigenvalue, eigenvector, iterations ] =
-      TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10000 );
+      TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10000 );
    EXPECT_EQ( eigenvalue.getElement( 0, 0 ), 1 );
    EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
 
    A.setElement( 0, 0, -1 );
    std::tie( eigenvalue, eigenvector, iterations ) =
-      TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10000 );
+      TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeCMO >( A, epsilon, QRmethod, 10000 );
    EXPECT_EQ( eigenvalue.getElement( 0, 0 ), -1 );
    EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
    if( QRmethod == TNL::Matrices::Factorization::QR::FactorizationMethod::Givens ) {
@@ -133,13 +133,13 @@ checkQRAlgorithmDense1D( const TNL::Matrices::Factorization::QR::FactorizationMe
       using MatrixTypeRMO = TNL::Matrices::DenseMatrix< RealType, Device, int, organizationRMO >;
       MatrixTypeRMO B = { { 1.0 } };
       std::tie( eigenvalue, eigenvector, iterations ) =
-         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10000 );
+         TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10000 );
       EXPECT_EQ( eigenvalue.getElement( 0, 0 ), 1 );
       EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
 
       B.setElement( 0, 0, -1 );
       std::tie( eigenvalue, eigenvector, iterations ) =
-         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10000 );
+         TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeRMO >( B, epsilon, QRmethod, 10000 );
       EXPECT_EQ( eigenvalue.getElement( 0, 0 ), -1 );
       EXPECT_EQ( eigenvector.getElement( 0, 0 ), 1 );
    }
@@ -154,7 +154,7 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixType A = { { 2.0, 1.0 }, { 1.0, 2.0 } };
    const RealType epsilon = 1e-8;
    auto [ eigenvalues, eigenvector, iterations ] =
-      TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixType >( A, epsilon, QRmethod, 10000 );
+      TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixType >( A, epsilon, QRmethod, 10000 );
    EXPECT_NEAR( eigenvalues.getElement( 0, 0 ), 3, 1e-5 );
    EXPECT_NEAR( eigenvalues.getElement( 1, 1 ), 1, 1e-5 );
    EXPECT_NEAR( eigenvector.getElement( 0, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
@@ -164,7 +164,7 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
 
    MatrixType B = { { 0.0, 1.0 }, { -1.0, 0.0 } };
    auto [ eigenvaluesB, eigenvectorB, iterationsB ] =
-      TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixType >( B, epsilon, QRmethod, 10000 );
+      TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixType >( B, epsilon, QRmethod, 10000 );
    EXPECT_EQ( iterationsB, 0 );
 
    const TNL::Algorithms::Segments::ElementsOrganization organizationRMO = TNL::Algorithms::Segments::RowMajorOrder;
@@ -172,7 +172,7 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixTypeRMO C = { { 2.0, 1.0 }, { 1.0, 2.0 } };
    if( QRmethod == TNL::Matrices::Factorization::QR::FactorizationMethod::Givens ) {
       auto [ eigenvaluesRMO, eigenvectorRMO, iterationsRMO ] =
-         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10000 );
+         TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10000 );
       EXPECT_NEAR( eigenvaluesRMO.getElement( 0, 0 ), 3, 1e-5 );
       EXPECT_NEAR( eigenvaluesRMO.getElement( 1, 1 ), 1, 1e-5 );
       EXPECT_NEAR( eigenvectorRMO.getElement( 0, 0 ), TNL::sqrt( 2.0 ) / 2.0, 1e-5 );
@@ -183,7 +183,7 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
    else {
       try {
          auto [ eigenvalue, eigenvector, iterations ] =
-            TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10 );
+            TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeRMO >( C, epsilon, QRmethod, 10 );
          ADD_FAILURE();
       }
       catch( const std::invalid_argument& e ) {
@@ -197,13 +197,13 @@ checkQRAlgorithmDense2D( const TNL::Matrices::Factorization::QR::FactorizationMe
    MatrixTypeRMO D = { { 0.0, 1.0 }, { -1.0, 0.0 } };
    if( QRmethod == TNL::Matrices::Factorization::QR::FactorizationMethod::Givens ) {
       auto [ eigenvaluesRMO, eigenvectorSRMO, iterationsRMO ] =
-         TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10000 );
+         TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10000 );
       EXPECT_NEAR( iterationsRMO, 0, 10000 );
    }
    else {
       try {
          auto [ eigenvaluesRMO, eigenvectorsRMO, iterationsRMO ] =
-            TNL::Solvers::Eigenvalues::experimental::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10 );
+            TNL::Solvers::Eigen::experimental::QRAlgorithm< MatrixTypeRMO >( D, epsilon, QRmethod, 10 );
          ADD_FAILURE();
       }
       catch( const std::invalid_argument& e ) {
