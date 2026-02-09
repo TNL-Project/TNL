@@ -166,34 +166,8 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
                   } );
    y = 0;
 
-   if( writeConvergenceGraphs ) {
-      kkt_current_primal_objective_file.open( "kkt-current-primal-objective.txt", std::ios::out );
-      kkt_current_dual_objective_file.open( "kkt-current-dual-objective.txt", std::ios::out );
-      kkt_averaged_primal_objective_file.open( "kkt-averaged-primal-objective.txt", std::ios::out );
-      kkt_averaged_dual_objective_file.open( "kkt-averaged-dual-objective.txt", std::ios::out );
-      kkt_current_duality_gap_file.open( "kkt-current-duality-gap.txt", std::ios::out );
-      kkt_averaged_duality_gap_file.open( "kkt-averaged-duality-gap.txt", std::ios::out );
-      kkt_current_primal_feasibility_file.open( "kkt-current-primal-feasibility.txt", std::ios::out );
-      kkt_current_dual_feasibility_file.open( "kkt-current-dual-feasibility.txt", std::ios::out );
-      kkt_averaged_primal_feasibility_file.open( "kkt-averaged-primal-feasibility.txt", std::ios::out );
-      kkt_averaged_dual_feasibility_file.open( "kkt-averaged-dual-feasibility.txt", std::ios::out );
-      kkt_current_mu_file.open( "kkt-current-mu.txt", std::ios::out );
-      kkt_averaged_mu_file.open( "kkt-averaged-mu.txt", std::ios::out );
-      fast_current_primal_objective_file.open( "fast-current-primal-objective.txt", std::ios::out );
-      fast_current_dual_objective_file.open( "fast-current-dual-objective.txt", std::ios::out );
-      fast_averaged_primal_objective_file.open( "fast-averaged-primal-objective.txt", std::ios::out );
-      fast_averaged_dual_objective_file.open( "fast-averaged-dual-objective.txt", std::ios::out );
-      fast_current_duality_gap_file.open( "fast-current-duality-gap.txt", std::ios::out );
-      fast_averaged_duality_gap_file.open( "fast-averaged-duality-gap.txt", std::ios::out );
-      fast_current_primal_feasibility_file.open( "fast-current-primal-feasibility.txt", std::ios::out );
-      fast_current_dual_feasibility_file.open( "fast-current-dual-feasibility.txt", std::ios::out );
-      fast_current_mu_file.open( "fast-current-mu.txt", std::ios::out );
-      fast_averaged_mu_file.open( "fast-averaged-mu.txt", std::ios::out );
-      current_gradient_file.open( "current-gradient.txt", std::ios::out );
-      averaged_gradient_file.open( "averaged-gradient.txt", std::ios::out );
-
-      restarts_file.open( "restarts.txt", std::ios::out );
-   }
+   if( writeConvergenceGraphs )
+      monitor.setConvergenceGraphs( ConvergenceGraphType::WriteConvergenceGraphs );
 
    spmvTimer.reset();
    return PDHG( x, y );
@@ -295,7 +269,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                                                + current_dual_feasibility * current_dual_feasibility / current_omega_sqrt
                                                + averaged_duality_gap * averaged_duality_gap );
 
-            if( writeConvergenceGraphs ) {
+            /*if( writeConvergenceGraphs ) {
                fast_current_primal_objective_file << k << " " << current_primal_objective << std::endl;
                fast_current_dual_objective_file << k << " " << current_dual_objective << std::endl;
                fast_averaged_primal_objective_file << k << " " << averaged_primal_objective << std::endl;
@@ -306,59 +280,18 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                fast_current_dual_feasibility_file << k << " " << current_dual_feasibility << std::endl;
                fast_current_mu_file << k << " " << mu_current << std::endl;
                fast_averaged_mu_file << k << " " << mu_averaged << std::endl;
-            }
-            if( restarting == PDLPRestarting::Fast ) {
-               if( mu_averaged < mu_current ) {
-                  mu_candidate = mu_averaged;
-                  z_candidate = z_averaged;
-               }
-               else {
-                  mu_candidate = mu_current;
-                  z_candidate = z_current;
-               }
-               //const RealType mu_averaged = std::numeric_limits< RealType >::infinity();
-               mu_candidate = mu_current;
-               z_candidate = z_current;
-               //if( k % 10 == 1 ) {
-               //   kkt_candidate = KKT( z_candidate );
-               //}
+            }*/
 
-               if( t >= beta_artificial * k ) {
-                  std::cout << "ARTIFICIAL FAST restart to " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" )
-                            << " at k = " << k << " t = " << t << std::endl;
-                  mu_last_restart = mu_candidate;
-                  break;
-               }
-               if( mu_candidate <= beta_sufficient * mu_last_restart ) {
-                  std::cout << "SUFFICIENT FAST restart to " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" )
-                            << " at k = " << k << " t = " << t << std::endl;
-                  mu_last_restart = mu_candidate;
-                  break;
-               }
-               if( mu_candidate <= beta_necessary * mu_last_restart && mu_candidate > mu_last_candidate ) {
-                  std::cout << "NECESSARY FAST restart to " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" )
-                            << " at k = " << k << " t = " << t << std::endl;
-                  mu_last_restart = mu_candidate;
-                  break;
-               }
-               /*const RealType update = maxNorm( z_candidate - z_last_iteration );
-               if( update < 0.00001 * mu_candidate ) {
-                  std::cout << "GRADIENT FAST restart to AVERAGE at k = " << k << " t = " << t << " update = " << update
-                            << " gap = " << mu_candidate << std::endl;
-                  mu_last_restart = mu_candidate;
-                  break;
-               }*/
-            }
-            else if( restarting != PDLPRestarting::None ) {
+            if( restarting != PDLPRestarting::None ) {
                RealType mu_current, mu_averaged;
                KKTDataType kkt_current, kkt_averaged;
                if( restarting == PDLPRestarting::KKT || restarting == PDLPRestarting::Constant ) {
                   auto KTy_view = KTy.getView();
                   auto KTy_averaged_view = KTy_averaged.getView();
 
-                  //computeKTy( z_current.getView( n, N ), KTy_view );
-                  //computeKTy( z_averaged.getConstView( n, N ), KTy_averaged_view );
-                  computeKTy( z_current.getConstView( n, N ), z_averaged.getConstView( n, N ), KTy_view, KTy_averaged_view );
+                  computeKTy( z_current.getView( n, N ), KTy_view );
+                  computeKTy( z_averaged.getConstView( n, N ), KTy_averaged_view );
+                  //computeKTy( z_current.getConstView( n, N ), z_averaged.getConstView( n, N ), KTy_view, KTy_averaged_view );
 
                   const RealType tau = current_eta / current_omega;
                   auto new_x_view = new_x.getView();
@@ -366,10 +299,10 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   auto Kx_averaged_view = Kx_averaged.getView();
                   computePrimalStep( z_current.getConstView( 0, n ), KTy, tau, new_x_view );
 
-                  //computeKx( z_averaged.getConstView( 0, n ), Kx_averaged_view );
-                  //computeKx( new_x.getConstView(), Kx_new_view );
-                  computeKx( z_averaged.getConstView( 0, n ), new_x.getConstView(), Kx_averaged_view, Kx_new_view );
-                  new_x_precomputed = true;
+                  computeKx( z_averaged.getConstView( 0, n ), Kx_averaged_view );
+                  computeKx( new_x.getConstView(), Kx_new_view );
+                  //computeKx( z_averaged.getConstView( 0, n ), new_x.getConstView(), Kx_averaged_view, Kx_new_view );
+                  //new_x_precomputed = true;
 
                   kkt_current = KKT( z_current, Kx, KTy );
                   mu_current = kkt_current.getKKTError( current_omega );
@@ -406,29 +339,11 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   break;
                }
 
-               if( writeConvergenceGraphs ) {
-                  const RealType gr_rst_current_update = maxNorm( z_current - z_last_iteration );
-                  const RealType gr_rst_averaged_update = maxNorm( z_averaged - z_last_iteration );
-                  const RealType gr_rst_current_duality_gap = kkt_current.getDualityGap();
-                  const RealType gr_rst_averaged_duality_gap = kkt_averaged.getDualityGap();
-                  const RealType gr_rst_candidate_update = maxNorm( z_candidate - z_last_iteration );
-                  const RealType gr_rst_candidate_duality_gap = kkt_candidate.getDualityGap();
+               this->monitor.setCurrentKKT( kkt_current );
+               this->monitor.setAveragedKKT( kkt_averaged );
+               this->monitor.setCurrentPrimalDualGap( current_duality_gap );
+               this->monitor.setAveragedPrimalDualGap( averaged_duality_gap );
 
-                  kkt_current_primal_objective_file << k << " " << kkt_current.getPrimalObjective() << std::endl;
-                  kkt_current_dual_objective_file << k << " " << kkt_current.getDualObjective() << std::endl;
-                  kkt_averaged_primal_objective_file << k << " " << kkt_averaged.getPrimalObjective() << std::endl;
-                  kkt_averaged_dual_objective_file << k << " " << kkt_averaged.getDualObjective() << std::endl;
-                  kkt_current_duality_gap_file << k << " " << kkt_current.getDualityGap() << std::endl;
-                  kkt_averaged_duality_gap_file << k << " " << kkt_averaged.getDualityGap() << std::endl;
-                  kkt_current_primal_feasibility_file << k << " " << kkt_current.getPrimalFeasibility() << std::endl;
-                  kkt_current_dual_feasibility_file << k << " " << kkt_current.getDualFeasibility() << std::endl;
-                  kkt_averaged_primal_feasibility_file << k << " " << kkt_averaged.getPrimalFeasibility() << std::endl;
-                  kkt_averaged_dual_feasibility_file << k << " " << kkt_averaged.getDualFeasibility() << std::endl;
-                  kkt_current_mu_file << k << " " << mu_current << std::endl;
-                  kkt_averaged_mu_file << k << " " << mu_averaged << std::endl;
-                  current_gradient_file << k << " " << gr_rst_current_update << std::endl;
-                  averaged_gradient_file << k << " " << gr_rst_averaged_update << std::endl;
-               }
 #ifdef PRINTING
                std::cout << "k = " << k << " t = " << t << std::endl;
                std::cout << "Restarting errs.: current = " << mu_current << " average = " << mu_averaged << std::endl;
@@ -440,34 +355,13 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                             << " at k = " << k << " t = " << t << std::endl;
                   mu_last_restart = mu_candidate;
                   kkt_last_restart = kkt_candidate;
-                  if( writeConvergenceGraphs )
-                     restarts_file << k << " ARTIFICIAL " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" ) << std::endl;
+                  this->monitor.setRestarting( RestartingType::Artificial,
+                                               mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
+                  //if( writeConvergenceGraphs )
+                  //   restarts_file << k << " ARTIFICIAL " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" ) <<
+                  //   std::endl;
                   break;
                }
-
-               // Kuba restarting
-               // "maly subgradient a maly gap, restart probability treba 10e^-8;
-               // maly subgradient a velky gap, restart probability close to 1;
-               // jinak neco mezi, treba 10^-4"
-
-               //const RealType beta_gap = 100;
-               /*if( gr_rst_duality_gap > beta_gap
-                   //|| kkt_candidate.getPrimalFeasibility() > beta_gap
-                   //|| kkt_candidate.getDualFeasibility() > beta_gap
-                   && gr_rst_update < 0.1 )
-               {
-                  std::cout << "GRADIENT restart to " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" )
-                            << " at k = " << k << " t = " << t << std::endl;
-                  std::cout << "   Duality gap: " << kkt_candidate.getDualityGap() << std::endl;
-                  std::cout << "   Primal feas.: " << kkt_candidate.getPrimalFeasibility() << std::endl;
-                  std::cout << "   Dual feas.: " << kkt_candidate.getDualFeasibility() << std::endl;
-                  std::cout << "   Update: " << gr_rst_update << std::endl;
-                  mu_last_restart = mu_candidate;
-                  kkt_last_restart = kkt_candidate;
-                  break;
-               }*/
-               //if( k % 25 == 0 )
-               //   break;
 
                if( restarting == PDLPRestarting::KKT ) {
                   mu_last_restart = kkt_last_restart.getKKTError( current_omega );
@@ -490,8 +384,11 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                             << " at k = " << k << " t = " << t << std::endl;
                   mu_last_restart = mu_candidate;
                   kkt_last_restart = kkt_candidate;
-                  if( writeConvergenceGraphs )
-                     restarts_file << k << " SUFFICIENT " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" ) << std::endl;
+                  this->monitor.setRestarting( RestartingType::Sufficient,
+                                               mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
+                  //if( writeConvergenceGraphs )
+                  //   restarts_file << k << " SUFFICIENT " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" ) <<
+                  //   std::endl;
                   break;
                }
 
@@ -516,8 +413,11 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
 
                   mu_last_restart = mu_candidate;
                   kkt_last_restart = kkt_candidate;
-                  if( writeConvergenceGraphs )
-                     restarts_file << k << " NECESSARY " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" ) << std::endl;
+                  this->monitor.setRestarting( RestartingType::Necessary,
+                                               mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
+                  //if( writeConvergenceGraphs )
+                  //   restarts_file << k << " NECESSARY " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" ) <<
+                  //   std::endl;
                   break;
                }
             }  // if( restarting != PDLPRestarting::None )
@@ -629,6 +529,7 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
 
          auto Kx_new_view = Kx_new.getView();
          computeKx( out_x, Kx_new_view );
+         std::cout << ">>>>>>>>>>>>>> Kx computed in adaptive step." << std::endl;
          computeDualStep( in_y, Kx, Kx_new, sigma, out_y );
       }
       else {
