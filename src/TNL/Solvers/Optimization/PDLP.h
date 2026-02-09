@@ -9,6 +9,9 @@
 #include <TNL/Algorithms/SegmentsReductionKernels/CSRLightKernel.h>
 #include <TNL/Matrices/CusparseCSRMatrix.h>
 
+#include "KKTData.h"
+#include "PDLPSolverMonitor.h"
+
 namespace TNL::Solvers::Optimization {
 
 enum class PDLPRestarting
@@ -18,51 +21,6 @@ enum class PDLPRestarting
    DualityGap,
    KKT,
    Fast
-};
-
-template< typename Real >
-struct KKTData
-{
-   Real primal_feasibility;
-   Real dual_feasibility;
-   Real primal_objective;
-   Real dual_objective;
-
-   Real
-   getPrimalFeasibility() const
-   {
-      return primal_feasibility;
-   }
-
-   Real
-   getDualFeasibility() const
-   {
-      return dual_feasibility;
-   }
-
-   Real
-   getPrimalObjective() const
-   {
-      return primal_objective;
-   }
-
-   Real
-   getDualObjective() const
-   {
-      return dual_objective;
-   }
-
-   Real
-   getDualityGap() const
-   {
-      return std::abs( primal_objective - dual_objective );
-   }
-
-   Real
-   getKKTError( const Real& omega ) const;
-
-   Real
-   getRelativeDualityGap() const;
 };
 
 /**
@@ -76,8 +34,7 @@ struct KKTData
  * https://proceedings.neurips.cc/paper/2021/file/a8fbbd3b11424ce032ba813493d95ad7-Paper.pdf
  *
  */
-template< typename LPProblem_,
-          typename SolverMonitor = IterativeSolverMonitor< typename LPProblem_::RealType, typename LPProblem_::IndexType > >
+template< typename LPProblem_, typename SolverMonitor = IterativeSolverMonitor< typename LPProblem_::RealType > >
 class PDLP : public IterativeSolver< typename LPProblem_::RealType, typename LPProblem_::IndexType, SolverMonitor >
 {
 public:
@@ -228,37 +185,14 @@ protected:
 
    // Convergence logging
    bool writeConvergenceGraphs = false;
-   std::fstream kkt_current_primal_objective_file;
-   std::fstream kkt_current_dual_objective_file;
-   std::fstream kkt_averaged_primal_objective_file;
-   std::fstream kkt_averaged_dual_objective_file;
-   std::fstream kkt_current_duality_gap_file;
-   std::fstream kkt_averaged_duality_gap_file;
-   std::fstream kkt_current_primal_feasibility_file;
-   std::fstream kkt_current_dual_feasibility_file;
-   std::fstream kkt_averaged_primal_feasibility_file;
-   std::fstream kkt_averaged_dual_feasibility_file;
-   std::fstream kkt_current_mu_file;
-   std::fstream kkt_averaged_mu_file;
-   std::fstream fast_current_primal_objective_file;
-   std::fstream fast_current_dual_objective_file;
-   std::fstream fast_averaged_primal_objective_file;
-   std::fstream fast_averaged_dual_objective_file;
-   std::fstream fast_current_duality_gap_file;
-   std::fstream fast_averaged_duality_gap_file;
-   std::fstream fast_current_primal_feasibility_file;
-   std::fstream fast_current_dual_feasibility_file;
-   std::fstream fast_current_mu_file;
-   std::fstream fast_averaged_mu_file;
-   std::fstream current_gradient_file;
-   std::fstream averaged_gradient_file;
-   std::fstream restarts_file;
 
    SegmentsReductionKernel segmentsReductionKernel;
 
    bool useCusparse = false;  // Use cusparse for matrix-vector product
    Matrices::CusparseCSRMatrix< MatrixType > cusparseK;
    Matrices::CusparseCSRMatrix< MatrixType > cusparseKT;
+
+   PDLPSolverMonitor< RealType > monitor;
 };
 
 }  // namespace TNL::Solvers::Optimization
