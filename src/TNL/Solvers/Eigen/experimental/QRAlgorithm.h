@@ -11,7 +11,7 @@
 #include <TNL/Matrices/Factorization/QR/QR.h>
 #include <TNL/Math.h>
 
-namespace TNL::Solvers::Eigenvalues::experimental {
+namespace TNL::Solvers::Eigen::experimental {
 
 /**
  * \brief Computes the eigenvalues and eigenvectors of a matrix using the QR iteration algorithm with a specified QR
@@ -90,4 +90,4 @@ QRAlgorithm( MatrixType matrix,
    return std::make_tuple( std::move( matrix ), std::move( accQ ), iterations );
 }
 
-}  // namespace TNL::Solvers::Eigenvalues::experimental
+}  // namespace TNL::Solvers::Eigen::experimental
