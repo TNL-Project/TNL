@@ -269,19 +269,6 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                                                + current_dual_feasibility * current_dual_feasibility / current_omega_sqrt
                                                + averaged_duality_gap * averaged_duality_gap );
 
-            /*if( writeConvergenceGraphs ) {
-               fast_current_primal_objective_file << k << " " << current_primal_objective << std::endl;
-               fast_current_dual_objective_file << k << " " << current_dual_objective << std::endl;
-               fast_averaged_primal_objective_file << k << " " << averaged_primal_objective << std::endl;
-               fast_averaged_dual_objective_file << k << " " << averaged_dual_objective << std::endl;
-               fast_current_duality_gap_file << k << " " << mu_current << std::endl;
-               fast_averaged_duality_gap_file << k << " " << mu_averaged << std::endl;
-               fast_current_primal_feasibility_file << k << " " << current_primal_feasibility << std::endl;
-               fast_current_dual_feasibility_file << k << " " << current_dual_feasibility << std::endl;
-               fast_current_mu_file << k << " " << mu_current << std::endl;
-               fast_averaged_mu_file << k << " " << mu_averaged << std::endl;
-            }*/
-
             if( restarting != PDLPRestarting::None ) {
                RealType mu_current, mu_averaged;
                KKTDataType kkt_current, kkt_averaged;
@@ -529,7 +516,6 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
 
          auto Kx_new_view = Kx_new.getView();
          computeKx( out_x, Kx_new_view );
-         std::cout << ">>>>>>>>>>>>>> Kx computed in adaptive step." << std::endl;
          computeDualStep( in_y, Kx, Kx_new, sigma, out_y );
       }
       else {
@@ -819,28 +805,5 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z, const VectorType& K
    return { primal_feasibility, dual_feasibility, primal_objective, dual_objective };
 }
 
-template< typename Real >
-Real
-KKTData< Real >::getKKTError( const Real& omega ) const
-{
-   const Real omega_sqr = omega * omega;
-   const Real error =
-      sqrt( omega_sqr * primal_feasibility * primal_feasibility + 1.0 / omega_sqr * ( dual_feasibility * dual_feasibility )
-            + pow( primal_objective - dual_objective, 2 ) );
-
-#ifdef PRINTING
-   std::cout << " omega sqr. = " << omega_sqr << " primal feas. = " << primal_feasibility
-             << " dual feas. = " << dual_feasibility << " primal obj. = " << primal_objective
-             << " dual obj. = " << dual_objective << " error = " << error << std::endl;
-#endif
-   return error;
-}
-
-template< typename Real >
-Real
-KKTData< Real >::getRelativeDualityGap() const
-{
-   return std::abs( ( primal_objective - dual_objective ) / ( 1 + std::abs( primal_objective ) + std::abs( dual_objective ) ) );
-}
 
 }  // namespace TNL::Solvers::Optimization
