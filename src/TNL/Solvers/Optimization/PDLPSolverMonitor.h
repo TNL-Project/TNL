@@ -65,25 +65,25 @@ struct PDLPSolverMonitor : public SolverMonitor
    }
 
    void
-   setCurrentKKTData( const KKTDataType& kktData )
+   setCurrentKKT( const KKTDataType& kktData )
    {
       current_kkt_data = kktData;
    }
 
    void
-   setAveragedKKTData( const KKTDataType& kktData )
+   setAveragedKKT( const KKTDataType& kktData )
    {
       averaged_kkt_data = kktData;
    }
 
    const KKTDataType&
-   getCurrentKKTData() const
+   getCurrentKKT() const
    {
       return current_kkt_data;
    }
 
    const KKTDataType&
-   getAveragedKKTData() const
+   getAveragedKKT() const
    {
       return averaged_kkt_data;
    }
@@ -119,6 +119,10 @@ struct PDLPSolverMonitor : public SolverMonitor
       this->restartingTo = candidate;
    }
 
+   void
+   refresh() override
+   {}
+
 protected:
    KKTDataType current_kkt_data;
    KKTDataType averaged_kkt_data;
@@ -126,6 +130,8 @@ protected:
    RealType averaged_primal_dual_gap;
 
    ConvergenceGraphType convergenceGraphType = ConvergenceGraphType::NoConvergenceGraphs;
+   RestartingType restarting = RestartingType::Artificial;
+   RestartingTo restartingTo = RestartingTo::Current;
 
    // Files for writing convergence graphs
    std::fstream kkt_current_primal_objective_file;
