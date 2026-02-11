@@ -48,9 +48,7 @@ protected:
       const BlockType& localBlock = decomposition.at( rank );
 
       distributedNDArray.setSizes( globalSize, globalSize, globalSize );
-      distributedNDArray.template setDistribution< 0 >( localBlock.begin.x(), localBlock.end.x(), communicator );
-      distributedNDArray.template setDistribution< 1 >( localBlock.begin.y(), localBlock.end.y(), communicator );
-      distributedNDArray.template setDistribution< 2 >( localBlock.begin.z(), localBlock.end.z(), communicator );
+      distributedNDArray.setDistribution( localBlock.begin, localBlock.end, communicator );
       distributedNDArray.allocate();
    }
 };
