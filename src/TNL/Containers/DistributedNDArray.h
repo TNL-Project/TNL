@@ -654,6 +654,27 @@ public:
       this->communicator = communicator;
    }
 
+   /**
+    * \brief Sets the distribution of the array among MPI ranks.
+    *
+    * \param begin Multi-index of the first element owned by the calling MPI rank.
+    * \param end Multi-index of the first element not owned by the calling MPI rank.
+    *            I.e., the calling rank owns the range `[begin, end)`.
+    * \param communicator MPI communicator to associate with the array.
+    */
+   void
+   setDistribution( const StaticArray< getDimension(), IndexType >& begin,
+                    const StaticArray< getDimension(), IndexType >& end,
+                    const MPI::Comm& communicator = MPI_COMM_WORLD )
+   {
+      Algorithms::staticFor< std::size_t, 0, getDimension() >(
+         [ & ]( auto level )
+         {
+            this->template setDistribution< level >( begin[ level ], end[ level ], communicator );
+         } );
+      this->communicator = communicator;
+   }
+
    //! \brief Computes the distributed storage size and allocates the local
    //! array.
    void
