@@ -135,6 +135,9 @@ protected:
    RealType
    primalDualGap( const VectorView& z, const VectorView& z_ref );
 
+   void
+   printReport( const KKTDataType& kkt, IndexType iterations, bool converged = false );
+
    MatrixType K;           // The constraints matrix.   TODO: Make this matrix view
    MatrixType KT;          // The transposed constraints matrix.
    VectorType c;           // The objective function coefficients.

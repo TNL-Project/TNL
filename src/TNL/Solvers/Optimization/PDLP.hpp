@@ -11,6 +11,7 @@
 #include "Preconditioning/PockChambolle.h"
 
 #include <iomanip>
+#include <sstream>
 
 //#define PRINTING
 
@@ -281,13 +282,13 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   //computeKTy( z_current.getConstView( n, N ), z_averaged.getConstView( n, N ), KTy_view, KTy_averaged_view );
 
                   const RealType tau = current_eta / current_omega;
-                  auto new_x_view = new_x.getView();
+                  //auto new_x_view = new_x.getView();
                   auto Kx_new_view = Kx_new.getView();
                   auto Kx_averaged_view = Kx_averaged.getView();
-                  computePrimalStep( z_current.getConstView( 0, n ), KTy, tau, new_x_view );
+                  //computePrimalStep( z_current.getConstView( 0, n ), KTy, tau, new_x_view );
 
                   computeKx( z_averaged.getConstView( 0, n ), Kx_averaged_view );
-                  computeKx( new_x.getConstView(), Kx_new_view );
+                  //computeKx( new_x.getConstView(), Kx_new_view );
                   //computeKx( z_averaged.getConstView( 0, n ), new_x.getConstView(), Kx_averaged_view, Kx_new_view );
                   //new_x_precomputed = true;
 
@@ -420,14 +421,13 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
       KTy = KTy_candidate;
       new_x_precomputed = false;
 
-      auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = kkt_candidate;
-
       const RealType epsilon = 1.0e-4;
       const RealType relative_duality_gap = kkt_candidate.getRelativeDualityGap();
-      const RealType relative_primal_feasibility = primal_feasibility / ( 1 + l2Norm( q ) );
-      const RealType relative_dual_feasibility = dual_feasibility / ( 1 + l2Norm( c ) );
+      const RealType relative_primal_feasibility = kkt_candidate.getPrimalFeasibility() / ( 1.0 + l2Norm( q ) );
+      const RealType relative_dual_feasibility = kkt_candidate.getDualFeasibility() / ( 1.0 + l2Norm( c ) );
 
 #ifdef PRINTING
+      auto [ primal_feasibility, dual_feasibility, primal_objective, dual_objective ] = kkt_candidate;
       //std::cout << "primal feas. " << primal_feasibility << " dual feas. " << dual_feasibility << " primal obj. "
       //          << primal_objective << " dual obj. " << dual_objective << " duality gap " << duality_gap << std::endl;
       std::cout << "Termination check: " << primal_feasibility << "|" << epsilon * ( 1 + l2Norm( q ) ) << " "
@@ -437,34 +437,17 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
 
       if( relative_duality_gap < epsilon && relative_primal_feasibility < epsilon && relative_dual_feasibility < epsilon ) {
          solverTimer.stop();
-         std::cout << "===============================" << std::endl;
-         std::cout << "SOLUTION FOUND" << std::endl;
-         std::cout << "PRIMAL OBJECTIVE: " << kkt_candidate.getPrimalObjective() << std::endl;
-         std::cout << "DUAL OBJECTIVE: " << kkt_candidate.getDualObjective() << std::endl;
-         std::cout << "DUALITY GAP: " << kkt_candidate.getDualityGap() << " / " << relative_duality_gap << std::endl;
-         std::cout << "PRIMAL FEASIBILITY: " << kkt_candidate.getPrimalFeasibility() << " / " << relative_primal_feasibility
-                   << std::endl;
-         std::cout << "DUAL FEASIBILITY: " << kkt_candidate.getDualFeasibility() << " / " << relative_dual_feasibility
-                   << std::endl;
-         std::cout << "ITERATIONS: " << k << std::endl;
-         std::cout << "#Kx COMPUTATIONS:" << this->KxComputations << std::endl;
-         std::cout << "#KTy COMPUTATIONS:" << this->KTyComputations << std::endl;
-         std::cout << "SOLVER TIME: " << solverTimer.getRealTime() << std::endl;
-         std::cout << "MATRIX-VECTOR PRODUCTS TIME: " << this->spmvTimer.getRealTime() << std::endl;
-         //std::cout << "X: " << new_x_view << std::endl;
-         //std::cout << "D2 * X: " << D2 * new_x_view << std::endl;
-         //std::cout << "Y: " << new_y_view << std::endl;
-         //x = new_x_view;
-         //y = new_y_view;
-         return { true, dual_objective, kkt_candidate.getRelativeDualityGap() };
+         printReport( kkt_candidate, k, true );
+         return { true, kkt_candidate.getDualObjective(), kkt_candidate.getRelativeDualityGap() };
       }
       else {
          std::cout << "ITER: " << std::setw( 6 ) << k << " NORMS=(" << std::setw( 10 ) << l2Norm( new_x_view ) << ", "
                    << std::setw( 10 ) << l2Norm( new_y_view ) << ") INV.STEP : " << std::setw( 10 ) << 1.0 / current_eta
                    << " PRIMAL WEIGHT: " << std::setw( 10 ) << current_omega << " OBJECTIVE : ( " << std::setw( 10 )
-                   << primal_objective << ", " << std::setw( 12 ) << dual_objective << " )   FEASIBILITY: ( " << std::setw( 12 )
-                   << relative_primal_feasibility << ", " << std::setw( 12 ) << relative_dual_feasibility
-                   << " )   DUAL.GAP: " << std::setw( 10 ) << kkt_candidate.getDualityGap() << std::endl;
+                   << kkt_candidate.getPrimalObjective() << ", " << std::setw( 12 ) << kkt_candidate.getDualObjective()
+                   << " )   FEASIBILITY: ( " << std::setw( 12 ) << relative_primal_feasibility << ", " << std::setw( 12 )
+                   << relative_dual_feasibility << " )   DUAL.GAP: " << std::setw( 10 ) << kkt_candidate.getRelativeDualityGap()
+                   << std::endl;
       }
 
       //Compute new parameter omega
@@ -483,6 +466,8 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
          y = new_y_view;
       }
    }
+   solverTimer.stop();
+   printReport( kkt_candidate, k, false );
    return { false, 0.0, 0.0 };
 }
 
@@ -805,5 +790,51 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z, const VectorType& K
    return { primal_feasibility, dual_feasibility, primal_objective, dual_objective };
 }
 
+template< typename LPProblem_, typename SolverMonitor >
+void
+PDLP< LPProblem_, SolverMonitor >::printReport( const KKTDataType& kkt, IndexType iterations, bool converged )
+{
+   const RealType relative_primal_feasibility = kkt.getPrimalFeasibility() / ( 1.0 + l2Norm( q ) );
+   const RealType relative_dual_feasibility = kkt.getDualFeasibility() / ( 1.0 + l2Norm( c ) );
 
+   const int label_width = 28;
+   const int value_width = 48;
+   auto format_number = []( RealType value )
+   {
+      std::ostringstream oss;
+      oss << std::setprecision( 10 ) << std::scientific << value;
+      return oss.str();
+   };
+   auto format_pair = [ & ]( RealType abs_value, RealType rel_value )
+   {
+      return format_number( abs_value ) + " / " + format_number( rel_value );
+   };
+   auto print_separator = [ & ]()
+   {
+      std::cout << '+' << std::string( label_width + 2, '-' ) << '+' << std::string( value_width + 2, '-' ) << "+\n";
+   };
+   auto print_row = [ & ]( const std::string& label, const std::string& value )
+   {
+      std::cout << "| " << std::left << std::setw( label_width ) << label << " | " << std::right << std::setw( value_width )
+                << value << " |\n";
+   };
+
+   print_separator();
+   print_row( "Status", converged ? "SOLUTION FOUND" : "SOLUTION NOT FOUND - MAX ITERATIONS REACHED" );
+   print_separator();
+   print_row( "Primal objective", format_number( kkt.getPrimalObjective() ) );
+   print_row( "Dual objective", format_number( kkt.getDualObjective() ) );
+   print_separator();
+   print_row( "Primal feasibility (abs/rel)", format_pair( kkt.getPrimalFeasibility(), relative_primal_feasibility ) );
+   print_row( "Dual feasibility (abs/rel)", format_pair( kkt.getDualFeasibility(), relative_dual_feasibility ) );
+   print_row( "Duality gap (abs/rel)", format_pair( kkt.getDualityGap(), kkt.getRelativeDualityGap() ) );
+   print_separator();
+   print_row( "Iterations", std::to_string( iterations ) );
+   print_row( "Kx computations", std::to_string( KxComputations ) );
+   print_row( "KTy computations", std::to_string( KTyComputations ) );
+   print_separator();
+   print_row( "Solver time", format_number( solverTimer.getRealTime() ) );
+   print_row( "SpMV time", format_number( spmvTimer.getRealTime() ) );
+   print_separator();
+}
 }  // namespace TNL::Solvers::Optimization
