@@ -100,19 +100,13 @@ protected:
     * \return A tuple containing the primal feasibility, dual feasibility, primal objective and dual objective.
     */
    KKTDataType
-   KKT( const VectorView& z, const VectorType& Kx, const VectorType& KTy );
+   KKT( const VectorType& z, const VectorType& Kz );
 
    void
    computeKx( const ConstVectorView& x, VectorView& Kx );
 
    void
-   computeKx( const ConstVectorView& x1, const ConstVectorView& x2, VectorView& Kx1, VectorView& Kx2 );
-
-   void
    computeKTy( const ConstVectorView& y, VectorView& KTy );
-
-   void
-   computeKTy( const ConstVectorView& y1, const ConstVectorView& y2, VectorView& KTy1, VectorView& KTy2 );
 
    void
    computePrimalStep( const ConstVectorView& x, const VectorView& KTy, const RealType& tau, VectorView& x_new );
@@ -126,10 +120,10 @@ protected:
 
 public:  // TODO: Just because of nvcc
    void
-   computeLambda( const VectorType& c, const VectorType& KTy, const VectorType& l, const VectorType& u, VectorType& lambda );
+   computeLambda( const VectorType& c, const ConstVectorView& KTy, const VectorType& l, const VectorType& u, VectorType& lambda );
 
    RealType
-   computePrimalFeasibility( const VectorType& q, const VectorType& Kx );
+   computePrimalFeasibility( const VectorType& q, const ConstVectorView& Kx );
 
 protected:
    RealType
@@ -168,8 +162,8 @@ protected:
    VectorType D1, D2;
 
    // Supporting vectors
-   VectorType z_new, Kz_current, Kz_averaged, Kz_candidate;
-   VectorType Kx, Kx_averaged, KTy;
+   VectorType Kz, Kz_current, Kz_averaged, Kz_candidate;
+   VectorType Kx, KTy;
    VectorType lambda;
 
    RealType K_norm;
