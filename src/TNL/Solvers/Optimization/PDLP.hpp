@@ -125,18 +125,12 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 
    VectorType y( m, 0 );  // TODO: This should argument maybe
 
-   //this->z_new.setSize(N);
    this->Kz_current.setSize(N);
    this->Kz_averaged.setSize(N);
    this->Kz_candidate.setSize(N);
    this->Kx.setSize( m );
-   //this->Kx_new.setSize( m );
    this->Kx_averaged.setSize( m );
-   this->Kx_candidate.setSize( m );
    this->KTy.setSize( n );
-   this->KTy_averaged.setSize( n );
-   this->KTy_candidate.setSize( n );
-   this->new_x.setSize( n );
    this->lambda.setSize( n );
    //this->K_norm = Matrices::spectralNorm( K, KT );
    //std::cout << "Constraint matrix spectral norm: " << this->K_norm << std::endl;
@@ -272,26 +266,13 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                KKTDataType kkt_current, kkt_averaged;
                if( restarting == PDLPRestarting::KKT || restarting == PDLPRestarting::Constant ) {
                   auto KTy_view = KTy.getView();
-                  auto KTy_averaged_view = KTy_averaged.getView();
 
-                  //computeKTy( z_current.getView( n, N ), KTy_view );
-                  //computeKTy( z_averaged.getConstView( n, N ), KTy_averaged_view );
                   KTy_view = Kz_current.getView( m, N );
+                  VectorType KTy_averaged, Kx_averaged;
                   KTy_averaged = Kz_averaged.getView( m, N );
-                  //computeKTy( z_current.getConstView( n, N ), z_averaged.getConstView( n, N ), KTy_view, KTy_averaged_view );
-
-                  //const RealType tau = current_eta / current_omega;
-                  //auto new_x_view = new_x.getView();
-                  //auto Kx_new_view = Kz_current.getView(0,m);
                   Kx_averaged = Kz_averaged.getView(0,m);
-                  //computePrimalStep( z_current.getConstView( 0, n ), KTy, tau, new_x_view );
 
-                  //computeKx( z_averaged.getConstView( 0, n ), Kx_averaged_view );
-                  //computeKx( new_x.getConstView(), Kx_new_view );
-                  //computeKx( z_averaged.getConstView( 0, n ), new_x.getConstView(), Kx_averaged_view, Kx_new_view );
-                  //new_x_precomputed = true;
-
-                  kkt_current = KKT( z_current, Kx, KTy );
+                  kkt_current = KKT( z_current.getView(), Kx, KTy );
                   mu_current = kkt_current.getKKTError( current_omega );
 
                   kkt_averaged = KKT( z_averaged.getView(), Kx_averaged, KTy_averaged );
@@ -308,16 +289,12 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   Kz_candidate = Kz_current;
                   mu_candidate = mu_current;
                   kkt_candidate = kkt_current;
-                  Kx_candidate = Kx;
-                  KTy_candidate = KTy;
                }
                else {
                   z_candidate = z_averaged;
                   Kz_candidate = Kz_averaged;
                   mu_candidate = mu_averaged;
                   kkt_candidate = kkt_averaged;
-                  Kx_candidate = Kx_averaged;
-                  KTy_candidate = KTy_averaged;
                }
 
                if( this->maxRestartingInterval > 0 && t % this->maxRestartingInterval == 0 ) {
@@ -420,9 +397,8 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
       }  // if( this->averaging )
       auto new_x_view = z_candidate.getView( 0, n );
       auto new_y_view = z_candidate.getView( n, n + m1 + m2 );
-      Kx = Kx_candidate;
-      KTy = KTy_candidate;
-      new_x_precomputed = false;
+      Kx = Kz_candidate.getView( 0, m );
+      KTy = Kz_candidate.getView(m,N);
 
       const RealType epsilon = 1.0e-4;
       const RealType relative_duality_gap = kkt_candidate.getRelativeDualityGap();
@@ -766,6 +742,8 @@ PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z, const VectorType& K
    auto x = z.getConstView( 0, n );
    auto y = z.getConstView( n, N );
    auto c_view = c.getConstView();
+   //auto Kx = Kz.getConstView( 0, m );
+   //auto KTy = Kz.getConstView( m, N );
 
    // Compute error of the primal feasibility
    const RealType primal_feasibility = computePrimalFeasibility( q, Kx );

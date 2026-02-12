@@ -169,9 +169,8 @@ protected:
 
    // Supporting vectors
    VectorType z_new, Kz_current, Kz_averaged, Kz_candidate;
-   VectorType Kx, Kx_averaged, KTy, KTy_averaged, Kx_candidate, KTy_candidate, lambda;
-   VectorType new_x;
-   bool new_x_precomputed = false;
+   VectorType Kx, Kx_averaged, KTy;
+   VectorType lambda;
 
    RealType K_norm;
 
