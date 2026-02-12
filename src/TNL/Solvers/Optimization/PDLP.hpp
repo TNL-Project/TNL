@@ -125,11 +125,11 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 
    VectorType y( m, 0 );  // TODO: This should argument maybe
 
+   this->Kz.setSize(N);
    this->Kz_current.setSize(N);
    this->Kz_averaged.setSize(N);
    this->Kz_candidate.setSize(N);
    this->Kx.setSize( m );
-   this->Kx_averaged.setSize( m );
    this->KTy.setSize( n );
    this->lambda.setSize( n );
    //this->K_norm = Matrices::spectralNorm( K, KT );
@@ -265,17 +265,13 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                RealType mu_current, mu_averaged;
                KKTDataType kkt_current, kkt_averaged;
                if( restarting == PDLPRestarting::KKT || restarting == PDLPRestarting::Constant ) {
-                  auto KTy_view = KTy.getView();
 
-                  KTy_view = Kz_current.getView( m, N );
-                  VectorType KTy_averaged, Kx_averaged;
-                  KTy_averaged = Kz_averaged.getView( m, N );
-                  Kx_averaged = Kz_averaged.getView(0,m);
+                  KTy = Kz_current.getView( m, N );
 
-                  kkt_current = KKT( z_current.getView(), Kx, KTy );
+                  kkt_current = KKT( z_current, Kz_current );
                   mu_current = kkt_current.getKKTError( current_omega );
 
-                  kkt_averaged = KKT( z_averaged.getView(), Kx_averaged, KTy_averaged );
+                  kkt_averaged = KKT( z_averaged, Kz_averaged );
                   mu_averaged = kkt_averaged.getKKTError( current_omega );
                }
                else if( restarting == PDLPRestarting::DualityGap ) {
@@ -548,28 +544,6 @@ PDLP< LPProblem_, SolverMonitor >::computeKx( const ConstVectorView& x, VectorVi
 
 template< typename LPProblem_, typename SolverMonitor >
 void
-PDLP< LPProblem_, SolverMonitor >::computeKx( const ConstVectorView& x1,
-                                              const ConstVectorView& x2,
-                                              VectorView& Kx1,
-                                              VectorView& Kx2 )
-{
-   spmvTimer.start();
-   if( this->useCusparse && std::is_same_v< DeviceType, Devices::Cuda > ) {
-      this->cusparseK.vectorsProduct( x1, x2, Kx1, Kx2 );
-      //this->cusparseK.vectorProduct( x1, Kx1 );
-      //this->cusparseK.vectorProduct( x2, Kx2 );
-   }
-   else {
-      K.vectorsProduct( x1, x2, Kx1, Kx2, 1.0, 0.0, 0, 0, segmentsReductionKernel );
-      //K.vectorProduct( x1, Kx1, segmentsReductionKernel );
-      //K.vectorProduct( x2, Kx2, segmentsReductionKernel );
-   }
-   spmvTimer.stop();
-   this->KxComputations++;
-}
-
-template< typename LPProblem_, typename SolverMonitor >
-void
 PDLP< LPProblem_, SolverMonitor >::computeKTy( const ConstVectorView& y, VectorView& KTy )
 {
    spmvTimer.start();
@@ -578,28 +552,6 @@ PDLP< LPProblem_, SolverMonitor >::computeKTy( const ConstVectorView& y, VectorV
    }
    else
       KT.vectorProduct( y, KTy, segmentsReductionKernel );
-   spmvTimer.stop();
-   this->KTyComputations++;
-}
-
-template< typename LPProblem_, typename SolverMonitor >
-void
-PDLP< LPProblem_, SolverMonitor >::computeKTy( const ConstVectorView& y1,
-                                               const ConstVectorView& y2,
-                                               VectorView& KTy1,
-                                               VectorView& KTy2 )
-{
-   spmvTimer.start();
-   if( this->useCusparse && std::is_same_v< DeviceType, Devices::Cuda > ) {
-      this->cusparseKT.vectorsProduct( y1, y2, KTy1, KTy2 );
-      //this->cusparseKT.vectorProduct( y1, KTy1 );
-      //this->cusparseKT.vectorProduct( y2, KTy2 );
-   }
-   else {
-      KT.vectorsProduct( y1, y2, KTy1, KTy2, 1.0, 0.0, 0, 0, segmentsReductionKernel );
-      //KT.vectorProduct( y1, KTy1, segmentsReductionKernel );
-      //KT.vectorProduct( y2, KTy2, segmentsReductionKernel );
-   }
    spmvTimer.stop();
    this->KTyComputations++;
 }
@@ -636,7 +588,7 @@ PDLP< LPProblem_, SolverMonitor >::computeDualStep( const ConstVectorView& y,
 template< typename LPProblem_, typename SolverMonitor >
 void
 PDLP< LPProblem_, SolverMonitor >::computeLambda( const VectorType& c,
-                                                  const VectorType& KTy,
+                                                  const ConstVectorView& KTy,
                                                   const VectorType& l,
                                                   const VectorType& u,
                                                   VectorType& lambda )
@@ -671,7 +623,7 @@ PDLP< LPProblem_, SolverMonitor >::computeLambda( const VectorType& c,
 
 template< typename LPProblem_, typename SolverMonitor >
 auto
-PDLP< LPProblem_, SolverMonitor >::computePrimalFeasibility( const VectorType& q, const VectorType& Kx ) -> RealType
+PDLP< LPProblem_, SolverMonitor >::computePrimalFeasibility( const VectorType& q, const ConstVectorView& Kx ) -> RealType
 {
 #ifdef PRINTING
    std::cout << "PRIMAL.FS:     Kx = " << l2Norm( Kx ) << std::endl;
@@ -737,13 +689,13 @@ PDLP< LPProblem_, SolverMonitor >::primalDualGap( const VectorView& z, const Vec
 
 template< typename LPProblem_, typename SolverMonitor >
 auto
-PDLP< LPProblem_, SolverMonitor >::KKT( const VectorView& z, const VectorType& Kx, const VectorType& KTy ) -> KKTDataType
+PDLP< LPProblem_, SolverMonitor >::KKT( const VectorType& z, const VectorType& Kz ) -> KKTDataType
 {
    auto x = z.getConstView( 0, n );
    auto y = z.getConstView( n, N );
    auto c_view = c.getConstView();
-   //auto Kx = Kz.getConstView( 0, m );
-   //auto KTy = Kz.getConstView( m, N );
+   auto Kx = Kz.getConstView( 0, m );
+   auto KTy = Kz.getConstView( m, N );
 
    // Compute error of the primal feasibility
    const RealType primal_feasibility = computePrimalFeasibility( q, Kx );
