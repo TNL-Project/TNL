@@ -129,7 +129,6 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    this->Kz_current.setSize(N);
    this->Kz_averaged.setSize(N);
    this->Kz_candidate.setSize(N);
-   this->Kx.setSize( m );
    this->KTy.setSize( n );
    this->lambda.setSize( n );
    //this->K_norm = Matrices::spectralNorm( K, KT );
@@ -190,17 +189,17 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
    this->KxComputations = 0;
    this->KTyComputations = 0;
 
-   auto Kx_view = Kx.getView();
+   auto Kx_view = Kz.getView(0,m);
    computeKx( x, Kx_view );
-   auto KTy_view = KTy.getView();
+   auto KTy_view = Kz.getView(m,N);
    computeKTy( y, KTy_view );
+   KTy = KTy_view; // TODO: remove
 
    KKTDataType kkt_candidate, kkt_last_restart;
    VectorType z_candidate( N ), z_averaged( N ), z_last_restart( N ), z_last_iteration( N ), z_current( N );
    z_candidate.getView( 0, n ) = x;
    z_candidate.getView( n, N ) = y;
-   Kz_candidate.getView( 0, m ) = Kx;
-   Kz_candidate.getView( m, N ) = KTy;
+   Kz_candidate = Kz;
 
    RealType eta_sum( 0 ), mu_last_restart( std::numeric_limits< RealType >::infinity() ), mu_candidate( 0 ),
       mu_last_candidate( 0 );
@@ -393,8 +392,8 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
       }  // if( this->averaging )
       auto new_x_view = z_candidate.getView( 0, n );
       auto new_y_view = z_candidate.getView( n, n + m1 + m2 );
-      Kx = Kz_candidate.getView( 0, m );
-      KTy = Kz_candidate.getView(m,N);
+      Kz = Kz_candidate;
+      KTy = Kz_candidate.getView(m,N); // TODO:remove
 
       const RealType epsilon = 1.0e-4;
       const RealType relative_duality_gap = kkt_candidate.getRelativeDualityGap();
@@ -473,14 +472,15 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
 
       computePrimalStep( in_x, KTy, tau, out_x );
 
+      auto Kx_view = Kz.getView(0, m);
       auto Kx_new_view = Kz_current.getView(0, m);
       computeKx( out_x, Kx_new_view );
-      computeDualStep( in_y, Kx, Kx_new_view, sigma, out_y );
+      computeDualStep( in_y, Kx_view, Kx_new_view, sigma, out_y );
 
 #ifdef PRINTING
       std::cout << "Adpt. step       x = " << l2Norm( in_x ) << std::endl;
       std::cout << "Adpt. step       y = " << l2Norm( in_y ) << std::endl;
-      std::cout << "Adpt. step      Kx = " << l2Norm( Kx ) << std::endl;
+      std::cout << "Adpt. step      Kx = " << l2Norm( Kx_view ) << std::endl;
       std::cout << "Adpt. step     KTy = " << l2Norm( KTy ) << std::endl;
       std::cout << "Adpt. step   out_x = " << l2Norm( out_x ) << std::endl;
       std::cout << "Adpt. step   out_y = " << l2Norm( out_y ) << std::endl;
@@ -491,7 +491,7 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
       delta_y = out_y - in_y;
       const RealType movement = 0.5 * ( current_omega * ( delta_x, delta_x ) + ( delta_y, delta_y ) / current_omega );
 
-      const RealType interaction = abs( dot( Kx_new_view - Kx, delta_y ) );
+      const RealType interaction = abs( dot( Kx_new_view - Kx_view, delta_y ) );
       const RealType max_eta = interaction > 0 ? movement / interaction : std::numeric_limits< RealType >::infinity();
       RealType new_eta;
       if( this->adaptive_k == 0 && max_eta == std::numeric_limits< RealType >::infinity() )
@@ -518,7 +518,7 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
          std::cout << "Adpt. step   out_x = " << l2Norm( out_x ) << std::endl;
          std::cout << "Adpt. step   out_y = " << l2Norm( out_y ) << std::endl;
 #endif
-         Kx = Kx_new_view;
+         Kz.getView( 0, m ) = Kx_new_view;
          auto KTy_view = Kz_current.getView(m, N);
          computeKTy( out_y, KTy_view );
          return;
