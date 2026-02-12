@@ -163,7 +163,7 @@ protected:
 
    // Supporting vectors
    VectorType Kz, Kz_current, Kz_averaged, Kz_candidate;
-   VectorType Kx, KTy;
+   VectorType KTy;
    VectorType lambda;
 
    RealType K_norm;
