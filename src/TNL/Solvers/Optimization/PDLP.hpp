@@ -128,6 +128,7 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    //this->z_new.setSize(N);
    this->Kz_current.setSize(N);
    this->Kz_averaged.setSize(N);
+   this->Kz_candidate.setSize(N);
    this->Kx.setSize( m );
    //this->Kx_new.setSize( m );
    this->Kx_averaged.setSize( m );
@@ -204,6 +205,8 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
    VectorType z_candidate( N ), z_averaged( N ), z_last_restart( N ), z_last_iteration( N ), z_current( N );
    z_candidate.getView( 0, n ) = x;
    z_candidate.getView( n, N ) = y;
+   Kz_candidate.getView( 0, m ) = Kx;
+   Kz_candidate.getView( m, N ) = KTy;
 
    RealType eta_sum( 0 ), mu_last_restart( std::numeric_limits< RealType >::infinity() ), mu_candidate( 0 ),
       mu_last_candidate( 0 );
@@ -213,6 +216,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
 
       eta_sum = 0;
       z_last_iteration = z_last_restart = z_averaged = z_candidate;
+      Kz_averaged = Kz_candidate;
       if( ! this->averaging ) {
          adaptiveStep( z_last_iteration, z_candidate, k, current_omega, current_eta );
          k++;
@@ -270,17 +274,19 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   auto KTy_view = KTy.getView();
                   auto KTy_averaged_view = KTy_averaged.getView();
 
-                  computeKTy( z_current.getView( n, N ), KTy_view );
-                  computeKTy( z_averaged.getConstView( n, N ), KTy_averaged_view );
+                  //computeKTy( z_current.getView( n, N ), KTy_view );
+                  //computeKTy( z_averaged.getConstView( n, N ), KTy_averaged_view );
+                  KTy_view = Kz_current.getView( m, N );
+                  KTy_averaged = Kz_averaged.getView( m, N );
                   //computeKTy( z_current.getConstView( n, N ), z_averaged.getConstView( n, N ), KTy_view, KTy_averaged_view );
 
                   //const RealType tau = current_eta / current_omega;
                   //auto new_x_view = new_x.getView();
-                  auto Kx_new_view = Kz_current.getView(0,m);
-                  auto Kx_averaged_view = Kx_averaged.getView();
+                  //auto Kx_new_view = Kz_current.getView(0,m);
+                  Kx_averaged = Kz_averaged.getView(0,m);
                   //computePrimalStep( z_current.getConstView( 0, n ), KTy, tau, new_x_view );
 
-                  computeKx( z_averaged.getConstView( 0, n ), Kx_averaged_view );
+                  //computeKx( z_averaged.getConstView( 0, n ), Kx_averaged_view );
                   //computeKx( new_x.getConstView(), Kx_new_view );
                   //computeKx( z_averaged.getConstView( 0, n ), new_x.getConstView(), Kx_averaged_view, Kx_new_view );
                   //new_x_precomputed = true;
@@ -299,6 +305,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                // Get restart candidate
                if( mu_current <= mu_averaged ) {
                   z_candidate = z_current;
+                  Kz_candidate = Kz_current;
                   mu_candidate = mu_current;
                   kkt_candidate = kkt_current;
                   Kx_candidate = Kx;
@@ -306,6 +313,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                }
                else {
                   z_candidate = z_averaged;
+                  Kz_candidate = Kz_averaged;
                   mu_candidate = mu_averaged;
                   kkt_candidate = kkt_averaged;
                   Kx_candidate = Kx_averaged;
@@ -402,8 +410,10 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   break;
                }
             }  // if( restarting != PDLPRestarting::None )
-            else
+            else{
                z_candidate = z_averaged;
+               Kz_candidate = Kz_averaged;
+            }
             z_last_iteration = z_current;
             mu_last_candidate = mu_candidate;
          }  // while( t < max_restarting_steps && k < max_iterations );
