@@ -24,14 +24,9 @@ endif()
 
 foreach(target IN ITEMS ${COMMON_EXAMPLES})
     add_custom_command(
-        COMMAND
-        ${target}
-        >
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-        OUTPUT
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-        DEPENDS
-        ${target}
+        COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+        DEPENDS ${target}
     )
     set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
 endforeach()
@@ -45,15 +40,10 @@ if(TNL_BUILD_MPI)
 
         add_custom_command(
             COMMAND
-            "mpirun"
-            ${mpirun_parameters}
-            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            >
-            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT
-            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            DEPENDS
-            ${target}
+                "mpirun" ${mpirun_parameters} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}" >
+                ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            DEPENDS ${target}
         )
         set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
     endforeach()
