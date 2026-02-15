@@ -15,14 +15,9 @@ foreach(target IN ITEMS ${HOST_EXAMPLES})
     add_executable(${target} ${target}.cpp)
     target_link_libraries(${target} PUBLIC TNL::TNL)
     add_custom_command(
-        COMMAND
-        ${target}
-        >
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-        OUTPUT
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-        DEPENDS
-        ${target}
+        COMMAND ${target} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+        DEPENDS ${target}
     )
     set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
 endforeach()
@@ -33,14 +28,9 @@ if(TNL_BUILD_CUDA)
         target_link_libraries(${target} PUBLIC TNL::TNL)
         add_custom_command(
             COMMAND
-            ${target}
-            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}
-            >
-            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT
-            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            DEPENDS
-            ${target}
+                ${target} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            DEPENDS ${target}
         )
         set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
     endforeach()
@@ -50,14 +40,9 @@ else()
         target_link_libraries(${target} PUBLIC TNL::TNL)
         add_custom_command(
             COMMAND
-            ${target}
-            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}
-            >
-            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT
-            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            DEPENDS
-            ${target}
+                ${target} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            DEPENDS ${target}
         )
         set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
     endforeach()
@@ -80,16 +65,10 @@ if(TNL_BUILD_MPI)
 
         add_custom_command(
             COMMAND
-            "mpirun"
-            ${mpirun_parameters}
-            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
-            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}
-            >
-            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            OUTPUT
-            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
-            DEPENDS
-            ${target}
+                "mpirun" ${mpirun_parameters} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+                ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH} > ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out
+            DEPENDS ${target}
         )
         set(DOC_OUTPUTS ${DOC_OUTPUTS} ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/${target}.out)
     endforeach()
@@ -121,67 +100,52 @@ endif()
 if(TNL_PYTHON3_MATPLOTLIB_FOUND)
     add_custom_command(
         COMMAND
-        ${Python3_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-SineExample.py
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.out
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.png
-        OUTPUT
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.png
-        DEPENDS
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.out
+            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-SineExample.py
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.out
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.png
+        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.png
+        DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineExample.out
         VERBATIM
     )
 
     add_custom_command(
         COMMAND
-        ${Python3_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-SineParallelExample.py
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample-result.out
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.png
-        OUTPUT
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.png
-        DEPENDS
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.out
+            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-SineParallelExample.py
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample-result.out
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.png
+        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.png
+        DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-SineParallelExample.out
         VERBATIM
     )
 
     add_custom_command(
         COMMAND
-        ${Python3_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-LorenzExample.py
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.out
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.png
-        OUTPUT
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.png
-        DEPENDS
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.out
+            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-LorenzExample.py
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.out
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.png
+        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.png
+        DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzExample.out
         VERBATIM
     )
 
     add_custom_command(
         COMMAND
-        ${Python3_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-LorenzParallelExample.py
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-result.out
-        # NOTE: the script appends "-{sigma_idx}.png"
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample
-        OUTPUT
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-1.png
-        DEPENDS
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample.out
+            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/StaticODESolver-LorenzParallelExample.py
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-result.out
+            # NOTE: the script appends "-{sigma_idx}.png"
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample
+        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample-1.png
+        DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/StaticODESolver-LorenzParallelExample.out
         VERBATIM
     )
 
     add_custom_command(
         COMMAND
-        ${Python3_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/ODESolver-HeatEquationExample.py
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample-result.out
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
-        OUTPUT
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
-        DEPENDS
-        ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.out
+            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ODESolver-HeatEquationExample.py
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample-result.out
+            ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
+        OUTPUT ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.png
+        DEPENDS ${TNL_DOCUMENTATION_OUTPUT_SNIPPETS_PATH}/ODESolver-HeatEquationExample.out
         VERBATIM
     )
 
