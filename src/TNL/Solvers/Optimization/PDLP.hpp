@@ -126,10 +126,10 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
    VectorType y( m, 0 );  // TODO: This should argument maybe
 
    this->Kz.setSize(N);
+   this->Kz_last_iteration.setSize(N);
    this->Kz_current.setSize(N);
    this->Kz_averaged.setSize(N);
    this->Kz_candidate.setSize(N);
-   this->KTy.setSize( n );
    this->lambda.setSize( n );
    //this->K_norm = Matrices::spectralNorm( K, KT );
    //std::cout << "Constraint matrix spectral norm: " << this->K_norm << std::endl;
@@ -189,17 +189,17 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
    this->KxComputations = 0;
    this->KTyComputations = 0;
 
-   auto Kx_view = Kz.getView(0,m);
+   auto Kx_view = Kz_current.getView(0,m);
    computeKx( x, Kx_view );
-   auto KTy_view = Kz.getView(m,N);
+   auto KTy_view = Kz_current.getView(m,N);
    computeKTy( y, KTy_view );
-   KTy = KTy_view; // TODO: remove
+   Kz = Kz_current; // TODO: remove
 
    KKTDataType kkt_candidate, kkt_last_restart;
    VectorType z_candidate( N ), z_averaged( N ), z_last_restart( N ), z_last_iteration( N ), z_current( N );
    z_candidate.getView( 0, n ) = x;
    z_candidate.getView( n, N ) = y;
-   Kz_candidate = Kz;
+   //Kz_candidate = Kz;
 
    RealType eta_sum( 0 ), mu_last_restart( std::numeric_limits< RealType >::infinity() ), mu_candidate( 0 ),
       mu_last_candidate( 0 );
@@ -209,7 +209,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
 
       eta_sum = 0;
       z_last_iteration = z_last_restart = z_averaged = z_candidate;
-      Kz_averaged = Kz_candidate;
+      Kz_last_iteration = Kz_averaged = Kz_candidate = Kz_current = Kz; // TODO: remove Kz
       if( ! this->averaging ) {
          adaptiveStep( z_last_iteration, z_candidate, k, current_omega, current_eta );
          k++;
@@ -221,6 +221,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
             adaptiveStep( z_last_iteration, z_current, k, current_omega, current_eta );
             z_averaged = ( z_averaged * eta_sum + z_current * current_eta ) / ( eta_sum + current_eta );
             Kz_averaged = ( Kz_averaged * eta_sum + Kz_current * current_eta ) / ( eta_sum + current_eta );
+            Kz = Kz_current;  // TODO: Check this!!!!!!!!!!! - maybe we can have only Kz_current and we can avoid Kz altogether
             k++;
             t++;
 
@@ -250,7 +251,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                "y is not in the feasible region" );
 
             RealType current_primal_objective = ( c, z_current.getView( 0, n ) );
-            computeLambda( c, KTy, l, u, lambda );
+            computeLambda( c, Kz_current.getView( m, N ), l, u, lambda );
             const RealType current_dual_objective =
                ( q, z_current.getView( n, N ) ) + ( filtered_l, maximum( lambda, 0 ) ) + ( filtered_u, minimum( lambda, 0 ) );
             const RealType current_duality_gap = current_primal_objective - current_dual_objective;
@@ -264,8 +265,6 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                RealType mu_current, mu_averaged;
                KKTDataType kkt_current, kkt_averaged;
                if( restarting == PDLPRestarting::KKT || restarting == PDLPRestarting::Constant ) {
-
-                  KTy = Kz_current.getView( m, N );
 
                   kkt_current = KKT( z_current, Kz_current );
                   mu_current = kkt_current.getKKTError( current_omega );
@@ -309,7 +308,6 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                std::cout << "k = " << k << " t = " << t << std::endl;
                std::cout << "Restarting errs.: current = " << mu_current << " average = " << mu_averaged << std::endl;
                std::cout << "Artificial test: " << t << " >= " << beta_artificial * k << std::endl;
-               //printf( "Artificial test: %d >= %g * %d = %g\n", t, beta_artificial, k, beta_artificial * k );
 #endif
                if( t >= beta_artificial * k ) {
                   std::cout << "ARTIFICIAL restart to " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" )
@@ -318,9 +316,6 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   kkt_last_restart = kkt_candidate;
                   this->monitor.setRestarting( RestartingType::Artificial,
                                                mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
-                  //if( writeConvergenceGraphs )
-                  //   restarts_file << k << " ARTIFICIAL " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" ) <<
-                  //   std::endl;
                   break;
                }
 
@@ -333,11 +328,6 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                std::cout << "Restarting errs.: last restart = " << mu_last_restart << std::endl;
                std::cout << "Sufficient test: " << mu_candidate << " < " << beta_sufficient << " * " << mu_last_restart << " = "
                          << beta_sufficient * mu_last_restart << std::endl;
-               /*printf( "Sufficient test: %g < %g * %g = %g\n",
-                       mu_candidate,
-                       beta_sufficient,
-                       mu_last_restart,
-                       beta_sufficient * mu_last_restart );*/
 #endif
 
                if( mu_candidate <= beta_sufficient * mu_last_restart ) {
@@ -347,9 +337,6 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   kkt_last_restart = kkt_candidate;
                   this->monitor.setRestarting( RestartingType::Sufficient,
                                                mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
-                  //if( writeConvergenceGraphs )
-                  //   restarts_file << k << " SUFFICIENT " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" ) <<
-                  //   std::endl;
                   break;
                }
 
@@ -357,15 +344,6 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                std::cout << "Necessary test: " << mu_candidate << " < " << beta_necessary << " * " << mu_last_restart << " = "
                          << beta_necessary * mu_last_restart << " and " << mu_candidate << " > " << mu_last_candidate
                          << std::endl;
-               /*printf( "Necessary test k = %d t = %d: %g < %g * %g = %g and %g > %g\n",
-                       k,
-                       t,
-                       mu_candidate,
-                       beta_necessary,
-                       mu_last_restart,
-                       beta_necessary * mu_last_restart,
-                       mu_candidate,
-                       mu_last_candidate );*/
 #endif
 
                if( mu_candidate <= beta_necessary * mu_last_restart && mu_candidate > mu_last_candidate ) {
@@ -376,9 +354,6 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                   kkt_last_restart = kkt_candidate;
                   this->monitor.setRestarting( RestartingType::Necessary,
                                                mu_averaged <= mu_current ? RestartingTo::Average : RestartingTo::Current );
-                  //if( writeConvergenceGraphs )
-                  //   restarts_file << k << " NECESSARY " << ( mu_averaged <= mu_current ? "AVERAGE" : "CURRENT" ) <<
-                  //   std::endl;
                   break;
                }
             }  // if( restarting != PDLPRestarting::None )
@@ -387,13 +362,13 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
                Kz_candidate = Kz_averaged;
             }
             z_last_iteration = z_current;
+            Kz_last_iteration = Kz_current;
             mu_last_candidate = mu_candidate;
          }  // while( t < max_restarting_steps && k < max_iterations );
       }  // if( this->averaging )
       auto new_x_view = z_candidate.getView( 0, n );
       auto new_y_view = z_candidate.getView( n, n + m1 + m2 );
       Kz = Kz_candidate;
-      KTy = Kz_candidate.getView(m,N); // TODO:remove
 
       const RealType epsilon = 1.0e-4;
       const RealType relative_duality_gap = kkt_candidate.getRelativeDualityGap();
@@ -470,9 +445,9 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
                 << " dual step : " << sigma << std::endl;
 #endif
 
-      computePrimalStep( in_x, KTy, tau, out_x );
+      computePrimalStep( in_x, Kz_last_iteration.getView( m, N ), tau, out_x );
 
-      auto Kx_view = Kz.getView(0, m);
+      auto Kx_view = Kz_last_iteration.getView(0, m);
       auto Kx_new_view = Kz_current.getView(0, m);
       computeKx( out_x, Kx_new_view );
       computeDualStep( in_y, Kx_view, Kx_new_view, sigma, out_y );
@@ -481,7 +456,7 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
       std::cout << "Adpt. step       x = " << l2Norm( in_x ) << std::endl;
       std::cout << "Adpt. step       y = " << l2Norm( in_y ) << std::endl;
       std::cout << "Adpt. step      Kx = " << l2Norm( Kx_view ) << std::endl;
-      std::cout << "Adpt. step     KTy = " << l2Norm( KTy ) << std::endl;
+      std::cout << "Adpt. step     KTy = " << l2Norm( Kz_last_iteration.getView( m, N ) ) << std::endl;
       std::cout << "Adpt. step   out_x = " << l2Norm( out_x ) << std::endl;
       std::cout << "Adpt. step   out_y = " << l2Norm( out_y ) << std::endl;
 #endif
@@ -518,8 +493,8 @@ PDLP< LPProblem_, SolverMonitor >::adaptiveStep( const VectorType& in_z,
          std::cout << "Adpt. step   out_x = " << l2Norm( out_x ) << std::endl;
          std::cout << "Adpt. step   out_y = " << l2Norm( out_y ) << std::endl;
 #endif
-         Kz.getView( 0, m ) = Kx_new_view;
-         auto KTy_view = Kz_current.getView(m, N);
+         Kz_current.getView( 0, m ) = Kx_new_view;
+         auto KTy_view = Kz_current.getView( m, N );
          computeKTy( out_y, KTy_view );
          return;
       }

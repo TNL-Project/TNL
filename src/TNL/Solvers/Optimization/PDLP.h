@@ -162,8 +162,7 @@ protected:
    VectorType D1, D2;
 
    // Supporting vectors
-   VectorType Kz, Kz_current, Kz_averaged, Kz_candidate;
-   VectorType KTy;
+   VectorType Kz, Kz_last_iteration, Kz_current, Kz_averaged, Kz_candidate;
    VectorType lambda;
 
    RealType K_norm;
