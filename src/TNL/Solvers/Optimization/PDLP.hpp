@@ -125,7 +125,6 @@ PDLP< LPProblem_, SolverMonitor >::solve( const LPProblemType& lpProblem, Vector
 
    VectorType y( m, 0 );  // TODO: This should argument maybe
 
-   this->Kz.setSize(N);
    this->Kz_last_iteration.setSize(N);
    this->Kz_current.setSize(N);
    this->Kz_averaged.setSize(N);
@@ -189,17 +188,15 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
    this->KxComputations = 0;
    this->KTyComputations = 0;
 
-   auto Kx_view = Kz_current.getView(0,m);
+   auto Kx_view = Kz_last_iteration.getView(0,m);
    computeKx( x, Kx_view );
-   auto KTy_view = Kz_current.getView(m,N);
+   auto KTy_view = Kz_last_iteration.getView(m,N);
    computeKTy( y, KTy_view );
-   Kz = Kz_current; // TODO: remove
 
    KKTDataType kkt_candidate, kkt_last_restart;
    VectorType z_candidate( N ), z_averaged( N ), z_last_restart( N ), z_last_iteration( N ), z_current( N );
    z_candidate.getView( 0, n ) = x;
    z_candidate.getView( n, N ) = y;
-   //Kz_candidate = Kz;
 
    RealType eta_sum( 0 ), mu_last_restart( std::numeric_limits< RealType >::infinity() ), mu_candidate( 0 ),
       mu_last_candidate( 0 );
@@ -209,7 +206,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
 
       eta_sum = 0;
       z_last_iteration = z_last_restart = z_averaged = z_candidate;
-      Kz_last_iteration = Kz_averaged = Kz_candidate = Kz_current = Kz; // TODO: remove Kz
+      Kz_averaged = Kz_candidate = Kz_current = Kz_last_iteration;
       if( ! this->averaging ) {
          adaptiveStep( z_last_iteration, z_candidate, k, current_omega, current_eta );
          k++;
@@ -221,7 +218,6 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
             adaptiveStep( z_last_iteration, z_current, k, current_omega, current_eta );
             z_averaged = ( z_averaged * eta_sum + z_current * current_eta ) / ( eta_sum + current_eta );
             Kz_averaged = ( Kz_averaged * eta_sum + Kz_current * current_eta ) / ( eta_sum + current_eta );
-            Kz = Kz_current;  // TODO: Check this!!!!!!!!!!! - maybe we can have only Kz_current and we can avoid Kz altogether
             k++;
             t++;
 
@@ -368,7 +364,7 @@ PDLP< LPProblem_, SolverMonitor >::PDHG( VectorType& x, VectorType& y ) -> std::
       }  // if( this->averaging )
       auto new_x_view = z_candidate.getView( 0, n );
       auto new_y_view = z_candidate.getView( n, n + m1 + m2 );
-      Kz = Kz_candidate;
+      Kz_last_iteration = Kz_candidate;
 
       const RealType epsilon = 1.0e-4;
       const RealType relative_duality_gap = kkt_candidate.getRelativeDualityGap();
