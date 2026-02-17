@@ -12,6 +12,7 @@
 #include <TNL/Algorithms/fillRandom.h>
 #include "ShiftedPowerIteration.h"
 
+// NOLINTNEXTLINE(modernize-concat-nested-namespaces)
 namespace TNL::Solvers::Eigen {
 
 /**

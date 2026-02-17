@@ -5,6 +5,7 @@
 
 #include "detail/Quicksorter.h"
 
+// NOLINTNEXTLINE(modernize-concat-nested-namespaces)
 namespace TNL::Algorithms::Sorting {
 
 /**
