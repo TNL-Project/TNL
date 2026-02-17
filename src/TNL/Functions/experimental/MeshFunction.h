@@ -8,6 +8,7 @@
 #include <TNL/Pointers/SharedPointer.h>
 #include "Domain.h"
 
+// NOLINTNEXTLINE(modernize-concat-nested-namespaces)
 namespace TNL::Functions {
 
 /**

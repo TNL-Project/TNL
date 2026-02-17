@@ -10,6 +10,7 @@
 
 #pragma once
 
+// NOLINTNEXTLINE(modernize-concat-nested-namespaces)
 namespace TNL::Arithmetics {
 
 /**
