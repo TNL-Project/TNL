@@ -8,9 +8,12 @@
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
 #include <TNL/Algorithms/Sorting/BubbleSort.h>
-#include <TNL/Algorithms/Sorting/Quicksort.h>
+#include <TNL/Algorithms/Sorting/CUBMergeSort.h>
 #include <TNL/Algorithms/Sorting/STLSort.h>
 
+/**
+ * \brief  Namespace for sorting algorithms.
+ */
 namespace TNL::Algorithms::Sorting {
 
 template< typename Device >
@@ -31,7 +34,7 @@ struct DefaultSorter< Devices::Host >
 template<>
 struct DefaultSorter< Devices::Cuda >
 {
-   using SorterType = Algorithms::Sorting::Quicksort;
+   using SorterType = Algorithms::Sorting::CUBMergeSort;
 };
 
 template< typename Device >

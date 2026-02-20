@@ -1,6 +1,6 @@
 #pragma once
 
-#include <TNL/Arithmetics/Quad.h>
+#include <TNL/Arithmetics/experimental/Quad.h>
 #include <TNL/Containers/Array.h>
 #include <TNL/Algorithms/SegmentedScan.h>
 
@@ -8,7 +8,7 @@
 
 using namespace TNL;
 using namespace TNL::Containers;
-using namespace TNL::Arithmetics;
+using namespace TNL::Arithmetics::experimental;
 using namespace TNL::Algorithms;
 
 // should be small enough to have fast tests, but larger than minGPUReductionDataSize

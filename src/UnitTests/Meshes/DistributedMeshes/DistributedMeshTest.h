@@ -15,7 +15,7 @@
 #include <TNL/Meshes/DistributedMeshes/DistributedMesh.h>
 #include <TNL/Meshes/DistributedMeshes/distributeSubentities.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedMeshSynchronizer.h>
-#include <TNL/Functions/MeshFunction.h>
+#include <TNL/Functions/experimental/MeshFunction.h>
 #include <TNL/Meshes/Writers/PVTUWriter.h>
 #include <TNL/Meshes/Readers/PVTUReader.h>
 
@@ -621,7 +621,7 @@ testSynchronizerOnDevice_global_indices( const MeshType& mesh )
    using LocalMesh = Mesh< typename MeshType::Config, Device >;
    using DeviceMesh = DistributedMesh< LocalMesh >;
    using IndexType = typename MeshType::GlobalIndexType;
-   using MeshFunction = Functions::MeshFunction< LocalMesh, EntityType::getEntityDimension(), IndexType >;
+   using MeshFunction = TNL::Functions::experimental::MeshFunction< LocalMesh, EntityType::getEntityDimension(), IndexType >;
    using Synchronizer = DistributedMeshes::DistributedMeshSynchronizer< DeviceMesh, EntityType::getEntityDimension() >;
 
    // initialize
