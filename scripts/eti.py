@@ -6,7 +6,10 @@ import re
 import sys
 
 if len(sys.argv) != 2:
-    print(f"usage: {sys.argv[0]} FILE\n\nwhere FILE is a C++ source code or header file.", file=sys.stderr)
+    print(
+        f"usage: {sys.argv[0]} FILE\n\nwhere FILE is a C++ source code or header file.",
+        file=sys.stderr,
+    )
     sys.exit(1)
 if not os.path.isfile(sys.argv[1]):
     print(f"error: {sys.argv[1]} is not a valid file.", file=sys.stderr)
@@ -19,23 +22,25 @@ dirname = f"{basename}.templates"
 if not os.path.isdir(dirname):
     os.mkdir(dirname)
 
+
 def get_source_code(namespaces, extern_template_instantiation):
     eti = extern_template_instantiation.strip().replace("extern ", "", 1)
     # use absolute path for the include when src is an absolute path
     # (e.g. when called by CMake, because relative include does not work with
     # its separate build dir structure)
     if src == os.path.abspath(src):
-        source_code = f"#include \"{src}\"\n"
+        source_code = f'#include "{src}"\n'
     # use relative path for the include when src is relative
     else:
         relpath = os.path.relpath(src, dirname)
-        source_code = f"#include \"{relpath}\"\n"
+        source_code = f'#include "{relpath}"\n'
     for ns in namespaces:
         source_code += f"namespace {ns} {{\n"
     source_code += eti + "\n"
     for ns in namespaces:
         source_code += f"}} // namespace {ns}\n"
     return source_code
+
 
 def check_write(content, fname):
     write = False
@@ -47,6 +52,7 @@ def check_write(content, fname):
     if write is True:
         with open(fname, "w") as out:
             out.write(content)
+
 
 i = 0
 namespaces = []

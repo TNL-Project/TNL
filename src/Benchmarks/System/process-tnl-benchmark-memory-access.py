@@ -436,7 +436,7 @@ def writeElementSizeComparisonFigures(df):
                     orderings.append("interleaving")
                 for ordering in orderings:
                     print(
-                        f"Writing figure for element size comparison: {threads_count } threads {access} {test_type} {ordering}:"
+                        f"Writing figure for element size comparison: {threads_count} threads {access} {test_type} {ordering}:"
                     )
 
                     file_name = f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-bw.pdf"
