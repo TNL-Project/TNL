@@ -2,15 +2,12 @@
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
-import os
 import argparse
 import json
-import pandas as pd
-from pandas.io.json import json_normalize
-import matplotlib.pyplot as plt
-import numpy as np
-import math
 from os.path import exists
+
+import matplotlib.pyplot as plt
+import pandas as pd
 
 font_size = "15"
 threads = []
@@ -62,7 +59,6 @@ def processDf(df):
     multicolumns, df_data = get_multiindex()
 
     frames = []
-    in_idx = 0
     out_idx = 0
 
     sizes = list(set(df["array size"]))
@@ -97,7 +93,8 @@ def processDf(df):
             bandwidth = row["bandwidth"]
             cpu_cycles = row["cycles/op."]
             print(
-                f"Threads {threads_count} \t {access_type} \t {test_type} \t {ordering}  \t {element_size} \t {time} \t {bandwidth} \t {cpu_cycles} \r",
+                f"Threads {threads_count} \t {access_type} \t {test_type} \t {ordering}"
+                f" \t {element_size} \t {time} \t {bandwidth} \t {cpu_cycles} \r",
                 end="",
             )
             new_df.iloc[0][
@@ -151,7 +148,9 @@ def get_bandwidth(df, threads_count, access, test_type, ordering, element_size):
         except ValueError:
             bandwidth.append(0)
             print(
-                f"Warning wrong value of bandwidth: {bw} for threads count {threads_count}, access {access}, test type {test_type}, ordering {ordering}, element size {element_size} "
+                f"Warning wrong value of bandwidth: {bw} for threads count "
+                f"{threads_count}, access {access}, test type {test_type}, "
+                f"ordering {ordering}, element size {element_size} "
             )
     return bandwidth
 
@@ -175,7 +174,9 @@ def get_cpu_cycles(df, threads_count, access, test_type, ordering, element_size)
         except ValueError:
             cpu_cycles.append(0)
             print(
-                f"Warning wrong value of CPU cycles: {cycles} for threads count {threads_count}, access {access}, test type {test_type}, ordering {ordering}, element size {element_size} "
+                f"Warning wrong value of CPU cycles: {cycles} for threads count "
+                f"{threads_count}, access {access}, test type {test_type}, "
+                f"ordering {ordering}, element size {element_size} "
             )
     return cpu_cycles
 
@@ -214,7 +215,9 @@ def writeGeneralFigures(df):
                 for ordering in orderings:
                     for element_size in element_sizes:
                         print(
-                            f"Writing figures for benchmark: {access} threads={threads_count} {test_type} {ordering} element size = {element_size}:"
+                            f"Writing figures for benchmark: {access} "
+                            f"threads={threads_count} {test_type} {ordering} "
+                            f"element size = {element_size}:"
                         )
                         bandwidth = get_bandwidth(
                             df, threads_count, access, test_type, ordering, element_size
@@ -226,7 +229,7 @@ def writeGeneralFigures(df):
                         print(f"   CPU cycles: {cpu_cycles}")
                         max_bandwidth = max(bandwidth)
 
-                        file_name = f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-bw.pdf"
+                        file_name = f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-bw.pdf"  # noqa: E501
                         data_set = [bandwidth]
                         legend = [f"{access} access {threads_count} threads"]
                         legend_location = "upper right"
@@ -239,7 +242,7 @@ def writeGeneralFigures(df):
                             [0, 1.2 * max_bandwidth],
                         )
 
-                        file_name = f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf"
+                        file_name = f"{access}-{threads_count}-threads-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf"  # noqa: E501
                         data_set = [cpu_cycles]
                         legend = [f"{access} access {threads_count} threads"]
                         legend_location = "upper left"
@@ -257,10 +260,11 @@ def writeSequentialRandomComparisonFigures(df):
             ordering = "blocks"
             for element_size in element_sizes:
                 print(
-                    f"Writing figure for comparison of sequential and random access: {test_type} element size = {element_size}:"
+                    f"Writing figure for comparison of sequential and random access: "
+                    f"{test_type} element size = {element_size}:"
                 )
 
-                file_name = f"sequential-random-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf"
+                file_name = f"sequential-random-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf"  # noqa: E501
                 data_set = []
                 legend = []
                 for access in accesses:
@@ -273,7 +277,7 @@ def writeSequentialRandomComparisonFigures(df):
                 legend_location = "lower left"
                 writeFigure(file_name, data_set, legend, legend_location, sizes, [])
 
-                file_name = f"sequential-random-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf"
+                file_name = f"sequential-random-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf"  # noqa: E501
                 data_set = []
                 legend = []
                 for access in accesses:
@@ -299,10 +303,12 @@ def writeThreadsCountComparisonFigures(df):
             for ordering in orderings:
                 for element_size in element_sizes:
                     print(
-                        f"Writing figure for threads count comparison: {access} {test_type} {ordering} element size = {element_size}:"
+                        f"Writing figure for threads count comparison: "
+                        f"{access} {test_type} {ordering} "
+                        f"element size = {element_size}:"
                     )
 
-                    file_name = f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-bw.pdf"
+                    file_name = f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-bw.pdf"  # noqa: E501
                     data_set = []
                     legend = []
                     for threads_count in threads:
@@ -322,7 +328,7 @@ def writeThreadsCountComparisonFigures(df):
                     legend_location = "upper right"
                     writeFigure(file_name, data_set, legend, legend_location, sizes, [])
 
-                    file_name = f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf"
+                    file_name = f"threads-comparison-{access}-{test_type}-{ordering}-element-size-{element_size}-cycles.pdf"  # noqa: E501
                     data_set = []
                     legend = []
                     for threads_count in threads:
@@ -352,10 +358,11 @@ def writeReadWriteComparisonFigures(df):
             ordering = "blocks"
             for element_size in element_sizes:
                 print(
-                    f"Writing figure for comparison of read and write access: {access} {ordering} element size = {element_size}:"
+                    f"Writing figure for comparison of read and write access: "
+                    f"{access} {ordering} element size = {element_size}:"
                 )
 
-                file_name = f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-bw.pdf"
+                file_name = f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-bw.pdf"  # noqa: E501
                 data_set = []
                 legend = []
                 for test_type in ["read", "write"]:
@@ -368,7 +375,7 @@ def writeReadWriteComparisonFigures(df):
                 legend_location = "lower left"
                 writeFigure(file_name, data_set, legend, legend_location, sizes, [])
 
-                file_name = f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-cycles.pdf"
+                file_name = f"read-write-comparison-{access}-{threads_count}-threads-{ordering}-element-size-{element_size}-cycles.pdf"  # noqa: E501
                 data_set = []
                 legend = []
                 for test_type in ["read", "write"]:
@@ -394,10 +401,11 @@ def writeBlocksInterleavingComparisonFigures(df):
             for element_size in element_sizes:
                 access = "sequential"
                 print(
-                    f"Writing figure for comparison of interleaved and blocked ordering: {test_type} element size = {element_size}:"
+                    f"Writing figure for comparison of interleaved and blocked "
+                    f"ordering: {test_type} element size = {element_size}:"
                 )
 
-                file_name = f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf"
+                file_name = f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-bw.pdf"  # noqa: E501
                 data_set = []
                 legend = []
                 for ordering in orderings:
@@ -410,7 +418,7 @@ def writeBlocksInterleavingComparisonFigures(df):
                 legend_location = "upper right"
                 writeFigure(file_name, data_set, legend, legend_location, sizes, [])
 
-                file_name = f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf"
+                file_name = f"blocked-interleaved-comparison-{threads_count}-threads-{test_type}-element-size-{element_size}-cycles.pdf"  # noqa: E501
                 data_set = []
                 legend = []
                 for ordering in orderings:
@@ -436,10 +444,11 @@ def writeElementSizeComparisonFigures(df):
                     orderings.append("interleaving")
                 for ordering in orderings:
                     print(
-                        f"Writing figure for element size comparison: {threads_count} threads {access} {test_type} {ordering}:"
+                        f"Writing figure for element size comparison: "
+                        f"{threads_count} threads {access} {test_type} {ordering}:"
                     )
 
-                    file_name = f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-bw.pdf"
+                    file_name = f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-bw.pdf"  # noqa: E501
                     data_set = []
                     legend = []
                     for element_size in element_sizes:
@@ -457,7 +466,7 @@ def writeElementSizeComparisonFigures(df):
                     legend_location = "upper right"
                     writeFigure(file_name, data_set, legend, legend_location, sizes, [])
 
-                    file_name = f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-cycles.pdf"
+                    file_name = f"element-size-comparison-{threads_count}-threads-{access}-{test_type}-{ordering}-cycles.pdf"  # noqa: E501
                     data_set = []
                     legend = []
                     for element_size in element_sizes:
@@ -522,7 +531,7 @@ for key in keys:
 
 df.to_html("tnl-benchmark-memory-access-raw.html")
 frame = processDf(df)
-frame.to_html(f"tnl-benchmark-memory-access.html")
+frame.to_html("tnl-benchmark-memory-access.html")
 writeGeneralFigures(frame)
 writeSequentialRandomComparisonFigures(frame)
 writeThreadsCountComparisonFigures(frame)

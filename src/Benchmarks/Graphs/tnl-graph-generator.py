@@ -4,8 +4,9 @@
 
 import argparse
 import random
-import networkx as nx
 from itertools import combinations
+
+import networkx as nx
 
 
 def generate_random_graph(nodes, edges, edge_weights_distribution):
@@ -70,7 +71,8 @@ def main():
             "beta",
         ],
         default="normal",
-        help='Distribution of edge weights: "uniform", "normal", "exponential", "poisson", "lognormal", "triangular", or "beta"',
+        help='Distribution of edge weights: "uniform", "normal", "exponential", '
+        '"poisson", "lognormal", "triangular", or "beta"',
     )
     parser.add_argument(
         "--file-name",

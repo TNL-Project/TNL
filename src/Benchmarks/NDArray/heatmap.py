@@ -1,9 +1,9 @@
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
-import pandas as pd
-import matplotlib.pyplot as plt
 import matplotlib.patheffects as path_effects
+import matplotlib.pyplot as plt
+import pandas as pd
 
 # Load the CSV file
 file_path = "2D CPU.csv"  # Update with your local file path
@@ -12,7 +12,7 @@ gpu_6d_data = pd.read_csv(file_path)
 
 # Define the heatmap function
 def display_6d_gpu_heatmap_save(
-    dataframe, title, vmin=0, vmax=100, output_path="2D_СPU_Heatmap.svg"
+    dataframe, title, vmin=0, vmax=100, output_path="2D_CPU_Heatmap.svg"
 ):
     # Clean the 'Axis' column and convert it to integer for better labeling
     dataframe["Axis"] = dataframe["Axis"].astype(float).astype(int)
@@ -25,7 +25,7 @@ def display_6d_gpu_heatmap_save(
     # Plot heatmap
     plt.figure(figsize=(10, 8))  # Adjust figure size for 6D data
     plt.title(title, fontsize=15)  # Title font size 22
-    heatmap = plt.imshow(
+    plt.imshow(
         heatmap_data,
         cmap="viridis",
         interpolation="nearest",
@@ -74,10 +74,10 @@ def display_6d_gpu_heatmap_save(
 
 
 # Generate and save the heatmap
-output_file_path = "6D_СPU_Heatmap.svg"
+output_file_path = "6D_CPU_Heatmap.svg"
 display_6d_gpu_heatmap_save(
     gpu_6d_data,
-    "6D СPU Bandwidth Heatmap",
+    "6D CPU Bandwidth Heatmap",
     vmin=0,
     vmax=100,
     output_path=output_file_path,

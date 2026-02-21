@@ -2,14 +2,10 @@
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
-import os
 import json
-import pandas as pd
-from pandas.io.json import json_normalize
-import matplotlib.pyplot as plt
-import numpy as np
-import math
 from os.path import exists
+
+import pandas as pd
 
 devices = ["sequential", "host", "cuda"]
 precisions = ["float", "double"]
@@ -39,4 +35,4 @@ for key in keys:
     if key in df.keys():
         df[key] = pd.to_numeric(df[key])
 
-df.to_html(f"tnl-benchmark-grid.html")
+df.to_html("tnl-benchmark-grid.html")
