@@ -1,0 +1,35 @@
+target-version = "py312"
+builtins = ["_"]
+line-length = 88
+
+[lint]
+select = [
+    #"ANN",   # flake8-annotations
+    "ASYNC", # flake8-async
+    "C90",   # mccabe
+    "DTZ",   # flake8-datetimez
+    "E",     # pycodestyle errors
+    "EXE",   # flake8-executable
+    "F",     # Pyflakes
+    "FA",    # flake8-future-annotations
+    "FLY",   # flynt
+    "G",     # flake8-logging-format
+    "I",     # isort
+    "ICN",   # flake8-import-conventions
+    "ISC",   # flake8-implicit-str-concat
+    "LOG",   # flake8-logging
+    "PIE",   # flake8-pie
+    "PLC",   # Pylint conventions
+    "PLE",   # Pylint errors
+    "PLW",   # Pylint warnings
+    "RSE",   # flake8-raise
+    "RUF",   # Ruff-specific rules
+    "SLOT",  # flake8-slot
+    "T10",   # flake8-debugger
+    "UP",    # pyupgrade
+    "W",     # pycodestyle warnings
+    "YTT",   # flake8-2020
+]
+
+[lint.mccabe]
+max-complexity = 20 # for C901 errors (default: 10)
