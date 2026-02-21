@@ -562,18 +562,30 @@ copyright-headers:
         - git --no-pager diff --color=always --exit-code
     interruptible: true
 
-python-black:
+ruff format:
     stage: lint
-    rules:
-        - changes:
-            - src/**/*.py
-            - Documentation/**/*.py
-            - .gitlab-ci.yml
-    image: "quay.io/archlinux/archlinux:latest"
+    image: "quay.io/archlinux/archlinux:base"
     before_script:
-        - pacman -Syu --needed --noconfirm python-black python-colorama
+        - pacman -Syu --needed --noconfirm ruff
     script:
-        - black --color --diff --check Documentation/ src/
+        - ruff format --diff
+    variables:
+        FORCE_COLOR: 1
+    interruptible: true
+
+ruff check:
+    stage: lint
+    image: "quay.io/archlinux/archlinux:base"
+    before_script:
+        - pacman -Syu --needed --noconfirm ruff
+    script:
+        - ruff check --exit-zero
+        - ruff check --output-format=gitlab > code-quality-report.json
+    variables:
+        FORCE_COLOR: 1
+    artifacts:
+        reports:
+            codequality: $CI_PROJECT_DIR/code-quality-report.json
     interruptible: true
 
 typos:
