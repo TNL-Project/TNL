@@ -45,7 +45,7 @@ def get_source_code(namespaces, extern_template_instantiation):
 def check_write(content, fname):
     write = False
     if os.path.isfile(fname):
-        write = open(fname, "r").read().strip() != content.strip()
+        write = open(fname).read().strip() != content.strip()
     else:
         write = True
 

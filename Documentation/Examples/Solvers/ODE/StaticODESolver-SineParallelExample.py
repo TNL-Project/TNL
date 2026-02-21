@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -10,7 +11,7 @@ plt.rcParams["text.usetex"] = True
 
 ###
 # Parse the input file
-f = open(sys.argv[1], "r")
+f = open(sys.argv[1])
 current_c = 0.0
 x_lst = []
 u_lst = []
@@ -18,9 +19,9 @@ x_data = []
 u_data = []
 parameters = []
 
-for line in f:
-    line = line.strip()
-    a = line.split()
+for _line in f:
+    _line = _line.strip()
+    a = _line.split()
     if not a:
         continue
     if a[0] == "#":

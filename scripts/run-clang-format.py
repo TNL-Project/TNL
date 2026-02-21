@@ -9,30 +9,21 @@ A diff output is produced and a sensible exit code is returned.
 Upstream page: https://github.com/Sarcasm/run-clang-format
 Local modifications:
     - DEFAULT_CLANG_FORMAT_EXECUTABLE, p-clang-format
+    - Modernized for Python 3.12+, fixed ruff linting errors
 """
 
-from __future__ import print_function, unicode_literals
-
 import argparse
-import codecs
 import difflib
-import fnmatch
-import io
 import errno
+import fnmatch
 import multiprocessing
 import os
 import signal
 import subprocess
 import sys
 import traceback
-
 from functools import partial
-
-try:
-    from subprocess import DEVNULL  # py3k
-except ImportError:
-    DEVNULL = open(os.devnull, "wb")
-
+from subprocess import DEVNULL
 
 DEFAULT_EXTENSIONS = "c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx,cu,hip"
 DEFAULT_CLANG_FORMAT_IGNORE = ".clang-format-ignore"
@@ -53,7 +44,7 @@ class ExitStatus:
 def excludes_from_file(ignore_file):
     excludes = []
     try:
-        with io.open(ignore_file, "r", encoding="utf-8") as f:
+        with open(ignore_file, encoding="utf-8") as f:
             for line in f:
                 if line.startswith("#"):
                     # ignore comments
@@ -63,7 +54,7 @@ def excludes_from_file(ignore_file):
                     # allow empty lines
                     continue
                 excludes.append(pattern)
-    except EnvironmentError as e:
+    except OSError as e:
         if e.errno != errno.ENOENT:
             raise
     return excludes
@@ -108,8 +99,8 @@ def make_diff(file, original, reformatted):
         difflib.unified_diff(
             original,
             reformatted,
-            fromfile="{}\t(original)".format(file),
-            tofile="{}\t(reformatted)".format(file),
+            fromfile=f"{file}\t(original)",
+            tofile=f"{file}\t(reformatted)",
             n=3,
         )
     )
@@ -117,13 +108,13 @@ def make_diff(file, original, reformatted):
 
 class DiffError(Exception):
     def __init__(self, message, errs=None):
-        super(DiffError, self).__init__(message)
+        super().__init__(message)
         self.errs = errs or []
 
 
 class UnexpectedError(Exception):
     def __init__(self, message, exc=None):
-        super(UnexpectedError, self).__init__(message)
+        super().__init__(message)
         self.formatted_traceback = traceback.format_exc()
         self.exc = exc
 
@@ -135,14 +126,14 @@ def run_clang_format_diff_wrapper(args, file):
     except DiffError:
         raise
     except Exception as e:
-        raise UnexpectedError("{}: {}: {}".format(file, e.__class__.__name__, e), e)
+        raise UnexpectedError(f"{file}: {e.__class__.__name__}: {e}", e)
 
 
 def run_clang_format_diff(args, file):
     try:
-        with io.open(file, "r", encoding="utf-8") as f:
+        with open(file, encoding="utf-8") as f:
             original = f.readlines()
-    except IOError as exc:
+    except OSError as exc:
         raise DiffError(str(exc))
 
     if args.in_place:
@@ -175,9 +166,7 @@ def run_clang_format_diff(args, file):
     #   > -- http://clang.llvm.org/docs/InternalsManual.html#internals-diag-translation
     #
     # It's not pretty, due to Python 2 & 3 compatibility.
-    encoding_py3 = {}
-    if sys.version_info[0] >= 3:
-        encoding_py3["encoding"] = "utf-8"
+    encoding = "utf-8"
 
     try:
         proc = subprocess.Popen(
@@ -185,31 +174,22 @@ def run_clang_format_diff(args, file):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
-            **encoding_py3,
+            encoding=encoding,
         )
     except OSError as exc:
         raise DiffError(
-            "Command '{}' failed to start: {}".format(
-                subprocess.list2cmdline(invocation), exc
-            )
+            f"Command '{subprocess.list2cmdline(invocation)}' failed to start: {exc}"
         )
     proc_stdout = proc.stdout
     proc_stderr = proc.stderr
-    if sys.version_info[0] < 3:
-        # make the pipes compatible with Python 3,
-        # reading lines should output unicode
-        encoding = "utf-8"
-        proc_stdout = codecs.getreader(encoding)(proc_stdout)
-        proc_stderr = codecs.getreader(encoding)(proc_stderr)
     # hopefully the stderr pipe won't get full and block the process
     outs = list(proc_stdout.readlines())
     errs = list(proc_stderr.readlines())
     proc.wait()
     if proc.returncode:
         raise DiffError(
-            "Command '{}' returned non-zero exit status {}".format(
-                subprocess.list2cmdline(invocation), proc.returncode
-            ),
+            f"Command '{subprocess.list2cmdline(invocation)}' "
+            f"returned non-zero exit status {proc.returncode}",
             errs,
         )
     if args.in_place:
@@ -250,17 +230,14 @@ def colorize(diff_lines):
 def print_diff(diff_lines, use_color):
     if use_color:
         diff_lines = colorize(diff_lines)
-    if sys.version_info[0] < 3:
-        sys.stdout.writelines((l.encode("utf-8") for l in diff_lines))
-    else:
-        sys.stdout.writelines(diff_lines)
+    sys.stdout.writelines(diff_lines)
 
 
 def print_trouble(prog, message, use_colors):
     error_text = "error:"
     if use_colors:
         error_text = bold_red(error_text)
-    print("{}: {} {}".format(prog, error_text, message), file=sys.stderr)
+    print(f"{prog}: {error_text} {message}", file=sys.stderr)
 
 
 def main():
@@ -273,9 +250,7 @@ def main():
     )
     parser.add_argument(
         "--extensions",
-        help="comma separated list of file extensions (default: {})".format(
-            DEFAULT_EXTENSIONS
-        ),
+        help=f"comma separated list of file extensions (default: {DEFAULT_EXTENSIONS})",
         default=DEFAULT_EXTENSIONS,
     )
     parser.add_argument(
@@ -322,7 +297,10 @@ def main():
         metavar="PATTERN",
         action="append",
         default=[],
-        help="exclude paths matching the given glob-like pattern(s) from recursive search",
+        help=(
+            "exclude paths matching the given glob-like pattern(s) from "
+            "recursive search"
+        ),
     )
     parser.add_argument(
         "--style",
@@ -351,7 +329,7 @@ def main():
         colored_stdout = sys.stdout.isatty()
         colored_stderr = sys.stderr.isatty()
 
-    version_invocation = [args.clang_format_executable, str("--version")]
+    version_invocation = [args.clang_format_executable, "--version"]
     try:
         subprocess.check_call(version_invocation, stdout=DEVNULL)
     except subprocess.CalledProcessError as e:
@@ -360,9 +338,8 @@ def main():
     except OSError as e:
         print_trouble(
             parser.prog,
-            "Command '{}' failed to start: {}".format(
-                subprocess.list2cmdline(version_invocation), e
-            ),
+            f"Command '{subprocess.list2cmdline(version_invocation)}' "
+            f"failed to start: {e}",
             use_colors=colored_stderr,
         )
         return ExitStatus.TROUBLE

@@ -1,11 +1,12 @@
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
-import pandas as pd
 import json
 
+import pandas as pd
+
 # Read the log file line by line
-with open("tnl-benchmark-ndarray-reduction.log", "r") as file:
+with open("tnl-benchmark-ndarray-reduction.log") as file:
     lines = file.readlines()
 
 # Initialize empty lists to store extracted values

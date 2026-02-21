@@ -6,12 +6,13 @@ import fnmatch
 import os
 import re
 import sys
+import textwrap
 from string import Template
 
 default_template = """\
 ${lineCommentToken} SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 ${lineCommentToken} SPDX-License-Identifier: MIT
-"""
+"""  # noqa: E501
 
 # for each processing type, the detailed settings of how to process files of that type
 TYPE_SETTINGS = {
@@ -45,31 +46,29 @@ def parse_command_line(argv):
     :param argv: the actual program arguments
     :return: parsed arguments
     """
-    import textwrap
-
     known_extensions = [
         ftype + ":" + ",".join(conf["extensions"])
         for ftype, conf in TYPE_SETTINGS.items()
         if "extensions" in conf
     ]
-    # known_extensions = [ext for ftype in typeSettings.values() for ext in ftype["extensions"]]
 
     argv0 = os.path.basename(argv[0])
     example = textwrap.dedent(
         f"""
-      Known extensions: {known_extensions}
+        Known extensions: {known_extensions}
 
-      If -t/--tmpl is specified, that header is added to (or existing header replaced for) all source files of known type
-      If -t/--tmpl is not specified by -y/--years is specified, all years in existing header files
-        are replaced with the years specified
+        If -t/--tmpl is specified, that header is added to (or existing header replaced
+            for) all source files of known type
+        If -t/--tmpl is not specified by -y/--years is specified, all years in existing
+            header files are replaced with the years specified
 
-      Examples:
-        {argv0} -t lgpl-v3 -y 2012-2014 -o ThisNiceCompany -n ProjectName -u http://the.projectname.com
-        {argv0} -y 2012-2015
-        {argv0} -y 2012-2015 -d /dir/where/to/start/
-        {argv0} -t .copyright.tmpl -cy
-        {argv0} -t .copyright.tmpl -cy -f some_file.cpp
-    """
+        Examples:
+            {argv0} -t lgpl-v3 -y 2012-2014 -o ThisNiceCompany -n ProjectName -u http://the.projectname.com
+            {argv0} -y 2012-2015
+            {argv0} -y 2012-2015 -d /dir/where/to/start/
+            {argv0} -t .copyright.tmpl -cy
+            {argv0} -t .copyright.tmpl -cy -f some_file.cpp
+        """
     )
     parser = argparse.ArgumentParser(
         description="copyright header updater",
@@ -195,9 +194,9 @@ def read_file(file, args, settings):
     :param file: the file to read
     :param args: the options specified by the user
     :return: a dictionary with the following entries:
-      - skip: number of lines at the beginning to skip (always keep them when replacing or adding something)
-       can also be seen as the index of the first line not to skip
-      - headStart: index of first line of detected header, or None if non header detected
+      - skip: number of lines at the beginning to skip (always keep them when replacing
+        or adding something) can also be seen as the index of the first line not to skip
+      - headStart: index of first line of detected header, or None if no header detected
       - headEnd: index of last line of detected header, or None
       - settings: the type settings
     """
@@ -205,7 +204,7 @@ def read_file(file, args, settings):
     head_start = None
     head_end = None
 
-    with open(file, "r") as f:
+    with open(file) as f:
         lines = f.readlines()
 
     # now iterate throw the lines and try to determine the various indies
@@ -246,7 +245,8 @@ def read_file(file, args, settings):
             }
         i = i + 1
 
-    # now we have either reached the end, or we are at a line where a block start or line comment occurred
+    # now we have either reached the end, or we are at a line where a block start or
+    # line comment occurred
     # if we have reached the end, return default dictionary without info
     if i == len(lines):
         return {
@@ -268,8 +268,8 @@ def read_file(file, args, settings):
                     "headEnd": j,
                     "settings": settings,
                 }
-        # if we went through all the lines without finding an end, maybe we have some syntax error or some other
-        # unusual situation, so lets return no header
+        # if we went through all the lines without finding an end, maybe we have some
+        # syntax error or some other unusual situation, so lets return no header
         return {
             "lines": lines,
             "skip": skip,
@@ -287,8 +287,9 @@ def read_file(file, args, settings):
                     "headEnd": j - 1,
                     "settings": settings,
                 }
-        # if we went through all the lines without finding the end of the block, it could be that the whole
-        # file only consisted of the header, so lets return the last line index
+        # if we went through all the lines without finding the end of the block, it
+        # could be that the whole file only consisted of the header, so lets return
+        # the last line index
         return {
             "lines": lines,
             "skip": skip,
@@ -412,7 +413,7 @@ def main():
             if os.path.isfile(arguments.tmpl):
                 template_file = os.path.abspath(arguments.tmpl)
                 print(f"Using template from file {template_file}")
-                with open(template_file, "r") as f:
+                with open(template_file) as f:
                     template_lines = f.readlines()
             else:
                 print(
@@ -425,9 +426,11 @@ def main():
 
     if template_lines is not None:
         template_settings = {}
-        template_settings["current_year"] = str(datetime.datetime.now().year)
+        template_settings["current_year"] = str(
+            datetime.datetime.now(tz=datetime.UTC).year
+        )
         if arguments.current_year:
-            template_settings["years"] = current_year
+            template_settings["years"] = arguments.current_year
         elif arguments.years:
             template_settings["years"] = arguments.years
         if arguments.owner:
@@ -442,8 +445,7 @@ def main():
     name2type = {}
     patterns = []
 
-    for t in TYPE_SETTINGS:
-        settings = TYPE_SETTINGS[t]
+    for t, settings in TYPE_SETTINGS.items():
         exts = settings["extensions"]
         if "filenames" in settings:
             names = settings["filenames"]
@@ -458,8 +460,8 @@ def main():
             name2type[name] = t
             patterns.append(name)
 
-    # now do the actual processing: if we did not get some error, we have a template loaded or
-    # no template at all
+    # now do the actual processing: if we did not get some error, we have a template
+    # loaded or no template at all
     # if we have no template, then we will have the years.
     # now process all the files and either replace the years or replace/add the header
     paths = []
@@ -472,9 +474,8 @@ def main():
         return 1
 
     for file in paths:
-        file = os.path.normpath(file)
         process_file(
-            file,
+            os.path.normpath(file),
             arguments,
             TYPE_SETTINGS,
             ext2type,

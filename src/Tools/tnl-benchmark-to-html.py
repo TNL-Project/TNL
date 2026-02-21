@@ -2,12 +2,20 @@
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
-import sys
 import os.path
-import matplotlib.pyplot as plt
+import sys
 
-from TNL.BenchmarkLogs import *
-from TNL.BenchmarkPlots import *
+import matplotlib.pyplot as plt
+from TNL.BenchmarkLogs import (
+    dict_to_html_table,
+    gen_dataframes_per_operation,
+    get_benchmark_metadata,
+)
+from TNL.BenchmarkPlots import (
+    get_image_html_tag,
+    heatmaps_bandwidth,
+    plot_bandwidth_vs_size,
+)
 
 if len(sys.argv) < 2 or len(sys.argv) > 3:
     print(
@@ -59,7 +67,7 @@ with open(htmlFile, "w") as f:
         print(dict_to_html_table(metadata), file=f)
 
     # create a TOC
-    print(f"<h2>Table of contents</h2>", file=f)
+    print("<h2>Table of contents</h2>", file=f)
     print("<ol>", file=f)
     for op, df in dataframes:
         id = op.replace(" ", "_")

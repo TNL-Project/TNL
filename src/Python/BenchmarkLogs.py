@@ -1,17 +1,17 @@
-#!/usr/bin/python3
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
 __all__ = [
     "dict_to_html_table",
-    "get_benchmark_metadata",
-    "get_benchmark_dataframe",
     "gen_dataframes_per_operation",
+    "get_benchmark_dataframe",
+    "get_benchmark_metadata",
 ]
 
-import os.path
 import json
-import pandas
+import os.path
+
+import pandas as pd
 
 
 def dict_to_html_table(data):
@@ -37,7 +37,7 @@ def get_benchmark_metadata(filename):
         filename = os.path.splitext(filename)[0] + ".metadata.json"
     if os.path.isfile(filename):
         print(f"Parsing metadata from file {filename}")
-        with open(filename, "r") as file:
+        with open(filename) as file:
             metadata = json.load(file)
         return metadata
     print(f"Metadata file {filename} does not exist")
@@ -52,11 +52,11 @@ def get_benchmark_dataframe(logFile):
     :returns: pandas.DataFrame instance
     """
     print(f"Parsing input file {logFile}")
-    with open(logFile, "r") as file:
-        df = pandas.read_json(file, orient="records", lines=True)
+    with open(logFile) as file:
+        df = pd.read_json(file, orient="records", lines=True)
         # convert "N/A" in the speedup column to nan
         if "speedup" in df.columns:
-            df["speedup"] = pandas.to_numeric(df["speedup"], errors="coerce")
+            df["speedup"] = pd.to_numeric(df["speedup"], errors="coerce")
 
     return df
 
@@ -99,13 +99,15 @@ def gen_dataframes_per_operation(logFile, header_elements=None):
     # set operation as index
     main_df = main_df.set_index("operation")
 
-    # if header_elements was not provided, we assume that "time" and all following columns
-    # are benchmark results, and all preceding columns are metadata columns that will be
-    # set as index of the dataframe
+    # if header_elements was not provided, we assume that "time" and all following
+    # columns are benchmark results, and all preceding columns are metadata columns
+    # that will be set as index of the dataframe
     if header_elements is None:
         header_elements = list(main_df.columns)
         header_elements = header_elements[header_elements.index("time") :]
-        # FIXME: the "rows" and "columns" (in the gemv operation) are parsed after the correct header elements, because the preceding operations don't have these metadata columns
+        # FIXME: the "rows" and "columns" (in the gemv operation) are parsed after the
+        #        correct header elements, because the preceding operations don't have
+        #        these metadata columns
         # TODO: each benchmark should record the header elements in the metadata file
         header_elements = [e for e in header_elements if e not in ["rows", "columns"]]
 
