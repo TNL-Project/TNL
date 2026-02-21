@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -10,12 +11,12 @@ plt.rcParams["text.usetex"] = True
 
 ###
 # Parse the input file
-f = open(sys.argv[1], "r")
+f = open(sys.argv[1])
 x_lst = []
 y_lst = []
-for line in f:
-    line = line.strip()
-    a = line.split()
+for _line in f:
+    _line = _line.strip()
+    a = _line.split()
     x_lst.append(float(a[0]))
     y_lst.append(float(a[1]))
 

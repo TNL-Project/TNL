@@ -2,7 +2,6 @@
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
-import pandas as pd
 import json
 import os
 
@@ -11,7 +10,7 @@ def read_log_files(file_paths):
     all_log_entries = []
     for file_path in file_paths:
         if os.path.exists(file_path):  # Check if the file exists
-            with open(file_path, "r") as file:
+            with open(file_path) as file:
                 log_entries = []
                 for line in file:
                     entry = json.loads(line)
@@ -113,20 +112,22 @@ def create_html_table(data):
     # Header row 1: Algorithm names
     html += "<tr><th rowspan='2'>Matrix Size</th>"
     for algo in all_algorithms:
-        colspan = (
-            "4" if algo in secondary_algorithms else "1"
-        )  # Adjust colspan for secondary algorithms
+        # Adjust colspan for secondary algorithms
+        colspan = "4" if algo in secondary_algorithms else "1"
         html += f"<th colspan='{colspan}'>{algo}</th>"
     html += "</tr>\n"
 
     # Header row 2: Time and Speedup columns
-    html += "<tr>"  # Start the second header row
+    html += "<tr>"
     for algo in primary_algorithms:
-        html += "<th>Time</th>"  # Time columns for primary algorithms
+        # Time columns for primary algorithms
+        html += "<th>Time</th>"
     for algo in secondary_algorithms:
-        html += "<th>Time</th>"  # Time column for secondary algorithms
+        # Time column for secondary algorithms
+        html += "<th>Time</th>"
+        # Speedup columns for secondary algorithms
         for primary_algo in primary_algorithms:
-            html += f"<th> vs {primary_algo}</th>"  # Speedup columns for secondary algorithms
+            html += f"<th> vs {primary_algo}</th>"
         html += "<th>l2Norm</th>"
         html += "<th>MaxNorm</th>"
     html += "</tr>\n"

@@ -3,14 +3,15 @@
 # SPDX-License-Identifier: MIT
 
 import argparse
+import time
+
 import cudf
 import cugraph
-import time
 
 
 def read_input_file(file_path):
     data = []
-    with open(file_path, "r") as file:
+    with open(file_path) as file:
         for line in file:
             if line.startswith("#"):
                 continue  # Skip comments
@@ -56,7 +57,7 @@ def main():
     source_vertex = 0
 
     start_time = time.time()
-    distances = bfs_distances(G, 0)  # source_vertex)
+    bfs_distances(G, source_vertex)
     end_time = time.time()
     print(f"cuGraph BFS took {end_time - start_time} seconds")
 

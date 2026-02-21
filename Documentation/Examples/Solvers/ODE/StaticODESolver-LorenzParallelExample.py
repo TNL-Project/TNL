@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import axes3d, Axes3D
 
 plt.rcParams["text.usetex"] = True
 
 ###
 # Enable latex for labels
-f = open(sys.argv[1], "r")
+f = open(sys.argv[1])
 current_sigma = 0.0
 current_rho = 0.0
 current_beta = 0.0
@@ -25,9 +25,9 @@ z_data = []
 parameters = []
 data = {}
 size = 0
-for line in f:
-    line = line.strip()
-    a = line.split()
+for _line in f:
+    _line = _line.strip()
+    a = _line.split()
     if not a:
         continue
     if a[0] == "#":

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import axes3d, Axes3D
 
 plt.rcParams["text.usetex"] = True
 
-f = open(sys.argv[1], "r")
+f = open(sys.argv[1])
 current_time = 0.0
 time_lst = []
 x_lst = []
@@ -15,9 +15,9 @@ u_lst = []
 x_data = []
 u_data = []
 size = 0
-for line in f:
-    line = line.strip()
-    a = line.split()
+for _line in f:
+    _line = _line.strip()
+    a = _line.split()
     if not a:
         continue
     if a[0] == "#":
@@ -47,7 +47,7 @@ fig, ax = plt.subplots(1, 1, figsize=(4, 4))
 for u in u_data:
     ax.plot(x_data[0], u, linewidth=2.0)
 
-ax.set_ylabel(f"$ u(x) $")
-ax.set_xlabel(f"$x $")
+ax.set_ylabel("$ u(x) $")
+ax.set_xlabel("$x $")
 plt.savefig(sys.argv[2])
 plt.close(fig)

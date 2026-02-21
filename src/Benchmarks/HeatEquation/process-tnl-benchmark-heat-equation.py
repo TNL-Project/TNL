@@ -2,14 +2,10 @@
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
-import os
 import json
-import pandas as pd
-from pandas.io.json import json_normalize
-import matplotlib.pyplot as plt
-import numpy as np
-import math
 from os.path import exists
+
+import pandas as pd
 
 devices = ["sequential", "host", "cuda"]
 precisions = ["float", "double"]
@@ -50,7 +46,6 @@ def processDf(df, precision):
     multicolumns, df_data = get_multiindex()
 
     frames = []
-    in_idx = 0
     out_idx = 0
 
     x_sizes = list(set(df["xSize"]))

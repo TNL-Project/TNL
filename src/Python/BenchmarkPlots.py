@@ -1,18 +1,18 @@
-#!/usr/bin/python3
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
 __all__ = [
-    "plot_bandwidth_vs_size",
-    "heatmaps_bandwidth",
     "get_image_html_tag",
+    "heatmaps_bandwidth",
+    "plot_bandwidth_vs_size",
 ]
 
-import numpy
-import matplotlib.pyplot as plt
-from cycler import cycler
-import io
 import base64
+import io
+
+import matplotlib.pyplot as plt
+import numpy as np
+from cycler import cycler
 
 custom_cycler = cycler(linestyle=["-", "--", ":", "-."]) * cycler(
     "color",
@@ -120,8 +120,8 @@ def heatmaps_bandwidth(df, x_name="columns", y_name="rows", *, cbar_kw=None, **k
         cbar.ax.set_ylabel("bandwidth", rotation=-90, va="bottom")
 
         # set ticks and their labels
-        ax.set_xticks(numpy.arange(len(bandwidth.columns)))
-        ax.set_yticks(numpy.arange(len(bandwidth.index)))
+        ax.set_xticks(np.arange(len(bandwidth.columns)))
+        ax.set_yticks(np.arange(len(bandwidth.index)))
         ax.set_xticklabels(int(n) for n in bandwidth.columns)
         ax.set_yticklabels(int(n) for n in bandwidth.index)
 
