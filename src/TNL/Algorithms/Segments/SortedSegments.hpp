@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Containers/StaticArray.h>
 #include <TNL/Algorithms/Sorting/DefaultSorter.h>
 
 #include "CSR.h"
