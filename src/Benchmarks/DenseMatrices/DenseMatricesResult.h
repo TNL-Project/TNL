@@ -20,7 +20,7 @@ struct DenseMatricesResult : public BenchmarkResult
 
    using BenchmarkResult::bandwidth;
    using BenchmarkResult::speedup;
-   using BenchmarkResult::time;
+   using BenchmarkResult::time_mean;
    using BenchmarkResult::time_stddev;
    using typename BenchmarkResult::HeaderElements;
    using typename BenchmarkResult::RowElements;
@@ -56,7 +56,7 @@ struct DenseMatricesResult : public BenchmarkResult
    getRowElements() const override
    {
       RowElements elements;
-      elements << std::scientific << time << time_stddev << time_stddev / time << loops << bandwidth;
+      elements << std::scientific << time_mean << time_stddev << time_stddev / time_mean << loops << bandwidth;
 
       if( speedup != 0.0 )
          elements << speedup;

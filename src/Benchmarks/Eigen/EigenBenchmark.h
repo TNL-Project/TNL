@@ -31,8 +31,8 @@ struct EigenBenchmarkResult : TNL::Benchmarks::BenchmarkResult
    {
       RowElements elements;
       // write in scientific format to avoid precision loss
-      elements << std::scientific << time << time_stddev << time_stddev / time << loops << epsilon << ( iterations / loops )
-               << ( error / loops );
+      elements << std::scientific << time_mean << time_stddev << time_stddev / time_mean << loops << epsilon
+               << ( iterations / loops ) << ( error / loops );
       return elements;
    }
 
