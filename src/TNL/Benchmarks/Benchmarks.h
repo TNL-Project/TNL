@@ -20,9 +20,11 @@ struct BenchmarkResult
    using RowElements = typename Logging::RowElements;
 
    std::size_t loops = 0;
-   double time = std::numeric_limits< double >::quiet_NaN();
+   double time_median = std::numeric_limits< double >::quiet_NaN();
+   double time_mean = std::numeric_limits< double >::quiet_NaN();
+   double cpu_cycles_median = std::numeric_limits< double >::quiet_NaN();
    double time_stddev = std::numeric_limits< double >::quiet_NaN();
-   double cpu_cycles = std::numeric_limits< double >::quiet_NaN();
+   double cpu_cycles_mean = std::numeric_limits< double >::quiet_NaN();
    double cpu_cycles_stddev = std::numeric_limits< double >::quiet_NaN();
    double bandwidth = std::numeric_limits< double >::quiet_NaN();
    double speedup = std::numeric_limits< double >::quiet_NaN();
@@ -37,8 +39,10 @@ struct BenchmarkResult
                                "bandwidth",
                                "cycles/op",
                                "cycles",
+                               "time_median",
                                "time_stddev",
                                "time_stddev/time",
+                               "cycles_median",
                                "cycles_stddev",
                                "cycles_stddev/cycles",
                                "loops",
@@ -53,8 +57,10 @@ struct BenchmarkResult
                                    14,      // bandwidth
                                    14,      // cycles/op
                                    14,      // cycles
+                                   16,      // time_median
                                    16,      // time_stddev
                                    18,      // time_stddev/time
+                                   16,      // cycles_median
                                    16,      // cycles_stddev
                                    22,      // cycles_stddev/cycles
                                    6,       // loops
@@ -68,7 +74,7 @@ struct BenchmarkResult
       // write in scientific format to avoid precision loss
       elements << std::scientific;
 
-      elements << time;
+      elements << time_mean;
       if( speedup != 0 )
          elements << speedup;
       else
@@ -78,13 +84,15 @@ struct BenchmarkResult
          elements << cpu_cycles_per_operation;
       else
          elements << "N/A";
-      if( cpu_cycles != 0 )
-         elements << cpu_cycles;
+      if( cpu_cycles_mean != 0 )
+         elements << cpu_cycles_mean;
       else
          elements << "N/A";
-      elements << time_stddev << time_stddev / time;
-      if( cpu_cycles != 0 )
-         elements << cpu_cycles_stddev << cpu_cycles_stddev / cpu_cycles;
+      elements << time_median << time_stddev << time_stddev / time_mean;
+
+      elements << cpu_cycles_median;
+      if( cpu_cycles_mean != 0 )
+         elements << cpu_cycles_stddev << cpu_cycles_stddev / cpu_cycles_mean;
       else
          elements << "N/A"
                   << "N/A";
@@ -115,6 +123,15 @@ public:
 
    void
    setLoops( std::size_t loops );
+
+   std::size_t
+   getLoops() const;
+
+   void
+   setWarmupLoops( std::size_t warmupLoops );
+
+   std::size_t
+   getWarmupLoops() const;
 
    void
    setMinTime( double minTime );
@@ -198,6 +215,8 @@ protected:
    Logger logger;
 
    std::size_t loops = 1;
+
+   std::size_t warmupLoops = 1;
 
    std::size_t operations_per_loop = 0;
 

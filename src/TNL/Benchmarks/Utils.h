@@ -11,6 +11,7 @@
 #include <TNL/Timer.h>
 #include <TNL/PerformanceCounters.h>
 #include <TNL/Devices/Cuda.h>
+#include <TNL/Algorithms/sort.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 
@@ -23,14 +24,13 @@
 
 namespace TNL::Benchmarks {
 
-// returns a tuple of (loops, mean, stddev) where loops is the number of
-// performed loops (i.e. timing samples), mean is the arithmetic mean of the
-// computation times and stddev is the sample standard deviation
+// returns tuple: loops, time_median, time_mean, time_stddev, cpu_cycles_median,
+// cpu_cycles_mean, cpu_cycles_stddev
 template< typename Device,
           typename ComputeFunction,
           typename ResetFunction,
           typename Monitor = TNL::Solvers::IterativeSolverMonitor< double > >
-std::tuple< std::size_t, double, double, double, double >
+std::tuple< std::size_t, double, double, double, double, double, double >
 timeFunction( ComputeFunction compute,
               ResetFunction reset,
               std::size_t maxLoops,
@@ -78,6 +78,10 @@ timeFunction( ComputeFunction compute,
          results_cpu_cycles[ loops ] = performanceCounters.getCPUCycles();
    }
 
+   Algorithms::ascendingSort( results_time );
+   Algorithms::ascendingSort( results_cpu_cycles );
+   const double time_median = results_time[ loops / 2 ];
+   const double cpu_cycles_median = results_cpu_cycles[ loops / 2 ];
    const double mean_time = sum( results_time ) / (double) loops;
    const double mean_cpu_cycles = sum( results_cpu_cycles ) / (double) loops;
    double stddev_time;
@@ -95,7 +99,7 @@ timeFunction( ComputeFunction compute,
    // so we must unset it to avoid returning a dangling reference to the caller
    monitor.unsetTimer();
 
-   return std::make_tuple( loops, mean_time, stddev_time, mean_cpu_cycles, stddev_cpu_cycles );
+   return std::make_tuple( loops, time_median, mean_time, stddev_time, cpu_cycles_median, mean_cpu_cycles, stddev_cpu_cycles );
 }
 
 inline std::map< std::string, std::string >

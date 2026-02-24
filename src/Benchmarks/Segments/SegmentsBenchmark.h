@@ -59,7 +59,6 @@ struct SegmentsBenchmark
       config.addEntry< int >( "max-segment-size", "Maximum segment size.", 128 );
       config.addEntry< int >( "min-segments-count", "Minimum number of segments.", 1 << 8 );
       config.addEntry< int >( "max-segments-count", "Maximum number of segments.", 1 << 20 );
-      //config.addEntry< bool >( "with-bfs", "Run breadth-first search benchmark.", true );
 
       config.addDelimiter( "Device settings:" );
       config.addEntry< TNL::String >( "device", "Device the computation will run on.", "all" );
@@ -70,8 +69,7 @@ struct SegmentsBenchmark
       TNL::Devices::Host::configSetup( config );
       TNL::Devices::Cuda::configSetup( config );
 
-      config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-      config.addEntry< int >( "verbose", "Verbose mode.", 1 );
+      TNL::Benchmarks::Benchmark<>::configSetup( config );
    }
 
    SegmentsBenchmark( const TNL::Config::ParameterContainer& parameters_ )
@@ -423,8 +421,6 @@ struct SegmentsBenchmark
    {
       const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
       const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
-      const int loops = parameters.getParameter< int >( "loops" );
-      const int verbose = parameters.getParameter< int >( "verbose" );
       const auto segmentsSetup = parameters.getParameter< TNL::String >( "segments-setup" );
       const int minSegmentsCount = parameters.getParameter< int >( "min-segments-count" );
       const int maxSegmentsCount = parameters.getParameter< int >( "max-segments-count" );
@@ -435,7 +431,8 @@ struct SegmentsBenchmark
       if( outputMode == "append" )
          mode |= std::ios::app;
       std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
+      TNL::Benchmarks::Benchmark<> benchmark( logFile );
+      benchmark.setup( parameters );
 
       // write global metadata into a separate file
       std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();

@@ -22,6 +22,7 @@ void
 Benchmark< Logger >::configSetup( Config::ConfigDescription& config )
 {
    config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
+   config.addEntry< int >( "warmup-loops", "Number of iterations for warmup before timing.", 1 );
    config.addEntry< bool >( "reset", "Call reset function between loops.", true );
    config.addEntry< double >( "min-time", "Minimal real time in seconds for every computation.", 0.0 );
    config.addEntry< int >( "verbose", "Verbose mode, the higher number the more verbosity.", 1 );
@@ -32,6 +33,7 @@ void
 Benchmark< Logger >::setup( const Config::ParameterContainer& parameters )
 {
    this->loops = parameters.getParameter< int >( "loops" );
+   this->warmupLoops = parameters.getParameter< int >( "warmup-loops" );
    this->reset = parameters.getParameter< bool >( "reset" );
    this->minTime = parameters.getParameter< double >( "min-time" );
    const int verbose = parameters.getParameter< int >( "verbose" );
@@ -43,6 +45,27 @@ void
 Benchmark< Logger >::setLoops( std::size_t loops )
 {
    this->loops = loops;
+}
+
+template< typename Logger >
+std::size_t
+Benchmark< Logger >::getLoops() const
+{
+   return loops;
+}
+
+template< typename Logger >
+void
+Benchmark< Logger >::setWarmupLoops( std::size_t warmupLoops )
+{
+   this->warmupLoops = warmupLoops;
+}
+
+template< typename Logger >
+std::size_t
+Benchmark< Logger >::getWarmupLoops() const
+{
+   return warmupLoops;
 }
 
 template< typename Logger >
@@ -112,9 +135,11 @@ Benchmark< Logger >::time( ResetFunction reset,
                            ComputeFunction& compute,
                            BenchmarkResult& result )
 {
-   result.time = std::numeric_limits< double >::quiet_NaN();
+   result.time_median = std::numeric_limits< double >::quiet_NaN();
+   result.time_mean = std::numeric_limits< double >::quiet_NaN();
    result.time_stddev = std::numeric_limits< double >::quiet_NaN();
-   result.cpu_cycles = std::numeric_limits< double >::quiet_NaN();
+   result.cpu_cycles_median = std::numeric_limits< double >::quiet_NaN();
+   result.cpu_cycles_mean = std::numeric_limits< double >::quiet_NaN();
    result.cpu_cycles_stddev = std::numeric_limits< double >::quiet_NaN();
 
    // run the monitor main loop
@@ -123,16 +148,41 @@ Benchmark< Logger >::time( ResetFunction reset,
       // stop the main loop when not verbose
       monitor.stopMainLoop();
 
+   if( warmupLoops > 0 ) {
+      if( logger.getVerbose() > 0 )
+         std::cout << "Running " << warmupLoops << " warmup loop" << ( warmupLoops > 1 ? "s" : "" ) << "...\n";
+      auto noReset = []() {};
+      try {
+         for( std::size_t i = 0; i < warmupLoops; i++ )
+            timeFunction< Device >( compute, noReset, warmupLoops, 0.0, monitor );
+      }
+      catch( const std::exception& e ) {
+         std::string errorMessage = "Warmup failed due to a C++ exception with description: " + std::string( e.what() );
+         logger.writeErrorMessage( errorMessage );
+         std::cerr << errorMessage << '\n';
+      }
+   }
+
    std::string errorMessage;
    auto call_time_function = [ & ]() mutable
    {
       if( this->reset )
-         std::tie( result.loops, result.time, result.time_stddev, result.cpu_cycles, result.cpu_cycles_stddev ) =
-            timeFunction< Device >( compute, reset, loops, minTime, monitor );
+         std::tie( result.loops,
+                   result.time_median,
+                   result.time_mean,
+                   result.time_stddev,
+                   result.cpu_cycles_median,
+                   result.cpu_cycles_mean,
+                   result.cpu_cycles_stddev ) = timeFunction< Device >( compute, reset, loops, minTime, monitor );
       else {
          auto noReset = []() {};
-         std::tie( result.loops, result.time, result.time_stddev, result.cpu_cycles, result.cpu_cycles_stddev ) =
-            timeFunction< Device >( compute, noReset, loops, minTime, monitor );
+         std::tie( result.loops,
+                   result.time_median,
+                   result.time_mean,
+                   result.time_stddev,
+                   result.cpu_cycles_median,
+                   result.cpu_cycles_mean,
+                   result.cpu_cycles_stddev ) = timeFunction< Device >( compute, noReset, loops, minTime, monitor );
       }
    };
 
@@ -147,14 +197,14 @@ Benchmark< Logger >::time( ResetFunction reset,
    else
       call_time_function();
 
-   result.bandwidth = datasetSize / result.time;
-   result.speedup = this->baseTime / result.time;
+   result.bandwidth = datasetSize / result.time_mean;
+   result.speedup = this->baseTime / result.time_mean;
    result.operations_per_loop = this->operations_per_loop;
-   if( result.cpu_cycles && this->operations_per_loop )
-      result.cpu_cycles_per_operation = result.cpu_cycles / this->operations_per_loop;
+   if( result.cpu_cycles_mean && this->operations_per_loop )
+      result.cpu_cycles_per_operation = result.cpu_cycles_mean / this->operations_per_loop;
 
    if( this->baseTime == 0.0 )
-      this->baseTime = result.time;
+      this->baseTime = result.time_mean;
 
    logger.logResult( performer, result.getTableHeader(), result.getRowElements(), result.getColumnWidthHints(), errorMessage );
 }
