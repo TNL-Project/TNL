@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "Logging.h"
 #include <TNL/Assert.h>
+#include "Logging.h"
 
 namespace TNL::Benchmarks {
 
@@ -21,7 +21,28 @@ public:
          throw std::invalid_argument( "writeHeader: elements must have equal sizes" );
 
       if( verbose > 0 && ( header_changed || headerElements != lastHeaderElements ) ) {
-         for( const auto& lg : metadataColumns ) {
+         std::size_t first_max_width = 0;
+         std::size_t second_max_width = 0;
+         for( std::size_t i = 0; i < commonMetadataCount; i++ ) {
+            first_max_width = std::max( first_max_width, metadataColumns[ i ].first.length() );
+            second_max_width = std::max( second_max_width, metadataColumns[ i ].second.length() );
+         }
+         std::cout << "+" << std::setfill( '-' ) << std::setw( first_max_width + 3 ) << "+" << std::setw( second_max_width + 4 )
+                   << "+\n"
+                   << std::setfill( ' ' );
+         for( std::size_t i = 0; i < commonMetadataCount; i++ ) {
+            auto lg = metadataColumns[ i ];
+            std::cout << "| " << std::left << std::setw( first_max_width ) << lg.first << " | " << std::setw( second_max_width )
+                      << lg.second << " |\n";
+         }
+         std::cout << std::right;
+         std::cout << "+" << std::setfill( '-' ) << std::setw( first_max_width + 3 ) << "+" << std::setw( second_max_width + 4 )
+                   << "+\n"
+                   << std::setfill( ' ' ) << '\n';
+         std::cout << "\n";
+
+         for( std::size_t i = commonMetadataCount; i < metadataColumns.size(); i++ ) {
+            auto lg = metadataColumns[ i ];
             const int width = ( metadataWidths.count( lg.first ) > 0 ) ? metadataWidths[ lg.first ] : 14;
             std::cout << std::setw( width ) << lg.first;
          }
@@ -58,8 +79,10 @@ public:
       int idx( 0 );
       for( const auto& lg : this->metadataColumns ) {
          if( verbose > 0 ) {
-            const int width = ( metadataWidths.count( lg.first ) > 0 ) ? metadataWidths[ lg.first ] : 14;
-            std::cout << std::setw( width ) << lg.second;
+            if( idx >= commonMetadataCount ) {
+               const int width = ( metadataWidths.count( lg.first ) > 0 ) ? metadataWidths[ lg.first ] : 14;
+               std::cout << std::setw( width ) << lg.second;
+            }
          }
          if( idx++ > 0 )
             log << ", ";

@@ -136,6 +136,12 @@ public:
       return verbose;
    }
 
+   void
+   setCommonMetadataCount( std::size_t count )
+   {
+      commonMetadataCount = count;
+   }
+
    virtual void
    setMetadataColumns( const MetadataColumns& elements )
    {
@@ -199,6 +205,10 @@ protected:
    MetadataColumns metadataColumns;
    std::map< std::string, int > metadataWidths;
    bool header_changed = true;
+   std::size_t commonMetadataCount = 0;  // number of common metadata elements to be printed in a separate table before the
+                                         // results table in the terminal output to make the reasult table more compact
+                                         // TODO: would be better to enlist the common metadata elements explicitly instead of
+                                         // relying on the order of the metadata columns
 };
 
 }  // namespace TNL::Benchmarks

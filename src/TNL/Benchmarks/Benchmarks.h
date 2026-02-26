@@ -153,6 +153,11 @@ public:
    void
    setMetadataWidths( const std::map< std::string, int >& widths );
 
+   //! \brief Sets common metadata count, i.e. the number of metadata elements to be printed in the prolog of the terminal
+   //! output.
+   void
+   setCommonMetadataCount( std::size_t count );
+
    // Sets the dataset size and base time for the calculations of bandwidth
    // and speedup in the benchmarks result.
    void
