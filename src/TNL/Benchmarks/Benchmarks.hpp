@@ -105,6 +105,13 @@ Benchmark< Logger >::setMetadataWidths( const std::map< std::string, int >& widt
 
 template< typename Logger >
 void
+Benchmark< Logger >::setCommonMetadataCount( std::size_t count )
+{
+   logger.setCommonMetadataCount( count );
+}
+
+template< typename Logger >
+void
 Benchmark< Logger >::setDatasetSize( double datasetSize, double baseTime )
 {
    this->datasetSize = datasetSize;
@@ -149,7 +156,7 @@ Benchmark< Logger >::time( ResetFunction reset,
       monitor.stopMainLoop();
 
    if( warmupLoops > 0 ) {
-      if( logger.getVerbose() > 0 )
+      if( logger.getVerbose() > 1 )
          std::cout << "Running " << warmupLoops << " warmup loop" << ( warmupLoops > 1 ? "s" : "" ) << "...\n";
       auto noReset = []() {};
       try {
