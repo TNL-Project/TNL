@@ -50,8 +50,8 @@ struct TraversingOperationsBase
          auto segment = segments_view.getSegmentView( segmentIdx );
          function( segment );
       };
-      Algorithms::parallelFor< DeviceType >( begin, end, f );  // TODO: Add launchConfig - it seems it does not work with
-                                                               // current implementation of parallelFor
+      // TODO: Add launchConfig - it seems it does not work with current implementation of parallelFor
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 
    template< typename Array, typename Function >
@@ -69,9 +69,8 @@ struct TraversingOperationsBase
          auto segment = segments_view.getSegmentView( segmentIndexes_view[ segmentIdx_idx ] );
          function( segment );
       };
-      Algorithms::parallelFor< DeviceType >(
-         0, segmentIndexes.getSize(), f );  // TODO: Add launchConfig - it seems it does not work with
-                                            // current implementation of parallelFor
+      // TODO: Add launchConfig - it seems it does not work with current implementation of parallelFor
+      Algorithms::parallelFor< DeviceType >( 0, segmentIndexes.getSize(), f );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename SegmentCondition, typename Function >
@@ -92,8 +91,8 @@ struct TraversingOperationsBase
          if( segmentCondition( segmentIdx ) )
             function( segment );
       };
-      Algorithms::parallelFor< DeviceType >( begin, end, f );  // TODO: Add launchConfig - it seems it does not work with
-                                                               // current implementation of parallelFor
+      // TODO: Add launchConfig - it seems it does not work with current implementation of parallelFor
+      Algorithms::parallelFor< DeviceType >( begin, end, f );
    }
 };
 

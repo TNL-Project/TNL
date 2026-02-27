@@ -14,9 +14,10 @@ forElementsExample()
    {
       return rowIdx % 2 == 0;
    };
-   auto f = [] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, double& value )
+   auto f = [] __cuda_callable__(
+               int rowIdx, int columnIdx_, int columnIdx, double& value )  // columnIdx is the same as localIdx for dense matrix
    {
-      value = rowIdx + localIdx + 1;
+      value = rowIdx + columnIdx + 1;
    };
 
    matrixView.forElementsIf( 0, matrix.getRows(), condition, f );  // or matrix.forElements

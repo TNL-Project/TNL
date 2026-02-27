@@ -165,7 +165,8 @@ struct IsScalarType
  */
 template< typename T >
 struct IsArrayType
-: public std::conjunction< HasGetArrayDataMethod< T >,
+: public std::conjunction<
+            HasGetArrayDataMethod< T >,
             HasSubscriptOperator< T >,
             HasGetSizeMethod< T > >
 {};
