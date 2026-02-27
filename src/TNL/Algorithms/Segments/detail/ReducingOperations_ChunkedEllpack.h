@@ -371,4 +371,4 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    }
 };
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

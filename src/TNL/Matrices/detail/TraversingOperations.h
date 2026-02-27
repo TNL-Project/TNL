@@ -9,7 +9,7 @@ template< typename Matrix >
 struct TraversingOperations
 {};
 
-}  //namespace TNL::Matrices::detail
+}  // namespace TNL::Matrices::detail
 
 #include "TraversingOperations_DenseMatrixView.h"
 #include "TraversingOperations_SparseMatrixView.h"

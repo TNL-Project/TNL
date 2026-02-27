@@ -163,4 +163,4 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
    }
 };
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

@@ -617,4 +617,4 @@ minimumSpanningTree( const InGraph& graph, OutGraph& spanning_tree, RootsVector&
    //   parallelMST( graph, spanning_tree );
 }
 
-}  //namespace TNL::Graphs::Algorithms
+}  // namespace TNL::Graphs::Algorithms

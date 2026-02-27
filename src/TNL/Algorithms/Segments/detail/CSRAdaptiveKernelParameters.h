@@ -139,4 +139,4 @@ CSRAdaptiveKernelParameters< SizeOfValue, StreamedSharedMemory_ >::getSizeValueL
    return 6;
 }
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

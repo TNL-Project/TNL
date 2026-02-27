@@ -31,6 +31,6 @@ template< typename InGraph,
 void
 minimumSpanningTree( const InGraph& graph, OutGraph& spanning_tree, RootsVector& roots );
 
-}  //namespace TNL::Graphs::Algorithms
+}  // namespace TNL::Graphs::Algorithms
 
 #include "minimumSpanningTree.hpp"
