@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-# Uncomment if you want to exit as soon as there is an error
-# set -o errexit
-
+# exit as soon as there is an error
+set -o errexit
 # abort when an unset variable is used
 set -o nounset
 # enable recursive globbing
@@ -12,19 +11,16 @@ shopt -s globstar
 THIS_DIR="$( builtin cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # project directory
-PROJECT_DIR="$( realpath "$THIS_DIR/..")"
+PROJECT_DIR="$( realpath "$THIS_DIR/../.." )"
 
 # directory where the binaries are built
-#BIN_DIR="$PROJECT_DIR/build/src"
-BIN_DIR="$HOME/.local/bin"
+BIN_DIR="$PROJECT_DIR/build/bin"
 
 #benchmark script
-benchmark="$BIN_DIR/run-tnl-benchmark-graphs"
+benchmark="$THIS_DIR/run-tnl-benchmark-graphs"
 
 ALGORITHMS=("bfs" "sssp")
 DEBUG="no"
-DELETE_LOG_FILE="yes"
-MAX_OMP_THREADS="auto"
 OMP_ENABLED="yes"
 CONTINUE="no"
 
@@ -39,8 +35,4 @@ for bench in "${ALGORITHMS[@]}";
 do
    $benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}"                --log-file "./log-files/graphs-benchmark-${bench}.log"                --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
    $benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}-cuda"           --log-file "./log-files/graphs-benchmark-${bench}-cuda.log"           --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled no
-   #$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}-legacy"         --log-file "./log-files/graphs-benchmark-legacy.log"         --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
-   #$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}-legacy-cuda"    --log-file "./log-files/graphs-benchmark-legacy-cuda.log"    --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
-   #$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}-reference"      --log-file "./log-files/graphs-benchmark-reference.log"      --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
-   #$benchmark --benchmark "$BIN_DIR/tnl-benchmark-graphs-${bench}-reference-cuda" --log-file "./log-files/graphs-benchmark-reference-cuda.log" --input-dir $graphs_base_path --size-limit "$SIZE_LIMIT" --debug "$DEBUG" --continue "$CONTINUE" --openmp-enabled "$OMP_ENABLED"
 done;
