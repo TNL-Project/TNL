@@ -54,7 +54,6 @@ class SparseMatrix
                            std::conditional_t< std::is_const_v< Real >,
                                                typename Segments< Device, Index, IndexAllocator >::ConstViewType,
                                                typename Segments< Device, Index, IndexAllocator >::ViewType >,
-
                            ComputeReal >
 {
    using Base = SparseMatrixBase< Real,
