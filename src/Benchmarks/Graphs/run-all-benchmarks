@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-# Uncomment if you want to exit as soon as there is an error
-# set -o errexit
-
+# exit as soon as there is an error
+set -o errexit
 # abort when an unset variable is used
 set -o nounset
 # enable recursive globbing
@@ -12,14 +11,13 @@ shopt -s globstar
 THIS_DIR="$( builtin cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # project directory
-PROJECT_DIR="$( realpath "$THIS_DIR/..")"
+PROJECT_DIR="$( realpath "$THIS_DIR/../.." )"
 
 # directory where the binaries are built
-#BIN_DIR="$PROJECT_DIR/build/src"
-BIN_DIR="$HOME/.local/bin"
+BIN_DIR="$PROJECT_DIR/build/bin"
 
 #benchmark script
-benchmark="$BIN_DIR/run-tnl-benchmark-graphs"
+benchmark="$THIS_DIR/run-tnl-benchmark-graphs"
 
 ALGORITHMS=("bfs" "sssp")
 DEBUG="no"

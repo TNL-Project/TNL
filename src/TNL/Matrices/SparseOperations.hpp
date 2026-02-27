@@ -503,8 +503,8 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
          {
             const Index rowIdx = row.getRowIndex();
             for( Index localIdx = 0; localIdx < row.getSize(); localIdx++ ) {
-               Real inValue( 0 );
-               std::size_t bufferIdx( 0 );
+               Real inValue = 0;
+               std::size_t bufferIdx = 0;
                Index bufferLocalIdx = rowLocalIndexes_view[ rowIdx ];
                while( inValue == Real{ 0 } && localIdx < thisRowLengths_view[ rowIdx ] ) {
                   bufferIdx = ( rowIdx - baseRow ) * maxRowLength + bufferLocalIdx++;

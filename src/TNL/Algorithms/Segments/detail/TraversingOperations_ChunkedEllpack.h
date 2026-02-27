@@ -37,7 +37,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
          (void) chunksInSlice;  // To suppress unused variable warning
          const IndexType sliceIdx = segmentToSliceMapping[ segmentIdx ];
 
-         IndexType firstChunkOfSegment( 0 );
+         IndexType firstChunkOfSegment = 0;
          if( segmentIdx != slices[ sliceIdx ].firstSegment ) {
             firstChunkOfSegment = segmentToChunkMapping[ segmentIdx - 1 ];
          }
@@ -109,7 +109,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
          const IndexType segmentIdx = segmentIndexesView[ idx ];
          const IndexType sliceIdx = segmentToSliceMapping[ segmentIdx ];
 
-         IndexType firstChunkOfSegment( 0 );
+         IndexType firstChunkOfSegment = 0;
          if( segmentIdx != slices[ sliceIdx ].firstSegment ) {
             firstChunkOfSegment = segmentToChunkMapping[ segmentIdx - 1 ];
          }
@@ -120,7 +120,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
          const IndexType chunkSize = slices[ sliceIdx ].chunkSize;
 
          const IndexType segmentSize = segmentChunksCount * chunkSize;
-         if( Organization == RowMajorOrder ) {
+         if constexpr( Organization == RowMajorOrder ) {
             IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
             IndexType end = begin + segmentSize;
             if constexpr( argumentCount< Function >() == 3 ) {
