@@ -60,7 +60,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
       if( launchConfig.blockSize.x == 1 )
          launchConfig.blockSize.x = 256;
 
-      if constexpr( std::is_same_v< DeviceType, Devices::Cuda > || std::is_same_v< DeviceType, Devices::Hip > ) {
+      if constexpr( std::is_same_v< DeviceType, Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsSequential( segments, begin, end, std::forward< Function >( function ), launchConfig );
@@ -157,7 +157,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
 
       if( launchConfig.blockSize.x == 1 )
          launchConfig.blockSize.x = 256;
-      if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+      if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
             forElementsSequential( segments, segmentIndexes, std::forward< Function >( function ), launchConfig );
@@ -319,7 +319,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   Function&& function,
                   LaunchConfiguration launchConfig )
    {
-      if constexpr( std::is_same_v< Device, Devices::Cuda > || std::is_same_v< Device, Devices::Hip > ) {
+      if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          if( end <= begin )
             return;
 
