@@ -327,6 +327,6 @@ findInSegmentsIf( const Segments& segments,
                   ResultStorer&& storer,
                   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
-}  //namespace TNL::Algorithms::Segments
+}  // namespace TNL::Algorithms::Segments
 
 #include "find.hpp"

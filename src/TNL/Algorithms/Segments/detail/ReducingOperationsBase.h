@@ -94,4 +94,4 @@ struct ReducingOperationsBase
    }
 };
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

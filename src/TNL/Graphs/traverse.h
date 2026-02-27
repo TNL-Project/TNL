@@ -1039,6 +1039,6 @@ forAllVerticesIf( const Graph& graph,
                   Function&& function,
                   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
-}  //namespace TNL::Graphs
+}  // namespace TNL::Graphs
 
 #include "traverse.hpp"

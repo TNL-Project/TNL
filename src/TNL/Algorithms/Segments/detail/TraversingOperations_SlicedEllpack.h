@@ -436,4 +436,4 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
    }
 };
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

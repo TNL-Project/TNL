@@ -1934,6 +1934,6 @@ reduceVerticesWithArgumentIf(
    Store&& store,
    Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
-}  //namespace TNL::Graphs
+}  // namespace TNL::Graphs
 
 #include "reduce.hpp"

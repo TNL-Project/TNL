@@ -9,6 +9,6 @@ template< typename Graph >
 struct ReductionOperations
 {};
 
-}  //namespace TNL::Graphs::detail
+}  // namespace TNL::Graphs::detail
 
 #include "ReductionOperations_GraphView.h"
