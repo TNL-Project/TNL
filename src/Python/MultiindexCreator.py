@@ -4,6 +4,32 @@
 
 import pandas
 
+"""
+Helper for building hierarchical ``pandas.MultiIndex`` objects.
+
+The helper accumulates index levels row by row and pads missing levels with
+empty strings so callers can submit shorter tuples. Use ``get_multiindex`` to
+obtain the ``MultiIndex`` together with an aligned data array scaffold.
+
+Example
+-------
+>>> mic = MultiindexCreator(depth=3)
+>>> mic.add_entries([["benchmark_data"],["data_size"], ["algorithm_1", "CPU", "Time"], ["algorithm_1", "GPU", "Time"], ["algorithm_1", "GPU", "Speedup"]])
+>>> multiindex, data = mic.get_multiindex()
+>>> list(multiindex)
+[('benchmark_data', '', ''), ('data_size', '', ''), ('algorithm_1', 'CPU', 'Time'), ('algorithm_1', 'GPU', 'Time'), ('algorithm_1', 'GPU', 'Speedup')]
+>>> data
+[['', '', '', '', '']]
+
+It leads to the following table:
+
+banchmark_data   data_size   algorithm_1
+--------------   ---------   ---------------------------
+                             CPU         GPU
+                             ----------  ---------------
+                             Time        Time  Speedup
+"""
+
 
 class MultiindexCreator:
 
