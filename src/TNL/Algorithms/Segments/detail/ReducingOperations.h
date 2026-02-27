@@ -9,7 +9,7 @@ template< typename Segments >
 struct ReducingOperations
 {};
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail
 
 #include "ReducingOperations_AdaptiveCSR.h"
 #include "ReducingOperations_BiEllpack.h"

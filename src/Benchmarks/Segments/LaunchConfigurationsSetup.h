@@ -73,4 +73,4 @@ struct LaunchConfigurationsSetup<
    }
 };
 
-}  //namespace TNL::Benchmarks::Segments
+}  // namespace TNL::Benchmarks::Segments

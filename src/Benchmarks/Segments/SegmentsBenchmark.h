@@ -486,4 +486,4 @@ protected:
    const TNL::Config::ParameterContainer& parameters;
 };
 
-}  //namespace TNL::Benchmarks::Segments
+}  // namespace TNL::Benchmarks::Segments

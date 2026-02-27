@@ -28,6 +28,6 @@ singleSourceShortestPath(
    Vector& distances,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
-}  //namespace TNL::Graphs::Algorithms
+}  // namespace TNL::Graphs::Algorithms
 
 #include "singleSourceShortestPath.hpp"

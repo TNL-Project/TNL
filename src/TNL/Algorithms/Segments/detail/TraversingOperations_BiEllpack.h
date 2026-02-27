@@ -179,4 +179,4 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
    }
 };
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

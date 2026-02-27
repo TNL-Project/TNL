@@ -1208,4 +1208,4 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
    }
 };
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

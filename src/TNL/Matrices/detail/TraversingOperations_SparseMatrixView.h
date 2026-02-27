@@ -320,4 +320,4 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
    }
 };
 
-}  //namespace TNL::Matrices::detail
+}  // namespace TNL::Matrices::detail

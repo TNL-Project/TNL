@@ -332,4 +332,4 @@ forAllVerticesIf( const Graph& graph,
                   launchConfig );
 }
 
-}  //namespace TNL::Graphs
+}  // namespace TNL::Graphs

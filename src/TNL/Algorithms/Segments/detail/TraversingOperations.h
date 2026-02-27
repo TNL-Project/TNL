@@ -8,7 +8,7 @@ namespace TNL::Algorithms::Segments::detail {
 template< typename Segments >
 struct TraversingOperations;
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail
 
 #include "TraversingOperations_AdaptiveCSR.h"
 #include "TraversingOperations_CSR.h"

@@ -9,6 +9,6 @@ template< typename Graph >
 struct TraversingOperations
 {};
 
-}  //namespace TNL::Graphs::detail
+}  // namespace TNL::Graphs::detail
 
 #include "TraversingOperations_GraphView.h"

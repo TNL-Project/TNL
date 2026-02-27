@@ -325,4 +325,4 @@ forAllRowsIf( const Matrix& matrix,
               launchConfig );
 }
 
-}  //namespace TNL::Matrices
+}  // namespace TNL::Matrices

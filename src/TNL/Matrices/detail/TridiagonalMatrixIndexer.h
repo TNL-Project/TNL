@@ -115,4 +115,4 @@ protected:
    IndexType nonemptyRows = 0;
 };
 
-}  //namespace TNL::Matrices::detail
+}  // namespace TNL::Matrices::detail

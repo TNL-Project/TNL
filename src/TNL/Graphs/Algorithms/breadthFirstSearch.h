@@ -52,6 +52,6 @@ breadthFirstSearch(
    Visitor&& visitor,
    TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
-}  //namespace TNL::Graphs::Algorithms
+}  // namespace TNL::Graphs::Algorithms
 
 #include "breadthFirstSearch.hpp"

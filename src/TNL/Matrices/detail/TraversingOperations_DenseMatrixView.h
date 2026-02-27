@@ -246,4 +246,4 @@ struct TraversingOperations< DenseMatrixView< Real, Device, Index, Organization 
    }
 };
 
-}  //namespace TNL::Matrices::detail
+}  // namespace TNL::Matrices::detail
