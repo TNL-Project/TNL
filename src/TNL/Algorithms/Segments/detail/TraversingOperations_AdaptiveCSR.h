@@ -14,4 +14,4 @@ template< typename Device, typename Index >
 struct TraversingOperations< AdaptiveCSRView< Device, Index > > : public TraversingOperations< CSRView< Device, Index > >
 {};
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

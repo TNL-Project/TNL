@@ -165,4 +165,4 @@ isForest( const Graph& graph )
    return isTree_impl( graph, roots, TreeType::Forest );
 }
 
-}  //namespace TNL::Graphs::Algorithms
+}  // namespace TNL::Graphs::Algorithms

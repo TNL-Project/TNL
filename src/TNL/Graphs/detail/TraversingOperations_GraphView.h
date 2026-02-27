@@ -192,4 +192,4 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
    }
 };
 
-}  //namespace TNL::Graphs::detail
+}  // namespace TNL::Graphs::detail

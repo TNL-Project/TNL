@@ -9,7 +9,7 @@ template< typename Matrix >
 struct ReductionOperations
 {};
 
-}  //namespace TNL::Matrices::detail
+}  // namespace TNL::Matrices::detail
 
 #include "ReductionOperations_DenseMatrixView.h"
 #include "ReductionOperations_SparseMatrixView.h"

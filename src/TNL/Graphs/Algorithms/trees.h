@@ -49,6 +49,6 @@ template< typename Graph >
 bool
 isForest( const Graph& graph );
 
-}  //namespace TNL::Graphs::Algorithms
+}  // namespace TNL::Graphs::Algorithms
 
 #include "trees.hpp"

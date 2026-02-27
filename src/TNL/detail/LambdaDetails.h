@@ -61,4 +61,4 @@ struct LambdaDetails : lambda_details_impl< Lambda, Max, Max >
 
 //! \endcond
 
-}  //namespace TNL::detail
+}  // namespace TNL::detail

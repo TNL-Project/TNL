@@ -93,4 +93,4 @@ compressVector( MarksVector& marksVector, BeginIndex begin, EndIndex end )
    return outputVector;
 }
 
-}  //namespace TNL::Algorithms::detail
+}  // namespace TNL::Algorithms::detail

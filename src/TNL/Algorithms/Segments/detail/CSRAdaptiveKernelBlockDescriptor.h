@@ -266,4 +266,4 @@ operator<<( std::ostream& str, const CSRAdaptiveKernelBlockDescriptor< Index >& 
    return str;
 }
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

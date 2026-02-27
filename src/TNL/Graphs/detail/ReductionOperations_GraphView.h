@@ -293,4 +293,4 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                                                  launchConfig );
    }
 };
-}  //namespace TNL::Graphs::detail
+}  // namespace TNL::Graphs::detail

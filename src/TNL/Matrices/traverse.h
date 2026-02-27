@@ -1068,6 +1068,6 @@ forAllRowsIf( const Matrix& matrix,
               Function&& function,
               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
-}  //namespace TNL::Matrices
+}  // namespace TNL::Matrices
 
 #include "traverse.hpp"

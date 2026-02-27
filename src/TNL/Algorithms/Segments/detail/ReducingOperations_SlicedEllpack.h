@@ -519,4 +519,4 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    }
 };
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

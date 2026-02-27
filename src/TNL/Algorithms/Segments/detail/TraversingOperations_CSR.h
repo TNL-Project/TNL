@@ -387,4 +387,4 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
    }
 };
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

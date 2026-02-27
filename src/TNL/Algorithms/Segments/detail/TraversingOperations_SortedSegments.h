@@ -304,4 +304,4 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
    }
 };
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail

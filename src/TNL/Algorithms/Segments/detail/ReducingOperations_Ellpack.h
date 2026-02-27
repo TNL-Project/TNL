@@ -609,4 +609,4 @@ struct ReducingOperations< EllpackView< Device, Index, Organization, Alignment >
    }
 };
 
-}  //namespace TNL::Algorithms::Segments::detail
+}  // namespace TNL::Algorithms::Segments::detail
