@@ -48,6 +48,8 @@ workflow:
     CMAKE_HIP_FLAGS: ""
     CMAKE_EXE_LINKER_FLAGS: ""
     CMAKE_SHARED_LINKER_FLAGS: ""
+    # number of parallel jobs for the build - zero means that all available CPU cores are used
+    BUILD_JOBS: "0"
 
 # base for GCC builds
 .gcc:
@@ -189,7 +191,8 @@ workflow:
                 -DTNL_BUILD_COVERAGE=${BUILD_COVERAGE}
                 -DTNL_USE_CI_FLAGS=yes
         # build the given targets
-        - cmake --build "./build/$CI_JOB_NAME_SLUG" --parallel ${NUM_CORES} --target "${BUILD_TARGETS[@]}"
+        - if [[ "${BUILD_JOBS}" == "0" ]]; then export BUILD_JOBS="${NUM_CORES}"; fi
+        - cmake --build "./build/$CI_JOB_NAME_SLUG" --parallel ${BUILD_JOBS} --target "${BUILD_TARGETS[@]}"
         # we have ctest options set in the preset, but ctest does not allow to override the build directory
         # https://gitlab.kitware.com/cmake/cmake/-/issues/23982
         - "sed 's|\"binaryDir\": \"${sourceDir}/build\",|\"binaryDir\": \"${sourceDir}\",|' CMakePresets.json > \"./build/$CI_JOB_NAME_SLUG/CMakePresets.json\""
@@ -299,6 +302,8 @@ nvhpc:
                 - nontests
               BUILD_TYPE:
                 - Debug
+    variables:
+        BUILD_JOBS: "4"
 
 clang_cuda:
     extends:
