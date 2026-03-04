@@ -206,7 +206,7 @@ Reduction2D< Devices::Cuda >::reduce( Result identity, Fetch fetch, Reduction re
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();
    std::cout << "   Reduction2D of " << n << " datasets on GPU to size " << reducedSize << " took " << timer.getRealTime()
-             << " sec. " << std::endl;
+             << " sec.\n";
    timer.reset();
    timer.start();
 #endif
@@ -217,7 +217,7 @@ Reduction2D< Devices::Cuda >::reduce( Result identity, Fetch fetch, Reduction re
 
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();
-   std::cout << "   Transferring data to CPU took " << timer.getRealTime() << " sec. " << std::endl;
+   std::cout << "   Transferring data to CPU took " << timer.getRealTime() << " sec.\n";
    timer.reset();
    timer.start();
 #endif
@@ -231,7 +231,7 @@ Reduction2D< Devices::Cuda >::reduce( Result identity, Fetch fetch, Reduction re
 
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();
-   std::cout << "   Reduction2D of small data set on CPU took " << timer.getRealTime() << " sec. " << std::endl;
+   std::cout << "   Reduction2D of small data set on CPU took " << timer.getRealTime() << " sec.\n";
 #endif
 }
 

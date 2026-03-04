@@ -32,7 +32,7 @@ public:
    static void
    writeAllEntities( const Mesh& mesh, std::ostream& str )
    {
-      str << "size( " << mesh.getProportions().x() << "cm , " << mesh.getProportions().y() << "cm );" << std::endl << std::endl;
+      str << "size( " << mesh.getProportions().x() << "cm , " << mesh.getProportions().y() << "cm );\n\n";
       typename Mesh::Vertex vertex( mesh );
       CoordinatesType& vertexCoordinates = vertex.getCoordinates();
       PointType v;
@@ -76,7 +76,7 @@ public:
             cellCoordinates.y() = j;
             v = vertex.getCenter();
             str << "label( scale(0.33) * Label( \"$" << std::setprecision( 3 ) << cellMeasure << std::setprecision( 8 )
-                << "$\" ), ( " << v.x() << ", " << v.y() << " ), S );" << std::endl;
+                << "$\" ), ( " << v.x() << ", " << v.y() << " ), S );\n";
          }
 
       for( Index i = 0; i < mesh.dimensions.x(); i++ )
@@ -94,7 +94,7 @@ public:
             mesh.getEdgeNormal< 1, 0 >( CoordinatesType( i, j ), v );
             v *= 0.5;
             str << "draw( ( " << c. x() << ", " << c. y() << " )--( "
-                << c. x() + v. x() << ", " << c.y() + v. y() << " ), Arrow(size=1mm),p=green);" << std::endl;
+                << c. x() + v. x() << ", " << c.y() + v. y() << " ), Arrow(size=1mm),p=green);\n";
             */
             /****
              * West edge normal
@@ -105,7 +105,7 @@ public:
             mesh.getEdgeNormal< -1, 0 >( CoordinatesType( i, j ), v );
             v *= 0.5;
             str << "draw( ( " << c. x() << ", " << c. y() << " )--( "
-                << c. x() + v. x() << ", " << c.y() + v. y() << " ), Arrow(size=1mm),p=blue);" << std::endl;
+                << c. x() + v. x() << ", " << c.y() + v. y() << " ), Arrow(size=1mm),p=blue);\n";
             */
             /****
              * North edge normal
@@ -116,7 +116,7 @@ public:
             mesh.getEdgeNormal< 0, 1 >( CoordinatesType( i, j ), v );
             v *= 0.5;
             str << "draw( ( " << c. x() << ", " << c. y() << " )--( "
-                << c. x() + v. x() << ", " << c.y() + v. y() << " ), Arrow(size=1mm),p=green);" << std::endl;
+                << c. x() + v. x() << ", " << c.y() + v. y() << " ), Arrow(size=1mm),p=green);\n";
             */
             /****
              * South edge normal
@@ -127,7 +127,7 @@ public:
             mesh.getEdgeNormal< 0, -1 >( CoordinatesType( i, j ), v );
             v *= 0.5;
             str << "draw( ( " << c. x() << ", " << c. y() << " )--( "
-                << c. x() + v. x() << ", " << c.y() + v. y() << " ), Arrow(size=1mm),p=blue);" << std::endl;
+                << c. x() + v. x() << ", " << c.y() + v. y() << " ), Arrow(size=1mm),p=blue);\n";
             */
          }
    }

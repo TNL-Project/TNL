@@ -27,7 +27,7 @@ Jacobi< Matrix >::setup( const Config::ParameterContainer& parameters, const Str
       this->setOmega( parameters.getParameter< double >( prefix + "jacobi-omega" ) );
    if( this->omega <= 0.0 || this->omega > 2.0 ) {
       std::cerr << "Warning: The Jacobi method parameter omega is out of interval (0,2). The value is " << this->omega
-                << " the method will not converge." << std::endl;
+                << " the method will not converge.\n";
    }
    if( parameters.checkParameter( prefix + "residue-period" ) )
       this->setResiduePeriod( parameters.getParameter< int >( prefix + "residue-period" ) );

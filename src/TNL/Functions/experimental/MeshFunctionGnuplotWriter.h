@@ -103,7 +103,6 @@ public:
          for( c.x() = 0; c.x() < grid.getDimensions().x(); c.x()++ ) {
             entity.refresh();
             typename MeshType::PointType v = center< EntityType >::get( entity );
-            // std::cerr << entity.getCoordinates() << " -> " << v << std::endl;
             for( int j = 0; j < v.getSize(); j++ )
                str << v[ j ] << " ";
             str << function.getData().getElement( entity.getIndex() ) << "\n";

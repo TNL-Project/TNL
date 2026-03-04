@@ -121,8 +121,8 @@ protected:
    {
       BaseType::print( str );
       str << "Adjacency matrix for superentities with dimension " << SuperdimensionTag::value << " of entities with dimension "
-          << EntityDimensionTag::value << " is: " << std::endl;
-      str << matrix << std::endl;
+          << EntityDimensionTag::value << " is:\n";
+      str << matrix << '\n';
    }
 
    bool

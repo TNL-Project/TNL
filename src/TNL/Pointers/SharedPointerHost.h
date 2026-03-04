@@ -68,7 +68,7 @@ public:
    : pd( nullptr )
    {
 #ifdef TNL_DEBUG_SHARED_POINTERS
-      std::cerr << "Creating shared pointer to " << getType< ObjectType >() << std::endl;
+      std::cerr << "Creating shared pointer to " << getType< ObjectType >() << '\n';
 #endif
       this->allocate( args... );
    }
@@ -84,7 +84,7 @@ public:
    : pd( nullptr )
    {
 #ifdef TNL_DEBUG_SHARED_POINTERS
-      std::cerr << "Creating shared pointer to " << getType< ObjectType >() << std::endl;
+      std::cerr << "Creating shared pointer to " << getType< ObjectType >() << '\n';
 #endif
       this->allocate( list );
    }
@@ -100,7 +100,7 @@ public:
    : pd( nullptr )
    {
 #ifdef TNL_DEBUG_SHARED_POINTERS
-      std::cerr << "Creating shared pointer to " << getType< ObjectType >() << std::endl;
+      std::cerr << "Creating shared pointer to " << getType< ObjectType >() << '\n';
 #endif
       this->allocate( list );
    }
@@ -168,7 +168,7 @@ public:
    recreate( Args... args )
    {
 #ifdef TNL_DEBUG_SHARED_POINTERS
-      std::cerr << "Recreating shared pointer to " << getType< ObjectType >() << std::endl;
+      std::cerr << "Recreating shared pointer to " << getType< ObjectType >() << '\n';
 #endif
       if( ! this->pd->counter )
          return this->allocate( args... );

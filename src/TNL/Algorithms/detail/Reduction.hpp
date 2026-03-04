@@ -288,7 +288,7 @@ Reduction< Devices::Cuda >::reduce( const Index begin, const Index end, Fetch&& 
 
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();
-   std::cout << "   Reduction on GPU to size " << reducedSize << " took " << timer.getRealTime() << " sec. " << std::endl;
+   std::cout << "   Reduction on GPU to size " << reducedSize << " took " << timer.getRealTime() << " sec.\n";
    timer.reset();
    timer.start();
 #endif
@@ -300,7 +300,7 @@ Reduction< Devices::Cuda >::reduce( const Index begin, const Index end, Fetch&& 
 
 #ifdef CUDA_REDUCTION_PROFILING
       timer.stop();
-      std::cout << "   Transferring data to CPU took " << timer.getRealTime() << " sec. " << std::endl;
+      std::cout << "   Transferring data to CPU took " << timer.getRealTime() << " sec.\n";
       timer.reset();
       timer.start();
 #endif
@@ -314,7 +314,7 @@ Reduction< Devices::Cuda >::reduce( const Index begin, const Index end, Fetch&& 
 
 #ifdef CUDA_REDUCTION_PROFILING
       timer.stop();
-      std::cout << "   Reduction of small data set on CPU took " << timer.getRealTime() << " sec. " << std::endl;
+      std::cout << "   Reduction of small data set on CPU took " << timer.getRealTime() << " sec.\n";
 #endif
       return result;
    }
@@ -324,7 +324,7 @@ Reduction< Devices::Cuda >::reduce( const Index begin, const Index end, Fetch&& 
 
 #ifdef CUDA_REDUCTION_PROFILING
       timer.stop();
-      std::cout << "   Reduction of small data set on GPU took " << timer.getRealTime() << " sec. " << std::endl;
+      std::cout << "   Reduction of small data set on GPU took " << timer.getRealTime() << " sec.\n";
       timer.reset();
       timer.start();
 #endif
@@ -365,7 +365,7 @@ Reduction< Devices::Cuda >::reduceWithArgument( const Index begin,
 
 #ifdef CUDA_REDUCTION_PROFILING
    timer.stop();
-   std::cout << "   Reduction on GPU to size " << reducedSize << " took " << timer.getRealTime() << " sec. " << std::endl;
+   std::cout << "   Reduction on GPU to size " << reducedSize << " took " << timer.getRealTime() << " sec.\n";
    timer.reset();
    timer.start();
 #endif
@@ -379,21 +379,21 @@ Reduction< Devices::Cuda >::reduceWithArgument( const Index begin,
 
 #ifdef CUDA_REDUCTION_PROFILING
       timer.stop();
-      std::cout << "   Transferring data to CPU took " << timer.getRealTime() << " sec. " << std::endl;
+      std::cout << "   Transferring data to CPU took " << timer.getRealTime() << " sec.\n";
       timer.reset();
       timer.start();
 #endif
 
       // finish the reduce on the host
-      //      auto fetch = [&] ( Index i ) { return resultArray[ i ]; };
-      //      const Result result = Reduction< Devices::Sequential >::reduceWithArgument( reducedSize, argument, reduce, fetch,
-      //      identity );
+      //auto fetch = [&] ( Index i ) { return resultArray[ i ]; };
+      //const Result result = Reduction< Devices::Sequential >::reduceWithArgument( reducedSize, argument, reduce, fetch,
+      //identity );
       for( Index i = 1; i < reducedSize; i++ )
          reduce( resultArray[ 0 ], resultArray[ i ], indexArray[ 0 ], indexArray[ i ] );
 
 #ifdef CUDA_REDUCTION_PROFILING
       timer.stop();
-      std::cout << "   Reduction of small data set on CPU took " << timer.getRealTime() << " sec. " << std::endl;
+      std::cout << "   Reduction of small data set on CPU took " << timer.getRealTime() << " sec.\n";
 #endif
       return std::make_pair( resultArray[ 0 ], indexArray[ 0 ] );
    }
@@ -403,7 +403,7 @@ Reduction< Devices::Cuda >::reduceWithArgument( const Index begin,
 
 #ifdef CUDA_REDUCTION_PROFILING
       timer.stop();
-      std::cout << "   Reduction of small data set on GPU took " << timer.getRealTime() << " sec. " << std::endl;
+      std::cout << "   Reduction of small data set on GPU took " << timer.getRealTime() << " sec.\n";
       timer.reset();
       timer.start();
 #endif

@@ -28,7 +28,7 @@ template< typename Mesh >
 bool
 task( const Mesh& mesh, const std::string& inputFileName )
 {
-   std::cout << "The file '" << inputFileName << "' contains the following mesh: " << TNL::getType< Mesh >() << std::endl;
+   std::cout << "The file '" << inputFileName << "' contains the following mesh: " << TNL::getType< Mesh >() << '\n';
    return true;
 }
 //! [task]

@@ -212,7 +212,7 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
       //timer_heap_extract.stop();
 
       //std::cout << "i = " << i << ", L_rowLengths[ i ] = " << L_rowLengths[ i ] << ", U_rowLengths[ i ] = " <<
-      //U_rowLengths[ N - 1 - i ] << std::endl;
+      //U_rowLengths[ N - 1 - i ] << '\n';
 
       //timer_copy_into_LU.start();
 

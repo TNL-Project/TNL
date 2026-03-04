@@ -492,7 +492,7 @@ struct LinearSolversBenchmark
       benchmarkIterativeSolvers( benchmark, parameters, matrixPointer, x0, b );
 
 #ifdef HAVE_CUSOLVER
-      std::cout << "CuSOLVER:" << std::endl;
+      std::cout << "CuSOLVER:\n";
       {
          using CSR = TNL::Matrices::
             SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
@@ -566,14 +566,14 @@ struct LinearSolversBenchmark
          "CuSolver", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
       cuda_x0_copy = cuda_x0;
       if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-         std::cout << "Warning: the result of the CuSolver solver is not equal to the result of the CPU solver." << std::endl;
+         std::cout << "Warning: the result of the CuSolver solver is not equal to the result of the CPU solver.\n";
 
    #ifdef HAVE_CUDSS
       benchmarkDirectSolver< TNL::Solvers::Linear::CuDSSWrapper >(
          "CuDSS", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
       cuda_x0_copy = cuda_x0;
       if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-         std::cout << "Warning: the result of the CuDSS solver is not equal to the result of the CPU solver." << std::endl;
+         std::cout << "Warning: the result of the CuDSS solver is not equal to the result of the CPU solver.\n";
    #endif
 
    #ifdef HAVE_GINKGO
@@ -581,7 +581,7 @@ struct LinearSolversBenchmark
          "Ginkgo GPU", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
       cuda_x0_copy = cuda_x0;
       if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-         std::cout << "Warning: the result of the Ginkgo GPU solver is not equal to the result of the CPU solver." << std::endl;
+         std::cout << "Warning: the result of the Ginkgo GPU solver is not equal to the result of the CPU solver.\n";
    #endif
 
    #ifdef HAVE_TRILINOS
@@ -589,8 +589,7 @@ struct LinearSolversBenchmark
          benchmarkDirectSolver< TachoWrapper >( "Tacho GPU", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
          cuda_x0_copy = cuda_x0;
          if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-            std::cout << "Warning: the result of the Tacho GPU solver is not equal to the result of the CPU solver."
-                      << std::endl;
+            std::cout << "Warning: the result of the Tacho GPU solver is not equal to the result of the CPU solver.\n";
       }
    #endif
 #endif  // __CUDACC__
@@ -601,7 +600,7 @@ struct LinearSolversBenchmark
 #endif
 
 #ifdef HAVE_ARMADILLO
-      std::cout << "Armadillo wrapper (which wraps SuperLU):" << std::endl;
+      std::cout << "Armadillo wrapper (which wraps SuperLU):\n";
       benchmarkArmadillo( parameters, matrixCopy, x0, b );
 #endif
    }

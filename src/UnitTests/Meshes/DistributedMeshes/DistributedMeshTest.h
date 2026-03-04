@@ -709,12 +709,12 @@ testSynchronizerOnDevice_entity_centers( const MeshType& mesh )
                       << mesh.template getGlobalIndices< EntityType::getEntityDimension() >()[ i ] << ")"
                       << " of dimension = " << EntityType::getEntityDimension() << ": received " << received
                       << ", expected = " << center << ", neighbor cells " << cellIndexes[ 0 ] << " "
-                      << ( ( numCells > 1 ) ? cellIndexes[ 1 ] : -1 ) << std::endl;
+                      << ( ( numCells > 1 ) ? cellIndexes[ 1 ] : -1 ) << '\n';
             errors++;
          }
       }
    if( errors > 0 )
-      FAIL() << "rank " << TNL::MPI::GetRank() << ": " << errors << " errors in total." << std::endl;
+      FAIL() << "rank " << TNL::MPI::GetRank() << ": " << errors << " errors in total.\n";
 }
 
 template< typename Device, typename EntityType, typename MeshType >

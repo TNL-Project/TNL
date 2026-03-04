@@ -47,14 +47,14 @@ template< typename EntityIndex, typename EntityReal, int EntityGridDimension >
 std::ostream&
 operator<<( std::ostream& os, const EntityPrototype< EntityIndex, EntityReal, EntityGridDimension >& entity )
 {
-   os << "Coordinate: " << entity.coordinate << std::endl;
-   os << "Normals: " << entity.normals << std::endl;
-   os << "Index: " << entity.index << std::endl;
-   os << "Calls: " << entity.calls << std::endl;
-   os << "Orientation: " << entity.orientation << std::endl;
-   os << "Is boundary: " << entity.isBoundary << std::endl;
-   os << "Center: " << entity.center << std::endl;
-   os << "Measure: " << entity.measure << std::endl;
+   os << "Coordinate: " << entity.coordinate << '\n';
+   os << "Normals: " << entity.normals << '\n';
+   os << "Index: " << entity.index << '\n';
+   os << "Calls: " << entity.calls << '\n';
+   os << "Orientation: " << entity.orientation << '\n';
+   os << "Is boundary: " << entity.isBoundary << '\n';
+   os << "Center: " << entity.center << '\n';
+   os << "Measure: " << entity.measure << '\n';
 
    return os;
 }

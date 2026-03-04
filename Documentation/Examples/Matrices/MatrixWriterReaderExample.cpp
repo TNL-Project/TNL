@@ -65,7 +65,7 @@ main( int argc, char* argv[] )
    matrixReaderExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << std::endl << std::endl;
+   std::cout << "\n\n";
    std::cout << "Creating matrices on CUDA GPU ...\n";
    matrixWriterExample< TNL::Devices::Cuda >();
    matrixReaderExample< TNL::Devices::Cuda >();

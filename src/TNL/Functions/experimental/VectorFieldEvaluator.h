@@ -122,7 +122,7 @@ public:
       /*cerr << "Idx = " << entity.getIndex()
          << " Value = " << FunctionAdapter::getValue( *userData.function, entity, userData.time )
          << " stored value = " << ( *userData.meshFunction )( entity )
-         << " multiplicators = " << std::endl;*/
+         << " multiplicators = \n";*/
    }
 };
 
@@ -148,7 +148,7 @@ public:
       /*cerr << "Idx = " << entity.getIndex()
          << " Value = " << FunctionAdapter::getValue( *userData.function, entity, userData.time )
          << " stored value = " << ( *userData.meshFunction )( entity )
-         << " multiplicators = " << std::endl;*/
+         << " multiplicators = \n";*/
    }
 };
 

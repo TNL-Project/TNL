@@ -174,7 +174,7 @@ runGameOfLife( const Mesh& mesh )
    Index iteration = 0;
    do {
       iteration++;
-      std::cout << "Computing iteration " << iteration << "..." << std::endl;
+      std::cout << "Computing iteration " << iteration << "...\n";
 
       //! [Game of Life kernel]
       auto kernel = [ f_in_view, f_out_view, meshPointer ] __cuda_callable__( Index i ) mutable

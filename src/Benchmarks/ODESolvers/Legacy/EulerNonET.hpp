@@ -193,7 +193,6 @@ EulerNonET< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, Real
 
    localResidue /= tau * (RealType) size;
    TNL::MPI::Allreduce( &localResidue, &currentResidue, 1, MPI_SUM, MPI_COMM_WORLD );
-   //std::cerr << "Local residue = " << localResidue << " - globalResidue = " << currentResidue << std::endl;
 }
 
 template< typename RealType, typename IndexType >
