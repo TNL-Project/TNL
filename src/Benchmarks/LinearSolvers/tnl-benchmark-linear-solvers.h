@@ -44,18 +44,6 @@
 #include "TachoWrapper.h"
 #include "CuDSSWrapper.h"
 
-// FIXME: nvcc 8.0 fails when cusolverSp.h is included (works fine with clang):
-// /opt/cuda/include/cuda_fp16.h(3068): error: more than one instance of overloaded function "isinf" matches the argument list:
-//             function "isinf(float)"
-//             function "std::isinf(float)"
-//             argument types are: (float)
-//#if defined(__CUDACC__) && !defined(__NVCC__)
-// FIXME: CuSolverWrapper does not work at all now
-#if 0
-   #include "CuSolverWrapper.h"
-   #define HAVE_CUSOLVER
-#endif
-
 template< typename _Device, typename _Index, typename _IndexAllocator >
 //using SegmentsType = TNL::Algorithms::Segments::SlicedEllpack< _Device, _Index, _IndexAllocator >;
 using SegmentsType = TNL::Algorithms::Segments::CSR< _Device, _Index, _IndexAllocator >;
@@ -490,31 +478,6 @@ struct LinearSolversBenchmark
                       const VectorType& b )
    {
       benchmarkIterativeSolvers( benchmark, parameters, matrixPointer, x0, b );
-
-#ifdef HAVE_CUSOLVER
-      std::cout << "CuSOLVER:\n";
-      {
-         using CSR = TNL::Matrices::
-            SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
-         auto matrixCopy = std::make_shared< CSR >();
-         Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
-
-         using CudaCSR = TNL::Matrices::
-            SparseMatrix< RealType, Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
-         using CudaVector = typename VectorType::template Self< RealType, Devices::Cuda >;
-         auto cuda_matrixCopy = std::make_shared< CudaCSR >();
-         *cuda_matrixCopy = *matrixCopy;
-         CudaVector cuda_x0, cuda_b;
-         cuda_x0.setLike( x0 );
-         cuda_b.setLike( b );
-         cuda_x0 = x0;
-         cuda_b = b;
-
-         using namespace Solvers::Linear;
-         using namespace Solvers::Linear::Preconditioners;
-         benchmarkSolver< CuSolverWrapper, Preconditioner >( benchmark, parameters, cuda_matrixCopy, cuda_x0, cuda_b );
-      }
-#endif
    }
 
    static void
