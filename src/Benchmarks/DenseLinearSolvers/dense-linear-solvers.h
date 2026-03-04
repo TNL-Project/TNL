@@ -1,13 +1,12 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <thread>
-
 #include <TNL/Algorithms/fillRandom.h>
 #include <TNL/Benchmarks/Benchmarks.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Host.h>
+#include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Solvers/Linear/GEM.h>
 #include <TNL/Solvers/Linear/CuSolverWrapper.h>

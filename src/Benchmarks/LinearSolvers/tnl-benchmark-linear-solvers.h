@@ -31,7 +31,6 @@
 #include <TNL/Solvers/Linear/BICGStab.h>
 #include <TNL/Solvers/Linear/BICGStabL.h>
 #include <TNL/Solvers/Linear/IDRs.h>
-#include <TNL/Solvers/Linear/CuSolverWrapper.h>
 #include <TNL/Solvers/Linear/CuDSSWrapper.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
 #include <TNL/Solvers/Linear/GinkgoDirectSolver.h>
@@ -359,11 +358,6 @@ benchmarkDirectSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
 
    auto cudaMatrix = std::make_shared< CudaCSR >();
    *cudaMatrix = *csr_matrix;
-
-   benchmarkDirectSolver< CuSolverWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "CuSOLVER" );
-   cuda_x0_copy = cuda_x0;
-   if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-      std::cout << "Warning: the result of the CuSOLVER solver is not equal to the result of the CPU solver.\n";
 
    #ifdef HAVE_CUDSS
    benchmarkDirectSolver< CuDSSWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "CuDSS" );
