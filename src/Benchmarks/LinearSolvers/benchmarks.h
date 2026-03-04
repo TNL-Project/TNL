@@ -8,7 +8,7 @@
 #include <TNL/Matrices/DistributedMatrix.h>
 
 #include <stdexcept>  // std::runtime_error
-#include "BenchmarkResults.h"
+#include "LinearSolversBenchmarkResult.h"
 
 template< typename Device >
 const char*
@@ -159,7 +159,7 @@ benchmarkSolver( TNL::Benchmarks::Benchmark<>& benchmark,
          throw std::runtime_error( "solver failed or did not converge" );
    };
 
-   BenchmarkResult< Vector, Matrix, Solver > benchmarkResult( solver, matrix, x, b );
+   LinearSolversBenchmarkResult< Vector, Matrix, Solver > benchmarkResult( solver, matrix, x, b );
    benchmark.setOperation( solver_name );
    benchmark.time< typename Matrix::DeviceType >( reset, performer, compute, benchmarkResult );
 }
