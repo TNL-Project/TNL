@@ -10,8 +10,8 @@ TEST( BlockTest, Block3D )
    using idx3d = StaticVector< 3, int >;
    using block3d = Block< 3, int >;
 
-   static_assert( std::is_same< typename block3d::idx, int >::value, "unexpected idx type" );
-   static_assert( std::is_same< typename block3d::CoordinatesType, idx3d >::value, "unexpected CoordinatesType" );
+   static_assert( std::is_same_v< typename block3d::idx, int >, "unexpected idx type" );
+   static_assert( std::is_same_v< typename block3d::CoordinatesType, idx3d >, "unexpected CoordinatesType" );
 
    // default constructor
    {

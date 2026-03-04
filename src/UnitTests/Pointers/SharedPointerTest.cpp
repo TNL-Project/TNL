@@ -9,7 +9,7 @@ using namespace TNL;
 
 TEST( SharedPointerTest, ConstructorTest )
 {
-   typedef TNL::Containers::StaticArray< 2, int > TestType;
+   using TestType = TNL::Containers::StaticArray< 2, int >;
    Pointers::SharedPointer< TestType, Devices::Host > ptr1;
 
    ptr1->x() = 0;
@@ -29,7 +29,8 @@ TEST( SharedPointerTest, ConstructorTest )
 TEST( SharedPointerTest, nullptrAssignment )
 {
    using TestType = Pointers::SharedPointer< double, Devices::Host >;
-   TestType p1( 5 ), p2( nullptr );
+   TestType p1( 5 );
+   TestType p2( nullptr );
 
    // This should not crash
    p1 = p2;
@@ -41,7 +42,8 @@ TEST( SharedPointerTest, nullptrAssignment )
 TEST( SharedPointerTest, swap )
 {
    using TestType = Pointers::SharedPointer< double, Devices::Host >;
-   TestType p1( 1 ), p2( 2 );
+   TestType p1( 1 );
+   TestType p2( 2 );
 
    p1.swap( p2 );
 

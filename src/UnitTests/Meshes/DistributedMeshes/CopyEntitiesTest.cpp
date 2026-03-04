@@ -147,13 +147,13 @@ public:
    static void
    Test()
    {
-      typedef Grid< dim, double, Host, int > MeshType;
-      typedef MeshFunctionView< MeshType > MeshFunctionType;
-      typedef Vector< double, Host, int > DofType;
+      using MeshType = Grid< dim, double, Host, int >;
+      using MeshFunctionType = MeshFunctionView< MeshType >;
+      using DofType = Vector< double, Host, int >;
 
-      typedef typename MeshType::PointType PointType;
-      typedef typename MeshType::CoordinatesType CoordinatesType;
-      typedef typename MeshType::Cell Cell;
+      using PointType = typename MeshType::PointType;
+      using CoordinatesType = typename MeshType::CoordinatesType;
+      using Cell = typename MeshType::Cell;
 
       PointType origin;
       PointType proportions;
@@ -185,14 +185,14 @@ public:
       MeshFunctionType outputMeshFunction;
       outputMeshFunction.bind( gridOutPtr, outDof );
 
-      CoordinatesType zero;
-      zero.setValue( 0 );
-      CoordinatesType begin;
-      begin.setValue( 1 );
+      CoordinatesType outputBegin;
+      outputBegin.setValue( 0 );
+      CoordinatesType inputBegin;
+      inputBegin.setValue( 1 );
       CoordinatesType size;
       size.setValue( 8 );
 
-      CopyEntitiesHelper< MeshFunctionType >::Copy( inputMeshFunction, outputMeshFunction, begin, zero, size );
+      CopyEntitiesHelper< MeshFunctionType >::Copy( inputMeshFunction, outputMeshFunction, inputBegin, outputBegin, size );
 
       TestMovedMeshfunction< MeshFunctionType >::Test( outputMeshFunction );
    }

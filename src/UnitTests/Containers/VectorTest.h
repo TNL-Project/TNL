@@ -10,7 +10,7 @@ TYPED_TEST( VectorTest, constructors )
    const int size = VECTOR_TEST_SIZE;
 
    VectorType empty_u;
-   VectorType empty_v( empty_u );
+   VectorType empty_v( empty_u );  // NOLINT(performance-unnecessary-copy-initialization)
    EXPECT_EQ( empty_u.getSize(), 0 );
    EXPECT_EQ( empty_v.getSize(), 0 );
 

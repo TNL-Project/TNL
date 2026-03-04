@@ -53,7 +53,8 @@ TYPED_TEST( UmfpackWrapperTest, LinearFunctionTest )
    // clang-format on
    auto matrix_pointer = std::make_shared< CSRMatrix >( csr_matrix );
    Solvers::Linear::UmfpackWrapper< CSRMatrix > umfpack;
-   Containers::Vector< double > vec_b{ 8, 45, -3, 3, 19 }, vec_x( size, 0 );
+   Containers::Vector< double > vec_b{ 8, 45, -3, 3, 19 };
+   Containers::Vector< double > vec_x( size, 0 );
    umfpack.setMatrix( matrix_pointer );
    umfpack.solve( vec_b.getConstView(), vec_x.getView() );
 
