@@ -130,8 +130,9 @@ benchmarkIterativeSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
    using CudaMatrix = typename Matrix::template Self< typename Matrix::RealType, TNL::Devices::Cuda >;
    using CudaVector = typename Vector::template Self< typename Vector::RealType, TNL::Devices::Cuda >;
 
-   CudaVector cuda_x0, cuda_b;
+   CudaVector cuda_x0;
    cuda_x0 = x0;
+   CudaVector cuda_b;
    cuda_b = b;
 
    auto cudaMatrixPointer = std::make_shared< CudaMatrix >();
@@ -313,6 +314,87 @@ benchmarkIterativeSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
    }
 }
 
+template< typename Matrix, typename Vector >
+void
+benchmarkDirectSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
+                        const TNL::Config::ParameterContainer& parameters,
+                        const std::shared_ptr< Matrix >& matrixPointer,
+                        const Vector& x0,
+                        const Vector& b )
+{
+   using namespace TNL::Solvers::Linear;
+
+   using CSR = TNL::Matrices::SparseMatrix< typename Matrix::RealType,
+                                            typename Matrix::DeviceType,
+                                            typename Matrix::IndexType,
+                                            TNL::Matrices::GeneralMatrix,
+                                            TNL::Algorithms::Segments::CSR >;
+   auto csr_matrix = std::make_shared< CSR >();
+   TNL::Matrices::copySparseMatrix( *csr_matrix, *matrixPointer );
+
+#ifdef HAVE_UMFPACK
+   if constexpr( ( std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Host >
+                   || std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Sequential > )
+                 && std::is_same_v< typename Matrix::RealType, double > && std::is_same_v< typename Matrix::IndexType, int > )
+      benchmarkDirectSolver< UmfpackWrapper >( benchmark, parameters, csr_matrix, x0, b, "UMFPACK" );
+#endif
+
+#ifdef HAVE_TRILINOS
+   benchmarkDirectSolver< TachoWrapper >( benchmark, parameters, csr_matrix, x0, b, "Tacho" );
+#endif
+
+#ifdef HAVE_GINKGO
+   benchmarkDirectSolver< GinkgoDirectSolver >( benchmark, parameters, csr_matrix, x0, b, "Ginkgo" );
+#endif
+
+#ifdef __CUDACC__
+   using CudaCSR = typename CSR::template Self< typename Matrix::RealType, TNL::Devices::Cuda >;
+   using CudaVector = typename Vector::template Self< typename Vector::RealType, TNL::Devices::Cuda >;
+
+   CudaVector cuda_x0;
+   cuda_x0 = x0;
+   CudaVector cuda_b;
+   cuda_b = b;
+   Vector cuda_x0_copy;
+
+   auto cudaMatrix = std::make_shared< CudaCSR >();
+   *cudaMatrix = *csr_matrix;
+
+   benchmarkDirectSolver< CuSolverWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "CuSOLVER" );
+   cuda_x0_copy = cuda_x0;
+   if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+      std::cout << "Warning: the result of the CuSOLVER solver is not equal to the result of the CPU solver.\n";
+
+   #ifdef HAVE_CUDSS
+   benchmarkDirectSolver< CuDSSWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "CuDSS" );
+   cuda_x0_copy = cuda_x0;
+   if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+      std::cout << "Warning: the result of the CuDSS solver is not equal to the result of the CPU solver.\n";
+   #endif
+
+   #ifdef HAVE_GINKGO
+   benchmarkDirectSolver< GinkgoDirectSolver >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "Ginkgo" );
+   cuda_x0_copy = cuda_x0;
+   if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+      std::cout << "Warning: the result of the Ginkgo GPU solver is not equal to the result of the CPU solver.\n";
+   #endif
+
+   #ifdef HAVE_TRILINOS
+   if( ! std::is_same_v< Kokkos::DefaultHostExecutionSpace, Kokkos::DefaultExecutionSpace > ) {
+      benchmarkDirectSolver< TachoWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "Tacho" );
+      cuda_x0_copy = cuda_x0;
+      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+         std::cout << "Warning: the result of the Tacho GPU solver is not equal to the result of the CPU solver.\n";
+   }
+   #endif
+#endif  // __CUDACC__
+
+#ifdef HAVE_STRUMPACK
+   // Strumpack currently supports only GPU offloading - https://github.com/pghysels/STRUMPACK/issues/113
+   benchmarkDirectSolver< StrumpackWrapper >( benchmark, parameters, csr_matrix, x0, b, "Strumpack" );
+#endif
+}
+
 template< typename MatrixType >
 struct LinearSolversBenchmark
 {
@@ -398,37 +480,29 @@ struct LinearSolversBenchmark
          { "max elements per row", TNL::convertToString( maxRowLength ) },
       } ) );
 
-      if( parameters.getParameter< bool >( "with-iterative" ) ) {
-         std::cout << "Iterative solvers:\n";
-
-         if( parameters.getParameter< bool >( "reorder-dofs" ) ) {
-            using PermutationVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
-            PermutationVector perm;
-            PermutationVector iperm;
-            getTrivialOrdering( *matrixPointer, perm, iperm );
-            auto matrix_perm = std::make_shared< MatrixType >();
-            VectorType x0_perm;
-            VectorType b_perm;
-            x0_perm.setLike( x0 );
-            b_perm.setLike( b );
-            TNL::Matrices::reorderSparseMatrix( *matrixPointer, *matrix_perm, perm, iperm );
-            TNL::Matrices::reorderArray( x0, x0_perm, perm );
-            TNL::Matrices::reorderArray( b, b_perm, perm );
-            if( TNL::MPI::GetSize() > 1 )
-               runDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
-            else
-               runNonDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
-         }
-         else {
-            if( TNL::MPI::GetSize() > 1 )
-               runDistributed( benchmark, parameters, matrixPointer, x0, b );
-            else
-               runNonDistributed( benchmark, parameters, matrixPointer, x0, b );
-         }
+      if( parameters.getParameter< bool >( "reorder-dofs" ) ) {
+         using PermutationVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+         PermutationVector perm;
+         PermutationVector iperm;
+         getTrivialOrdering( *matrixPointer, perm, iperm );
+         auto matrix_perm = std::make_shared< MatrixType >();
+         VectorType x0_perm;
+         VectorType b_perm;
+         x0_perm.setLike( x0 );
+         b_perm.setLike( b );
+         TNL::Matrices::reorderSparseMatrix( *matrixPointer, *matrix_perm, perm, iperm );
+         TNL::Matrices::reorderArray( x0, x0_perm, perm );
+         TNL::Matrices::reorderArray( b, b_perm, perm );
+         if( TNL::MPI::GetSize() > 1 )
+            runDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
+         else
+            runNonDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
       }
-      if( parameters.getParameter< bool >( "with-direct" ) ) {
-         std::cout << "Direct solvers:\n";
-         runDirect( benchmark, parameters, matrixPointer, x0, b );
+      else {
+         if( TNL::MPI::GetSize() > 1 )
+            runDistributed( benchmark, parameters, matrixPointer, x0, b );
+         else
+            runNonDistributed( benchmark, parameters, matrixPointer, x0, b );
       }
       return true;
    }
@@ -472,7 +546,13 @@ struct LinearSolversBenchmark
          for( IndexType j = 0; j < global_row.getSize(); j++ )
             local_row.setElement( j, global_row.getColumnIndex( j ), global_row.getValue( j ) );
       }
-      benchmarkIterativeSolvers( benchmark, parameters, distMatrixPointer, dist_x0, dist_b );
+
+      if( parameters.getParameter< bool >( "with-iterative" ) ) {
+         std::cout << "Iterative solvers:\n";
+         benchmarkIterativeSolvers( benchmark, parameters, distMatrixPointer, dist_x0, dist_b );
+      }
+
+      // There are no distributed direct solvers yet
    }
 
    static void
@@ -482,79 +562,15 @@ struct LinearSolversBenchmark
                       const VectorType& x0,
                       const VectorType& b )
    {
-      benchmarkIterativeSolvers( benchmark, parameters, matrixPointer, x0, b );
-   }
-
-   static void
-   runDirect( TNL::Benchmarks::Benchmark<>& benchmark,
-              const TNL::Config::ParameterContainer& parameters,
-              const std::shared_ptr< MatrixType >& matrixPointer,
-              const VectorType& x0,
-              const VectorType& b )
-   {
-      using namespace TNL::Solvers::Linear;
-
-      using CSR = TNL::Matrices::
-         SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
-      auto matrixCopy = std::make_shared< CSR >();
-      TNL::Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
-
-#ifdef HAVE_UMFPACK
-      if constexpr( ( std::is_same_v< DeviceType, TNL::Devices::Host >
-                      || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
-                    && std::is_same_v< RealType, double > && std::is_same_v< IndexType, int > )
-         benchmarkDirectSolver< UmfpackWrapper >( benchmark, parameters, matrixCopy, x0, b, "UMFPACK" );
-#endif
-
-#ifdef HAVE_TRILINOS
-      benchmarkDirectSolver< TachoWrapper >( benchmark, parameters, matrixCopy, x0, b, "Tacho" );
-#endif
-
-#ifdef HAVE_GINKGO
-      benchmarkDirectSolver< GinkgoDirectSolver >( benchmark, parameters, matrixCopy, x0, b, "Ginkgo" );
-#endif
-
-#ifdef __CUDACC__
-      using CudaCSR = TNL::Matrices::
-         SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
-      auto cudaMatrix = std::make_shared< CudaCSR >();
-      TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
-      TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType > cuda_x0_copy;
-      *cudaMatrix = *matrixPointer;
-
-      benchmarkDirectSolver< CuSolverWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "CuSOLVER" );
-      cuda_x0_copy = cuda_x0;
-      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-         std::cout << "Warning: the result of the CuSOLVER solver is not equal to the result of the CPU solver.\n";
-
-   #ifdef HAVE_CUDSS
-      benchmarkDirectSolver< CuDSSWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "CuDSS" );
-      cuda_x0_copy = cuda_x0;
-      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-         std::cout << "Warning: the result of the CuDSS solver is not equal to the result of the CPU solver.\n";
-   #endif
-
-   #ifdef HAVE_GINKGO
-      benchmarkDirectSolver< GinkgoDirectSolver >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "Ginkgo" );
-      cuda_x0_copy = cuda_x0;
-      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-         std::cout << "Warning: the result of the Ginkgo GPU solver is not equal to the result of the CPU solver.\n";
-   #endif
-
-   #ifdef HAVE_TRILINOS
-      if( ! std::is_same_v< Kokkos::DefaultHostExecutionSpace, Kokkos::DefaultExecutionSpace > ) {
-         benchmarkDirectSolver< TachoWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "Tacho" );
-         cuda_x0_copy = cuda_x0;
-         if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-            std::cout << "Warning: the result of the Tacho GPU solver is not equal to the result of the CPU solver.\n";
+      if( parameters.getParameter< bool >( "with-iterative" ) ) {
+         std::cout << "Iterative solvers:\n";
+         benchmarkIterativeSolvers( benchmark, parameters, matrixPointer, x0, b );
       }
-   #endif
-#endif  // __CUDACC__
 
-#ifdef HAVE_STRUMPACK
-      // Strumpack currently supports only GPU offloading - https://github.com/pghysels/STRUMPACK/issues/113
-      benchmarkDirectSolver< StrumpackWrapper >( benchmark, parameters, matrixCopy, x0, b, "Strumpack" );
-#endif
+      if( parameters.getParameter< bool >( "with-direct" ) ) {
+         std::cout << "Direct solvers:\n";
+         benchmarkDirectSolvers( benchmark, parameters, matrixPointer, x0, b );
+      }
    }
 };
 
