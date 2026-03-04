@@ -3,54 +3,46 @@
 
 #pragma once
 
-#include <assert.h>
 #include <string>
-#include <iostream>
-#include <ostream>
-#include <iomanip>
-#include <math.h>
-#include <fstream>
 
-#include <TNL/Assert.h>
 #include <TNL/Containers/StaticVector.h>
 #include "GEM.h"
 
 namespace TNL::Solvers::Linear {
 
-template< typename Matrix, typename Real, typename SolverMonitor >
+template< typename Matrix >
 void
-GEM< Matrix, Real, SolverMonitor >::setPivoting( bool pivoting )
+GEM< Matrix >::setPivoting( bool pivoting )
 {
    this->pivoting = pivoting;
 }
 
-template< typename Matrix, typename Real, typename SolverMonitor >
+template< typename Matrix >
 bool
-GEM< Matrix, Real, SolverMonitor >::getPivoting() const
+GEM< Matrix >::getPivoting() const
 {
    return this->pivoting;
 }
 
-template< typename Matrix, typename Real, typename SolverMonitor >
+template< typename Matrix >
 bool
-GEM< Matrix, Real, SolverMonitor >::solve( ConstVectorViewType b, VectorViewType x )
+GEM< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
 {
    MatrixType A;
    A = *this->matrix;
-   if( ! solve( A, b, x ) )
-      return false;
-   VectorType Ax( A.getColumns() );
-   this->matrix->vectorProduct( x, Ax );
-   this->setResidue( l2Norm( b - Ax ) );
-   return true;
+   return solve( A, b, x );
 }
 
-template< typename Matrix, typename Real, typename SolverMonitor >
+template< typename Matrix >
 bool
-GEM< Matrix, Real, SolverMonitor >::solve( MatrixType& A, ConstVectorViewType b, VectorViewType x )
+GEM< Matrix >::solve( MatrixType& A, ConstVectorViewType b, VectorViewType x )
 {
+   if( this->matrix->getColumns() != x.getSize() )
+      throw std::invalid_argument( "GEM::solve: wrong size of the solution vector" );
+   if( this->matrix->getColumns() != b.getSize() )
+      throw std::invalid_argument( "GEM::solve: wrong size of the right hand side" );
+
    using CoordinateType = typename Containers::StaticVector< 2, IndexType >;
-   TNL_ASSERT_EQ( b.getSize(), x.getSize(), "The sizes of of vectors x and b do not match." );
 
    const int n = A.getRows();
    auto matrix_view = A.getView();
@@ -64,7 +56,7 @@ GEM< Matrix, Real, SolverMonitor >::solve( MatrixType& A, ConstVectorViewType b,
       this->nextIteration();
 
       RealType pivot_value;
-      IndexType pivot_position( k );
+      IndexType pivot_position = k;
 
       if( this->pivoting ) {
          // Find the pivot - the largest in k-th row
@@ -77,10 +69,9 @@ GEM< Matrix, Real, SolverMonitor >::solve( MatrixType& A, ConstVectorViewType b,
             },
             TNL::MaxWithArg{} );
 
-         // The following is to avoid compiler warnings about capturing structured bindings in C++17 later in the lambda
-         // functions.
          pivot_position = pivot_position_;
-         pivot_value = matrix_view.getElement( pivot_position, k );  // pivot_value_ is the maximum !!!absolute!!! value
+         // ignore pivot_value_ - it is the maximum **absolute** value
+         pivot_value = matrix_view.getElement( pivot_position, k );
       }
       else {
          pivot_value = matrix_view.getElement( k, k );
@@ -88,7 +79,7 @@ GEM< Matrix, Real, SolverMonitor >::solve( MatrixType& A, ConstVectorViewType b,
       }
 
       if( pivot_value == 0.0 )
-         throw std::runtime_error( "Zero pivot has appeared in step " + convertToString( k ) + ". GEM has failed." );
+         throw std::runtime_error( "Zero pivot has appeared in step " + std::to_string( k ) + ". GEM has failed." );
 
       // Swap the rows ...
       if( pivot_position != k ) {
@@ -141,7 +132,9 @@ GEM< Matrix, Real, SolverMonitor >::solve( MatrixType& A, ConstVectorViewType b,
                                                    matrix_view( i, k ) = 0.0;
                                              } );
    }
-   this->setResidue( 0 );  // The original matrix is not available anymore and so we cannot compute the true residue.
+   // Direct solvers set the residue to zero.
+   // (And the original matrix is not available anymore, so we cannot compute it anyway.)
+   this->setResidue( 0 );
    return true;
 }
 
