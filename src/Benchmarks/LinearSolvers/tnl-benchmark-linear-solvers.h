@@ -347,6 +347,16 @@ struct LinearSolversBenchmark
       TNL::Matrices::compressSparseMatrix( *matrixPointer );
       matrixPointer->sortColumnIndexes();
 
+      // check matrix dimensions
+      if( matrixPointer->getRows() == 0 ) {
+         std::cerr << "Matrix " << file_matrix << " is empty.\n";
+         return false;
+      }
+      if( matrixPointer->getRows() != matrixPointer->getColumns() ) {
+         std::cerr << "Matrix " << file_matrix << " is not square.\n";
+         return false;
+      }
+
       // load the vectors
       if( file_dof && file_rhs ) {
          TNL::File( file_dof, std::ios_base::in ) >> x0;
