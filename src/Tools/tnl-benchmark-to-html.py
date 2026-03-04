@@ -100,7 +100,7 @@ with open(htmlFile, "w") as f:
             plt.close(fig)
 
         # heatmaps
-        if "rows" in df.index.names and "columns" in df.index.names:
+        if all(name in df.index.names for name in ["rows", "columns", "bandwidth"]):
             for fig, ax in heatmaps_bandwidth(df):
                 print(get_image_html_tag(fig, format="png"), file=f)
                 plt.close(fig)

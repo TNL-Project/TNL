@@ -114,6 +114,10 @@ def gen_dataframes_per_operation(logFile, header_elements=None):
     # emit one df per operation
     for op in operations:
         df = main_df.loc[op]
+        # if the operation has only one column, .loc[op] returns a Series rather than
+        # a DataFrame
+        if isinstance(df, pd.Series):
+            df = df.to_frame().T
         # remove columns with only NaNs
         df = df.dropna(axis=1, how="all")
         # remove the operation column (index)
