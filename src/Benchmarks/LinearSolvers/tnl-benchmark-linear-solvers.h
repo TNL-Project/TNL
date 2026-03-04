@@ -39,7 +39,6 @@
 #include <TNL/Benchmarks/Benchmarks.h>
 #include "ordering.h"
 #include "benchmarks.h"
-#include "BenchmarkResults.h"
 #include "StrumpackWrapper.h"
 #include "TachoWrapper.h"
 #include "CuDSSWrapper.h"
@@ -509,15 +508,6 @@ struct LinearSolversBenchmark
 #endif
 
 #ifdef __CUDACC__
-      const std::string performer = "CPU/GPU";
-      auto compute = [ & ]()
-      {
-         TNL::Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
-      };
-      TNL::Benchmarks::BenchmarkResult benchmarkResult;
-      benchmark.setOperation( "Copy" );
-      benchmark.time< TNL::Devices::Host >( performer, compute, benchmarkResult );
-
       using CudaCSR = TNL::Matrices::
          SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
       auto cudaMatrix = std::make_shared< CudaCSR >();
