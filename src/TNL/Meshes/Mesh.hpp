@@ -307,7 +307,7 @@ template< typename MeshConfig, typename Device >
 void
 Mesh< MeshConfig, Device >::print( std::ostream& str ) const
 {
-   str << "Vertex coordinates are: " << points << std::endl;
+   str << "Vertex coordinates are: " << points << '\n';
    StorageBaseType::print( str );
    EntityTagsLayerFamily::print( str );
 }

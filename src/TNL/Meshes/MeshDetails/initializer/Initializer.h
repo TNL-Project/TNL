@@ -229,7 +229,6 @@ public:
    void
    initEntities( InitializerType& initializer, MeshType& mesh )
    {
-      // std::cout << " Initiating entities with dimension " << DimensionTag::value << " ... " << std::endl;
       auto getEntitySeedIndex = []( const SeedType& seed )
       {
          return seed.getCornerIds()[ 0 ];

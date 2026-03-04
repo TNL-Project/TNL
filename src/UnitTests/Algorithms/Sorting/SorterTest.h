@@ -39,9 +39,9 @@ TYPED_TEST( CudaSorterTest, selectedSize_size15 )
 {
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr{ 5, 9, 4, 8, 6, 1, 2, 3, 4, 8, 1, 6, 9, 4, 9 };
    auto view = cudaArr.getView();
-   EXPECT_EQ( 15, view.getSize() ) << "size not 15" << std::endl;
+   EXPECT_EQ( 15, view.getSize() ) << "size not 15\n";
    TypeParam::sort( view );
-   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
 }
 
 TYPED_TEST( CudaSorterTest, multiblock_32768_decreasingNegative )
@@ -54,7 +54,7 @@ TYPED_TEST( CudaSorterTest, multiblock_32768_decreasingNegative )
    auto view = cudaArr.getView();
    TypeParam::sort( view );
 
-   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << std::endl;
+   EXPECT_TRUE( Algorithms::isAscending( view ) ) << "result " << view << '\n';
 }
 
 TYPED_TEST( CudaSorterTest, randomGenerated_smallArray_randomVal )

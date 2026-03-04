@@ -4,7 +4,7 @@ template< typename Vector, typename Real = typename Vector::RealType, typename I
 void
 write( std::fstream& file, const Vector& u, const Index n, const Real& h, const Real& time )
 {
-   file << "# time = " << time << std::endl;
+   file << "# time = " << time << '\n';
    for( Index i = 0; i < n; i++ )
       file << i * h << " " << u.getElement( i ) << '\n';
    file << '\n';
@@ -14,7 +14,7 @@ template< typename Vector, typename Real = typename Vector::RealType >
 void
 write( std::fstream& file, const Vector& u, const Real& h, const Real& time )
 {
-   file << "# time = " << time << std::endl;
+   file << "# time = " << time << '\n';
    const auto localRange = u.getLocalRange();
    for( auto i = localRange.getBegin(); i < localRange.getEnd(); i++ )
       file << i * h << " " << u.getElement( i ) << '\n';

@@ -168,7 +168,7 @@ public:
          std::cerr << "WARNING: the mesh was decomposed with different MinCommonVertices value than the value set in the mesh "
                       "configuration "
                       "("
-                   << minCommonVertices << " vs " << MeshType::Config::dualGraphMinCommonVertices << ")." << std::endl;
+                   << minCommonVertices << " vs " << MeshType::Config::dualGraphMinCommonVertices << ").\n";
 
       if( ghostLevels > 0 ) {
          // assign point ghost tags

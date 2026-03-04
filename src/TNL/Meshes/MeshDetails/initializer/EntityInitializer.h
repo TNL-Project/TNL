@@ -36,9 +36,6 @@ initializeSuperentities( Initializer< MeshConfig >& meshInitializer,
    static constexpr bool subentityStorage = MeshConfig::subentityStorage( superdimension, subdimension );
    static constexpr bool superentityStorage = MeshConfig::superentityStorage( subdimension, superdimension );
 
-   // std::cout << "   Initiating superentities with dimension " << superdimension << " for subentities with
-   // dimension " << subdimension << " ... " << std::endl;
-
    const GlobalIndexType subentitiesCount = mesh.template getEntitiesCount< subdimension >();
    const GlobalIndexType superentitiesCount = mesh.template getEntitiesCount< superdimension >();
 
@@ -149,9 +146,6 @@ initializeFacesOfPolyhedrons( Initializer< MeshConfig >& meshInitializer,
    static constexpr bool superentityStorage = MeshConfig::superentityStorage( subdimension, superdimension );
    static_assert( subentityStorage );
 
-   // std::cout << "   Initiating superentities with dimension " << superdimension << " for subentities with
-   // dimension " << subdimension << " ... " << std::endl;
-
    meshInitializer.template setEntitiesCount< superdimension >( cellSeeds.getEntitiesCount() );
 
    const GlobalIndexType subentitiesCount = mesh.template getEntitiesCount< subdimension >();
@@ -234,8 +228,6 @@ public:
    static void
    createEntities( InitializerType& meshInitializer, MeshType& mesh )
    {
-      // std::cout << " Creating entities with dimension " << EntityDimension << " ... " << std::endl;
-
       // create seeds
       SeedIndexedSet seedsIndexedSet;
       seedsIndexedSet.reserve( mesh.template getEntitiesCount< MeshTraitsType::meshDimension >() );

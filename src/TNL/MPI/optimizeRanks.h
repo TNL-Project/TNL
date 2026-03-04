@@ -195,9 +195,9 @@ optimizeRanks( const MPI::Comm& communicator, const CommPattern& communicationPa
       for( int i = 0; i < nproc; i++ )
          identity[ i ] = i;
 
-      std::cout << "cost matrix:\n" << costMatrix << std::endl;
+      std::cout << "cost matrix:\n" << costMatrix << '\n';
       const auto cost = getCommunicationCosts( costMatrix, communicationPattern, identity );
-      std::cout << "initial cost vector: " << cost << " sum " << TNL::sum( cost ) << std::endl;
+      std::cout << "initial cost vector: " << cost << " sum " << TNL::sum( cost ) << '\n';
    }
 
    // get permutation by solving the quadratic assignment problem
@@ -206,7 +206,7 @@ optimizeRanks( const MPI::Comm& communicator, const CommPattern& communicationPa
    if( rank == 0 ) {
       const auto rank_costs = getCommunicationCosts( costMatrix, communicationPattern, perm );
       std::cout << "restored best permutation " << perm << " with cost vector " << rank_costs << " sum "
-                << TNL::sum( rank_costs ) << std::endl;
+                << TNL::sum( rank_costs ) << '\n';
    }
 
    // create a communicator comprising all processes, but with permuted ranks

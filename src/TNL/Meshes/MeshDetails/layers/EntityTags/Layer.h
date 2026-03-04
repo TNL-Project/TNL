@@ -210,13 +210,13 @@ public:
    print( std::ostream& str ) const
    {
       str << "Boundary tags for entities of dimension " << DimensionTag::value << " are: ";
-      str << tags << std::endl;
+      str << tags << '\n';
       str << "Indices of the interior entities of dimension " << DimensionTag::value << " are: ";
-      str << interiorIndices << std::endl;
+      str << interiorIndices << '\n';
       str << "Indices of the boundary entities of dimension " << DimensionTag::value << " are: ";
-      str << boundaryIndices << std::endl;
+      str << boundaryIndices << '\n';
       str << "Index of the first ghost entity of dimension " << DimensionTag::value << " is: ";
-      str << ghostsOffset << std::endl;
+      str << ghostsOffset << '\n';
    }
 
    bool
