@@ -45,11 +45,39 @@ checkDevice( const TNL::Config::ParameterContainer& parameters )
    return false;
 }
 
+template< template< typename > class Solver, typename Matrix >
+void
+benchmarkSolverSetup( TNL::Benchmarks::Benchmark<>& benchmark,
+                      const TNL::Config::ParameterContainer& parameters,
+                      const std::shared_ptr< Matrix >& matrix,
+                      const std::string& solver_name )
+{
+   // skip benchmarks on devices which the user did not select
+   if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
+      return;
+
+   barrier( matrix );
+   const char* performer = getPerformer< typename Matrix::DeviceType >();
+
+   Solver< Matrix > solver;
+   solver.setup( parameters );
+
+   auto compute = [ & ]()
+   {
+      solver.setMatrix( matrix );
+      barrier( matrix );
+   };
+
+   benchmark.setOperation( solver_name + " setMatrix" );
+   benchmark.time< typename Matrix::DeviceType >( performer, compute );
+}
+
 template< template< typename > class Preconditioner, typename Matrix >
 void
 benchmarkPreconditionerUpdate( TNL::Benchmarks::Benchmark<>& benchmark,
                                const TNL::Config::ParameterContainer& parameters,
-                               const std::shared_ptr< Matrix >& matrix )
+                               const std::shared_ptr< Matrix >& matrix,
+                               const std::string& preconditioner_name )
 {
    // skip benchmarks on devices which the user did not select
    if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
@@ -60,23 +88,31 @@ benchmarkPreconditionerUpdate( TNL::Benchmarks::Benchmark<>& benchmark,
    Preconditioner< Matrix > preconditioner;
    preconditioner.setup( parameters );
 
-   auto reset = []() {};
    auto compute = [ & ]()
    {
       preconditioner.update( matrix );
       barrier( matrix );
    };
 
-   benchmark.time< typename Matrix::DeviceType >( reset, performer, compute );
+   benchmark.setOperation( preconditioner_name + " preconditioner update" );
+   benchmark.time< typename Matrix::DeviceType >( performer, compute );
 }
 
-template< template< typename > class Solver, template< typename > class Preconditioner, typename Matrix, typename Vector >
+template< typename >
+struct NoPreconditioner
+{};
+
+template< template< typename > class Solver,
+          template< typename > class Preconditioner = NoPreconditioner,
+          typename Matrix,
+          typename Vector >
 void
 benchmarkSolver( TNL::Benchmarks::Benchmark<>& benchmark,
                  const TNL::Config::ParameterContainer& parameters,
                  const std::shared_ptr< Matrix >& matrix,
                  const Vector& x0,
-                 const Vector& b )
+                 const Vector& b,
+                 const std::string& solver_name )
 {
    // skip benchmarks on devices which the user did not select
    if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
@@ -92,18 +128,17 @@ benchmarkSolver( TNL::Benchmarks::Benchmark<>& benchmark,
 
    solver.setSolverMonitor( benchmark.getMonitor() );
 
-   auto pre = std::make_shared< Preconditioner< Matrix > >();
-   pre->setup( parameters );
-   solver.setPreconditioner( pre );
-   // preconditioner update may throw if it's not implemented for CUDA
-   try {
-      pre->update( matrix );
-   }
-   catch( const std::runtime_error& ) {
-   }
-   catch( std::invalid_argument& e ) {
-      std::cerr << e.what() << ". Skipping the benchmark!\n";
-      return;
+   if constexpr( ! std::is_same_v< Preconditioner< Matrix >, NoPreconditioner< Matrix > > ) {
+      auto pre = std::make_shared< Preconditioner< Matrix > >();
+      pre->setup( parameters );
+      solver.setPreconditioner( pre );
+      // preconditioner update may throw if it's not implemented for CUDA
+      try {
+         pre->update( matrix );
+      }
+      catch( const TNL::Exceptions::NotImplementedError& ) {
+         return;
+      }
    }
 
    Vector x;
@@ -118,63 +153,26 @@ benchmarkSolver( TNL::Benchmarks::Benchmark<>& benchmark,
    // benchmark function
    auto compute = [ & ]()
    {
-      const bool converged = solver.solve( b, x );
+      const bool solved = solver.solve( b, x );
       barrier( matrix );
-      if( ! converged )
-         throw std::runtime_error( "solver did not converge" );
+      if( ! solved )
+         throw std::runtime_error( "solver failed or did not converge" );
    };
 
    BenchmarkResult< Vector, Matrix, Solver > benchmarkResult( solver, matrix, x, b );
+   benchmark.setOperation( solver_name );
    benchmark.time< typename Matrix::DeviceType >( reset, performer, compute, benchmarkResult );
 }
 
 template< template< typename > class Solver, typename Matrix, typename Vector >
 void
-benchmarkDirectSolver( const TNL::String& solverName,
-                       TNL::Benchmarks::Benchmark<>& benchmark,
+benchmarkDirectSolver( TNL::Benchmarks::Benchmark<>& benchmark,
                        const TNL::Config::ParameterContainer& parameters,
                        const std::shared_ptr< Matrix >& matrix,
                        const Vector& x0,
-                       const Vector& b )
+                       const Vector& b,
+                       const std::string& solver_name )
 {
-   // skip benchmarks on devices which the user did not select
-   if( ! checkDevice< typename Matrix::DeviceType >( parameters ) )
-      return;
-
-   barrier( matrix );
-   const char* performer = getPerformer< typename Matrix::DeviceType >();
-
-   // setup
-   Solver< Matrix > solver;
-   solver.setup( parameters );
-
-   Vector x( x0.getSize(), 0 );
-
-   BenchmarkResult< Vector, Matrix, Solver > benchmarkResult( solver, matrix, x, b );
-
-   auto set_matrix = [ & ]()
-   {
-      solver.setMatrix( matrix );
-   };
-   benchmark.setOperation( solverName + " setup" );
-   benchmark.time< typename Matrix::DeviceType >( set_matrix, performer, set_matrix, benchmarkResult );
-
-   solver.setSolverMonitor( benchmark.getMonitor() );
-
-   // reset function
-   auto reset = [ & ]()
-   {
-      x = x0;
-   };
-
-   // benchmark function
-   auto compute = [ & ]()
-   {
-      const bool solved = solver.solve( b, x );
-      barrier( matrix );
-      if( ! solved )
-         throw std::runtime_error( "solver failed" );
-   };
-   benchmark.setOperation( solverName + " solve" );
-   benchmark.time< typename Matrix::DeviceType >( reset, performer, compute, benchmarkResult );
+   benchmarkSolverSetup< Solver >( benchmark, parameters, matrix, solver_name );
+   benchmarkSolver< Solver >( benchmark, parameters, matrix, x0, b, solver_name + " solve" );
 }
