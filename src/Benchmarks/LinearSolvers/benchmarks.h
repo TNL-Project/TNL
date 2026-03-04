@@ -10,11 +10,6 @@
 #include <stdexcept>  // std::runtime_error
 #include "BenchmarkResults.h"
 
-#ifdef HAVE_ARMADILLO
-   #include <armadillo>
-   #include <TNL/Matrices/CSR.h>
-#endif
-
 template< typename Device >
 const char*
 getPerformer()
@@ -183,64 +178,3 @@ benchmarkDirectSolver( const TNL::String& solverName,
    benchmark.setOperation( solverName + " solve" );
    benchmark.time< typename Matrix::DeviceType >( reset, performer, compute, benchmarkResult );
 }
-
-#ifdef HAVE_ARMADILLO
-// TODO: make a TNL solver like UmfpackWrapper
-template< typename Vector >
-void
-benchmarkArmadillo( const Config::ParameterContainer& parameters,
-                    const std::shared_ptr< Matrices::CSR< double, Devices::Host, int > >& matrix,
-                    const Vector& x0,
-                    const Vector& b )
-{
-   // copy matrix into Armadillo's class
-   // sp_mat is in CSC format
-   arma::uvec _colptr( matrix->getRowPointers().getSize() );
-   for( int i = 0; i < matrix->getRowPointers().getSize(); i++ )
-      _colptr[ i ] = matrix->getRowPointers()[ i ];
-   arma::uvec _rowind( matrix->getColumnIndexes().getSize() );
-   for( int i = 0; i < matrix->getColumnIndexes().getSize(); i++ )
-      _rowind[ i ] = matrix->getColumnIndexes()[ i ];
-   arma::vec _values( matrix->getValues().getData(), matrix->getValues().getSize() );
-   arma::sp_mat AT( _rowind, _colptr, _values, matrix->getColumns(), matrix->getRows() );
-   arma::sp_mat A = AT.t();
-
-   Vector x;
-   x.setLike( x0 );
-
-   // Armadillo vector using the same memory as x (with copy_aux_mem=false, strict=true)
-   arma::vec arma_x( x.getData(), x.getSize(), false, true );
-   arma::vec arma_b( b.getData(), b.getSize() );
-
-   arma::superlu_opts settings;
-   //    settings.equilibrate = false;
-   settings.equilibrate = true;
-   settings.pivot_thresh = 1.0;
-   //    settings.permutation = arma::superlu_opts::COLAMD;
-   settings.permutation = arma::superlu_opts::MMD_AT_PLUS_A;
-   //    settings.refine = arma::superlu_opts::REF_DOUBLE;
-   settings.refine = arma::superlu_opts::REF_NONE;
-
-   // reset function
-   auto reset = [ & ]()
-   {
-      x = x0;
-   };
-
-   // benchmark function
-   auto compute = [ & ]()
-   {
-      const bool converged = arma::spsolve( arma_x, A, arma_b, "superlu", settings );
-      if( ! converged )
-         throw std::runtime_error( "solver did not converge" );
-   };
-
-   const int loops = parameters.getParameter< int >( "loops" );
-   double time = timeFunction( compute, reset, loops );
-
-   arma::vec r = A * arma_x - arma_b;
-   std::cout << "Converged: " << std::setw( 5 ) << std::boolalpha << ( time > 0 ) << "   " << "iterations = " << std::setw( 4 )
-             << "N/A" << "   " << "residue = " << std::setw( 10 ) << arma::norm( r ) / arma::norm( arma_b ) << "   "
-             << "mean time = " << std::setw( 9 ) << time / loops << " seconds.\n";
-}
-#endif

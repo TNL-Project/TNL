@@ -598,11 +598,6 @@ struct LinearSolversBenchmark
       // Strumpack currently support only GPU offloading - https://github.com/pghysels/STRUMPACK/issues/113
       benchmarkDirectSolver< StrumpackWrapper >( "Strumpack", benchmark, parameters, matrixCopy, x0, b );
 #endif
-
-#ifdef HAVE_ARMADILLO
-      std::cout << "Armadillo wrapper (which wraps SuperLU):\n";
-      benchmarkArmadillo( parameters, matrixCopy, x0, b );
-#endif
    }
 };
 
