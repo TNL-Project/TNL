@@ -32,6 +32,7 @@
 #include <TNL/Solvers/Linear/BICGStabL.h>
 #include <TNL/Solvers/Linear/IDRs.h>
 #include <TNL/Solvers/Linear/CuSolverWrapper.h>
+#include <TNL/Solvers/Linear/CuDSSWrapper.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
 #include <TNL/Solvers/Linear/GinkgoDirectSolver.h>
 #include <TNL/Algorithms/Segments/CSR.h>
@@ -41,7 +42,6 @@
 #include "benchmarks.h"
 #include "StrumpackWrapper.h"
 #include "TachoWrapper.h"
-#include "CuDSSWrapper.h"
 
 template< typename _Device, typename _Index, typename _IndexAllocator >
 //using SegmentsType = TNL::Algorithms::Segments::SlicedEllpack< _Device, _Index, _IndexAllocator >;
