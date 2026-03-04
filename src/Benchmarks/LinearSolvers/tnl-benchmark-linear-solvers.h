@@ -20,6 +20,7 @@
 #include <TNL/Containers/BlockPartitioning.h>
 #include <TNL/Containers/DistributedVector.h>
 #include <TNL/Matrices/DistributedMatrix.h>
+#include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/SparseOperations.h>
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Solvers/Linear/Preconditioners/Diagonal.h>
@@ -33,7 +34,6 @@
 #include <TNL/Solvers/Linear/CuSolverWrapper.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
 #include <TNL/Solvers/Linear/GinkgoDirectSolver.h>
-#include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Benchmarks/Benchmarks.h>
@@ -471,14 +471,13 @@ struct LinearSolversBenchmark
 
       benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
          { "matrix name", parameters.getParameter< TNL::String >( "name" ) },
-         // TODO: strip the device
-         //{ "matrix type", matrixPointer->getType() },
+         { "segments type", matrixPointer->getSegments().getSegmentsType() },
          { "rows", TNL::convertToString( matrixPointer->getRows() ) },
          { "columns", TNL::convertToString( matrixPointer->getColumns() ) },
-         // FIXME: getMaxRowLengths() returns 0 for matrices loaded from file
-         //{ "max elements per row", matrixPointer->getMaxRowLength() },
          { "max elements per row", TNL::convertToString( maxRowLength ) },
       } ) );
+      if( TNL::MPI::GetSize() > 1 )
+         benchmark.setMetadataElement( { "MPI processes", TNL::convertToString( TNL::MPI::GetSize() ) } );
 
       if( parameters.getParameter< bool >( "reorder-dofs" ) ) {
          using PermutationVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
