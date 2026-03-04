@@ -165,7 +165,7 @@ TYPED_TEST( ArrayTest, constructors )
    using ArrayType = typename TestFixture::ArrayType;
 
    ArrayType empty_u;
-   ArrayType empty_v( empty_u );
+   ArrayType empty_v( empty_u );  // NOLINT(performance-unnecessary-copy-initialization)
    EXPECT_EQ( empty_u.getSize(), 0 );
    EXPECT_EQ( empty_v.getSize(), 0 );
 
@@ -194,7 +194,7 @@ TYPED_TEST( ArrayTest, constructors )
    EXPECT_EQ( w.getSize(), 10 );
 
    Containers::Array< int > int_array( 10, 1 );
-   ArrayType int_array_copy( int_array );
+   ArrayType int_array_copy( int_array );  // NOLINT(performance-unnecessary-copy-initialization)
    for( int i = 0; i < 10; i++ )
       EXPECT_EQ( int_array_copy.getElement( i ), 1 );
 
@@ -272,7 +272,7 @@ TYPED_TEST( ArrayTest, constructorsWithAllocators )
    EXPECT_EQ( a3.getAllocator(), allocator );
 
    // test value-initialization of non-fundamental types
-   if( ! std::is_fundamental< typename ArrayType::ValueType >::value ) {
+   if( ! std::is_fundamental_v< typename ArrayType::ValueType > ) {
       const typename ArrayType::ValueType init{};
       ArrayType a( 42 );
       ASSERT_EQ( a.getSize(), 42 );
@@ -323,7 +323,7 @@ TYPED_TEST( ArrayTest, resize )
       EXPECT_EQ( v.getElement( i ), init ) << "i = " << i;
 
    // test value-initialization of non-fundamental types
-   if( ! std::is_fundamental< typename ArrayType::ValueType >::value ) {
+   if( ! std::is_fundamental_v< typename ArrayType::ValueType > ) {
       const typename ArrayType::ValueType init{};
       ArrayType w;
       w.resize( 42 );
@@ -648,8 +648,7 @@ TYPED_TEST( ArrayTest, assignmentOperator )
 }
 
 // test works only for arithmetic types
-template< typename ArrayType,
-          typename = typename std::enable_if< std::is_arithmetic< typename ArrayType::ValueType >::value >::type >
+template< typename ArrayType, typename = std::enable_if_t< std::is_arithmetic_v< typename ArrayType::ValueType > > >
 void
 testArrayAssignmentWithDifferentType()
 {
@@ -680,7 +679,7 @@ testArrayAssignmentWithDifferentType()
 }
 
 template< typename ArrayType,
-          typename = typename std::enable_if< ! std::is_arithmetic< typename ArrayType::ValueType >::value >::type,
+          typename = std::enable_if_t< ! std::is_arithmetic_v< typename ArrayType::ValueType > >,
           typename = void >
 void
 testArrayAssignmentWithDifferentType()
