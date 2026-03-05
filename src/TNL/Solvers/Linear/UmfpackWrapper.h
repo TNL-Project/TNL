@@ -53,10 +53,6 @@ protected:
    double Control[ UMFPACK_CONTROL ];
    double Info[ UMFPACK_INFO ];
 #endif
-
-   MatrixPointer matrix;
-
-   bool factorized = false;
 };
 
 }  // namespace TNL::Solvers::Linear
