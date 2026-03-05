@@ -28,17 +28,21 @@ public:
    {
 #ifdef HAVE_STRUMPACK
       this->solver.options().set_rel_tol( 1e-10 );
-      this->solver.options().set_Krylov_solver( strumpack::KrylovSolver::DIRECT );  // use direct solver
-      this->solver.options().set_compression(
-         strumpack::CompressionType::HSS );  // enable HSS compression, see HSS Preconditioning
-                                             //this->solver.options().enable_gpu();  // this will oflload to GPU
+      // use direct solver
+      this->solver.options().set_Krylov_solver( strumpack::KrylovSolver::DIRECT );
+      // enable HSS compression, see HSS Preconditioning
+      this->solver.options().set_compression( strumpack::CompressionType::HSS );
+      // enable GPU acceleration (oflload from host to GPU)
+      //this->solver.options().enable_gpu();
 #endif
    }
 
    void
-   setMatrix( const MatrixPointer& matrix )
+   setMatrix( const MatrixPointer& matrix ) override
    {
 #ifdef HAVE_STRUMPACK
+      LinearSolver< Matrix >::setMatrix( matrix );
+
       this->solver.set_csr_matrix( matrix->getRows(),
                                    matrix->getSegments().getOffsets().getData(),
                                    matrix->getColumnIndexes().getData(),
@@ -53,12 +57,17 @@ public:
    solve( ConstVectorViewType b, VectorViewType x ) override
    {
 #ifdef HAVE_STRUMPACK
+      if( this->matrix->getColumns() != x.getSize() )
+         throw std::invalid_argument( "StrumpackWrapper::solve: wrong size of the solution vector" );
+      if( this->matrix->getColumns() != b.getSize() )
+         throw std::invalid_argument( "StrumpackWrapper::solve: wrong size of the right hand side" );
+
       this->setResidue( NAN );
       this->solver.solve( b.getData(), x.getData() );
       this->setResidue( 0 );
       return true;
 #else
-      throw std::runtime_error( "Strumpack is not available.." );
+      throw std::runtime_error( "StrumpackWrapper was not built with Strumpack support." );
 #endif
    }
 
