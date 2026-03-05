@@ -119,6 +119,9 @@ public:
    virtual void
    setMatrix( const MatrixPointer& matrix )
    {
+      if( matrix->getRows() != matrix->getColumns() )
+         throw std::invalid_argument( "LinearSolver::setMatrix: matrix must be square" );
+
       this->matrix = matrix;
    }
 
