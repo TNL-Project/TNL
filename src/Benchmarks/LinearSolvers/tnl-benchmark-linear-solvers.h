@@ -359,6 +359,19 @@ benchmarkDirectSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
    auto cudaMatrix = std::make_shared< CudaCSR >();
    *cudaMatrix = *csr_matrix;
 
+   auto copy_to_gpu = [ & ]()
+   {
+      *cudaMatrix = *csr_matrix;
+   };
+   auto copy_to_cpu = [ & ]()
+   {
+      *csr_matrix = *cudaMatrix;
+   };
+   TNL::Benchmarks::BenchmarkResult benchmarkResult;
+   benchmark.setOperation( "matrix copy" );
+   benchmark.time< TNL::Devices::Host >( "CPU->GPU", copy_to_gpu, benchmarkResult );
+   benchmark.time< TNL::Devices::Host >( "GPU->CPU", copy_to_cpu, benchmarkResult );
+
    #ifdef HAVE_CUDSS
    benchmarkDirectSolver< CuDSSWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "CuDSS" );
    cuda_x0_copy = cuda_x0;
