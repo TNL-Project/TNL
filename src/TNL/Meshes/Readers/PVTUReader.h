@@ -142,7 +142,7 @@ public:
    }
 
    template< typename MeshType >
-   std::enable_if_t< ! isDistributedGrid< MeshType >::value >
+   std::enable_if_t< ! isDistributedGrid< MeshType >::value && ! std::is_same_v< typename MeshType::DeviceType, Devices::GPU > >
    loadMesh( MeshType& mesh )
    {
       // check that detectMesh has been called
@@ -239,6 +239,24 @@ public:
          // set the communicator
          mesh.setCommunicator( communicator );
       }
+   }
+
+   /**
+    * \brief Method which loads the intermediate mesh representation into a
+    * mesh object.
+    *
+    * This overload applies to distributed unstructured meshes which are
+    * allocated on the GPU.
+    */
+   template< typename MeshType >
+   std::enable_if_t< ! isGrid< MeshType >::value && std::is_same_v< typename MeshType::DeviceType, Devices::GPU > >
+   loadMesh( MeshType& mesh )
+   {
+      using HostMesh =
+         TNL::Meshes::DistributedMeshes::DistributedMesh< TNL::Meshes::Mesh< typename MeshType::Config, TNL::Devices::Host > >;
+      HostMesh hostMesh;
+      loadMesh( hostMesh );
+      mesh = hostMesh;
    }
 
    [[nodiscard]] VariantVector
