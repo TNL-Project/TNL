@@ -144,7 +144,7 @@ The procedure consists of the three usual steps: configure, build, install.
    If you want to run the unit tests, use the following command with the
    special `test` target:
 
-       cmake --build build test
+       cmake --build build --target test
 
 3. The [install step][cmake-install] copies the already built targets and
    static files to a destination in the system specified by the `--prefix`
