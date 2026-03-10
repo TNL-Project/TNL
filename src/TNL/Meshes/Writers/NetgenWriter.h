@@ -29,7 +29,7 @@ public:
       str << std::fixed;
 
       const GlobalIndexType numberOfVertices = mesh.template getEntitiesCount< typename Mesh::Vertex >();
-      str << numberOfVertices << std::endl;
+      str << numberOfVertices << '\n';
       for( GlobalIndexType i = 0; i < numberOfVertices; i++ ) {
          const PointType& point = mesh.template getEntity< typename Mesh::Vertex >( i ).getPoint();
          str << " ";
@@ -39,7 +39,7 @@ public:
       }
 
       const GlobalIndexType numberOfCells = mesh.template getEntitiesCount< typename Mesh::Cell >();
-      str << numberOfCells << std::endl;
+      str << numberOfCells << '\n';
       for( GlobalIndexType cellIdx = 0; cellIdx < numberOfCells; cellIdx++ ) {
          const Cell& cell = mesh.template getEntity< typename Mesh::Cell >( cellIdx );
          str << "   1";

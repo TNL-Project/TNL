@@ -5,13 +5,12 @@
 
 #ifdef HAVE_GINKGO
    #include <ginkgo/ginkgo.hpp>
-   #include <TNL/Matrices/GinkgoOperator.h>
-   #include <TNL/Containers/GinkgoVector.h>
 #endif
 
 #include "LinearSolver.h"
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/MatrixInfo.h>
+#include <TNL/Matrices/TypeTraits.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 
 namespace TNL::Solvers::Linear {
@@ -19,7 +18,7 @@ namespace TNL::Solvers::Linear {
 template< typename Matrix >
 class GinkgoDirectSolver : public LinearSolver< Matrix >
 {
-   static_assert( Matrices::is_sparse_csr_matrix< Matrix >::value, "Umfpack works only with CSR format." );
+   static_assert( Matrices::is_sparse_csr_matrix< Matrix >::value, "GinkgoDirectSolver works only with CSR format." );
 
    using Base = LinearSolver< Matrix >;
 
@@ -34,12 +33,17 @@ public:
    GinkgoDirectSolver()
    {
 #ifdef HAVE_GINKGO
-      if( std::is_same_v< DeviceType, TNL::Devices::Host > )
+      if constexpr( std::is_same_v< DeviceType, TNL::Devices::Sequential > )
+         gk_exec = gko::ReferenceExecutor::create();
+      if constexpr( std::is_same_v< DeviceType, TNL::Devices::Host > )
          gk_exec = gko::OmpExecutor::create();
-      if( std::is_same_v< DeviceType, TNL::Devices::Cuda > )
+      if constexpr( std::is_same_v< DeviceType, TNL::Devices::GPU > ) {
+   #if defined( __CUDACC__ )
          gk_exec = gko::CudaExecutor::create( 0, gko::OmpExecutor::create() );
-      //if( std::is_same_v< DeviceType, TNL::Devices::Hip > ) // This is true even for CUDA!!!!!
-      //   gk_exec = gko::HipExecutor::create( 0, gko::OmpExecutor::create() );
+   #elif defined( __HIP__ )
+         gk_exec = gko::HipExecutor::create( 0, gko::OmpExecutor::create() );
+   #endif
+      }
 #else
       throw std::runtime_error( "GinkgoDirectSolver was not built with Ginkgo support." );
 #endif
@@ -49,7 +53,8 @@ public:
    setMatrix( const MatrixPointer& matrix ) override
    {
 #ifdef HAVE_GINKGO
-      this->matrix = matrix;
+      LinearSolver< Matrix >::setMatrix( matrix );
+
       auto gko_A = gko::share( gko::matrix::Csr< RealType, IndexType >::create(
          gk_exec,
          gko::dim< 2 >{ static_cast< std::size_t >( matrix->getRows() ), static_cast< std::size_t >( matrix->getColumns() ) },
@@ -75,7 +80,11 @@ public:
    solve( ConstVectorViewType b, VectorViewType x ) override
    {
 #ifdef HAVE_GINKGO
-      this->resetIterations();
+      if( this->matrix->getColumns() != x.getSize() )
+         throw std::invalid_argument( "GinkgoDirectSolver::solve: wrong size of the solution vector" );
+      if( this->matrix->getColumns() != b.getSize() )
+         throw std::invalid_argument( "GinkgoDirectSolver::solve: wrong size of the right hand side" );
+
       this->setResidue( NAN );
       auto gko_b = gko::matrix::Dense< RealType >::create(
          gk_exec,
@@ -96,6 +105,7 @@ public:
 #endif
    }
 
+protected:
 #ifdef HAVE_GINKGO
    std::shared_ptr< gko::Executor > gk_exec;
    std::shared_ptr< gko::experimental::solver::Direct< RealType, IndexType > > gk_solver;

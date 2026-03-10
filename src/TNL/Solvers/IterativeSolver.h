@@ -14,7 +14,7 @@ namespace TNL::Solvers {
  *
  * \tparam Real is a floating point type used for computations.
  * \tparam Index is an indexing type.
- * \tparam IterativeSolverMonitor< Real, Index > is type of an object used for monitoring of the convergence.
+ * \tparam SolverMonitor is type of an object used for monitoring of the convergence.
  */
 template< typename Real, typename Index, typename SolverMonitor = IterativeSolverMonitor< double > >
 class IterativeSolver
@@ -75,7 +75,7 @@ public:
    /**
     * \brief Gets the maximal number of iterations the solver is \b allowed to perform.
     *
-    * See \ref IterativeSolver::setMaxIterations.
+    * See \ref setMaxIterations.
     *
     * \return maximal number of allowed iterations.
     */
@@ -107,19 +107,19 @@ public:
    getIterations() const;
 
    /**
-    * \brief Sets the threshold for the convergence.
+    * \brief Sets the threshold for convergence based on residue.
     *
-    * The convergence occurs when the residue drops \b bellow this limit.
+    * The convergence occurs when the residue drops \b bellow this threshold.
     *
-    * \param convergenceResidue is threshold for the convergence.
+    * \param convergenceResidue the threshold for convergence.
     */
    void
    setConvergenceResidue( const Real& convergenceResidue );
 
    /**
-    * \brief Gets the the convergence threshold.
+    * \brief Gets the threshold for convergence based on residue.
     *
-    * See \ref IterativeSolver::setConvergenceResidue.
+    * See \ref setConvergenceResidue.
     *
     * \return the convergence threshold.
     */
@@ -127,19 +127,19 @@ public:
    getConvergenceResidue() const;
 
    /**
-    * \brief Sets the residue limit for the divergence criterion.
+    * \brief Sets the threshold for divergence based on residue.
     *
-    * The divergence occurs when the residue \b exceeds the limit.
+    * The divergence occurs when the residue \b exceeds the threshold.
     *
-    * \param divergenceResidue the residue limit of the divergence.
+    * \param divergenceResidue the threshold for divergence.
     */
    void
    setDivergenceResidue( const Real& divergenceResidue );
 
    /**
-    * \brief Gets the limit for the divergence criterion.
+    * \brief Gets the threshold for divergence based on residue.
     *
-    * See \ref IterativeSolver::setDivergenceResidue.
+    * See \ref setDivergenceResidue.
     *
     * \return the residue limit of the divergence.
     */
@@ -149,6 +149,10 @@ public:
    /**
     * \brief Sets the residue reached at the current iteration.
     *
+    * This method is intended to be used from subclasses to report the current residue.
+    * The exact meaning of the value may be specific to the actual algorithm, but in
+    * general, the residue is used to check for the convergence and divergence.
+    *
     * \param residue reached at the current iteration.
     */
    void
@@ -156,6 +160,9 @@ public:
 
    /**
     * \brief Gets the residue reached at the current iteration.
+    *
+    * Note that the exact meaning of the value may be specific to the actual algorithm,
+    * but in general, the residue is used to check for the convergence and divergence.
     *
     * \return residue reached at the current iteration.
     */

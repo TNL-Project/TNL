@@ -10,7 +10,7 @@ using namespace TNL::Pointers;
 
 TEST( UniquePointerTest, ConstructorTest )
 {
-   typedef TNL::Containers::StaticArray< 2, int > TestType;
+   using TestType = TNL::Containers::StaticArray< 2, int >;
    UniquePointer< TestType, Devices::Host > ptr1;
 
    ptr1->x() = 0;

@@ -375,8 +375,11 @@ protected:
    std::string meshType;
 
    // attributes of the mesh
-   std::size_t NumberOfPoints, NumberOfFaces, NumberOfCells;
-   int meshDimension, spaceDimension;
+   std::size_t NumberOfPoints = 0;
+   std::size_t NumberOfFaces = 0;
+   std::size_t NumberOfCells = 0;
+   int meshDimension = 0;
+   int spaceDimension = 0;
    VTK::EntityShape cellShape = VTK::EntityShape::Vertex;
 
    // string representation of mesh types (forced means specified by the user, otherwise

@@ -20,6 +20,7 @@
 #include <TNL/Containers/BlockPartitioning.h>
 #include <TNL/Containers/DistributedVector.h>
 #include <TNL/Matrices/DistributedMatrix.h>
+#include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/SparseOperations.h>
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Solvers/Linear/Preconditioners/Diagonal.h>
@@ -30,31 +31,16 @@
 #include <TNL/Solvers/Linear/BICGStab.h>
 #include <TNL/Solvers/Linear/BICGStabL.h>
 #include <TNL/Solvers/Linear/IDRs.h>
-#include <TNL/Solvers/Linear/CuSolverWrapper.h>
+#include <TNL/Solvers/Linear/CuDSSWrapper.h>
 #include <TNL/Solvers/Linear/UmfpackWrapper.h>
 #include <TNL/Solvers/Linear/GinkgoDirectSolver.h>
-#include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Benchmarks/Benchmarks.h>
 #include "ordering.h"
 #include "benchmarks.h"
-#include "BenchmarkResults.h"
 #include "StrumpackWrapper.h"
 #include "TachoWrapper.h"
-#include "CuDSSWrapper.h"
-
-// FIXME: nvcc 8.0 fails when cusolverSp.h is included (works fine with clang):
-// /opt/cuda/include/cuda_fp16.h(3068): error: more than one instance of overloaded function "isinf" matches the argument list:
-//             function "isinf(float)"
-//             function "std::isinf(float)"
-//             argument types are: (float)
-//#if defined(__CUDACC__) && !defined(__NVCC__)
-// FIXME: CuSolverWrapper does not work at all now
-#if 0
-   #include "CuSolverWrapper.h"
-   #define HAVE_CUSOLVER
-#endif
 
 template< typename _Device, typename _Index, typename _IndexAllocator >
 //using SegmentsType = TNL::Algorithms::Segments::SlicedEllpack< _Device, _Index, _IndexAllocator >;
@@ -143,8 +129,9 @@ benchmarkIterativeSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
    using CudaMatrix = typename Matrix::template Self< typename Matrix::RealType, TNL::Devices::Cuda >;
    using CudaVector = typename Vector::template Self< typename Vector::RealType, TNL::Devices::Cuda >;
 
-   CudaVector cuda_x0, cuda_b;
+   CudaVector cuda_x0;
    cuda_x0 = x0;
+   CudaVector cuda_b;
    cuda_b = b;
 
    auto cudaMatrixPointer = std::make_shared< CudaMatrix >();
@@ -162,172 +149,257 @@ benchmarkIterativeSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
 
    if( preconditioners.count( "jacobi" ) ) {
       if( with_preconditioner_update ) {
-         benchmark.setOperation( "preconditioner update (Jacobi)" );
-         benchmarkPreconditionerUpdate< Diagonal >( benchmark, parameters, matrixPointer );
+         benchmarkPreconditionerUpdate< Diagonal >( benchmark, parameters, matrixPointer, "Jacobi" );
 #ifdef __CUDACC__
-         benchmarkPreconditionerUpdate< Diagonal >( benchmark, parameters, cudaMatrixPointer );
+         benchmarkPreconditionerUpdate< Diagonal >( benchmark, parameters, cudaMatrixPointer, "Jacobi" );
 #endif
       }
 
       if( solvers.count( "gmres" ) ) {
          for( const auto& variant : gmresVariants ) {
-            benchmark.setOperation( variant + "-GMRES (Jacobi)" );
             parameters.template setParameter< TNL::String >( "gmres-variant", variant );
-            benchmarkSolver< GMRES, Diagonal >( benchmark, parameters, matrixPointer, x0, b );
+            const std::string solver_name = variant + "-GMRES (Jacobi)";
+            benchmarkSolver< GMRES, Diagonal >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-            benchmarkSolver< GMRES, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+            benchmarkSolver< GMRES, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
       }
 
       if( solvers.count( "tfqmr" ) ) {
-         benchmark.setOperation( "TFQMR (Jacobi)" );
-         benchmarkSolver< TFQMR, Diagonal >( benchmark, parameters, matrixPointer, x0, b );
+         const std::string solver_name = "TFQMR (Jacobi)";
+         benchmarkSolver< TFQMR, Diagonal >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-         benchmarkSolver< TFQMR, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         benchmarkSolver< TFQMR, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
 
       if( solvers.count( "bicgstab" ) ) {
-         benchmark.setOperation( "BiCGstab (Jacobi)" );
-         benchmarkSolver< BICGStab, Diagonal >( benchmark, parameters, matrixPointer, x0, b );
+         const std::string solver_name = "BiCGstab (Jacobi)";
+         benchmarkSolver< BICGStab, Diagonal >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-         benchmarkSolver< BICGStab, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         benchmarkSolver< BICGStab, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
 
       if( solvers.count( "bicgstab-ell" ) ) {
-         benchmark.setOperation( "BiCGstab (Jacobi)" );
          for( int ell = 1; ell <= ell_max; ell++ ) {
             parameters.template setParameter< int >( "bicgstab-ell", ell );
-            benchmark.setOperation( "BiCGstab(" + TNL::convertToString( ell ) + ") (Jacobi)" );
-            benchmarkSolver< BICGStabL, Diagonal >( benchmark, parameters, matrixPointer, x0, b );
+            const std::string solver_name = "BiCGstab(" + std::to_string( ell ) + ") (Jacobi)";
+            benchmarkSolver< BICGStabL, Diagonal >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-            benchmarkSolver< BICGStabL, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+            benchmarkSolver< BICGStabL, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
       }
 
       if( solvers.count( "idrs" ) ) {
-         benchmark.setOperation( "IDRs (Jacobi)" );
-         benchmarkSolver< IDRs, Diagonal >( benchmark, parameters, matrixPointer, x0, b );
+         const std::string solver_name = "IDRs (Jacobi)";
+         benchmarkSolver< IDRs, Diagonal >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-         benchmarkSolver< IDRs, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         benchmarkSolver< IDRs, Diagonal >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
    }
 
    if( preconditioners.count( "ilu0" ) ) {
       if( with_preconditioner_update ) {
-         benchmark.setOperation( "preconditioner update (ILU0)" );
-         benchmarkPreconditionerUpdate< ILU0 >( benchmark, parameters, matrixPointer );
+         benchmarkPreconditionerUpdate< ILU0 >( benchmark, parameters, matrixPointer, "ILU0" );
 #ifdef __CUDACC__
-         benchmarkPreconditionerUpdate< ILU0 >( benchmark, parameters, cudaMatrixPointer );
+         benchmarkPreconditionerUpdate< ILU0 >( benchmark, parameters, cudaMatrixPointer, "ILU0" );
 #endif
       }
 
       if( solvers.count( "gmres" ) ) {
          for( const auto& variant : gmresVariants ) {
-            benchmark.setOperation( variant + "-GMRES (ILU0)" );
             parameters.template setParameter< TNL::String >( "gmres-variant", variant );
-            benchmarkSolver< GMRES, ILU0 >( benchmark, parameters, matrixPointer, x0, b );
+            const std::string solver_name = variant + "-GMRES (ILU0)";
+            benchmarkSolver< GMRES, ILU0 >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-            benchmarkSolver< GMRES, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+            benchmarkSolver< GMRES, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
       }
 
       if( solvers.count( "tfqmr" ) ) {
-         benchmark.setOperation( "TFQMR (ILU0)" );
-         benchmarkSolver< TFQMR, ILU0 >( benchmark, parameters, matrixPointer, x0, b );
+         const std::string solver_name = "TFQMR (ILU0)";
+         benchmarkSolver< TFQMR, ILU0 >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-         benchmarkSolver< TFQMR, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         benchmarkSolver< TFQMR, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
 
       if( solvers.count( "bicgstab" ) ) {
-         benchmark.setOperation( "BiCGstab (ILU0)" );
-         benchmarkSolver< BICGStab, ILU0 >( benchmark, parameters, matrixPointer, x0, b );
+         const std::string solver_name = "BiCGstab (ILU0)";
+         benchmarkSolver< BICGStab, ILU0 >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-         benchmarkSolver< BICGStab, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         benchmarkSolver< BICGStab, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
 
       if( solvers.count( "bicgstab-ell" ) ) {
          for( int ell = 1; ell <= ell_max; ell++ ) {
             parameters.template setParameter< int >( "bicgstab-ell", ell );
-            benchmark.setOperation( "BiCGstab(" + TNL::convertToString( ell ) + ") (ILU0)" );
-            benchmarkSolver< BICGStabL, ILU0 >( benchmark, parameters, matrixPointer, x0, b );
+            const std::string solver_name = "BiCGstab(" + std::to_string( ell ) + ") (ILU0)";
+            benchmarkSolver< BICGStabL, ILU0 >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-            benchmarkSolver< BICGStabL, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+            benchmarkSolver< BICGStabL, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
       }
 
       if( solvers.count( "idrs" ) ) {
-         benchmark.setOperation( "IDRs (ILU0)" );
-         benchmarkSolver< IDRs, ILU0 >( benchmark, parameters, matrixPointer, x0, b );
+         const std::string solver_name = "IDRs (ILU0)";
+         benchmarkSolver< IDRs, ILU0 >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-         benchmarkSolver< IDRs, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         benchmarkSolver< IDRs, ILU0 >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
    }
 
    if( preconditioners.count( "ilut" ) ) {
       if( with_preconditioner_update ) {
-         benchmark.setOperation( "preconditioner update (ILUT)" );
-         benchmarkPreconditionerUpdate< ILUT >( benchmark, parameters, matrixPointer );
+         benchmarkPreconditionerUpdate< ILUT >( benchmark, parameters, matrixPointer, "ILUT" );
 #ifdef __CUDACC__
-         benchmarkPreconditionerUpdate< ILUT >( benchmark, parameters, cudaMatrixPointer );
+         benchmarkPreconditionerUpdate< ILUT >( benchmark, parameters, cudaMatrixPointer, "ILUT" );
 #endif
       }
 
       if( solvers.count( "gmres" ) ) {
          for( const auto& variant : gmresVariants ) {
-            benchmark.setOperation( variant + "-GMRES (ILUT)" );
             parameters.template setParameter< TNL::String >( "gmres-variant", variant );
-            benchmarkSolver< GMRES, ILUT >( benchmark, parameters, matrixPointer, x0, b );
+            const std::string solver_name = variant + "-GMRES (ILUT)";
+            benchmarkSolver< GMRES, ILUT >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-            benchmarkSolver< GMRES, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+            benchmarkSolver< GMRES, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
       }
 
       if( solvers.count( "tfqmr" ) ) {
-         benchmark.setOperation( "TFQMR (ILUT)" );
-         benchmarkSolver< TFQMR, ILUT >( benchmark, parameters, matrixPointer, x0, b );
+         const std::string solver_name = "TFQMR (ILUT)";
+         benchmarkSolver< TFQMR, ILUT >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-         benchmarkSolver< TFQMR, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         benchmarkSolver< TFQMR, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
 
       if( solvers.count( "bicgstab" ) ) {
-         benchmark.setOperation( "BiCGstab (ILUT)" );
-         benchmarkSolver< BICGStab, ILUT >( benchmark, parameters, matrixPointer, x0, b );
+         const std::string solver_name = "BiCGstab (ILUT)";
+         benchmarkSolver< BICGStab, ILUT >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-         benchmarkSolver< BICGStab, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         benchmarkSolver< BICGStab, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
 
       if( solvers.count( "bicgstab-ell" ) ) {
          for( int ell = 1; ell <= ell_max; ell++ ) {
             parameters.template setParameter< int >( "bicgstab-ell", ell );
-            benchmark.setOperation( "BiCGstab(" + TNL::convertToString( ell ) + ") (ILUT)" );
-            benchmarkSolver< BICGStabL, ILUT >( benchmark, parameters, matrixPointer, x0, b );
+            const std::string solver_name = "BiCGstab(" + std::to_string( ell ) + ") (ILUT)";
+            benchmarkSolver< BICGStabL, ILUT >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-            benchmarkSolver< BICGStabL, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+            benchmarkSolver< BICGStabL, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
          }
       }
 
       if( solvers.count( "idrs" ) ) {
-         benchmark.setOperation( "IDRs (ILUT)" );
-         benchmarkSolver< IDRs, ILUT >( benchmark, parameters, matrixPointer, x0, b );
+         const std::string solver_name = "IDRs (ILUT)";
+         benchmarkSolver< IDRs, ILUT >( benchmark, parameters, matrixPointer, x0, b, solver_name );
 #ifdef __CUDACC__
-         benchmarkSolver< IDRs, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b );
+         benchmarkSolver< IDRs, ILUT >( benchmark, parameters, cudaMatrixPointer, cuda_x0, cuda_b, solver_name );
 #endif
       }
    }
+}
+
+template< typename Matrix, typename Vector >
+void
+benchmarkDirectSolvers( TNL::Benchmarks::Benchmark<>& benchmark,
+                        const TNL::Config::ParameterContainer& parameters,
+                        const std::shared_ptr< Matrix >& matrixPointer,
+                        const Vector& x0,
+                        const Vector& b )
+{
+   using namespace TNL::Solvers::Linear;
+
+   using CSR = TNL::Matrices::SparseMatrix< typename Matrix::RealType,
+                                            typename Matrix::DeviceType,
+                                            typename Matrix::IndexType,
+                                            TNL::Matrices::GeneralMatrix,
+                                            TNL::Algorithms::Segments::CSR >;
+   auto csr_matrix = std::make_shared< CSR >();
+   TNL::Matrices::copySparseMatrix( *csr_matrix, *matrixPointer );
+
+#ifdef HAVE_UMFPACK
+   if constexpr( ( std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Host >
+                   || std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Sequential > )
+                 && std::is_same_v< typename Matrix::RealType, double > && std::is_same_v< typename Matrix::IndexType, int > )
+      benchmarkDirectSolver< UmfpackWrapper >( benchmark, parameters, csr_matrix, x0, b, "UMFPACK" );
+#endif
+
+#ifdef HAVE_TRILINOS
+   benchmarkDirectSolver< TachoWrapper >( benchmark, parameters, csr_matrix, x0, b, "Tacho" );
+#endif
+
+#ifdef HAVE_GINKGO
+   benchmarkDirectSolver< GinkgoDirectSolver >( benchmark, parameters, csr_matrix, x0, b, "Ginkgo" );
+#endif
+
+#ifdef __CUDACC__
+   using CudaCSR = typename CSR::template Self< typename Matrix::RealType, TNL::Devices::Cuda >;
+   using CudaVector = typename Vector::template Self< typename Vector::RealType, TNL::Devices::Cuda >;
+
+   CudaVector cuda_x0;
+   cuda_x0 = x0;
+   CudaVector cuda_b;
+   cuda_b = b;
+   Vector cuda_x0_copy;
+
+   auto cudaMatrix = std::make_shared< CudaCSR >();
+   *cudaMatrix = *csr_matrix;
+
+   auto copy_to_gpu = [ & ]()
+   {
+      *cudaMatrix = *csr_matrix;
+   };
+   auto copy_to_cpu = [ & ]()
+   {
+      *csr_matrix = *cudaMatrix;
+   };
+   TNL::Benchmarks::BenchmarkResult benchmarkResult;
+   benchmark.setOperation( "matrix copy" );
+   benchmark.time< TNL::Devices::Host >( "CPU->GPU", copy_to_gpu, benchmarkResult );
+   benchmark.time< TNL::Devices::Host >( "GPU->CPU", copy_to_cpu, benchmarkResult );
+
+   #ifdef HAVE_CUDSS
+   benchmarkDirectSolver< CuDSSWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "CuDSS" );
+   cuda_x0_copy = cuda_x0;
+   if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+      std::cout << "Warning: the result of the CuDSS solver is not equal to the result of the CPU solver.\n";
+   #endif
+
+   #ifdef HAVE_GINKGO
+   benchmarkDirectSolver< GinkgoDirectSolver >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "Ginkgo" );
+   cuda_x0_copy = cuda_x0;
+   if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+      std::cout << "Warning: the result of the Ginkgo GPU solver is not equal to the result of the CPU solver.\n";
+   #endif
+
+   #ifdef HAVE_TRILINOS
+   if( ! std::is_same_v< Kokkos::DefaultHostExecutionSpace, Kokkos::DefaultExecutionSpace > ) {
+      benchmarkDirectSolver< TachoWrapper >( benchmark, parameters, cudaMatrix, cuda_x0, cuda_b, "Tacho" );
+      cuda_x0_copy = cuda_x0;
+      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
+         std::cout << "Warning: the result of the Tacho GPU solver is not equal to the result of the CPU solver.\n";
+   }
+   #endif
+#endif  // __CUDACC__
+
+#ifdef HAVE_STRUMPACK
+   // Strumpack currently supports only GPU offloading - https://github.com/pghysels/STRUMPACK/issues/113
+   benchmarkDirectSolver< StrumpackWrapper >( benchmark, parameters, csr_matrix, x0, b, "Strumpack" );
+#endif
 }
 
 template< typename MatrixType >
@@ -364,6 +436,16 @@ struct LinearSolversBenchmark
       TNL::Matrices::compressSparseMatrix( *matrixPointer );
       matrixPointer->sortColumnIndexes();
 
+      // check matrix dimensions
+      if( matrixPointer->getRows() == 0 ) {
+         std::cerr << "Matrix " << file_matrix << " is empty.\n";
+         return false;
+      }
+      if( matrixPointer->getRows() != matrixPointer->getColumns() ) {
+         std::cerr << "Matrix " << file_matrix << " is not square.\n";
+         return false;
+      }
+
       // load the vectors
       if( file_dof && file_rhs ) {
          TNL::File( file_dof, std::ios_base::in ) >> x0;
@@ -396,46 +478,37 @@ struct LinearSolversBenchmark
 
       benchmark.setMetadataColumns( TNL::Benchmarks::Benchmark<>::MetadataColumns( {
          { "matrix name", parameters.getParameter< TNL::String >( "name" ) },
-         // TODO: strip the device
-         //{ "matrix type", matrixPointer->getType() },
+         { "segments type", matrixPointer->getSegments().getSegmentsType() },
          { "rows", TNL::convertToString( matrixPointer->getRows() ) },
          { "columns", TNL::convertToString( matrixPointer->getColumns() ) },
-         // FIXME: getMaxRowLengths() returns 0 for matrices loaded from file
-         //{ "max elements per row", matrixPointer->getMaxRowLength() },
          { "max elements per row", TNL::convertToString( maxRowLength ) },
       } ) );
+      if( TNL::MPI::GetSize() > 1 )
+         benchmark.setMetadataElement( { "MPI processes", TNL::convertToString( TNL::MPI::GetSize() ) } );
 
-      if( parameters.getParameter< bool >( "with-iterative" ) ) {
-         std::cout << "Iterative solvers:\n";
-
-         if( parameters.getParameter< bool >( "reorder-dofs" ) ) {
-            using PermutationVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
-            PermutationVector perm;
-            PermutationVector iperm;
-            getTrivialOrdering( *matrixPointer, perm, iperm );
-            auto matrix_perm = std::make_shared< MatrixType >();
-            VectorType x0_perm;
-            VectorType b_perm;
-            x0_perm.setLike( x0 );
-            b_perm.setLike( b );
-            TNL::Matrices::reorderSparseMatrix( *matrixPointer, *matrix_perm, perm, iperm );
-            TNL::Matrices::reorderArray( x0, x0_perm, perm );
-            TNL::Matrices::reorderArray( b, b_perm, perm );
-            if( TNL::MPI::GetSize() > 1 )
-               runDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
-            else
-               runNonDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
-         }
-         else {
-            if( TNL::MPI::GetSize() > 1 )
-               runDistributed( benchmark, parameters, matrixPointer, x0, b );
-            else
-               runNonDistributed( benchmark, parameters, matrixPointer, x0, b );
-         }
+      if( parameters.getParameter< bool >( "reorder-dofs" ) ) {
+         using PermutationVector = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+         PermutationVector perm;
+         PermutationVector iperm;
+         getTrivialOrdering( *matrixPointer, perm, iperm );
+         auto matrix_perm = std::make_shared< MatrixType >();
+         VectorType x0_perm;
+         VectorType b_perm;
+         x0_perm.setLike( x0 );
+         b_perm.setLike( b );
+         TNL::Matrices::reorderSparseMatrix( *matrixPointer, *matrix_perm, perm, iperm );
+         TNL::Matrices::reorderArray( x0, x0_perm, perm );
+         TNL::Matrices::reorderArray( b, b_perm, perm );
+         if( TNL::MPI::GetSize() > 1 )
+            runDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
+         else
+            runNonDistributed( benchmark, parameters, matrix_perm, x0_perm, b_perm );
       }
-      if( parameters.getParameter< bool >( "with-direct" ) ) {
-         std::cout << "Direct solvers:\n";
-         runDirect( benchmark, parameters, matrixPointer, x0, b );
+      else {
+         if( TNL::MPI::GetSize() > 1 )
+            runDistributed( benchmark, parameters, matrixPointer, x0, b );
+         else
+            runNonDistributed( benchmark, parameters, matrixPointer, x0, b );
       }
       return true;
    }
@@ -479,7 +552,13 @@ struct LinearSolversBenchmark
          for( IndexType j = 0; j < global_row.getSize(); j++ )
             local_row.setElement( j, global_row.getColumnIndex( j ), global_row.getValue( j ) );
       }
-      benchmarkIterativeSolvers( benchmark, parameters, distMatrixPointer, dist_x0, dist_b );
+
+      if( parameters.getParameter< bool >( "with-iterative" ) ) {
+         std::cout << "Iterative solvers:\n";
+         benchmarkIterativeSolvers( benchmark, parameters, distMatrixPointer, dist_x0, dist_b );
+      }
+
+      // There are no distributed direct solvers yet
    }
 
    static void
@@ -489,121 +568,15 @@ struct LinearSolversBenchmark
                       const VectorType& x0,
                       const VectorType& b )
    {
-      benchmarkIterativeSolvers( benchmark, parameters, matrixPointer, x0, b );
-
-#ifdef HAVE_CUSOLVER
-      std::cout << "CuSOLVER:" << std::endl;
-      {
-         using CSR = TNL::Matrices::
-            SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
-         auto matrixCopy = std::make_shared< CSR >();
-         Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
-
-         using CudaCSR = TNL::Matrices::
-            SparseMatrix< RealType, Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, Algorithms::Segments::CSR >;
-         using CudaVector = typename VectorType::template Self< RealType, Devices::Cuda >;
-         auto cuda_matrixCopy = std::make_shared< CudaCSR >();
-         *cuda_matrixCopy = *matrixCopy;
-         CudaVector cuda_x0, cuda_b;
-         cuda_x0.setLike( x0 );
-         cuda_b.setLike( b );
-         cuda_x0 = x0;
-         cuda_b = b;
-
-         using namespace Solvers::Linear;
-         using namespace Solvers::Linear::Preconditioners;
-         benchmarkSolver< CuSolverWrapper, Preconditioner >( benchmark, parameters, cuda_matrixCopy, cuda_x0, cuda_b );
+      if( parameters.getParameter< bool >( "with-iterative" ) ) {
+         std::cout << "Iterative solvers:\n";
+         benchmarkIterativeSolvers( benchmark, parameters, matrixPointer, x0, b );
       }
-#endif
-   }
 
-   static void
-   runDirect( TNL::Benchmarks::Benchmark<>& benchmark,
-              const TNL::Config::ParameterContainer& parameters,
-              const std::shared_ptr< MatrixType >& matrixPointer,
-              const VectorType& x0,
-              const VectorType& b )
-   {
-      using CSR = TNL::Matrices::
-         SparseMatrix< RealType, DeviceType, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
-      auto matrixCopy = std::make_shared< CSR >();
-      TNL::Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
-
-#ifdef HAVE_UMFPACK
-      if constexpr( ( std::is_same_v< DeviceType, TNL::Devices::Host >
-                      || std::is_same_v< DeviceType, TNL::Devices::Sequential > )
-                    && std::is_same_v< RealType, double > && std::is_same_v< IndexType, int > )
-         benchmarkDirectSolver< TNL::Solvers::Linear::UmfpackWrapper >( "UMFPACK", benchmark, parameters, matrixCopy, x0, b );
-#endif
-
-#ifdef HAVE_TRILINOS
-      benchmarkDirectSolver< TachoWrapper >( "Tacho CPU", benchmark, parameters, matrixCopy, x0, b );
-#endif
-
-#ifdef HAVE_GINKGO
-      benchmarkDirectSolver< TNL::Solvers::Linear::GinkgoDirectSolver >(
-         "Ginkgo CPU", benchmark, parameters, matrixCopy, x0, b );
-#endif
-
-#ifdef __CUDACC__
-      const std::string performer = "CPU/GPU";
-      auto compute = [ & ]()
-      {
-         TNL::Matrices::copySparseMatrix( *matrixCopy, *matrixPointer );
-      };
-      TNL::Benchmarks::BenchmarkResult benchmarkResult;
-      benchmark.setOperation( "Copy" );
-      benchmark.time< TNL::Devices::Host >( performer, compute, benchmarkResult );
-
-      using CudaCSR = TNL::Matrices::
-         SparseMatrix< RealType, TNL::Devices::Cuda, IndexType, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >;
-      auto cudaMatrix = std::make_shared< CudaCSR >();
-      TNL::Containers::Vector< RealType, TNL::Devices::Cuda, IndexType > cuda_x0( x0 ), cuda_b( b );
-      TNL::Containers::Vector< RealType, TNL::Devices::Host, IndexType > cuda_x0_copy;
-      *cudaMatrix = *matrixPointer;
-
-      benchmarkDirectSolver< TNL::Solvers::Linear::CuSolverWrapper >(
-         "CuSolver", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
-      cuda_x0_copy = cuda_x0;
-      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-         std::cout << "Warning: the result of the CuSolver solver is not equal to the result of the CPU solver." << std::endl;
-
-   #ifdef HAVE_CUDSS
-      benchmarkDirectSolver< TNL::Solvers::Linear::CuDSSWrapper >(
-         "CuDSS", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
-      cuda_x0_copy = cuda_x0;
-      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-         std::cout << "Warning: the result of the CuDSS solver is not equal to the result of the CPU solver." << std::endl;
-   #endif
-
-   #ifdef HAVE_GINKGO
-      benchmarkDirectSolver< TNL::Solvers::Linear::GinkgoDirectSolver >(
-         "Ginkgo GPU", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
-      cuda_x0_copy = cuda_x0;
-      if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-         std::cout << "Warning: the result of the Ginkgo GPU solver is not equal to the result of the CPU solver." << std::endl;
-   #endif
-
-   #ifdef HAVE_TRILINOS
-      if( ! std::is_same_v< Kokkos::DefaultHostExecutionSpace, Kokkos::DefaultExecutionSpace > ) {
-         benchmarkDirectSolver< TachoWrapper >( "Tacho GPU", benchmark, parameters, cudaMatrix, cuda_x0, cuda_b );
-         cuda_x0_copy = cuda_x0;
-         if( l2Norm( cuda_x0_copy - x0 ) > 1e-10 )
-            std::cout << "Warning: the result of the Tacho GPU solver is not equal to the result of the CPU solver."
-                      << std::endl;
+      if( parameters.getParameter< bool >( "with-direct" ) ) {
+         std::cout << "Direct solvers:\n";
+         benchmarkDirectSolvers( benchmark, parameters, matrixPointer, x0, b );
       }
-   #endif
-#endif  // __CUDACC__
-
-#ifdef HAVE_STRUMPACK
-      // Strumpack currently support only GPU offloading - https://github.com/pghysels/STRUMPACK/issues/113
-      benchmarkDirectSolver< StrumpackWrapper >( "Strumpack", benchmark, parameters, matrixCopy, x0, b );
-#endif
-
-#ifdef HAVE_ARMADILLO
-      std::cout << "Armadillo wrapper (which wraps SuperLU):" << std::endl;
-      benchmarkArmadillo( parameters, matrixCopy, x0, b );
-#endif
    }
 };
 

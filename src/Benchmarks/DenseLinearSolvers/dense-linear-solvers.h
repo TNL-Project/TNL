@@ -1,13 +1,12 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <thread>
-
 #include <TNL/Algorithms/fillRandom.h>
 #include <TNL/Benchmarks/Benchmarks.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Host.h>
+#include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/MatrixReader.h>
 #include <TNL/Solvers/Linear/GEM.h>
 #include <TNL/Solvers/Linear/CuSolverWrapper.h>
@@ -79,8 +78,7 @@ benchmarkDenseLinearSolvers( TNL::Config::ParameterContainer& parameters )
    };
    benchmark.time< TNL::Devices::Host >( reset_host, "CPU", compute_host );
    if( max( host_x - 1 ) > 1e-5 )
-      std::cout << "Warning: the result of the CPU solver is not equal to the expected result: " << max( host_x - 1 )
-                << std::endl;
+      std::cout << "Warning: the result of the CPU solver is not equal to the expected result: " << max( host_x - 1 ) << '\n';
 
 #ifdef __CUDACC__
    using CudaMatrixType = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Cuda, Index >;

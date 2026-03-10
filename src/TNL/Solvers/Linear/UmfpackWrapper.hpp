@@ -5,8 +5,6 @@
 
 #include "UmfpackWrapper.h"
 
-#include <TNL/Solvers/Linear/Utils/LinearResidueGetter.h>
-
 namespace TNL::Solvers::Linear {
 
 template< typename Matrix, typename SolverMonitor >
@@ -14,21 +12,27 @@ void
 UmfpackWrapper< Matrix, SolverMonitor >::setMatrix( const MatrixPointer& matrix )
 {
 #ifdef HAVE_UMFPACK
-   if( matrix->getRows() != matrix->getColumns() )
-      throw std::invalid_argument( "UmfpackWrapper::solve: matrix must be square" );
+   LinearSolver< Matrix >::setMatrix( matrix );
 
-   this->matrix = matrix;
+   // deallocate previous Symbolic and Numeric objects
+   if( Symbolic != nullptr ) {
+      umfpack_di_free_symbolic( &Symbolic );
+      Symbolic = nullptr;
+   }
+   if( Numeric != nullptr ) {
+      umfpack_di_free_numeric( &Numeric );
+      Numeric = nullptr;
+   }
 
    const IndexType size = this->matrix->getRows();
 
    int status = UMFPACK_OK;
+   bool symbolic_fail = false;
+   bool numeric_fail = false;
 
    // The solver does not work without calling umfpack_di_defaults
    umfpack_di_defaults( Control );
 
-   bool symbolic_fail = false;
-   bool numeric_fail = false;
-   this->factorized = false;
    // symbolic reordering of the sparse matrix
    status = umfpack_di_symbolic( size,
                                  size,
@@ -66,12 +70,7 @@ UmfpackWrapper< Matrix, SolverMonitor >::setMatrix( const MatrixPointer& matrix 
          throw std::runtime_error( "Umfpack symbolic factorization failed." );
       if( numeric_fail )
          throw std::runtime_error( "Umfpack numeric factorization failed." );
-      if( this->Symbolic != nullptr )
-         umfpack_di_free_symbolic( &Symbolic );
-      if( this->Numeric != nullptr )
-         umfpack_di_free_numeric( &Numeric );
    }
-   this->factorized = true;
 #else
    throw std::runtime_error( "UmfpackWrapper was not built with Umfpack support." );
 #endif
@@ -88,15 +87,11 @@ UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorVie
       throw std::invalid_argument( "UmfpackWrapper::solve: wrong size of the right hand side" );
 
    this->setResidue( NAN );
-   if( ! this->factorized ) {
-      throw std::runtime_error( "The solver is not ready for solving." );
+   if( Symbolic == nullptr || Numeric == nullptr ) {
+      throw std::runtime_error( "UmfpackWrapper is not ready for solving." );
    }
 
    int status = UMFPACK_OK;
-
-   this->setResidue( std::numeric_limits< RealType >::max() );
-
-   RealType bNorm = lpNorm( b, (RealType) 2.0 );
 
    // umfpack expects Compressed Sparse Column format, we have Compressed Sparse Row
    // so we need to solve  A^T * x = rhs
@@ -116,7 +111,7 @@ UmfpackWrapper< Matrix, SolverMonitor >::solve( ConstVectorViewType b, VectorVie
       throw std::runtime_error( "Umfpack solver failed." );
    }
 
-   this->setResidue( LinearResidueGetter::getResidue( *this->matrix, x, b, bNorm ) );
+   this->setResidue( 0 );
    return true;
 #else
    throw std::runtime_error( "UmfpackWrapper was not built with Umfpack support." );
@@ -127,9 +122,9 @@ template< typename Matrix, typename SolverMonitor >
 UmfpackWrapper< Matrix, SolverMonitor >::~UmfpackWrapper()
 {
 #ifdef HAVE_UMFPACK
-   if( this->Symbolic != nullptr )
+   if( Symbolic != nullptr )
       umfpack_di_free_symbolic( &Symbolic );
-   if( this->Numeric != nullptr )
+   if( Numeric != nullptr )
       umfpack_di_free_numeric( &Numeric );
 #endif
 }

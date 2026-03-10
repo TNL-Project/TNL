@@ -3,11 +3,8 @@
 
 #pragma once
 
-#include <ostream>
-#include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Matrices/TypeTraits.h>
 #include <TNL/Solvers/Linear/LinearSolver.h>
-#include <TNL/Solvers/IterativeSolverMonitor.h>
 
 namespace TNL::Solvers::Linear {
 
@@ -18,15 +15,12 @@ namespace TNL::Solvers::Linear {
  * It supports optional pivoting.
  *
  * \tparam Matrix Type of the matrix representing the linear system. Must be a dense matrix.
- * \tparam Real Floating point type used for computations.
- * \tparam SolverMonitor Type of the solver monitor.
  */
-template< typename Matrix, typename Real = typename Matrix::RealType, typename SolverMonitor = IterativeSolverMonitor< double > >
-struct GEM : public LinearSolver< Matrix >
+template< typename Matrix >
+class GEM : public LinearSolver< Matrix >
 {
    static_assert( Matrices::is_dense_matrix_v< Matrix >, "GEM can only be used with dense matrices." );
 
-private:
    using Base = LinearSolver< Matrix >;
    using VectorType = typename Traits< Matrix >::VectorType;
 

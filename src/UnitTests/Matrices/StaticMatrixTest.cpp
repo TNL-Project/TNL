@@ -7,9 +7,11 @@ using namespace TNL::Matrices;
 
 TEST( StaticNDArrayTest, 3x4_row_major )
 {
-   constexpr int I = 3, J = 4;
+   constexpr int I = 3;
+   constexpr int J = 4;
    StaticMatrix< int, I, J > M;
-   StaticVector< I, int > a, row_sums;
+   StaticVector< I, int > a;
+   StaticVector< I, int > row_sums;
    StaticVector< J, int > b;
 
    row_sums.setValue( 0 );
@@ -31,9 +33,11 @@ TEST( StaticNDArrayTest, 3x4_row_major )
 
 TEST( StaticNDArrayTest, 4x3_row_major )
 {
-   constexpr int I = 4, J = 3;
+   constexpr int I = 4;
+   constexpr int J = 3;
    StaticMatrix< int, I, J > M;
-   StaticVector< I, int > a, row_sums;
+   StaticVector< I, int > a;
+   StaticVector< I, int > row_sums;
    StaticVector< J, int > b;
 
    row_sums.setValue( 0 );
@@ -55,10 +59,12 @@ TEST( StaticNDArrayTest, 4x3_row_major )
 
 TEST( StaticNDArrayTest, 3x4_column_major )
 {
-   constexpr int I = 3, J = 4;
+   constexpr int I = 3;
+   constexpr int J = 4;
    using Permutation = std::index_sequence< 1, 0 >;
    StaticMatrix< int, I, J, Permutation > M;
-   StaticVector< I, int > a, row_sums;
+   StaticVector< I, int > a;
+   StaticVector< I, int > row_sums;
    StaticVector< J, int > b;
 
    row_sums.setValue( 0 );
@@ -80,10 +86,12 @@ TEST( StaticNDArrayTest, 3x4_column_major )
 
 TEST( StaticNDArrayTest, 4x3_column_major )
 {
-   constexpr int I = 4, J = 3;
+   constexpr int I = 4;
+   constexpr int J = 3;
    using Permutation = std::index_sequence< 1, 0 >;
    StaticMatrix< int, I, J, Permutation > M;
-   StaticVector< I, int > a, row_sums;
+   StaticVector< I, int > a;
+   StaticVector< I, int > row_sums;
    StaticVector< J, int > b;
 
    row_sums.setValue( 0 );
@@ -105,7 +113,8 @@ TEST( StaticNDArrayTest, 4x3_column_major )
 
 TEST( StaticNDArrayTest, set_elements )
 {
-   constexpr int I = 3, J = 3;
+   constexpr int I = 3;
+   constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > M = 1.2f;
@@ -123,7 +132,8 @@ TEST( StaticNDArrayTest, set_elements )
 
 TEST( StaticNDArrayTest, matrix_addition )
 {
-   constexpr int I = 3, J = 3;
+   constexpr int I = 3;
+   constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > A = 1.2f;
@@ -143,7 +153,8 @@ TEST( StaticNDArrayTest, matrix_addition )
 
 TEST( StaticNDArrayTest, matrix_subtraction )
 {
-   constexpr int I = 3, J = 3;
+   constexpr int I = 3;
+   constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > A = 3.f;
@@ -163,7 +174,8 @@ TEST( StaticNDArrayTest, matrix_subtraction )
 
 TEST( StaticNDArrayTest, matrix_expression )
 {
-   constexpr int I = 2, J = 3;
+   constexpr int I = 2;
+   constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > A = 3.f;
@@ -180,7 +192,8 @@ TEST( StaticNDArrayTest, matrix_expression )
 
 TEST( StaticNDArrayTest, 3x3_times_3x3_matrix_multiplication )
 {
-   constexpr int I = 3, J = 3;
+   constexpr int I = 3;
+   constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > A = { 3.f, 8.f, 6.f, 4.f, 1.f, 2.f, 3.5f, 8.f, 1.f };
@@ -213,8 +226,10 @@ TEST( StaticNDArrayTest, 3x3_times_3x3_matrix_multiplication )
 
 TEST( StaticNDArrayTest, 2x3_times_3x4_matrix_multiplication )
 {
-   constexpr int I1 = 2, J1 = 3;
-   constexpr int I2 = 3, J2 = 4;
+   constexpr int I1 = 2;
+   constexpr int J1 = 3;
+   constexpr int I2 = 3;
+   constexpr int J2 = 4;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I1, J1, Permutation > A = { 3.f, 8.f, 6.f, 4.f, 1.f, 2.f };
@@ -234,7 +249,8 @@ TEST( StaticNDArrayTest, 2x3_times_3x4_matrix_multiplication )
 
 TEST( StaticNDArrayTest, 3x3_transpose )
 {
-   constexpr int I = 3, J = 3;
+   constexpr int I = 3;
+   constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > A = { 3.f, 8.f, 6.f, 4.f, 1.f, 2.f, 3.5f, 8.f, 1.f };
@@ -254,7 +270,8 @@ TEST( StaticNDArrayTest, 3x3_transpose )
 
 TEST( StaticNDArrayTest, 2x3_transpose )
 {
-   constexpr int I = 2, J = 3;
+   constexpr int I = 2;
+   constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > A = { 3.f, 8.f, 6.f, 4.f, 1.f, 2.f };
@@ -271,7 +288,8 @@ TEST( StaticNDArrayTest, 2x3_transpose )
 
 TEST( StaticNDArrayTest, 2x2_determinant )
 {
-   constexpr int I = 2, J = 2;
+   constexpr int I = 2;
+   constexpr int J = 2;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > M = { 3, 8, 4, 1 };
@@ -283,7 +301,8 @@ TEST( StaticNDArrayTest, 2x2_determinant )
 
 TEST( StaticNDArrayTest, 3x3_determinant )
 {
-   constexpr int I = 3, J = 3;
+   constexpr int I = 3;
+   constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > M = { 3, 8, 6, 4, 1, 2, 3.5, 7, 1 };
@@ -295,7 +314,8 @@ TEST( StaticNDArrayTest, 3x3_determinant )
 
 TEST( StaticNDArrayTest, 4x4_determinant )
 {
-   constexpr int I = 4, J = 4;
+   constexpr int I = 4;
+   constexpr int J = 4;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > M = { 3, 8, 6, 2, 4, 1, 2, 1.3, 3.5, 7, 1, 5, 4, 2, 2.5, 7 };
@@ -307,7 +327,8 @@ TEST( StaticNDArrayTest, 4x4_determinant )
 
 TEST( StaticNDArrayTest, 2x2_linear_system )
 {
-   constexpr int I = 2, J = 2;
+   constexpr int I = 2;
+   constexpr int J = 2;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > M = { 3, 8, 4, 1 };
@@ -322,7 +343,8 @@ TEST( StaticNDArrayTest, 2x2_linear_system )
 
 TEST( StaticNDArrayTest, 3x3_linear_system )
 {
-   constexpr int I = 3, J = 3;
+   constexpr int I = 3;
+   constexpr int J = 3;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > M = { 3, 8, 6, 4, 1, 2, 3.5, 7, 1 };
@@ -338,7 +360,8 @@ TEST( StaticNDArrayTest, 3x3_linear_system )
 
 TEST( StaticNDArrayTest, 4x4_linear_system )
 {
-   constexpr int I = 4, J = 4;
+   constexpr int I = 4;
+   constexpr int J = 4;
    using Permutation = std::index_sequence< 0, 1 >;
 
    StaticMatrix< float, I, J, Permutation > M = { 3, 8, 6, 2, 4, 1, 2, 1.3, 3.5, 7, 1, 5, 4, 2, 2.5, 7 };

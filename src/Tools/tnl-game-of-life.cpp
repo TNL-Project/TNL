@@ -163,7 +163,7 @@ runGameOfLife( const Mesh& mesh )
    }
    Index max_count;
    TNL::MPI::Allreduce( &count, &max_count, 1, MPI_MAX, mesh.getCommunicator() );
-   std::cout << "Rank " << TNL::MPI::GetRank() << ": count=" << count << ", max_count=" << max_count << std::endl;
+   std::cout << "Rank " << TNL::MPI::GetRank() << ": count=" << count << ", max_count=" << max_count << '\n';
    // FIXME: this is not reliable
    Index reference_cell = 0;
    if( count == max_count ) {
@@ -257,7 +257,7 @@ runGameOfLife( const Mesh& mesh )
    do {
       iteration++;
       if( TNL::MPI::GetRank() == 0 )
-         std::cout << "Computing iteration " << iteration << "..." << std::endl;
+         std::cout << "Computing iteration " << iteration << "...\n";
 
       // iterate over all local cells
       auto kernel = [ f_in_view, f_out_view, localMeshPointer ] __cuda_callable__( Index i ) mutable
