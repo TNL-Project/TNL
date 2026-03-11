@@ -3,6 +3,10 @@
 
 #pragma once
 
+#ifdef HAVE_OPENMP
+   #include <omp.h>
+#endif
+
 #include <mutex>
 
 #include <TNL/Atomic.h>
@@ -27,7 +31,7 @@ struct AtomicOperations< Devices::Host >
    {
       Value old;
 #ifdef HAVE_OPENMP
-      #pragma omp atomic capture
+   #pragma omp atomic capture
 #endif
       {
          old = v;
