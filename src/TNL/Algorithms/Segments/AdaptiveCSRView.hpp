@@ -11,11 +11,9 @@ template< typename Device, typename Index >
 __cuda_callable__
 AdaptiveCSRView< Device, Index >::AdaptiveCSRView( const CSRView< Device, Index >& csrView, BlocksView* blocksView )
 {
-   using NonConstBlockView = typename AdaptiveCSRView< Device, std::remove_const_t< Index > >::BlocksView;
    Base::bind( csrView.getOffsets() );
    for( int i = 0; i < MaxValueSizeLog(); i++ )
-      ( (NonConstBlockView*) &this->blocksArray[ i ] )
-         ->bind( *(NonConstBlockView*) &blocksView[ i ] );  // TODO: rewrite without cast
+      this->blocksArray[ i ].bind( blocksView[ i ] );
 }
 
 template< typename Device, typename Index >
