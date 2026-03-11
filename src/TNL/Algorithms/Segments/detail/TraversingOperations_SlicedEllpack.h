@@ -42,15 +42,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             const IndexType end = begin + segmentSize;
             if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
-               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
-                  // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-                  function( segmentIdx, localIdx, globalIdx );
-                  localIdx++;
-#else
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
-#endif
-               }
             }
             else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
@@ -62,15 +55,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
             if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
-               for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
-                  // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-                  function( segmentIdx, localIdx, globalIdx );
-                  localIdx++;
-#else
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
                   function( segmentIdx, localIdx++, globalIdx );
-#endif
-               }
             }
             else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
@@ -184,15 +170,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             const IndexType end = begin + segmentSize;
             if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
-               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
-                  // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-                  function( segmentIdx, localIdx, globalIdx );
-                  localIdx++;
-#else
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
-#endif
-               }
             }
             else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
@@ -204,15 +183,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
             if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
-               for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
-                  // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-                  function( segmentIdx, localIdx, globalIdx );
-                  localIdx++;
-#else
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
                   function( segmentIdx, localIdx++, globalIdx );
-#endif
-               }
             }
             else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
@@ -326,15 +298,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             const IndexType end = begin + segmentSize;
             if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
-               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
-                  // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-                  function( segmentIdx, localIdx, globalIdx );
-                  localIdx++;
-#else
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
-#endif
-               }
             }
             else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
@@ -346,15 +311,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
             if constexpr( argumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
-               for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
-                  // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-                  function( segmentIdx, localIdx, globalIdx );
-                  localIdx++;
-#else
+               for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
                   function( segmentIdx, localIdx++, globalIdx );
-#endif
-               }
             }
             else {
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
