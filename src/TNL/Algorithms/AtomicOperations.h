@@ -3,6 +3,10 @@
 
 #pragma once
 
+#ifdef HAVE_OPENMP
+   #include <omp.h>
+#endif
+
 #include <mutex>
 
 #include <TNL/Atomic.h>
