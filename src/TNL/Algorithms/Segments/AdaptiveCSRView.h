@@ -43,9 +43,13 @@ public:
    template< typename Device_, typename Index_ >
    using ViewTemplate = AdaptiveCSRView< Device_, Index_ >;
 
+   //! \brief View for the container holding CSR offsets.
    using OffsetsView = typename Base::OffsetsView;
 
+   //! \brief Type for descriptor blocks of AdaptiveCSR.
    using BlocksType = TNL::Containers::Vector< detail::CSRAdaptiveKernelBlockDescriptor< IndexType >, Device, IndexType >;
+
+   //! \brief View for the descriptor blocks of AdaptiveCSR.
    using BlocksView = typename BlocksType::ViewType;
 
    //! \brief Default constructor with no parameters to create empty segments view.

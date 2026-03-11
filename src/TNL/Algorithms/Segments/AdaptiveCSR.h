@@ -45,7 +45,10 @@ public:
    //! \brief Type of constant segments view.
    using ConstViewType = AdaptiveCSRView< Device, std::add_const_t< Index > >;
 
+   //! \brief Type for descriptor blocks of AdaptiveCSR.
    using BlocksType = typename ViewType::BlocksType;
+
+   //! \brief Type for descriptor blocks view of AdaptiveCSR.
    using BlocksView = typename BlocksType::ViewType;
 
    /**
