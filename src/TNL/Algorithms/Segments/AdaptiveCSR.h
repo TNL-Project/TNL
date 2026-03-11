@@ -213,13 +213,13 @@ public:
    void
    load( File& file );
 
-protected:
    [[nodiscard]] static constexpr int
    MaxValueSizeLog()
    {
       return ViewType::MaxValueSizeLog();
    }
 
+protected:
    [[nodiscard]] static int
    getSizeValueLog( const int& i )
    {
