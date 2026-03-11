@@ -92,7 +92,7 @@ AdaptiveCSRView< Device, Index >::getConstView() const -> ConstViewType
    using BaseConstViewType = typename Base::ConstViewType;
    using ConstBlocksView = typename AdaptiveCSRView< Device, std::add_const_t< Index > >::BlocksView;
    return ConstViewType( BaseConstViewType( this->getOffsets().getConstView() ),
-                         (ConstBlocksView*) &this->blocksArray[ 0 ] );  // TODO: rewrite without cast
+                         const_cast< ConstBlocksView* >( &this->blocksArray[ 0 ] ) );  // TODO: rewrite without cast
 }
 
 template< typename Device, typename Index >
@@ -122,17 +122,17 @@ AdaptiveCSRView< Device, Index >::load( File& file )
 
 template< typename Device, typename Index >
 void
-AdaptiveCSRView< Device, Index >::printBlocks( int idx ) const
+AdaptiveCSRView< Device, Index >::printBlocks( int idx, std::ostream& os ) const
 {
    if( idx == -1 ) {
       for( int i = 0; i < MaxValueSizeLog(); i++ )
-         printBlocks( i );
+         printBlocks( i, os );
       return;
    }
-   std::cout << "Blocks for sizeof( Value ) == 2^" << idx << '\n';
+   os << "Blocks for sizeof( Value ) == 2^" << idx << '\n';
    auto blocks = this->getBlocks()[ idx ];
    for( int i = 0; i < blocks.getSize(); i++ ) {
-      std::cout << "Block " << i << " : " << blocks.getElement( i ) << '\n';
+      os << "Block " << i << " : " << blocks.getElement( i ) << '\n';
    }
 }
 

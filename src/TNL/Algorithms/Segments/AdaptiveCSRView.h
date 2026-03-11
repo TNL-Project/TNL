@@ -156,7 +156,7 @@ public:
 
    //! \brief Print the blocks of AdaptiveCSR.
    void
-   printBlocks( int idx = 1 ) const;
+   printBlocks( int idx = 1, std::ostream& os = std::cout ) const;
 
    [[nodiscard]] static constexpr int
    MaxValueSizeLog()
