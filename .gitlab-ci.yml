@@ -596,3 +596,12 @@ citation-cff:
     script:
         - check-jsonschema --color always --schemafile https://raw.githubusercontent.com/citation-file-format/citation-file-format/refs/heads/main/schema.json --force-filetype yaml CITATION.cff
     interruptible: true
+
+shellcheck:
+    stage: lint
+    image: "quay.io/archlinux/archlinux:latest"
+    before_script:
+        - pacman -Syu --needed --noconfirm git just shellcheck
+    script:
+        - just check-recipes check-shellcheck
+    interruptible: true
