@@ -1,27 +1,27 @@
-#/bin/bash
+#!/bin/bash
 
-devices="sequential host cuda"
-precisions="float double"
-dims="1D 2D"
+devices=(sequential host cuda)
+precisions=(float double)
+dims=(1D 2D)
 x_dimensions="20"
 base="tnl-benchmark-grid"
 
-for device in ${devices}
+for device in "${devices[@]}"
 do
-   for precision in ${precisions}
+   for precision in "${precisions[@]}"
    do
-      for dim in ${dims}
+      for dim in "${dims[@]}"
       do
-         for x_dimension in ${x_dimensions}
+         for x_dimension in "${x_dimensions[@]}"
          do
-            tnl-benchmark-grid-${dim}-dbg                               \
-               --precision ${precision}                                  \
-               --x-dimension ${x_dimension}                              \
-               --y-dimension ${x_dimension}                              \
-               --z-dimension ${x_dimension}                              \
-               --device ${device}                                        \
-               --loops 5                                                 \
-               --log-file "${base}-${dim}-${device}-${precision}.json"  \
+            tnl-benchmark-grid-"$dim"-dbg                      \
+               --precision "$precision"                        \
+               --x-dimension "$x_dimension"                    \
+               --y-dimension "$x_dimension"                    \
+               --z-dimension "$x_dimension"                    \
+               --device "$device"                              \
+               --loops 5                                       \
+               --log-file "$base-$dim-$device-$precision.json" \
                --output-mode append
          done
       done
