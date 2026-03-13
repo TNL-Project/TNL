@@ -1,32 +1,32 @@
-#/bin/bash
+#!/bin/bash
 
-devices="sequential host cuda"
-precisions="float double"
+devices=(sequential host cuda)
+precisions=(float double)
 # FIXME: nd-grid does not give correct results
-#tests="parallel-for simple-grid grid nd-grid"
-tests="parallel-for simple-grid grid"
+#tests=(parallel-for simple-grid grid nd-grid)
+tests=(parallel-for simple-grid grid)
 max_x_dimension="800"
 max_y_dimension="800"
 base="tnl-benchmark-heat-equation"
 
-for device in ${devices}
+for device in "${devices[@]}"
 do
-   for precision in ${precisions}
+   for precision in "${precisions[@]}"
    do
-      for test in ${tests}
+      for test in "${tests[@]}"
       do
-         tnl-benchmark-heat-equation                                  \
-            --id "${test}"                                            \
-            --implementation "${test}"                                \
-            --precision ${precision}                                  \
-            --max-x-dimension ${max_x_dimension}                      \
-            --max-y-dimension ${max_y_dimension}                      \
-            --max-iterations 500                                      \
-            --loops 1                                                 \
-            --final-time 0.1                                          \
-            --device ${device}                                        \
-            --log-file "${base}-${test}-${device}-${precision}.json"  \
-            --output-mode append                                      \
+         tnl-benchmark-heat-equation                         \
+            --id "$test"                                     \
+            --implementation "$test"                         \
+            --precision "$precision"                         \
+            --max-x-dimension "$max_x_dimension"             \
+            --max-y-dimension "$max_y_dimension"             \
+            --max-iterations 500                             \
+            --loops 1                                        \
+            --final-time 0.1                                 \
+            --device "$device"                               \
+            --log-file "$base-$test-$device-$precision.json" \
+            --output-mode append                             \
             --write-data no
       done
    done
