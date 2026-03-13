@@ -19,12 +19,14 @@ make_glvis() {
     local dir="$1"
     local sol="$dir/ex5.sol"
 
-    echo "FiniteElementSpace" > "$sol"
-    echo "FiniteElementCollection: H1_2D_P1" >> "$sol"
-    echo "VDim: 1" >> "$sol"
-    echo "Ordering: 0" >> "$sol"
-    echo "" >> "$sol"
-    find "$dir" -name "ex5.sol.??????" | sort | xargs cat >> "$sol"
+    {
+        echo "FiniteElementSpace"
+        echo "FiniteElementCollection: H1_2D_P1"
+        echo "VDim: 1"
+        echo "Ordering: 0"
+        echo ""
+        find "$dir" -name "ex5.sol.??????" | sort | xargs cat
+    } > "$sol"
 }
 
 verify() {
@@ -35,26 +37,26 @@ verify() {
 }
 
 # BoomerAMG
-mpirun hypre-ex5$dbg -vis -n $n -solver 0
-mpirun tnl-hypre-ex5$dbg -vis -n $n -solver 0
+mpirun "hypre-ex5$dbg" -vis -n "$n" -solver 0
+mpirun "tnl-hypre-ex5$dbg" -vis -n "$n" -solver 0
 verify
 
 # PCG
-mpirun hypre-ex5$dbg -vis -n $n -solver 50
-mpirun tnl-hypre-ex5$dbg -vis -n $n -solver 50
+mpirun "hypre-ex5$dbg" -vis -n "$n" -solver 50
+mpirun "tnl-hypre-ex5$dbg" -vis -n "$n" -solver 50
 verify
 
 # PCG with AMG
-mpirun hypre-ex5$dbg -vis -n $n -solver 1
-mpirun tnl-hypre-ex5$dbg -vis -n $n -solver 1
+mpirun "hypre-ex5$dbg" -vis -n "$n" -solver 1
+mpirun "tnl-hypre-ex5$dbg" -vis -n "$n" -solver 1
 verify
 
 # PCG with ParaSails
-mpirun hypre-ex5$dbg -vis -n $n -solver 8
-mpirun tnl-hypre-ex5$dbg -vis -n $n -solver 8
+mpirun "hypre-ex5$dbg" -vis -n "$n" -solver 8
+mpirun "tnl-hypre-ex5$dbg" -vis -n "$n" -solver 8
 verify
 
 # FlexGMRES with AMG
-mpirun hypre-ex5$dbg -vis -n $n -solver 61
-mpirun tnl-hypre-ex5$dbg -vis -n $n -solver 61
+mpirun "hypre-ex5$dbg" -vis -n "$n" -solver 61
+mpirun "tnl-hypre-ex5$dbg" -vis -n "$n" -solver 61
 verify
