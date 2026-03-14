@@ -30,30 +30,7 @@ See the [Arch User Repository](
 https://wiki.archlinux.org/title/Arch_User_Repository) wiki page for details
 on using the AUR.
 
-### Manual installation to the user home directory
-
-You can clone the git repository via HTTPS:
-
-    git clone https://gitlab.com/tnl-project/tnl.git
-
-or via SSH:
-
-    git clone git@gitlab.com:tnl-project/tnl.git
-
-Then execute the `install` script to copy the header files to the final
-location (`~/.local/include` by default):
-
-    cd tnl
-    ./install
-
-However, we also recommend to install at least the `tools` [optional
-component](#optional-components):
-
-    ./install tools
-
-Finally, see [Environment variables](#environment-variables).
-
-### Manual installation with CMake
+### Manual installation
 
 You can clone the git repository via HTTPS:
 
@@ -68,7 +45,13 @@ run from there:
 
     cd tnl
 
+Then continue with one of the subsections depending on your preferred workflow.
+
+#### Manual installation with CMake
+
 The procedure consists of the three usual steps: configure, build, install.
+The first subsection is a complete reference on how to use CMake to build TNL,
+while the second subsection describes useful shortcuts.
 
 1. The [configure step][cmake-configure]
    generates a build configuration for a particular build system.
@@ -185,6 +168,33 @@ Finally, some notes and tips for TNL developers:
 [CMAKE_HIP_ARCHITECTURES]: https://cmake.org/cmake/help/latest/variable/CMAKE_HIP_ARCHITECTURES.html
 [HIP_ARCHITECTURES]: https://cmake.org/cmake/help/latest/prop_tgt/HIP_ARCHITECTURES.html
 
+#### Manual installation with just
+
+[Just] is a handy way to save and run project-specific commands. The TNL project
+provides a `justfile` which contains many commands for common tasks, including
+the `configure`, `build`, and `install` steps for building TNL.
+
+1. `just configure` runs the [configure step][cmake-configure] with default
+   options. You can override the default options in the `.env` file, or by
+   exporting the corresponding environment variables. You can also run `cmake`
+   directly to configure the build system (see the previous section).
+
+2. `just build` runs the [build step][cmake-build], which builds all targets
+   by default. You can also select a specific target or targets by passing them
+   as arguments. For example:
+
+       just build benchmarks examples tools
+
+   You can run `just list-build-targets` to list all available targets.
+
+3. `just install` runs the [install step][cmake-install], which installs only
+   the `headers` component by default. You can also select a specific component
+   or components by passing them as arguments. For example:
+
+       just install benchmarks examples tools
+
+[Just]: https://just.systems/man/en/introduction.html
+
 ## Dependencies   {#dependencies}
 
 In order to use TNL, you need to install a compatible compiler, a parallel
@@ -265,31 +275,6 @@ computing platform, and (optionally) some libraries.
 - __Other language toolchains/interpreters:__
     - Python – install an interpreter for using the Python scripts included in
       TNL.
-
-### Optional components   {#optional-components}
-
-TNL provides several optional components such as pre-processing and
-post-processing tools which can be compiled and installed by the `install`
-script to the user home directory (`~/.local/` by default). The script can be
-used as follows:
-
-    ./install [options] [list of targets]
-
-In the above, `[list of targets]` should be replaced with a space-separated list
-of targets that can be selected from the following list:
-
-- `all`: Special target which includes all other targets.
-- `benchmarks`: Compile the `src/Benchmarks` directory.
-- `documentation`: Compile code snippets and generate the documentation.
-- `examples`: Compile the `src/Examples` directory.
-- `tools`: Compile the `src/Tools` directory.
-- `tests`: Compile unit tests in the `src/UnitTests` directory.
-- `matrix-tests`: Compile unit tests in the `src/UnitTests/Matrices` directory.
-- `non-matrix-tests`: Compile unit tests in the `src/UnitTests` directory,
-  except `src/UnitTests/Matrices`.
-
-Additionally, `[options]` can be replaced with a list of options with the `--`
-prefix that can be viewed by running `./install --help`.
 
 ## Usage in other projects  {#usage}
 
