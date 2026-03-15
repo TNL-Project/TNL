@@ -134,7 +134,7 @@ public:
       }
 
       // set cell types
-      typesArray.resize( NumberOfCells, (std::uint8_t) cellShape );
+      typesArray.resize( NumberOfCells, static_cast< std::uint8_t >( cellShape ) );
 
       // set the arrays to the base class
       this->pointsArray = std::move( pointsArray );

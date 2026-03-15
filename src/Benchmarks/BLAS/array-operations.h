@@ -20,7 +20,7 @@ benchmarkArrayOperations( Benchmark<>& benchmark, const long& size )
    using HostArray = Containers::Array< Real, Devices::Host, Index, HostAllocator< Real > >;
    using CudaArray = Containers::Array< Real, Devices::Cuda, Index, CudaAllocator< Real > >;
 
-   double datasetSize = (double) size * sizeof( Real ) / oneGB;
+   double datasetSize = size * sizeof( Real ) / oneGB;
 
    HostArray hostArray;
    HostArray hostArray2;
@@ -62,8 +62,8 @@ benchmarkArrayOperations( Benchmark<>& benchmark, const long& size )
       // std::memcmp
       auto compareHost = [ & ]()
       {
-         resultHost =
-            (int) ( std::memcmp( hostArray.getData(), hostArray2.getData(), hostArray.getSize() * sizeof( Real ) ) == 0 );
+         resultHost = static_cast< Real >(
+            std::memcmp( hostArray.getData(), hostArray2.getData(), hostArray.getSize() * sizeof( Real ) ) == 0 );
       };
       benchmark.setOperation( "comparison (memcmp)", 2 * datasetSize );
       benchmark.time< Devices::Host >( reset12, "CPU", compareHost );
@@ -89,7 +89,7 @@ benchmarkArrayOperations( Benchmark<>& benchmark, const long& size )
 
    auto compareHost = [ & ]()
    {
-      resultHost = (int) ( hostArray == hostArray2 );
+      resultHost = static_cast< int >( hostArray == hostArray2 );
    };
    benchmark.setOperation( "comparison (operator==)", 2 * datasetSize );
    benchmark.time< Devices::Host >( reset1, "CPU", compareHost );

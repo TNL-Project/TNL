@@ -103,7 +103,7 @@ generateBucket( int size )
    std::vector< int > vec( size );
 
    srand( size + 94215 );
-   double tmp = ( (double) size ) * 3000000;  //(RAND_MAX)/p; --> ((double)N)*30000;
+   double tmp = static_cast< double >( size ) * 3000000;  //(RAND_MAX)/p; --> ((double)N)*30000;
    double tmp2 = sqrt( tmp );
 
    int p = ( size + tmp2 - 1 ) / tmp2;
@@ -144,7 +144,7 @@ generateStaggered( int size )
    //the array of size N is split into 'p' buckets
    while( i <= p ) {
       //every bucket has N/(p) items
-      for( int j = 0; j < size / ( p ); ++j ) {
+      for( int j = 0; j < size / p; ++j ) {
          int min;
 
          if( i <= ( p / 2 ) )

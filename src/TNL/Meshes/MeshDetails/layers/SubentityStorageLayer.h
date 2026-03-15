@@ -320,11 +320,11 @@ private:
  */
 template< typename MeshConfig, typename Device >
 class SubentityStorageLayer< MeshConfig, Device, Topologies::Polygon, DimensionTag< 0 >, true, true >
-: public SubentityStorageLayer< MeshConfig, Device, Topologies::Polygon, typename DimensionTag< 0 >::Increment >
+: public SubentityStorageLayer< MeshConfig, Device, Topologies::Polygon, DimensionTag< 0 >::Increment >
 {
    using EntityTopology = Topologies::Polygon;
    using SubdimensionTag = DimensionTag< 0 >;
-   using BaseType = SubentityStorageLayer< MeshConfig, Device, EntityTopology, typename SubdimensionTag::Increment >;
+   using BaseType = SubentityStorageLayer< MeshConfig, Device, EntityTopology, SubdimensionTag::Increment >;
    using MeshTraitsType = MeshTraits< MeshConfig, Device >;
 
 protected:
@@ -400,7 +400,7 @@ protected:
    // Subdimension 1 has identical subentitiesCounts as Subdimension 0
    [[nodiscard]] __cuda_callable__
    LocalIndexType
-   getSubentitiesCount( typename SubdimensionTag::Increment, const GlobalIndexType entityIndex ) const
+   getSubentitiesCount( SubdimensionTag::Increment, const GlobalIndexType entityIndex ) const
    {
       return subentitiesCounts[ entityIndex ];
    }
@@ -442,11 +442,11 @@ private:
  */
 template< typename MeshConfig, typename Device >
 class SubentityStorageLayer< MeshConfig, Device, Topologies::Polygon, DimensionTag< 1 >, true, true >
-: public SubentityStorageLayer< MeshConfig, Device, Topologies::Polygon, typename DimensionTag< 1 >::Increment >
+: public SubentityStorageLayer< MeshConfig, Device, Topologies::Polygon, DimensionTag< 1 >::Increment >
 {
    using EntityTopology = Topologies::Polygon;
    using SubdimensionTag = DimensionTag< 1 >;
-   using BaseType = SubentityStorageLayer< MeshConfig, Device, EntityTopology, typename SubdimensionTag::Increment >;
+   using BaseType = SubentityStorageLayer< MeshConfig, Device, EntityTopology, SubdimensionTag::Increment >;
    using MeshTraitsType = MeshTraits< MeshConfig, Device >;
 
 protected:

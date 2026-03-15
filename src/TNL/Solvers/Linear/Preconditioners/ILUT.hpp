@@ -193,7 +193,7 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
 
       // extract values for L and U
       //timer_heap_extract.start();
-      for( IndexType c_j = 0; c_j < L_rowLengths[ i ] && c_j < (IndexType) heap_L.size(); c_j++ ) {
+      for( IndexType c_j = 0; c_j < L_rowLengths[ i ] && c_j < static_cast< IndexType >( heap_L.size() ); c_j++ ) {
          // move the largest to the end
          std::pop_heap( heap_L.begin(), heap_L.end(), cmp_abs_value );
          // move the triplet from one vector into another
@@ -201,7 +201,7 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
          heap_L.pop_back();
          values_L.push_back( largest );
       }
-      for( IndexType c_j = 0; c_j < U_rowLengths[ N - 1 - i ] && c_j < (IndexType) heap_U.size(); c_j++ ) {
+      for( IndexType c_j = 0; c_j < U_rowLengths[ N - 1 - i ] && c_j < static_cast< IndexType >( heap_U.size() ); c_j++ ) {
          // move the largest to the end
          std::pop_heap( heap_U.begin(), heap_U.end(), cmp_abs_value );
          // move the triplet from one vector into another
@@ -224,7 +224,7 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
       if( ! values_L.empty() ) {
          // L_ij = w_j for j = 0, ..., i - 1
          auto L_i = L.getRow( i );
-         for( IndexType c_j = 0; c_j < (IndexType) values_L.size(); c_j++ ) {
+         for( IndexType c_j = 0; c_j < static_cast< IndexType >( values_L.size() ); c_j++ ) {
             const auto j = values_L[ c_j ].column;
             L_i.setElement( c_j, j, values_L[ c_j ].value );
          }
@@ -232,7 +232,7 @@ ILUT_impl< Matrix, Real, Devices::Host, Index >::update( const MatrixPointer& ma
 
       // U_ij = w_j for j = i, ..., N - 1
       auto U_i = U.getRow( N - 1 - i );
-      for( IndexType c_j = 0; c_j < (IndexType) values_U.size(); c_j++ ) {
+      for( IndexType c_j = 0; c_j < static_cast< IndexType >( values_U.size() ); c_j++ ) {
          const auto j = values_U[ c_j ].column;
          U_i.setElement( c_j, j, values_U[ c_j ].value );
       }

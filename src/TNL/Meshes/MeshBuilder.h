@@ -120,7 +120,7 @@ public:
    {
       // prepare vector with an identity permutationutation
       std::vector< GlobalIndexType > permutation( points.getSize() );
-      std::iota( permutation.begin(), permutation.end(), (GlobalIndexType) 0 );
+      std::iota( permutation.begin(), permutation.end(), static_cast< GlobalIndexType >( 0 ) );
 
       // wrapper for lexicographical sorting of points with numerical threshold
       auto lexless = [ numericalThreshold, this ]( const GlobalIndexType& a, const GlobalIndexType& b ) -> bool
@@ -209,7 +209,7 @@ public:
    {
       // prepare vector with an identity permutationutation
       std::vector< GlobalIndexType > permutation( faceSeeds.getEntitiesCount() );
-      std::iota( permutation.begin(), permutation.end(), (GlobalIndexType) 0 );
+      std::iota( permutation.begin(), permutation.end(), static_cast< GlobalIndexType >( 0 ) );
 
       // wrapper for lexicographical sorting of face seeds
       auto lexless = [ this ]( const GlobalIndexType& a, const GlobalIndexType& b ) -> bool

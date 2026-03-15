@@ -108,8 +108,9 @@ bool
 synchronizeSmartPointersOnDevice( int deviceId = -1 )
 {
    // TODO: better way to skip synchronization of host-only smart pointers
-   if constexpr( std::is_same_v< Device, Devices::Sequential > || std::is_same_v< Device, Devices::Host > )
+   if constexpr( std::is_same_v< Device, Devices::Sequential > || std::is_same_v< Device, Devices::Host > ) {
       return true;
+   }
    else {
       getSmartPointersSynchronizationTimer< Device >().start();
       bool b = getSmartPointersRegister< Device >().synchronizeDevice( deviceId );

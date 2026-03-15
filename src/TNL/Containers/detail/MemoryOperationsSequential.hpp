@@ -15,7 +15,7 @@ MemoryOperations< Devices::Sequential >::construct( Element* data, Index size )
    TNL_ASSERT_TRUE( data, "Attempted to create elements through a nullptr." );
    for( Index i = 0; i < size; i++ )
       // placement-new
-      ::new( (void*) ( data + i ) ) Element();
+      ::new( reinterpret_cast< void* >( data + i ) ) Element();
 }
 
 template< typename Element, typename Index, typename... Args >
@@ -29,7 +29,7 @@ MemoryOperations< Devices::Sequential >::construct( Element* data, Index size, c
       // (note that args are passed by reference to the constructor, not via
       // std::forward since move-semantics does not apply for the construction
       // of multiple elements)
-      ::new( (void*) ( data + i ) ) Element( args... );
+      ::new( reinterpret_cast< void* >( data + i ) ) Element( args... );
 }
 
 template< typename Element, typename Index >

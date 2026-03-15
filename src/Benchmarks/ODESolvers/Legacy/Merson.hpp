@@ -142,8 +142,9 @@ Merson< Vector, SolverMonitor >::solve( VectorType& _u, RHSFunction&& rhsFunctio
          RealType lastResidue = this->getResidue();
          time += currentTau;
 
-         this->setResidue( addAndReduceAbs( u, currentTau / 6.0 * ( k1 + 4.0 * k4 + k5 ), std::plus<>{}, (RealType) 0.0 )
-                           / ( currentTau * (RealType) u.getSize() ) );
+         this->setResidue(
+            addAndReduceAbs( u, currentTau / 6.0 * ( k1 + 4.0 * k4 + k5 ), std::plus<>{}, static_cast< RealType >( 0 ) )
+            / ( currentTau * u.getSize() ) );
 
          /////
          // When time is close to stopTime the new residue

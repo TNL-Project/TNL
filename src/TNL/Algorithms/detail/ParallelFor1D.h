@@ -90,7 +90,9 @@ struct ParallelFor1D< Devices::Cuda >
       launch_config.gridSize.y = 1;
       launch_config.gridSize.z = 1;
 
-      if( (std::size_t) launch_config.blockSize.x * launch_config.gridSize.x >= (std::size_t) end - begin ) {
+      if( static_cast< std::size_t >( launch_config.blockSize.x ) * launch_config.gridSize.x
+          >= static_cast< std::size_t >( end - begin ) )
+      {
          constexpr auto kernel = ParallelFor1DKernel< false, Index, Function, FunctionArgs... >;
          Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }

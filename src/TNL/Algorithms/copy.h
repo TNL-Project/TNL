@@ -76,7 +76,7 @@ template< typename Array, typename DestinationElement, typename = std::enable_if
 void
 copy( std::vector< DestinationElement >& destination, const Array& source )
 {
-   if( (std::size_t) source.getSize() != destination.size() )
+   if( static_cast< std::size_t >( source.getSize() ) != destination.size() )
       destination.resize( source.getSize() );
    copy< Devices::Host, typename Array::DeviceType >( destination.data(), source.getData(), source.getSize() );
 }

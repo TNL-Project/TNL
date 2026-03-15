@@ -211,14 +211,14 @@ PVTIWriter< Grid >::addPiece( const std::string& mainFileName,
    // NOTE: exchanging general data types does not work with MPI
    // MPI::Alltoall( beginsForScatter.get(), 1, globalBegins.get(), 1, communicator );
    // MPI::Alltoall( endsForScatter.get(), 1, globalEnds.get(), 1, communicator );
-   MPI::Alltoall( (char*) beginsForScatter.get(),
+   MPI::Alltoall( reinterpret_cast< const std::uint8_t* >( beginsForScatter.get() ),
                   sizeof( typename Grid::CoordinatesType ),
-                  (char*) globalBegins.get(),
+                  reinterpret_cast< std::uint8_t* >( globalBegins.get() ),
                   sizeof( typename Grid::CoordinatesType ),
                   communicator );
-   MPI::Alltoall( (char*) endsForScatter.get(),
+   MPI::Alltoall( reinterpret_cast< const std::uint8_t* >( endsForScatter.get() ),
                   sizeof( typename Grid::CoordinatesType ),
-                  (char*) globalEnds.get(),
+                  reinterpret_cast< std::uint8_t* >( globalEnds.get() ),
                   sizeof( typename Grid::CoordinatesType ),
                   communicator );
 

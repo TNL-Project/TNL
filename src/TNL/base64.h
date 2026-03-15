@@ -134,7 +134,7 @@ decode_block( const char* input, std::size_t input_length, std::uint8_t* output,
    std::uint8_t* pos = output;
 
    for( std::size_t i = 0; i < input_length; i++ ) {
-      const std::uint8_t tmp = decoding_table[ (int) input[ i ] ];
+      const std::uint8_t tmp = decoding_table[ static_cast< int >( input[ i ] ) ];
       if( tmp == 128 )
          continue;
 

@@ -48,8 +48,9 @@ BICGStab< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
       this->preconditioner->solve( b, M_tmp );
       b_norm = lpNorm( M_tmp, 2.0 );
    }
-   else
+   else {
       b_norm = lpNorm( b, 2.0 );
+   }
 
    // check for zero rhs - solution is the null vector
    if( b_norm == 0 ) {

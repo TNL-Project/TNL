@@ -142,7 +142,7 @@ public:
    VectorOperationsBenchmark( Benchmark<>& benchmark, const long& size )
    : benchmark( benchmark ),
      size( size ),
-     datasetSize( (double) size * sizeof( Real ) / oneGB )
+     datasetSize( size * sizeof( Real ) / oneGB )
    {
       hostVector.setSize( size );
       hostVector2.setSize( size );
@@ -1072,7 +1072,8 @@ public:
 
       auto computeET = [ & ]()
       {
-         hostVector *= 0.5;
+         const Real alpha = 0.5;
+         hostVector *= alpha;
       };
       benchmark.time< Devices::Host >( reset1, "CPU ET", computeET );
       verify( "CPU ET", hostVector, 0.5 );
@@ -1080,7 +1081,8 @@ public:
 #ifdef HAVE_BLAS
       auto computeBLAS = [ & ]()
       {
-         blasGscal( hostVector.getSize(), (Real) 0.5, hostVector.getData(), 1 );
+         const Real alpha = 0.5;
+         blasGscal( hostVector.getSize(), alpha, hostVector.getData(), 1 );
       };
       benchmark.time< Devices::Host >( reset1, "CPU BLAS", computeBLAS );
       verify( "CPU BLAS", hostVector, 0.5 );
@@ -1115,7 +1117,8 @@ public:
 
       auto computeLegacy = [ & ]()
       {
-         Benchmarks::VectorOperations< Devices::Host >::addVector( hostVector, hostVector2, (Real) 1.0, (Real) 1.0 );
+         Benchmarks::VectorOperations< Devices::Host >::addVector(
+            hostVector, hostVector2, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU legacy", computeLegacy );
       verify( "CPU legacy", hostVector, 2.0 );
@@ -1140,7 +1143,8 @@ public:
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
-         Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector2, (Real) 1.0, (Real) 1.0 );
+         Benchmarks::VectorOperations< Devices::Cuda >::addVector(
+            deviceVector, deviceVector2, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU legacy", computeCudaLegacy );
       verify( "GPU legacy", deviceVector, 2.0 );
@@ -1173,8 +1177,10 @@ public:
 
       auto computeLegacy = [ & ]()
       {
-         Benchmarks::VectorOperations< Devices::Host >::addVector( hostVector, hostVector2, (Real) 1.0, (Real) 1.0 );
-         Benchmarks::VectorOperations< Devices::Host >::addVector( hostVector, hostVector3, (Real) 1.0, (Real) 1.0 );
+         Benchmarks::VectorOperations< Devices::Host >::addVector(
+            hostVector, hostVector2, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
+         Benchmarks::VectorOperations< Devices::Host >::addVector(
+            hostVector, hostVector3, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU legacy", computeLegacy );
       verify( "CPU legacy", hostVector, 3.0 );
@@ -1219,8 +1225,10 @@ public:
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
-         Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector2, (Real) 1.0, (Real) 1.0 );
-         Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector3, (Real) 1.0, (Real) 1.0 );
+         Benchmarks::VectorOperations< Devices::Cuda >::addVector(
+            deviceVector, deviceVector2, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
+         Benchmarks::VectorOperations< Devices::Cuda >::addVector(
+            deviceVector, deviceVector3, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU legacy", computeCudaLegacy );
       verify( "GPU legacy", deviceVector, 3.0 );
@@ -1278,9 +1286,12 @@ public:
 
       auto computeLegacy = [ & ]()
       {
-         Benchmarks::VectorOperations< Devices::Host >::addVector( hostVector, hostVector2, (Real) 1.0, (Real) 1.0 );
-         Benchmarks::VectorOperations< Devices::Host >::addVector( hostVector, hostVector3, (Real) 1.0, (Real) 1.0 );
-         Benchmarks::VectorOperations< Devices::Host >::addVector( hostVector, hostVector4, (Real) 1.0, (Real) 1.0 );
+         Benchmarks::VectorOperations< Devices::Host >::addVector(
+            hostVector, hostVector2, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
+         Benchmarks::VectorOperations< Devices::Host >::addVector(
+            hostVector, hostVector3, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
+         Benchmarks::VectorOperations< Devices::Host >::addVector(
+            hostVector, hostVector4, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU legacy", computeLegacy );
       verify( "CPU legacy", hostVector, 4.0 );
@@ -1326,9 +1337,12 @@ public:
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeCudaLegacy = [ & ]()
       {
-         Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector2, (Real) 1.0, (Real) 1.0 );
-         Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector3, (Real) 1.0, (Real) 1.0 );
-         Benchmarks::VectorOperations< Devices::Cuda >::addVector( deviceVector, deviceVector4, (Real) 1.0, (Real) 1.0 );
+         Benchmarks::VectorOperations< Devices::Cuda >::addVector(
+            deviceVector, deviceVector2, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
+         Benchmarks::VectorOperations< Devices::Cuda >::addVector(
+            deviceVector, deviceVector3, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
+         Benchmarks::VectorOperations< Devices::Cuda >::addVector(
+            deviceVector, deviceVector4, static_cast< Real >( 1 ), static_cast< Real >( 1 ) );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU legacy", computeCudaLegacy );
       verify( "GPU legacy", deviceVector, 4.0 );

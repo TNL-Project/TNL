@@ -61,8 +61,9 @@ BICGStabL< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
       this->preconditioner->solve( b, M_tmp );
       b_norm = lpNorm( M_tmp, 2.0 );
    }
-   else
+   else {
       b_norm = lpNorm( b, 2.0 );
+   }
 
    // check for zero rhs - solution is the null vector
    if( b_norm == 0 ) {
@@ -104,8 +105,16 @@ BICGStabL< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
          /****
           * U_[0:j] := R_[0:j] - beta * U_[0:j]
           */
-         Matrices::MatrixOperations< DeviceType >::geam(
-            size, (IndexType) j + 1, (RealType) 1.0, R.getData(), ldSize, -beta, U.getData(), ldSize, U.getData(), ldSize );
+         Matrices::MatrixOperations< DeviceType >::geam( size,
+                                                         static_cast< IndexType >( j + 1 ),
+                                                         static_cast< RealType >( 1 ),
+                                                         R.getData(),
+                                                         ldSize,
+                                                         -beta,
+                                                         U.getData(),
+                                                         ldSize,
+                                                         U.getData(),
+                                                         ldSize );
 
          /****
           * u_{j+1} = A u_j
@@ -121,8 +130,8 @@ BICGStabL< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
           * R_[0:j] := R_[0:j] - alpha * U_[1:j+1]
           */
          Matrices::MatrixOperations< DeviceType >::geam( size,
-                                                         (IndexType) j + 1,
-                                                         (RealType) 1.0,
+                                                         static_cast< IndexType >( j + 1 ),
+                                                         static_cast< RealType >( 1 ),
                                                          R.getData(),
                                                          ldSize,
                                                          -alpha,
@@ -211,30 +220,30 @@ BICGStabL< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
       // x := x + R_[0:ell-1] * g_2
       g_2[ 0 ] = g_0[ 1 ];
       Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                      (IndexType) ell,
-                                                      (RealType) 1.0,
+                                                      static_cast< IndexType >( ell ),
+                                                      static_cast< RealType >( 1 ),
                                                       R.getData(),
                                                       ldSize,
                                                       g_2.getData(),
-                                                      (RealType) 1.0,
+                                                      static_cast< RealType >( 1 ),
                                                       Traits::getLocalView( x ).getData() );
       // r_0 := r_0 - R_[1:ell] * g_1_[1:ell]
       Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                      (IndexType) ell,
-                                                      (RealType) -1.0,
+                                                      static_cast< IndexType >( ell ),
+                                                      static_cast< RealType >( -1 ),
                                                       R.getData() + ldSize,
                                                       ldSize,
                                                       &g_1[ 1 ],
-                                                      (RealType) 1.0,
+                                                      static_cast< RealType >( 1 ),
                                                       Traits::getLocalView( r_0 ).getData() );
       // u_0 := u_0 - U_[1:ell] * g_0_[1:ell]
       Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                      (IndexType) ell,
-                                                      (RealType) -1.0,
+                                                      static_cast< IndexType >( ell ),
+                                                      static_cast< RealType >( -1 ),
                                                       U.getData() + ldSize,
                                                       ldSize,
                                                       &g_0[ 1 ],
-                                                      (RealType) 1.0,
+                                                      static_cast< RealType >( 1 ),
                                                       Traits::getLocalView( u_0 ).getData() );
 
       if( exact_residue ) {

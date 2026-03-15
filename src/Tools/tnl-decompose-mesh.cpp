@@ -452,7 +452,7 @@ decompose_and_save( const Mesh& mesh,
             const Index subvertices = cell.template getSubentitiesCount< 0 >();
             for( Index j = 0; j < subvertices; j++ ) {
                const Index v = cell.template getSubentityIndex< 0 >( j );
-               if( point_to_subdomain[ v ] == (Index) p ) {
+               if( point_to_subdomain[ v ] == static_cast< Index >( p ) ) {
                   // assign index
                   point_old_to_new_global_index[ v ] = pointIdx++;
                   // mark as assigned
@@ -588,7 +588,7 @@ decompose_and_save( const Mesh& mesh,
             for( Index i = neighbors_start; i < neighbors_end; i++ ) {
                const Index neighbor_idx = dual_adjncy.get()[ i ];
                // skip neighbors on the local subdomain
-               if( part[ neighbor_idx ] == (int) p )
+               if( part[ neighbor_idx ] == static_cast< idx_t >( p ) )
                   continue;
                const Index neighbor_seed_idx = cell_to_seed_index[ neighbor_idx ];
                // skip neighbors whose seed was already added
@@ -637,25 +637,26 @@ decompose_and_save( const Mesh& mesh,
       Containers::Array< std::uint8_t, Devices::Sequential, Index > pointGhosts( points.getSize() );
       for( Index i = 0; i < cells_counts[ p ]; i++ )
          cellGhosts[ i ] = 0;
-      for( Index i = cells_counts[ p ]; i < (Index) cell_seeds.size(); i++ )
-         cellGhosts[ i ] = (std::uint8_t) Meshes::VTK::CellGhostTypes::DUPLICATECELL;
+      for( Index i = cells_counts[ p ]; i < static_cast< Index >( cell_seeds.size() ); i++ )
+         cellGhosts[ i ] = static_cast< std::uint8_t >( Meshes::VTK::CellGhostTypes::DUPLICATECELL );
       // point ghosts are more tricky because they were assigned to the subdomain with higher number
       Index pointsGhostCount = 0;
       for( Index i = 0; i < points.getSize(); i++ ) {
          const Index global_idx = pointsGlobalIndices[ i ];
          if( global_idx < points_offsets[ p ] || global_idx >= points_offsets[ p ] + points_counts[ p ] ) {
-            pointGhosts[ i ] = (std::uint8_t) Meshes::VTK::PointGhostTypes::DUPLICATEPOINT;
+            pointGhosts[ i ] = static_cast< std::uint8_t >( Meshes::VTK::PointGhostTypes::DUPLICATEPOINT );
             pointsGhostCount++;
          }
-         else
+         else {
             pointGhosts[ i ] = 0;
+         }
       }
 
       // reorder ghost points to make sure that global indices are sorted
       {
          // prepare vector with an identity permutation
          std::vector< Index > permutation( points.getSize() );
-         std::iota( permutation.begin(), permutation.end(), (Index) 0 );
+         std::iota( permutation.begin(), permutation.end(), static_cast< Index >( 0 ) );
 
          // sort the subarray corresponding to ghost entities by the global index
          std::stable_sort( permutation.begin() + points.getSize() - pointsGhostCount,

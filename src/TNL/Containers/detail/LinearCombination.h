@@ -129,15 +129,17 @@ struct LinearCombinationEvaluation
          else
             return 0;
       }
-      else if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 )
+      else if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 ) {
          return Coefficients::getValue( CoefficientIndex::value ) * v
               + LinearCombinationEvaluation< Coefficients,
                                              std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
                                              Size >::evaluate( others... );
-      else
+      }
+      else {
          return LinearCombinationEvaluation< Coefficients,
                                              std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
                                              Size >::evaluate( others... );
+      }
    }
 
    template< typename Vector >
@@ -155,15 +157,17 @@ struct LinearCombinationEvaluation
          else
             return 0;
       }
-      else if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 )
+      else if constexpr( Coefficients::getValue( CoefficientIndex::value ) != 0 ) {
          return Coefficients::getValue( CoefficientIndex::value ) * vectors[ CoefficientIndex::value ]
               + LinearCombinationEvaluation< Coefficients,
                                              std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
                                              Size >::evaluate( vectors );
-      else
+      }
+      else {
          return LinearCombinationEvaluation< Coefficients,
                                              std::integral_constant< std::size_t, CoefficientIndex::value + 1 >,
                                              Size >::evaluate( vectors );
+      }
    }
 };
 

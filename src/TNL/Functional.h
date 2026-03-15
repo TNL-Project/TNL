@@ -407,8 +407,9 @@ struct AnyWithArg
          lhs = true;
          lhsIdx = rhsIdx;
       }
-      else if( lhs && rhs && rhsIdx < lhsIdx )
+      else if( lhs && rhs && rhsIdx < lhsIdx ) {
          lhsIdx = rhsIdx;
+      }
    }
 };
 

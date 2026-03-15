@@ -78,8 +78,8 @@ timeFunction( ComputeFunction compute,
          results_cpu_cycles[ loops ] = performanceCounters.getCPUCycles();
    }
 
-   const double mean_time = sum( results_time ) / (double) loops;
-   const double mean_cpu_cycles = sum( results_cpu_cycles ) / (double) loops;
+   const double mean_time = sum( results_time ) / static_cast< double >( loops );
+   const double mean_cpu_cycles = sum( results_cpu_cycles ) / static_cast< double >( loops );
    double stddev_time;
    double stddev_cpu_cycles;
    if( loops > 1 ) {

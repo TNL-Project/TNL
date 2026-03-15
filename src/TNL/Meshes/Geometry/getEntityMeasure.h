@@ -222,8 +222,9 @@ getEntityMeasure( const Mesh< MeshConfig, Device >& mesh, const MeshEntity< Mesh
       if( normal.x() > normal.z() )
          coord = 0;  // ignore x-coord
    }
-   else if( normal.y() > normal.z() )
+   else if( normal.y() > normal.z() ) {
       coord = 1;  // ignore y-coord
+   }
 
    Real area;
    switch( coord ) {

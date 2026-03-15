@@ -70,7 +70,7 @@ Timer::writeLog( Logger& logger, int logLevel ) const
    return true;
 }
 
-inline typename Timer::TimePoint
+inline Timer::TimePoint
 Timer::readRealTime()
 {
    return std::chrono::high_resolution_clock::now();
@@ -82,7 +82,7 @@ Timer::readCPUTime()
 #if defined( SPY_OS_IS_LINUX ) || defined( SPY_OS_IS_MACOS )
    rusage initUsage;
    getrusage( RUSAGE_SELF, &initUsage );
-   return initUsage.ru_utime.tv_sec + 1.0e-6 * (double) initUsage.ru_utime.tv_usec;
+   return initUsage.ru_utime.tv_sec + 1e-6 * initUsage.ru_utime.tv_usec;
 #else
    return -1;
 #endif

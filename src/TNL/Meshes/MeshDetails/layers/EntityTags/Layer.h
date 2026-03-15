@@ -114,7 +114,7 @@ public:
    updateEntityTagsLayer( DimensionTag )
    {
       // count boundary entities - custom reduction because expression templates don't support filtering bits this way:
-      //    const GlobalIndexType boundaryEntities = sum(cast< GlobalIndexType >( _tagsVector & EntityTags::BoundaryEntity ));
+      //const GlobalIndexType boundaryEntities = sum(cast< GlobalIndexType >( _tagsVector & EntityTags::BoundaryEntity ));
       // NOTE: boundary/interior entities may overlap with ghost entities, so we count all categories separately
       const auto tags_view = tags.getConstView();
       auto is_boundary = [ = ] __cuda_callable__( GlobalIndexType entityIndex ) -> GlobalIndexType
@@ -125,10 +125,10 @@ public:
       {
          return bool( tags_view[ entityIndex ] & EntityTags::GhostEntity );
       };
-      const GlobalIndexType boundaryEntities =
-         Algorithms::reduce< Device >( (GlobalIndexType) 0, tags.getSize(), is_boundary, std::plus<>{}, (GlobalIndexType) 0 );
-      const GlobalIndexType ghostEntities =
-         Algorithms::reduce< Device >( (GlobalIndexType) 0, tags.getSize(), is_ghost, std::plus<>{}, (GlobalIndexType) 0 );
+      const GlobalIndexType boundaryEntities = Algorithms::reduce< Device >(
+         static_cast< GlobalIndexType >( 0 ), tags.getSize(), is_boundary, std::plus<>{}, static_cast< GlobalIndexType >( 0 ) );
+      const GlobalIndexType ghostEntities = Algorithms::reduce< Device >(
+         static_cast< GlobalIndexType >( 0 ), tags.getSize(), is_ghost, std::plus<>{}, static_cast< GlobalIndexType >( 0 ) );
 
       interiorIndices.setSize( tags.getSize() - boundaryEntities );
       boundaryIndices.setSize( boundaryEntities );

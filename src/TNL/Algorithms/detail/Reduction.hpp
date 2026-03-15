@@ -184,7 +184,9 @@ Reduction< Devices::Host >::reduce( const Index begin, const Index end, Fetch&& 
    }
    else
 #endif
+   {
       return Reduction< Devices::Sequential >::reduce( begin, end, fetch, reduce, identity );
+   }
 }
 
 template< typename Index, typename Result, typename Fetch, typename Reduce >
@@ -258,7 +260,9 @@ Reduction< Devices::Host >::reduceWithArgument( const Index begin,
    }
    else
 #endif
+   {
       return Reduction< Devices::Sequential >::reduceWithArgument( begin, end, fetch, reduce, identity );
+   }
 }
 
 template< typename Index, typename Result, typename Fetch, typename Reduce >

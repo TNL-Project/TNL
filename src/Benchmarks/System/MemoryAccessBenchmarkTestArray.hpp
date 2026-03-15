@@ -85,7 +85,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
       return false;
    }
    const std::uintptr_t elementsPerPage = 4096 / sizeof( ElementType );
-   const std::uintptr_t numberOfPages = ceil( (double) this->numberOfElements * sizeof( ElementType ) / 4096.0 );
+   const std::uintptr_t numberOfPages = ceil( this->numberOfElements * sizeof( ElementType ) / 4096.0 );
 
    int* elementsOnPageLeft = new int[ numberOfPages ];
    char* usedElements = new char[ this->numberOfElements ];
@@ -145,10 +145,10 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( std::uintptr_t blo
    TNL::Containers::Array< std::uintptr_t > newElement( numThreads, 0 );
 
    if( blockLink[ 0 ] != nullptr )
-      for( int tid = 0; tid < numThreads && tid < (int) blockSize; tid++ )
+      for( int tid = 0; tid < numThreads && static_cast< std::uintptr_t >( tid ) < blockSize; tid++ )
          blockLink[ tid ]->next = &this->array[ tid ];
 
-   for( int tid = 0; tid < numThreads && tid < (int) blockSize; tid++ ) {
+   for( int tid = 0; tid < numThreads && static_cast< std::uintptr_t >( tid ) < blockSize; tid++ ) {
       newElement[ tid ] = previousElement[ tid ] = tid;
       usedElements[ tid ] = 1;
    }
@@ -173,7 +173,7 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( std::uintptr_t blo
          previousElement[ tid ] = newElement[ tid ];
       }
    }
-   for( int tid = 0; tid < numThreads && tid < (int) blockSize; tid++ ) {
+   for( int tid = 0; tid < numThreads && static_cast< std::uintptr_t >( tid ) < blockSize; tid++ ) {
       this->array[ newElement[ tid ] ].next = nullptr;
       if( Size > 1 ) {
          this->array[ newElement[ tid ] ][ 0 ] = newElement[ tid ];
@@ -283,12 +283,12 @@ MemoryAccessBenchmarkTestArray< Size >::testLoop()
 #endif
    {
 #ifdef HAVE_OPENMP
-      const int tid = omp_get_thread_num();
+      const std::uintptr_t tid = omp_get_thread_num();
 #else
-      const int tid = 0;
+      const std::uintptr_t tid = 0;
 #endif
       testedElementsCount = 0;
-      if( (std::uintptr_t) tid < this->numberOfElements )
+      if( tid < this->numberOfElements )
          while( testedElementsCount < elementsPerTestPerThread ) {
             ElementType* elementPtr = &this->array[ tid ];
             int elements( 0 );

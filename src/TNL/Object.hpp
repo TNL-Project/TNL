@@ -69,11 +69,13 @@ parseObjectType( const String& objectType )
                buffer.clear();
             }
          }
-         else
+         else {
             buffer += objectType[ i ];
+         }
       }
-      else
+      else {
          buffer += objectType[ i ];
+      }
       if( objectType[ i ] == '>' )
          templateBrackets--;
       i++;

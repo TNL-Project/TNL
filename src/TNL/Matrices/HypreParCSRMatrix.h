@@ -38,10 +38,10 @@ public:
    using MatrixType = HypreCSRMatrix;
 
    using ValuesViewType = Containers::VectorView< RealType, DeviceType, IndexType >;
-   using ConstValuesViewType = typename ValuesViewType::ConstViewType;
+   using ConstValuesViewType = ValuesViewType::ConstViewType;
    using ColumnIndexesVectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
-   using ColumnIndexesViewType = typename ColumnIndexesVectorType::ViewType;
-   using ConstColumnIndexesViewType = typename ColumnIndexesVectorType::ConstViewType;
+   using ColumnIndexesViewType = ColumnIndexesVectorType::ViewType;
+   using ConstColumnIndexesViewType = ColumnIndexesVectorType::ConstViewType;
    using SegmentsViewType = Algorithms::Segments::CSRView< DeviceType, IndexType >;
    using ConstSegmentsViewType = Algorithms::Segments::CSRView< DeviceType, std::add_const_t< IndexType > >;
 
@@ -311,7 +311,7 @@ public:
    // https://github.com/hypre-space/hypre/blob/master/src/parcsr_mv/HYPRE_parcsr_matrix.c
    operator HYPRE_ParCSRMatrix() const noexcept
    {
-      return (HYPRE_ParCSRMatrix) m;
+      return reinterpret_cast< HYPRE_ParCSRMatrix >( m );
    }
 
    ~HypreParCSRMatrix()
@@ -518,8 +518,9 @@ public:
          hypre_ParCSRMatrixDestroy( m );
          m = nullptr;
       }
-      else
+      else {
          m = nullptr;
+      }
       owns_handle = true;
       owns_diag = true;
       owns_offd = true;

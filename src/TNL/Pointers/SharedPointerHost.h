@@ -111,7 +111,7 @@ public:
     * \param pointer is the source shared pointer.
     */
    SharedPointer( const SharedPointer& pointer )  // this is needed only to avoid the default compiler-generated constructor
-   : pd( (PointerData*) pointer.pd )
+   : pd( pointer.pd )
    {
       this->pd->counter += 1;
    }
@@ -125,7 +125,7 @@ public:
     */
    template< typename Object_, typename = Enabler< Object_ > >
    SharedPointer( const SharedPointer< Object_, DeviceType >& pointer )  // conditional constructor for non-const -> const data
-   : pd( (PointerData*) pointer.pd )
+   : pd( const_cast< PointerData* >( pointer.pd ) )
    {
       this->pd->counter += 1;
    }
@@ -150,7 +150,7 @@ public:
     */
    template< typename Object_, typename = Enabler< Object_ > >
    SharedPointer( SharedPointer< Object_, DeviceType >&& pointer )  // conditional constructor for non-const -> const data
-   : pd( (PointerData*) pointer.pd )
+   : pd( const_cast< PointerData* >( pointer.pd ) )
    {
       pointer.pd = nullptr;
    }
@@ -307,7 +307,7 @@ public:
    operator=( const SharedPointer& ptr )  // this is needed only to avoid the default compiler-generated operator
    {
       this->free();
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = ptr.pd;
       if( this->pd != nullptr )
          this->pd->counter += 1;
       return *this;
@@ -326,7 +326,7 @@ public:
    operator=( const SharedPointer< Object_, DeviceType >& ptr )  // conditional operator for non-const -> const data
    {
       this->free();
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = const_cast< PointerData* >( ptr.pd );
       if( this->pd != nullptr )
          this->pd->counter += 1;
       return *this;
@@ -362,7 +362,7 @@ public:
    operator=( SharedPointer< Object_, DeviceType >&& ptr )  // conditional operator for non-const -> const data
    {
       this->free();
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = const_cast< PointerData* >( ptr.pd );
       ptr.pd = nullptr;
       return *this;
    }

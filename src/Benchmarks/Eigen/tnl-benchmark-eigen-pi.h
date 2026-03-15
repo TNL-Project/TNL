@@ -37,7 +37,8 @@ generateVector( const int& size )
    using PrecisionType = typename VectorType::RealType;
    using Device = typename VectorType::DeviceType;
    VectorType vector( size );
-   TNL::Algorithms::fillRandom< Device >( vector.getData(), vector.getSize(), (PrecisionType) -1, (PrecisionType) 1 );
+   TNL::Algorithms::fillRandom< Device >(
+      vector.getData(), vector.getSize(), static_cast< PrecisionType >( -1 ), static_cast< PrecisionType >( 1 ) );
    return vector;
 }
 

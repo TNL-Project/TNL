@@ -16,8 +16,8 @@ inline constexpr double oneGB = 1024.0 * 1024.0 * 1024.0;
 
 struct BenchmarkResult
 {
-   using HeaderElements = typename Logging::HeaderElements;
-   using RowElements = typename Logging::RowElements;
+   using HeaderElements = Logging::HeaderElements;
+   using RowElements = Logging::RowElements;
 
    std::size_t loops = 0;
    double time = std::numeric_limits< double >::quiet_NaN();

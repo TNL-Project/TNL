@@ -120,9 +120,8 @@ class PVTIReader : public XMLVTK
       const XMLElement* piece = getChildSafe( datasetElement, "Piece" );
       while( piece != nullptr ) {
          const std::string source = getAttributeString( piece, "Source" );
-         if( ! source.empty() ) {
+         if( ! source.empty() )
             pieceSources.push_back( getSourcePath( source ) );
-         }
          else
             throw MeshReaderError( "PVTIReader", "the Source attribute of a <Piece> element was found empty." );
          // find next
@@ -133,7 +132,7 @@ class PVTIReader : public XMLVTK
 
       // check that the number of pieces matches the number of MPI ranks
       const int nproc = communicator.size();
-      if( (int) pieceSources.size() != nproc )
+      if( static_cast< int >( pieceSources.size() ) != nproc )
          throw MeshReaderError( "PVTIReader",
                                 "the number of subdomains does not match the number of MPI ranks ("
                                    + std::to_string( pieceSources.size() ) + " vs " + std::to_string( nproc ) + ")." );

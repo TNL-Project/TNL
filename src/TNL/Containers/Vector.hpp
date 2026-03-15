@@ -27,9 +27,9 @@ Vector< Real, Device, Index, Allocator >::getView( IndexType begin, IndexType en
    if( end == 0 )
       end = this->getSize();
 
-   if( begin < (Index) 0 || begin > end )
+   if( begin < static_cast< Index >( 0 ) || begin > end )
       throw std::out_of_range( "getView: begin is out of range" );
-   if( end < (Index) 0 || end > this->getSize() )
+   if( end < static_cast< Index >( 0 ) || end > this->getSize() )
       throw std::out_of_range( "getView: end is out of range" );
 
    return ViewType( this->getData() + begin, end - begin );
@@ -42,9 +42,9 @@ Vector< Real, Device, Index, Allocator >::getConstView( IndexType begin, IndexTy
    if( end == 0 )
       end = this->getSize();
 
-   if( begin < (Index) 0 || begin > end )
+   if( begin < static_cast< Index >( 0 ) || begin > end )
       throw std::out_of_range( "getConstView: begin is out of range" );
-   if( end < (Index) 0 || end > this->getSize() )
+   if( end < static_cast< Index >( 0 ) || end > this->getSize() )
       throw std::out_of_range( "getConstView: end is out of range" );
 
    return ConstViewType( this->getData() + begin, end - begin );

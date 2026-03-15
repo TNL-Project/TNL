@@ -24,7 +24,7 @@ constexpr ResultType
 min( const T1& a, const T2& b )
 {
    // std::min is constexpr since C++14 so it can be reused directly
-   return std::min( (ResultType) a, (ResultType) b );
+   return std::min( static_cast< ResultType >( a ), static_cast< ResultType >( b ) );
 }
 
 /**
@@ -49,7 +49,7 @@ constexpr ResultType
 max( const T1& a, const T2& b )
 {
    // std::max is constexpr since C++14 so it can be reused directly
-   return std::max( (ResultType) a, (ResultType) b );
+   return std::max( static_cast< ResultType >( a ), static_cast< ResultType >( b ) );
 }
 
 /**

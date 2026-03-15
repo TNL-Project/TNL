@@ -138,12 +138,12 @@ CudaReduction3DKernelLauncher( const Result identity,
    launch_config.gridSize.y = Backend::getNumberOfBlocks( m, launch_config.blockSize.y );
    launch_config.gridSize.z = Backend::getNumberOfBlocks( n, launch_config.blockSize.z );
 
-   if( launch_config.gridSize.y > (unsigned) Backend::getMaxGridYSize() ) {
+   if( launch_config.gridSize.y > Backend::getMaxGridYSize() ) {
       throw std::logic_error( "Maximum launch_config.gridSize.y limit exceeded (limit is "
                               + std::to_string( Backend::getMaxGridYSize() ) + ", attempted "
                               + std::to_string( launch_config.gridSize.y ) + ")." );
    }
-   if( launch_config.gridSize.z > (unsigned) Backend::getMaxGridZSize() ) {
+   if( launch_config.gridSize.z > Backend::getMaxGridZSize() ) {
       throw std::logic_error( "Maximum launch_config.gridSize.z limit exceeded (limit is "
                               + std::to_string( Backend::getMaxGridZSize() ) + ", attempted "
                               + std::to_string( launch_config.gridSize.z ) + ")." );

@@ -115,7 +115,7 @@ public:
     * \param pointer is the source shared pointer.
     */
    SharedPointer( const SharedPointer& pointer )  // this is needed only to avoid the default compiler-generated constructor
-   : pd( (PointerData*) pointer.pd ),
+   : pd( pointer.pd ),
      cuda_pointer( pointer.cuda_pointer )
    {
       this->pd->counter += 1;
@@ -130,7 +130,7 @@ public:
     */
    template< typename Object_, typename = Enabler< Object_ > >
    SharedPointer( const SharedPointer< Object_, DeviceType >& pointer )  // conditional constructor for non-const -> const data
-   : pd( (PointerData*) pointer.pd ),
+   : pd( const_cast< PointerData* >( pointer.pd ) ),
      cuda_pointer( pointer.cuda_pointer )
    {
       this->pd->counter += 1;
@@ -158,7 +158,7 @@ public:
     */
    template< typename Object_, typename = Enabler< Object_ > >
    SharedPointer( SharedPointer< Object_, DeviceType >&& pointer )  // conditional constructor for non-const -> const data
-   : pd( (PointerData*) pointer.pd ),
+   : pd( const_cast< PointerData* >( pointer.pd ) ),
      cuda_pointer( pointer.cuda_pointer )
    {
       pointer.pd = nullptr;
@@ -189,7 +189,10 @@ public:
           */
          this->pd->data.~Object();
          new( &this->pd->data ) Object( args... );
-         Backend::memcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), Backend::MemcpyHostToDevice );
+         Backend::memcpy( reinterpret_cast< void* >( this->cuda_pointer ),
+                          reinterpret_cast< const void* >( &this->pd->data ),
+                          sizeof( Object ),
+                          Backend::MemcpyHostToDevice );
          this->set_last_sync_state();
          return true;
       }
@@ -367,7 +370,7 @@ public:
    operator=( const SharedPointer& ptr )  // this is needed only to avoid the default compiler-generated operator
    {
       this->free();
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = ptr.pd;
       this->cuda_pointer = ptr.cuda_pointer;
       if( this->pd != nullptr )
          this->pd->counter += 1;
@@ -391,7 +394,7 @@ public:
    operator=( const SharedPointer< Object_, DeviceType >& ptr )  // conditional operator for non-const -> const data
    {
       this->free();
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = const_cast< PointerData* >( ptr.pd );
       this->cuda_pointer = ptr.cuda_pointer;
       if( this->pd != nullptr )
          this->pd->counter += 1;
@@ -438,7 +441,7 @@ public:
    operator=( SharedPointer< Object_, DeviceType >&& ptr )  // conditional operator for non-const -> const data
    {
       this->free();
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = const_cast< PointerData* >( ptr.pd );
       this->cuda_pointer = ptr.cuda_pointer;
       ptr.pd = nullptr;
       ptr.cuda_pointer = nullptr;
@@ -552,7 +555,10 @@ protected:
       // optimization: skip bitwise comparison if we're sure that the data is the same
       if( ! this->pd->maybe_modified )
          return false;
-      return std::memcmp( (void*) &this->pd->data_image, (void*) &this->pd->data, sizeof( Object ) ) != 0;
+      return std::memcmp( reinterpret_cast< const void* >( &this->pd->data_image ),
+                          reinterpret_cast< const void* >( &this->pd->data ),
+                          sizeof( Object ) )
+          != 0;
    }
 
    void

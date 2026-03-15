@@ -222,7 +222,7 @@ struct TurbulenceGenerator
 
          // loop over all wave numbers
          TNL::Algorithms::parallelFor< Device >(
-            unsigned( 0 ),
+            static_cast< unsigned int >( 0 ),
             nmodes,
             [ velocityScale, dk, k_e, k_eta, _k, _sx, _sy, _sz ] __cuda_callable__( unsigned m ) mutable
             {

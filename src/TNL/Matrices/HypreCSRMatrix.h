@@ -31,14 +31,14 @@ public:
    using IndexType = HYPRE_Int;
 
    using MatrixType = SparseMatrix< RealType, DeviceType, IndexType, GeneralMatrix, Algorithms::Segments::CSR >;
-   using ViewType = typename MatrixType::ViewType;
-   using ConstViewType = typename MatrixType::ConstViewType;
+   using ViewType = MatrixType::ViewType;
+   using ConstViewType = MatrixType::ConstViewType;
 
    using ValuesViewType = Containers::VectorView< RealType, DeviceType, IndexType >;
-   using ConstValuesViewType = typename ValuesViewType::ConstViewType;
+   using ConstValuesViewType = ValuesViewType::ConstViewType;
    using ColumnIndexesVectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
-   using ColumnIndexesViewType = typename ColumnIndexesVectorType::ViewType;
-   using ConstColumnIndexesViewType = typename ColumnIndexesVectorType::ConstViewType;
+   using ColumnIndexesViewType = ColumnIndexesVectorType::ViewType;
+   using ConstColumnIndexesViewType = ColumnIndexesVectorType::ConstViewType;
    using SegmentsViewType = Algorithms::Segments::CSRView< DeviceType, IndexType >;
    using ConstSegmentsViewType = Algorithms::Segments::CSRView< DeviceType, std::add_const_t< IndexType > >;
 
@@ -109,7 +109,7 @@ public:
    // https://github.com/hypre-space/hypre/blob/master/src/seq_mv/HYPRE_csr_matrix.c
    operator HYPRE_CSRMatrix() noexcept
    {
-      return (HYPRE_CSRMatrix) m;
+      return reinterpret_cast< HYPRE_CSRMatrix >( m );
    }
 
    ~HypreCSRMatrix()
@@ -311,8 +311,9 @@ public:
          hypre_CSRMatrixDestroy( m );
          m = nullptr;
       }
-      else
+      else {
          m = nullptr;
+      }
       owns_handle = true;
    }
 
@@ -376,7 +377,7 @@ public:
          return;
 
       getView().forAllRows(
-         [] __cuda_callable__( typename ViewType::RowView & row ) mutable
+         [] __cuda_callable__( ViewType::RowView & row ) mutable
          {
             const IndexType j_diag = row.getRowIndex();
             IndexType c_diag = 0;
@@ -425,11 +426,11 @@ public:
       TNL::Containers::HypreVector x( const_cast< RealType* >( inVector.getData() ), inVector.getSize() );
       TNL::Containers::HypreVector y( outVector.getData(), outVector.getSize() );
       // y = alpha*A + beta*y
-      auto err = hypre_CSRMatrixMatvec( matrixMultiplicator,     // HYPRE_Complex alpha,
-                                        this->m,                 // hypre_CSRMatrix *A,
-                                        (hypre_Vector*) x,       // hypre_Vector *x,
-                                        outVectorMultiplicator,  // HYPRE_Complex beta,
-                                        (hypre_Vector*) y        // hypre_Vector *y
+      auto err = hypre_CSRMatrixMatvec( matrixMultiplicator,                // HYPRE_Complex alpha,
+                                        this->m,                            // hypre_CSRMatrix *A,
+                                        static_cast< hypre_Vector* >( x ),  // hypre_Vector *x,
+                                        outVectorMultiplicator,             // HYPRE_Complex beta,
+                                        static_cast< hypre_Vector* >( y )   // hypre_Vector *y
       );
 
       if( err != 0 )

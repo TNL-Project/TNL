@@ -18,7 +18,7 @@ MemoryOperations< Devices::Cuda >::construct( Element* data, Index size )
    auto kernel = [ data ] __cuda_callable__( Index i )
    {
       // placement-new
-      ::new( (void*) ( data + i ) ) Element();
+      ::new( reinterpret_cast< void* >( data + i ) ) Element();
    };
    Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel );
 }
@@ -36,7 +36,7 @@ MemoryOperations< Devices::Cuda >::construct( Element* data, Index size, const A
       // std::forward or even by reference, since move-semantics does not apply for
       // the construction of multiple elements and pass-by-reference cannot be used
       // with CUDA kernels)
-      ::new( (void*) ( data + i ) ) Element( args... );
+      ::new( reinterpret_cast< void* >( data + i ) ) Element( args... );
    };
    Algorithms::parallelFor< Devices::Cuda >( 0, size, kernel, args... );
 }

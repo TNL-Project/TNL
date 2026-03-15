@@ -161,7 +161,7 @@ protected:
                break;
             default:
                if( '\x00' <= c && c <= '\x1f' )
-                  o << "\\u" << std::hex << std::setw( 4 ) << std::setfill( '0' ) << (int) c;
+                  o << "\\u" << std::hex << std::setw( 4 ) << std::setfill( '0' ) << static_cast< int >( c );
                else
                   o << c;
          }

@@ -138,7 +138,8 @@ getEntityDimension( EntityShape shape )
          return 3;
    }
    // this can actually happen when an invalid uint8_t value is converted to EntityShape
-   throw std::runtime_error( "VTK::getEntityDimension: invalid entity shape value " + std::to_string( int( shape ) ) );
+   throw std::runtime_error( "VTK::getEntityDimension: invalid entity shape value "
+                             + std::to_string( static_cast< int >( shape ) ) );
 }
 
 // static mapping of TNL entity topologies to EntityShape

@@ -30,14 +30,14 @@ public:
    using LocalRangeType = Subrange< IndexType >;
 
    using VectorType = Containers::DistributedVector< RealType, DeviceType, IndexType >;
-   using ViewType = typename VectorType::ViewType;
-   using ConstViewType = typename VectorType::ConstViewType;
+   using ViewType = VectorType::ViewType;
+   using ConstViewType = VectorType::ConstViewType;
 
    using LocalVectorType = Containers::Vector< RealType, DeviceType, IndexType >;
-   using LocalViewType = typename LocalVectorType::ViewType;
-   using ConstLocalViewType = typename LocalVectorType::ConstViewType;
+   using LocalViewType = LocalVectorType::ViewType;
+   using ConstLocalViewType = LocalVectorType::ConstViewType;
 
-   using SynchronizerType = typename ViewType::SynchronizerType;
+   using SynchronizerType = ViewType::SynchronizerType;
 
    // default constructor, no underlying \e hypre_ParVector is created.
    HypreParVector() = default;
@@ -272,8 +272,9 @@ public:
          hypre_ParVectorDestroy( v );
          v = nullptr;
       }
-      else
+      else {
          v = nullptr;
+      }
       owns_handle = true;
 
       localData.reset();
@@ -350,7 +351,7 @@ public:
       if( synchronizer == nullptr )
          throw std::logic_error( "HypreParVector: the synchronizer was not set" );
 
-      typename SynchronizerType::ByteArrayView bytes;
+      SynchronizerType::ByteArrayView bytes;
       bytes.bind( reinterpret_cast< std::uint8_t* >( localData.getData() ), sizeof( ValueType ) * localData.getSize() );
       synchronizer->synchronizeByteArrayAsync( bytes, sizeof( ValueType ) * valuesPerElement );
    }

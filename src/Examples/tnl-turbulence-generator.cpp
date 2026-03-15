@@ -23,13 +23,13 @@ generate( Real X, Real Y, Real Z, int Nx, int Ny, int Nz, int ntimes, double tim
    turbgen.rng.seed( 0 );
 
    // time correlation between individual realizations
-   typename Turbgen::TimeCorrelationMethod timeCorrelation = Turbgen::TimeCorrelationMethod::initialNone;
+   Turbgen::TimeCorrelationMethod timeCorrelation = Turbgen::TimeCorrelationMethod::initialNone;
 
    // generate grid coordinates in x, y, z
-   using Array1D = typename decltype( turbgen )::Array1D;
-   const Array1D xc = Array1D( TNL::linspace( Real( 0 ), X, Nx ) );
-   const Array1D yc = Array1D( TNL::linspace( Real( 0 ), Y, Ny ) );
-   const Array1D zc = Array1D( TNL::linspace( Real( 0 ), Z, Nz ) );
+   using Array1D = decltype( turbgen )::Array1D;
+   const Array1D xc = Array1D( TNL::linspace( static_cast< Real >( 0 ), X, Nx ) );
+   const Array1D yc = Array1D( TNL::linspace( static_cast< Real >( 0 ), Y, Ny ) );
+   const Array1D zc = Array1D( TNL::linspace( static_cast< Real >( 0 ), Z, Nz ) );
 
    const Real minSpaceStep = TNL::min( X / Nx, Y / ( Ny - 1 ), Z / ( Nz - 1 ) );
 

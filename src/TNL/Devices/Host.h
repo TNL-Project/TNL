@@ -100,8 +100,9 @@ public:
          return false;
 #endif
       }
-      else
+      else {
          disableOMP();
+      }
       const int threadsCount = parameters.getParameter< int >( prefix + "openmp-max-threads" );
       if( threadsCount > 1 && ! isOMPEnabled() )
          std::cerr << "Warning: openmp-max-threads was set to " << threadsCount << ", but OpenMP is disabled.\n";

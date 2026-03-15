@@ -191,7 +191,7 @@ EulerNonET< Vector, SolverMonitor >::computeNewTimeLevel( DofVectorType& u, Real
       }
    }
 
-   localResidue /= tau * (RealType) size;
+   localResidue /= tau * size;
    TNL::MPI::Allreduce( &localResidue, &currentResidue, 1, MPI_SUM, MPI_COMM_WORLD );
 }
 

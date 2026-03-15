@@ -19,8 +19,9 @@ namespace TNL::Debugging {
 static void
 printStackBacktraceAndAbort( int sig = 0 )
 {
-   if( sig == SIGSEGV )
+   if( sig == SIGSEGV ) {
       fprintf( stderr, "Invalid memory reference, printing backtrace and aborting...\n" );
+   }
    else if( sig == SIGFPE ) {
       /*
        * Unfortunately it is not possible to get the floating-point exception type
@@ -36,8 +37,9 @@ printStackBacktraceAndAbort( int sig = 0 )
        */
       fprintf( stderr, "Floating-point exception occurred, printing backtrace and aborting...\n" );
    }
-   else
+   else {
       fprintf( stderr, "Aborting due to signal %d...\n", sig );
+   }
    printStackBacktrace();
    // TODO: maybe use MPI_Abort(MPI_COMM_WORLD, 1); if we can detect we run under MPI
    abort();

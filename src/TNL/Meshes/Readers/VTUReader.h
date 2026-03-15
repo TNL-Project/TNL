@@ -96,10 +96,12 @@ class VTUReader : public XMLVTK
             for( auto c : array ) {
                const auto entityShape = static_cast< VTK::EntityShape >( c );
                if( entityShape != cellShape ) {
-                  if( PolygonShapeGroupChecker::bothBelong( cellShape, entityShape ) )
+                  if( PolygonShapeGroupChecker::bothBelong( cellShape, entityShape ) ) {
                      cellShape = PolygonShapeGroupChecker::GeneralShape;
-                  else if( PolyhedronShapeGroupChecker::bothBelong( cellShape, entityShape ) )
+                  }
+                  else if( PolyhedronShapeGroupChecker::bothBelong( cellShape, entityShape ) ) {
                      cellShape = PolyhedronShapeGroupChecker::GeneralShape;
+                  }
                   else {
                      const std::string msg = "Unsupported unstructured meshes with mixed entities: there are cells with type "
                                            + VTK::getShapeName( cellShape ) + " and " + VTK::getShapeName( entityShape ) + ".";
@@ -118,7 +120,7 @@ class VTUReader : public XMLVTK
                throw MeshReaderError( "VTUReader",
                                       "size of the offsets data array does not match the NumberOfCells attribute" );
             for( auto c : array ) {
-               if( (std::size_t) c <= max_offset )
+               if( static_cast< std::size_t >( c ) <= max_offset )
                   throw MeshReaderError( "VTUReader", "the offsets array is not monotonically increasing" );
                max_offset = c;
             }
@@ -131,7 +133,7 @@ class VTUReader : public XMLVTK
             if( array.size() != max_offset )
                throw MeshReaderError( "VTUReader", "size of the connectivity data array does not match the offsets array" );
             for( auto c : array ) {
-               if( c < 0 || (std::size_t) c >= NumberOfPoints )
+               if( c < 0 || static_cast< std::size_t >( c ) >= NumberOfPoints )
                   throw MeshReaderError( "VTUReader", "connectivity index " + std::to_string( c ) + " is out of range" );
             }
          },
@@ -168,7 +170,7 @@ class VTUReader : public XMLVTK
                   // NOTE: VTK stores -1 for cells that are not a polyhedron. We would need to populate
                   if( c < 0 )
                      continue;
-                  if( (std::size_t) c <= max_offset )
+                  if( static_cast< std::size_t >( c ) <= max_offset )
                      throw MeshReaderError( "VTUReader", "the faceoffsets array is not monotonically increasing" );
                   max_offset = c;
                }

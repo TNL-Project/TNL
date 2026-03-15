@@ -87,8 +87,8 @@ struct HeatEquationSolverBenchmarkSimpleGrid : public HeatEquationSolverBenchmar
    void
    exec( const Index xSize, const Index ySize ) override
    {
-      const Real hx = this->xDomainSize / (Real) xSize;
-      const Real hy = this->yDomainSize / (Real) ySize;
+      const Real hx = this->xDomainSize / static_cast< Real >( xSize );
+      const Real hy = this->yDomainSize / static_cast< Real >( ySize );
       const Real hx_inv = 1.0 / ( hx * hx );
       const Real hy_inv = 1.0 / ( hy * hy );
 

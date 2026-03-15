@@ -129,7 +129,7 @@ public:
       auto search = parameters.find( name );
       if( search != parameters.end() ) {
          if( holds_alternative< CoercedType >( search->second ) ) {
-            search->second = (CoercedType) value;
+            search->second = static_cast< CoercedType >( value );
          }
          else {
             throw std::logic_error( "Parameter " + name

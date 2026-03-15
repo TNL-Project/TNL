@@ -82,8 +82,9 @@ template< typename Type, typename SourceType, typename Allocator, typename >
 void
 File::load_impl( Type* destination, std::streamsize elements )
 {
-   if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< SourceType > > )
+   if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< SourceType > > ) {
       file.read( reinterpret_cast< char* >( destination ), sizeof( Type ) * elements );
+   }
    else {
       using BaseType = std::remove_cv_t< SourceType >;
       auto fill = [ = ]( std::size_t offset, BaseType* buffer, std::size_t buffer_size )
@@ -112,8 +113,9 @@ File::load_impl( Type* destination, std::streamsize elements )
 
    auto fill = [ &, this ]( std::size_t offset, Type* buffer, std::size_t buffer_size )
    {
-      if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< SourceType > > )
+      if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< SourceType > > ) {
          this->file.read( reinterpret_cast< char* >( buffer ), sizeof( BaseType ) * buffer_size );
+      }
       else {
          // increase the cast buffer
          if( buffer_size > cast_buffer_size ) {
@@ -147,8 +149,9 @@ template< typename Type, typename TargetType, typename Allocator, typename >
 void
 File::save_impl( const Type* source, std::streamsize elements )
 {
-   if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< TargetType > > )
+   if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< TargetType > > ) {
       file.write( reinterpret_cast< const char* >( source ), sizeof( Type ) * elements );
+   }
    else {
       using BaseType = std::remove_cv_t< TargetType >;
       auto fill = [ = ]( std::size_t offset, BaseType* buffer, std::size_t buffer_size )
@@ -177,8 +180,9 @@ File::save_impl( const Type* source, std::streamsize elements )
 
    auto push = [ &, this ]( std::size_t offset, const Type* buffer, std::size_t buffer_size, bool& next_iter )
    {
-      if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< TargetType > > )
+      if constexpr( std::is_same_v< std::remove_cv_t< Type >, std::remove_cv_t< TargetType > > ) {
          this->file.write( reinterpret_cast< const char* >( buffer ), sizeof( BaseType ) * buffer_size );
+      }
       else {
          // increase the cast buffer
          if( buffer_size > cast_buffer_size ) {

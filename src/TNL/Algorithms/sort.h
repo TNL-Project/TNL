@@ -157,9 +157,9 @@ template< typename Device,
 void
 sort( const Index begin, const Index end, Compare&& compare, Swap&& swap, const Sorter& sorter = Sorter{} )
 {
-   if( begin < (Index) 0 || begin > end )
+   if( begin < static_cast< Index >( 0 ) || begin > end )
       throw std::out_of_range( "sort: begin is out of range" );
-   if( end < (Index) 0 )
+   if( end < static_cast< Index >( 0 ) )
       throw std::out_of_range( "sort: end is out of range" );
 
    sorter.template inplaceSort< Device, Index >( begin, end, compare, swap );

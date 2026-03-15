@@ -180,8 +180,9 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const CMP& Cmp )
             cuda_2ndPhaseTasksAmount = host_2ndPhaseTasksAmount = 0;
             host_1stPhaseTasksAmount = tmp;
          }
-         else
+         else {
             break;
+         }
       }
 
       int elemPerBlock = getElemPerBlock();

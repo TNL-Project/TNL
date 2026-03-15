@@ -354,7 +354,7 @@ MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
    RealType maxEps = 0;
    if constexpr( std::is_same_v< DeviceType, Devices::Sequential > ) {
       for( IndexType i = 0; i < size; i++ ) {
-         RealType err = (RealType) ( tau / 3.0 * abs( 0.2 * _k1[ i ] + -0.9 * _k3[ i ] + 0.8 * _k4[ i ] + -0.1 * _k5[ i ] ) );
+         RealType err = tau / 3.0 * abs( 0.2 * _k1[ i ] + -0.9 * _k3[ i ] + 0.8 * _k4[ i ] + -0.1 * _k5[ i ] );
          eps = max( eps, err );
       }
    }
@@ -369,8 +369,7 @@ MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
          #pragma omp for
 #endif
          for( IndexType i = 0; i < size; i++ ) {
-            RealType err =
-               (RealType) ( tau / 3.0 * abs( 0.2 * _k1[ i ] + -0.9 * _k3[ i ] + 0.8 * _k4[ i ] + -0.1 * _k5[ i ] ) );
+            RealType err = tau / 3.0 * abs( 0.2 * _k1[ i ] + -0.9 * _k3[ i ] + 0.8 * _k4[ i ] + -0.1 * _k5[ i ] );
             localEps = max( localEps, err );
          }
          this->openMPErrorEstimateBuffer[ Devices::Host::getThreadIdx() ] = localEps;
@@ -422,7 +421,7 @@ MersonNonET< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
       for( IndexType i = 0; i < size; i++ ) {
          const RealType add = tau / 6.0 * ( _k1[ i ] + 4.0 * _k4[ i ] + _k5[ i ] );
          _u[ i ] += add;
-         localResidue += abs( (RealType) add );
+         localResidue += abs( add );
       }
    }
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
@@ -433,7 +432,7 @@ MersonNonET< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
       for( IndexType i = 0; i < size; i++ ) {
          const RealType add = tau / 6.0 * ( _k1[ i ] + 4.0 * _k4[ i ] + _k5[ i ] );
          _u[ i ] += add;
-         localResidue += abs( (RealType) add );
+         localResidue += abs( add );
       }
    }
    if constexpr( std::is_same_v< DeviceType, Devices::Cuda > ) {
@@ -462,7 +461,7 @@ MersonNonET< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
       }
    }
 
-   localResidue /= tau * (RealType) size;
+   localResidue /= tau * size;
    TNL::MPI::Allreduce( &localResidue, &currentResidue, 1, MPI_SUM, MPI_COMM_WORLD );
    /*#ifdef USE_MPI
       TNLMPI::Allreduce( localResidue, currentResidue, 1, MPI_SUM);

@@ -42,7 +42,7 @@ Equal< Devices::Host >::equal( const Element1* destination, const Element2* sour
       {
          return destination[ i ] == source[ i ];
       };
-      return reduce< Devices::Host >( (Index) 0, size, fetch, std::logical_and<>{}, true );
+      return reduce< Devices::Host >( static_cast< Index >( 0 ), size, fetch, std::logical_and<>{}, true );
    }
    else {
       // sequential algorithm can return as soon as it finds a mismatch
@@ -63,7 +63,7 @@ Equal< Devices::Cuda >::equal( const Element1* destination, const Element2* sour
    {
       return destination[ i ] == source[ i ];
    };
-   return reduce< Devices::Cuda >( (Index) 0, size, fetch, std::logical_and<>{}, true );
+   return reduce< Devices::Cuda >( static_cast< Index >( 0 ), size, fetch, std::logical_and<>{}, true );
 }
 
 template< typename DeviceType >
@@ -77,7 +77,7 @@ Equal< DeviceType, Devices::Cuda >::equal( const Element1* destination, const El
    // Here, destination is on host and source is on CUDA device.
    TNL_ASSERT_TRUE( destination, "Attempted to compare data through a nullptr." );
    TNL_ASSERT_TRUE( source, "Attempted to compare data through a nullptr." );
-   TNL_ASSERT_GE( size, (Index) 0, "Array size must be non-negative." );
+   TNL_ASSERT_GE( size, static_cast< Index >( 0 ), "Array size must be non-negative." );
 
    bool result = true;
    auto push = [ &result, destination ]( std::size_t offset, const Element2* buffer, std::size_t buffer_size, bool& next_iter )

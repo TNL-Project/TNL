@@ -120,10 +120,12 @@ powerIteration( const MatrixType& matrix, const typename MatrixType::RealType& e
    initialVec.resize( vecSize );
    do {
       if constexpr( std::is_integral_v< RealType > ) {
-         TNL::Algorithms::fillRandom< DeviceType >( initialVec.getData(), vecSize, (RealType) -10000, (RealType) 10000 );
+         TNL::Algorithms::fillRandom< DeviceType >(
+            initialVec.getData(), vecSize, static_cast< RealType >( -10000 ), static_cast< RealType >( 10000 ) );
       }
       else {
-         TNL::Algorithms::fillRandom< DeviceType >( initialVec.getData(), vecSize, (RealType) -1, (RealType) 1 );
+         TNL::Algorithms::fillRandom< DeviceType >(
+            initialVec.getData(), vecSize, static_cast< RealType >( -1 ), static_cast< RealType >( 1 ) );
       }
    } while( TNL::l2Norm( initialVec ) == 0 );
    return powerIteration( matrix, epsilon, initialVec, maxIterations );

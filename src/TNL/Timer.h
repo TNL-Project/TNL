@@ -80,8 +80,8 @@ public:
    writeLog( Logger& logger, int logLevel = 0 ) const;
 
 protected:
-   using TimePoint = typename std::chrono::high_resolution_clock::time_point;
-   using Duration = typename std::chrono::high_resolution_clock::duration;
+   using TimePoint = std::chrono::high_resolution_clock::time_point;
+   using Duration = std::chrono::high_resolution_clock::duration;
 
    //! \brief Function for measuring the real time.
    static TimePoint

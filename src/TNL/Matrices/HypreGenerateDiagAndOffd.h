@@ -59,7 +59,7 @@ GenerateDiagAndOffd( hypre_CSRMatrix* A, hypre_ParCSRMatrix* matrix, HYPRE_BigIn
 
       // count the numbers of diagonal and off-diagonal elements in each row
       Algorithms::parallelFor< HYPRE_Device >(  //
-         HYPRE_Int( 0 ),
+         static_cast< HYPRE_Int >( 0 ),
          num_rows,
          [ = ] __cuda_callable__( HYPRE_Int i ) mutable
          {
@@ -92,7 +92,7 @@ GenerateDiagAndOffd( hypre_CSRMatrix* A, hypre_ParCSRMatrix* matrix, HYPRE_BigIn
 
       // copy the values and column indices from A to the diag and offd parts
       Algorithms::parallelFor< HYPRE_Device >(  //
-         HYPRE_Int( 0 ),
+         static_cast< HYPRE_Int >( 0 ),
          num_rows,
          [ = ] __cuda_callable__( HYPRE_Int i ) mutable
          {
@@ -135,7 +135,7 @@ GenerateDiagAndOffd( hypre_CSRMatrix* A, hypre_ParCSRMatrix* matrix, HYPRE_BigIn
 
       // count offd columns
       const HYPRE_Int num_cols_offd = Algorithms::reduce< HYPRE_Device >(
-         HYPRE_Int( 0 ),
+         static_cast< HYPRE_Int >( 0 ),
          perm.getSize(),                                        // range of indices
          [ = ] __cuda_callable__( HYPRE_Int j ) -> HYPRE_Int {  // fetch: values to reduce
             const HYPRE_Int prev = ( j == 0 ) ? -1 : offd_j[ perm_view[ j - 1 ] ];

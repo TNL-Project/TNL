@@ -30,8 +30,8 @@ public:
    using IndexType = HYPRE_Int;
 
    using VectorType = Containers::Vector< RealType, DeviceType, IndexType >;
-   using ViewType = typename VectorType::ViewType;
-   using ConstViewType = typename VectorType::ConstViewType;
+   using ViewType = VectorType::ViewType;
+   using ConstViewType = VectorType::ConstViewType;
 
    HypreVector() = default;
 
@@ -96,7 +96,7 @@ public:
    // https://github.com/hypre-space/hypre/blob/master/src/seq_mv/HYPRE_vector.c
    operator HYPRE_Vector() const noexcept
    {
-      return (HYPRE_Vector) v;
+      return reinterpret_cast< HYPRE_Vector >( v );
    }
 
    ~HypreVector()
@@ -209,8 +209,9 @@ public:
          hypre_SeqVectorDestroy( v );
          v = nullptr;
       }
-      else
+      else {
          v = nullptr;
+      }
       owns_handle = true;
    }
 

@@ -297,7 +297,7 @@ public:
    /**
     * \brief Type of the allocator for \e DeviceType.
     */
-   using AllocatorType = typename Allocators::Default< DeviceType >::Allocator< ObjectType >;
+   using AllocatorType = typename Allocators::Default< DeviceType >::Allocator< std::remove_const_t< ObjectType > >;
 
    /**
     * \brief Constructor of empty pointer.
@@ -523,7 +523,10 @@ public:
       if( this->pd == nullptr )
          return true;
       if( this->modified() ) {
-         Backend::memcpy( (void*) this->cuda_pointer, (void*) &this->pd->data, sizeof( Object ), Backend::MemcpyHostToDevice );
+         Backend::memcpy( reinterpret_cast< void* >( this->cuda_pointer ),
+                          reinterpret_cast< const void* >( &this->pd->data ),
+                          sizeof( Object ),
+                          Backend::MemcpyHostToDevice );
          this->set_last_sync_state();
          return true;
       }
@@ -569,7 +572,9 @@ protected:
    set_last_sync_state()
    {
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
-      std::memcpy( (void*) &this->pd->data_image, (void*) &this->pd->data, sizeof( ObjectType ) );
+      std::memcpy( reinterpret_cast< void* >( &this->pd->data_image ),
+                   reinterpret_cast< const void* >( &this->pd->data ),
+                   sizeof( ObjectType ) );
       this->pd->maybe_modified = false;
    }
 
@@ -580,7 +585,10 @@ protected:
       // optimization: skip bitwise comparison if we're sure that the data is the same
       if( ! this->pd->maybe_modified )
          return false;
-      return std::memcmp( (void*) &this->pd->data_image, (void*) &this->pd->data, sizeof( ObjectType ) ) != 0;
+      return std::memcmp( reinterpret_cast< const void* >( &this->pd->data_image ),
+                          reinterpret_cast< const void* >( &this->pd->data ),
+                          sizeof( ObjectType ) )
+          != 0;
    }
 
    void
@@ -595,7 +603,7 @@ protected:
 
    // cuda_pointer can't be part of PointerData structure, since we would be
    // unable to dereference this-pd on the device
-   Object* cuda_pointer;
+   std::remove_const_t< Object >* cuda_pointer;
 };
 
 }  // namespace TNL::Pointers

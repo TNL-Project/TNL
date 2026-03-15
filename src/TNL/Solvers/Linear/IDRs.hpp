@@ -106,7 +106,7 @@ IDRs< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
       {
          return _P[ idx + i * sizeWithGhosts ] * _r[ idx ];
       };
-      Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, s, f.getView() );
+      Algorithms::Reduction2D< DeviceType >::reduce( static_cast< RealType >( 0 ), fetch, std::plus<>{}, size, s, f.getView() );
       // no-op if the problem is not distributed
       MPI::Allreduce( f.getData(), s, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
 
@@ -180,7 +180,8 @@ IDRs< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
             {
                return _P[ idx + ( i + k ) * sizeWithGhosts ] * _G[ idx + k * sizeWithGhosts ];
             };
-            Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, s - k, aux.getView() );
+            Algorithms::Reduction2D< DeviceType >::reduce(
+               static_cast< RealType >( 0 ), fetch, std::plus<>{}, size, s - k, aux.getView() );
             // no-op if the problem is not distributed
             MPI::Allreduce( aux.getData(), s - k, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
          }
