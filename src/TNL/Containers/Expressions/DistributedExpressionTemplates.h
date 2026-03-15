@@ -945,8 +945,6 @@ template< typename Vector,
 Result
 evaluateAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
-   using IndexType = typename Vector::IndexType;
-
    Result result = zero;
    const MPI::Comm& communicator = expression.getCommunicator();
    if( communicator != MPI_COMM_NULL ) {
@@ -962,15 +960,18 @@ evaluateAndReduce( Vector& lhs, const ET1& expression, const Reduction& reductio
       std::unique_ptr< Result[] > gatheredResults{ new Result[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall(
-         (char*) dataForScatter.get(), sizeof( Result ), (char*) gatheredResults.get(), sizeof( Result ), communicator );
+      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
+                     sizeof( Result ),
+                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
+                     sizeof( Result ),
+                     communicator );
 
       // compute the global reduction over MPI ranks
-      auto fetch = [ &gatheredResults ]( IndexType i )
+      auto fetch = [ &gatheredResults ]( int i )
       {
          return gatheredResults[ i ];
       };
-      result = Algorithms::reduce< Devices::Host >( (IndexType) 0, (IndexType) nproc, fetch, reduction, zero );
+      result = Algorithms::reduce< Devices::Host >( 0, nproc, fetch, reduction, zero );
    }
    return result;
 }
@@ -986,8 +987,6 @@ template< typename Vector,
 Result
 addAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
-   using IndexType = typename Vector::IndexType;
-
    Result result = zero;
    const MPI::Comm& communicator = expression.getCommunicator();
    if( communicator != MPI_COMM_NULL ) {
@@ -1003,15 +1002,18 @@ addAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, co
       std::unique_ptr< Result[] > gatheredResults{ new Result[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall(
-         (char*) dataForScatter.get(), sizeof( Result ), (char*) gatheredResults.get(), sizeof( Result ), communicator );
+      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
+                     sizeof( Result ),
+                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
+                     sizeof( Result ),
+                     communicator );
 
       // compute the global reduction over MPI ranks
-      auto fetch = [ &gatheredResults ]( IndexType i )
+      auto fetch = [ &gatheredResults ]( int i )
       {
          return gatheredResults[ i ];
       };
-      result = Algorithms::reduce< Devices::Host >( (IndexType) 0, (IndexType) nproc, fetch, reduction, zero );
+      result = Algorithms::reduce< Devices::Host >( 0, nproc, fetch, reduction, zero );
    }
    return result;
 }
@@ -1027,8 +1029,6 @@ template< typename Vector,
 Result
 addAndReduceAbs( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
-   using IndexType = typename Vector::IndexType;
-
    Result result = zero;
    const MPI::Comm& communicator = expression.getCommunicator();
    if( communicator != MPI_COMM_NULL ) {
@@ -1044,15 +1044,18 @@ addAndReduceAbs( Vector& lhs, const ET1& expression, const Reduction& reduction,
       std::unique_ptr< Result[] > gatheredResults{ new Result[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall(
-         (char*) dataForScatter.get(), sizeof( Result ), (char*) gatheredResults.get(), sizeof( Result ), communicator );
+      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
+                     sizeof( Result ),
+                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
+                     sizeof( Result ),
+                     communicator );
 
       // compute the global reduction over MPI ranks
-      auto fetch = [ &gatheredResults ]( IndexType i )
+      auto fetch = [ &gatheredResults ]( int i )
       {
          return gatheredResults[ i ];
       };
-      result = Algorithms::reduce< Devices::Host >( (IndexType) 0, (IndexType) nproc, fetch, reduction, zero );
+      result = Algorithms::reduce< Devices::Host >( 0, nproc, fetch, reduction, zero );
    }
    return result;
 }

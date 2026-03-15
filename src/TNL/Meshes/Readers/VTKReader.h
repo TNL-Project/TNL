@@ -155,16 +155,18 @@ public:
       // validate cell types
       using PolygonShapeGroupChecker = VTK::EntityShapeGroupChecker< VTK::EntityShape::Polygon >;
       using PolyhedronShapeGroupChecker = VTK::EntityShapeGroupChecker< VTK::EntityShape::Polyhedron >;
-      cellShape = (VTK::EntityShape) cellTypes[ 0 ];
+      cellShape = static_cast< VTK::EntityShape >( cellTypes[ 0 ] );
 
       for( auto c : cellTypes ) {
          const auto entityShape = static_cast< VTK::EntityShape >( c );
          if( cellShape != entityShape ) {
             // if the input mesh includes mixed shapes, use more general cellShape (polygon for 2D, polyhedron for 3D)
-            if( PolygonShapeGroupChecker::bothBelong( cellShape, entityShape ) )
+            if( PolygonShapeGroupChecker::bothBelong( cellShape, entityShape ) ) {
                cellShape = PolygonShapeGroupChecker::GeneralShape;
-            else if( PolyhedronShapeGroupChecker::bothBelong( cellShape, entityShape ) )
+            }
+            else if( PolyhedronShapeGroupChecker::bothBelong( cellShape, entityShape ) ) {
                cellShape = PolyhedronShapeGroupChecker::GeneralShape;
+            }
             else {
                const std::string msg = "Unsupported unstructured meshes with mixed entities: there are cells with type "
                                      + VTK::getShapeName( cellShape ) + " and " + VTK::getShapeName( entityShape ) + ".";
@@ -769,10 +771,11 @@ protected:
                str >> std::ws;
             }
          }
-         else
+         else {
             throw MeshReaderError( "VTKReader",
                                    "parsing error: unexpected section start at byte " + std::to_string( currentPosition )
                                       + " (section name is '" + name + "')" );
+         }
       }
 
       // clear errors bits on the input stream
@@ -821,12 +824,15 @@ protected:
             // skip the LOOKUP_TABLE line
             getline( inputFile, line );
          }
-         else if( type == "VECTORS" )
+         else if( type == "VECTORS" ) {
             values_per_element = 3;
-         else if( type == "TENSORS" )
+         }
+         else if( type == "TENSORS" ) {
             values_per_element = 9;
-         else
+         }
+         else {
             throw MeshReaderError( "VTKReader", "requested array type " + type + " is not implemented in the reader" );
+         }
       }
 
       if( datatype == "int" )

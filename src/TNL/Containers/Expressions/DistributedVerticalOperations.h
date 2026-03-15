@@ -54,17 +54,17 @@ DistributedExpressionArgMin( const Expression& expression )
       std::unique_ptr< ResultType[] > gatheredResults{ new ResultType[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall( (char*) dataForScatter.get(),
+      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
                      sizeof( ResultType ),
-                     (char*) gatheredResults.get(),
+                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
                      sizeof( ResultType ),
                      communicator );
 
-      auto fetch = [ &gatheredResults ]( IndexType i )
+      auto fetch = [ &gatheredResults ]( int i )
       {
          return gatheredResults[ i ].first;
       };
-      result = Algorithms::reduceWithArgument< Devices::Host >( (IndexType) 0, (IndexType) nproc, fetch, TNL::MinWithArg{} );
+      result = Algorithms::reduceWithArgument< Devices::Host >( 0, nproc, fetch, TNL::MinWithArg{} );
       result.second = gatheredResults[ result.second ].second;
    }
    return result;
@@ -113,17 +113,17 @@ DistributedExpressionArgMax( const Expression& expression )
       std::unique_ptr< ResultType[] > gatheredResults{ new ResultType[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall( (char*) dataForScatter.get(),
+      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
                      sizeof( ResultType ),
-                     (char*) gatheredResults.get(),
+                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
                      sizeof( ResultType ),
                      communicator );
 
-      auto fetch = [ &gatheredResults ]( IndexType i )
+      auto fetch = [ &gatheredResults ]( int i )
       {
          return gatheredResults[ i ].first;
       };
-      result = Algorithms::reduceWithArgument< Devices::Host >( (IndexType) 0, (IndexType) nproc, fetch, TNL::MaxWithArg{} );
+      result = Algorithms::reduceWithArgument< Devices::Host >( 0, nproc, fetch, TNL::MaxWithArg{} );
       result.second = gatheredResults[ result.second ].second;
    }
    return result;
@@ -214,17 +214,17 @@ DistributedExpressionArgAny( const Expression& expression )
       std::unique_ptr< ResultType[] > gatheredResults{ new ResultType[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall( (char*) dataForScatter.get(),
+      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
                      sizeof( ResultType ),
-                     (char*) gatheredResults.get(),
+                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
                      sizeof( ResultType ),
                      communicator );
 
-      auto fetch = [ &gatheredResults ]( IndexType i )
+      auto fetch = [ &gatheredResults ]( int i )
       {
          return gatheredResults[ i ].first;
       };
-      result = Algorithms::reduceWithArgument< Devices::Host >( (IndexType) 0, (IndexType) nproc, fetch, TNL::AnyWithArg{} );
+      result = Algorithms::reduceWithArgument< Devices::Host >( 0, nproc, fetch, TNL::AnyWithArg{} );
       result.second = gatheredResults[ result.second ].second;
    }
    return result;

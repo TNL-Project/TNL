@@ -48,7 +48,7 @@ find( const Container& container, const ValueType& value )
       }
    };
    return Algorithms::reduceWithArgument< typename Container::DeviceType >(
-      (IndexType) 0, view.getSize(), fetch, reduce, false );
+      static_cast< IndexType >( 0 ), view.getSize(), fetch, reduce, false );
 }
 
 }  // namespace TNL::Algorithms

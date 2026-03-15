@@ -383,7 +383,7 @@ public:
    /**
     * \brief Type of the allocator for \e DeviceType.
     */
-   using AllocatorType = typename Allocators::Default< DeviceType >::Allocator< ObjectType >;
+   using AllocatorType = typename Allocators::Default< DeviceType >::Allocator< std::remove_const_t< ObjectType > >;
 
    /**
     * \brief Constructor of empty pointer.
@@ -414,7 +414,7 @@ public:
     */
    DevicePointer( const DevicePointer& pointer )  // this is needed only to avoid the default compiler-generated constructor
    : pointer( pointer.pointer ),
-     pd( (PointerData*) pointer.pd ),
+     pd( pointer.pd ),
      cuda_pointer( pointer.cuda_pointer )
    {
       this->pd->counter += 1;
@@ -430,7 +430,7 @@ public:
    template< typename Object_, typename = Enabler< Object_ > >
    DevicePointer( const DevicePointer< Object_, DeviceType >& pointer )  // conditional constructor for non-const -> const data
    : pointer( pointer.pointer ),
-     pd( (PointerData*) pointer.pd ),
+     pd( const_cast< PointerData* >( pointer.pd ) ),
      cuda_pointer( pointer.cuda_pointer )
    {
       this->pd->counter += 1;
@@ -461,7 +461,7 @@ public:
    template< typename Object_, typename = Enabler< Object_ > >
    DevicePointer( DevicePointer< Object_, DeviceType >&& pointer )  // conditional constructor for non-const -> const data
    : pointer( pointer.pointer ),
-     pd( (PointerData*) pointer.pd ),
+     pd( const_cast< PointerData* >( pointer.pd ) ),
      cuda_pointer( pointer.cuda_pointer )
    {
       pointer.pointer = nullptr;
@@ -635,7 +635,7 @@ public:
    {
       this->free();
       this->pointer = ptr.pointer;
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = ptr.pd;
       this->cuda_pointer = ptr.cuda_pointer;
       if( this->pd )
          this->pd->counter += 1;
@@ -656,7 +656,7 @@ public:
    {
       this->free();
       this->pointer = ptr.pointer;
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = const_cast< PointerData* >( ptr.pd );
       this->cuda_pointer = ptr.cuda_pointer;
       if( this->pd )
          this->pd->counter += 1;
@@ -698,7 +698,7 @@ public:
    {
       this->free();
       this->pointer = ptr.pointer;
-      this->pd = (PointerData*) ptr.pd;
+      this->pd = const_cast< PointerData* >( ptr.pd );
       this->cuda_pointer = ptr.cuda_pointer;
       ptr.pointer = nullptr;
       ptr.pd = nullptr;
@@ -722,8 +722,10 @@ public:
       if( this->modified() ) {
          TNL_ASSERT_NE( this->pointer, nullptr, "" );
          TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
-         Backend::memcpy(
-            (void*) this->cuda_pointer, (void*) this->pointer, sizeof( ObjectType ), Backend::MemcpyHostToDevice );
+         Backend::memcpy( reinterpret_cast< void* >( this->cuda_pointer ),
+                          reinterpret_cast< const void* >( this->pointer ),
+                          sizeof( ObjectType ),
+                          Backend::MemcpyHostToDevice );
          this->set_last_sync_state();
          return true;
       }
@@ -778,7 +780,9 @@ protected:
    {
       TNL_ASSERT_NE( this->pointer, nullptr, "" );
       TNL_ASSERT_NE( this->pd, nullptr, "" );
-      std::memcpy( (void*) &this->pd->data_image, (void*) this->pointer, sizeof( Object ) );
+      std::memcpy( reinterpret_cast< void* >( &this->pd->data_image ),
+                   reinterpret_cast< const void* >( this->pointer ),
+                   sizeof( Object ) );
       this->pd->maybe_modified = false;
    }
 
@@ -790,7 +794,10 @@ protected:
       // optimization: skip bitwise comparison if we're sure that the data is the same
       if( ! this->pd->maybe_modified )
          return false;
-      return std::memcmp( (void*) &this->pd->data_image, (void*) this->pointer, sizeof( Object ) ) != 0;
+      return std::memcmp( reinterpret_cast< void* >( &this->pd->data_image ),
+                          reinterpret_cast< const void* >( this->pointer ),
+                          sizeof( Object ) )
+          != 0;
    }
 
    void
@@ -812,7 +819,7 @@ protected:
 
    // cuda_pointer can't be part of PointerData structure, since we would be
    // unable to dereference this-pd on the device
-   Object* cuda_pointer;
+   std::remove_const_t< Object >* cuda_pointer;
 };
 
 }  // namespace TNL::Pointers

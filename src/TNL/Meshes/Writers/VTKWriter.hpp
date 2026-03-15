@@ -178,7 +178,7 @@ VTKWriter< Mesh >::writePoints( const Mesh& mesh )
          writeValue( format, str, point[ j ] );
       // VTK needs zeros for unused dimensions
       for( int j = point.getSize(); j < 3; j++ )
-         writeValue( format, str, (typename Mesh::PointType::RealType) 0 );
+         writeValue( format, str, static_cast< typename Mesh::PointType::RealType >( 0 ) );
       if( format == VTK::FileFormat::ascii )
          str << "\n";
    }

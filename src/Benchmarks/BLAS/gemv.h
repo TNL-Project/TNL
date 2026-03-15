@@ -50,7 +50,7 @@ benchmarkGemv( Benchmark<>& benchmark, int rows, int columns )
    outHostVector.setSize( rows );
 
    setMatrix< HostMatrix >( hostMatrix );
-   const double datasetSize = (double) ( rows * columns + rows + columns ) * sizeof( Real ) / oneGB;
+   const double datasetSize = ( rows * columns + rows + columns ) * sizeof( Real ) / oneGB;
    benchmark.setOperation( "gemv", datasetSize );
 
    // reset function

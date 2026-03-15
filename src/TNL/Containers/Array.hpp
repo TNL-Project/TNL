@@ -80,9 +80,9 @@ Array< Value, Device, Index, Allocator >::Array( const Array< Value, Device, Ind
    if( size == 0 )
       size = array.getSize() - begin;
 
-   if( begin < (Index) 0 || begin > array.getSize() )
+   if( begin < static_cast< Index >( 0 ) || begin > array.getSize() )
       throw std::out_of_range( "Array: begin is out of range" );
-   if( size < (Index) 0 || begin + size > array.getSize() )
+   if( size < static_cast< Index >( 0 ) || begin + size > array.getSize() )
       throw std::out_of_range( "Array: size is out of range" );
 
    this->setSize( size );
@@ -158,7 +158,7 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 void
 Array< Value, Device, Index, Allocator >::reallocate( IndexType size )
 {
-   if( size < (Index) 0 )
+   if( size < static_cast< Index >( 0 ) )
       throw std::invalid_argument( "reallocate: array size must be non-negative" );
 
    if( this->size == size )
@@ -224,7 +224,7 @@ template< typename Value, typename Device, typename Index, typename Allocator >
 void
 Array< Value, Device, Index, Allocator >::setSize( IndexType size )
 {
-   if( size < (Index) 0 )
+   if( size < static_cast< Index >( 0 ) )
       throw std::invalid_argument( "setSize: array size must be non-negative" );
 
    if( this->size == size )
@@ -259,9 +259,9 @@ Array< Value, Device, Index, Allocator >::getView( IndexType begin, IndexType en
    if( end == 0 )
       end = getSize();
 
-   if( begin < (Index) 0 || begin > end )
+   if( begin < static_cast< Index >( 0 ) || begin > end )
       throw std::out_of_range( "getView: begin is out of range" );
-   if( end < (Index) 0 || end > getSize() )
+   if( end < static_cast< Index >( 0 ) || end > getSize() )
       throw std::out_of_range( "getView: end is out of range" );
 
    return ViewType( getData() + begin, end - begin );
@@ -274,9 +274,9 @@ Array< Value, Device, Index, Allocator >::getConstView( IndexType begin, IndexTy
    if( end == 0 )
       end = getSize();
 
-   if( begin < (Index) 0 || begin > end )
+   if( begin < static_cast< Index >( 0 ) || begin > end )
       throw std::out_of_range( "getConstView: begin is out of range" );
-   if( end < (Index) 0 || end > getSize() )
+   if( end < static_cast< Index >( 0 ) || end > getSize() )
       throw std::out_of_range( "getConstView: end is out of range" );
 
    return ConstViewType( getData() + begin, end - begin );
@@ -355,7 +355,7 @@ __cuda_callable__
 void
 Array< Value, Device, Index, Allocator >::setElement( IndexType i, ValueType value )
 {
-   TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
+   TNL_ASSERT_GE( i, static_cast< Index >( 0 ), "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
    detail::MemoryOperations< Device >::setElement( &( this->data[ i ] ), value );
 }
@@ -365,7 +365,7 @@ __cuda_callable__
 Value
 Array< Value, Device, Index, Allocator >::getElement( IndexType i ) const
 {
-   TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
+   TNL_ASSERT_GE( i, static_cast< Index >( 0 ), "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
    return detail::MemoryOperations< Device >::getElement( &( this->data[ i ] ) );
 }
@@ -385,7 +385,7 @@ Array< Value, Device, Index, Allocator >::operator[]( IndexType i )
    TNL_ASSERT_FALSE( (std::is_same_v< Device, Devices::Cuda >),
                      "Attempt to access data not allocated on the host from the host." );
 #endif
-   TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
+   TNL_ASSERT_GE( i, static_cast< Index >( 0 ), "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
    return this->data[ i ];
 }
@@ -405,7 +405,7 @@ Array< Value, Device, Index, Allocator >::operator[]( IndexType i ) const
    TNL_ASSERT_FALSE( (std::is_same_v< Device, Devices::Cuda >),
                      "Attempt to access data not allocated on the host from the host." );
 #endif
-   TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
+   TNL_ASSERT_GE( i, static_cast< Index >( 0 ), "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
    return this->data[ i ];
 }
@@ -475,7 +475,7 @@ template< typename InValue >
 Array< Value, Device, Index, Allocator >&
 Array< Value, Device, Index, Allocator >::operator=( const std::vector< InValue >& vector )
 {
-   if( (std::size_t) this->getSize() != vector.size() )
+   if( static_cast< std::size_t >( this->getSize() ) != vector.size() )
       this->setSize( vector.size() );
    Algorithms::copy< Device, Devices::Host >( this->getData(), vector.data(), vector.size() );
    return *this;

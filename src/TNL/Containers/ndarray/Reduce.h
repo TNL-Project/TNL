@@ -170,8 +170,8 @@ nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType id
    }
    else if constexpr( dimension == 3 ) {
       //2. size of input -> allocate memory for output
-      constexpr std::size_t axis1 = std::max( 2 - axis, std::size_t( 1 ) ) - 1;
-      constexpr std::size_t axis2 = std::min( dimension - axis, std::size_t( 2 ) );
+      constexpr std::size_t axis1 = TNL::max( 2 - axis, 1 ) - 1;
+      constexpr std::size_t axis2 = TNL::min( dimension - axis, 2 );
 
       using Permutation = std::index_sequence< axis, axis1, axis2 >;
 

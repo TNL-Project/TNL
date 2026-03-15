@@ -55,10 +55,12 @@ printStackBacktrace( std::ostream& out = std::cout, unsigned int max_frames = 64
       // find parentheses and +address offset surrounding the mangled name:
       // ./module(function+0x15c) [0x8048a6d]
       for( char* p = symbollist.get()[ i ]; *p != '\0'; ++p ) {
-         if( *p == '(' )
+         if( *p == '(' ) {
             begin_name = p;
-         else if( *p == '+' )
+         }
+         else if( *p == '+' ) {
             begin_offset = p;
+         }
          else if( *p == ')' && begin_offset != nullptr ) {
             end_offset = p;
             break;

@@ -93,8 +93,9 @@ GMRES< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
       this->preconditioner->solve( b, _M_tmp );
       normb = lpNorm( _M_tmp, 2.0 );
    }
-   else
+   else {
       normb = lpNorm( b, 2.0 );
+   }
 
    // check for zero rhs - solution is the null vector
    if( normb == 0 ) {
@@ -122,15 +123,16 @@ GMRES< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
       // reference:  A.H. Baker, E.R. Jessup, Tz.V. Kolev - A simple strategy for varying the restart parameter in GMRES(m)
       //             http://www.sciencedirect.com/science/article/pii/S0377042709000132
       if( restarting_max > restarting_min && restart_cycles > 0 ) {
-         if( beta_ratio > max_beta_ratio )
+         if( beta_ratio > max_beta_ratio ) {
             // near stagnation -> set maximum
             m = restarting_max;
+         }
          else if( beta_ratio >= min_beta_ratio ) {
             // the step size is determined based on current m using linear interpolation
             // between restarting_step_min and restarting_step_max
             const int step = restarting_step_min
-                           + (float) ( restarting_step_max - restarting_step_min ) / ( restarting_max - restarting_min )
-                                * ( m - restarting_min );
+                           + ( restarting_step_max - restarting_step_min )
+                                / static_cast< float >( restarting_max - restarting_min ) * ( m - restarting_min );
             if( m - step >= restarting_min )
                m -= step;
             else
@@ -227,7 +229,8 @@ GMRES< Matrix >::orthogonalize_CGS( const int m, const RealType normb, const Rea
          {
             return _V[ idx + k * ldSize ] * _w[ idx ];
          };
-         Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i + 1, H_l.getView() );
+         Algorithms::Reduction2D< DeviceType >::reduce(
+            static_cast< RealType >( 0 ), fetch, std::plus<>{}, size, i + 1, H_l.getView() );
          for( int k = 0; k <= i; k++ )
             H[ k + i * ( m + 1 ) ] += H_l[ k ];
 
@@ -238,12 +241,12 @@ GMRES< Matrix >::orthogonalize_CGS( const int m, const RealType normb, const Rea
          //}
          // w := w - V_i * H_l
          Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                         (IndexType) i + 1,
-                                                         (RealType) -1.0,
+                                                         static_cast< IndexType >( i + 1 ),
+                                                         static_cast< RealType >( -1 ),
                                                          V.getData(),
                                                          ldSize,
                                                          H_l.getData(),
-                                                         (RealType) 1.0,
+                                                         static_cast< RealType >( 1 ),
                                                          Traits::getLocalView( w ).getData() );
       }
       /***
@@ -455,8 +458,9 @@ GMRES< Matrix >::preconditioned_matvec( VectorViewType w, ConstVectorViewType v 
       this->matrix->vectorProduct( v, _M_tmp );
       this->preconditioner->solve( _M_tmp, w );
    }
-   else
+   else {
       this->matrix->vectorProduct( v, w );
+   }
 }
 
 template< typename Matrix >
@@ -516,7 +520,8 @@ GMRES< Matrix >::hauseholder_generate( const int i, VectorViewType y_i, ConstVec
       {
          return _Y[ idx + k * ldSize ] * _y_i[ idx ];
       };
-      Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i, aux.getView() );
+      Algorithms::Reduction2D< DeviceType >::reduce(
+         static_cast< RealType >( 0 ), fetch, std::plus<>{}, size, i, aux.getView() );
       // no-op if the problem is not distributed
       MPI::Allreduce( aux.getData(), i, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
 
@@ -584,12 +589,12 @@ GMRES< Matrix >::hauseholder_cwy( VectorViewType v, const int i )
 
    // v = e_i - Y_i * aux
    Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                   (IndexType) i + 1,
-                                                   (RealType) -1.0,
+                                                   static_cast< IndexType >( i + 1 ),
+                                                   static_cast< RealType >( -1 ),
                                                    Y.getData(),
                                                    ldSize,
                                                    aux.get(),
-                                                   (RealType) 0.0,
+                                                   static_cast< RealType >( 0 ),
                                                    Traits::getLocalView( v ).getData() );
    if( localOffset == 0 )
       v.setElement( i, 1.0 + v.getElement( i ) );
@@ -608,7 +613,8 @@ GMRES< Matrix >::hauseholder_cwy_transposed( VectorViewType z, const int i, Cons
    {
       return _Y[ idx + k * ldSize ] * _w[ idx ];
    };
-   Algorithms::Reduction2D< DeviceType >::reduce( (RealType) 0, fetch, std::plus<>{}, size, i + 1, aux.getView() );
+   Algorithms::Reduction2D< DeviceType >::reduce(
+      static_cast< RealType >( 0 ), fetch, std::plus<>{}, size, i + 1, aux.getView() );
    // no-op if the problem is not distributed
    MPI::Allreduce( aux.getData(), i + 1, MPI_SUM, Traits::getCommunicator( *this->matrix ) );
 
@@ -624,12 +630,12 @@ GMRES< Matrix >::hauseholder_cwy_transposed( VectorViewType z, const int i, Cons
    // z = w - Y_i * aux
    z = w;
    Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                   (IndexType) i + 1,
-                                                   (RealType) -1.0,
+                                                   static_cast< IndexType >( i + 1 ),
+                                                   static_cast< RealType >( -1 ),
                                                    Y.getData(),
                                                    ldSize,
                                                    aux.getData(),
-                                                   (RealType) 1.0,
+                                                   static_cast< RealType >( 1 ),
                                                    Traits::getLocalView( z ).getData() );
 }
 
@@ -664,12 +670,12 @@ GMRES< Matrix >::update( const int k, const int m, const HostVector& H, const Ho
    if( variant != Variant::CWY ) {
       // x = V * y + x
       Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                      (IndexType) k + 1,
-                                                      (RealType) 1.0,
+                                                      static_cast< IndexType >( k + 1 ),
+                                                      static_cast< RealType >( 1 ),
                                                       V.getData(),
                                                       ldSize,
                                                       y.get(),
-                                                      (RealType) 1.0,
+                                                      static_cast< RealType >( 1 ),
                                                       Traits::getLocalView( x ).getData() );
    }
    else {
@@ -700,12 +706,12 @@ GMRES< Matrix >::update( const int k, const int m, const HostVector& H, const Ho
 
       // x -= Y_{k+1} * aux
       Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                      (IndexType) k + 1,
-                                                      (RealType) -1.0,
+                                                      static_cast< IndexType >( k + 1 ),
+                                                      static_cast< RealType >( -1 ),
                                                       Y.getData(),
                                                       ldSize,
                                                       aux.get(),
-                                                      (RealType) 1.0,
+                                                      static_cast< RealType >( 1 ),
                                                       Traits::getLocalView( x ).getData() );
 
       // x += y

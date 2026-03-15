@@ -47,7 +47,8 @@ struct ArrayAssignment< Array, T, false >
    static void
    assign( Array& a, const T& t )
    {
-      Algorithms::fill< typename Array::DeviceType >( a.getArrayData(), (typename Array::ValueType) t, a.getSize() );
+      Algorithms::fill< typename Array::DeviceType >(
+         a.getArrayData(), static_cast< typename Array::ValueType >( t ), a.getSize() );
    }
 };
 

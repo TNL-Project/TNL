@@ -33,9 +33,9 @@ contains( const Array& array,
    if( end == 0 )
       end = array.getSize();
 
-   if( begin < (typename Array::IndexType) 0 || begin > end )
+   if( begin < static_cast< typename Array::IndexType >( 0 ) || begin > end )
       throw std::out_of_range( "contains: begin is out of range" );
-   if( end < (typename Array::IndexType) 0 || end > array.getSize() )
+   if( end < static_cast< typename Array::IndexType >( 0 ) || end > array.getSize() )
       throw std::out_of_range( "contains: end is out of range" );
 
    return detail::Contains< typename Array::DeviceType >()( array.getData() + begin, end - begin, value );
@@ -66,9 +66,9 @@ containsOnlyValue( const Array& array,
    if( end == 0 )
       end = array.getSize();
 
-   if( begin < (typename Array::IndexType) 0 || begin > end )
+   if( begin < static_cast< typename Array::IndexType >( 0 ) || begin > end )
       throw std::out_of_range( "containsOnlyValue: begin is out of range" );
-   if( end < (typename Array::IndexType) 0 || end > array.getSize() )
+   if( end < static_cast< typename Array::IndexType >( 0 ) || end > array.getSize() )
       throw std::out_of_range( "containsOnlyValue: end is out of range" );
 
    return detail::ContainsOnlyValue< typename Array::DeviceType >()( array.getData() + begin, end - begin, value );

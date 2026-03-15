@@ -39,7 +39,8 @@ generateVector( int size )
    using PrecisionType = typename VectorType::RealType;
    using Device = typename VectorType::DeviceType;
    VectorType vector( size );
-   TNL::Algorithms::fillRandom< Device >( vector.getData(), vector.getSize(), (PrecisionType) -1, (PrecisionType) 1 );
+   TNL::Algorithms::fillRandom< Device >(
+      vector.getData(), vector.getSize(), static_cast< PrecisionType >( -1 ), static_cast< PrecisionType >( 1 ) );
    return vector;
 }
 
@@ -50,7 +51,8 @@ generateMatrixDM( int size )
    using PrecisionType = typename MatrixType::RealType;
    using Device = typename MatrixType::DeviceType;
    MatrixType matrix( size, size );
-   TNL::Algorithms::fillRandom< Device >( matrix.getValues().getData(), size * size, (PrecisionType) 0, (PrecisionType) 1 );
+   TNL::Algorithms::fillRandom< Device >(
+      matrix.getValues().getData(), size * size, static_cast< PrecisionType >( 0 ), static_cast< PrecisionType >( 1 ) );
    for( int i = 0; i < size; ++i ) {
       for( int j = 0; j < i; ++j ) {
          matrix.setElement( i, j, matrix.getElement( j, i ) );
@@ -82,8 +84,10 @@ generateMatrixSM( int size )
    }
    matrix.sortColumnIndexes();
    //matrix.forAllRows( f );
-   TNL::Algorithms::fillRandom< Device >(
-      matrix.getValues().getData(), matrix.getValues().getSize(), (PrecisionType) -1, (PrecisionType) 1 );
+   TNL::Algorithms::fillRandom< Device >( matrix.getValues().getData(),
+                                          matrix.getValues().getSize(),
+                                          static_cast< PrecisionType >( -1 ),
+                                          static_cast< PrecisionType >( 1 ) );
    return matrix;
 }
 

@@ -53,14 +53,14 @@ benchmark_array( Benchmark<>& benchmark, index_type size = 500000000 )
    a.setValue( -1 );
    b.setValue( 1 );
 
-   auto kernel = [] __cuda_callable__( int i, value_type* a, const value_type* b )
+   auto kernel = [] __cuda_callable__( index_type i, value_type * a, const value_type* b )
    {
       a[ i ] = b[ i ];
    };
 
    auto f = [ & ]()
    {
-      Algorithms::parallelFor< Device >( 0, (int) size, kernel, a.getData(), b.getData() );
+      Algorithms::parallelFor< Device >( static_cast< index_type >( 0 ), size, kernel, a.getData(), b.getData() );
    };
 
    // warm-up for all benchmarks

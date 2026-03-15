@@ -136,8 +136,11 @@ template< typename Array, typename Device = typename Array::DeviceType, typename
 auto
 reduce( const Array& array, Reduction&& reduction, Result identity )
 {
-   return reduce< Device >(
-      (typename Array::IndexType) 0, array.getSize(), array.getConstView(), std::forward< Reduction >( reduction ), identity );
+   return reduce< Device >( static_cast< typename Array::IndexType >( 0 ),
+                            array.getSize(),
+                            array.getConstView(),
+                            std::forward< Reduction >( reduction ),
+                            identity );
 }
 
 /**
@@ -290,8 +293,11 @@ template< typename Array, typename Device = typename Array::DeviceType, typename
 auto
 reduceWithArgument( const Array& array, Reduction&& reduction, Result identity )
 {
-   return reduceWithArgument< Device >(
-      (typename Array::IndexType) 0, array.getSize(), array.getConstView(), std::forward< Reduction >( reduction ), identity );
+   return reduceWithArgument< Device >( static_cast< typename Array::IndexType >( 0 ),
+                                        array.getSize(),
+                                        array.getConstView(),
+                                        std::forward< Reduction >( reduction ),
+                                        identity );
 }
 
 /**

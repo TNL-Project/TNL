@@ -119,7 +119,7 @@ IterativeSolverMonitor< Real >::refresh()
 
       auto print_item = [ &free ]( const std::string& item, int width = 0 )
       {
-         width = std::min( free, width > 0 ? width : (int) item.length() );
+         width = std::min( free, width > 0 ? width : static_cast< int >( item.length() ) );
          std::cout << std::setw( width ) << item.substr( 0, width );
          free -= width;
       };
@@ -137,16 +137,16 @@ IterativeSolverMonitor< Real >::refresh()
       }
       if( time > 0 ) {
          print_item( " T:" );
-         print_item( real_to_string( ( saved ) ? saved_time : time, 5 ), 8 );
-         if( ( ( saved ) ? saved_timeStep : timeStep ) > 0 ) {
+         print_item( real_to_string( saved ? saved_time : time, 5 ), 8 );
+         if( ( saved ? saved_timeStep : timeStep ) > 0 ) {
             print_item( " TAU:" );
-            print_item( real_to_string( ( saved ) ? saved_timeStep : timeStep, 5 ), 10 );
+            print_item( real_to_string( saved ? saved_timeStep : timeStep, 5 ), 10 );
          }
       }
 
-      const std::string displayed_stage = ( saved ) ? saved_stage : stage;
+      const std::string displayed_stage = saved ? saved_stage : stage;
       if( ! displayed_stage.empty() && free > 5 ) {
-         if( (int) displayed_stage.length() <= free - 2 ) {
+         if( static_cast< int >( displayed_stage.length() ) <= free - 2 ) {
             std::cout << "  " << displayed_stage;
             free -= ( 2 + displayed_stage.length() );
          }
@@ -156,13 +156,13 @@ IterativeSolverMonitor< Real >::refresh()
          }
       }
 
-      if( ( ( saved ) ? saved_iterations : iterations ) > 0 && free >= 14 ) {
+      if( ( saved ? saved_iterations : iterations ) > 0 && free >= 14 ) {
          print_item( " ITER:" );
-         print_item( std::to_string( ( saved ) ? saved_iterations : iterations ), 8 );
+         print_item( std::to_string( saved ? saved_iterations : iterations ), 8 );
       }
-      if( ( ( saved ) ? saved_residue : residue ) != 0 && free >= 17 ) {
+      if( ( saved ? saved_residue : residue ) != 0 && free >= 17 ) {
          print_item( " RES:" );
-         print_item( real_to_string( ( saved ) ? saved_residue : residue, 5 ), 12 );
+         print_item( real_to_string( saved ? saved_residue : residue, 5 ), 12 );
       }
 
       if( nodesPerIteration > 0 )  // otherwise MLUPS: 0 is printed
@@ -174,8 +174,9 @@ IterativeSolverMonitor< Real >::refresh()
             print_item( real_to_string( mlups, 5 ), 7 );
             last_mlups = mlups;
          }
-         else
+         else {
             print_item( real_to_string( last_mlups, 5 ), 7 );
+         }
       }
       iterations_before_refresh = iterations;
       elapsed_time_before_refresh = getElapsedTime();

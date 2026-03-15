@@ -86,7 +86,7 @@ MemoryAccessBenchmark::performBenchmark( const TNL::Config::ParameterContainer& 
          array.setupRandomTest();
       array.performTest();
       benchmark.setOperationsPerLoop( array.getTestedElementsCountPerThread() );
-      double dataset_size = (double) elementsPerTest * sizeof( long int ) / (double) ( 1 << 30 );
+      double dataset_size = elementsPerTest * sizeof( long int ) / static_cast< double >( 1 << 30 );
       if( read_test || write_test )
          dataset_size *= 2;
       benchmark.setDatasetSize( dataset_size );

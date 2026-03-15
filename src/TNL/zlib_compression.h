@@ -48,10 +48,10 @@ write_compressed_block( const T* data,
 
    // create compression header
    const HeaderType compression_header[ 4 ] = {
-      (HeaderType) 1,                            // number of blocks
-      (HeaderType) ( data_size * sizeof( T ) ),  // size of block
-      (HeaderType) ( data_size * sizeof( T ) ),  // size of last block
-      (HeaderType) compressed_data_length        // list of compressed sizes of blocks
+      static_cast< HeaderType >( 1 ),                        // number of blocks
+      static_cast< HeaderType >( data_size * sizeof( T ) ),  // size of block
+      static_cast< HeaderType >( data_size * sizeof( T ) ),  // size of last block
+      static_cast< HeaderType >( compressed_data_length )    // list of compressed sizes of blocks
    };
 
    // base64-encode the compression header

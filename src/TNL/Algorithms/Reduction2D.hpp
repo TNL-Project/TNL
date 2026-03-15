@@ -181,7 +181,9 @@ Reduction2D< Devices::Host >::reduce( Result identity, Fetch fetch, Reduction re
    }
    else
 #endif
+   {
       Reduction2D< Devices::Sequential >::reduce( identity, fetch, reduction, size, n, result );
+   }
 }
 
 template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
