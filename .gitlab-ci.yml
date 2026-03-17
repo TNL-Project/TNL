@@ -104,18 +104,13 @@ workflow:
         CUDACXX: clang++
         CUDAHOSTCXX: clang++
         # CUDA does not support libc++ on x86 systems
-        #CMAKE_CUDA_FLAGS: "-stdlib=libstdc++"
-        #CMAKE_CXX_FLAGS: "-stdlib=libstdc++"
-        # HACK: clang 19.1 does not work with stdlib from gcc 15.1
-        CMAKE_CUDA_FLAGS: "-stdlib++-isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.3.1/include/c++ -isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.3.1/include/c++/x86_64-pc-linux-gnu"
-        CMAKE_CXX_FLAGS: "-stdlib++-isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.3.1/include/c++ -isystem /usr/lib/gcc/x86_64-pc-linux-gnu/14.3.1/include/c++/x86_64-pc-linux-gnu"
-        CMAKE_EXE_LINKER_FLAGS: "-fuse-ld=lld"
-        CMAKE_SHARED_LINKER_FLAGS: "-fuse-ld=lld"
+        CMAKE_CUDA_FLAGS: "-stdlib=libstdc++"
+        CMAKE_CXX_FLAGS: "-stdlib=libstdc++"
+        CMAKE_EXE_LINKER_FLAGS: "-fuse-ld=lld -lomp"
+        CMAKE_SHARED_LINKER_FLAGS: "-fuse-ld=lld -lomp"
         USE_CUDA: "yes"
         # use CUDA from the Arch Linux-based container image
         CUDA_PATH: "/opt/cuda"
-        Thrust_DIR: "${CUDA_PATH}/lib64/cmake/thrust/"
-        CUB_DIR: "${CUDA_PATH}/lib64/cmake/cub/"
 
 # base for Intel oneAPI builds
 .icpx:
