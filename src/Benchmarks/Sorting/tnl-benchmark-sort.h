@@ -4,8 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <vector>
-#include <TNL/Algorithms/sort.h>
 using namespace std;
 
 #include "generators.h"
