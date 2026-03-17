@@ -25,13 +25,13 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using MatrixTypes = ::testing::Types<
+using MatrixTypes = ::testing::Types<  //
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >
 #if defined( __CUDACC__ )
    ,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >,
-   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >
 #elif defined( __HIP__ )
    ,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::RowMajorOrder >,
