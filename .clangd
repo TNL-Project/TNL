@@ -9,8 +9,7 @@ CompileFlags:
     - "-DHAVE_MPI"
     - "-DHAVE_TINYXML2"
     - "-DHAVE_ZLIB"
-    # FIXME: clangd 21 and cuda 13 do not work together
-    #- "-xcu"
+    - "-xcu"
   Remove:
     # remove all nvcc-specific flags that may appear in the compile_commands.json file
     - "-Xcompiler"
