@@ -11,8 +11,7 @@
 #include <TNL/Algorithms/Sorting/CUBMergeSort.h>
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   // FIXME: clang 14 fails due to compile errors in thrust or cub
-   #if defined( __CUDA__ ) && ! defined( __clang__ )
+   #if defined( __CUDACC__ )
       #include <thrust/sort.h>
       #include <thrust/execution_policy.h>
    #endif
@@ -140,8 +139,7 @@ TYPED_TEST( CudaSorterTest, noLostElement_bigSizedArray )
    auto view = cudaArr.getView();
    TypeParam::sort( view );
 
-   // FIXME: clang 14 fails due to compile errors in thrust or cub
-   #if defined( __CUDA__ ) && ! defined( __clang__ )
+   #if defined( __CUDACC__ )
    TNL::Containers::Array< int, TNL::Devices::Cuda > cudaArr2( arr );
    thrust::sort( thrust::device, cudaArr2.getData(), cudaArr2.getData() + cudaArr2.getSize() );
    EXPECT_TRUE( view == cudaArr2.getView() );
@@ -163,8 +161,7 @@ TYPED_TEST( CudaSorterTest, types_type_double )
    auto view = cudaArr.getView();
    TypeParam::sort( view );
 
-   // FIXME: clang 14 fails due to compile errors in thrust or cub
-   #if defined( __CUDA__ ) && ! defined( __clang__ )
+   #if defined( __CUDACC__ )
    TNL::Containers::Array< double, TNL::Devices::Cuda > cudaArr2( arr );
    thrust::sort( thrust::device, cudaArr2.getData(), cudaArr2.getData() + cudaArr2.getSize() );
    EXPECT_TRUE( view == cudaArr2.getView() );
