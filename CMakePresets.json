@@ -98,8 +98,6 @@
         "CMAKE_CUDA_FLAGS": null,
         "CMAKE_EXE_LINKER_FLAGS": null,
         "CMAKE_SHARED_LINKER_FLAGS": null,
-        "Thrust_DIR": null,
-        "CUB_DIR": null,
         "TNL_USE_CUDA": "ON",
         "TNL_USE_HIP": "OFF"
       }
@@ -126,8 +124,6 @@
         "CMAKE_CUDA_FLAGS": null,
         "CMAKE_EXE_LINKER_FLAGS": null,
         "CMAKE_SHARED_LINKER_FLAGS": null,
-        "Thrust_DIR": null,
-        "CUB_DIR": null,
         "TNL_USE_CUDA": "ON",
         "TNL_USE_HIP": "OFF"
       }
@@ -153,8 +149,6 @@
         "CMAKE_CUDA_FLAGS": "-stdlib=libstdc++",
         "CMAKE_EXE_LINKER_FLAGS": "-fuse-ld=lld -lomp",
         "CMAKE_SHARED_LINKER_FLAGS": "-fuse-ld=lld -lomp",
-        "Thrust_DIR": "$env{CUDA_PATH}/lib64/cmake/thrust/",
-        "CUB_DIR": "$env{CUDA_PATH}/lib64/cmake/cub/",
         "TNL_USE_CUDA": "ON",
         "TNL_USE_HIP": "OFF"
       }
@@ -177,8 +171,6 @@
         "CMAKE_CUDA_FLAGS": null,
         "CMAKE_EXE_LINKER_FLAGS": null,
         "CMAKE_SHARED_LINKER_FLAGS": null,
-        "Thrust_DIR": null,
-        "CUB_DIR": null,
         "TNL_USE_CUDA": "OFF",
         "TNL_USE_HIP": "ON"
       }
