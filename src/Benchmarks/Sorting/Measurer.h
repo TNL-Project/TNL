@@ -3,9 +3,12 @@
 
 #pragma once
 
+#include <numeric>  // std::accumulate
 #include <vector>
+
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Containers/Array.h>
+#include <TNL/Algorithms/sort.h>
 #include <TNL/Algorithms/Sorting/experimental/Quicksort.h>
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
 #include <TNL/Algorithms/Sorting/STLSort.h>
@@ -30,7 +33,7 @@ struct Measurer
    static double
    measure( const std::vector< Value >& vec, int tries, int& wrongAnsCnt )
    {
-      vector< double > resAcc;
+      std::vector< double > resAcc;
 
       for( int i = 0; i < tries; i++ ) {
          Containers::Array< Value, Devices::Cuda > arr( vec );
@@ -47,7 +50,7 @@ struct Measurer
          if( ! Algorithms::isAscending( view ) )
             wrongAnsCnt++;
       }
-      return accumulate( resAcc.begin(), resAcc.end(), 0.0 ) / resAcc.size();
+      return std::accumulate( resAcc.begin(), resAcc.end(), 0.0 ) / resAcc.size();
    }
 };
 
@@ -58,7 +61,7 @@ struct Measurer< Algorithms::Sorting::STLSort >
    static double
    measure( const std::vector< Value >& vec, int tries, int& wrongAnsCnt )
    {
-      vector< double > resAcc;
+      std::vector< double > resAcc;
 
       for( int i = 0; i < tries; i++ ) {
          Containers::Array< Value, Devices::Host > arr( vec );
@@ -73,6 +76,6 @@ struct Measurer< Algorithms::Sorting::STLSort >
             Algorithms::Sorting::STLSort::sort( view );
          }
       }
-      return accumulate( resAcc.begin(), resAcc.end(), 0.0 ) / resAcc.size();
+      return std::accumulate( resAcc.begin(), resAcc.end(), 0.0 ) / resAcc.size();
    }
 };

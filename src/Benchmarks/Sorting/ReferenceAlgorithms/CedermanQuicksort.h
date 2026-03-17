@@ -736,9 +736,7 @@ lqsort( unsigned int* adata, unsigned int* adata2, struct LQSortParams* bs, unsi
    __syncthreads();
 }
 
-#include <stdio.h>
 #include <algorithm>
-#include <string>
 
 #undef THREADS
 #define THREADS threads
@@ -853,9 +851,9 @@ GPUQSort< element >::sort( element* data,
 
       // Do the cumulative sum
       if( flip )
-         part1< < < paramsize, THREADS, ( THREADS + 1 ) * 2 * 4 + THREADS * 2 * 4 > > >( ddata, dparams, dhists, dlength );
+         part1<<< paramsize, THREADS, ( THREADS + 1 ) * 2 * 4 + THREADS * 2 * 4 >>>( ddata, dparams, dhists, dlength );
       else
-         part1< < < paramsize, THREADS, ( THREADS + 1 ) * 2 * 4 + THREADS * 2 * 4 > > >( ddata2, dparams, dhists, dlength );
+         part1<<< paramsize, THREADS, ( THREADS + 1 ) * 2 * 4 + THREADS * 2 * 4 >>>( ddata2, dparams, dhists, dlength );
       if( ! errCheck( ( cudaMemcpy( length, dlength, sizeof( Length< element > ), cudaMemcpyDeviceToHost ) ) ) )
          return 1;
 
@@ -885,12 +883,12 @@ GPUQSort< element >::sort( element* data,
 
       // Move the elements to their correct position
       if( flip )
-         part2< < < paramsize, THREADS > > >( ddata, ddata2, dparams, dhists, dlength );
+         part2<<< paramsize, THREADS >>>( ddata, ddata2, dparams, dhists, dlength );
       else
-         part2< < < paramsize, THREADS > > >( ddata2, ddata, dparams, dhists, dlength );
+         part2<<< paramsize, THREADS >>>( ddata2, ddata, dparams, dhists, dlength );
 
       // Fill in the pivot value between the left and right blocks
-      part3< < < paramsize, THREADS > > >( ddata, dparams, dhists, dlength );
+      part3<<< paramsize, THREADS >>>( ddata, dparams, dhists, dlength );
 
       flip = ! flip;
 
@@ -948,7 +946,7 @@ GPUQSort< element >::sort( element* data,
 
       // Run the local quicksort, the one that doesn't need inter-block synchronization
       if( phase != 1 )
-         lqsort< < < worksize, THREADS, max( ( THREADS + 1 ) * 2 * 4, sbsize * 4 ) > > >( ddata, ddata2, dlqparams, phase );
+         lqsort<<< worksize, THREADS, max( ( THREADS + 1 ) * 2 * 4, sbsize * 4 ) >>>( ddata, ddata2, dlqparams, phase );
    }
 
    err = cudaDeviceSynchronize();
