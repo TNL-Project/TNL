@@ -95,7 +95,7 @@ find_package(OpenMP COMPONENTS CXX)
 if(OPENMP_FOUND AND TNL_USE_OPENMP)
     # NOTE: OpenMP + CUDA/HIP = segfault in matrix tests (the host code built by nvcc is also not optimal)
     target_compile_definitions(TNL INTERFACE $<$<COMPILE_LANGUAGE:CXX>: HAVE_OPENMP>)
-    target_include_directories(TNL INTERFACE $<BUILD_INTERFACE:$<$<COMPILE_LANGUAGE:CXX>: ${OpenMP_CXX_INCLUDE_DIRS}>>)
+    target_include_directories(TNL SYSTEM INTERFACE $<BUILD_INTERFACE:$<$<COMPILE_LANGUAGE:CXX>: ${OpenMP_CXX_INCLUDE_DIRS}>>)
     target_compile_options(TNL INTERFACE $<$<COMPILE_LANGUAGE:CXX>: ${OpenMP_CXX_FLAGS}>)
     target_link_libraries(TNL INTERFACE $<$<LINK_LANGUAGE:CXX>: ${OpenMP_CXX_LIBRARIES}>)
     set(TNL_BUILD_OPENMP TRUE)
@@ -141,6 +141,17 @@ if(TNL_USE_CUDA)
     endif()
     set(CMAKE_EXECUTABLE_SUFFIX "${executable_suffix_backup}")
     unset(executable_suffix_backup)
+endif()
+
+if(TNL_BUILD_CUDA)
+    # Add the CUB include directory to the interface target. CCCL is required
+    # by CUDA itself and it is header-only, it does not matter that CCCL is
+    # mostly unused in TNL. Note that the CCCL::CUB target cannot be filtered
+    # with the $<COMPILE_LANGUAGE:CUDA> generator expression. The CCCL::CUB
+    # target also uses the include directory as non-system directory and
+    # using target_include_directories() does not allow to add the SYSTEM flag.
+    find_package(CCCL REQUIRED COMPONENTS CUB)
+    target_include_directories(TNL SYSTEM INTERFACE $<BUILD_INTERFACE:$<$<COMPILE_LANGUAGE:CUDA>: ${_CUB_INCLUDE_DIR}>>)
 endif()
 
 #####

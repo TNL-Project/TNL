@@ -82,7 +82,8 @@ if(TBB_FOUND)
 endif()
 
 # find Thrust (provided by recent CUDA toolkits)
-find_package(Thrust)
+set(CCCL_ENABLE_DEFAULT_THRUST_TARGET OFF)
+find_package(CCCL COMPONENTS Thrust)
 if(Thrust_FOUND)
     # https://github.com/NVIDIA/thrust/blob/main/thrust/cmake/README.md
     if(TBB_FOUND)
@@ -97,10 +98,6 @@ if(Thrust_FOUND)
 
     foreach(target IN ITEMS ${BENCHMARKS})
         target_compile_definitions(${target} PUBLIC -DHAVE_THRUST)
-        # HACK: Thrust adds its include directory as non-system directory, which leads
-        # to warnings (and thus errors with TNL_USE_CI_FLAGS=ON) due to -Wextra-semi:
-        # https://github.com/NVIDIA/cccl/issues/826
-        target_include_directories(${target} SYSTEM PUBLIC ${_THRUST_INCLUDE_DIR})
     endforeach()
     if(TNL_BUILD_CPP_TARGETS)
         target_link_libraries(tnl-benchmark-blas PUBLIC ThrustHost)
