@@ -94,8 +94,7 @@ main( int argc, char* argv[] )
       std::cout << "Bitonic sort on GPU ...\n";
       start< BitonicSort >( cout, "\t" );
 
-   // FIXME: clang 14 fails to compile the reference algorithms (e.g. due to compile errors in thrust or cub)
-   #if defined( __CUDA__ ) && ! defined( __clang__ )
+   #if defined( __CUDACC__ )
       #ifdef HAVE_CUDA_SAMPLES
       std::cout << "Manca quicksort on GPU ...\n";
       start< MancaQuicksort >( cout, "\t" );
@@ -120,8 +119,7 @@ main( int argc, char* argv[] )
       std::cout << "Bitonic sort on GPU ...\n";
       start< BitonicSort >( out, "," );
 
-   // FIXME: clang 14 fails to compile the reference algorithms (e.g. due to compile errors in thrust or cub)
-   #if defined( __CUDA__ ) && ! defined( __clang__ )
+   #if defined( __CUDACC__ )
       #ifdef HAVE_CUDA_SAMPLES
       std::cout << "Manca quicksort on GPU ...\n";
       start< MancaQuicksort >( out, "," );
