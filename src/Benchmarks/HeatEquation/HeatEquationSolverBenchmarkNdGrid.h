@@ -400,8 +400,8 @@ struct HeatEquationSolverBenchmarkNdGrid : public HeatEquationSolverBenchmark< R
 
       grid.setDimensions( xSize, ySize );
 
-      const Real hx = this->xDomainSize / (Real) grid.getDimension( 0 );
-      const Real hy = this->yDomainSize / (Real) grid.getDimension( 1 );
+      const Real hx = this->xDomainSize / static_cast< Real >( grid.getDimension( 0 ) );
+      const Real hy = this->yDomainSize / static_cast< Real >( grid.getDimension( 1 ) );
       const Real hx_inv = 1.0 / ( hx * hx );
       const Real hy_inv = 1.0 / ( hy * hy );
 

@@ -100,9 +100,10 @@ Scan< Devices::Sequential, Type, PhaseType >::performSecondPhase( const InputArr
       for( typename InputArray::IndexType i = outputBegin; i < outputEnd; i++ )
          output[ i ] = reduction( output[ i ], shift );
    }
-   else  // ScanPhaseType::WriteInSecondPhase
+   else {  // ScanPhaseType::WriteInSecondPhase
       // artificial second phase - only one block, use the shift as the initial value
       perform( input, output, begin, end, outputBegin, reduction, reduction( shift, blockShifts[ 0 ] ) );
+   }
 }
 
 template< ScanType Type, ScanPhaseType PhaseType >
@@ -182,7 +183,9 @@ Scan< Devices::Host, Type, PhaseType >::perform( const InputArray& input,
    }
    else
 #endif
+   {
       Scan< Devices::Sequential, Type >::perform( input, output, begin, end, outputBegin, reduction, identity );
+   }
 }
 
 template< ScanType Type, ScanPhaseType PhaseType >
@@ -241,8 +244,10 @@ Scan< Devices::Host, Type, PhaseType >::performFirstPhase( const InputArray& inp
    }
    else
 #endif
+   {
       return Scan< Devices::Sequential, Type >::performFirstPhase(
          input, output, begin, end, outputBegin, reduction, identity );
+   }
 }
 
 template< ScanType Type, ScanPhaseType PhaseType >
@@ -288,16 +293,19 @@ Scan< Devices::Host, Type, PhaseType >::performSecondPhase( const InputArray& in
             for( IndexType i = block_output_begin; i < block_output_end; i++ )
                output[ i ] = reduction( output[ i ], block_shift );
          }
-         else  // ScanPhaseType::WriteInSecondPhase
+         else {  // ScanPhaseType::WriteInSecondPhase
             // downsweep: per-block scan using the block results as initial values
             Scan< Devices::Sequential, Type >::perform(
                input, output, block_begin, block_end, block_output_begin, reduction, block_shift );
+         }
       }
    }
    else
 #endif
+   {
       Scan< Devices::Sequential, Type >::performSecondPhase(
          input, output, blockShifts, begin, end, outputBegin, reduction, identity, shift );
+   }
 }
 
 template< ScanType Type, ScanPhaseType PhaseType >

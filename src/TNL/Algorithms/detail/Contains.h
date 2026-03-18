@@ -68,7 +68,7 @@ struct Contains< Devices::Host >
          {
             return data[ i ] == value;
          };
-         return reduce< Devices::Host >( (Index) 0, size, fetch, std::logical_or<>{}, false );
+         return reduce< Devices::Host >( static_cast< Index >( 0 ), size, fetch, std::logical_or<>{}, false );
       }
       else {
          // sequential algorithm can return as soon as it finds a match
@@ -92,7 +92,7 @@ struct ContainsOnlyValue< Devices::Host >
          {
             return data[ i ] == value;
          };
-         return reduce< Devices::Host >( (Index) 0, size, fetch, std::logical_and<>{}, true );
+         return reduce< Devices::Host >( static_cast< Index >( 0 ), size, fetch, std::logical_and<>{}, true );
       }
       else {
          // sequential algorithm can return as soon as it finds a mismatch
@@ -115,7 +115,7 @@ struct Contains< Devices::Cuda >
       {
          return data[ i ] == value;
       };
-      return reduce< Devices::Cuda >( (Index) 0, size, fetch, std::logical_or<>{}, false );
+      return reduce< Devices::Cuda >( static_cast< Index >( 0 ), size, fetch, std::logical_or<>{}, false );
    }
 };
 
@@ -133,7 +133,7 @@ struct ContainsOnlyValue< Devices::Cuda >
       {
          return data[ i ] == value;
       };
-      return reduce< Devices::Cuda >( (Index) 0, size, fetch, std::logical_and<>{}, true );
+      return reduce< Devices::Cuda >( static_cast< Index >( 0 ), size, fetch, std::logical_and<>{}, true );
    }
 };
 

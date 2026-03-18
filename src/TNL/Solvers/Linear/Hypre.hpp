@@ -29,10 +29,9 @@ HypreSolver::setup( const Containers::HypreParVector& b, Containers::HypreParVec
       HYPRE_DescribeError( err_flag, buffer );
       if( error_mode == WARN_HYPRE_ERRORS )
          std::cout << "HypreSolver::setup(...) : error code " << err_flag << " : " << std::string( buffer ) << '\n';
-      else if( error_mode == ABORT_HYPRE_ERRORS ) {
+      else if( error_mode == ABORT_HYPRE_ERRORS )
          throw std::runtime_error( "HypreSolver::setup(...) : error code " + std::to_string( err_flag ) + " : "
                                    + std::string( buffer ) );
-      }
    }
    hypre_error_flag = 0;
 

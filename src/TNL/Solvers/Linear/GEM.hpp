@@ -103,8 +103,9 @@ GEM< Matrix >::solve( MatrixType& A, ConstVectorViewType b, VectorViewType x )
                                                    matrix_view( k, i ) = 1.0;
                                                    x_view[ k ] /= pivot_value;
                                                 }
-                                                else
+                                                else {
                                                    matrix_view( k, i ) /= pivot_value;
+                                                }
                                              } );
 
       // Perform the Gauss-Jordan elimination

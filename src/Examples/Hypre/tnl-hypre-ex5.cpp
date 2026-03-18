@@ -123,7 +123,7 @@ main( int argc, char* argv[] )
 
    // Allocate row capacities - this must match exactly the sparsity pattern of
    // the matrix
-   typename CSR::RowCapacitiesType capacities;
+   CSR::RowCapacitiesType capacities;
    capacities.setSize( local_size );
    auto capacities_view = capacities.getView();
    // clang-format off
@@ -163,7 +163,7 @@ main( int argc, char* argv[] )
     *   M = [4 -1 0; -1 4 -1; 0 -1 4]
     */
    // clang-format off
-   A_local.forAllRows( [=] __cuda_callable__ ( typename CSR::RowView& row ) mutable {
+   A_local.forAllRows( [=] __cuda_callable__ ( CSR::RowView& row ) mutable {
          // The row index must be converted from local to global
          const HYPRE_Int i = ilower + row.getRowIndex();
          int nnz = 0;
@@ -350,7 +350,7 @@ main( int argc, char* argv[] )
       // This is an optional call - if you don't call it,
       // hypre_FlexGMRESModifyPCDefault is used - which does nothing.
       // Otherwise, you can define your own, similar to the one used here
-      HYPRE_FlexGMRESSetModifyPC( solver, (HYPRE_PtrToModifyPCFcn) hypre_FlexGMRESModifyPCAMGExample );
+      HYPRE_FlexGMRESSetModifyPC( solver, reinterpret_cast< HYPRE_PtrToModifyPCFcn >( hypre_FlexGMRESModifyPCAMGExample ) );
 
       // Solve the linear system (calls FlexGMRES setup, solve, and prints final residual norm)
       solver.solve( par_b, par_x );
@@ -395,8 +395,8 @@ int
 hypre_FlexGMRESModifyPCAMGExample( void* precond_data, int iterations, double rel_residual_norm )
 {
    if( rel_residual_norm > .1 )
-      HYPRE_BoomerAMGSetNumSweeps( (HYPRE_Solver) precond_data, 10 );
+      HYPRE_BoomerAMGSetNumSweeps( reinterpret_cast< HYPRE_Solver >( precond_data ), 10 );
    else
-      HYPRE_BoomerAMGSetNumSweeps( (HYPRE_Solver) precond_data, 1 );
+      HYPRE_BoomerAMGSetNumSweeps( reinterpret_cast< HYPRE_Solver >( precond_data ), 1 );
    return 0;
 }

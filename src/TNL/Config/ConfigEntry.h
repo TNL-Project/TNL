@@ -63,8 +63,8 @@ public:
    printEnumValues( std::ostream& str ) const override
    {
       str << "- Can be:           ";
-      int i;
-      for( i = 0; i < (int) enumValues.size() - 1; i++ )
+      std::size_t i;
+      for( i = 0; i < enumValues.size() - 1; i++ )
          str << enumValues[ i ] << ", ";
       str << enumValues[ i ];
       str << " ";

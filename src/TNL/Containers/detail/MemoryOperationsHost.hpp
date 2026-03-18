@@ -18,7 +18,7 @@ MemoryOperations< Devices::Host >::construct( Element* data, Index size )
    auto kernel = [ data ]( Index i )
    {
       // placement-new
-      ::new( (void*) ( data + i ) ) Element();
+      ::new( reinterpret_cast< void* >( data + i ) ) Element();
    };
    Algorithms::parallelFor< Devices::Host >( 0, size, kernel );
 }
@@ -34,7 +34,7 @@ MemoryOperations< Devices::Host >::construct( Element* data, Index size, const A
       // (note that args are passed by reference to the constructor, not via
       // std::forward since move-semantics does not apply for the construction
       // of multiple elements)
-      ::new( (void*) ( data + i ) ) Element( args... );
+      ::new( reinterpret_cast< void* >( data + i ) ) Element( args... );
    };
    Algorithms::parallelFor< Devices::Host >( 0, size, kernel );
 }

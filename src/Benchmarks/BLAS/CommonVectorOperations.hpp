@@ -27,7 +27,7 @@ CommonVectorOperations< Device >::getVectorMax( const Vector& v )
       return TNL::max( a, b );
    };
    return Algorithms::reduce< DeviceType >(
-      (IndexType) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
+      static_cast< IndexType >( 0 ), v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
 }
 
 template< typename Device >
@@ -49,7 +49,7 @@ CommonVectorOperations< Device >::getVectorMin( const Vector& v )
       return TNL::min( a, b );
    };
    return Algorithms::reduce< DeviceType >(
-      (IndexType) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
+      static_cast< IndexType >( 0 ), v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
 }
 
 template< typename Device >
@@ -71,7 +71,7 @@ CommonVectorOperations< Device >::getVectorAbsMax( const Vector& v )
       return TNL::max( a, b );
    };
    return Algorithms::reduce< DeviceType >(
-      (IndexType) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
+      static_cast< IndexType >( 0 ), v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
 }
 
 template< typename Device >
@@ -93,7 +93,7 @@ CommonVectorOperations< Device >::getVectorAbsMin( const Vector& v )
       return TNL::min( a, b );
    };
    return Algorithms::reduce< DeviceType >(
-      (IndexType) 0, v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
+      static_cast< IndexType >( 0 ), v.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
 }
 
 template< typename Device >
@@ -110,7 +110,8 @@ CommonVectorOperations< Device >::getVectorL1Norm( const Vector& v )
    {
       return TNL::abs( data[ i ] );
    };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, v.getSize(), fetch, std::plus<>{}, (ResultType) 0 );
+   return Algorithms::reduce< DeviceType >(
+      static_cast< IndexType >( 0 ), v.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) );
 }
 
 template< typename Device >
@@ -127,7 +128,8 @@ CommonVectorOperations< Device >::getVectorL2Norm( const Vector& v )
    {
       return data[ i ] * data[ i ];
    };
-   return std::sqrt( Algorithms::reduce< DeviceType >( (IndexType) 0, v.getSize(), fetch, std::plus<>{}, (ResultType) 0 ) );
+   return std::sqrt( Algorithms::reduce< DeviceType >(
+      static_cast< IndexType >( 0 ), v.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ) );
 }
 
 template< typename Device >
@@ -150,7 +152,8 @@ CommonVectorOperations< Device >::getVectorLpNorm( const Vector& v, const Scalar
    {
       return TNL::pow( TNL::abs( data[ i ] ), p );
    };
-   return std::pow( Algorithms::reduce< DeviceType >( (IndexType) 0, v.getSize(), fetch, std::plus<>{}, (ResultType) 0 ),
+   return std::pow( Algorithms::reduce< DeviceType >(
+                       static_cast< IndexType >( 0 ), v.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ),
                     1.0 / p );
 }
 
@@ -171,7 +174,8 @@ CommonVectorOperations< Device >::getVectorSum( const Vector& v )
    {
       return data[ i ];
    };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, v.getSize(), fetch, std::plus<>{}, (ResultType) 0 );
+   return Algorithms::reduce< DeviceType >(
+      static_cast< IndexType >( 0 ), v.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) );
 }
 
 template< typename Device >
@@ -195,7 +199,7 @@ CommonVectorOperations< Device >::getVectorDifferenceMax( const Vector1& v1, con
       return TNL::max( a, b );
    };
    return Algorithms::reduce< DeviceType >(
-      (IndexType) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
+      static_cast< IndexType >( 0 ), v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
 }
 
 template< typename Device >
@@ -219,7 +223,7 @@ CommonVectorOperations< Device >::getVectorDifferenceMin( const Vector1& v1, con
       return TNL::min( a, b );
    };
    return Algorithms::reduce< DeviceType >(
-      (IndexType) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
+      static_cast< IndexType >( 0 ), v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
 }
 
 template< typename Device >
@@ -243,7 +247,7 @@ CommonVectorOperations< Device >::getVectorDifferenceAbsMax( const Vector1& v1, 
       return TNL::max( a, b );
    };
    return Algorithms::reduce< DeviceType >(
-      (IndexType) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
+      static_cast< IndexType >( 0 ), v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::lowest() );
 }
 
 template< typename Device >
@@ -267,7 +271,7 @@ CommonVectorOperations< Device >::getVectorDifferenceAbsMin( const Vector1& v1, 
       return TNL::min( a, b );
    };
    return Algorithms::reduce< DeviceType >(
-      (IndexType) 0, v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
+      static_cast< IndexType >( 0 ), v1.getSize(), fetch, reduction, std::numeric_limits< ResultType >::max() );
 }
 
 template< typename Device >
@@ -286,7 +290,8 @@ CommonVectorOperations< Device >::getVectorDifferenceL1Norm( const Vector1& v1, 
    {
       return TNL::abs( data1[ i ] - data2[ i ] );
    };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, v1.getSize(), fetch, std::plus<>{}, (ResultType) 0 );
+   return Algorithms::reduce< DeviceType >(
+      static_cast< IndexType >( 0 ), v1.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) );
 }
 
 template< typename Device >
@@ -306,7 +311,8 @@ CommonVectorOperations< Device >::getVectorDifferenceL2Norm( const Vector1& v1, 
       auto diff = data1[ i ] - data2[ i ];
       return diff * diff;
    };
-   return std::sqrt( Algorithms::reduce< DeviceType >( (IndexType) 0, v1.getSize(), fetch, std::plus<>{}, (ResultType) 0 ) );
+   return std::sqrt( Algorithms::reduce< DeviceType >(
+      static_cast< IndexType >( 0 ), v1.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ) );
 }
 
 template< typename Device >
@@ -331,7 +337,8 @@ CommonVectorOperations< Device >::getVectorDifferenceLpNorm( const Vector1& v1, 
    {
       return TNL::pow( TNL::abs( data1[ i ] - data2[ i ] ), p );
    };
-   return std::pow( Algorithms::reduce< DeviceType >( (IndexType) 0, v1.getSize(), fetch, std::plus<>{}, (ResultType) 0 ),
+   return std::pow( Algorithms::reduce< DeviceType >(
+                       static_cast< IndexType >( 0 ), v1.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ),
                     1.0 / p );
 }
 
@@ -351,7 +358,8 @@ CommonVectorOperations< Device >::getVectorDifferenceSum( const Vector1& v1, con
    {
       return data1[ i ] - data2[ i ];
    };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, v1.getSize(), fetch, std::plus<>{}, (ResultType) 0 );
+   return Algorithms::reduce< DeviceType >(
+      static_cast< IndexType >( 0 ), v1.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) );
 }
 
 template< typename Device >
@@ -370,7 +378,8 @@ CommonVectorOperations< Device >::getScalarProduct( const Vector1& v1, const Vec
    {
       return data1[ i ] * data2[ i ];
    };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, v1.getSize(), fetch, std::plus<>{}, (ResultType) 0 );
+   return Algorithms::reduce< DeviceType >(
+      static_cast< IndexType >( 0 ), v1.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) );
 }
 
 }  // namespace TNL::Benchmarks

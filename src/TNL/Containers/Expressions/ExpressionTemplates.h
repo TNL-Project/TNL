@@ -756,7 +756,7 @@ evaluateAndReduce( Vector& lhs, const ET1& expression, const Reduction& reductio
    {
       return lhs_data[ i ] = expression[ i ];
    };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, lhs.getSize(), fetch, reduction, zero );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), lhs.getSize(), fetch, reduction, zero );
 }
 
 ////
@@ -776,7 +776,7 @@ addAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, co
       lhs_data[ i ] += aux;
       return aux;
    };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, lhs.getSize(), fetch, reduction, zero );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), lhs.getSize(), fetch, reduction, zero );
 }
 
 ////
@@ -796,7 +796,7 @@ addAndReduceAbs( Vector& lhs, const ET1& expression, const Reduction& reduction,
       lhs_data[ i ] += aux;
       return TNL::abs( aux );
    };
-   return Algorithms::reduce< DeviceType >( (IndexType) 0, lhs.getSize(), fetch, reduction, zero );
+   return Algorithms::reduce< DeviceType >( static_cast< IndexType >( 0 ), lhs.getSize(), fetch, reduction, zero );
 }
 
 }  // namespace TNL

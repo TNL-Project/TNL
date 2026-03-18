@@ -64,8 +64,8 @@ struct HeatEquationSolverBenchmark
       this->ux = 0;
       this->aux = 0;
 
-      const Real hx = this->xDomainSize / (Real) xSize;
-      const Real hy = this->yDomainSize / (Real) ySize;
+      const Real hx = this->xDomainSize / static_cast< Real >( xSize );
+      const Real hy = this->yDomainSize / static_cast< Real >( ySize );
 
       auto uxView = this->ux.getView();
       auto xDomainSize_ = this->xDomainSize;
@@ -93,8 +93,8 @@ struct HeatEquationSolverBenchmark
       std::ofstream out( filename, std::ios::out );
       // enable exceptions
       out.exceptions( std::fstream::failbit | std::fstream::badbit | std::fstream::eofbit );
-      const Real hx = this->xDomainSize / (Real) xSize;
-      const Real hy = this->yDomainSize / (Real) ySize;
+      const Real hx = this->xDomainSize / static_cast< Real >( xSize );
+      const Real hy = this->yDomainSize / static_cast< Real >( ySize );
       for( Index j = 0; j < ySize; j++ )
          for( Index i = 0; i < xSize; i++ )
             out << i * hx - this->xDomainSize / 2. << " " << j * hy - this->yDomainSize / 2. << " "

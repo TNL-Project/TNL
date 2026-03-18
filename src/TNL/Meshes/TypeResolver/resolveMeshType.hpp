@@ -35,9 +35,8 @@ resolveMeshType( Functor&& functor,
       GridTypeResolver< ConfigTag, Device >::run( *reader, functor );
    else if( reader->getMeshType() == "Meshes::Mesh" || reader->getMeshType() == "Meshes::DistributedMesh" )
       MeshTypeResolver< ConfigTag, Device >::run( *reader, functor );
-   else {
+   else
       throw std::runtime_error( "The mesh type " + reader->getMeshType() + " is not supported." );
-   }
 }
 
 template< typename ConfigTag, typename Device, typename Functor >

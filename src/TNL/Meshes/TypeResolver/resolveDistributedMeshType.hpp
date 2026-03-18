@@ -49,8 +49,9 @@ resolveAndLoadDistributedMesh( Functor&& functor,
             pvti.setCommunicator( communicator );
             pvti.loadMesh( mesh );
          }
-         else
+         else {
             throw std::runtime_error( "Unknown type of a distributed mesh: " + reader.getMeshType() );
+         }
       }
       catch( const Meshes::Readers::MeshReaderError& e ) {
          std::cerr << "Failed to load the mesh from the file " << fileName << ". The error is:\n" << e.what() << '\n';

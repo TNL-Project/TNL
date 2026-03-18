@@ -160,7 +160,7 @@ CudaReduction2DKernelLauncher( const Result identity,
    launch_config.gridSize.x = TNL::min( Backend::getNumberOfBlocks( size, launch_config.blockSize.x ), desGridSizeX );
    launch_config.gridSize.y = Backend::getNumberOfBlocks( n, launch_config.blockSize.y );
 
-   if( launch_config.gridSize.y > (unsigned) Backend::getMaxGridYSize() ) {
+   if( launch_config.gridSize.y > Backend::getMaxGridYSize() ) {
       throw std::logic_error( "Maximum launch_config.gridSize.y limit exceeded (limit is "
                               + std::to_string( Backend::getMaxGridYSize() ) + ", attempted "
                               + std::to_string( launch_config.gridSize.y ) + ")." );

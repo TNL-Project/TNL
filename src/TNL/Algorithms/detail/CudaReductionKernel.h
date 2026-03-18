@@ -579,7 +579,7 @@ struct CudaReductionKernelLauncher
             return input[ i ];
          };
          this->reducedSize = this->launchWithArgument(
-            (Index) 0, this->reducedSize, reduction, copyFetch, identity, output, idxOutput, idxInput );
+            static_cast< Index >( 0 ), this->reducedSize, reduction, copyFetch, identity, output, idxOutput, idxInput );
          std::swap( input, output );
          std::swap( idxInput, idxOutput );
       }

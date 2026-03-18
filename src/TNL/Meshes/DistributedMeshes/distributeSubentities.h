@@ -178,7 +178,7 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
 
       // face is on the interface
       if( local_neighbor_cells_count == 1 ) {
-         int owner = ( preferHighRanks ) ? 0 : nproc;
+         int owner = preferHighRanks ? 0 : nproc;
          for( LocalIndexType k = 0; k < entity.template getSuperentitiesCount< DistributedMesh::getMeshDimension() >(); k++ ) {
             const GlobalIndexType gk = entity.template getSuperentityIndex< DistributedMesh::getMeshDimension() >( k );
             if( preferHighRanks )
@@ -220,7 +220,7 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
    // 3. assign global indices to the local entities and a padding index to ghost entities
    //    (later we can check the padding index to know if an index was set or not)
    const GlobalIndexType padding_index =
-      ( std::is_signed_v< GlobalIndexType > ) ? -1 : std::numeric_limits< GlobalIndexType >::max();
+      std::is_signed_v< GlobalIndexType > ? -1 : std::numeric_limits< GlobalIndexType >::max();
    mesh.template getGlobalIndices< Dimension >().setSize( localMesh.template getEntitiesCount< Dimension >() );
    // also create mapping for ghost entities so that we can efficiently iterate over ghost entities
    // while the entities were not sorted yet on the local mesh
@@ -231,8 +231,9 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
          mesh.template getGlobalIndices< Dimension >()[ i ] = padding_index;
          localGhostIndices.push_back( i );
       }
-      else
+      else {
          mesh.template getGlobalIndices< Dimension >()[ i ] = entityIndex++;
+      }
    }
 
    // Now for each ghost entity, we will take the global indices of its subvertices and
@@ -298,9 +299,10 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
                while( vertexOffset < foreign_seeds_entity_offsets[ i ][ entityIndex ] ) {
                   const GlobalIndexType vertex = foreign_seeds_vertex_indices[ i ][ vertexOffset++ ];
                   GlobalIndexType localIndex = 0;
-                  if( vertex >= globalOffset && vertex < globalOffset + localMesh.template getGhostEntitiesOffset< 0 >() )
+                  if( vertex >= globalOffset && vertex < globalOffset + localMesh.template getGhostEntitiesOffset< 0 >() ) {
                      // subtract offset to get local index
                      localIndex = vertex - globalOffset;
+                  }
                   else {
                      // we must go through the ghost vertices
                      for( GlobalIndexType g = localMesh.template getGhostEntitiesOffset< 0 >();

@@ -76,9 +76,10 @@ addDefaultValues( const ConfigDescription& config, ParameterContainer& parameter
             parameters.addList< std::string >( entry_name, entry.getDefaultValue() );
             continue;
          }
-         else
+         else {
             throw std::runtime_error( "Function addDefaultValues encountered unsupported entry type: "
                                       + entryBase->getUIEntryType() );
+         }
       }
    }
 }
@@ -286,9 +287,10 @@ parseCommandLine( int argc,
                   checkEnumValues( entry, option, value );
                   string_list.push_back( value );
                }
-               else
+               else {
                   // this will not happen if all entry types are handled above
                   throw std::runtime_error( "Function parseCommandLine encountered unsupported entry type: " + entryType );
+               }
             }
             if( ! bool_list.empty() )
                parameters.addParameter< std::vector< bool > >( option, bool_list );
@@ -326,12 +328,13 @@ parseCommandLine( int argc,
             }
             else if( entryType == "string" ) {
                const auto& entry = dynamic_cast< const ConfigEntry< std::string >& >( *entryBase );
-               checkEnumValues( entry, option, (std::string) value );
+               checkEnumValues( entry, option, value );
                parameters.addParameter< std::string >( option, value );
             }
-            else
+            else {
                // this will not happen if all entry types are handled above
                throw std::runtime_error( "Function parseCommandLine encountered unsupported entry type: " + entryType );
+            }
          }
       }
    }

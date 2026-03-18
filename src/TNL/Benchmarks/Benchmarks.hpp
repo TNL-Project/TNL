@@ -125,9 +125,10 @@ Benchmark< Logger >::time( ResetFunction reset,
 
    std::string errorMessage;
    try {
-      if( this->reset )
+      if( this->reset ) {
          std::tie( result.loops, result.time, result.time_stddev, result.cpu_cycles, result.cpu_cycles_stddev ) =
             timeFunction< Device >( compute, reset, loops, minTime, monitor );
+      }
       else {
          auto noReset = []() {};
          std::tie( result.loops, result.time, result.time_stddev, result.cpu_cycles, result.cpu_cycles_stddev ) =

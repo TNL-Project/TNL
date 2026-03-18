@@ -197,7 +197,7 @@ Grid< Dimension, Real, Device, Index >::getOrientedEntitiesCount( IndexType dime
    if( dimension == 0 || dimension == Dimension )
       return this->getEntitiesCount( dimension );
 
-   Index index = firstKCombinationsSum( dimension, (Index) Dimension ) + orientation;
+   Index index = firstKCombinationsSum( dimension, static_cast< Index >( Dimension ) ) + orientation;
 
    return this->entitiesCountAlongNormals[ index ];
 }
@@ -701,7 +701,7 @@ Grid< Dimension, Real, Device, Index >::fillEntitiesCount()
    // In case, if some dimension is zero. Clear all counts
    for( Index i = 0; i < Dimension; i++ ) {
       if( dimensions[ i ] == 0 ) {
-         for( Index k = 0; k < (Index) entitiesCountAlongNormals.getSize(); k++ )
+         for( Index k = 0; k < entitiesCountAlongNormals.getSize(); k++ )
             entitiesCountAlongNormals[ k ] = 0;
 
          return;
@@ -713,7 +713,7 @@ Grid< Dimension, Real, Device, Index >::fillEntitiesCount()
          int result = 1;
          auto normals = this->normals[ j ];
 
-         for( Index k = 0; k < (Index) normals.getSize(); k++ )
+         for( Index k = 0; k < normals.getSize(); k++ )
             result *= dimensions[ k ] + normals[ k ];
 
          entitiesCountAlongNormals[ j ] = result;

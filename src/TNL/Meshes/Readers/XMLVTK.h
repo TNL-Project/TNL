@@ -228,9 +228,10 @@ protected:
                                 "installed and recompile the program with -DHAVE_ZLIB." );
    #endif
       }
-      else
+      else {
          throw MeshReaderError( "XMLVTK",
                                 "unsupported compressor type: " + compressor + " (only vtkZLibDataCompressor is supported)" );
+      }
    }
 
    template< typename T >
@@ -312,8 +313,9 @@ protected:
          else
             throw MeshReaderError( "XMLVTK", "unsupported DataArray type: " + type );
       }
-      else
+      else {
          throw MeshReaderError( "XMLVTK", "unsupported DataArray format: " + format );
+      }
    }
 
    [[nodiscard]] VariantVector

@@ -13,7 +13,7 @@ namespace TNL::Matrices {
  * \brief This checks if given type is matrix.
  */
 [[nodiscard]] constexpr std::false_type
-isMatrix( ... )
+isMatrix( ... )  // NOLINT(modernize-avoid-variadic-functions)
 {
    return {};
 }
@@ -35,7 +35,7 @@ constexpr bool is_matrix_v = is_matrix< T >::value;
  * \brief This checks if the matrix is dense matrix.
  */
 [[nodiscard]] constexpr std::false_type
-isDenseMatrix( ... )
+isDenseMatrix( ... )  // NOLINT(modernize-avoid-variadic-functions)
 {
    return {};
 }
@@ -56,7 +56,7 @@ constexpr bool is_dense_matrix_v = is_dense_matrix< T >::value;
  * \brief This checks if the sparse matrix is stored in CSR format.
  */
 [[nodiscard]] constexpr std::false_type
-isSparseMatrix( ... )
+isSparseMatrix( ... )  // NOLINT(modernize-avoid-variadic-functions)
 {
    return {};
 }

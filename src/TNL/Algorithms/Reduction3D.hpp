@@ -229,7 +229,9 @@ Reduction3D< Devices::Host >::reduce( Result identity,
    }
    else
 #endif
+   {
       Reduction3D< Devices::Sequential >::reduce( identity, fetch, reduction, size, m, n, result );
+   }
 }
 
 template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >

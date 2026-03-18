@@ -62,6 +62,11 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 
+# Check for CUB if CUDA is enabled
+if(TNL_BUILD_CUDA)
+    find_package(CCCL REQUIRED COMPONENTS CUB)
+endif()
+
 # Check for OpenMP if it is enabled
 if(TNL_BUILD_OPENMP)
     find_package(OpenMP COMPONENTS CXX)

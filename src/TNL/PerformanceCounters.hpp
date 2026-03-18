@@ -68,7 +68,7 @@ PerformanceCounters::readCPUCycles()
    unsigned hi;
    unsigned lo;
    __asm__ __volatile__( "rdtsc" : "=a"( lo ), "=d"( hi ) );
-   return ( (unsigned long long) lo ) | ( ( (unsigned long long) hi ) << 32 );
+   return static_cast< unsigned long long >( lo ) | ( static_cast< unsigned long long >( hi ) << 32 );
 #elif defined( SPY_OS_IS_MACOS )
    unsigned long long int cpu_cycles;
    unsigned long long int instructions;

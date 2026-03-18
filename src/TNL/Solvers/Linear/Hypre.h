@@ -189,13 +189,13 @@ public:
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRPCGSetup;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSRPCGSetup );
    }
 
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRPCGSolve;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSRPCGSolve );
    }
 
 protected:
@@ -278,13 +278,13 @@ public:
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRBiCGSTABSetup;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSRBiCGSTABSetup );
    }
 
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRBiCGSTABSolve;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSRBiCGSTABSolve );
    }
 
 protected:
@@ -368,13 +368,13 @@ public:
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRGMRESSetup;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSRGMRESSetup );
    }
 
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRGMRESSolve;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSRGMRESSolve );
    }
 
 protected:
@@ -452,13 +452,13 @@ public:
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRFlexGMRESSetup;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSRFlexGMRESSetup );
    }
 
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRFlexGMRESSolve;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSRFlexGMRESSolve );
    }
 
 protected:
@@ -474,13 +474,13 @@ public:
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) hypre_ParKrylovIdentitySetup;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( hypre_ParKrylovIdentitySetup );
    }
 
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) hypre_ParKrylovIdentity;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( hypre_ParKrylovIdentity );
    }
 };
 
@@ -492,13 +492,13 @@ public:
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRDiagScaleSetup;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSRDiagScaleSetup );
    }
 
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRDiagScale;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSRDiagScale );
    }
 };
 
@@ -517,13 +517,13 @@ public:
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSROnProcTriSetup;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSROnProcTriSetup );
    }
 
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSROnProcTriSolve;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParCSROnProcTriSolve );
    }
 };
 
@@ -555,13 +555,13 @@ public:
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParaSailsSetup;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParaSailsSetup );
    }
 
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ParaSailsSolve;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ParaSailsSolve );
    }
 };
 
@@ -598,13 +598,13 @@ public:
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_EuclidSetup;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_EuclidSetup );
    }
 
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_EuclidSolve;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_EuclidSolve );
    }
 };
 
@@ -648,13 +648,13 @@ public:
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ILUSetup;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ILUSetup );
    }
 
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_ILUSolve;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_ILUSolve );
    }
 };
 
@@ -748,13 +748,13 @@ public:
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    setupFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_BoomerAMGSetup;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_BoomerAMGSetup );
    }
 
    [[nodiscard]] HYPRE_PtrToParSolverFcn
    solveFcn() const override
    {
-      return (HYPRE_PtrToParSolverFcn) HYPRE_BoomerAMGSolve;
+      return reinterpret_cast< HYPRE_PtrToParSolverFcn >( HYPRE_BoomerAMGSolve );
    }
 
 protected:

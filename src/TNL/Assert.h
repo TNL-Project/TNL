@@ -281,7 +281,7 @@ cmpHelperTrue( const char* assertion,
                const T2& val2 )
 {
    // explicit cast is necessary, because T1::operator! might not be defined
-   if( ! (bool) val1 )
+   if( ! static_cast< bool >( val1 ) )
       ::TNL::Assert::cmpHelperOpFailure( assertion, message, file, function, line, expr1, "true", val1, true, "==" );
 }
 
