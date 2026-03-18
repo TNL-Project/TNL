@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # exit whenever a command fails
 set -e
@@ -11,8 +11,8 @@ function get_cpu_count() {
 }
 
 function get_cpu_affinity() {
-#    echo $(python3 -c "print(','.join(str(i) for i in range(0, 2*$omp_threads, 2)))")
-    echo $(python3 -c "print(','.join(str(i) for i in range(0, $omp_threads)))")
+    #python3 -c "print(','.join(str(i) for i in range(0, 2*$omp_threads, 2)))"
+    python3 -c "print(','.join(str(i) for i in range(0, $omp_threads)))"
 }
 
 function run_benchmark() {
@@ -33,9 +33,9 @@ function run_benchmark() {
         omp_enabled=true
     fi
 
-#    mpirun -np 1 -H localhost:4 ${solver} \
-#    ${solver} \
-    taskset -c $(get_cpu_affinity) ${solver} \
+#    mpirun -np 1 -H localhost:4 "$solver" \
+#    "$solver" \
+    taskset -c "$(get_cpu_affinity)" "$solver" \
         --verbose 1 \
         --loops 10 \
         --log-file "$log_file" \
@@ -48,10 +48,10 @@ function run_benchmark() {
         --input-matrix "$bench_matrix" \
         --convergence-residue 1e-11 \
         --max-iterations 10000 \
-        --gmres-restarting-max $gmresRestartingMax \
-        --gmres-restarting-min $gmresRestartingMin \
-        --gmres-restarting-step-max $gmresRestartingStepMax \
-        --gmres-restarting-step-min $gmresRestartingStepMin \
+        --gmres-restarting-max "$gmresRestartingMax" \
+        --gmres-restarting-min "$gmresRestartingMin" \
+        --gmres-restarting-step-max "$gmresRestartingStepMax" \
+        --gmres-restarting-step-min "$gmresRestartingStepMin" \
         --ilut-threshold 1e-4 \
         --ilut-p 8 \
         --solvers "$solvers" \
@@ -86,7 +86,7 @@ fi
 
 for bench_matrix in "$matrices_base_path"/**/*.mtx; do
     bench_name=$(realpath --relative-to="$matrices_base_path" "$bench_matrix")
-    for (( omp_threads=1; omp_threads<=$max_omp_threads; omp_threads++ )); do
+    for (( omp_threads=1; omp_threads<=max_omp_threads; omp_threads++ )); do
         if [[ "$omp_threads" == "1" ]]; then
             devices="all"
         else

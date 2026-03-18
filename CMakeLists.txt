@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 3.30)
 
-project(TNL)
-
-set(tnlVersion "0.1")
+project(
+    TNL
+    VERSION 0.1
+    # TODO: SPDX_LICENSE added in CMake 4.3
+    #SPDX_LICENSE MIT
+    DESCRIPTION "Template Numerical Library"
+    HOMEPAGE_URL https://tnl-project.org/
+    LANGUAGES C CXX
+)
 
 # declare all custom build options
 option(TNL_USE_CUDA "Build with CUDA support" ON)
