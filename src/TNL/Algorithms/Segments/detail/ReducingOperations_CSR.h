@@ -47,7 +47,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          const IndexType end = offsets[ segmentIdx + 1 ];
          using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
          ReturnType aux = identity;
-         if constexpr( argumentCount< Fetch >() == 3 ) {
+         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
             IndexType localIdx = 0;
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                aux = reduction( aux, fetch( segmentIdx, localIdx++, globalIdx ) );
@@ -338,7 +338,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          const IndexType end = offsets[ segmentIdx + 1 ];
          using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
          ReturnType result = identity;
-         if constexpr( argumentCount< Fetch >() == 3 ) {
+         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
             IndexType localIdx = 0;
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                result = reduction( result, fetch( segmentIdx, localIdx++, globalIdx ) );
@@ -640,7 +640,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          IndexType argument = 0;
          IndexType localIdx = 0;
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
-            if constexpr( argumentCount< Fetch >() == 3 )
+            if constexpr( callableArgumentCount< Fetch >() == 3 )
                reduction( result, fetch( segmentIdx, localIdx, globalIdx ), argument, localIdx );
             else
                reduction( result, fetch( globalIdx ), argument, localIdx );
@@ -934,7 +934,7 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          {
             IndexType localIdx = 0;
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++, localIdx++ )
-               if constexpr( argumentCount< Fetch >() == 3 )
+               if constexpr( callableArgumentCount< Fetch >() == 3 )
                   reduction( result, fetch( segmentIdx, localIdx, globalIdx ), argument, localIdx );
                else
                   reduction( result, fetch( globalIdx ), argument, localIdx );

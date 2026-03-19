@@ -193,7 +193,7 @@ BiEllpackReduceSegmentsKernel( SegmentsView segments,
                                ResultStorer storer,
                                Value identity )
 {
-   if constexpr( argumentCount< Fetch >() == 3 )
+   if constexpr( callableArgumentCount< Fetch >() == 3 )
       reduceSegmentsKernelWithAllParameters< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
    else
       reduceSegmentsKernel< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );

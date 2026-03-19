@@ -41,7 +41,7 @@ EllpackCudaReductionKernel( const Segments segments,
    end = begin + segmentSize;         // the range of the global indices
 
    // Calculate the result
-   if constexpr( argumentCount< Fetch >() == 3 ) {
+   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
       Index localIdx = laneIdx;
       for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment ) {
          TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
@@ -149,7 +149,7 @@ EllpackCudaReductionKernelWithSegmentIndexes( const Segments segments,
    Index end = begin + segmentSize;
 
    // Calculate the result
-   if constexpr( argumentCount< Fetch >() == 3 ) {
+   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
       Index localIdx = laneIdx;
       for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment ) {
          TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
@@ -258,7 +258,7 @@ EllpackCudaReductionKernelWithArgument( const Segments segments,
    end = begin + segmentSize;         // the range of the global indices
 
    // Calculate the result
-   if constexpr( argumentCount< Fetch >() == 3 ) {
+   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
       Index localIdx = laneIdx;
       for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment ) {
          TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
@@ -372,7 +372,7 @@ EllpackCudaReductionKernelWithSegmentIndexesAndArgument( const Segments segments
    Index localIdx = laneIdx;
    for( Index globalIdx = begin + laneIdx; globalIdx < end; globalIdx += ThreadsPerSegment, localIdx += ThreadsPerSegment ) {
       TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-      if constexpr( argumentCount< Fetch >() == 3 )
+      if constexpr( callableArgumentCount< Fetch >() == 3 )
          reduce( result, fetch( segmentIdx, localIdx, globalIdx ), argument, localIdx );
       else
          reduce( result, fetch( globalIdx ), argument, localIdx );

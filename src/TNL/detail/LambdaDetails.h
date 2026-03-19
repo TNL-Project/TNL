@@ -43,13 +43,13 @@ template< typename Lambda, std::size_t Max, std::size_t N >
 struct lambda_details_impl< Lambda, Max, N, std::enable_if_t< can_accept< Lambda, N >::value > >
 {
    static constexpr bool
-   isVariadic()
+   isVariadicCallable()
    {
       return N == Max;
    }
 
    static constexpr std::size_t
-   argumentCount()
+   callableArgumentCount()
    {
       return N;
    }

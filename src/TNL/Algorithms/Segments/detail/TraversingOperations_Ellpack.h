@@ -39,7 +39,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          if constexpr( Organization == RowMajorOrder ) {
             const IndexType begin = segmentIdx * segmentSize;
             const IndexType end = begin + segmentSize;
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
@@ -52,7 +52,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          else {
             const IndexType begin = segmentIdx;
             const IndexType end = storageSize;
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += alignedSize )
                   function( segmentIdx, localIdx++, globalIdx );
@@ -169,7 +169,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          if constexpr( Organization == RowMajorOrder ) {
             const IndexType begin = segmentIdx * segmentSize;
             const IndexType end = begin + segmentSize;
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
@@ -182,7 +182,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          else {
             const IndexType begin = segmentIdx;
             const IndexType end = storageSize;
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += alignedSize )
                   function( segmentIdx, localIdx++, globalIdx );
@@ -292,7 +292,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          if constexpr( Organization == RowMajorOrder ) {
             const IndexType begin = segmentIdx * segmentSize;
             const IndexType end = begin + segmentSize;
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
@@ -305,7 +305,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
          else {
             const IndexType begin = segmentIdx;
             const IndexType end = storageSize;
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += alignedSize )
                   function( segmentIdx, localIdx++, globalIdx );

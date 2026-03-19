@@ -8,7 +8,7 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< typename Index, typename Lambda, bool AllParameters = ( argumentCount< Lambda >() == 3 ) >
+template< typename Index, typename Lambda, bool AllParameters = ( callableArgumentCount< Lambda >() == 3 ) >
 struct FetchLambdaAdapter
 {};
 

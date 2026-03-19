@@ -47,7 +47,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
             return;
          }
 
-         if constexpr( argumentCount< Fetch >() == 3 ) {
+         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
             ReducingOperationsCSR::reduceSegments( segments, begin, end, fetch, reduction, storer, identity, launchConfig );
          }
          else {
@@ -115,7 +115,7 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
             return;
          }
 
-         if constexpr( argumentCount< Fetch >() == 3 ) {
+         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
             ReducingOperationsCSR::reduceSegmentsWithArgument(
                segments, begin, end, fetch, reduction, storer, identity, launchConfig );
          }

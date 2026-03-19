@@ -46,7 +46,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       if( begin == 0 && end == segments.getSegmentCount() ) {
-         if constexpr( argumentCount< Fetch >() == 3 ) {
+         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
             ReducingOperations< EmbeddedSegmentsView >::reduceSegments(
                segments.getEmbeddedSegmentsView(),
                begin,
@@ -79,7 +79,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                identity,
                launchConfig );
          }
-         else {  // argumentCount< Fetch >() == 1
+         else {  // callableArgumentCount< Fetch >() == 1
             ReducingOperations< EmbeddedSegmentsView >::reduceSegments(
                segments.getEmbeddedSegmentsView(),
                begin,
@@ -103,7 +103,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          }
       }
       else {
-         if constexpr( argumentCount< Fetch >() == 3 ) {
+         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
             auto fetch_ = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
             {
                TNL_ASSERT_GE( segmentIdx, 0, "Segment index is negative." );
@@ -136,7 +136,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                identity,
                launchConfig );
          }
-         else {  // argumentCount< Fetch >() == 1
+         else {  // callableArgumentCount< Fetch >() == 1
             ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
                segments.getEmbeddedSegmentsView(),
                segments.getSegmentsPermutationView().getConstView( begin, end ),
@@ -190,7 +190,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             value = segmentsPermutationView[ segmentIndexesView[ i ] ];
          } );
 
-      if constexpr( argumentCount< Fetch >() == 3 ) {
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
@@ -206,7 +206,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             identity,
             launchConfig );
       }
-      else {  // argumentCount< Fetch >() == 1
+      else {  // callableArgumentCount< Fetch >() == 1
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
@@ -244,7 +244,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       if( begin == 0 && end == segments.getSegmentCount() ) {
-         if constexpr( argumentCount< Fetch >() == 3 ) {
+         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
             ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithArgument(
                segments.getEmbeddedSegmentsView(),
                begin,
@@ -262,7 +262,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                identity,
                launchConfig );
          }
-         else {  // argumentCount< Fetch >() == 1
+         else {  // callableArgumentCount< Fetch >() == 1
             ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithArgument(
                segments.getEmbeddedSegmentsView(),
                begin,
@@ -279,7 +279,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          }
       }
       else {
-         if constexpr( argumentCount< Fetch >() == 3 ) {
+         if constexpr( callableArgumentCount< Fetch >() == 3 ) {
             auto fetch_ = [ = ] __cuda_callable__( IndexType segmentIdx, IndexType localIdx, IndexType globalIdx ) mutable
             {
                return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
@@ -300,7 +300,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                identity,
                launchConfig );
          }
-         else {  // argumentCount< Fetch >() == 1
+         else {  // callableArgumentCount< Fetch >() == 1
             ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
                segments.getEmbeddedSegmentsView(),
                segments.getSegmentsPermutationView().getConstView( begin, end ),
@@ -346,7 +346,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             value = segmentsPermutationView[ segmentIndexesView[ i ] ];
          } );
 
-      if constexpr( argumentCount< Fetch >() == 3 ) {
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
@@ -366,7 +366,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             identity,
             launchConfig );
       }
-      else {  // argumentCount< Fetch >() == 1
+      else {  // callableArgumentCount< Fetch >() == 1
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
@@ -420,7 +420,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                                              } );
 
       auto indexes = compressFast< VectorType >( conditions );
-      if constexpr( argumentCount< Fetch >() == 3 ) {
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
             segments.getEmbeddedSegmentsView(),
             indexes.getConstView(),
@@ -436,7 +436,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             identity,
             launchConfig );
       }
-      else {  // argumentCount< Fetch >() == 1
+      else {  // callableArgumentCount< Fetch >() == 1
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexes(
             segments.getEmbeddedSegmentsView(),
             indexes.getConstView(),
@@ -487,7 +487,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                                              } );
 
       auto indexes = compressFast< VectorType >( conditions );
-      if constexpr( argumentCount< Fetch >() == 3 ) {
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
             segments.getEmbeddedSegmentsView(),
             indexes.getConstView(),
@@ -507,7 +507,7 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             identity,
             launchConfig );
       }
-      else {  // argumentCount< Fetch >() == 1
+      else {  // callableArgumentCount< Fetch >() == 1
          ReducingOperations< EmbeddedSegmentsView >::reduceSegmentsWithSegmentIndexesAndArgument(
             segments.getEmbeddedSegmentsView(),
             indexes.getConstView(),
