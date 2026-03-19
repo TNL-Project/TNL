@@ -98,8 +98,9 @@ template< typename MarksVector,
           typename OutputVector = MarksVector,
           typename BeginIndex = typename OutputVector::IndexType,
           typename EndIndex = BeginIndex,
-          typename T = std::enable_if_t< IsArrayType< MarksVector >::value
-                                         && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex > > >
+          typename std::enable_if_t< IsArrayType< MarksVector >::value
+                                        && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex >,
+                                     bool > = true >
 OutputVector
 compress( const MarksVector& marksVector, BeginIndex begin = 0, EndIndex end = 0 )
 {
@@ -137,7 +138,7 @@ template< typename MarksVector,
           typename OutputVector = MarksVector,
           typename BeginIndex = typename OutputVector::IndexType,
           typename EndIndex = BeginIndex,
-          typename T = std::enable_if_t< IsArrayType< MarksVector >::value > >
+          typename std::enable_if_t< IsArrayType< MarksVector >::value, bool > = true >
 auto
 compress( const MarksVector& marksVector, OutputVector& outputVector, BeginIndex begin = 0, EndIndex end = 0 ) ->
    typename OutputVector::IndexType
@@ -172,8 +173,9 @@ template< typename MarksVector,
           typename OutputVector = MarksVector,
           typename BeginIndex = typename OutputVector::IndexType,
           typename EndIndex = BeginIndex,
-          typename T = std::enable_if_t< IsArrayType< MarksVector >::value
-                                         && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex > > >
+          typename std::enable_if_t< IsArrayType< MarksVector >::value
+                                        && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex >,
+                                     bool > = true >
 OutputVector
 compressFast( MarksVector& marksVector, BeginIndex begin = 0, EndIndex end = 0 )
 {
@@ -210,8 +212,9 @@ template< typename MarksVector,
           typename OutputVector = MarksVector,
           typename BeginIndex = typename OutputVector::IndexType,
           typename EndIndex = BeginIndex,
-          typename T = std::enable_if_t< IsArrayType< MarksVector >::value
-                                         && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex > > >
+          typename std::enable_if_t< IsArrayType< MarksVector >::value
+                                        && std::is_integral_v< BeginIndex > && std::is_integral_v< EndIndex >,
+                                     bool > = true >
 auto
 compressFast( MarksVector& marksVector, OutputVector& outputVector, BeginIndex begin = 0, EndIndex end = 0 ) ->
    typename OutputVector::IndexType
