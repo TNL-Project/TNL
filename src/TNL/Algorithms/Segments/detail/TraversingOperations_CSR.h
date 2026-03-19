@@ -33,7 +33,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
       {
          const IndexType begin = offsetsView[ segmentIdx ];
          const IndexType end = offsetsView[ segmentIdx + 1 ];
-         if constexpr( argumentCount< Function >() == 3 ) {
+         if constexpr( callableArgumentCount< Function >() == 3 ) {
             IndexType localIdx( 0 );
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                function( segmentIdx, localIdx++, globalIdx );
@@ -134,7 +134,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                         "Wrong index of segment index - larger that the number of indexes." );
          const IndexType begin = segments.getOffsets()[ segmentIdx ];
          const IndexType end = segments.getOffsets()[ segmentIdx + 1 ];
-         if constexpr( argumentCount< Function >() == 3 ) {
+         if constexpr( callableArgumentCount< Function >() == 3 ) {
             IndexType localIdx( 0 );
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
                TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
@@ -287,7 +287,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                             LaunchConfiguration launchConfig )
    {
       const auto offsetsView = segments.getOffsets();
-      if constexpr( argumentCount< Function >() == 3 ) {
+      if constexpr( callableArgumentCount< Function >() == 3 ) {
          auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
          {
             const IndexType begin = offsetsView[ segmentIdx ];
@@ -301,7 +301,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          };
          Algorithms::parallelFor< Device >( begin, end, l );
       }
-      else {  // argumentCount< Function >() == 2
+      else {  // callableArgumentCount< Function >() == 2
          auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
          {
             const IndexType begin = offsetsView[ segmentIdx ];

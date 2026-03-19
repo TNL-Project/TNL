@@ -29,7 +29,7 @@ forElementsBlockMergeKernel_Ellpack( Index gridIdx, SegmentsView segments, Index
       TNL_ASSERT_GE( localIdx, 0, "" );
       TNL_ASSERT_LT( localIdx, segments.getSegmentSize(), "" );
       const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
-      if constexpr( argumentCount< Function >() == 3 )
+      if constexpr( callableArgumentCount< Function >() == 3 )
          function( segmentIdx, localIdx, globalIdx );
       else
          function( segmentIdx, globalIdx );
@@ -44,7 +44,7 @@ forElementsBlockMergeKernel_Ellpack( Index gridIdx, SegmentsView segments, Index
       TNL_ASSERT_LT( segmentIdx, end, "" );
       TNL_ASSERT_LT( localIdx, segments.getSegmentSize(), "" );
       const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
-      if constexpr( argumentCount< Function >() == 3 )
+      if constexpr( callableArgumentCount< Function >() == 3 )
          function( segmentIdx, localIdx, globalIdx );
       else
          function( segmentIdx, globalIdx );
@@ -76,7 +76,7 @@ forElementsWithSegmentIndexesKernel_Ellpack( const Index gridIdx,
       const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
       const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
 
-      if constexpr( argumentCount< Function >() == 3 ) {
+      if constexpr( callableArgumentCount< Function >() == 3 ) {
          Index globalIdx = segmentIdx * segmentSize + laneIdx;
          for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += threadsPerSegment ) {
             TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
@@ -85,7 +85,7 @@ forElementsWithSegmentIndexesKernel_Ellpack( const Index gridIdx,
             globalIdx += threadsPerSegment;
          }
       }
-      else {  // argumentCount< Function >() == 2
+      else {  // callableArgumentCount< Function >() == 2
          const Index endIdx = ( segmentIdx + 1 ) * segmentSize;
          for( Index globalIdx = segmentIdx * segmentSize + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
@@ -103,7 +103,7 @@ forElementsWithSegmentIndexesKernel_Ellpack( const Index gridIdx,
          const Index localIdx = globalThreadIdx % segmentSize;
          const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
          TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( argumentCount< Function >() == 3 )
+         if constexpr( callableArgumentCount< Function >() == 3 )
             function( segmentIdx, localIdx, globalIdx );
          else
             function( segmentIdx, globalIdx );
@@ -140,7 +140,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_Ellpack( Index gridIdx,
       TNL_ASSERT_LT( localIdx, segments.getSegmentSize(), "" );
       const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
       const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
-      if constexpr( argumentCount< Function >() == 3 )
+      if constexpr( callableArgumentCount< Function >() == 3 )
          function( segmentIdx, localIdx, globalIdx );
       else
          function( segmentIdx, globalIdx );
@@ -156,7 +156,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_Ellpack( Index gridIdx,
       TNL_ASSERT_LT( localIdx, segments.getSegmentSize(), "" );
       const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
       const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
-      if constexpr( argumentCount< Function >() == 3 )
+      if constexpr( callableArgumentCount< Function >() == 3 )
          function( segmentIdx, localIdx, globalIdx );
       else
          function( segmentIdx, globalIdx );
@@ -195,7 +195,7 @@ forElementsIfKernel_Ellpack( const Index gridIdx,
 
       const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
 
-      if constexpr( argumentCount< Function >() == 3 ) {
+      if constexpr( callableArgumentCount< Function >() == 3 ) {
          Index globalIdx = segmentIdx * segmentSize + laneIdx;
          for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += threadsPerSegment ) {
             TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
@@ -204,7 +204,7 @@ forElementsIfKernel_Ellpack( const Index gridIdx,
             globalIdx += threadsPerSegment;
          }
       }
-      else {  // argumentCount< Function >() == 2
+      else {  // callableArgumentCount< Function >() == 2
          const Index endIdx = ( segmentIdx + 1 ) * segmentSize;
          for( Index globalIdx = segmentIdx * segmentSize + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
@@ -223,7 +223,7 @@ forElementsIfKernel_Ellpack( const Index gridIdx,
             const Index localIdx = globalThreadIdx % segmentSize;
             const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-            if constexpr( argumentCount< Function >() == 3 )
+            if constexpr( callableArgumentCount< Function >() == 3 )
                function( segmentIdx, localIdx, globalIdx );
             else
                function( segmentIdx, globalIdx );
@@ -305,7 +305,7 @@ forElementsIfBlockMergeKernel_Ellpack( Index gridIdx,
          const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
          TNL_ASSERT_GE( globalIdx, 0, "" );
          TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( argumentCount< Function >() == 3 )
+         if constexpr( callableArgumentCount< Function >() == 3 )
             function( segmentIdx, localIdx, globalIdx );
          else
             function( segmentIdx, globalIdx );
@@ -316,7 +316,7 @@ forElementsIfBlockMergeKernel_Ellpack( Index gridIdx,
          const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
          TNL_ASSERT_GE( globalIdx, 0, "" );
          TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( argumentCount< Function >() == 3 )
+         if constexpr( callableArgumentCount< Function >() == 3 )
             function( segmentIdx, localIdx, globalIdx );
          else
             function( segmentIdx, globalIdx );

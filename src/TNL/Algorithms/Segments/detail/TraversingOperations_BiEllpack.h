@@ -79,7 +79,7 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
             if( groupSize ) {
                const IndexType groupWidth = groupSize / groupHeight;
                for( IndexType i = 0; i < groupWidth; i++ ) {
-                  if constexpr( argumentCount< Function >() == 3 ) {
+                  if constexpr( callableArgumentCount< Function >() == 3 ) {
                      if constexpr( Organization == RowMajorOrder ) {
                         function( segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i );
                      }
@@ -88,7 +88,7 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
                      }
                      localIdx++;
                   }
-                  else  // argumentCount< Function >() == 2
+                  else  // callableArgumentCount< Function >() == 2
                      if constexpr( Organization == RowMajorOrder ) {
                         function( segmentIdx, groupOffset + segmentStripPerm * groupWidth + i );
                      }
@@ -133,7 +133,7 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
             if( groupSize ) {
                const IndexType groupWidth = groupSize / groupHeight;
                for( IndexType i = 0; i < groupWidth; i++ ) {
-                  if constexpr( argumentCount< Function >() == 3 ) {
+                  if constexpr( callableArgumentCount< Function >() == 3 ) {
                      if constexpr( Organization == RowMajorOrder ) {
                         function( segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i );
                      }
@@ -142,7 +142,7 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
                      }
                      localIdx++;
                   }
-                  else {  // argumentCount< Function >() == 2
+                  else {  // callableArgumentCount< Function >() == 2
                      if constexpr( Organization == RowMajorOrder ) {
                         function( segmentIdx, groupOffset + segmentStripPerm * groupWidth + i );
                      }

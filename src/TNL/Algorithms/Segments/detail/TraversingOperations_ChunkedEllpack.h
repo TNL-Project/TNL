@@ -76,7 +76,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
          if constexpr( Organization == RowMajorOrder ) {
             IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
             IndexType end = begin + segmentSize;
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx = 0;
                for( IndexType j = begin; j < end; j++ )
                   function( segmentIdx, localIdx++, j );
@@ -87,7 +87,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
             }
          }
          else {
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx = 0;
                for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
                   IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
@@ -147,7 +147,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
          if( Organization == RowMajorOrder ) {
             IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
             IndexType end = begin + segmentSize;
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx = 0;
                for( IndexType j = begin; j < end; j++ )
                   function( segmentIdx, localIdx++, j );
@@ -158,7 +158,7 @@ struct TraversingOperations< ChunkedEllpackView< Device, Index, Organization > >
             }
          }
          else {
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx = 0;
                for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
                   IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
