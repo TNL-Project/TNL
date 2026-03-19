@@ -2,7 +2,7 @@
 #include <cstdint>
 
 #include <TNL/Graphs/GraphOperations.h>
-#include <TNL/Graphs/Algorithms/minimumSpanningTree.h>
+#include <TNL/Graphs/Algorithms/experimental/minimumSpanningTree.h>
 #include <TNL/Graphs/Algorithms/trees.h>
 #include <TNL/Graphs/Writers/EdgeListWriter.h>
 #include <TNL/Matrices/SparseMatrix.h>
@@ -56,7 +56,7 @@ TYPED_TEST( GraphTest, test_MST_small )
 
    GraphType minimum_tree;
    TNL::Containers::Vector< IndexType > roots;
-   TNL::Graphs::Algorithms::minimumSpanningTree( graph, minimum_tree, roots );
+   TNL::Graphs::Algorithms::experimental::minimumSpanningTree( graph, minimum_tree, roots );
    minimum_tree.getAdjacencyMatrix().sortColumnIndexes();
    ASSERT_EQ( minimum_tree, expected_tree );
 }
@@ -93,7 +93,7 @@ TYPED_TEST( GraphTest, test_MST_medium )
 
    GraphType minimum_tree;
    TNL::Containers::Vector< IndexType > roots;
-   TNL::Graphs::Algorithms::minimumSpanningTree( graph, minimum_tree, roots );
+   TNL::Graphs::Algorithms::experimental::minimumSpanningTree( graph, minimum_tree, roots );
    minimum_tree.getAdjacencyMatrix().sortColumnIndexes();
    //const auto& v1 = minimum_tree.getAdjacencyMatrix().getValues();
    //const auto& v2 = expectedTree.getAdjacencyMatrix().getValues();
@@ -141,7 +141,7 @@ TYPED_TEST( GraphTest, test_MST_large )
 
    GraphType minimum_tree;
    TNL::Containers::Vector< IndexType > roots;
-   TNL::Graphs::Algorithms::minimumSpanningTree( graph, minimum_tree, roots );
+   TNL::Graphs::Algorithms::experimental::minimumSpanningTree( graph, minimum_tree, roots );
    minimum_tree.getAdjacencyMatrix().sortColumnIndexes();
    //const auto& v1 = minimum_tree.getAdjacencyMatrix().getValues();
    //const auto& v2 = expected_tree.getAdjacencyMatrix().getValues();
@@ -161,7 +161,7 @@ TYPED_TEST( GraphTest, test_MST_large_2 )
    TNL::Graphs::Writers::EdgeListWriter< GraphType >::write( "graph-10-30.lst", graph );
    GraphType minimum_tree;
    TNL::Containers::Vector< IndexType > roots;
-   TNL::Graphs::Algorithms::minimumSpanningTree( graph, minimum_tree, roots );
+   TNL::Graphs::Algorithms::experimental::minimumSpanningTree( graph, minimum_tree, roots );
    TNL::Graphs::Writers::EdgeListWriter< GraphType >::write( "graph-10-30-mst.lst", minimum_tree );
    ASSERT_TRUE( TNL::Graphs::Algorithms::isTree( minimum_tree ) );
    ASSERT_NEAR( TNL::Graphs::getTotalWeight( minimum_tree ), 3.1, 0.0001 );
@@ -218,7 +218,7 @@ TYPED_TEST( GraphTest, test_MST_large_3 )
 
    GraphType minimum_tree;
    TNL::Containers::Vector< IndexType > roots;
-   TNL::Graphs::Algorithms::minimumSpanningTree( graph, minimum_tree, roots );
+   TNL::Graphs::Algorithms::experimental::minimumSpanningTree( graph, minimum_tree, roots );
    minimum_tree.getAdjacencyMatrix().sortColumnIndexes();
    const auto& v1 = minimum_tree.getAdjacencyMatrix().getValues();
    const auto& v2 = expected_tree.getAdjacencyMatrix().getValues();

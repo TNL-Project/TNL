@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace TNL::Graphs::Algorithms {
+namespace TNL::Graphs::Algorithms::experimental {
 
 // TODO: Move to the experimental folder - the parallel algorithm is not working properly yet
 /**
@@ -31,6 +31,6 @@ template< typename InGraph,
 void
 minimumSpanningTree( const InGraph& graph, OutGraph& spanning_tree, RootsVector& roots );
 
-}  // namespace TNL::Graphs::Algorithms
+}  //namespace TNL::Graphs::Algorithms::experimental
 
 #include "minimumSpanningTree.hpp"
