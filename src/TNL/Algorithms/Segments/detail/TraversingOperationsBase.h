@@ -13,9 +13,14 @@ struct TraversingOperationsBase
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
 
+   /**
+    * This method does the same as forElementsIf, but with a materialization of the condition results.
+    * It seems to be slower than forElementsIf, so it may serve mainly as a fallback for
+    * for segments where forElementsIf is not implemented.
+    */
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIfSparse( const ConstViewType& segments,
+   forSelectedElements( const ConstViewType& segments,
                         IndexBegin begin,
                         IndexEnd end,
                         Condition&& condition,

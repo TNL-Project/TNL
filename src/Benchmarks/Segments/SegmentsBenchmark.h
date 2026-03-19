@@ -186,15 +186,17 @@ struct SegmentsBenchmark
             benchmark.time< Device >( device, f );
          }
 
-         benchmark.setMetadataElement( { "function", "forElementsIfSparse with stride " + convertToString( stride ) } );
+         benchmark.setMetadataElement( { "function", "forSelectedElements with stride " + convertToString( stride ) } );
          for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations( segments ) ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
             auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
             auto f = [ & ]() mutable
             {
-               TNL::Algorithms::Segments::forAllElementsIfSparse(
-                  segmentsView,
+               TNL::Algorithms::Segments::detail::TraversingOperations< decltype( segmentsView ) >::forSelectedElements(
+                  segmentsView.getConstView(),
+                  0,
+                  segments.getSegmentCount(),
                   [ = ] __cuda_callable__( const IndexType segmentIdx ) -> bool
                   {
                      return segmentIdx % stride == 0;
