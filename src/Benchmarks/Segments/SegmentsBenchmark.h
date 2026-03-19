@@ -10,17 +10,10 @@
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
 #include <TNL/Algorithms/Segments/BiEllpack.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRScalarKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRVectorKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRLightKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/CSRAdaptiveKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/EllpackKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/SlicedEllpackKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/BiEllpackKernel.h>
-#include <TNL/Algorithms/SegmentsReductionKernels/ChunkedEllpackKernel.h>
+#include <TNL/Algorithms/Segments/TraversingLaunchConfigurations.h>
+#include <TNL/Algorithms/Segments/ReductionLaunchConfigurations.h>
 #include <TNL/Matrices/SparseMatrix.h>
 #include <TNL/Matrices/MatrixOperations.h>
-#include "LaunchConfigurationsSetup.h"
 
 namespace TNL::Benchmarks::Segments {
 
@@ -29,7 +22,6 @@ struct SegmentsBenchmark
 {
    using IndexType = Index;
    using HostVector = TNL::Containers::Vector< Index, TNL::Devices::Host, Index >;
-   //using HostRealVector = TNL::Containers::Vector< Real, TNL::Devices::Host, Index >;
 
    template< typename Device_, typename Index_, typename IndexAllocator_ >
    using CSRSegments = TNL::Algorithms::Segments::CSR< Device_, Index_, IndexAllocator_ >;
@@ -89,9 +81,6 @@ struct SegmentsBenchmark
       using IndexAllocator = typename TNL::Allocators::Default< Device >::template Allocator< Index >;
       using SegmentsType = Segments< Device, Index, IndexAllocator >;
 
-      //using KernelType = SegmentsKernel< Index, Device >;
-      // TODO: Find a way how to use various reduction kernels for segments in the algorithms.
-
       IndexVector segmentsSizes( hostSegmentsSizes );  // NOLINT(performance-unnecessary-copy-initialization)
       auto segmentsSizes_view = segmentsSizes.getConstView();
       SegmentsType segments( segmentsSizes );
@@ -101,7 +90,7 @@ struct SegmentsBenchmark
 
       benchmark.setMetadataElement( { "function", "forElements" } );
       benchmark.setDatasetSize( sum( segmentsSizes ) * sizeof( Index ) );
-      for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+      for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations( segments ) ) {
          benchmark.setMetadataElement( { "threads mapping", tag } );
          auto segmentsView = segments.getView();
          auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -143,7 +132,7 @@ struct SegmentsBenchmark
                                       },
                                       TNL::Plus{} )
                                    * sizeof( Index ) );
-         for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations( segments ) ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
             auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -175,7 +164,7 @@ struct SegmentsBenchmark
                                       TNL::Plus{} )
                                    * sizeof( Index ) );
 
-         for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations( segments ) ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
             auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -198,7 +187,7 @@ struct SegmentsBenchmark
          }
 
          benchmark.setMetadataElement( { "function", "forElementsIfSparse with stride " + convertToString( stride ) } );
-         for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations( segments ) ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
             auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -235,7 +224,7 @@ struct SegmentsBenchmark
          } );
       benchmark.setMetadataElement( { "function", "reduceSegments" } );
       benchmark.setDatasetSize( sum( segmentsSizes ) * sizeof( Index ) );
-      for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+      for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( segments ) ) {
          benchmark.setMetadataElement( { "threads mapping", tag } );
          auto segmentsView = segments.getView();
          auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -281,7 +270,7 @@ struct SegmentsBenchmark
                                       },
                                       TNL::Plus{} )
                                    * sizeof( Index ) );
-         for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( segments ) ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
             auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
@@ -329,7 +318,7 @@ struct SegmentsBenchmark
                                       },
                                       TNL::Plus{} )
                                    * sizeof( Index ) );
-         for( const auto& [ launchConfig, tag ] : LaunchConfigurationsSetup< SegmentsType >::create() ) {
+         for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( segments ) ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
             auto launchConfig_ = launchConfig;  // TODO: Remove after switching to C++20
