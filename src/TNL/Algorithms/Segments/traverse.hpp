@@ -62,38 +62,6 @@ forElementsIf( const Segments& segments,
                                                                                     launchConfig );
 }
 
-template< typename Segments, typename Condition, typename Function >
-void
-forAllElementsIfSparse( const Segments& segments, Condition condition, Function function, LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Segments::IndexType;
-   forElementsIfSparse( segments.getConstView(),
-                        (IndexType) 0,
-                        segments.getSegmentCount(),
-                        std::forward< Condition >( condition ),
-                        std::forward< Function >( function ),
-                        launchConfig );
-}
-
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
-void
-forElementsIfSparse( const Segments& segments,
-                     IndexBegin begin,
-                     IndexEnd end,
-                     Condition condition,
-                     Function function,
-                     LaunchConfiguration launchConfig )
-{
-   using IndexType = typename Segments::IndexType;
-   detail::TraversingOperations< typename Segments::ConstViewType >::forElementsIfSparse(
-      segments.getConstView(),
-      (IndexType) 0,
-      segments.getSegmentCount(),
-      std::forward< Condition >( condition ),
-      std::forward< Function >( function ),
-      launchConfig );
-}
-
 template< typename Segments, typename Function >
 void
 forAllSegments( const Segments& segments, Function&& function, LaunchConfiguration launchConfig )
