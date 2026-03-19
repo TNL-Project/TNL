@@ -302,10 +302,12 @@ test_forElementsIf()
          }
       }
 
-      // Test with forElementsIfSparse
+      // Test with forSelectedElements
       v = -1;
-      TNL::Algorithms::Segments::forAllElementsIfSparse(
-         segments.getView(),
+      TNL::Algorithms::Segments::detail::TraversingOperationsBase< Segments >::forSelectedElements(
+         segments.getConstView(),
+         0,
+         segments.getSegmentCount(),
          [ = ] __cuda_callable__( const IndexType segmentIdx ) -> bool
          {
             return segmentIdx % 2 == 0;
