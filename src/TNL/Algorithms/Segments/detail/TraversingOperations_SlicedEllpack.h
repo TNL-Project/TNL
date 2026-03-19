@@ -40,7 +40,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
             const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
             const IndexType end = begin + segmentSize;
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
@@ -53,7 +53,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          else {  // ColumnMajorOrder
             const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
             const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
                   function( segmentIdx, localIdx++, globalIdx );
@@ -168,7 +168,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
             const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
             const IndexType end = begin + segmentSize;
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
@@ -181,7 +181,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          else {
             const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
             const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
                   function( segmentIdx, localIdx++, globalIdx );
@@ -296,7 +296,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
             const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx * segmentSize;
             const IndexType end = begin + segmentSize;
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
                   function( segmentIdx, localIdx++, globalIdx );
@@ -309,7 +309,7 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
          else {
             const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
             const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
-            if constexpr( argumentCount< Function >() == 3 ) {
+            if constexpr( callableArgumentCount< Function >() == 3 ) {
                IndexType localIdx( 0 );
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize )
                   function( segmentIdx, localIdx++, globalIdx );

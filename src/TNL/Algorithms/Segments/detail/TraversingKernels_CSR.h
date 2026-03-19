@@ -42,7 +42,7 @@ dynamicGroupingTraversingKernel_CSR( const OffsetsView offsets,
       Index globalIdx = offsets[ scheduled_segment[ 0 ] ];
       const Index endIdx = offsets[ scheduled_segment[ 0 ] + 1 ];
 
-      if constexpr( argumentCount< Function >() == 3 ) {
+      if constexpr( callableArgumentCount< Function >() == 3 ) {
          Index localIdx = threadIdx.x;
          while( globalIdx < endIdx ) {
             function( scheduled_segment[ 0 ], localIdx, globalIdx );
@@ -79,7 +79,7 @@ dynamicGroupingTraversingKernel_CSR( const OffsetsView offsets,
       Index scheduled_segment = warps_scheduler[ warp_idx ];
       Index globalIdx = offsets[ scheduled_segment ] + ( threadIdx.x & ( warpSize - 1 ) );  // & is cheaper than %
       const Index endIdx = offsets[ scheduled_segment + 1 ];
-      if constexpr( argumentCount< Function >() == 3 ) {
+      if constexpr( callableArgumentCount< Function >() == 3 ) {
          Index localIdx = threadIdx.x & ( warpSize - 1 );  // & is cheaper than %
          for( ; globalIdx < endIdx; globalIdx += warpSize ) {
             function( scheduled_segment, localIdx, globalIdx );
@@ -101,7 +101,7 @@ dynamicGroupingTraversingKernel_CSR( const OffsetsView offsets,
    if( traverse_segment ) {
       Index globalIdx = offsets[ segmentIdx ];
       const Index endIdx = offsets[ segmentIdx + 1 ];
-      if constexpr( argumentCount< Function >() == 3 ) {
+      if constexpr( callableArgumentCount< Function >() == 3 ) {
          Index localIdx = 0;
          for( ; globalIdx < endIdx; globalIdx++ ) {
             function( segmentIdx, localIdx, globalIdx );
@@ -166,7 +166,7 @@ forElementsBlockMergeKernel_CSR( const Index gridIdx,
          local_segmentIdx--;
          TNL_ASSERT_LT( first_idx + idx, last_idx, "" );
          const Index globalIdx = first_idx + idx;
-         if constexpr( argumentCount< Function >() == 3 )
+         if constexpr( callableArgumentCount< Function >() == 3 )
             function( first_segment_in_block + local_segmentIdx, globalIdx - shared_offsets[ local_segmentIdx ], globalIdx );
          else
             function( first_segment_in_block + local_segmentIdx, globalIdx );
@@ -203,7 +203,7 @@ forElementsWithSegmentIndexesKernel_CSR( const Index gridIdx,
    Index localIdx = laneIdx;
    for( Index globalIdx = offsets[ segmentIdx ] + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      if constexpr( argumentCount< Function >() == 3 )
+      if constexpr( callableArgumentCount< Function >() == 3 )
          function( segmentIdx, localIdx, globalIdx );
       else
          function( segmentIdx, globalIdx );
@@ -308,7 +308,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_CSR( const Index gridIdx,
          const Index globalIdx = shared_global_offsets[ local_segmentIdx ] + localIdx;
          TNL_ASSERT_GE( globalIdx, 0, "" );
          TNL_ASSERT_LT( globalIdx, offsets[ offsets.getSize() - 1 ], "" );
-         if constexpr( argumentCount< Function >() == 3 )
+         if constexpr( callableArgumentCount< Function >() == 3 )
             function( shared_segment_indexes[ local_segmentIdx ], localIdx, globalIdx );
          else
             function( shared_segment_indexes[ local_segmentIdx ], globalIdx );
@@ -343,7 +343,7 @@ forElementsIfKernel_CSR( const Index gridIdx,
    Index localIdx = laneIdx;
    for( Index globalIdx = offsets[ segmentIdx ] + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      if constexpr( argumentCount< Function >() == 3 )
+      if constexpr( callableArgumentCount< Function >() == 3 )
          function( segmentIdx, localIdx, globalIdx );
       else
          function( segmentIdx, globalIdx );
@@ -459,7 +459,7 @@ forElementsIfBlockMergeKernel_CSR( Index gridIdx,
 
          TNL_ASSERT_GE( globalIdx, 0, "" );
          TNL_ASSERT_LT( globalIdx, offsets[ offsets.getSize() - 1 ], "" );
-         if constexpr( argumentCount< Function >() == 3 )
+         if constexpr( callableArgumentCount< Function >() == 3 )
             function( shared_segment_indexes[ local_segmentIdx ], localIdx, globalIdx );
          else
             function( shared_segment_indexes[ local_segmentIdx ], globalIdx );

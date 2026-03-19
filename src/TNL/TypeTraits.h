@@ -364,9 +364,9 @@ using GetValueType_t = typename GetValueType< T >::type;
  */
 template< typename Lambda >
 constexpr int
-argumentCount()
+callableArgumentCount()
 {
-   return detail::LambdaDetails< Lambda >::argumentCount();
+   return detail::LambdaDetails< Lambda >::callableArgumentCount();
 }
 
 /**
@@ -374,9 +374,9 @@ argumentCount()
  */
 template< typename Lambda >
 constexpr bool
-isVariadic()
+isVariadicCallable()
 {
-   return detail::LambdaDetails< Lambda >::isVariadic();
+   return detail::LambdaDetails< Lambda >::isVariadicCallable();
 }
 
 }  // namespace TNL

@@ -92,7 +92,7 @@ forElementsBlockMergeKernel_SlicedEllpack( const Index gridIdx,
             TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( currentSegmentIdx, localIdx ), "" );
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
 
-            if constexpr( argumentCount< Function >() == 3 )
+            if constexpr( callableArgumentCount< Function >() == 3 )
                function( currentSegmentIdx, localIdx, globalIdx );
             else
                function( currentSegmentIdx, globalIdx );
@@ -136,7 +136,7 @@ forElementsKernel_SlicedEllpack( const Index gridIdx,
          TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
          TNL_ASSERT_LT( globalIdx, endIdx, "" );
          TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( argumentCount< Function >() == 3 )
+         if constexpr( callableArgumentCount< Function >() == 3 )
             function( segmentIdx, localIdx, globalIdx );
          else
             function( segmentIdx, globalIdx );
@@ -167,7 +167,7 @@ forElementsKernel_SlicedEllpack( const Index gridIdx,
          TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
          TNL_ASSERT_LT( globalIdx, endIdx, "" );
          TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( argumentCount< Function >() == 3 )
+         if constexpr( callableArgumentCount< Function >() == 3 )
             function( segmentIdx, localIdx, globalIdx );
          else
             function( segmentIdx, globalIdx );
@@ -210,7 +210,7 @@ forElementsWithSegmentIndexesKernel_SlicedEllpack( const Index gridIdx,
       Index globalIdx = segments.getSliceOffsetsView()[ sliceIdx ] + inSliceOffset * segmentSize + laneIdx;
       for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += threadsPerSegment ) {
          TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( argumentCount< Function >() == 3 )
+         if constexpr( callableArgumentCount< Function >() == 3 )
             function( segmentIdx, localIdx, globalIdx );
          else
             function( segmentIdx, globalIdx );
@@ -221,7 +221,7 @@ forElementsWithSegmentIndexesKernel_SlicedEllpack( const Index gridIdx,
       Index globalIdx = segments.getSliceOffsetsView()[ sliceIdx ] + inSliceOffset + laneIdx * SliceSize;
       for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += threadsPerSegment ) {
          TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( argumentCount< Function >() == 3 )
+         if constexpr( callableArgumentCount< Function >() == 3 )
             function( segmentIdx, localIdx, globalIdx );
          else
             function( segmentIdx, globalIdx );
@@ -308,7 +308,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
             const Index globalIdx = shared_global_offsets[ local_segmentIdx ] + localIdx;
             TNL_ASSERT_GE( globalIdx, 0, "" );
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-            if constexpr( argumentCount< Function >() == 3 )
+            if constexpr( callableArgumentCount< Function >() == 3 )
                function( shared_segment_indexes[ local_segmentIdx ], localIdx, globalIdx );
             else
                function( shared_segment_indexes[ local_segmentIdx ], globalIdx );
@@ -318,7 +318,7 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
             const Index globalIdx = shared_global_offsets[ local_segmentIdx ] + localIdx * SliceSize;
             TNL_ASSERT_GE( globalIdx, 0, "" );
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-            if constexpr( argumentCount< Function >() == 3 )
+            if constexpr( callableArgumentCount< Function >() == 3 )
                function( shared_segment_indexes[ local_segmentIdx ], localIdx, globalIdx );
             else
                function( shared_segment_indexes[ local_segmentIdx ], globalIdx );
@@ -358,7 +358,7 @@ forElementsIfKernel_SlicedEllpack( const Index gridIdx,
       Index globalIdx = segments.getGlobalIndex( segmentIdx, 0 );
       const Index endIdx = globalIdx + segmentSize;
       globalIdx += laneIdx;
-      if constexpr( argumentCount< Function >() == 3 ) {
+      if constexpr( callableArgumentCount< Function >() == 3 ) {
          Index localIdx = laneIdx;
          for( ; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
@@ -366,7 +366,7 @@ forElementsIfKernel_SlicedEllpack( const Index gridIdx,
             localIdx += threadsPerSegment;
          }
       }
-      else {  // argumentCount< Function >() == 2
+      else {  // callableArgumentCount< Function >() == 2
          for( ; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
             function( segmentIdx, globalIdx );
@@ -376,7 +376,7 @@ forElementsIfKernel_SlicedEllpack( const Index gridIdx,
    else {  // Organization == ColumnMajorOrder
       Index globalIdx = segments.getGlobalIndex( segmentIdx, laneIdx );
       const Index endIdx = segments.getGlobalIndex( segmentIdx, segmentSize );
-      if constexpr( argumentCount< Function >() == 3 ) {
+      if constexpr( callableArgumentCount< Function >() == 3 ) {
          Index localIdx = laneIdx;
          for( ; globalIdx < endIdx; globalIdx += SliceSize * threadsPerSegment ) {
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
@@ -486,7 +486,7 @@ forElementsIfBlockMergeKernel_SlicedEllpack( const Index gridIdx,
             const Index globalIdx = shared_global_offsets[ local_segmentIdx ] + localIdx;
             TNL_ASSERT_GE( globalIdx, 0, "" );
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-            if constexpr( argumentCount< Function >() == 3 )
+            if constexpr( callableArgumentCount< Function >() == 3 )
                function( shared_segment_indexes[ local_segmentIdx ], localIdx, globalIdx );
             else
                function( shared_segment_indexes[ local_segmentIdx ], globalIdx );
@@ -496,7 +496,7 @@ forElementsIfBlockMergeKernel_SlicedEllpack( const Index gridIdx,
             const Index globalIdx = shared_global_offsets[ local_segmentIdx ] + localIdx * SliceSize;
             TNL_ASSERT_GE( globalIdx, 0, "" );
             TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-            if constexpr( argumentCount< Function >() == 3 )
+            if constexpr( callableArgumentCount< Function >() == 3 )
                function( shared_segment_indexes[ local_segmentIdx ], localIdx, globalIdx );
             else
                function( shared_segment_indexes[ local_segmentIdx ], globalIdx );

@@ -38,7 +38,7 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
    const Index sliceOffset = sliceInfo.pointer;
    const Index chunkSize = sliceInfo.chunkSize;
 
-   if constexpr( argumentCount< Fetch >() == 3 ) {
+   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
       const Index chunkIdx = sliceIdx * segments.getChunksInSlice() + threadIdx.x;
       const Index segmentIdx = segments.getChunksToSegmentsMappingView()[ chunkIdx ];
       Index firstChunkOfSegment = 0;

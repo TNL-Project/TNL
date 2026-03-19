@@ -85,7 +85,7 @@ reduceSegmentsCSRVariableVectorKernel( const Index gridID,
    Index endID = segments.getOffsets()[ segmentIdx + 1 ];
 
    // Calculate result
-   if constexpr( argumentCount< Fetch >() == 3 ) {
+   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
       Index localIdx = laneID;
       for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment )
          result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
@@ -308,7 +308,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
       ReturnType result = identity;
       Index globalIdx = offsets[ *scheduled_segment ] + threadIdx.x;
       const Index endIdx = offsets[ *scheduled_segment + 1 ];
-      if constexpr( argumentCount< Fetch >() == 3 ) {
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          Index localIdx = threadIdx.x;
          while( globalIdx < endIdx ) {
             result = reduce( result, fetch( *scheduled_segment, localIdx, globalIdx ) );
@@ -364,7 +364,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
       Index globalIdx = offsets[ scheduled_segment ] + ( threadIdx.x & ( warpSize - 1 ) );  // & is cheaper than %
       const Index endIdx = offsets[ scheduled_segment + 1 ];
       ReturnType result = identity;
-      if constexpr( argumentCount< Fetch >() == 3 ) {
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          Index localIdx = threadIdx.x & ( warpSize - 1 );  // & is cheaper than %
          for( ; globalIdx < endIdx; globalIdx += warpSize ) {
             result = reduce( result, fetch( scheduled_segment, localIdx, globalIdx ) );
@@ -394,7 +394,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
       Index globalIdx = offsets[ segmentIdx ];
       const Index endIdx = offsets[ segmentIdx + 1 ];
       ReturnType result = identity;
-      if constexpr( argumentCount< Fetch >() == 3 ) {
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          Index localIdx = 0;
          for( ; globalIdx < endIdx; globalIdx++ ) {
             result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
@@ -501,7 +501,7 @@ reduceSegmentsCSRVariableVectorKernelWithIndexes( const Index gridID,
    Index endID = segments.getOffsets()[ segmentIdx + 1 ];
 
    // Calculate result
-   if constexpr( argumentCount< Fetch >() == 3 ) {
+   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
       Index localIdx = laneID;
       for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment )
          result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
@@ -732,7 +732,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
       Index globalIdx = offsets[ scheduled_segment ];
       const Index endIdx = offsets[ scheduled_segment + 1 ];
 
-      if constexpr( argumentCount< Fetch >() == 3 ) {
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          Index localIdx = threadIdx.x;
          while( globalIdx < endIdx ) {
             result = reduce( result, fetch( scheduled_segment, localIdx, globalIdx ) );
@@ -784,7 +784,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
       Index globalIdx = offsets[ scheduled_segment ] + ( threadIdx.x & ( warpSize - 1 ) );  // & is cheaper than %
       const Index endIdx = offsets[ scheduled_segment + 1 ];
       result = identity;
-      if constexpr( argumentCount< Fetch >() == 3 ) {
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          Index localIdx = threadIdx.x & ( warpSize - 1 );  // & is cheaper than %
          for( ; globalIdx < endIdx; globalIdx += warpSize ) {
             result = reduce( result, fetch( scheduled_segment, localIdx, globalIdx ) );
@@ -814,7 +814,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
       Index globalIdx = offsets[ segmentIdx ];
       const Index endIdx = offsets[ segmentIdx + 1 ];
       result = identity;
-      if constexpr( argumentCount< Fetch >() == 3 ) {
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          Index localIdx = 0;
          for( ; globalIdx < endIdx; globalIdx++ ) {
             result = reduce( result, fetch( segmentIdx, localIdx, globalIdx ) );
