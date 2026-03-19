@@ -183,9 +183,11 @@ copyDenseToSparseMatrix( Matrix1& A, const Matrix2& B )
          // zero matrix elements.
          const Index matrix_columns = A.getColumns();
          auto A_view = A.getView();
-         constexpr Index padding_index = paddingIndex< Index >;  // this is just to avoid nvcc error: identifier
-                                                                 // "TNL::Matrices::paddingIndex<int> " is undefined in device
-                                                                 // code From src/UnitTests/Matrices/SparseMatrixCopyTest.cu
+
+         // this is just to avoid nvcc error: identifier
+         // "TNL::Matrices::paddingIndex<int> " is undefined in device
+         // code From src/UnitTests/Matrices/SparseMatrixCopyTest.cu
+         constexpr Index padding_index = paddingIndex< Index >;
 
          auto f2 = [ = ] __cuda_callable__( const Index rowIdx ) mutable
          {

@@ -64,7 +64,10 @@ struct GraphView
              typename AdjacencyMatrix_ = AdjacencyMatrix >
    using Self = GraphView< Value_, Device_, Index_, Orientation_, AdjacencyMatrix_ >;
 
+protected:
    using Base = GraphBase< Value, Device, Index, Orientation, AdjacencyMatrixType >;
+
+public:
    using Base::isDirected;
    using Base::isUndirected;
 

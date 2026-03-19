@@ -211,13 +211,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( IndexT
          const IndexType end = begin + segmentSize;
          IndexType localIdx( 0 );
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
-            // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-            f( segmentIdx, localIdx, globalIdx );
-            localIdx++;
-#else
             function( segmentIdx, localIdx++, globalIdx );
-#endif
          }
       };
       Algorithms::parallelFor< Device >( begin, end, l );
@@ -227,18 +221,11 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( IndexT
       {
          const IndexType sliceIdx = segmentIdx / SliceSize;
          const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-         // const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
          const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
          const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
          IndexType localIdx( 0 );
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
-            // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-            function( segmentIdx, localIdx, globalIdx );
-            localIdx++;
-#else
             function( segmentIdx, localIdx++, globalIdx );
-#endif
          }
       };
       Algorithms::parallelFor< Device >( begin, end, l );
@@ -275,13 +262,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( const 
          const IndexType end = begin + segmentSize;
          IndexType localIdx( 0 );
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
-            // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-            function( segmentIdx, localIdx, globalIdx );
-            localIdx++;
-#else
             function( segmentIdx, localIdx++, globalIdx );
-#endif
          }
       };
       Algorithms::parallelFor< Device >( begin, end, l );
@@ -292,18 +273,11 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( const 
          const IndexType segmentIdx = segmentIndexes_view[ idx ];
          const IndexType sliceIdx = segmentIdx / SliceSize;
          const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-         // const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
          const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
          const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
          IndexType localIdx( 0 );
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
-            // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-            function( segmentIdx, localIdx, globalIdx );
-            localIdx++;
-#else
             function( segmentIdx, localIdx++, globalIdx );
-#endif
          }
       };
       Algorithms::parallelFor< Device >( begin, end, l );
@@ -340,13 +314,7 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElementsIf( Inde
          const IndexType end = begin + segmentSize;
          IndexType localIdx( 0 );
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ ) {
-            // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-            function( segmentIdx, localIdx, globalIdx );
-            localIdx++;
-#else
             function( segmentIdx, localIdx++, globalIdx );
-#endif
          }
       };
       Algorithms::parallelFor< Device >( begin, end, l );
@@ -358,18 +326,11 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElementsIf( Inde
             return;
          const IndexType sliceIdx = segmentIdx / SliceSize;
          const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
-         // const IndexType segmentSize = sliceSegmentSizes_view[ sliceIdx ];
          const IndexType begin = sliceOffsets_view[ sliceIdx ] + segmentInSliceIdx;
          const IndexType end = sliceOffsets_view[ sliceIdx + 1 ];
          IndexType localIdx( 0 );
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SliceSize ) {
-            // The following is a workaround of a bug in nvcc 11.2
-#if CUDART_VERSION == 11020
-            function( segmentIdx, localIdx, globalIdx );
-            localIdx++;
-#else
             function( segmentIdx, localIdx++, globalIdx );
-#endif
          }
       };
       Algorithms::parallelFor< Device >( begin, end, l );

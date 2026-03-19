@@ -16,11 +16,10 @@
 
 #include "MatrixBase.h"
 
-//#if defined( __CUDACC__ ) && ( __CUDACC_VER_MAJOR__ < 12 )
-#define USE_NVCC_WORKAROUND  // This is workaround for nvcc which is not able to compile copySparseToSparseMatrix function
-                             // due to the lambda functions in the code. This issue appears at least with
-                             // nvcc build cuda_11.8.r11.8/compiler.31833905_0 and g++ 11.3.0.
-//#endif
+// This is workaround for nvcc which is not able to compile copySparseToSparseMatrix function
+// due to the lambda functions in the code. This issue appears at least with
+// nvcc build cuda_13.1.r13.1/compiler.37061995_0 and g++ 15.2.1.
+#define USE_NVCC_WORKAROUND
 
 namespace TNL::Matrices {
 
@@ -250,10 +249,12 @@ copySparseToSparseMatrix( TargetMatrix& A, const SourceMatrix& B )
                                       rowLocalIndexes_view );
 #else
          // Copy matrix elements from the buffer to the matrix and ignoring
-         // zero matrix elements
-         const Index padding_index = paddingIndex< Index >;  // this is just to avoid nvcc error: identifier
-                                                             // "TNL::Matrices::paddingIndex<int> " is undefined in device
-                                                             // code From src/UnitTests/Matrices/SparseMatrixCopyTest.cu
+         // zero matrix elements.
+
+         // this is just to avoid nvcc error: identifier "TNL::Matrices::paddingIndex<int> " is undefined in device
+         // code From src/UnitTests/Matrices/SparseMatrixCopyTest.cu
+         const Index padding_index = paddingIndex< Index >;
+
          const auto thisRowLengths_view = thisRowLengths.getConstView();
          auto f2 = [ = ] __cuda_callable__( typename TargetMatrix::RowView row ) mutable
          {
@@ -495,9 +496,10 @@ copySymmetricSparseToGeneralSparseMatrix( TargetMatrix& A, const SourceMatrix& B
          // Copy matrix elements from the buffer to the matrix and ignoring
          // zero matrix elements
          const auto thisRowLengths_view = thisRowLengths.getConstView();
-         const auto padding_index = paddingIndex< Index >;  // TODO:: Fix - SparseOperations.hpp(532): error: identifier
-                                                            // "TNL::Matrices::paddingIndex<int> " is undefined in device code
-                                                            // From Documentation/Examples/Matrices/MatrixWriterReaderExample.cu
+
+         // TODO:: Fix - SparseOperations.hpp(532): error: identifier "TNL::Matrices::paddingIndex<int> " is undefined in device
+         // code From Documentation/Examples/Matrices/MatrixWriterReaderExample.cu
+         const auto padding_index = paddingIndex< Index >;
 
          auto f2 = [ = ] __cuda_callable__( typename TargetMatrix::RowView row ) mutable
          {
