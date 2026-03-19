@@ -5,7 +5,7 @@
 
 #include "GraphBenchmarkBase.h"
 #include "BoostGraph.h"
-#include <TNL/Graphs/Algorithms/minimumSpanningTree.h>
+#include <TNL/Graphs/Algorithms/experimental/minimumSpanningTree.h>
 #include <TNL/Graphs/Algorithms/trees.h>
 
 namespace TNL::Benchmarks::Graphs {
@@ -116,7 +116,7 @@ public:
 
       auto mst_tnl = [ & ]() mutable
       {
-         TNL::Graphs::Algorithms::minimumSpanningTree( graph, mstGraph, roots );
+         TNL::Graphs::Algorithms::experimental::minimumSpanningTree( graph, mstGraph, roots );
       };
       benchmark.time< Device >( device, mst_tnl );
 
