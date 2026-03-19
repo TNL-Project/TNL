@@ -176,37 +176,6 @@ forElementsBlockMergeKernel_CSR( const Index gridIdx,
 #endif
 }
 
-template< typename OffsetsView, typename Index, typename Function >
-__global__
-void
-forElementsKernel_CSR( const Index gridIdx,
-                       const Index threadsPerSegment,
-                       OffsetsView offsets,
-                       const Index begin,
-                       const Index end,
-                       Function function )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-   const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
-   if( segmentIdx >= end )
-      return;
-
-   const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
-   TNL_ASSERT_LT( segmentIdx + 1, offsets.getSize(), "" );
-   Index endIdx = offsets[ segmentIdx + 1 ];
-
-   Index localIdx = laneIdx;
-   for( Index globalIdx = offsets[ segmentIdx ] + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
-      TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      if constexpr( argumentCount< Function >() == 3 )
-         function( segmentIdx, localIdx, globalIdx );
-      else
-         function( segmentIdx, globalIdx );
-      localIdx += threadsPerSegment;
-   }
-#endif
-}
-
 template< typename OffsetsView, typename ArrayView, typename Index, typename Function >
 __global__
 void
