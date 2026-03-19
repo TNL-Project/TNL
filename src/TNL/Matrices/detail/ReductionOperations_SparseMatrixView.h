@@ -47,11 +47,9 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], (ValueType) 1 );
             else
-               return fetch(
-                  rowIdx,
-                  columnIndexes_view[ globalIdx ],
-                  values_view[ globalIdx ] );  // For non-constant matrix, we allows modification of columns indexes
-                                               // and values during the data fetching for the sake of kernels merging.
+               // For non-constant matrix, we allow modification of columns indexes
+               // and values during the data fetching for the sake of kernels merging.
+               return fetch( rowIdx, columnIndexes_view[ globalIdx ], values_view[ globalIdx ] );
          }
          return identity;
       };
@@ -111,11 +109,9 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], (ValueType) 1 );
             else
-               return fetch(
-                  rowIdx,
-                  columnIndexes_view[ globalIdx ],
-                  values_view[ globalIdx ] );  // For non-constant matrix, we allows modification of columns indexes
-                                               // and values during the data fetching for the sake of kernels merging.
+               // For non-constant matrix, we allow modification of columns indexes
+               // and values during the data fetching for the sake of kernels merging.
+               return fetch( rowIdx, columnIndexes_view[ globalIdx ], values_view[ globalIdx ] );
          }
          return identity;
       };
@@ -192,11 +188,9 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], (ValueType) 1 );
             else
-               return fetch(
-                  rowIdx,
-                  columnIndexes_view[ globalIdx ],
-                  values_view[ globalIdx ] );  // For non-constant matrix, we allows modification of columns indexes
-                                               // and values during the data fetching for the sake of kernels merging.
+               // For non-constant matrix, we allow modification of columns indexes
+               // and values during the data fetching for the sake of kernels merging.
+               return fetch( rowIdx, columnIndexes_view[ globalIdx ], values_view[ globalIdx ] );
          }
          return identity;
       };
@@ -279,11 +273,9 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], (ValueType) 1 );
             else
-               return fetch(
-                  rowIdx,
-                  columnIndexes_view[ globalIdx ],
-                  values_view[ globalIdx ] );  // For non-constant matrix, we allows modification of columns indexes
-                                               // and values during the data fetching for the sake of kernels merging.
+               // For non-constant matrix, we allow modification of columns indexes
+               // and values during the data fetching for the sake of kernels merging.
+               return fetch( rowIdx, columnIndexes_view[ globalIdx ], values_view[ globalIdx ] );
          }
          return identity;
       };
@@ -373,10 +365,9 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
                              IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable -> FetchValue
       {
          if( columnIndexes_view[ globalIdx ] != paddingIndex ) {
-            return fetch( rowIdx,
-                          columnIndexes_view[ globalIdx ],
-                          values_view[ globalIdx ] );  // For non-constant matrix, we allows modification of columns indexes
-                                                       // and values during the data fetching for the sake of kernels merging.
+            // For non-constant matrix, we allow modification of columns indexes
+            // and values during the data fetching for the sake of kernels merging.
+            return fetch( rowIdx, columnIndexes_view[ globalIdx ], values_view[ globalIdx ] );
          }
          return identity;
       };
@@ -471,11 +462,9 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], ValueType( 1.0 ) );
             else
-               return fetch(
-                  rowIdx,
-                  columnIndexes_view[ globalIdx ],
-                  values_view[ globalIdx ] );  // For non-constant matrix, we allows modification of columns indexes
-                                               // and values during the data fetching for the sake of kernels merging.
+               // For non-constant matrix, we allow modification of columns indexes
+               // and values during the data fetching for the sake of kernels merging.
+               return fetch( rowIdx, columnIndexes_view[ globalIdx ], values_view[ globalIdx ] );
          }
          return identity;
       };
@@ -595,11 +584,9 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
             if constexpr( MatrixView::isBinary() )
                return fetch( rowIdx, columnIndexes_view[ globalIdx ], ValueType( 1.0 ) );
             else
-               return fetch(
-                  rowIdx,
-                  columnIndexes_view[ globalIdx ],
-                  values_view[ globalIdx ] );  // For non-constant matrix, we allows modification of columns indexes
-                                               // and values during the data fetching for the sake of kernels merging.
+               // For non-constant matrix, we allow modification of columns indexes
+               // and values during the data fetching for the sake of kernels merging.
+               return fetch( rowIdx, columnIndexes_view[ globalIdx ], values_view[ globalIdx ] );
          }
          return identity;
       };
