@@ -33,7 +33,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       if( begin == 0 && end == segments.getSegmentCount() ) {
-         if constexpr( argumentCount< Function >() == 3 ) {
+         if constexpr( callableArgumentCount< Function >() == 3 ) {
             TraversingOperations< EmbeddedSegmentsView >::forElements(
                segments.getEmbeddedSegmentsView(),
                begin,
@@ -44,7 +44,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                },
                launchConfig );
          }
-         else {  // argumentCount< Function >() == 2
+         else {  // callableArgumentCount< Function >() == 2
             TraversingOperations< EmbeddedSegmentsView >::forElements(
                segments.getEmbeddedSegmentsView(),
                begin,
@@ -57,7 +57,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          }
       }
       else {
-         if constexpr( argumentCount< Function >() == 3 ) {
+         if constexpr( callableArgumentCount< Function >() == 3 ) {
             TraversingOperations< EmbeddedSegmentsView >::forElements(
                segments.getEmbeddedSegmentsView(),
                segments.getSegmentsPermutationView().getConstView( begin, end ),
@@ -67,7 +67,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                },
                launchConfig );
          }
-         else {  // argumentCount< Function >() == 2
+         else {  // callableArgumentCount< Function >() == 2
             TraversingOperations< EmbeddedSegmentsView >::forElements(
                segments.getEmbeddedSegmentsView(),
                segments.getSegmentsPermutationView().getConstView( begin, end ),
@@ -101,7 +101,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             value = segmentsPermutationView[ segmentIndexesView[ i ] ];
          } );
 
-      if constexpr( argumentCount< Function >() == 3 ) {
+      if constexpr( callableArgumentCount< Function >() == 3 ) {
          TraversingOperations< EmbeddedSegmentsView >::forElements(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
@@ -111,7 +111,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             },
             launchConfig );
       }
-      else {  // argumentCount< Function >() == 2
+      else {  // callableArgumentCount< Function >() == 2
          TraversingOperations< EmbeddedSegmentsView >::forElements(
             segments.getEmbeddedSegmentsView(),
             aux.getConstView(),
@@ -136,7 +136,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
          return;
       if( begin == 0 && end == segments.getSegmentCount() ) {
          auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
-         if constexpr( argumentCount< Function >() == 3 ) {
+         if constexpr( callableArgumentCount< Function >() == 3 ) {
             TraversingOperations< EmbeddedSegmentsView >::forElementsIf(
                segments.getEmbeddedSegmentsView(),
                begin,
@@ -151,7 +151,7 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                },
                launchConfig );
          }
-         else {  // argumentCount< Function >() == 2
+         else {  // callableArgumentCount< Function >() == 2
             TraversingOperations< EmbeddedSegmentsView >::forElementsIf(
                segments.getEmbeddedSegmentsView(),
                begin,

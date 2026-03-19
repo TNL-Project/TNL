@@ -164,7 +164,7 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
    if constexpr( std::is_same_v< Device, Devices::GPU > ) {
       const Index segmentsCount = end - begin;
       std::size_t threadsCount;
-      if constexpr( argumentCount< Function >() == 2 )  // we use scan kernel
+      if constexpr( callableArgumentCount< Function >() == 2 )  // we use scan kernel
          threadsCount = segmentsCount;
       else
          threadsCount = segmentsCount * Backend::getWarpSize();
@@ -175,7 +175,7 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
       Backend::setupThreads( launch_config.blockSize, blocksCount, gridsCount, threadsCount );
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
-         if constexpr( argumentCount< Function >() == 3 ) {
+         if constexpr( callableArgumentCount< Function >() == 3 ) {
             auto condition = [] __cuda_callable__( IndexType )
             {
                return true;
@@ -194,7 +194,7 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
    else {
       const auto offsetsView = this->offsets;
       // TODO: if constexpr could be just inside the lambda function l when nvcc allolws it
-      if constexpr( argumentCount< Function >() == 3 ) {
+      if constexpr( callableArgumentCount< Function >() == 3 ) {
          auto l = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
          {
             const IndexType begin = offsetsView[ segmentIdx ];
@@ -255,7 +255,7 @@ CSRBase< Device, Index >::forElements( const Array& segmentIndexes, Index begin,
    else {
       const auto offsetsView = this->offsets;
       // TODO: if constexpr could be just inside the lambda function l when nvcc allolws it
-      if constexpr( argumentCount< Function >() == 3 ) {
+      if constexpr( callableArgumentCount< Function >() == 3 ) {
          auto l = [ = ] __cuda_callable__( IndexType idx ) mutable
          {
             TNL_ASSERT_LT( idx, segmentIndexesView.getSize(), "" );
@@ -273,7 +273,7 @@ CSRBase< Device, Index >::forElements( const Array& segmentIndexes, Index begin,
          };
          Algorithms::parallelFor< Device >( begin, end, l );
       }
-      else {  // argumentCount< Function >() == 2
+      else {  // callableArgumentCount< Function >() == 2
          auto l = [ = ] __cuda_callable__( IndexType idx ) mutable
          {
             TNL_ASSERT_LT( idx, segmentIndexesView.getSize(), "" );

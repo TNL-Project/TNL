@@ -48,7 +48,7 @@ reduceSegmentsRowMajorSlicedEllpackKernel( const int gridIdx,
    TNL_ASSERT_LE( endIdx, segments.getStorageSize(), "" );
 
    ReturnType result = identity;
-   if constexpr( argumentCount< Fetch >() == 3 ) {
+   if constexpr( callableArgumentCount< Fetch >() == 3 ) {
       Index localIdx = laneIdx;
       for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
          TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
@@ -208,7 +208,7 @@ reduceSegmentsColumnMajorSlicedEllpackKernel( const int gridIdx,
       const Index endIdx = segments.getSliceOffsetsView()[ sliceIdx + 1 ];
       TNL_ASSERT_LE( endIdx, segments.getStorageSize(), "" );  // equality is for the case when both values equal 0
 
-      if constexpr( argumentCount< Fetch >() == 3 ) {
+      if constexpr( callableArgumentCount< Fetch >() == 3 ) {
          for( Index globalIdx = beginIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment * SliceSize ) {
             TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
             TNL_ASSERT_LT( globalIdx, endIdx, "" );
