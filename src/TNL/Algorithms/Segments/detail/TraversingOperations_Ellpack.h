@@ -101,8 +101,15 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-                  constexpr auto kernel =
-                     forElementsKernel_Ellpack< ViewType, IndexType, std::remove_reference_t< Function >, Organization >;
+                  auto condition = [] __cuda_callable__( IndexType )
+                  {
+                     return true;
+                  };
+                  constexpr auto kernel = forElementsIfKernel_Ellpack< ViewType,
+                                                                       IndexType,
+                                                                       decltype( condition ),
+                                                                       std::remove_reference_t< Function >,
+                                                                       Organization >;
                   Backend::launchKernelAsync( kernel,
                                               launchConfig,
                                               gridIdx,
@@ -111,6 +118,7 @@ struct TraversingOperations< EllpackView< Device, Index, Organization, Alignment
                                               segments,
                                               begin,
                                               end,
+                                              condition,
                                               function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {

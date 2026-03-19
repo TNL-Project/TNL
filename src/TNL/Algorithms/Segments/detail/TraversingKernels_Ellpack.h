@@ -52,66 +52,6 @@ forElementsBlockMergeKernel_Ellpack( Index gridIdx, SegmentsView segments, Index
 #endif
 }
 
-template< typename SegmentsView, typename Index, typename Function, ElementsOrganization Organization >
-__global__
-void
-forElementsKernel_Ellpack( const Index gridIdx,
-                           const Index totalThreadsCount,
-                           const Index threadsPerSegment,
-                           SegmentsView segments,
-                           const Index begin,
-                           const Index end,
-                           Function function )
-{
-#if defined( __CUDACC__ ) || defined( __HIP__ )
-
-   __shared__ Index segmentSize;
-   if( threadIdx.x == 0 )
-      segmentSize = segments.getSegmentSize();
-   __syncthreads();
-   if constexpr( Organization == RowMajorOrder ) {
-      const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
-      if( segmentIdx >= end )
-         return;
-
-      const Index laneIdx = threadIdx.x & ( threadsPerSegment - 1 );  // & is cheaper than %
-
-      if constexpr( argumentCount< Function >() == 3 ) {
-         Index globalIdx = segmentIdx * segmentSize + laneIdx;
-         for( Index localIdx = laneIdx; localIdx < segmentSize; localIdx += threadsPerSegment ) {
-            TNL_ASSERT_EQ( globalIdx, segments.getGlobalIndex( segmentIdx, localIdx ), "" );
-            TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-            function( segmentIdx, localIdx, globalIdx );
-            globalIdx += threadsPerSegment;
-         }
-      }
-      else {  // argumentCount< Function >() == 2
-         const Index endIdx = ( segmentIdx + 1 ) * segmentSize;
-         for( Index globalIdx = segmentIdx * segmentSize + laneIdx; globalIdx < endIdx; globalIdx += threadsPerSegment ) {
-            TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-            function( segmentIdx, globalIdx );
-         }
-      }
-   }
-   else {  // ColumnMajorOrder
-      const Index segmentsCount = ( end - begin );
-      const Index elementsCount = segmentsCount * segmentSize;
-      for( Index globalThreadIdx = Backend::getGlobalThreadIdx_x( gridIdx ); globalThreadIdx < elementsCount;
-           globalThreadIdx += totalThreadsCount )
-      {
-         const Index segmentIdx = globalThreadIdx / segmentSize + begin;
-         const Index localIdx = globalThreadIdx % segmentSize;
-         const Index globalIdx = segments.getGlobalIndex( segmentIdx, localIdx );
-         TNL_ASSERT_LT( globalIdx, segments.getStorageSize(), "" );
-         if constexpr( argumentCount< Function >() == 3 )
-            function( segmentIdx, localIdx, globalIdx );
-         else
-            function( segmentIdx, globalIdx );
-      }
-   }
-#endif
-}
-
 template< typename SegmentsView, typename ArrayView, typename Index, typename Function, ElementsOrganization Organization >
 __global__
 void
