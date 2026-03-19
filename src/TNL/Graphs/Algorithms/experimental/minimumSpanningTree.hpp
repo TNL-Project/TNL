@@ -13,7 +13,7 @@
 #include <TNL/Algorithms/Segments/GrowingSegments.h>
 #include "minimumSpanningTree.h"
 
-namespace TNL::Graphs::Algorithms {
+namespace TNL::Graphs::Algorithms::experimental {
 
 // TODO: replace with std::tuple
 template< typename Real = double, typename Index = int >
@@ -439,45 +439,45 @@ parallelMST( const InGraph& graph, OutGraph& tree )
       }*/
 
       //std::cout << "p_old= " << p_old << '\n';
-      TNL::Algorithms::parallelFor< DeviceType >( (IndexType) 0,
-                                                  n,
-                                                  [ = ] __cuda_callable__( Index i ) mutable
-                                                  {
-                                                     if( star_hook_sources_view[ i ] != -1 ) {
-                                                        TNL_ASSERT_EQ( i, p_old_view[ star_hook_sources_view[ i ] ], "" );
-                                                        const auto source_star = p_old_view[ star_hook_sources_view[ i ] ];
-                                                        const auto target_star = p_old_view[ star_hook_targets_view[ i ] ];
-                                                        //std::cout << " >>>> Star hook " << i << ": " <<
-                                                        //star_hook_sources_view[ i ] << " -> " << star_hook_targets_view[ i ]
-                                                        //          << " source star: " << source_star << " target star: " <<
-                                                        //          target_star << " @ " << star_hook_weights_view[ i ] <<
-                                                        //          '\n';
-                                                        if( star_hook_sources_view[ target_star ] != -1 ) {
-                                                           const auto next_star =
-                                                              p_view[ star_hook_targets_view[ target_star ] ];
-                                                           if( next_star != i ) {
-                                                              //std::cerr << " Triple star hooking found: " <<
-                                                              //star_hook_sources_view[ i ]
-                                                              //          << " -> " << star_hook_targets_view[ i ] << " -> " <<
-                                                              //          star_hook_targets_view[ target_star ] << '\n';
-                                                              const auto first_weight = star_hook_weights_view[ i ];
-                                                              const auto second_weight = star_hook_weights_view[ target_star ];
-                                                              if( first_weight > second_weight ) {
-                                                                 //   std::cout << " Erasing hook: " << star_hook_sources_view[
-                                                                 //   i ]
-                                                                 //   << " -> " << star_hook_targets_view[ i ] << '\n';
-                                                                 star_hook_sources_view[ i ] = -1;
-                                                              }
-                                                              else {
-                                                                 //   std::cout << " Erasing hook: " << star_hook_sources_view[
-                                                                 //   target_star ] << " -> " << star_hook_targets_view[
-                                                                 //   target_star ] << '\n';
-                                                                 star_hook_sources_view[ target_star ] = -1;
-                                                              }
-                                                           }
-                                                        }
-                                                     }
-                                                  } );
+      TNL::Algorithms::parallelFor< DeviceType >(  //
+         (IndexType) 0,
+         n,
+         [ = ] __cuda_callable__( Index i ) mutable
+         {
+            if( star_hook_sources_view[ i ] != -1 ) {
+               TNL_ASSERT_EQ( i, p_old_view[ star_hook_sources_view[ i ] ], "" );
+               const auto source_star = p_old_view[ star_hook_sources_view[ i ] ];
+               const auto target_star = p_old_view[ star_hook_targets_view[ i ] ];
+               //std::cout << " >>>> Star hook " << i << ": " <<
+               //star_hook_sources_view[ i ] << " -> " << star_hook_targets_view[ i ]
+               //          << " source star: " << source_star << " target star: " <<
+               //          target_star << " @ " << star_hook_weights_view[ i ] <<
+               //          '\n';
+               if( star_hook_sources_view[ target_star ] != -1 ) {
+                  const auto next_star = p_view[ star_hook_targets_view[ target_star ] ];
+                  if( next_star != i ) {
+                     //std::cerr << " Triple star hooking found: " <<
+                     //star_hook_sources_view[ i ]
+                     //          << " -> " << star_hook_targets_view[ i ] << " -> " <<
+                     //          star_hook_targets_view[ target_star ] << '\n';
+                     const auto first_weight = star_hook_weights_view[ i ];
+                     const auto second_weight = star_hook_weights_view[ target_star ];
+                     if( first_weight > second_weight ) {
+                        //   std::cout << " Erasing hook: " << star_hook_sources_view[
+                        //   i ]
+                        //   << " -> " << star_hook_targets_view[ i ] << '\n';
+                        star_hook_sources_view[ i ] = -1;
+                     }
+                     else {
+                        //   std::cout << " Erasing hook: " << star_hook_sources_view[
+                        //   target_star ] << " -> " << star_hook_targets_view[
+                        //   target_star ] << '\n';
+                        star_hook_sources_view[ target_star ] = -1;
+                     }
+                  }
+               }
+            }
+         } );
 
       //getchar();
 
@@ -617,4 +617,4 @@ minimumSpanningTree( const InGraph& graph, OutGraph& spanning_tree, RootsVector&
    //   parallelMST( graph, spanning_tree );
 }
 
-}  // namespace TNL::Graphs::Algorithms
+}  //namespace TNL::Graphs::Algorithms::experimental
