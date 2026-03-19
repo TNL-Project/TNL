@@ -176,8 +176,13 @@ CSRBase< Device, Index >::forElements( IndexType begin, IndexType end, Function 
       for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
          Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
          if constexpr( argumentCount< Function >() == 3 ) {
-            constexpr auto kernel = detail::forElementsKernel_CSR< ConstOffsetsView, IndexType, Function >;
-            Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, function );
+            auto condition = [] __cuda_callable__( IndexType )
+            {
+               return true;
+            };
+            constexpr auto kernel =
+               detail::forElementsIfKernel_CSR< ConstOffsetsView, IndexType, decltype( condition ), Function >;
+            Backend::launchKernelAsync( kernel, launch_config, gridIdx, this->offsets, begin, end, condition, function );
          }
          else {
             constexpr auto kernel = detail::forElementsBlockMergeKernel_CSR< ConstOffsetsView, IndexType, Function >;

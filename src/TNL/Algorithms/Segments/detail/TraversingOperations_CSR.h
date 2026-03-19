@@ -81,7 +81,12 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-                  constexpr auto kernel = forElementsKernel_CSR< ConstOffsetsView, IndexType, Function >;
+                  auto condition = [] __cuda_callable__( IndexType )
+                  {
+                     return true;
+                  };
+                  constexpr auto kernel =
+                     forElementsIfKernel_CSR< ConstOffsetsView, IndexType, decltype( condition ), Function >;
                   Backend::launchKernelAsync( kernel,
                                               launchConfig,
                                               gridIdx,
@@ -89,6 +94,7 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                                               segments.getOffsets(),
                                               begin,
                                               end,
+                                              condition,
                                               function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
