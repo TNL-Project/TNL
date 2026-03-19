@@ -323,22 +323,6 @@ forElementsIf( const Segments& segments,
                Function function,
                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
-template< typename Segments, typename Condition, typename Function >
-void
-forAllElementsIfSparse( const Segments& segments,
-                        Condition condition,
-                        Function function,
-                        LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
-
-template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
-void
-forElementsIfSparse( const Segments& segments,
-                     IndexBegin begin,
-                     IndexEnd end,
-                     Condition condition,
-                     Function function,
-                     LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
-
 /**
  * \brief Iterates in parallel over **all** segments and applies the given lambda function to each segment.
  *
