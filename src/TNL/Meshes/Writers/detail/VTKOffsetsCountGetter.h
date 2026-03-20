@@ -22,9 +22,10 @@ struct VTKOffsetsCountGetter
 };
 
 template< typename Mesh, int EntityDimension >
-struct VTKOffsetsCountGetter< Mesh,
-                              EntityDimension,
-                              MeshEntity< typename Mesh::Config, typename Mesh::DeviceType, Topologies::Polygon > >
+struct VTKOffsetsCountGetter<
+   Mesh,
+   EntityDimension,
+   MeshEntity< typename Mesh::Config, typename Mesh::DeviceType, Topologies::Polygon > >
 {
    using IndexType = typename Mesh::GlobalIndexType;
 
@@ -40,9 +41,10 @@ struct VTKOffsetsCountGetter< Mesh,
 };
 
 template< typename Mesh, int EntityDimension >
-struct VTKOffsetsCountGetter< Mesh,
-                              EntityDimension,
-                              MeshEntity< typename Mesh::Config, typename Mesh::DeviceType, Topologies::Polyhedron > >
+struct VTKOffsetsCountGetter<
+   Mesh,
+   EntityDimension,
+   MeshEntity< typename Mesh::Config, typename Mesh::DeviceType, Topologies::Polyhedron > >
 {
    using IndexType = typename Mesh::GlobalIndexType;
 

@@ -22,10 +22,11 @@ __cuda_callable__
 void
 MultidiagonalMatrixView< Real, Device, Index, Organization >::bind( MultidiagonalMatrixView view )
 {
-   Base::bind( std::move( view.values ),
-               std::move( view.diagonalOffsets ),
-               std::move( view.hostDiagonalOffsets ),
-               std::move( view.indexer ) );
+   Base::bind(
+      std::move( view.values ),
+      std::move( view.diagonalOffsets ),
+      std::move( view.hostDiagonalOffsets ),
+      std::move( view.indexer ) );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -53,21 +54,22 @@ operator>>( File& file, MultidiagonalMatrixView< Real, Device, Index, Organizati
 {
    const std::string type = getObjectType( file );
    if( type != matrix.getSerializationType() )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "object type does not match (expected " + matrix.getSerializationType()
-                                                     + ", found " + type + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "object type does not match (expected " + matrix.getSerializationType() + ", found " + type + ")." );
    std::size_t rows = 0;
    std::size_t columns = 0;
    file.load( &rows );
    file.load( &columns );
    if( rows != static_cast< std::size_t >( matrix.getRows() ) )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "invalid number of rows: " + std::to_string( rows ) + " (expected "
-                                                     + std::to_string( matrix.getRows() ) + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "invalid number of rows: " + std::to_string( rows ) + " (expected " + std::to_string( matrix.getRows() ) + ")." );
    if( columns != static_cast< std::size_t >( matrix.getColumns() ) )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "invalid number of columns: " + std::to_string( columns ) + " (expected "
-                                                     + std::to_string( matrix.getColumns() ) + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "invalid number of columns: " + std::to_string( columns ) + " (expected " + std::to_string( matrix.getColumns() )
+            + ")." );
    file >> matrix.getDiagonalOffsets() >> matrix.getValues();
    return file;
 }

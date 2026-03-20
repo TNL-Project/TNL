@@ -13,15 +13,17 @@ class NDArrayReduce4DTest : public ::testing::Test
 protected:
    using Array4D = T;
    using IndexType = typename Array4D::IndexType;
-   using Array3D = NDArray< typename Array4D::ValueType,  //
-                            SizesHolder< IndexType, 0, 0, 0 >,
-                            std::index_sequence< 0, 1, 2 >,
-                            typename T::DeviceType >;
+   using Array3D = NDArray<
+      typename Array4D::ValueType,  //
+      SizesHolder< IndexType, 0, 0, 0 >,
+      std::index_sequence< 0, 1, 2 >,
+      typename T::DeviceType >;
 
-   using Array3D_host = NDArray< typename Array4D::ValueType,  //
-                                 SizesHolder< IndexType, 0, 0, 0 >,
-                                 std::index_sequence< 0, 1, 2 >,
-                                 Devices::Host >;
+   using Array3D_host = NDArray<
+      typename Array4D::ValueType,  //
+      SizesHolder< IndexType, 0, 0, 0 >,
+      std::index_sequence< 0, 1, 2 >,
+      Devices::Host >;
 
    Array4D a;
    Array3D result;

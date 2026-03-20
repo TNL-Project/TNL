@@ -55,8 +55,9 @@ public:
       this->columns = columns;
       this->nonemptyRows = min( rows, columns ) + ( rows > columns );
       if( TNL::integerMultiplyOverflow( IndexType( 3 ), this->nonemptyRows ) )
-         throw std::overflow_error( "TridiagonalMatrix: multiplication overflow - the storage size required for the matrix is "
-                                    "larger than the maximal value of used index type." );
+         throw std::overflow_error(
+            "TridiagonalMatrix: multiplication overflow - the storage size required for the matrix is "
+            "larger than the maximal value of used index type." );
    }
 
    [[nodiscard]] __cuda_callable__

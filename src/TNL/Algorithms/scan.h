@@ -54,16 +54,18 @@ namespace TNL::Algorithms {
  */
 template< typename InputArray, typename OutputArray, typename Reduction >
 void
-inclusiveScan( const InputArray& input,
-               OutputArray& output,
-               typename InputArray::IndexType begin,
-               typename InputArray::IndexType end,
-               typename OutputArray::IndexType outputBegin,
-               Reduction&& reduction,
-               typename OutputArray::ValueType identity )
+inclusiveScan(
+   const InputArray& input,
+   OutputArray& output,
+   typename InputArray::IndexType begin,
+   typename InputArray::IndexType end,
+   typename OutputArray::IndexType outputBegin,
+   Reduction&& reduction,
+   typename OutputArray::ValueType identity )
 {
-   static_assert( std::is_same_v< typename InputArray::DeviceType, typename OutputArray::DeviceType >,
-                  "The input and output arrays must have the same device type." );
+   static_assert(
+      std::is_same_v< typename InputArray::DeviceType, typename OutputArray::DeviceType >,
+      "The input and output arrays must have the same device type." );
    TNL_ASSERT_EQ( reduction( identity, identity ), identity, "identity is not an identity element of the reduction operation" );
    // TODO: check if evaluating the input is expensive (e.g. a vector expression), otherwise use WriteInSecondPhase (optimal for
    // array-to-array)
@@ -83,12 +85,13 @@ inclusiveScan( const InputArray& input,
  */
 template< typename InputArray, typename OutputArray, typename Reduction = TNL::Plus >
 void
-inclusiveScan( const InputArray& input,
-               OutputArray& output,
-               typename InputArray::IndexType begin = 0,
-               typename InputArray::IndexType end = 0,
-               typename OutputArray::IndexType outputBegin = 0,
-               Reduction&& reduction = TNL::Plus{} )
+inclusiveScan(
+   const InputArray& input,
+   OutputArray& output,
+   typename InputArray::IndexType begin = 0,
+   typename InputArray::IndexType end = 0,
+   typename OutputArray::IndexType outputBegin = 0,
+   Reduction&& reduction = TNL::Plus{} )
 {
    if( end == 0 )
       end = input.getSize();
@@ -140,16 +143,18 @@ inclusiveScan( const InputArray& input,
  */
 template< typename InputArray, typename OutputArray, typename Reduction >
 void
-exclusiveScan( const InputArray& input,
-               OutputArray& output,
-               typename InputArray::IndexType begin,
-               typename InputArray::IndexType end,
-               typename OutputArray::IndexType outputBegin,
-               Reduction&& reduction,
-               typename OutputArray::ValueType identity )
+exclusiveScan(
+   const InputArray& input,
+   OutputArray& output,
+   typename InputArray::IndexType begin,
+   typename InputArray::IndexType end,
+   typename OutputArray::IndexType outputBegin,
+   Reduction&& reduction,
+   typename OutputArray::ValueType identity )
 {
-   static_assert( std::is_same_v< typename InputArray::DeviceType, typename OutputArray::DeviceType >,
-                  "The input and output arrays must have the same device type." );
+   static_assert(
+      std::is_same_v< typename InputArray::DeviceType, typename OutputArray::DeviceType >,
+      "The input and output arrays must have the same device type." );
    TNL_ASSERT_EQ( reduction( identity, identity ), identity, "identity is not an identity element of the reduction operation" );
    // TODO: check if evaluating the input is expensive (e.g. a vector expression), otherwise use WriteInSecondPhase (optimal for
    // array-to-array)
@@ -169,12 +174,13 @@ exclusiveScan( const InputArray& input,
  */
 template< typename InputArray, typename OutputArray, typename Reduction = TNL::Plus >
 void
-exclusiveScan( const InputArray& input,
-               OutputArray& output,
-               typename InputArray::IndexType begin = 0,
-               typename InputArray::IndexType end = 0,
-               typename OutputArray::IndexType outputBegin = 0,
-               Reduction&& reduction = TNL::Plus{} )
+exclusiveScan(
+   const InputArray& input,
+   OutputArray& output,
+   typename InputArray::IndexType begin = 0,
+   typename InputArray::IndexType end = 0,
+   typename OutputArray::IndexType outputBegin = 0,
+   Reduction&& reduction = TNL::Plus{} )
 {
    if( end == 0 )
       end = input.getSize();
@@ -220,11 +226,12 @@ exclusiveScan( const InputArray& input,
  */
 template< typename Array, typename Reduction >
 void
-inplaceInclusiveScan( Array& array,
-                      typename Array::IndexType begin,
-                      typename Array::IndexType end,
-                      Reduction&& reduction,
-                      typename Array::ValueType identity )
+inplaceInclusiveScan(
+   Array& array,
+   typename Array::IndexType begin,
+   typename Array::IndexType end,
+   Reduction&& reduction,
+   typename Array::ValueType identity )
 {
    TNL_ASSERT_EQ( reduction( identity, identity ), identity, "identity is not an identity element of the reduction operation" );
    using Scan =
@@ -243,10 +250,11 @@ inplaceInclusiveScan( Array& array,
  */
 template< typename Array, typename Reduction = TNL::Plus >
 void
-inplaceInclusiveScan( Array& array,
-                      typename Array::IndexType begin = 0,
-                      typename Array::IndexType end = 0,
-                      Reduction&& reduction = TNL::Plus{} )
+inplaceInclusiveScan(
+   Array& array,
+   typename Array::IndexType begin = 0,
+   typename Array::IndexType end = 0,
+   Reduction&& reduction = TNL::Plus{} )
 {
    if( end == 0 )
       end = array.getSize();
@@ -292,11 +300,12 @@ inplaceInclusiveScan( Array& array,
  */
 template< typename Array, typename Reduction >
 void
-inplaceExclusiveScan( Array& array,
-                      typename Array::IndexType begin,
-                      typename Array::IndexType end,
-                      Reduction&& reduction,
-                      typename Array::ValueType identity )
+inplaceExclusiveScan(
+   Array& array,
+   typename Array::IndexType begin,
+   typename Array::IndexType end,
+   Reduction&& reduction,
+   typename Array::ValueType identity )
 {
    TNL_ASSERT_EQ( reduction( identity, identity ), identity, "identity is not an identity element of the reduction operation" );
    using Scan =
@@ -315,10 +324,11 @@ inplaceExclusiveScan( Array& array,
  */
 template< typename Array, typename Reduction = TNL::Plus >
 void
-inplaceExclusiveScan( Array& array,
-                      typename Array::IndexType begin = 0,
-                      typename Array::IndexType end = 0,
-                      Reduction&& reduction = TNL::Plus{} )
+inplaceExclusiveScan(
+   Array& array,
+   typename Array::IndexType begin = 0,
+   typename Array::IndexType end = 0,
+   Reduction&& reduction = TNL::Plus{} )
 {
    if( end == 0 )
       end = array.getSize();

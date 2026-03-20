@@ -11,11 +11,12 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int Alignment = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int Alignment = 32 >
 class Ellpack : public EllpackBase< Device, Index, Organization, Alignment >
 {
    using Base = EllpackBase< Device, Index, Organization, Alignment >;

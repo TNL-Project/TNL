@@ -10,8 +10,8 @@ template< typename Permutation, typename ExpectedPermutation >
 void
 check_permutation()
 {
-   static_assert( std::is_same_v< Permutation, ExpectedPermutation >,
-                  "The permutation is not the same as the expected permutation." );
+   static_assert(
+      std::is_same_v< Permutation, ExpectedPermutation >, "The permutation is not the same as the expected permutation." );
 }
 
 TEST( NDArraySubarrayTest, StaticAsserts )

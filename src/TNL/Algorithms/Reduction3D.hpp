@@ -20,13 +20,8 @@
 namespace TNL::Algorithms {
 
 template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
-void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
-                                                           Fetch fetch,
-                                                           Reduction reduction,
-                                                           Index size,
-                                                           int m,
-                                                           int n,
-                                                           Output result )
+void constexpr Reduction3D<
+   Devices::Sequential >::reduce( Result identity, Fetch fetch, Reduction reduction, Index size, int m, int n, Output result )
 {
    TNL_ASSERT_GT( size, 0, "The size of datasets must be positive." );
    TNL_ASSERT_GT( m, 0, "The number of datasets must be positive." );
@@ -139,13 +134,8 @@ void constexpr Reduction3D< Devices::Sequential >::reduce( Result identity,
 
 template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
 void
-Reduction3D< Devices::Host >::reduce( Result identity,
-                                      Fetch fetch,
-                                      Reduction reduction,
-                                      Index size,
-                                      int m,
-                                      int n,
-                                      Output result )
+Reduction3D<
+   Devices::Host >::reduce( Result identity, Fetch fetch, Reduction reduction, Index size, int m, int n, Output result )
 {
    if( size < 0 )
       throw std::invalid_argument( "Reduction3D: The size of datasets must be non-negative." );
@@ -236,13 +226,8 @@ Reduction3D< Devices::Host >::reduce( Result identity,
 
 template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
 void
-Reduction3D< Devices::Cuda >::reduce( Result identity,
-                                      Fetch fetch,
-                                      Reduction reduction,
-                                      Index size,
-                                      int m,
-                                      int n,
-                                      Output hostResult )
+Reduction3D<
+   Devices::Cuda >::reduce( Result identity, Fetch fetch, Reduction reduction, Index size, int m, int n, Output hostResult )
 {
    if( size < 0 )
       throw std::invalid_argument( "Reduction3D: The size of datasets must be non-negative." );

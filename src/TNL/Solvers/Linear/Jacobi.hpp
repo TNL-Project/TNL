@@ -104,10 +104,11 @@ Jacobi< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
 
 template< typename Matrix >
 void
-Jacobi< Matrix >::performIteration( const ConstVectorViewType& b,
-                                    const ConstVectorViewType& diagonalView,
-                                    const ConstVectorViewType& in,
-                                    VectorViewType& out ) const
+Jacobi< Matrix >::performIteration(
+   const ConstVectorViewType& b,
+   const ConstVectorViewType& diagonalView,
+   const ConstVectorViewType& in,
+   VectorViewType& out ) const
 {
    const RealType omega_ = this->omega;
    auto fetch = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const RealType& value )

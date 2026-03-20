@@ -11,26 +11,28 @@ namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
-ChunkedEllpackView< Device, Index, Organization >::ChunkedEllpackView( Index size,
-                                                                       Index storageSize,
-                                                                       Index numberOfSlices,
-                                                                       Index chunksInSlice,
-                                                                       Index desiredChunkSize,
-                                                                       typename Base::OffsetsView segmentToChunkMapping,
-                                                                       typename Base::OffsetsView segmentToSliceMapping,
-                                                                       typename Base::OffsetsView chunksToSegmentsMapping,
-                                                                       typename Base::OffsetsView segmentPointers,
-                                                                       typename Base::SliceInfoContainerView slices )
-: Base( size,
-        storageSize,
-        numberOfSlices,
-        chunksInSlice,
-        desiredChunkSize,
-        std::move( segmentToChunkMapping ),
-        std::move( segmentToSliceMapping ),
-        std::move( chunksToSegmentsMapping ),
-        std::move( segmentPointers ),
-        std::move( slices ) )
+ChunkedEllpackView< Device, Index, Organization >::ChunkedEllpackView(
+   Index size,
+   Index storageSize,
+   Index numberOfSlices,
+   Index chunksInSlice,
+   Index desiredChunkSize,
+   typename Base::OffsetsView segmentToChunkMapping,
+   typename Base::OffsetsView segmentToSliceMapping,
+   typename Base::OffsetsView chunksToSegmentsMapping,
+   typename Base::OffsetsView segmentPointers,
+   typename Base::SliceInfoContainerView slices )
+: Base(
+     size,
+     storageSize,
+     numberOfSlices,
+     chunksInSlice,
+     desiredChunkSize,
+     std::move( segmentToChunkMapping ),
+     std::move( segmentToSliceMapping ),
+     std::move( chunksToSegmentsMapping ),
+     std::move( segmentPointers ),
+     std::move( slices ) )
 {}
 
 template< typename Device, typename Index, ElementsOrganization Organization >
@@ -38,16 +40,17 @@ __cuda_callable__
 void
 ChunkedEllpackView< Device, Index, Organization >::bind( ChunkedEllpackView view )
 {
-   Base::bind( view.size,
-               view.storageSize,
-               view.numberOfSlices,
-               view.chunksInSlice,
-               view.desiredChunkSize,
-               std::move( view.segmentToChunkMapping ),
-               std::move( view.segmentToSliceMapping ),
-               std::move( view.chunksToSegmentsMapping ),
-               std::move( view.segmentPointers ),
-               std::move( view.slices ) );
+   Base::bind(
+      view.size,
+      view.storageSize,
+      view.numberOfSlices,
+      view.chunksInSlice,
+      view.desiredChunkSize,
+      std::move( view.segmentToChunkMapping ),
+      std::move( view.segmentToSliceMapping ),
+      std::move( view.chunksToSegmentsMapping ),
+      std::move( view.segmentPointers ),
+      std::move( view.slices ) );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization >

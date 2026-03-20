@@ -25,10 +25,11 @@ namespace TNL {
  */
 template< typename HeaderType = std::uint64_t, typename T >
 void
-write_compressed_block( const T* data,
-                        const std::size_t data_size,
-                        std::ostream& output_stream,
-                        const int compression_level = Z_DEFAULT_COMPRESSION )
+write_compressed_block(
+   const T* data,
+   const std::size_t data_size,
+   std::ostream& output_stream,
+   const int compression_level = Z_DEFAULT_COMPRESSION )
 {
    if( data_size == 0 )
       return;
@@ -38,11 +39,12 @@ write_compressed_block( const T* data,
    std::unique_ptr< std::uint8_t[] > compressed_data{ new std::uint8_t[ compressed_data_length ] };
 
    // compress the data
-   const int status = compress2( reinterpret_cast< Bytef* >( compressed_data.get() ),
-                                 &compressed_data_length,
-                                 reinterpret_cast< const Bytef* >( data ),
-                                 data_size * sizeof( T ),
-                                 compression_level );
+   const int status = compress2(
+      reinterpret_cast< Bytef* >( compressed_data.get() ),
+      &compressed_data_length,
+      reinterpret_cast< const Bytef* >( data ),
+      data_size * sizeof( T ),
+      compression_level );
    if( status != Z_OK )
       throw std::runtime_error( "zlib compression failed" );
 
@@ -75,16 +77,18 @@ decompress_data( const std::uint8_t* decoded_data, const std::size_t decoded_dat
    // decompress the data
    std::unique_ptr< T[] > data{ new T[ data_size ] };
    uLongf uncompressed_length_data = data_size * sizeof( T );
-   const int status = uncompress( reinterpret_cast< Bytef* >( data.get() ),
-                                  &uncompressed_length_data,
-                                  reinterpret_cast< const Bytef* >( decoded_data ),
-                                  decoded_data_length );
+   const int status = uncompress(
+      reinterpret_cast< Bytef* >( data.get() ),
+      &uncompressed_length_data,
+      reinterpret_cast< const Bytef* >( decoded_data ),
+      decoded_data_length );
    if( status != Z_OK )
       throw std::runtime_error( "zlib decompression failed" );
 
    if( uncompressed_length_data != data_size * sizeof( T ) )
-      throw std::length_error( "uncompressed data length does not match the size stored in the compression header: "
-                               + std::to_string( uncompressed_length_data ) + " vs " + std::to_string( data_size ) );
+      throw std::length_error(
+         "uncompressed data length does not match the size stored in the compression header: "
+         + std::to_string( uncompressed_length_data ) + " vs " + std::to_string( data_size ) );
 
    return data;
 }

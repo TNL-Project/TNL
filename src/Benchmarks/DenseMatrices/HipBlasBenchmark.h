@@ -11,11 +11,12 @@ namespace TNL::Benchmarks::DenseMatrices {
 
 template< typename DenseMatrix >
 void
-matrixMultiplicationHIPBLAS( const DenseMatrix& matrix1,
-                             const DenseMatrix& matrix2,
-                             DenseMatrix& resultMatrix,
-                             bool transposeA,
-                             bool transposeB )
+matrixMultiplicationHIPBLAS(
+   const DenseMatrix& matrix1,
+   const DenseMatrix& matrix2,
+   DenseMatrix& resultMatrix,
+   bool transposeA,
+   bool transposeB )
 {
    using RealType = typename DenseMatrix::RealType;
    using IndexType = typename DenseMatrix::IndexType;
@@ -41,36 +42,38 @@ matrixMultiplicationHIPBLAS( const DenseMatrix& matrix1,
    RealType beta = 0.0;
 
    if constexpr( std::is_same_v< RealType, float > ) {
-      hipblasSgemm( handle,
-                    opA,
-                    opB,
-                    m,
-                    n,
-                    k,
-                    &alpha,
-                    matrix1.getValues().getData(),
-                    lda,
-                    matrix2.getValues().getData(),
-                    ldb,
-                    &beta,
-                    resultMatrix.getValues().getData(),
-                    ldc );
+      hipblasSgemm(
+         handle,
+         opA,
+         opB,
+         m,
+         n,
+         k,
+         &alpha,
+         matrix1.getValues().getData(),
+         lda,
+         matrix2.getValues().getData(),
+         ldb,
+         &beta,
+         resultMatrix.getValues().getData(),
+         ldc );
    }
    else if constexpr( std::is_same_v< RealType, double > ) {
-      hipblasDgemm( handle,
-                    opA,
-                    opB,
-                    m,
-                    n,
-                    k,
-                    &alpha,
-                    matrix1.getValues().getData(),
-                    lda,
-                    matrix2.getValues().getData(),
-                    ldb,
-                    &beta,
-                    resultMatrix.getValues().getData(),
-                    ldc );
+      hipblasDgemm(
+         handle,
+         opA,
+         opB,
+         m,
+         n,
+         k,
+         &alpha,
+         matrix1.getValues().getData(),
+         lda,
+         matrix2.getValues().getData(),
+         ldb,
+         &beta,
+         resultMatrix.getValues().getData(),
+         ldc );
    }
 
    hipblasDestroy( handle );

@@ -43,9 +43,7 @@ class SparseMatrixBase : public MatrixBase< Real, Device, Index, MatrixType, Seg
 {
    static_assert(
       ! MatrixType::isSymmetric() || ! std::is_same_v< Device, Devices::Cuda >
-         || (std::is_same_v< std::decay_t< Real >, float > || std::is_same_v< std::decay_t< Real >, double >
-             || std::is_same_v< std::decay_t< Real >, int > || std::is_same_v< std::decay_t< Real >, long long int >
-             || std::is_same_v< std::decay_t< Real >, bool >),
+         || (std::is_same_v< std::decay_t< Real >, float > || std::is_same_v< std::decay_t< Real >, double > || std::is_same_v< std::decay_t< Real >, int > || std::is_same_v< std::decay_t< Real >, long long int > || std::is_same_v< std::decay_t< Real >, bool >),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
    using Base = MatrixBase< Real, Device, Index, MatrixType, SegmentsView::getOrganization() >;
@@ -116,11 +114,12 @@ public:
     * \param segments is a segments view representing the sparse matrix format.
     */
    __cuda_callable__
-   SparseMatrixBase( IndexType rows,
-                     IndexType columns,
-                     typename Base::ValuesViewType values,
-                     ColumnIndexesViewType columnIndexes,
-                     SegmentsViewType segments );
+   SparseMatrixBase(
+      IndexType rows,
+      IndexType columns,
+      typename Base::ValuesViewType values,
+      ColumnIndexesViewType columnIndexes,
+      SegmentsViewType segments );
 
    /**
     * \brief Copy constructor.
@@ -365,19 +364,21 @@ public:
     * \par Output
     * \include SparseMatrixExample_reduceRows.out
     */
-   template< typename Fetch,
-             typename Reduce,
-             typename Keep,
-             typename FetchValue,
-             typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
+   template<
+      typename Fetch,
+      typename Reduce,
+      typename Keep,
+      typename FetchValue,
+      typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
    std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
-   reduceRows( IndexType begin,
-               IndexType end,
-               Fetch&& fetch,
-               const Reduce& reduce,
-               Keep&& keep,
-               const FetchValue& identity,
-               const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+   reduceRows(
+      IndexType begin,
+      IndexType end,
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const FetchValue& identity,
+      const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
    /**
     * \brief Method for performing general reduction on matrix rows for constant instances with function object
@@ -415,12 +416,13 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
    std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
-   reduceRows( IndexType begin,
-               IndexType end,
-               Fetch&& fetch,
-               const Reduce& reduce,
-               Keep&& keep,
-               const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+   reduceRows(
+      IndexType begin,
+      IndexType end,
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
    /**
     * \brief Method for performing general reduction on all matrix rows for constant instances.
@@ -461,17 +463,19 @@ public:
     * \par Output
     * \include SparseMatrixExample_reduceAllRows.out
     */
-   template< typename Fetch,
-             typename Reduce,
-             typename Keep,
-             typename FetchValue,
-             typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
+   template<
+      typename Fetch,
+      typename Reduce,
+      typename Keep,
+      typename FetchValue,
+      typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
    std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
-   reduceAllRows( Fetch&& fetch,
-                  const Reduce& reduce,
-                  Keep&& keep,
-                  const FetchValue& identity,
-                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+   reduceAllRows(
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const FetchValue& identity,
+      const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
    /**
     * \brief Method for performing general reduction on all matrix rows for constant instances
@@ -507,10 +511,11 @@ public:
     */
    template< typename Fetch, typename Reduce, typename Keep, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
    std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value >
-   reduceAllRows( Fetch&& fetch,
-                  const Reduce& reduce,
-                  Keep&& keep,
-                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+   reduceAllRows(
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
    /**
     * \brief Method for iteration over all matrix rows for constant instances.
@@ -776,19 +781,21 @@ public:
     */
    template< typename InVector, typename OutVector, typename SegmentsReductionKernel = DefaultSegmentsReductionKernel >
    void
-   vectorProduct( const InVector& inVector,
-                  OutVector& outVector,
-                  ComputeRealType matrixMultiplicator = 1.0,
-                  ComputeRealType outVectorMultiplicator = 0.0,
-                  IndexType begin = 0,
-                  IndexType end = 0,
-                  const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
+   vectorProduct(
+      const InVector& inVector,
+      OutVector& outVector,
+      ComputeRealType matrixMultiplicator = 1.0,
+      ComputeRealType outVectorMultiplicator = 0.0,
+      IndexType begin = 0,
+      IndexType end = 0,
+      const SegmentsReductionKernel& kernel = SegmentsReductionKernel{} ) const;
 
-   template< typename InVector,
-             typename OutVector,
-             typename SegmentsReductionKernel,
-             typename...,
-             std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeRealType >, bool > = true >
+   template<
+      typename InVector,
+      typename OutVector,
+      typename SegmentsReductionKernel,
+      typename...,
+      std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeRealType >, bool > = true >
    void
    vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
 
@@ -815,12 +822,13 @@ public:
     */
    template< typename InVector, typename OutVector >
    void
-   transposedVectorProduct( const InVector& inVector,
-                            OutVector& outVector,
-                            ComputeReal matrixMultiplicator = 1.0,
-                            ComputeReal outVectorMultiplicator = 0.0,
-                            Index begin = 0,
-                            Index end = 0 ) const;
+   transposedVectorProduct(
+      const InVector& inVector,
+      OutVector& outVector,
+      ComputeReal matrixMultiplicator = 1.0,
+      ComputeReal outVectorMultiplicator = 0.0,
+      Index begin = 0,
+      Index end = 0 ) const;
 
    /**
     * \brief Comparison operator with another arbitrary matrix type.
@@ -922,11 +930,12 @@ protected:
     */
    __cuda_callable__
    void
-   bind( IndexType rows,
-         IndexType columns,
-         typename Base::ValuesViewType values,
-         ColumnIndexesViewType columnIndexes,
-         SegmentsViewType segments );
+   bind(
+      IndexType rows,
+      IndexType columns,
+      typename Base::ValuesViewType values,
+      ColumnIndexesViewType columnIndexes,
+      SegmentsViewType segments );
 };
 
 /**

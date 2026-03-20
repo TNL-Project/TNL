@@ -11,9 +11,10 @@ namespace TNL::Meshes {
 
 template< typename MeshConfig, typename Device, typename MeshType >
 void
-MeshInitializableBase< MeshConfig, Device, MeshType >::init( typename MeshTraitsType::PointArrayType& points,
-                                                             typename MeshTraitsType::FaceSeedMatrixType& faceSeeds,
-                                                             typename MeshTraitsType::CellSeedMatrixType& cellSeeds )
+MeshInitializableBase< MeshConfig, Device, MeshType >::init(
+   typename MeshTraitsType::PointArrayType& points,
+   typename MeshTraitsType::FaceSeedMatrixType& faceSeeds,
+   typename MeshTraitsType::CellSeedMatrixType& cellSeeds )
 {
    MeshType* mesh = static_cast< MeshType* >( this );
    Initializer< typename MeshType::Config > initializer;
@@ -194,8 +195,8 @@ __cuda_callable__
 typename Mesh< MeshConfig, Device >::LocalIndexType
 Mesh< MeshConfig, Device >::getCellNeighborsCount( GlobalIndexType cellIndex ) const
 {
-   static_assert( MeshConfig::dualGraphStorage(),
-                  "You try to access the dual graph which is disabled in the mesh configuration." );
+   static_assert(
+      MeshConfig::dualGraphStorage(), "You try to access the dual graph which is disabled in the mesh configuration." );
    return this->getNeighborCounts()[ cellIndex ];
 }
 
@@ -204,8 +205,8 @@ __cuda_callable__
 typename Mesh< MeshConfig, Device >::GlobalIndexType
 Mesh< MeshConfig, Device >::getCellNeighborIndex( GlobalIndexType cellIndex, LocalIndexType neighborIndex ) const
 {
-   static_assert( MeshConfig::dualGraphStorage(),
-                  "You try to access the dual graph which is disabled in the mesh configuration." );
+   static_assert(
+      MeshConfig::dualGraphStorage(), "You try to access the dual graph which is disabled in the mesh configuration." );
    TNL_ASSERT_GE( neighborIndex, 0, "Invalid cell neighbor index." );
    TNL_ASSERT_LT( neighborIndex, getCellNeighborsCount( cellIndex ), "Invalid cell neighbor index." );
    const auto row = this->getDualGraph().getRow( cellIndex );

@@ -22,12 +22,13 @@ distributedVectorExample()
 
    const LocalRangeType localRange = TNL::Containers::splitRange< IndexType >( size, communicator );
    VectorType v( localRange, ghosts, size, communicator );
-   v.forElements( 0,
-                  size,
-                  [] __cuda_callable__( int idx, int& value )
-                  {
-                     value = idx;
-                  } );
+   v.forElements(
+      0,
+      size,
+      [] __cuda_callable__( int idx, int& value )
+      {
+         value = idx;
+      } );
    std::cout << "Rank " << communicator.rank() << " has subrange " << localRange << '\n';
    const int sum = TNL::sum( v );
 

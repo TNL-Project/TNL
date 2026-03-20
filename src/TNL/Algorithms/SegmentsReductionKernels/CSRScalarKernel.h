@@ -93,36 +93,40 @@ struct CSRScalarKernel
     * \par Output
     * \include SegmentsExample_CSR_reduceSegments.out
     */
-   template< typename SegmentsView,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename SegmentsView,
+      typename Fetch,
+      typename Reduction,
+      typename ResultKeeper,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegments( const SegmentsView& segments,
-                   Index begin,
-                   Index end,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Value& identity = Reduction::template getIdentity< Value >() );
+   reduceSegments(
+      const SegmentsView& segments,
+      Index begin,
+      Index end,
+      Fetch& fetch,
+      const Reduction& reduction,
+      ResultKeeper& keeper,
+      const Value& identity = Reduction::template getIdentity< Value >() );
 
    /**
     * \brief Call \ref reduceSegments for all segments.
     *
     * See \ref reduceSegments for more details.
     */
-   template< typename SegmentsView,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename SegmentsView,
+      typename Fetch,
+      typename Reduction,
+      typename ResultKeeper,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceAllSegments( const SegmentsView& segments,
-                      Fetch& fetch,
-                      const Reduction& reduction,
-                      ResultKeeper& keeper,
-                      const Value& identity = Reduction::template getIdentity< Value >() );
+   reduceAllSegments(
+      const SegmentsView& segments,
+      Fetch& fetch,
+      const Reduction& reduction,
+      ResultKeeper& keeper,
+      const Value& identity = Reduction::template getIdentity< Value >() );
 };
 
 template< typename Index, typename Device >

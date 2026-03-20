@@ -32,17 +32,18 @@ struct BenchmarkResult
    [[nodiscard]] virtual HeaderElements
    getTableHeader() const
    {
-      return HeaderElements( { "time",
-                               "speedup",
-                               "bandwidth",
-                               "cycles/op",
-                               "cycles",
-                               "time_stddev",
-                               "time_stddev/time",
-                               "cycles_stddev",
-                               "cycles_stddev/cycles",
-                               "loops",
-                               "ops_per_loop" } );
+      return HeaderElements(
+         { "time",
+           "speedup",
+           "bandwidth",
+           "cycles/op",
+           "cycles",
+           "time_stddev",
+           "time_stddev/time",
+           "cycles_stddev",
+           "cycles_stddev/cycles",
+           "loops",
+           "ops_per_loop" } );
    }
 
    [[nodiscard]] virtual std::vector< int >
@@ -139,8 +140,9 @@ public:
    // Sets the dataset size and base time for the calculations of bandwidth
    // and speedup in the benchmarks result.
    void
-   setDatasetSize( double datasetSize = 0.0,  // in GB
-                   double baseTime = 0.0 );
+   setDatasetSize(
+      double datasetSize = 0.0,  // in GB
+      double baseTime = 0.0 );
 
    void
    setOperationsPerLoop( std::size_t operationsPerLoop );
@@ -151,9 +153,10 @@ public:
    //  - Order of operations inside a "Benchmark" does not matter, rows can be
    //    easily sorted while converting to HTML.)
    void
-   setOperation( const std::string& operation,
-                 double datasetSize = 0.0,  // in GB
-                 double baseTime = 0.0 );
+   setOperation(
+      const std::string& operation,
+      double datasetSize = 0.0,  // in GB
+      double baseTime = 0.0 );
 
    // Times a single ComputeFunction. Subsequent calls implicitly split
    // the current operation into sub-columns identified by "performer",

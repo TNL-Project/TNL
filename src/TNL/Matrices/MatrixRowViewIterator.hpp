@@ -55,10 +55,11 @@ __cuda_callable__
 auto
 MatrixRowViewIterator< RowView >::operator*() -> MatrixElementType
 {
-   return MatrixElementType( this->rowView.getValue( this->localIdx ),
-                             this->rowView.getRowIndex(),
-                             this->rowView.getColumnIndex( this->localIdx ),
-                             this->localIdx );
+   return MatrixElementType(
+      this->rowView.getValue( this->localIdx ),
+      this->rowView.getRowIndex(),
+      this->rowView.getColumnIndex( this->localIdx ),
+      this->localIdx );
 }
 
 template< typename RowView >
@@ -66,10 +67,11 @@ __cuda_callable__
 auto
 MatrixRowViewIterator< RowView >::operator*() const -> MatrixElementType
 {
-   return MatrixElementType( this->rowView.getValue( this->localIdx ),
-                             this->rowView.getRowIndex(),
-                             this->rowView.getColumnIndex( this->localIdx ),
-                             this->localIdx );
+   return MatrixElementType(
+      this->rowView.getValue( this->localIdx ),
+      this->rowView.getRowIndex(),
+      this->rowView.getColumnIndex( this->localIdx ),
+      this->localIdx );
 }
 
 }  // namespace TNL::Matrices

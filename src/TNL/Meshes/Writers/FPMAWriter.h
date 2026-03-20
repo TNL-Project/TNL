@@ -19,10 +19,12 @@ struct MeshEntitiesFPMAWriter;
 template< typename Mesh >
 class FPMAWriter
 {
-   static_assert( isGrid< Mesh >::value || ! std::is_same_v< typename Mesh::DeviceType, Devices::GPU >,
-                  "Writers cannot be used with unstructured meshes allocated on GPU." );
-   static_assert( std::is_same_v< typename Mesh::Cell::EntityTopology, Topologies::Polyhedron >,
-                  "The FPMA format supports polyhedral meshes." );
+   static_assert(
+      isGrid< Mesh >::value || ! std::is_same_v< typename Mesh::DeviceType, Devices::GPU >,
+      "Writers cannot be used with unstructured meshes allocated on GPU." );
+   static_assert(
+      std::is_same_v< typename Mesh::Cell::EntityTopology, Topologies::Polyhedron >,
+      "The FPMA format supports polyhedral meshes." );
 
    template< int EntityDimension, int SubDimension >
    using EntitiesWriter = details::MeshEntitiesFPMAWriter< Mesh, EntityDimension, SubDimension >;

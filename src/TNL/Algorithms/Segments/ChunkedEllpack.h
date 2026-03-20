@@ -11,10 +11,11 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
 class ChunkedEllpack : public ChunkedEllpackBase< Device, Index, Organization >
 {
    using Base = ChunkedEllpackBase< Device, Index, Organization >;
@@ -30,11 +31,11 @@ public:
    using OffsetsContainer = Containers::Vector< Index, Device, typename Base::IndexType, IndexAllocator >;
 
    using SliceInfoAllocator = typename Allocators::Default< Device >::template Allocator< typename Base::SliceInfoType >;
-   using SliceInfoContainer =
-      Containers::Array< typename TNL::copy_const< typename Base::SliceInfoType >::template from< Index >::type,
-                         Device,
-                         Index,
-                         SliceInfoAllocator >;
+   using SliceInfoContainer = Containers::Array<
+      typename TNL::copy_const< typename Base::SliceInfoType >::template from< Index >::type,
+      Device,
+      Index,
+      SliceInfoAllocator >;
 
    ChunkedEllpack() = default;
 

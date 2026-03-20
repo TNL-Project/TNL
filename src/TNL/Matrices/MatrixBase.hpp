@@ -21,9 +21,10 @@ MatrixBase< Real, Device, Index, MatrixType, Organization >::bind( IndexType row
 
 template< typename Real, typename Device, typename Index, typename MatrixType, ElementsOrganization Organization >
 __cuda_callable__
-MatrixBase< Real, Device, Index, MatrixType, Organization >::MatrixBase( IndexType rows,
-                                                                         IndexType columns,
-                                                                         ValuesViewType values )
+MatrixBase< Real, Device, Index, MatrixType, Organization >::MatrixBase(
+   IndexType rows,
+   IndexType columns,
+   ValuesViewType values )
 : rows( rows ),
   columns( columns ),
   values( std::move( values ) )

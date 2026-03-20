@@ -25,22 +25,30 @@ void
 test_GetSerializationType()
 {
    using namespace TNL::Algorithms::Segments;
-   EXPECT_EQ( ( TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::TridiagonalMatrix< float, [any_device], int, RowMajorOrder, [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::TridiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::TridiagonalMatrix< float, [any_device], int, RowMajorOrder, [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::TridiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::TridiagonalMatrix< float, [any_device], int, ColumnMajorOrder, [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::TridiagonalMatrix< int, [any_device], int, ColumnMajorOrder, [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::TridiagonalMatrix< float, [any_device], int, ColumnMajorOrder, [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::TridiagonalMatrix< int, [any_device], int, ColumnMajorOrder, [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::TridiagonalMatrix< float, [any_device], int, RowMajorOrder, [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::TridiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::TridiagonalMatrix< float, [any_device], int, RowMajorOrder, [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::TridiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::TridiagonalMatrix< float, [any_device], int, ColumnMajorOrder, [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::TridiagonalMatrix< int, [any_device], int, ColumnMajorOrder, [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::TridiagonalMatrix< float, [any_device], int, ColumnMajorOrder, [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::TridiagonalMatrix< int, [any_device], int, ColumnMajorOrder, [any_allocator] >" ) );
 }
 
 template< typename Matrix >
@@ -902,50 +910,70 @@ test_AddMatrix()
 
    mResult.addMatrix( m2, matrixMultiplicator, thisMatrixMultiplicator );
 
-   EXPECT_EQ( mResult.getElement( 0, 0 ),
-              matrixMultiplicator * m2.getElement( 0, 0 ) + thisMatrixMultiplicator * m.getElement( 0, 0 ) );
-   EXPECT_EQ( mResult.getElement( 0, 1 ),
-              matrixMultiplicator * m2.getElement( 0, 1 ) + thisMatrixMultiplicator * m.getElement( 0, 1 ) );
-   EXPECT_EQ( mResult.getElement( 0, 2 ),
-              matrixMultiplicator * m2.getElement( 0, 2 ) + thisMatrixMultiplicator * m.getElement( 0, 2 ) );
-   EXPECT_EQ( mResult.getElement( 0, 3 ),
-              matrixMultiplicator * m2.getElement( 0, 3 ) + thisMatrixMultiplicator * m.getElement( 0, 3 ) );
+   EXPECT_EQ(
+      mResult.getElement( 0, 0 ),
+      matrixMultiplicator * m2.getElement( 0, 0 ) + thisMatrixMultiplicator * m.getElement( 0, 0 ) );
+   EXPECT_EQ(
+      mResult.getElement( 0, 1 ),
+      matrixMultiplicator * m2.getElement( 0, 1 ) + thisMatrixMultiplicator * m.getElement( 0, 1 ) );
+   EXPECT_EQ(
+      mResult.getElement( 0, 2 ),
+      matrixMultiplicator * m2.getElement( 0, 2 ) + thisMatrixMultiplicator * m.getElement( 0, 2 ) );
+   EXPECT_EQ(
+      mResult.getElement( 0, 3 ),
+      matrixMultiplicator * m2.getElement( 0, 3 ) + thisMatrixMultiplicator * m.getElement( 0, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 1, 0 ),
-              matrixMultiplicator * m2.getElement( 1, 0 ) + thisMatrixMultiplicator * m.getElement( 1, 0 ) );
-   EXPECT_EQ( mResult.getElement( 1, 1 ),
-              matrixMultiplicator * m2.getElement( 1, 1 ) + thisMatrixMultiplicator * m.getElement( 1, 1 ) );
-   EXPECT_EQ( mResult.getElement( 1, 2 ),
-              matrixMultiplicator * m2.getElement( 1, 2 ) + thisMatrixMultiplicator * m.getElement( 1, 2 ) );
-   EXPECT_EQ( mResult.getElement( 1, 3 ),
-              matrixMultiplicator * m2.getElement( 1, 3 ) + thisMatrixMultiplicator * m.getElement( 1, 3 ) );
+   EXPECT_EQ(
+      mResult.getElement( 1, 0 ),
+      matrixMultiplicator * m2.getElement( 1, 0 ) + thisMatrixMultiplicator * m.getElement( 1, 0 ) );
+   EXPECT_EQ(
+      mResult.getElement( 1, 1 ),
+      matrixMultiplicator * m2.getElement( 1, 1 ) + thisMatrixMultiplicator * m.getElement( 1, 1 ) );
+   EXPECT_EQ(
+      mResult.getElement( 1, 2 ),
+      matrixMultiplicator * m2.getElement( 1, 2 ) + thisMatrixMultiplicator * m.getElement( 1, 2 ) );
+   EXPECT_EQ(
+      mResult.getElement( 1, 3 ),
+      matrixMultiplicator * m2.getElement( 1, 3 ) + thisMatrixMultiplicator * m.getElement( 1, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 2, 0 ),
-              matrixMultiplicator * m2.getElement( 2, 0 ) + thisMatrixMultiplicator * m.getElement( 2, 0 ) );
-   EXPECT_EQ( mResult.getElement( 2, 1 ),
-              matrixMultiplicator * m2.getElement( 2, 1 ) + thisMatrixMultiplicator * m.getElement( 2, 1 ) );
-   EXPECT_EQ( mResult.getElement( 2, 2 ),
-              matrixMultiplicator * m2.getElement( 2, 2 ) + thisMatrixMultiplicator * m.getElement( 2, 2 ) );
-   EXPECT_EQ( mResult.getElement( 2, 3 ),
-              matrixMultiplicator * m2.getElement( 2, 3 ) + thisMatrixMultiplicator * m.getElement( 2, 3 ) );
+   EXPECT_EQ(
+      mResult.getElement( 2, 0 ),
+      matrixMultiplicator * m2.getElement( 2, 0 ) + thisMatrixMultiplicator * m.getElement( 2, 0 ) );
+   EXPECT_EQ(
+      mResult.getElement( 2, 1 ),
+      matrixMultiplicator * m2.getElement( 2, 1 ) + thisMatrixMultiplicator * m.getElement( 2, 1 ) );
+   EXPECT_EQ(
+      mResult.getElement( 2, 2 ),
+      matrixMultiplicator * m2.getElement( 2, 2 ) + thisMatrixMultiplicator * m.getElement( 2, 2 ) );
+   EXPECT_EQ(
+      mResult.getElement( 2, 3 ),
+      matrixMultiplicator * m2.getElement( 2, 3 ) + thisMatrixMultiplicator * m.getElement( 2, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 3, 0 ),
-              matrixMultiplicator * m2.getElement( 3, 0 ) + thisMatrixMultiplicator * m.getElement( 3, 0 ) );
-   EXPECT_EQ( mResult.getElement( 3, 1 ),
-              matrixMultiplicator * m2.getElement( 3, 1 ) + thisMatrixMultiplicator * m.getElement( 3, 1 ) );
-   EXPECT_EQ( mResult.getElement( 3, 2 ),
-              matrixMultiplicator * m2.getElement( 3, 2 ) + thisMatrixMultiplicator * m.getElement( 3, 2 ) );
-   EXPECT_EQ( mResult.getElement( 3, 3 ),
-              matrixMultiplicator * m2.getElement( 3, 3 ) + thisMatrixMultiplicator * m.getElement( 3, 3 ) );
+   EXPECT_EQ(
+      mResult.getElement( 3, 0 ),
+      matrixMultiplicator * m2.getElement( 3, 0 ) + thisMatrixMultiplicator * m.getElement( 3, 0 ) );
+   EXPECT_EQ(
+      mResult.getElement( 3, 1 ),
+      matrixMultiplicator * m2.getElement( 3, 1 ) + thisMatrixMultiplicator * m.getElement( 3, 1 ) );
+   EXPECT_EQ(
+      mResult.getElement( 3, 2 ),
+      matrixMultiplicator * m2.getElement( 3, 2 ) + thisMatrixMultiplicator * m.getElement( 3, 2 ) );
+   EXPECT_EQ(
+      mResult.getElement( 3, 3 ),
+      matrixMultiplicator * m2.getElement( 3, 3 ) + thisMatrixMultiplicator * m.getElement( 3, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 4, 0 ),
-              matrixMultiplicator * m2.getElement( 4, 0 ) + thisMatrixMultiplicator * m.getElement( 4, 0 ) );
-   EXPECT_EQ( mResult.getElement( 4, 1 ),
-              matrixMultiplicator * m2.getElement( 4, 1 ) + thisMatrixMultiplicator * m.getElement( 4, 1 ) );
-   EXPECT_EQ( mResult.getElement( 4, 2 ),
-              matrixMultiplicator * m2.getElement( 4, 2 ) + thisMatrixMultiplicator * m.getElement( 4, 2 ) );
-   EXPECT_EQ( mResult.getElement( 4, 3 ),
-              matrixMultiplicator * m2.getElement( 4, 3 ) + thisMatrixMultiplicator * m.getElement( 4, 3 ) );
+   EXPECT_EQ(
+      mResult.getElement( 4, 0 ),
+      matrixMultiplicator * m2.getElement( 4, 0 ) + thisMatrixMultiplicator * m.getElement( 4, 0 ) );
+   EXPECT_EQ(
+      mResult.getElement( 4, 1 ),
+      matrixMultiplicator * m2.getElement( 4, 1 ) + thisMatrixMultiplicator * m.getElement( 4, 1 ) );
+   EXPECT_EQ(
+      mResult.getElement( 4, 2 ),
+      matrixMultiplicator * m2.getElement( 4, 2 ) + thisMatrixMultiplicator * m.getElement( 4, 2 ) );
+   EXPECT_EQ(
+      mResult.getElement( 4, 3 ),
+      matrixMultiplicator * m2.getElement( 4, 3 ) + thisMatrixMultiplicator * m.getElement( 4, 3 ) );
 
    EXPECT_EQ( mResult.getElement( 0, 0 ), 3 );
    EXPECT_EQ( mResult.getElement( 0, 1 ), 6 );
@@ -1062,12 +1090,12 @@ test_AssignmentOperator()
             EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using TridiagonalCuda = TNL::Matrices::TridiagonalMatrix< RealType,
-                                                             TNL::Devices::Cuda,
-                                                             IndexType,
-                                                             organization == TNL::Algorithms::Segments::RowMajorOrder
-                                                                ? TNL::Algorithms::Segments::ColumnMajorOrder
-                                                                : TNL::Algorithms::Segments::RowMajorOrder >;
+   using TridiagonalCuda = TNL::Matrices::TridiagonalMatrix<
+      RealType,
+      TNL::Devices::Cuda,
+      IndexType,
+      organization == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder
+                                                               : TNL::Algorithms::Segments::RowMajorOrder >;
    TridiagonalCuda cudaMatrix( rows, columns );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < columns; j++ )
@@ -1170,48 +1198,49 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using MatrixTypes = ::testing::Types< TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Host, short >,
-                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Host, short >,
-                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, short >,
-                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, short >,
-                                      TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Host, int >,
-                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Host, int >,
-                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, int >,
-                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, int >,
-                                      TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Host, long >,
-                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Host, long >,
-                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, long >,
-                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, long >
+using MatrixTypes = ::testing::Types<
+   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Host, short >,
+   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Host, short >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, short >,
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, short >,
+   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Host, int >,
+   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Host, int >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, int >,
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, int >,
+   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Host, long >,
+   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Host, long >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Host, long >,
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Host, long >
 #if defined( __CUDACC__ )
-                                      ,
-                                      TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, short >,
-                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Cuda, short >,
-                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, short >,
-                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, short >,
-                                      TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, int >,
-                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Cuda, int >,
-                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, int >,
-                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, int >,
-                                      TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, long >,
-                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Cuda, long >,
-                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, long >,
-                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, long >
+   ,
+   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, short >,
+   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Cuda, short >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, short >,
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, short >,
+   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, int >,
+   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Cuda, int >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, int >,
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, int >,
+   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Cuda, long >,
+   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Cuda, long >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Cuda, long >,
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
-                                      ,
-                                      TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, short >,
-                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, short >,
-                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, short >,
-                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, short >,
-                                      TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, int >,
-                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, int >,
-                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, int >,
-                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, int >,
-                                      TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, long >,
-                                      TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, long >,
-                                      TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, long >,
-                                      TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, long >
+   ,
+   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, short >,
+   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, short >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, short >,
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, short >,
+   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, int >,
+   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, int >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, int >,
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, int >,
+   TNL::Matrices::TridiagonalMatrix< int, TNL::Devices::Hip, long >,
+   TNL::Matrices::TridiagonalMatrix< long, TNL::Devices::Hip, long >,
+   TNL::Matrices::TridiagonalMatrix< float, TNL::Devices::Hip, long >,
+   TNL::Matrices::TridiagonalMatrix< double, TNL::Devices::Hip, long >
 #endif
-                                      >;
+   >;
 
 TYPED_TEST_SUITE( MatrixTest, MatrixTypes );
 
@@ -1326,14 +1355,13 @@ TYPED_TEST( MatrixTest, addMatrixTest_differentOrdering )
    using DeviceType = typename MatrixType::DeviceType;
    using IndexType = typename MatrixType::IndexType;
    using RealAllocatorType = typename MatrixType::RealAllocatorType;
-   using MatrixType2 =
-      TNL::Matrices::TridiagonalMatrix< RealType,
-                                        DeviceType,
-                                        IndexType,
-                                        MatrixType::getOrganization() == TNL::Algorithms::Segments::RowMajorOrder
-                                           ? TNL::Algorithms::Segments::ColumnMajorOrder
-                                           : TNL::Algorithms::Segments::RowMajorOrder,
-                                        RealAllocatorType >;
+   using MatrixType2 = TNL::Matrices::TridiagonalMatrix<
+      RealType,
+      DeviceType,
+      IndexType,
+      MatrixType::getOrganization() == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder
+                                                                                : TNL::Algorithms::Segments::RowMajorOrder,
+      RealAllocatorType >;
 
    test_AddMatrix< MatrixType, MatrixType2 >();
 }

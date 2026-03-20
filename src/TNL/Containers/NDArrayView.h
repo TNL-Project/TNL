@@ -76,10 +76,11 @@ public:
    //! \brief Constructs an array view initialized by a raw data pointer,
    //! sizes, strides and overlaps.
    __cuda_callable__
-   NDArrayView( Value* data,
-                SizesHolderType sizes,
-                StridesHolderType strides = StridesHolderType{},
-                OverlapsType overlaps = OverlapsType{} )
+   NDArrayView(
+      Value* data,
+      SizesHolderType sizes,
+      StridesHolderType strides = StridesHolderType{},
+      OverlapsType overlaps = OverlapsType{} )
    : IndexerType( std::move( sizes ), std::move( strides ), std::move( overlaps ) ),
      array( data )
    {}
@@ -132,12 +133,15 @@ public:
    NDArrayView&
    operator=( const OtherView& other )
    {
-      static_assert( std::is_same_v< PermutationType, typename OtherView::PermutationType >,
-                     "Arrays must have the same permutation of indices." );
-      TNL_ASSERT_TRUE( detail::sizesWeakCompare( getSizes(), other.getSizes() ),
-                       "The sizes of the array views must be equal, views are not resizable." );
-      TNL_ASSERT_TRUE( detail::sizesWeakCompare( getStrides(), other.getStrides() ),
-                       "The strides of the array views must be equal, views are not resizable." );
+      static_assert(
+         std::is_same_v< PermutationType, typename OtherView::PermutationType >,
+         "Arrays must have the same permutation of indices." );
+      TNL_ASSERT_TRUE(
+         detail::sizesWeakCompare( getSizes(), other.getSizes() ),
+         "The sizes of the array views must be equal, views are not resizable." );
+      TNL_ASSERT_TRUE(
+         detail::sizesWeakCompare( getStrides(), other.getStrides() ),
+         "The strides of the array views must be equal, views are not resizable." );
       // TODO: check that the views are contiguous
       if( getStorageSize() > 0 ) {
          TNL_ASSERT_TRUE( array, "Attempted to assign to an empty view." );
@@ -300,8 +304,8 @@ public:
    getSubarrayView( IndexTypes&&... indices )
    {
       static_assert( sizeof...( indices ) == getDimension(), "got wrong number of indices" );
-      static_assert( 0 < sizeof...( Dimensions ) && sizeof...( Dimensions ) <= getDimension(),
-                     "got wrong number of dimensions" );
+      static_assert(
+         0 < sizeof...( Dimensions ) && sizeof...( Dimensions ) <= getDimension(), "got wrong number of dimensions" );
 // FIXME: nvcc chokes on the variadic brace-initialization
 #ifndef __NVCC__
       static_assert( detail::all_elements_in_range( 0, PermutationType::size(), { Dimensions... } ), "invalid dimensions" );
@@ -314,8 +318,8 @@ public:
       auto subarray_sizes = Getter::filterSizes( getSizes(), std::forward< IndexTypes >( indices )... );
       auto strides = Getter::getStrides( getStrides() );
       static_assert( Subpermutation::size() == sizeof...( Dimensions ), "Bug - wrong subpermutation length." );
-      static_assert( decltype( subarray_sizes )::getDimension() == sizeof...( Dimensions ),
-                     "Bug - wrong dimension of the new sizes." );
+      static_assert(
+         decltype( subarray_sizes )::getDimension() == sizeof...( Dimensions ), "Bug - wrong dimension of the new sizes." );
       static_assert( decltype( strides )::getDimension() == sizeof...( Dimensions ), "Bug - wrong dimension of the strides." );
       // TODO: select overlaps for the subarray
       using Subindexer = NDArrayIndexer< decltype( subarray_sizes ), decltype( strides ) >;
@@ -428,8 +432,8 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forAll( Func f,
-           const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
+   forAll( Func f, const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} )
+      const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       using Begins = ConstStaticSizesHolder< IndexType, getDimension(), 0 >;

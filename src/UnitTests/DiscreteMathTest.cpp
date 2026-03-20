@@ -202,19 +202,21 @@ TEST( DiscreteMathTest, cartesianPower )
    // N = 2
    EXPECT_EQ( cartesianPower( array_1, 2 ), ( result_t{ { 0, 0 } } ) );
    EXPECT_EQ( cartesianPower( array_2, 2 ), ( result_t{ { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } } ) );
-   EXPECT_EQ( cartesianPower( array_3, 2 ),
-              ( result_t{ { 0, 0 }, { 0, 1 }, { 0, 2 }, { 1, 0 }, { 1, 1 }, { 1, 2 }, { 2, 0 }, { 2, 1 }, { 2, 2 } } ) );
+   EXPECT_EQ(
+      cartesianPower( array_3, 2 ),
+      ( result_t{ { 0, 0 }, { 0, 1 }, { 0, 2 }, { 1, 0 }, { 1, 1 }, { 1, 2 }, { 2, 0 }, { 2, 1 }, { 2, 2 } } ) );
 
    // N = 3
    EXPECT_EQ( cartesianPower( array_1, 3 ), ( result_t{ { 0, 0, 0 } } ) );
    EXPECT_EQ(
       cartesianPower( array_2, 3 ),
       ( result_t{ { 0, 0, 0 }, { 0, 0, 1 }, { 0, 1, 0 }, { 1, 0, 0 }, { 1, 1, 0 }, { 1, 0, 1 }, { 0, 1, 1 }, { 1, 1, 1 } } ) );
-   EXPECT_EQ( cartesianPower( array_3, 3 ),
-              ( result_t{ { 0, 0, 0 }, { 0, 0, 1 }, { 0, 0, 2 }, { 0, 1, 0 }, { 0, 1, 1 }, { 0, 1, 2 }, { 0, 2, 0 },
-                          { 0, 2, 1 }, { 0, 2, 2 }, { 1, 0, 0 }, { 1, 0, 1 }, { 1, 0, 2 }, { 1, 1, 0 }, { 1, 1, 1 },
-                          { 1, 1, 2 }, { 1, 2, 0 }, { 1, 2, 1 }, { 1, 2, 2 }, { 2, 0, 0 }, { 2, 0, 1 }, { 2, 0, 2 },
-                          { 2, 1, 0 }, { 2, 1, 1 }, { 2, 1, 2 }, { 2, 2, 0 }, { 2, 2, 1 }, { 2, 2, 2 } } ) );
+   EXPECT_EQ(
+      cartesianPower( array_3, 3 ),
+      ( result_t{ { 0, 0, 0 }, { 0, 0, 1 }, { 0, 0, 2 }, { 0, 1, 0 }, { 0, 1, 1 }, { 0, 1, 2 }, { 0, 2, 0 },
+                  { 0, 2, 1 }, { 0, 2, 2 }, { 1, 0, 0 }, { 1, 0, 1 }, { 1, 0, 2 }, { 1, 1, 0 }, { 1, 1, 1 },
+                  { 1, 1, 2 }, { 1, 2, 0 }, { 1, 2, 1 }, { 1, 2, 2 }, { 2, 0, 0 }, { 2, 0, 1 }, { 2, 0, 2 },
+                  { 2, 1, 0 }, { 2, 1, 1 }, { 2, 1, 2 }, { 2, 2, 0 }, { 2, 2, 1 }, { 2, 2, 2 } } ) );
 }
 
 TEST( DiscreteMathTest, integerFactorizationTuples_pairs )
@@ -238,39 +240,42 @@ TEST( DiscreteMathTest, integerFactorizationTuples_triplets )
    EXPECT_EQ( integerFactorizationTuples< 3 >( 1 ), ( triplets_t{ { 1, 1, 1 } } ) );
    EXPECT_EQ( integerFactorizationTuples< 3 >( 2 ), ( triplets_t{ { 2, 1, 1 }, { 1, 2, 1 }, { 1, 1, 2 } } ) );
    EXPECT_EQ( integerFactorizationTuples< 3 >( 3 ), ( triplets_t{ { 3, 1, 1 }, { 1, 3, 1 }, { 1, 1, 3 } } ) );
-   EXPECT_EQ( integerFactorizationTuples< 3 >( 4 ),
-              ( triplets_t{ { 4, 1, 1 }, { 1, 4, 1 }, { 1, 1, 4 }, { 2, 2, 1 }, { 2, 1, 2 }, { 1, 2, 2 } } ) );
-   EXPECT_EQ( integerFactorizationTuples< 3 >( 6 ),
-              ( triplets_t{ { 6, 1, 1 },
-                            { 1, 6, 1 },
-                            { 1, 1, 6 },
-                            { 2, 3, 1 },
-                            { 3, 2, 1 },
-                            { 2, 1, 3 },
-                            { 3, 1, 2 },
-                            { 1, 3, 2 },
-                            { 1, 2, 3 } } ) );
-   EXPECT_EQ( integerFactorizationTuples< 3 >( 12 ),
-              ( triplets_t{
-                 { 12, 1, 1 },
-                 { 1, 12, 1 },
-                 { 1, 1, 12 },
-                 { 4, 3, 1 },
-                 { 3, 4, 1 },
-                 { 4, 1, 3 },
-                 { 3, 1, 4 },
-                 { 1, 4, 3 },
-                 { 1, 3, 4 },
-                 { 3, 2, 2 },
-                 { 2, 3, 2 },
-                 { 2, 2, 3 },
-                 { 6, 2, 1 },
-                 { 2, 6, 1 },
-                 { 6, 1, 2 },
-                 { 2, 1, 6 },
-                 { 1, 6, 2 },
-                 { 1, 2, 6 },
-              } ) );
+   EXPECT_EQ(
+      integerFactorizationTuples< 3 >( 4 ),
+      ( triplets_t{ { 4, 1, 1 }, { 1, 4, 1 }, { 1, 1, 4 }, { 2, 2, 1 }, { 2, 1, 2 }, { 1, 2, 2 } } ) );
+   EXPECT_EQ(
+      integerFactorizationTuples< 3 >( 6 ),
+      ( triplets_t{ { 6, 1, 1 },
+                    { 1, 6, 1 },
+                    { 1, 1, 6 },
+                    { 2, 3, 1 },
+                    { 3, 2, 1 },
+                    { 2, 1, 3 },
+                    { 3, 1, 2 },
+                    { 1, 3, 2 },
+                    { 1, 2, 3 } } ) );
+   EXPECT_EQ(
+      integerFactorizationTuples< 3 >( 12 ),
+      ( triplets_t{
+         { 12, 1, 1 },
+         { 1, 12, 1 },
+         { 1, 1, 12 },
+         { 4, 3, 1 },
+         { 3, 4, 1 },
+         { 4, 1, 3 },
+         { 3, 1, 4 },
+         { 1, 4, 3 },
+         { 1, 3, 4 },
+         { 3, 2, 2 },
+         { 2, 3, 2 },
+         { 2, 2, 3 },
+         { 6, 2, 1 },
+         { 2, 6, 1 },
+         { 6, 1, 2 },
+         { 2, 1, 6 },
+         { 1, 6, 2 },
+         { 1, 2, 6 },
+      } ) );
 }
 
 TEST( DiscreteMathTest, swapBits )

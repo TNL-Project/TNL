@@ -7,10 +7,11 @@
 
 namespace TNL::Meshes::EntityTags {
 
-template< typename MeshConfig,
-          typename Device,
-          typename DimensionTag,
-          bool sensible = ( DimensionTag::value <= MeshConfig::meshDimension ) >
+template<
+   typename MeshConfig,
+   typename Device,
+   typename DimensionTag,
+   bool sensible = ( DimensionTag::value <= MeshConfig::meshDimension ) >
 struct WeakStorageTrait
 {
    static constexpr bool entityTagsEnabled = MeshConfig::entityTagsStorage( DimensionTag::value );

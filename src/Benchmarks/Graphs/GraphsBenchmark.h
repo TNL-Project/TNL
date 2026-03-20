@@ -77,15 +77,17 @@ struct GraphsBenchmark
    : parameters( parameters_ )
    {}
 
-   template< typename Device,
-             template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
-             template< typename Index_, typename Device_ > class SegmentsKernel >
+   template<
+      typename Device,
+      template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
+      template< typename Index_, typename Device_ > class SegmentsKernel >
    void
-   TNLBenchmarks( const HostDigraph& hostDigraph,
-                  const HostGraph& hostGraph,
-                  TNL::Benchmarks::Benchmark<>& benchmark,
-                  const TNL::String& device,
-                  const TNL::String& segments )
+   TNLBenchmarks(
+      const HostDigraph& hostDigraph,
+      const HostGraph& hostGraph,
+      TNL::Benchmarks::Benchmark<>& benchmark,
+      const TNL::String& device,
+      const TNL::String& segments )
    {
       using Matrix = TNL::Matrices::SparseMatrix< Real, Device, Index, TNL::Matrices::GeneralMatrix, Segments >;
       using Graph = TNL::Graphs::Graph< Matrix, TNL::Graphs::GraphTypes::Undirected >;
@@ -104,10 +106,11 @@ struct GraphsBenchmark
       IndexVector bfsDistances( digraph.getNodeCount() );
       benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", device },
-                                                          { "format", segments },
-                                                          { "algorithm", std::string( "BFS TNL dir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "index type", TNL::getType< Index >() },
+              { "device", device },
+              { "format", segments },
+              { "algorithm", std::string( "BFS TNL dir" ) } } ) );
 
       auto bfs_tnl_dir = [ & ]() mutable
       {
@@ -126,10 +129,11 @@ struct GraphsBenchmark
       // Benchmarking breadth-first search with undirected graph
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", device },
-                                                          { "format", segments },
-                                                          { "algorithm", std::string( "BFS TNL undir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "index type", TNL::getType< Index >() },
+              { "device", device },
+              { "format", segments },
+              { "algorithm", std::string( "BFS TNL undir" ) } } ) );
 
       auto bfs_tnl_undir = [ & ]() mutable
       {
@@ -148,10 +152,11 @@ struct GraphsBenchmark
       // Benchmarking single-source shortest paths with directed graph
       benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", device },
-                                                          { "format", segments },
-                                                          { "algorithm", std::string( "SSSP TNL dir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "precision", TNL::getType< Real >() },
+              { "device", device },
+              { "format", segments },
+              { "algorithm", std::string( "SSSP TNL dir" ) } } ) );
 
       RealVector ssspDistances( digraph.getNodeCount(), 0 );
       auto sssp_tnl_dir = [ & ]() mutable
@@ -172,10 +177,11 @@ struct GraphsBenchmark
       // Benchmarking single-source shortest paths with undirected graph
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", device },
-                                                          { "format", segments },
-                                                          { "algorithm", std::string( "SSSP TNL undir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "precision", TNL::getType< Real >() },
+              { "device", device },
+              { "format", segments },
+              { "algorithm", std::string( "SSSP TNL undir" ) } } ) );
 
       //RealVector ssspDistances( digraph.getNodeCount(), 0 );
       auto sssp_tnl_undir = [ & ]() mutable
@@ -198,10 +204,11 @@ struct GraphsBenchmark
       IndexVector roots;
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", device },
-                                                          { "format", segments },
-                                                          { "algorithm", std::string( "MST TNL undir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "precision", TNL::getType< Real >() },
+              { "device", device },
+              { "format", segments },
+              { "algorithm", std::string( "MST TNL undir" ) } } ) );
       auto mst_tnl = [ & ]() mutable
       {
          TNL::Graphs::minimumSpanningTree( graph, mstGraph, roots );
@@ -233,10 +240,11 @@ struct GraphsBenchmark
 
       // Benchmarking breadth-first search of directed graph
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", "sequential" },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "BFS Boost dir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "index type", TNL::getType< Index >() },
+              { "device", "sequential" },
+              { "format", "N/A" },
+              { "algorithm", std::string( "BFS Boost dir" ) } } ) );
       std::vector< Index > boostBfsDistances( digraph.getNodeCount() );
       auto bfs_boost_dir = [ & ]() mutable
       {
@@ -253,10 +261,11 @@ struct GraphsBenchmark
 
       // Benchmarking breadth-first search of undirected graph
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", "sequential" },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "BFS Boost undir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "index type", TNL::getType< Index >() },
+              { "device", "sequential" },
+              { "format", "N/A" },
+              { "algorithm", std::string( "BFS Boost undir" ) } } ) );
       auto bfs_boost_undir = [ & ]() mutable
       {
          boostGraph.breadthFirstSearch( 0, boostBfsDistances );
@@ -272,10 +281,11 @@ struct GraphsBenchmark
 
       // Benchmarking single-source shortest paths of directed graph
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", "sequential" },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "SSSP Boost dir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "precision", TNL::getType< Real >() },
+              { "device", "sequential" },
+              { "format", "N/A" },
+              { "algorithm", std::string( "SSSP Boost dir" ) } } ) );
       std::vector< Real > boostSSSPDistances( digraph.getNodeCount() );
       auto sssp_boost_dir = [ & ]() mutable
       {
@@ -292,10 +302,11 @@ struct GraphsBenchmark
 
       // Benchmarking single-source shortest paths of undirected graph
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", "sequential" },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "SSSP Boost undir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "precision", TNL::getType< Real >() },
+              { "device", "sequential" },
+              { "format", "N/A" },
+              { "algorithm", std::string( "SSSP Boost undir" ) } } ) );
       auto sssp_boost_undir = [ & ]() mutable
       {
          boostGraph.singleSourceShortestPath( 0, boostSSSPDistances );
@@ -311,10 +322,11 @@ struct GraphsBenchmark
 
       // Benchmarking minimum spanning tree
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< Real >() },
-                                                          { "device", "sequential" },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "MST Boost" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "precision", TNL::getType< Real >() },
+              { "device", "sequential" },
+              { "format", "N/A" },
+              { "algorithm", std::string( "MST Boost" ) } } ) );
       using BoostEdge = typename BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Undirected >::Edge;
       std::vector< BoostEdge > boostMstEdges;
       auto mst_boost = [ & ]() mutable
@@ -396,10 +408,11 @@ struct GraphsBenchmark
       // Benchmarking breadth-first search of directed graph
       benchmark.setDatasetSize( digraphAdjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", std::string( "GPU" ) },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "BFS Gunrock dir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "index type", TNL::getType< Index >() },
+              { "device", std::string( "GPU" ) },
+              { "format", "N/A" },
+              { "algorithm", std::string( "BFS Gunrock dir" ) } } ) );
       std::vector< Index > bfsDistances( digraphAdjacencyMatrix.getRows() );
       gunrockBenchmark.breadthFirstSearch( benchmark, digraph, start, digraphAdjacencyMatrix.getRows(), bfsDistances );
       HostIndexVector gunrock_bfs_dist( bfsDistances );
@@ -420,10 +433,11 @@ struct GraphsBenchmark
       // Benchmarking breadth-first search of undirected graph
       benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", std::string( "GPU" ) },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "BFS Gunrock undir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "index type", TNL::getType< Index >() },
+              { "device", std::string( "GPU" ) },
+              { "format", "N/A" },
+              { "algorithm", std::string( "BFS Gunrock undir" ) } } ) );
       gunrockBenchmark.breadthFirstSearch( benchmark, graph, start, graphAdjacencyMatrix.getRows(), bfsDistances );
       gunrock_bfs_dist = bfsDistances;
       gunrock_bfs_dist.forAllElements(
@@ -443,10 +457,11 @@ struct GraphsBenchmark
       // Benchmarking single-source shortest path of directed graph
       benchmark.setDatasetSize( digraphAdjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", std::string( "GPU" ) },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "SSSP Gunrock dir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "index type", TNL::getType< Index >() },
+              { "device", std::string( "GPU" ) },
+              { "format", "N/A" },
+              { "algorithm", std::string( "SSSP Gunrock dir" ) } } ) );
       std::vector< Real > ssspDistances( digraphAdjacencyMatrix.getRows() );
       gunrockBenchmark.singleSourceShortestPath( benchmark, digraph, start, digraphAdjacencyMatrix.getRows(), ssspDistances );
       HostRealVector gunrock_sssp_dist( ssspDistances );
@@ -467,10 +482,11 @@ struct GraphsBenchmark
       // Benchmarking single-source shortest path of undirected graph
       benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "index type", TNL::getType< Index >() },
-                                                          { "device", std::string( "GPU" ) },
-                                                          { "format", "N/A" },
-                                                          { "algorithm", std::string( "SSSP Gunrock undir" ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "index type", TNL::getType< Index >() },
+              { "device", std::string( "GPU" ) },
+              { "format", "N/A" },
+              { "algorithm", std::string( "SSSP Gunrock undir" ) } } ) );
       gunrockBenchmark.singleSourceShortestPath( benchmark, graph, start, graphAdjacencyMatrix.getRows(), ssspDistances );
       gunrock_sssp_dist = ssspDistances;
       gunrock_sssp_dist.forAllElements(
@@ -543,9 +559,10 @@ struct GraphsBenchmark
             digraph, graph, benchmark, "cuda", "CSRAdaptive" );
          TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments, TNL::Algorithms::SegmentsReductionKernels::EllpackKernel >(
             digraph, graph, benchmark, "cuda", "Ellpack" );
-         TNLBenchmarks< TNL::Devices::Cuda,
-                        SlicedEllpackSegments,
-                        TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >(
+         TNLBenchmarks<
+            TNL::Devices::Cuda,
+            SlicedEllpackSegments,
+            TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >(
             digraph, graph, benchmark, "cuda", "SlicedEllpack" );
          TNLBenchmarks< TNL::Devices::Cuda, BiEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel >(
             digraph, graph, benchmark, "cuda", "BiEllpack" );

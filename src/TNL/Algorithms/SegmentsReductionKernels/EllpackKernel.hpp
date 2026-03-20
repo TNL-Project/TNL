@@ -15,13 +15,14 @@ namespace TNL::Algorithms::SegmentsReductionKernels {
 template< typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 __global__
 void
-EllpackCudaReductionKernel( Index begin,
-                            Index end,
-                            Fetch fetch,
-                            const Reduction reduction,
-                            ResultKeeper keep,
-                            const Value identity,
-                            Index segmentSize )
+EllpackCudaReductionKernel(
+   Index begin,
+   Index end,
+   Fetch fetch,
+   const Reduction reduction,
+   ResultKeeper keep,
+   const Value identity,
+   Index segmentSize )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -96,13 +97,14 @@ EllpackKernel< Index, Device >::getKernelType()
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                Index begin,
-                                                Index end,
-                                                Fetch& fetch,
-                                                const Reduction& reduction,
-                                                ResultKeeper& keeper,
-                                                const Value& identity )
+EllpackKernel< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder ) {
@@ -153,11 +155,12 @@ EllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-EllpackKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                   Fetch& fetch,
-                                                   const Reduction& reduction,
-                                                   ResultKeeper& keeper,
-                                                   const Value& identity )
+EllpackKernel< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }

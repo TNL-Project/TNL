@@ -25,10 +25,11 @@ namespace TNL::Algorithms {
  */
 template< typename Array >
 bool
-contains( const Array& array,
-          typename Array::ValueType value,
-          typename Array::IndexType begin = 0,
-          typename Array::IndexType end = 0 )
+contains(
+   const Array& array,
+   typename Array::ValueType value,
+   typename Array::IndexType begin = 0,
+   typename Array::IndexType end = 0 )
 {
    if( end == 0 )
       end = array.getSize();
@@ -58,10 +59,11 @@ contains( const Array& array,
  */
 template< typename Array >
 bool
-containsOnlyValue( const Array& array,
-                   typename Array::ValueType value,
-                   typename Array::IndexType begin = 0,
-                   typename Array::IndexType end = 0 )
+containsOnlyValue(
+   const Array& array,
+   typename Array::ValueType value,
+   typename Array::IndexType begin = 0,
+   typename Array::IndexType end = 0 )
 {
    if( end == 0 )
       end = array.getSize();

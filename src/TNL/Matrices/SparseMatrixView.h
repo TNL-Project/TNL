@@ -55,29 +55,34 @@ struct ChooseSparseMatrixComputeReal< bool, Index >
  * \tparam ComputeReal is the same as \e Real mostly but for binary matrices it
  *         is set to \e Index type. This can be changed by the user, of course.
  */
-template< typename Real,
-          typename Device = Devices::Host,
-          typename Index = int,
-          typename MatrixType = GeneralMatrix,
-          template< typename Device_, typename Index_ > class SegmentsView = Algorithms::Segments::CSRView,
-          typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type >
-class SparseMatrixView : public SparseMatrixBase< Real,
-                                                  Device,
-                                                  Index,
-                                                  MatrixType,
-                                                  std::conditional_t< std::is_const_v< Real >,
-                                                                      typename SegmentsView< Device, Index >::ConstViewType,
-                                                                      SegmentsView< Device, Index > >,
-                                                  ComputeReal >
+template<
+   typename Real,
+   typename Device = Devices::Host,
+   typename Index = int,
+   typename MatrixType = GeneralMatrix,
+   template< typename Device_, typename Index_ > class SegmentsView = Algorithms::Segments::CSRView,
+   typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type >
+class SparseMatrixView : public SparseMatrixBase<
+                            Real,
+                            Device,
+                            Index,
+                            MatrixType,
+                            std::conditional_t<
+                               std::is_const_v< Real >,
+                               typename SegmentsView< Device, Index >::ConstViewType,
+                               SegmentsView< Device, Index > >,
+                            ComputeReal >
 {
-   using Base = SparseMatrixBase< Real,
-                                  Device,
-                                  Index,
-                                  MatrixType,
-                                  std::conditional_t< std::is_const_v< Real >,
-                                                      typename SegmentsView< Device, Index >::ConstViewType,
-                                                      SegmentsView< Device, Index > >,
-                                  ComputeReal >;
+   using Base = SparseMatrixBase<
+      Real,
+      Device,
+      Index,
+      MatrixType,
+      std::conditional_t<
+         std::is_const_v< Real >,
+         typename SegmentsView< Device, Index >::ConstViewType,
+         SegmentsView< Device, Index > >,
+      ComputeReal >;
 
 public:
    /**
@@ -89,12 +94,13 @@ public:
    /**
     * \brief Helper type for getting self type or its modifications.
     */
-   template< typename _Real = Real,
-             typename _Device = Device,
-             typename _Index = Index,
-             typename _MatrixType = MatrixType,
-             template< typename, typename > class _SegmentsView = SegmentsViewTemplate,
-             typename _ComputeReal = ComputeReal >
+   template<
+      typename _Real = Real,
+      typename _Device = Device,
+      typename _Index = Index,
+      typename _MatrixType = MatrixType,
+      template< typename, typename > class _SegmentsView = SegmentsViewTemplate,
+      typename _ComputeReal = ComputeReal >
    using Self = SparseMatrixView< _Real, _Device, _Index, _MatrixType, _SegmentsView, _ComputeReal >;
 
    /**
@@ -123,11 +129,12 @@ public:
     * \param segments is a segments view representing the sparse matrix format.
     */
    __cuda_callable__
-   SparseMatrixView( Index rows,
-                     Index columns,
-                     typename Base::ValuesViewType values,
-                     typename Base::ColumnIndexesViewType columnIndexes,
-                     typename Base::SegmentsViewType segments );
+   SparseMatrixView(
+      Index rows,
+      Index columns,
+      typename Base::ValuesViewType values,
+      typename Base::ColumnIndexesViewType columnIndexes,
+      typename Base::SegmentsViewType segments );
 
    /**
     * \brief Copy constructor.
@@ -194,21 +201,23 @@ public:
 /**
  * \brief Deserialization of sparse matrix views from binary files.
  */
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename > class SegmentsView,
+   typename ComputeReal >
 File&
 operator>>( File& file, SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix );
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename > class SegmentsView,
+   typename ComputeReal >
 File&
 operator>>( File&& file, SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix );
 

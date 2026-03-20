@@ -11,11 +11,12 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int SliceSize = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int SliceSize = 32 >
 class SlicedEllpack : public SlicedEllpackBase< Device, Index, Organization, SliceSize >
 {
    using Base = SlicedEllpackBase< Device, Index, Organization, SliceSize >;

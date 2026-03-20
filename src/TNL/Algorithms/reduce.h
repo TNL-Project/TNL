@@ -105,11 +105,12 @@ auto
 reduce( Index begin, Index end, Fetch&& fetch, Reduction&& reduction = TNL::Plus{} )
 {
    using Result = Containers::Expressions::RemoveET< decltype( reduction( fetch( 0 ), fetch( 0 ) ) ) >;
-   return reduce< Device >( begin,
-                            end,
-                            std::forward< Fetch >( fetch ),
-                            std::forward< Reduction >( reduction ),
-                            reduction.template getIdentity< Result >() );
+   return reduce< Device >(
+      begin,
+      end,
+      std::forward< Fetch >( fetch ),
+      std::forward< Reduction >( reduction ),
+      reduction.template getIdentity< Result >() );
 }
 
 /**
@@ -136,11 +137,12 @@ template< typename Array, typename Device = typename Array::DeviceType, typename
 auto
 reduce( const Array& array, Reduction&& reduction, Result identity )
 {
-   return reduce< Device >( static_cast< typename Array::IndexType >( 0 ),
-                            array.getSize(),
-                            array.getConstView(),
-                            std::forward< Reduction >( reduction ),
-                            identity );
+   return reduce< Device >(
+      static_cast< typename Array::IndexType >( 0 ),
+      array.getSize(),
+      array.getConstView(),
+      std::forward< Reduction >( reduction ),
+      identity );
 }
 
 /**
@@ -262,11 +264,12 @@ auto
 reduceWithArgument( Index begin, Index end, Fetch&& fetch, Reduction&& reduction )
 {
    using Result = Containers::Expressions::RemoveET< decltype( fetch( 0 ) ) >;
-   return reduceWithArgument< Device >( begin,
-                                        end,
-                                        std::forward< Fetch >( fetch ),
-                                        std::forward< Reduction >( reduction ),
-                                        reduction.template getIdentity< Result >() );
+   return reduceWithArgument< Device >(
+      begin,
+      end,
+      std::forward< Fetch >( fetch ),
+      std::forward< Reduction >( reduction ),
+      reduction.template getIdentity< Result >() );
 }
 
 /**
@@ -293,11 +296,12 @@ template< typename Array, typename Device = typename Array::DeviceType, typename
 auto
 reduceWithArgument( const Array& array, Reduction&& reduction, Result identity )
 {
-   return reduceWithArgument< Device >( static_cast< typename Array::IndexType >( 0 ),
-                                        array.getSize(),
-                                        array.getConstView(),
-                                        std::forward< Reduction >( reduction ),
-                                        identity );
+   return reduceWithArgument< Device >(
+      static_cast< typename Array::IndexType >( 0 ),
+      array.getSize(),
+      array.getConstView(),
+      std::forward< Reduction >( reduction ),
+      identity );
 }
 
 /**

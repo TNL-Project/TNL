@@ -490,8 +490,9 @@ test_setElement_on_device( const Array< Value, Devices::Host, Index >& )
 template< typename ValueType, typename IndexType >
 __global__
 void
-test_setElement_on_device_kernel( Array< ValueType, Devices::Cuda, IndexType >* a,
-                                  Array< ValueType, Devices::Cuda, IndexType >* b )
+test_setElement_on_device_kernel(
+   Array< ValueType, Devices::Cuda, IndexType >* a,
+   Array< ValueType, Devices::Cuda, IndexType >* b )
 {
    if( threadIdx.x < a->getSize() ) {
       a->setElement( threadIdx.x, ValueType( threadIdx.x ) );
@@ -678,9 +679,10 @@ testArrayAssignmentWithDifferentType()
    EXPECT_EQ( v_host, u );
 }
 
-template< typename ArrayType,
-          typename = std::enable_if_t< ! std::is_arithmetic_v< typename ArrayType::ValueType > >,
-          typename = void >
+template<
+   typename ArrayType,
+   typename = std::enable_if_t< ! std::is_arithmetic_v< typename ArrayType::ValueType > >,
+   typename = void >
 void
 testArrayAssignmentWithDifferentType()
 {}
@@ -736,9 +738,10 @@ TYPED_TEST( ArrayTest, SaveAndLoadSubrangeWithCast )
       file.load( &elementsInFile );
       EXPECT_EQ( elementsInFile, static_cast< std::size_t >( v.getSize() ) );
       // read data, cast from Value to short int
-      using IO = ArrayIO< CastValue,
-                          Index,
-                          typename Allocators::Default< typename ArrayType::DeviceType >::template Allocator< CastValue > >;
+      using IO = ArrayIO<
+         CastValue,
+         Index,
+         typename Allocators::Default< typename ArrayType::DeviceType >::template Allocator< CastValue > >;
       // hack for the test...
       if( getType< Value >() == "MyData" )
          IO::loadSubrange( file, elementsInFile, offset, array.getData(), array.getSize(), "double" );

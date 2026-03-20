@@ -13,10 +13,11 @@ namespace TNL::Algorithms::Segments {
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
 void
-BiEllpackBase< Device, Index, Organization, WarpSize >::bind( IndexType size,
-                                                              IndexType storageSize,
-                                                              OffsetsView segmentsPermutation,
-                                                              OffsetsView groupPointers )
+BiEllpackBase< Device, Index, Organization, WarpSize >::bind(
+   IndexType size,
+   IndexType storageSize,
+   OffsetsView segmentsPermutation,
+   OffsetsView groupPointers )
 {
    this->size = size;
    this->storageSize = storageSize;
@@ -26,10 +27,11 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::bind( IndexType size,
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
-BiEllpackBase< Device, Index, Organization, WarpSize >::BiEllpackBase( IndexType size,
-                                                                       IndexType storageSize,
-                                                                       OffsetsView segmentsPermutation,
-                                                                       OffsetsView groupPointers )
+BiEllpackBase< Device, Index, Organization, WarpSize >::BiEllpackBase(
+   IndexType size,
+   IndexType storageSize,
+   OffsetsView segmentsPermutation,
+   OffsetsView groupPointers )
 : size( size ),
   storageSize( storageSize ),
   segmentsPermutation( std::move( segmentsPermutation ) ),

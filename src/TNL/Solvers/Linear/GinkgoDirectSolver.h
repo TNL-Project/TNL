@@ -55,15 +55,17 @@ public:
 #ifdef HAVE_GINKGO
       LinearSolver< Matrix >::setMatrix( matrix );
 
-      auto gko_A = gko::share( gko::matrix::Csr< RealType, IndexType >::create(
-         gk_exec,
-         gko::dim< 2 >{ static_cast< std::size_t >( matrix->getRows() ), static_cast< std::size_t >( matrix->getColumns() ) },
-         gko::make_array_view(
-            gk_exec, matrix->getNonzeroElementsCount(), const_cast< RealType* >( matrix->getValues().getData() ) ),
-         gko::make_array_view(
-            gk_exec, matrix->getNonzeroElementsCount(), const_cast< IndexType* >( matrix->getColumnIndexes().getData() ) ),
-         gko::make_array_view(
-            gk_exec, matrix->getRows() + 1, const_cast< IndexType* >( matrix->getSegments().getOffsets().getData() ) ) ) );
+      auto gko_A = gko::share(
+         gko::matrix::Csr< RealType, IndexType >::create(
+            gk_exec,
+            gko::dim< 2 >{ static_cast< std::size_t >( matrix->getRows() ),
+                           static_cast< std::size_t >( matrix->getColumns() ) },
+            gko::make_array_view(
+               gk_exec, matrix->getNonzeroElementsCount(), const_cast< RealType* >( matrix->getValues().getData() ) ),
+            gko::make_array_view(
+               gk_exec, matrix->getNonzeroElementsCount(), const_cast< IndexType* >( matrix->getColumnIndexes().getData() ) ),
+            gko::make_array_view(
+               gk_exec, matrix->getRows() + 1, const_cast< IndexType* >( matrix->getSegments().getOffsets().getData() ) ) ) );
 
       gk_solver = gko::experimental::solver::Direct< RealType, IndexType >::build()
                      .with_factorization( gko::experimental::factorization::Lu< RealType, IndexType >::build() )

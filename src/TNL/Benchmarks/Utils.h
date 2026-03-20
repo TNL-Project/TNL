@@ -26,16 +26,18 @@ namespace TNL::Benchmarks {
 // returns a tuple of (loops, mean, stddev) where loops is the number of
 // performed loops (i.e. timing samples), mean is the arithmetic mean of the
 // computation times and stddev is the sample standard deviation
-template< typename Device,
-          typename ComputeFunction,
-          typename ResetFunction,
-          typename Monitor = TNL::Solvers::IterativeSolverMonitor< double > >
+template<
+   typename Device,
+   typename ComputeFunction,
+   typename ResetFunction,
+   typename Monitor = TNL::Solvers::IterativeSolverMonitor< double > >
 std::tuple< std::size_t, double, double, double, double >
-timeFunction( ComputeFunction compute,
-              ResetFunction reset,
-              std::size_t maxLoops,
-              const double& minTime,
-              Monitor&& monitor = Monitor() )
+timeFunction(
+   ComputeFunction compute,
+   ResetFunction reset,
+   std::size_t maxLoops,
+   const double& minTime,
+   Monitor&& monitor = Monitor() )
 {
    // the timer is constructed zero-initialized and stopped
    Timer timer;

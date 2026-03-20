@@ -37,8 +37,8 @@ protected:
       if( elem == nullptr )
          throw MeshReaderError( "XMLVTK", "tag <" + name + "> not found" );
       if( elem->Name() != name )
-         throw MeshReaderError( "XMLVTK",
-                                "invalid XML format - expected a <" + name + "> element, got <" + elem->Name() + ">" );
+         throw MeshReaderError(
+            "XMLVTK", "invalid XML format - expected a <" + name + "> element, got <" + elem->Name() + ">" );
    }
 
    static const tinyxml2::XMLElement*
@@ -64,8 +64,8 @@ protected:
          return attribute;
       if( ! defaultValue.empty() )
          return defaultValue;
-      throw MeshReaderError( "XMLVTK",
-                             "element <" + std::string( elem->Name() ) + "> does not have the attribute '" + name + "'" );
+      throw MeshReaderError(
+         "XMLVTK", "element <" + std::string( elem->Name() ) + "> does not have the attribute '" + name + "'" );
    }
 
    static std::int64_t
@@ -74,9 +74,10 @@ protected:
       std::int64_t value;
       tinyxml2::XMLError status = elem->QueryInt64Attribute( name.c_str(), &value );
       if( status != tinyxml2::XML_SUCCESS )
-         throw MeshReaderError( "XMLVTK",
-                                "element <" + std::string( elem->Name() ) + "> does not have the attribute '" + name
-                                   + "' or it could not be converted to int64_t" );
+         throw MeshReaderError(
+            "XMLVTK",
+            "element <" + std::string( elem->Name() ) + "> does not have the attribute '" + name
+               + "' or it could not be converted to int64_t" );
       return value;
    }
 
@@ -139,17 +140,18 @@ protected:
             if( found == nullptr )
                found = child;
             else
-               throw MeshReaderError( "XMLVTK",
-                                      "the <" + std::string( parent->Name() )
-                                         + "> tag contains multiple <DataArray> tags with the Name=\"" + name
-                                         + "\" attribute" );
+               throw MeshReaderError(
+                  "XMLVTK",
+                  "the <" + std::string( parent->Name() ) + "> tag contains multiple <DataArray> tags with the Name=\"" + name
+                     + "\" attribute" );
          }
          child = child->NextSiblingElement( "DataArray" );
       }
       if( found == nullptr )
-         throw MeshReaderError( "XMLVTK",
-                                "the <" + std::string( parent->Name() )
-                                   + "> tag does not contain any <DataArray> tag with the Name=\"" + name + "\" attribute" );
+         throw MeshReaderError(
+            "XMLVTK",
+            "the <" + std::string( parent->Name() ) + "> tag does not contain any <DataArray> tag with the Name=\"" + name
+               + "\" attribute" );
       verifyDataArray( found );
       return found;
    }
@@ -223,14 +225,15 @@ protected:
             vector[ i ] = decoded_data.second.get()[ i ];
          return vector;
    #else
-         throw MeshReaderError( "XMLVTK",
-                                "The ZLIB compression is not available in this build. Make sure that ZLIB is "
-                                "installed and recompile the program with -DHAVE_ZLIB." );
+         throw MeshReaderError(
+            "XMLVTK",
+            "The ZLIB compression is not available in this build. Make sure that ZLIB is "
+            "installed and recompile the program with -DHAVE_ZLIB." );
    #endif
       }
       else {
-         throw MeshReaderError( "XMLVTK",
-                                "unsupported compressor type: " + compressor + " (only vtkZLibDataCompressor is supported)" );
+         throw MeshReaderError(
+            "XMLVTK", "unsupported compressor type: " + compressor + " (only vtkZLibDataCompressor is supported)" );
       }
    }
 
@@ -336,8 +339,9 @@ protected:
    [[noreturn]] static void
    throw_no_tinyxml()
    {
-      throw std::runtime_error( "The program was compiled without XML parsing. Make sure that TinyXML-2 is "
-                                "installed and recompile the program with -DHAVE_TINYXML2." );
+      throw std::runtime_error(
+         "The program was compiled without XML parsing. Make sure that TinyXML-2 is "
+         "installed and recompile the program with -DHAVE_TINYXML2." );
    }
 
 public:
@@ -390,8 +394,8 @@ public:
       if( compressor == "<none>" )
          compressor = "";
       if( ! compressor.empty() && compressor != "vtkZLibDataCompressor" )
-         throw MeshReaderError( "XMLVTK",
-                                "unsupported compressor type: " + compressor + " (only vtkZLibDataCompressor is supported)" );
+         throw MeshReaderError(
+            "XMLVTK", "unsupported compressor type: " + compressor + " (only vtkZLibDataCompressor is supported)" );
 
       // get file type and the corresponding XML element
       fileType = getAttributeString( elem, "type" );

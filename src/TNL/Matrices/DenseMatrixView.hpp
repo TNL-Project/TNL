@@ -10,9 +10,10 @@ namespace TNL::Matrices {
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
-DenseMatrixView< Real, Device, Index, Organization >::DenseMatrixView( Index rows,
-                                                                       Index columns,
-                                                                       typename Base::ValuesViewType values )
+DenseMatrixView< Real, Device, Index, Organization >::DenseMatrixView(
+   Index rows,
+   Index columns,
+   typename Base::ValuesViewType values )
 : Base( rows, columns, std::move( values ) )
 {}
 
@@ -62,21 +63,22 @@ operator>>( File& file, DenseMatrixView< Real, Device, Index, Organization >& ma
 {
    const std::string type = getObjectType( file );
    if( type != matrix.getSerializationType() )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "object type does not match (expected " + matrix.getSerializationType()
-                                                     + ", found " + type + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "object type does not match (expected " + matrix.getSerializationType() + ", found " + type + ")." );
    std::size_t rows = 0;
    std::size_t columns = 0;
    file.load( &rows );
    file.load( &columns );
    if( rows != static_cast< std::size_t >( matrix.getRows() ) )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "invalid number of rows: " + std::to_string( rows ) + " (expected "
-                                                     + std::to_string( matrix.getRows() ) + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "invalid number of rows: " + std::to_string( rows ) + " (expected " + std::to_string( matrix.getRows() ) + ")." );
    if( columns != static_cast< std::size_t >( matrix.getColumns() ) )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "invalid number of columns: " + std::to_string( columns ) + " (expected "
-                                                     + std::to_string( matrix.getColumns() ) + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "invalid number of columns: " + std::to_string( columns ) + " (expected " + std::to_string( matrix.getColumns() )
+            + ")." );
    file >> matrix.getValues();
    return file;
 }

@@ -56,14 +56,16 @@ namespace TNL::Containers {
  * \par Output
  * \include ArrayExample.out
  */
-template< typename Value,
-          typename Device = Devices::Host,
-          typename Index = int,
-          typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
+template<
+   typename Value,
+   typename Device = Devices::Host,
+   typename Index = int,
+   typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class Array
 {
-   static_assert( std::is_same_v< std::remove_cv_t< Value >, std::remove_cv_t< typename Allocator::value_type > >,
-                  "Mismatch of Array::Value and Allocator::value_type. The type must be the same." );
+   static_assert(
+      std::is_same_v< std::remove_cv_t< Value >, std::remove_cv_t< typename Allocator::value_type > >,
+      "Mismatch of Array::Value and Allocator::value_type. The type must be the same." );
 
 public:
    /**
@@ -105,10 +107,11 @@ public:
     * \ref TNL::Containers::Array "Array" type with changed template
     * parameters.
     */
-   template< typename _Value,
-             typename _Device = Device,
-             typename _Index = Index,
-             typename _Allocator = typename Allocators::Default< _Device >::template Allocator< _Value > >
+   template<
+      typename _Value,
+      typename _Device = Device,
+      typename _Index = Index,
+      typename _Allocator = typename Allocators::Default< _Device >::template Allocator< _Value > >
    using Self = Array< _Value, _Device, _Index, _Allocator >;
 
    /**
@@ -546,9 +549,10 @@ public:
     * \param data Reference to the source array or value.
     * \return Reference to this array.
     */
-   template< typename T,
-             typename...,
-             typename = std::enable_if_t< std::is_convertible_v< T, ValueType > || IsArrayType< T >::value > >
+   template<
+      typename T,
+      typename...,
+      typename = std::enable_if_t< std::is_convertible_v< T, ValueType > || IsArrayType< T >::value > >
    Array&
    operator=( const T& data );
 

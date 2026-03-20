@@ -16,14 +16,15 @@ namespace TNL::Algorithms::SegmentsReductionKernels {
 template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 __global__
 void
-ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
-                                    Index gridIdx,
-                                    Index begin,
-                                    Index end,
-                                    Fetch fetch,
-                                    Reduction reduction,
-                                    ResultKeeper keeper,
-                                    Value identity )
+ChunkedEllpackReduceSegmentsKernel(
+   SegmentsView segments,
+   Index gridIdx,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   Reduction reduction,
+   ResultKeeper keeper,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -136,13 +137,14 @@ ChunkedEllpackKernel< Index, Device >::getKernelType()
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                       Index begin,
-                                                       Index end,
-                                                       Fetch& fetch,
-                                                       const Reduction& reduction,
-                                                       ResultKeeper& keeper,
-                                                       const Value& identity )
+ChunkedEllpackKernel< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
@@ -206,11 +208,12 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-ChunkedEllpackKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                          Fetch& fetch,
-                                                          const Reduction& reduction,
-                                                          ResultKeeper& keeper,
-                                                          const Value& identity )
+ChunkedEllpackKernel< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }

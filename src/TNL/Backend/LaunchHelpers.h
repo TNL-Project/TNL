@@ -131,10 +131,11 @@ bufferedTransferToHost( const Element* source, std::size_t size, PushBuffer& pus
    using BufferType = std::remove_cv_t< Element >;
    auto fill = [ source ]( std::size_t offset, BufferType* buffer, std::size_t buffer_size )
    {
-      Backend::memcpy( static_cast< void* >( buffer ),
-                       static_cast< const void* >( source + offset ),
-                       buffer_size * sizeof( Element ),
-                       Backend::MemcpyDeviceToHost );
+      Backend::memcpy(
+         static_cast< void* >( buffer ),
+         static_cast< const void* >( source + offset ),
+         buffer_size * sizeof( Element ),
+         Backend::MemcpyDeviceToHost );
    };
    bufferedTransfer< BufferType >( size, fill, push );
 }
@@ -151,10 +152,11 @@ bufferedTransferToDevice( Element* destination, std::size_t size, FillBuffer& fi
    using BufferType = std::remove_cv_t< Element >;
    auto push = [ destination ]( std::size_t offset, const BufferType* buffer, std::size_t buffer_size, bool& next_iter )
    {
-      Backend::memcpy( static_cast< void* >( destination + offset ),
-                       static_cast< const void* >( buffer ),
-                       buffer_size * sizeof( Element ),
-                       Backend::MemcpyHostToDevice );
+      Backend::memcpy(
+         static_cast< void* >( destination + offset ),
+         static_cast< const void* >( buffer ),
+         buffer_size * sizeof( Element ),
+         Backend::MemcpyHostToDevice );
    };
    bufferedTransfer< BufferType >( size, fill, push );
 }
@@ -195,12 +197,13 @@ getNumberOfGrids( const int blocks, const int gridSize )
 }
 
 inline void
-setupThreads( const dim3& blockSize,
-              dim3& blocksCount,
-              dim3& gridsCount,
-              long long int xThreads,
-              long long int yThreads = 0,
-              long long int zThreads = 0 )
+setupThreads(
+   const dim3& blockSize,
+   dim3& blocksCount,
+   dim3& gridsCount,
+   long long int xThreads,
+   long long int yThreads = 0,
+   long long int zThreads = 0 )
 {
    blocksCount.x = max( 1, xThreads / blockSize.x + static_cast< long long int >( xThreads % blockSize.x != 0 ) );
    blocksCount.y = max( 1, yThreads / blockSize.y + static_cast< long long int >( yThreads % blockSize.y != 0 ) );
@@ -241,11 +244,12 @@ operator<<( std::ostream& str, const dim3& d )
 }
 
 inline void
-printThreadsSetup( const dim3& blockSize,
-                   const dim3& blocksCount,
-                   const dim3& gridSize,
-                   const dim3& gridsCount,
-                   std::ostream& str = std::cout )
+printThreadsSetup(
+   const dim3& blockSize,
+   const dim3& blocksCount,
+   const dim3& gridSize,
+   const dim3& gridsCount,
+   std::ostream& str = std::cout )
 {
    str << "Block size: " << blockSize << "\n Blocks count: " << blocksCount << "\n Grid size: " << gridSize
        << "\n Grids count: " << gridsCount << "\n";

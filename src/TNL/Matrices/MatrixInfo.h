@@ -40,11 +40,12 @@ struct MatrixInfo< DenseMatrix< Real, Device, Index, Organization, RealAllocator
 : public MatrixInfo< typename DenseMatrix< Real, Device, Index, Organization, RealAllocator >::ViewType >
 {};
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename Device_, typename Index_ > class SegmentsView >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename Device_, typename Index_ > class SegmentsView >
 struct MatrixInfo< SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView > >
 {
    [[nodiscard]] static std::string
@@ -69,13 +70,14 @@ struct MatrixInfo< SparseMatrixView< Real, Device, Index, MatrixType, SegmentsVi
    }
 };
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
+   typename RealAllocator,
+   typename IndexAllocator >
 struct MatrixInfo< SparseMatrix< Real, Device, Index, MatrixType, Segments, RealAllocator, IndexAllocator > >
 : public MatrixInfo<
      typename SparseMatrix< Real, Device, Index, MatrixType, Segments, RealAllocator, IndexAllocator >::ViewType >

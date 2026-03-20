@@ -32,36 +32,38 @@ matrixMultiplicationBLAS( const DenseMatrix& matrix1, const DenseMatrix& matrix2
    auto organization = matrix1.getOrganization();
 
    if constexpr( std::is_same_v< RealType, float > ) {
-      cblas_sgemm( organization == TNL::Algorithms::Segments::RowMajorOrder ? CblasRowMajor : CblasColMajor,
-                   CblasNoTrans,
-                   CblasNoTrans,
-                   m,
-                   n,
-                   k,
-                   1.0F,
-                   matrix1.getValues().getData(),
-                   k,
-                   matrix2.getValues().getData(),
-                   n,
-                   0.0F,
-                   resultMatrix.getValues().getData(),
-                   organization == TNL::Algorithms::Segments::RowMajorOrder ? n : m );
+      cblas_sgemm(
+         organization == TNL::Algorithms::Segments::RowMajorOrder ? CblasRowMajor : CblasColMajor,
+         CblasNoTrans,
+         CblasNoTrans,
+         m,
+         n,
+         k,
+         1.0F,
+         matrix1.getValues().getData(),
+         k,
+         matrix2.getValues().getData(),
+         n,
+         0.0F,
+         resultMatrix.getValues().getData(),
+         organization == TNL::Algorithms::Segments::RowMajorOrder ? n : m );
    }
    else if constexpr( std::is_same_v< RealType, double > ) {
-      cblas_dgemm( organization == TNL::Algorithms::Segments::RowMajorOrder ? CblasRowMajor : CblasColMajor,
-                   CblasNoTrans,
-                   CblasNoTrans,
-                   m,
-                   n,
-                   k,
-                   1.0,
-                   matrix1.getValues().getData(),
-                   k,
-                   matrix2.getValues().getData(),
-                   n,
-                   0.0,
-                   resultMatrix.getValues().getData(),
-                   organization == TNL::Algorithms::Segments::RowMajorOrder ? n : m );
+      cblas_dgemm(
+         organization == TNL::Algorithms::Segments::RowMajorOrder ? CblasRowMajor : CblasColMajor,
+         CblasNoTrans,
+         CblasNoTrans,
+         m,
+         n,
+         k,
+         1.0,
+         matrix1.getValues().getData(),
+         k,
+         matrix2.getValues().getData(),
+         n,
+         0.0,
+         resultMatrix.getValues().getData(),
+         organization == TNL::Algorithms::Segments::RowMajorOrder ? n : m );
    }
 }
 

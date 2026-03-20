@@ -13,12 +13,13 @@ namespace TNL::Algorithms::detail {
 template< int blockSizeX, typename Result, typename DataFetcher, typename Reduction, typename Index >
 __global__
 void
-CudaReduction2DKernel( const Result identity,
-                       DataFetcher dataFetcher,
-                       const Reduction reduction,
-                       const Index size,
-                       const int n,
-                       Result* output )
+CudaReduction2DKernel(
+   const Result identity,
+   DataFetcher dataFetcher,
+   const Reduction reduction,
+   const Index size,
+   const int n,
+   Result* output )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    Result* sdata = Backend::getSharedMemory< Result >();
@@ -110,12 +111,13 @@ CudaReduction2DKernel( const Result identity,
 
 template< typename Result, typename DataFetcher, typename Reduction, typename Index >
 int
-CudaReduction2DKernelLauncher( const Result identity,
-                               DataFetcher dataFetcher,
-                               const Reduction reduction,
-                               const Index size,
-                               const int n,
-                               Result*& output )
+CudaReduction2DKernelLauncher(
+   const Result identity,
+   DataFetcher dataFetcher,
+   const Reduction reduction,
+   const Index size,
+   const int n,
+   Result*& output )
 {
    // must be a power of 2
    static constexpr int maxThreadsPerBlock = 256;
@@ -161,9 +163,9 @@ CudaReduction2DKernelLauncher( const Result identity,
    launch_config.gridSize.y = Backend::getNumberOfBlocks( n, launch_config.blockSize.y );
 
    if( launch_config.gridSize.y > Backend::getMaxGridYSize() ) {
-      throw std::logic_error( "Maximum launch_config.gridSize.y limit exceeded (limit is "
-                              + std::to_string( Backend::getMaxGridYSize() ) + ", attempted "
-                              + std::to_string( launch_config.gridSize.y ) + ")." );
+      throw std::logic_error(
+         "Maximum launch_config.gridSize.y limit exceeded (limit is " + std::to_string( Backend::getMaxGridYSize() )
+         + ", attempted " + std::to_string( launch_config.gridSize.y ) + ")." );
    }
 
    // create reference to the reduction buffer singleton and set size
@@ -182,116 +184,126 @@ CudaReduction2DKernelLauncher( const Result identity,
    // Depending on the blockSize we generate appropriate template instance.
    switch( launch_config.blockSize.x ) {
       case 512:
-         Backend::launchKernelSync( CudaReduction2DKernel< 512, Result, DataFetcher, Reduction, Index >,
-                                    launch_config,
-                                    identity,
-                                    dataFetcher,
-                                    reduction,
-                                    size,
-                                    n,
-                                    output );
+         Backend::launchKernelSync(
+            CudaReduction2DKernel< 512, Result, DataFetcher, Reduction, Index >,
+            launch_config,
+            identity,
+            dataFetcher,
+            reduction,
+            size,
+            n,
+            output );
          break;
       case 256:
-         Backend::funcSetCacheConfig( CudaReduction2DKernel< 256, Result, DataFetcher, Reduction, Index >,
-                                      Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaReduction2DKernel< 256, Result, DataFetcher, Reduction, Index >,
-                                    launch_config,
-                                    identity,
-                                    dataFetcher,
-                                    reduction,
-                                    size,
-                                    n,
-                                    output );
+         Backend::funcSetCacheConfig(
+            CudaReduction2DKernel< 256, Result, DataFetcher, Reduction, Index >, Backend::FuncCachePreferShared );
+         Backend::launchKernelSync(
+            CudaReduction2DKernel< 256, Result, DataFetcher, Reduction, Index >,
+            launch_config,
+            identity,
+            dataFetcher,
+            reduction,
+            size,
+            n,
+            output );
          break;
       case 128:
-         Backend::funcSetCacheConfig( CudaReduction2DKernel< 128, Result, DataFetcher, Reduction, Index >,
-                                      Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaReduction2DKernel< 128, Result, DataFetcher, Reduction, Index >,
-                                    launch_config,
-                                    identity,
-                                    dataFetcher,
-                                    reduction,
-                                    size,
-                                    n,
-                                    output );
+         Backend::funcSetCacheConfig(
+            CudaReduction2DKernel< 128, Result, DataFetcher, Reduction, Index >, Backend::FuncCachePreferShared );
+         Backend::launchKernelSync(
+            CudaReduction2DKernel< 128, Result, DataFetcher, Reduction, Index >,
+            launch_config,
+            identity,
+            dataFetcher,
+            reduction,
+            size,
+            n,
+            output );
          break;
       case 64:
-         Backend::funcSetCacheConfig( CudaReduction2DKernel< 64, Result, DataFetcher, Reduction, Index >,
-                                      Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaReduction2DKernel< 64, Result, DataFetcher, Reduction, Index >,
-                                    launch_config,
-                                    identity,
-                                    dataFetcher,
-                                    reduction,
-                                    size,
-                                    n,
-                                    output );
+         Backend::funcSetCacheConfig(
+            CudaReduction2DKernel< 64, Result, DataFetcher, Reduction, Index >, Backend::FuncCachePreferShared );
+         Backend::launchKernelSync(
+            CudaReduction2DKernel< 64, Result, DataFetcher, Reduction, Index >,
+            launch_config,
+            identity,
+            dataFetcher,
+            reduction,
+            size,
+            n,
+            output );
          break;
       case 32:
-         Backend::funcSetCacheConfig( CudaReduction2DKernel< 32, Result, DataFetcher, Reduction, Index >,
-                                      Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaReduction2DKernel< 32, Result, DataFetcher, Reduction, Index >,
-                                    launch_config,
-                                    identity,
-                                    dataFetcher,
-                                    reduction,
-                                    size,
-                                    n,
-                                    output );
+         Backend::funcSetCacheConfig(
+            CudaReduction2DKernel< 32, Result, DataFetcher, Reduction, Index >, Backend::FuncCachePreferShared );
+         Backend::launchKernelSync(
+            CudaReduction2DKernel< 32, Result, DataFetcher, Reduction, Index >,
+            launch_config,
+            identity,
+            dataFetcher,
+            reduction,
+            size,
+            n,
+            output );
          break;
       case 16:
-         Backend::funcSetCacheConfig( CudaReduction2DKernel< 16, Result, DataFetcher, Reduction, Index >,
-                                      Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaReduction2DKernel< 16, Result, DataFetcher, Reduction, Index >,
-                                    launch_config,
-                                    identity,
-                                    dataFetcher,
-                                    reduction,
-                                    size,
-                                    n,
-                                    output );
+         Backend::funcSetCacheConfig(
+            CudaReduction2DKernel< 16, Result, DataFetcher, Reduction, Index >, Backend::FuncCachePreferShared );
+         Backend::launchKernelSync(
+            CudaReduction2DKernel< 16, Result, DataFetcher, Reduction, Index >,
+            launch_config,
+            identity,
+            dataFetcher,
+            reduction,
+            size,
+            n,
+            output );
          break;
       case 8:
-         Backend::funcSetCacheConfig( CudaReduction2DKernel< 8, Result, DataFetcher, Reduction, Index >,
-                                      Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaReduction2DKernel< 8, Result, DataFetcher, Reduction, Index >,
-                                    launch_config,
-                                    identity,
-                                    dataFetcher,
-                                    reduction,
-                                    size,
-                                    n,
-                                    output );
+         Backend::funcSetCacheConfig(
+            CudaReduction2DKernel< 8, Result, DataFetcher, Reduction, Index >, Backend::FuncCachePreferShared );
+         Backend::launchKernelSync(
+            CudaReduction2DKernel< 8, Result, DataFetcher, Reduction, Index >,
+            launch_config,
+            identity,
+            dataFetcher,
+            reduction,
+            size,
+            n,
+            output );
          break;
       case 4:
-         Backend::funcSetCacheConfig( CudaReduction2DKernel< 4, Result, DataFetcher, Reduction, Index >,
-                                      Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaReduction2DKernel< 4, Result, DataFetcher, Reduction, Index >,
-                                    launch_config,
-                                    identity,
-                                    dataFetcher,
-                                    reduction,
-                                    size,
-                                    n,
-                                    output );
+         Backend::funcSetCacheConfig(
+            CudaReduction2DKernel< 4, Result, DataFetcher, Reduction, Index >, Backend::FuncCachePreferShared );
+         Backend::launchKernelSync(
+            CudaReduction2DKernel< 4, Result, DataFetcher, Reduction, Index >,
+            launch_config,
+            identity,
+            dataFetcher,
+            reduction,
+            size,
+            n,
+            output );
          break;
       case 2:
-         Backend::funcSetCacheConfig( CudaReduction2DKernel< 2, Result, DataFetcher, Reduction, Index >,
-                                      Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaReduction2DKernel< 2, Result, DataFetcher, Reduction, Index >,
-                                    launch_config,
-                                    identity,
-                                    dataFetcher,
-                                    reduction,
-                                    size,
-                                    n,
-                                    output );
+         Backend::funcSetCacheConfig(
+            CudaReduction2DKernel< 2, Result, DataFetcher, Reduction, Index >, Backend::FuncCachePreferShared );
+         Backend::launchKernelSync(
+            CudaReduction2DKernel< 2, Result, DataFetcher, Reduction, Index >,
+            launch_config,
+            identity,
+            dataFetcher,
+            reduction,
+            size,
+            n,
+            output );
          break;
       case 1:
          throw std::logic_error( "blockSize should not be 1." );
       default:
-         throw std::logic_error( "Block size is " + std::to_string( launch_config.blockSize.x )
-                                 + " which is none of 1, 2, 4, 8, 16, 32, 64, 128, 256 or 512." );
+         throw std::logic_error(
+            "Block size is " + std::to_string( launch_config.blockSize.x )
+            + " which is none of 1, 2, 4, 8, 16, 32, 64, 128, 256 or 512." );
    }
 
    // return the size of the output array on the CUDA device

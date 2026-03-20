@@ -18,10 +18,12 @@ template< typename Matrix, typename Vector, typename Index = typename Matrix::In
 void
 singleSourceShortestPathTransposed( const Matrix& transposedAdjacencyMatrix, Index start, Vector& distances )
 {
-   TNL_ASSERT_TRUE( transposedAdjacencyMatrix.getRows() == transposedAdjacencyMatrix.getColumns(),
-                    "Adjacency matrix must be square matrix." );
-   TNL_ASSERT_TRUE( distances.getSize() == transposedAdjacencyMatrix.getRows(),
-                    "v must have the same size as the number of rows in adjacencyMatrix" );
+   TNL_ASSERT_TRUE(
+      transposedAdjacencyMatrix.getRows() == transposedAdjacencyMatrix.getColumns(),
+      "Adjacency matrix must be square matrix." );
+   TNL_ASSERT_TRUE(
+      distances.getSize() == transposedAdjacencyMatrix.getRows(),
+      "v must have the same size as the number of rows in adjacencyMatrix" );
 
    using Real = typename Matrix::RealType;
    const Index n = transposedAdjacencyMatrix.getRows();

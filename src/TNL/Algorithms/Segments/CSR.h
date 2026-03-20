@@ -20,9 +20,10 @@ namespace TNL::Algorithms::Segments {
  * \tparam Index is type for indexing of the elements managed by the segments.
  * \tparam IndexAllocator is allocator for supporting index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 class CSR : public CSRBase< Device, Index >
 {
    using Base = CSRBase< Device, Index >;

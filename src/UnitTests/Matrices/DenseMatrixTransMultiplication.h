@@ -467,11 +467,12 @@ TYPED_TEST( DenseMatrixMultiplicationTransposedTest, LargeMatricesProductBothTra
       }
    }
 
-   resultMatrix.getMatrixProduct( matrix1_transposed,
-                                  matrix2_transposed,
-                                  1.0,
-                                  TNL::Matrices::TransposeState::Transpose,
-                                  TNL::Matrices::TransposeState::Transpose );
+   resultMatrix.getMatrixProduct(
+      matrix1_transposed,
+      matrix2_transposed,
+      1.0,
+      TNL::Matrices::TransposeState::Transpose,
+      TNL::Matrices::TransposeState::Transpose );
 
    auto tolerance = 1e-3;
 

@@ -122,9 +122,10 @@ public:
     * \param dimensions are dimensions along particular axes of the grid. The number of parameters must
     *    be equal to the size od the grid.
     */
-   template< typename... Dimensions,
-             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
-             std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
+   template<
+      typename... Dimensions,
+      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
+      std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
    Grid( Dimensions... dimensions );
 
    /**
@@ -151,9 +152,10 @@ public:
     * \tparam Dimensions variadic template accepting a series of indexes.
     * \param[in] dimensions series of indexes defining resolution of the grid.
     */
-   template< typename... Dimensions,
-             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
-             std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
+   template<
+      typename... Dimensions,
+      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool > = true,
+      std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > = true >
    void
    setDimensions( Dimensions... dimensions );
 
@@ -192,8 +194,9 @@ public:
     *
     * \return Number of grid entities with given dimension.
     */
-   template< int EntityDimension,
-             std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true >
+   template<
+      int EntityDimension,
+      std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true >
    [[nodiscard]] __cuda_callable__
    Index
    getEntitiesCount() const noexcept;
@@ -205,8 +208,9 @@ public:
     *
     * \return Number of grid entities with given dimension.
     */
-   template< typename Entity,
-             std::enable_if_t< Templates::isInClosedInterval( 0, Entity::getEntityDimension(), Dimension ), bool > = true >
+   template<
+      typename Entity,
+      std::enable_if_t< Templates::isInClosedInterval( 0, Entity::getEntityDimension(), Dimension ), bool > = true >
    [[nodiscard]] __cuda_callable__
    Index
    getEntitiesCount() const noexcept;
@@ -218,9 +222,10 @@ public:
     * \param[in] indices is a list of dimensions of grid entities to be counted.
     * \return count of entities of specific dimensions.
     */
-   template< typename... DimensionIndex,
-             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool > = true,
-             std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > = true >
+   template<
+      typename... DimensionIndex,
+      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool > = true,
+      std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > = true >
    [[nodiscard]] __cuda_callable__
    Containers::StaticVector< sizeof...( DimensionIndex ), Index >
    getEntitiesCounts( DimensionIndex... indices ) const;
@@ -252,10 +257,11 @@ public:
     * \tparam EntityOrientation is orientation of the grid entity.
     * \return number of entities of specific dimension and orientation.
     */
-   template< int EntityDimension,
-             int EntityOrientation,
-             std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true,
-             std::enable_if_t< Templates::isInClosedInterval( 0, EntityOrientation, Dimension ), bool > = true >
+   template<
+      int EntityDimension,
+      int EntityOrientation,
+      std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool > = true,
+      std::enable_if_t< Templates::isInClosedInterval( 0, EntityOrientation, Dimension ), bool > = true >
    [[nodiscard]] __cuda_callable__
    Index
    getOrientedEntitiesCount() const noexcept;
@@ -364,9 +370,10 @@ public:
     * \tparam Coordinates is a pack of templates types.
     * \param[in] coordinates is a pack of real numbers defining the origin.
     */
-   template< typename... Coordinates,
-             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Coordinates >... >, bool > = true,
-             std::enable_if_t< sizeof...( Coordinates ) == Dimension, bool > = true >
+   template<
+      typename... Coordinates,
+      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Coordinates >... >, bool > = true,
+      std::enable_if_t< sizeof...( Coordinates ) == Dimension, bool > = true >
    void
    setOrigin( Coordinates... coordinates ) noexcept;
 
@@ -395,9 +402,10 @@ public:
     * \tparam Steps is a pack of template types.
     * \param[in] spaceSteps is a pack of real numbers defining the space steps of the grid.
     */
-   template< typename... Steps,
-             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Steps >... >, bool > = true,
-             std::enable_if_t< sizeof...( Steps ) == Dimension, bool > = true >
+   template<
+      typename... Steps,
+      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Steps >... >, bool > = true,
+      std::enable_if_t< sizeof...( Steps ) == Dimension, bool > = true >
    void
    setSpaceSteps( Steps... spaceSteps ) noexcept;
 
@@ -419,9 +427,10 @@ public:
     * \param[in] powers is a pack of numbers telling power of particular space steps.
     * \return product of given space steps powers.
     */
-   template< typename... Powers,
-             std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool > = true,
-             std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
+   template<
+      typename... Powers,
+      std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool > = true,
+      std::enable_if_t< sizeof...( Powers ) == Dimension, bool > = true >
    [[nodiscard]] __cuda_callable__
    Real
    getSpaceStepsProducts( Powers... powers ) const;

@@ -8,11 +8,12 @@
 
 namespace TNL::Meshes {
 
-template< typename MeshConfig,
-          typename Device,
-          typename EntityTopology,
-          typename SubdimensionTag,
-          bool sensible = ( SubdimensionTag::value < EntityTopology::dimension ) >
+template<
+   typename MeshConfig,
+   typename Device,
+   typename EntityTopology,
+   typename SubdimensionTag,
+   bool sensible = ( SubdimensionTag::value < EntityTopology::dimension ) >
 struct WeakSubentityStorageTrait
 {
    static constexpr bool storageEnabled =
@@ -25,11 +26,12 @@ struct WeakSubentityStorageTrait< MeshConfig, Device, EntityTopology, Subdimensi
    static constexpr bool storageEnabled = false;
 };
 
-template< typename MeshConfig,
-          typename Device,
-          typename EntityTopology,
-          typename SuperdimensionTag,
-          bool sensible = ( SuperdimensionTag::value > EntityTopology::dimension ) >
+template<
+   typename MeshConfig,
+   typename Device,
+   typename EntityTopology,
+   typename SuperdimensionTag,
+   bool sensible = ( SuperdimensionTag::value > EntityTopology::dimension ) >
 struct WeakSuperentityStorageTrait
 {
    static constexpr bool storageEnabled =

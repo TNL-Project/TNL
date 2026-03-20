@@ -55,10 +55,11 @@ namespace TNL::Solvers::ODE {
  * for the numerical integration. \tparam Vector is a vector (\ref TNL::Containers::Vector, \ref TNL::Containers::VectorView, or
  * \ref TNL::Containers::StaticVector) representing \f$ \vec x \in R^n \f$.
  */
-template< typename Method,
-          typename Vector,
-          typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType >,
-          bool IsStatic = IsStaticArrayType< Vector >() >
+template<
+   typename Method,
+   typename Vector,
+   typename SolverMonitor = IterativeSolverMonitor< typename Vector::RealType >,
+   bool IsStatic = IsStaticArrayType< Vector >() >
 struct ODESolver;
 
 template< typename Method, typename Vector, typename SolverMonitor >

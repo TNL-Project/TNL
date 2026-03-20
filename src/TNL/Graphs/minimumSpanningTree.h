@@ -95,11 +95,12 @@ getRoot( const Vector& parent, Index source )
    return source;
 }
 
-template< typename InGraph,
-          typename OutGraph = InGraph,
-          typename RootsVector = Containers::Vector< typename InGraph::IndexType >,
-          typename Real = typename InGraph::ValueType,
-          typename Index = typename InGraph::IndexType >
+template<
+   typename InGraph,
+   typename OutGraph = InGraph,
+   typename RootsVector = Containers::Vector< typename InGraph::IndexType >,
+   typename Real = typename InGraph::ValueType,
+   typename Index = typename InGraph::IndexType >
 void
 kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roots )
 {
@@ -149,10 +150,11 @@ kruskal( const InGraph& graph, OutGraph& minimum_spanning_tree, RootsVector& roo
    roots = RootsVector( roots_ );
 }
 
-template< typename InGraph,
-          typename OutGraph = InGraph,
-          typename Real = typename InGraph::ValueType,
-          typename Index = typename InGraph::IndexType >
+template<
+   typename InGraph,
+   typename OutGraph = InGraph,
+   typename Real = typename InGraph::ValueType,
+   typename Index = typename InGraph::IndexType >
 void
 parallelMST( const InGraph& graph, OutGraph& tree )
 {
@@ -317,10 +319,11 @@ parallelMST( const InGraph& graph, OutGraph& tree )
          //star_slots_view[ p_old_view[ value.second ] ]++; //TODO: makes this atomic
          //star_slots_view[ p_old_view[ value.third ] ]++; //TODO: makes this atomic
       };
-      hook_candidates.reduceAllSegments( hook_candidates_fetch,
-                                         hook_candidates_reduction,
-                                         hook_candidates_keep,
-                                         AuxType( std::numeric_limits< RealType >::max(), -1, -1 ) );
+      hook_candidates.reduceAllSegments(
+         hook_candidates_fetch,
+         hook_candidates_reduction,
+         hook_candidates_keep,
+         AuxType( std::numeric_limits< RealType >::max(), -1, -1 ) );
       /*for( Index i = 0; i < hook_sources.getSize(); i++ ) {
          if( hook_sources_view[ i ] != -1 )
             std::cout << " > Best hook: " << hook_sources[ i ] << " -> " << i << " @ " << hook_weights[ i ] << std::endl;
@@ -380,22 +383,22 @@ parallelMST( const InGraph& graph, OutGraph& tree )
       // The following is alternative to the above without using the matrix - but not working yet
       star_hook_candidates_sources_view = -1;
       star_hook_candidates_weights_view = std::numeric_limits< Real >::max();
-      Algorithms::parallelFor< DeviceType >( (IndexType) 0,
-                                             n,
-                                             [ = ] __cuda_callable__( Index i ) mutable
-                                             {
-                                                if( hook_sources_view[ i ] != -1 ) {
-                                                   const auto weight = hook_weights_view[ i ];
-                                                   const auto source_star = p_old_view[ hook_sources_view[ i ] ];
-                                                   const auto target_star = p_old_view[ hook_targets_view[ i ] ];
-                                                   if( weight < star_hook_candidates_weights_view[ source_star ] ) {
-                                                      star_hook_candidates_weights_view[ source_star ] =
-                                                         weight;  // TODO: make this atomic
-                                                      star_hook_candidates_sources_view[ source_star ] = hook_sources_view[ i ];
-                                                      star_hook_candidates_targets_view[ source_star ] = hook_targets_view[ i ];
-                                                   }
-                                                }
-                                             } );
+      Algorithms::parallelFor< DeviceType >(
+         (IndexType) 0,
+         n,
+         [ = ] __cuda_callable__( Index i ) mutable
+         {
+            if( hook_sources_view[ i ] != -1 ) {
+               const auto weight = hook_weights_view[ i ];
+               const auto source_star = p_old_view[ hook_sources_view[ i ] ];
+               const auto target_star = p_old_view[ hook_targets_view[ i ] ];
+               if( weight < star_hook_candidates_weights_view[ source_star ] ) {
+                  star_hook_candidates_weights_view[ source_star ] = weight;  // TODO: make this atomic
+                  star_hook_candidates_sources_view[ source_star ] = hook_sources_view[ i ];
+                  star_hook_candidates_targets_view[ source_star ] = hook_targets_view[ i ];
+               }
+            }
+         } );
 
       /*std::cout << " Star hook candidates: " << std::endl;
 
@@ -409,23 +412,22 @@ parallelMST( const InGraph& graph, OutGraph& tree )
       // TODO: the following must be done in atomic way to run in parallel
       star_hook_sources_view = -1;
       star_hook_weights_view = std::numeric_limits< Real >::max();
-      Algorithms::parallelFor< DeviceType >( (IndexType) 0,
-                                             n,
-                                             [ = ] __cuda_callable__( Index i ) mutable
-                                             {
-                                                if( star_hook_candidates_sources_view[ i ] != -1 ) {
-                                                   const auto weight = star_hook_candidates_weights_view[ i ];
-                                                   const auto source_star = p_view[ star_hook_candidates_sources_view[ i ] ];
-                                                   const auto target_star = p_view[ star_hook_candidates_targets_view[ i ] ];
-                                                   if( weight < star_hook_weights_view[ target_star ] ) {
-                                                      star_hook_weights_view[ target_star ] = weight;  // TODO: make this atomic
-                                                      star_hook_sources_view[ target_star ] =
-                                                         star_hook_candidates_targets_view[ i ];
-                                                      star_hook_targets_view[ target_star ] =
-                                                         star_hook_candidates_sources_view[ i ];
-                                                   }
-                                                }
-                                             } );
+      Algorithms::parallelFor< DeviceType >(
+         (IndexType) 0,
+         n,
+         [ = ] __cuda_callable__( Index i ) mutable
+         {
+            if( star_hook_candidates_sources_view[ i ] != -1 ) {
+               const auto weight = star_hook_candidates_weights_view[ i ];
+               const auto source_star = p_view[ star_hook_candidates_sources_view[ i ] ];
+               const auto target_star = p_view[ star_hook_candidates_targets_view[ i ] ];
+               if( weight < star_hook_weights_view[ target_star ] ) {
+                  star_hook_weights_view[ target_star ] = weight;  // TODO: make this atomic
+                  star_hook_sources_view[ target_star ] = star_hook_candidates_targets_view[ i ];
+                  star_hook_targets_view[ target_star ] = star_hook_candidates_sources_view[ i ];
+               }
+            }
+         } );
 
       /*std::cout << " Star hook candidates: " << std::endl;
       for( Index i = 0; i < n; i++ ) {
@@ -436,42 +438,43 @@ parallelMST( const InGraph& graph, OutGraph& tree )
       }*/
 
       //std::cout << "p_old= " << p_old << std::endl;
-      Algorithms::parallelFor< DeviceType >( (IndexType) 0,
-                                             n,
-                                             [ = ] __cuda_callable__( Index i ) mutable
-                                             {
-                                                if( star_hook_sources_view[ i ] != -1 ) {
-                                                   TNL_ASSERT_EQ( i, p_old_view[ star_hook_sources_view[ i ] ], "" );
-                                                   const auto source_star = p_old_view[ star_hook_sources_view[ i ] ];
-                                                   const auto target_star = p_old_view[ star_hook_targets_view[ i ] ];
-                                                   //std::cout << " >>>> Star hook " << i << ": " <<
-                                                   //star_hook_sources_view[ i ] << " -> " << star_hook_targets_view[ i ]
-                                                   //          << " source star: " << source_star << " target star: " <<
-                                                   //          target_star << " @ " << star_hook_weights_view[ i ] << std::endl;
-                                                   if( star_hook_sources_view[ target_star ] != -1 ) {
-                                                      const auto next_star = p_view[ star_hook_targets_view[ target_star ] ];
-                                                      if( next_star != i ) {
-                                                         //std::cerr << " Triple star hooking found: " <<
-                                                         //star_hook_sources_view[ i ]
-                                                         //          << " -> " << star_hook_targets_view[ i ] << " -> " <<
-                                                         //          star_hook_targets_view[ target_star ] << std::endl;
-                                                         const auto first_weight = star_hook_weights_view[ i ];
-                                                         const auto second_weight = star_hook_weights_view[ target_star ];
-                                                         if( first_weight > second_weight ) {
-                                                            //   std::cout << " Erasing hook: " << star_hook_sources_view[ i ]
-                                                            //   << " -> " << star_hook_targets_view[ i ] << std::endl;
-                                                            star_hook_sources_view[ i ] = -1;
-                                                         }
-                                                         else {
-                                                            //   std::cout << " Erasing hook: " << star_hook_sources_view[
-                                                            //   target_star ] << " -> " << star_hook_targets_view[ target_star
-                                                            //   ] << std::endl;
-                                                            star_hook_sources_view[ target_star ] = -1;
-                                                         }
-                                                      }
-                                                   }
-                                                }
-                                             } );
+      Algorithms::parallelFor< DeviceType >(
+         (IndexType) 0,
+         n,
+         [ = ] __cuda_callable__( Index i ) mutable
+         {
+            if( star_hook_sources_view[ i ] != -1 ) {
+               TNL_ASSERT_EQ( i, p_old_view[ star_hook_sources_view[ i ] ], "" );
+               const auto source_star = p_old_view[ star_hook_sources_view[ i ] ];
+               const auto target_star = p_old_view[ star_hook_targets_view[ i ] ];
+               //std::cout << " >>>> Star hook " << i << ": " <<
+               //star_hook_sources_view[ i ] << " -> " << star_hook_targets_view[ i ]
+               //          << " source star: " << source_star << " target star: " <<
+               //          target_star << " @ " << star_hook_weights_view[ i ] << std::endl;
+               if( star_hook_sources_view[ target_star ] != -1 ) {
+                  const auto next_star = p_view[ star_hook_targets_view[ target_star ] ];
+                  if( next_star != i ) {
+                     //std::cerr << " Triple star hooking found: " <<
+                     //star_hook_sources_view[ i ]
+                     //          << " -> " << star_hook_targets_view[ i ] << " -> " <<
+                     //          star_hook_targets_view[ target_star ] << std::endl;
+                     const auto first_weight = star_hook_weights_view[ i ];
+                     const auto second_weight = star_hook_weights_view[ target_star ];
+                     if( first_weight > second_weight ) {
+                        //   std::cout << " Erasing hook: " << star_hook_sources_view[ i ]
+                        //   << " -> " << star_hook_targets_view[ i ] << std::endl;
+                        star_hook_sources_view[ i ] = -1;
+                     }
+                     else {
+                        //   std::cout << " Erasing hook: " << star_hook_sources_view[
+                        //   target_star ] << " -> " << star_hook_targets_view[ target_star
+                        //   ] << std::endl;
+                        star_hook_sources_view[ target_star ] = -1;
+                     }
+                  }
+               }
+            }
+         } );
 
       //getchar();
 
@@ -612,11 +615,12 @@ parallelMST( const InGraph& graph, OutGraph& tree )
  * \param spanning_tree is the output graph representing the minimum spanning tree.
  * \param roots is the vector containing the roots of the trees in the forest.
  */
-template< typename InGraph,
-          typename OutGraph = InGraph,
-          typename RootsVector = Containers::Vector< typename InGraph::IndexType >,
-          typename Value = typename InGraph::ValueType,
-          typename Index = typename InGraph::IndexType >
+template<
+   typename InGraph,
+   typename OutGraph = InGraph,
+   typename RootsVector = Containers::Vector< typename InGraph::IndexType >,
+   typename Value = typename InGraph::ValueType,
+   typename Index = typename InGraph::IndexType >
 void
 minimumSpanningTree( const InGraph& graph, OutGraph& spanning_tree, RootsVector& roots )
 {

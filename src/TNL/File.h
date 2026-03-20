@@ -152,36 +152,40 @@ public:
 
 protected:
    // implementation for all allocators which allocate data accessible from host
-   template< typename Type,
-             typename SourceType,
-             typename Allocator,
-             typename = std::enable_if_t< allocates_host_accessible_data_v< Allocator > > >
+   template<
+      typename Type,
+      typename SourceType,
+      typename Allocator,
+      typename = std::enable_if_t< allocates_host_accessible_data_v< Allocator > > >
    void
    load_impl( Type* destination, std::streamsize elements );
 
    // implementation for allocators that need explicit host-device copies
-   template< typename Type,
-             typename SourceType,
-             typename Allocator,
-             typename = std::enable_if_t< ! allocates_host_accessible_data_v< Allocator > >,
-             typename = void >
+   template<
+      typename Type,
+      typename SourceType,
+      typename Allocator,
+      typename = std::enable_if_t< ! allocates_host_accessible_data_v< Allocator > >,
+      typename = void >
    void
    load_impl( Type* destination, std::streamsize elements );
 
    // implementation for all allocators which allocate data accessible from host
-   template< typename Type,
-             typename TargetType,
-             typename Allocator,
-             typename = std::enable_if_t< allocates_host_accessible_data_v< Allocator > > >
+   template<
+      typename Type,
+      typename TargetType,
+      typename Allocator,
+      typename = std::enable_if_t< allocates_host_accessible_data_v< Allocator > > >
    void
    save_impl( const Type* source, std::streamsize elements );
 
    // implementation for allocators that need explicit host-device copies
-   template< typename Type,
-             typename TargetType,
-             typename Allocator,
-             typename = std::enable_if_t< ! allocates_host_accessible_data_v< Allocator > >,
-             typename = void >
+   template<
+      typename Type,
+      typename TargetType,
+      typename Allocator,
+      typename = std::enable_if_t< ! allocates_host_accessible_data_v< Allocator > >,
+      typename = void >
    void
    save_impl( const Type* source, std::streamsize elements );
 

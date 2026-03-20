@@ -15,14 +15,15 @@ namespace TNL::Matrices {
 template< int tileDim, typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
-DenseMatrixProductKernel( ResultMatrix resultMatrix,
-                          const Matrix1 matrixA,
-                          const Matrix2 matrixB,
-                          const typename ResultMatrix::RealType matrixMultiplicator,
-                          TransposeState TransposeA,
-                          TransposeState TransposeB,
-                          const typename ResultMatrix::IndexType gridIdx_x,
-                          const typename ResultMatrix::IndexType gridIdx_y )
+DenseMatrixProductKernel(
+   ResultMatrix resultMatrix,
+   const Matrix1 matrixA,
+   const Matrix2 matrixB,
+   const typename ResultMatrix::RealType matrixMultiplicator,
+   TransposeState TransposeA,
+   TransposeState TransposeB,
+   const typename ResultMatrix::IndexType gridIdx_x,
+   const typename ResultMatrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using IndexType = typename ResultMatrix::IndexType;
@@ -87,12 +88,13 @@ DenseMatrixProductKernel( ResultMatrix resultMatrix,
 
 template< typename ResultMatrix, typename Matrix1, typename Matrix2, typename Real, int tileDim >
 void
-getMatrixProduct( ResultMatrix& resultMatrix,
-                  const Matrix1& matrix1,
-                  const Matrix2& matrix2,
-                  Real matrixMultiplicator,
-                  TransposeState transposeA,
-                  TransposeState transposeB )
+getMatrixProduct(
+   ResultMatrix& resultMatrix,
+   const Matrix1& matrix1,
+   const Matrix2& matrix2,
+   Real matrixMultiplicator,
+   TransposeState transposeA,
+   TransposeState transposeB )
 {
    using Index = typename ResultMatrix::IndexType;
    using Device = typename ResultMatrix::DeviceType;
@@ -131,20 +133,22 @@ getMatrixProduct( ResultMatrix& resultMatrix,
             if( gridIdx_y == rowGrids - 1 )
                launch_config.gridSize.y = rowTiles % Backend::getMaxGridYSize();
 
-            constexpr auto kernel = DenseMatrixProductKernel< tileDim,
-                                                              typename ResultMatrix::ViewType,
-                                                              typename Matrix1::ConstViewType,
-                                                              typename Matrix2::ConstViewType >;
-            Backend::launchKernelAsync( kernel,
-                                        launch_config,
-                                        resultMatrix.getView(),
-                                        matrix1.getConstView(),
-                                        matrix2.getConstView(),
-                                        matrixMultiplicator,
-                                        transposeA,
-                                        transposeB,
-                                        gridIdx_x,
-                                        gridIdx_y
+            constexpr auto kernel = DenseMatrixProductKernel<
+               tileDim,
+               typename ResultMatrix::ViewType,
+               typename Matrix1::ConstViewType,
+               typename Matrix2::ConstViewType >;
+            Backend::launchKernelAsync(
+               kernel,
+               launch_config,
+               resultMatrix.getView(),
+               matrix1.getConstView(),
+               matrix2.getConstView(),
+               matrixMultiplicator,
+               transposeA,
+               transposeB,
+               gridIdx_x,
+               gridIdx_y
 
             );
          }
@@ -206,11 +210,12 @@ getMatrixProduct( ResultMatrix& resultMatrix,
 template< int tileDim, typename OutputMatrix, typename InputMatrix, typename Real, typename Index >
 __global__
 void
-DenseTranspositionKernel( OutputMatrix resultMatrix,
-                          const InputMatrix inputMatrix,
-                          const Real matrixMultiplicator,
-                          const typename OutputMatrix::IndexType gridIdx_x,
-                          const typename OutputMatrix::IndexType gridIdx_y )
+DenseTranspositionKernel(
+   OutputMatrix resultMatrix,
+   const InputMatrix inputMatrix,
+   const Real matrixMultiplicator,
+   const typename OutputMatrix::IndexType gridIdx_x,
+   const typename OutputMatrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Real tile[ tileDim ][ tileDim + 1 ];
@@ -274,13 +279,14 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
 
             constexpr auto kernel =
                DenseTranspositionKernel< tileDim, typename ResultMatrix::ViewType, typename Matrix::ConstViewType, Real, Index >;
-            Backend::launchKernelAsync( kernel,
-                                        launch_config,
-                                        resultMatrix.getView(),
-                                        matrix.getConstView(),
-                                        matrixMultiplicator,
-                                        gridIdx_x,
-                                        gridIdx_y );
+            Backend::launchKernelAsync(
+               kernel,
+               launch_config,
+               resultMatrix.getView(),
+               matrix.getConstView(),
+               matrixMultiplicator,
+               gridIdx_x,
+               gridIdx_y );
          }
       Backend::streamSynchronize( launch_config.stream );
    }
@@ -298,10 +304,11 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
 template< int tileDim, typename Matrix, typename Real, typename Index >
 __global__
 void
-DenseInPlaceTranspositionKernel( Matrix matrix,
-                                 const Real matrixMultiplicator,
-                                 const typename Matrix::IndexType gridIdx_x,
-                                 const typename Matrix::IndexType gridIdx_y )
+DenseInPlaceTranspositionKernel(
+   Matrix matrix,
+   const Real matrixMultiplicator,
+   const typename Matrix::IndexType gridIdx_x,
+   const typename Matrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    __shared__ Real tile[ tileDim ][ tileDim + 1 ];

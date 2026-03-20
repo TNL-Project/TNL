@@ -9,9 +9,10 @@ namespace TNL::Matrices {
 
 template< typename ValuesView, typename Indexer >
 __cuda_callable__
-TridiagonalMatrixRowView< ValuesView, Indexer >::TridiagonalMatrixRowView( IndexType rowIdx,
-                                                                           ValuesViewType values,
-                                                                           IndexerType indexer )
+TridiagonalMatrixRowView< ValuesView, Indexer >::TridiagonalMatrixRowView(
+   IndexType rowIdx,
+   ValuesViewType values,
+   IndexerType indexer )
 : rowIdx( rowIdx ),
   values( std::move( values ) ),
   indexer( std::move( indexer ) )

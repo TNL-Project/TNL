@@ -18,13 +18,14 @@ namespace TNL::Algorithms::detail {
 template< ScanType Type, ScanPhaseType PhaseType >
 template< typename InputArray, typename OutputArray, typename Reduction >
 typename OutputArray::ValueType
-Scan< Devices::Sequential, Type, PhaseType >::perform( const InputArray& input,
-                                                       OutputArray& output,
-                                                       typename InputArray::IndexType begin,
-                                                       typename InputArray::IndexType end,
-                                                       typename OutputArray::IndexType outputBegin,
-                                                       Reduction&& reduction,
-                                                       typename OutputArray::ValueType identity )
+Scan< Devices::Sequential, Type, PhaseType >::perform(
+   const InputArray& input,
+   OutputArray& output,
+   typename InputArray::IndexType begin,
+   typename InputArray::IndexType end,
+   typename OutputArray::IndexType outputBegin,
+   Reduction&& reduction,
+   typename OutputArray::ValueType identity )
 {
    using ValueType = typename OutputArray::ValueType;
 
@@ -49,13 +50,14 @@ Scan< Devices::Sequential, Type, PhaseType >::perform( const InputArray& input,
 template< ScanType Type, ScanPhaseType PhaseType >
 template< typename InputArray, typename OutputArray, typename Reduction >
 auto
-Scan< Devices::Sequential, Type, PhaseType >::performFirstPhase( const InputArray& input,
-                                                                 OutputArray& output,
-                                                                 typename InputArray::IndexType begin,
-                                                                 typename InputArray::IndexType end,
-                                                                 typename OutputArray::IndexType outputBegin,
-                                                                 Reduction&& reduction,
-                                                                 typename OutputArray::ValueType identity )
+Scan< Devices::Sequential, Type, PhaseType >::performFirstPhase(
+   const InputArray& input,
+   OutputArray& output,
+   typename InputArray::IndexType begin,
+   typename InputArray::IndexType end,
+   typename OutputArray::IndexType outputBegin,
+   Reduction&& reduction,
+   typename OutputArray::ValueType identity )
 {
    if( end <= begin ) {
       Containers::Array< typename OutputArray::ValueType, Devices::Sequential > block_results( 1 );
@@ -83,15 +85,16 @@ Scan< Devices::Sequential, Type, PhaseType >::performFirstPhase( const InputArra
 template< ScanType Type, ScanPhaseType PhaseType >
 template< typename InputArray, typename OutputArray, typename BlockShifts, typename Reduction >
 void
-Scan< Devices::Sequential, Type, PhaseType >::performSecondPhase( const InputArray& input,
-                                                                  OutputArray& output,
-                                                                  const BlockShifts& blockShifts,
-                                                                  typename InputArray::IndexType begin,
-                                                                  typename InputArray::IndexType end,
-                                                                  typename OutputArray::IndexType outputBegin,
-                                                                  Reduction&& reduction,
-                                                                  typename OutputArray::ValueType identity,
-                                                                  typename OutputArray::ValueType shift )
+Scan< Devices::Sequential, Type, PhaseType >::performSecondPhase(
+   const InputArray& input,
+   OutputArray& output,
+   const BlockShifts& blockShifts,
+   typename InputArray::IndexType begin,
+   typename InputArray::IndexType end,
+   typename OutputArray::IndexType outputBegin,
+   Reduction&& reduction,
+   typename OutputArray::ValueType identity,
+   typename OutputArray::ValueType shift )
 {
    if constexpr( PhaseType == ScanPhaseType::WriteInFirstPhase ) {
       // artificial second phase - uniform shift of a pre-scanned block
@@ -109,13 +112,14 @@ Scan< Devices::Sequential, Type, PhaseType >::performSecondPhase( const InputArr
 template< ScanType Type, ScanPhaseType PhaseType >
 template< typename InputArray, typename OutputArray, typename Reduction >
 void
-Scan< Devices::Host, Type, PhaseType >::perform( const InputArray& input,
-                                                 OutputArray& output,
-                                                 typename InputArray::IndexType begin,
-                                                 typename InputArray::IndexType end,
-                                                 typename OutputArray::IndexType outputBegin,
-                                                 Reduction&& reduction,
-                                                 typename OutputArray::ValueType identity )
+Scan< Devices::Host, Type, PhaseType >::perform(
+   const InputArray& input,
+   OutputArray& output,
+   typename InputArray::IndexType begin,
+   typename InputArray::IndexType end,
+   typename OutputArray::IndexType outputBegin,
+   Reduction&& reduction,
+   typename OutputArray::ValueType identity )
 {
 #ifdef HAVE_OPENMP
    using ValueType = typename OutputArray::ValueType;
@@ -191,13 +195,14 @@ Scan< Devices::Host, Type, PhaseType >::perform( const InputArray& input,
 template< ScanType Type, ScanPhaseType PhaseType >
 template< typename InputArray, typename OutputArray, typename Reduction >
 auto
-Scan< Devices::Host, Type, PhaseType >::performFirstPhase( const InputArray& input,
-                                                           OutputArray& output,
-                                                           typename InputArray::IndexType begin,
-                                                           typename InputArray::IndexType end,
-                                                           typename OutputArray::IndexType outputBegin,
-                                                           Reduction&& reduction,
-                                                           typename OutputArray::ValueType identity )
+Scan< Devices::Host, Type, PhaseType >::performFirstPhase(
+   const InputArray& input,
+   OutputArray& output,
+   typename InputArray::IndexType begin,
+   typename InputArray::IndexType end,
+   typename OutputArray::IndexType outputBegin,
+   Reduction&& reduction,
+   typename OutputArray::ValueType identity )
 {
 #ifdef HAVE_OPENMP
    using ValueType = typename OutputArray::ValueType;
@@ -253,15 +258,16 @@ Scan< Devices::Host, Type, PhaseType >::performFirstPhase( const InputArray& inp
 template< ScanType Type, ScanPhaseType PhaseType >
 template< typename InputArray, typename OutputArray, typename BlockShifts, typename Reduction >
 void
-Scan< Devices::Host, Type, PhaseType >::performSecondPhase( const InputArray& input,
-                                                            OutputArray& output,
-                                                            const BlockShifts& blockShifts,
-                                                            typename InputArray::IndexType begin,
-                                                            typename InputArray::IndexType end,
-                                                            typename OutputArray::IndexType outputBegin,
-                                                            Reduction&& reduction,
-                                                            typename OutputArray::ValueType identity,
-                                                            typename OutputArray::ValueType shift )
+Scan< Devices::Host, Type, PhaseType >::performSecondPhase(
+   const InputArray& input,
+   OutputArray& output,
+   const BlockShifts& blockShifts,
+   typename InputArray::IndexType begin,
+   typename InputArray::IndexType end,
+   typename OutputArray::IndexType outputBegin,
+   Reduction&& reduction,
+   typename OutputArray::ValueType identity,
+   typename OutputArray::ValueType shift )
 {
 #ifdef HAVE_OPENMP
    using ValueType = typename OutputArray::ValueType;
@@ -311,13 +317,14 @@ Scan< Devices::Host, Type, PhaseType >::performSecondPhase( const InputArray& in
 template< ScanType Type, ScanPhaseType PhaseType >
 template< typename InputArray, typename OutputArray, typename Reduction >
 void
-Scan< Devices::Cuda, Type, PhaseType >::perform( const InputArray& input,
-                                                 OutputArray& output,
-                                                 typename InputArray::IndexType begin,
-                                                 typename InputArray::IndexType end,
-                                                 typename OutputArray::IndexType outputBegin,
-                                                 Reduction&& reduction,
-                                                 typename OutputArray::ValueType identity )
+Scan< Devices::Cuda, Type, PhaseType >::perform(
+   const InputArray& input,
+   OutputArray& output,
+   typename InputArray::IndexType begin,
+   typename InputArray::IndexType end,
+   typename OutputArray::IndexType outputBegin,
+   Reduction&& reduction,
+   typename OutputArray::ValueType identity )
 {
    if( end <= begin )
       return;
@@ -329,13 +336,14 @@ Scan< Devices::Cuda, Type, PhaseType >::perform( const InputArray& input,
 template< ScanType Type, ScanPhaseType PhaseType >
 template< typename InputArray, typename OutputArray, typename Reduction >
 auto
-Scan< Devices::Cuda, Type, PhaseType >::performFirstPhase( const InputArray& input,
-                                                           OutputArray& output,
-                                                           typename InputArray::IndexType begin,
-                                                           typename InputArray::IndexType end,
-                                                           typename OutputArray::IndexType outputBegin,
-                                                           Reduction&& reduction,
-                                                           typename OutputArray::ValueType identity )
+Scan< Devices::Cuda, Type, PhaseType >::performFirstPhase(
+   const InputArray& input,
+   OutputArray& output,
+   typename InputArray::IndexType begin,
+   typename InputArray::IndexType end,
+   typename OutputArray::IndexType outputBegin,
+   Reduction&& reduction,
+   typename OutputArray::ValueType identity )
 {
    if( end <= begin ) {
       Containers::Array< typename OutputArray::ValueType, Devices::Cuda > block_results( 1 );
@@ -350,15 +358,16 @@ Scan< Devices::Cuda, Type, PhaseType >::performFirstPhase( const InputArray& inp
 template< ScanType Type, ScanPhaseType PhaseType >
 template< typename InputArray, typename OutputArray, typename BlockShifts, typename Reduction >
 void
-Scan< Devices::Cuda, Type, PhaseType >::performSecondPhase( const InputArray& input,
-                                                            OutputArray& output,
-                                                            const BlockShifts& blockShifts,
-                                                            typename InputArray::IndexType begin,
-                                                            typename InputArray::IndexType end,
-                                                            typename OutputArray::IndexType outputBegin,
-                                                            Reduction&& reduction,
-                                                            typename OutputArray::ValueType identity,
-                                                            typename OutputArray::ValueType shift )
+Scan< Devices::Cuda, Type, PhaseType >::performSecondPhase(
+   const InputArray& input,
+   OutputArray& output,
+   const BlockShifts& blockShifts,
+   typename InputArray::IndexType begin,
+   typename InputArray::IndexType end,
+   typename OutputArray::IndexType outputBegin,
+   Reduction&& reduction,
+   typename OutputArray::ValueType identity,
+   typename OutputArray::ValueType shift )
 {
    if( end <= begin )
       return;

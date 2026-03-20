@@ -40,21 +40,23 @@ struct bfs_distance_visitor : public boost::default_bfs_visitor
 template< typename Value = double, TNL::Graphs::GraphTypes GraphType = TNL::Graphs::GraphTypes::Directed >
 struct BoostAdjacencyList
 {
-   using type = boost::adjacency_list< boost::vecS,
-                                       boost::vecS,
-                                       boost::directedS,
-                                       boost::no_property,
-                                       boost::property< boost::edge_weight_t, Value > >;
+   using type = boost::adjacency_list<
+      boost::vecS,
+      boost::vecS,
+      boost::directedS,
+      boost::no_property,
+      boost::property< boost::edge_weight_t, Value > >;
 };
 
 template< typename Value >
 struct BoostAdjacencyList< Value, TNL::Graphs::GraphTypes::Undirected >
 {
-   using type = boost::adjacency_list< boost::vecS,
-                                       boost::vecS,
-                                       boost::undirectedS,
-                                       boost::no_property,
-                                       boost::property< boost::edge_weight_t, Value > >;
+   using type = boost::adjacency_list<
+      boost::vecS,
+      boost::vecS,
+      boost::undirectedS,
+      boost::no_property,
+      boost::property< boost::edge_weight_t, Value > >;
 };
 
 template< typename Index = int, typename Real = double, TNL::Graphs::GraphTypes GraphType = TNL::Graphs::GraphTypes::Directed >

@@ -72,11 +72,12 @@ public:
    using IndexType = Index;
 
    __cuda_callable__
-   ChunkedEllpackSegmentView( IndexType segmentIdx,
-                              IndexType offset,
-                              IndexType size,
-                              IndexType chunkSize,
-                              IndexType chunksInSlice )
+   ChunkedEllpackSegmentView(
+      IndexType segmentIdx,
+      IndexType offset,
+      IndexType size,
+      IndexType chunkSize,
+      IndexType chunksInSlice )
    : segmentIdx( segmentIdx ),
      segmentOffset( offset ),
      segmentSize( size ),

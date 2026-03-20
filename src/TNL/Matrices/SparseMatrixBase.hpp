@@ -16,11 +16,12 @@ namespace TNL::Matrices {
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 __cuda_callable__
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::bind( IndexType rows,
-                                                                                      IndexType columns,
-                                                                                      typename Base::ValuesViewType values,
-                                                                                      ColumnIndexesViewType columnIndexes,
-                                                                                      SegmentsViewType segments )
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::bind(
+   IndexType rows,
+   IndexType columns,
+   typename Base::ValuesViewType values,
+   ColumnIndexesViewType columnIndexes,
+   SegmentsViewType segments )
 {
    Base::bind( rows, columns, std::move( values ) );
    this->columnIndexes.bind( std::move( columnIndexes ) );
@@ -101,8 +102,8 @@ Index
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getNonzeroElementsCount() const
 {
    if constexpr( ! Base::isSymmetric() )
-      return sum( notEqualTo( this->getColumnIndexes(), paddingIndex< Index > )
-                  && notEqualTo( this->getValues(), RealType{ 0 } ) );
+      return sum(
+         notEqualTo( this->getColumnIndexes(), paddingIndex< Index > ) && notEqualTo( this->getValues(), RealType{ 0 } ) );
    else {
       const auto rows = this->getRows();
       const auto columns = this->getColumns();
@@ -147,9 +148,10 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 __cuda_callable__
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::setElement( IndexType row,
-                                                                                            IndexType column,
-                                                                                            const RealType& value )
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::setElement(
+   IndexType row,
+   IndexType column,
+   const RealType& value )
 {
    this->addElement( row, column, value, 0.0 );
 }
@@ -229,8 +231,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 __cuda_callable__
 auto
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getElement( IndexType row,
-                                                                                            IndexType column ) const -> RealType
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getElement( IndexType row, IndexType column )
+   const -> RealType
 {
    TNL_ASSERT_GE( row, 0, "Sparse matrix row index cannot be negative." );
    TNL_ASSERT_LT( row, this->getRows(), "Sparse matrix row index is larger than number of matrix rows." );
@@ -278,8 +280,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    using OutVectorReal = typename OutVector::RealType;
    static_assert(
       ! MatrixType::isSymmetric() || ! std::is_same_v< Device, Devices::Cuda >
-         || (std::is_same_v< OutVectorReal, float > || std::is_same_v< OutVectorReal, double >
-             || std::is_same_v< OutVectorReal, int > || std::is_same_v< OutVectorReal, long long int >),
+         || (std::is_same_v< OutVectorReal, float > || std::is_same_v< OutVectorReal, double > || std::is_same_v< OutVectorReal, int > || std::is_same_v< OutVectorReal, long long int >),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
    const auto inVectorView = inVector.getConstView();
@@ -304,12 +305,12 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             return 0;
          if( column < row ) {
             if constexpr( Base::isBinary() )
-               Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ column ],
-                                                                (OutVectorReal) matrixMultiplicator * inVectorView[ row ] );
+               Algorithms::AtomicOperations< DeviceType >::add(
+                  outVectorView[ column ], (OutVectorReal) matrixMultiplicator * inVectorView[ row ] );
             else
-               Algorithms::AtomicOperations< DeviceType >::add( outVectorView[ column ],
-                                                                (OutVectorReal) matrixMultiplicator * valuesView[ globalIdx ]
-                                                                   * inVectorView[ row ] );
+               Algorithms::AtomicOperations< DeviceType >::add(
+                  outVectorView[ column ],
+                  (OutVectorReal) matrixMultiplicator * valuesView[ globalIdx ] * inVectorView[ row ] );
          }
          if constexpr( Base::isBinary() )
             return inVectorView[ column ];
@@ -380,11 +381,12 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
-template< typename InVector,
-          typename OutVector,
-          typename SegmentsReductionKernel,
-          typename...,
-          std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeReal >, bool > >
+template<
+   typename InVector,
+   typename OutVector,
+   typename SegmentsReductionKernel,
+   typename...,
+   std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeReal >, bool > >
 void
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::vectorProduct(
    const InVector& inVector,
@@ -420,9 +422,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    using OutVectorReal = typename OutVector::RealType;
    static_assert(
       ! std::is_same_v< Device, Devices::Cuda >
-         || (std::is_same_v< OutVectorReal, float > || std::is_same_v< OutVectorReal, double >
-             || std::is_same_v< OutVectorReal, int > || std::is_same_v< OutVectorReal, long long int >
-             || std::is_same_v< OutVectorReal, long >),
+         || (std::is_same_v< OutVectorReal, float > || std::is_same_v< OutVectorReal, double > || std::is_same_v< OutVectorReal, int > || std::is_same_v< OutVectorReal, long long int > || std::is_same_v< OutVectorReal, long >),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
    const auto inVectorView = inVector.getConstView();
@@ -487,13 +487,14 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    const SegmentsReductionKernel& kernel ) const
 {
    using FetchValue = decltype( fetch( IndexType(), IndexType(), RealType() ) );
-   this->reduceRows( begin,
-                     end,
-                     std::forward< Fetch >( fetch ),
-                     reduce,
-                     std::forward< Keep >( keep ),
-                     reduce.template getIdentity< FetchValue >(),
-                     kernel );
+   this->reduceRows(
+      begin,
+      end,
+      std::forward< Fetch >( fetch ),
+      reduce,
+      std::forward< Keep >( keep ),
+      reduce.template getIdentity< FetchValue >(),
+      kernel );
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
@@ -525,9 +526,10 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Function >
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( IndexType begin,
-                                                                                             IndexType end,
-                                                                                             Function&& function ) const
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements(
+   IndexType begin,
+   IndexType end,
+   Function&& function ) const
 {
    const auto columns_view = this->columnIndexes.getConstView();
    const auto values_view = this->values.getConstView();
@@ -547,9 +549,10 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Function >
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements( IndexType begin,
-                                                                                             IndexType end,
-                                                                                             Function&& function )
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forElements(
+   IndexType begin,
+   IndexType end,
+   Function&& function )
 {
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();
@@ -587,9 +590,10 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Function >
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forRows( IndexType begin,
-                                                                                         IndexType end,
-                                                                                         Function&& function )
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forRows(
+   IndexType begin,
+   IndexType end,
+   Function&& function )
 {
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();
@@ -605,9 +609,10 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Function >
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forRows( IndexType begin,
-                                                                                         IndexType end,
-                                                                                         Function&& function ) const
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::forRows(
+   IndexType begin,
+   IndexType end,
+   Function&& function ) const
 {
    const auto columns_view = this->columnIndexes.getConstView();
    const auto values_view = this->values.getConstView();
@@ -639,9 +644,10 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Function >
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sequentialForRows( IndexType begin,
-                                                                                                   IndexType end,
-                                                                                                   Function&& function ) const
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sequentialForRows(
+   IndexType begin,
+   IndexType end,
+   Function&& function ) const
 {
    for( IndexType row = begin; row < end; row++ )
       this->forRows( row, row + 1, function );
@@ -650,9 +656,10 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 template< typename Function >
 void
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sequentialForRows( IndexType begin,
-                                                                                                   IndexType end,
-                                                                                                   Function&& function )
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::sequentialForRows(
+   IndexType begin,
+   IndexType end,
+   Function&& function )
 {
    for( IndexType row = begin; row < end; row++ )
       this->forRows( row, row + 1, function );
@@ -711,8 +718,8 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
 __cuda_callable__
 Index
-SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::findElement( IndexType row,
-                                                                                             IndexType column ) const
+SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::findElement( IndexType row, IndexType column )
+   const
 {
    TNL_ASSERT_GE( row, 0, "Sparse matrix row index cannot be negative." );
    TNL_ASSERT_LT( row, this->getRows(), "Sparse matrix row index is larger than number of matrix rows." );

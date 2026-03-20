@@ -26,14 +26,15 @@ SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   segments.forSegments( 0,
-                         size,
-                         [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
-                         {
-                            for( auto element : segment )
-                               if( element.localIndex() <= element.segmentIndex() )
-                                  data_view[ element.globalIndex() ] = element.segmentIndex() + element.localIndex();
-                         } );
+   segments.forSegments(
+      0,
+      size,
+      [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
+      {
+         for( auto element : segment )
+            if( element.localIndex() <= element.segmentIndex() )
+               data_view[ element.globalIndex() ] = element.segmentIndex() + element.localIndex();
+      } );
 
    /***
     * Print the data managed by the segments.

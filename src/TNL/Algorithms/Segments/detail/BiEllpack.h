@@ -93,9 +93,10 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static IndexType
-   getSegmentSizeDirect( const OffsetsHolderView& rowsPermutation,
-                         const OffsetsHolderView& groupPointers,
-                         const IndexType segmentIdx )
+   getSegmentSizeDirect(
+      const OffsetsHolderView& rowsPermutation,
+      const OffsetsHolderView& groupPointers,
+      const IndexType segmentIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
       const IndexType groupsCount = getActiveGroupsCountDirect( rowsPermutation, segmentIdx );
@@ -111,9 +112,10 @@ public:
    }
 
    [[nodiscard]] static IndexType
-   getSegmentSize( const OffsetsHolderView& rowsPermutation,
-                   const OffsetsHolderView& groupPointers,
-                   const IndexType segmentIdx )
+   getSegmentSize(
+      const OffsetsHolderView& rowsPermutation,
+      const OffsetsHolderView& groupPointers,
+      const IndexType segmentIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
       const IndexType groupsCount = getActiveGroupsCount( rowsPermutation, segmentIdx );
@@ -130,10 +132,11 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static IndexType
-   getGlobalIndexDirect( const OffsetsHolderView& rowsPermutation,
-                         const OffsetsHolderView& groupPointers,
-                         const IndexType segmentIdx,
-                         IndexType localIdx )
+   getGlobalIndexDirect(
+      const OffsetsHolderView& rowsPermutation,
+      const OffsetsHolderView& groupPointers,
+      const IndexType segmentIdx,
+      IndexType localIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
       const IndexType groupIdx = strip * ( getLogWarpSize() + 1 );
@@ -163,10 +166,11 @@ public:
    }
 
    [[nodiscard]] static IndexType
-   getGlobalIndex( const ConstOffsetsHolderView& rowsPermutation,
-                   const ConstOffsetsHolderView& groupPointers,
-                   const IndexType segmentIdx,
-                   IndexType localIdx )
+   getGlobalIndex(
+      const ConstOffsetsHolderView& rowsPermutation,
+      const ConstOffsetsHolderView& groupPointers,
+      const IndexType segmentIdx,
+      IndexType localIdx )
    {
       const IndexType strip = segmentIdx / getWarpSize();
       const IndexType groupIdx = strip * ( getLogWarpSize() + 1 );
@@ -197,9 +201,10 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static SegmentViewType
-   getSegmentViewDirect( const OffsetsHolderView& rowsPermutation,
-                         const OffsetsHolderView& groupPointers,
-                         const IndexType segmentIdx )
+   getSegmentViewDirect(
+      const OffsetsHolderView& rowsPermutation,
+      const OffsetsHolderView& groupPointers,
+      const IndexType segmentIdx )
    {
       using GroupsWidthType = typename SegmentViewType::GroupsWidthType;
 
@@ -222,9 +227,10 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static SegmentViewType
-   getSegmentView( const OffsetsHolderView& rowsPermutation,
-                   const OffsetsHolderView& groupPointers,
-                   const IndexType segmentIdx )
+   getSegmentView(
+      const OffsetsHolderView& rowsPermutation,
+      const OffsetsHolderView& groupPointers,
+      const IndexType segmentIdx )
    {
       using GroupsWidthType = typename SegmentViewType::GroupsWidthType;
 

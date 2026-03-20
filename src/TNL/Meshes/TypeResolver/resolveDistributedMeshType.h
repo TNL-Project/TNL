@@ -15,17 +15,19 @@ resolveDistributedMeshType( Functor&& functor, const std::string& fileName, cons
 
 template< typename ConfigTag, typename Device, typename Functor >
 void
-resolveAndLoadDistributedMesh( Functor&& functor,
-                               const std::string& fileName,
-                               const std::string& fileFormat = "auto",
-                               const MPI::Comm& communicator = MPI_COMM_WORLD );
+resolveAndLoadDistributedMesh(
+   Functor&& functor,
+   const std::string& fileName,
+   const std::string& fileFormat = "auto",
+   const MPI::Comm& communicator = MPI_COMM_WORLD );
 
 template< typename Mesh >
 void
-loadDistributedMesh( DistributedMeshes::DistributedMesh< Mesh >& distributedMesh,
-                     const std::string& fileName,
-                     const std::string& fileFormat = "auto",
-                     const MPI::Comm& communicator = MPI_COMM_WORLD );
+loadDistributedMesh(
+   DistributedMeshes::DistributedMesh< Mesh >& distributedMesh,
+   const std::string& fileName,
+   const std::string& fileFormat = "auto",
+   const MPI::Comm& communicator = MPI_COMM_WORLD );
 
 }  // namespace TNL::Meshes
 
