@@ -147,38 +147,22 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
          tuple[ 1 ] = i;
       } );
 
-   Containers::Array< Tuple, Devices::Host, IndexType > host_aux;
-   host_aux = aux;
-   typename Algorithms::Sorting::DefaultSorter< Devices::Host >::SorterType sorter;
+   typename Algorithms::Sorting::DefaultSorter< DeviceType >::SorterType sorter;
+   auto compare = [] __cuda_callable__( const Tuple& a, const Tuple& b )
+   {
+      return a[ 0 ] > b[ 0 ] || ( a[ 0 ] == b[ 0 ] && a[ 1 ] < b[ 1 ] );  // sort in descending order
+   };
 
    if( this->sigma == -1 ) {
-      auto host_aux_view = host_aux.getView();
-
-      sorter.sort( host_aux_view,
-                   [] __cuda_callable__( const Tuple& a, const Tuple& b )
-                   {
-                      return a[ 0 ] > b[ 0 ];  // sort in descending order
-                   } );
+      auto aux_view = aux.getView();
+      sorter.sort( aux_view, compare );
    }
    if( this->sigma > 0 ) {
       for( IndexType i = 0; i < sizes.getSize(); i += this->sigma ) {
-         auto host_aux_view = host_aux.getView( i, min( i + this->sigma, sizes.getSize() ) );
-         sorter.sort( host_aux_view,
-                      [] __cuda_callable__( const Tuple& a, const Tuple& b )
-                      {
-                         return a[ 0 ] > b[ 0 ];  // sort in descending order
-                      } );
+         auto aux_view = aux.getView( i, min( i + this->sigma, sizes.getSize() ) );
+         sorter.sort( aux_view, compare );
       }
    }
-   // TODO: Quick sort for GPU does not sort properly. Needs to be fixed.
-   // Fails with bcspwr10.mtx matrix and SpMV benchmark for example.
-   /* typename Algorithms::Sorting::DefaultSorter< DeviceType >::SorterType sorter;
-   auto aux_view = aux.getView();
-   sorter.sort( aux_view,
-                [] __cuda_callable__( const Tuple& a, const Tuple& b )
-                {
-                   return a[ 0 ] > b[ 0 ];  // sort in descending order
-                } );*/
 
    // Initialize the embedded segments with the sorted sizes
    auto auxView = aux.getConstView();
