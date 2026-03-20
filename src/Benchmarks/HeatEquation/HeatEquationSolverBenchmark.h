@@ -22,17 +22,19 @@ struct HeatEquationSolverBenchmark
       config.addEntryEnum( "overwrite" );
       config.addEntry< int >( "min-x-dimension", "Minimum dimension over x axis used in the benchmark.", 100 );
       config.addEntry< int >( "max-x-dimension", "Maximum dimension over x axis used in the benchmark.", 200 );
-      config.addEntry< int >( "x-size-step-factor",
-                              "Factor determining the dimension grows over x axis. First size is min-x-dimension and each "
-                              "following size is stepFactor*previousSize, up to max-x-dimension.",
-                              2 );
+      config.addEntry< int >(
+         "x-size-step-factor",
+         "Factor determining the dimension grows over x axis. First size is min-x-dimension and each "
+         "following size is stepFactor*previousSize, up to max-x-dimension.",
+         2 );
 
       config.addEntry< int >( "min-y-dimension", "Minimum dimension over x axis used in the benchmark.", 100 );
       config.addEntry< int >( "max-y-dimension", "Maximum dimension over x axis used in the benchmark.", 200 );
-      config.addEntry< int >( "y-size-step-factor",
-                              "Factor determining the dimension grows over y axis. First size is min-y-dimension and each "
-                              "following size is stepFactor*previousSize, up to max-y-dimension.",
-                              2 );
+      config.addEntry< int >(
+         "y-size-step-factor",
+         "Factor determining the dimension grows over y axis. First size is min-y-dimension and each "
+         "following size is stepFactor*previousSize, up to max-y-dimension.",
+         2 );
 
       config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
 
@@ -166,10 +168,11 @@ struct HeatEquationSolverBenchmark
       for( Index xSize = minXDimension; xSize <= maxXDimension; xSize *= xSizeStepFactor ) {
          for( Index ySize = minYDimension; ySize <= maxYDimension; ySize *= ySizeStepFactor ) {
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", precision },
-                                                                { "xSize", TNL::convertToString( xSize ) },
-                                                                { "ySize", TNL::convertToString( ySize ) },
-                                                                { "implementation", implementation } } ) );
+               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  { { "precision", precision },
+                    { "xSize", TNL::convertToString( xSize ) },
+                    { "ySize", TNL::convertToString( ySize ) },
+                    { "implementation", implementation } } ) );
 
             benchmark.setDatasetSize( xSize * ySize );
             this->init( xSize, ySize );

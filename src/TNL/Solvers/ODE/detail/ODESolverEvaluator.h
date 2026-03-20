@@ -72,13 +72,14 @@ struct StaticODESolverEvaluator
 {
    template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
    static void __cuda_callable__
-   computeKVectors( std::array< VectorView, Method::getStages() >& k,
-                    const Value& time,
-                    const Value& currentTau,
-                    const ConstVectorView& u,
-                    VectorView aux,
-                    RHSFunction&& rhsFunction,
-                    Params&&... params )
+   computeKVectors(
+      std::array< VectorView, Method::getStages() >& k,
+      const Value& time,
+      const Value& currentTau,
+      const ConstVectorView& u,
+      VectorView aux,
+      RHSFunction&& rhsFunction,
+      Params&&... params )
    {
       static_assert( IsStaticArrayType< VectorView >::value, "VectorView must be a static array type" );
 
@@ -99,13 +100,14 @@ struct ODESolverEvaluator
 {
    template< typename VectorView, typename ConstVectorView, typename Value, typename RHSFunction, typename... Params >
    static void
-   computeKVectors( std::array< VectorView, Method::getStages() >& k,
-                    const Value& time,
-                    const Value& currentTau,
-                    const ConstVectorView& u,
-                    VectorView aux,
-                    RHSFunction&& rhsFunction,
-                    Params&&... params )
+   computeKVectors(
+      std::array< VectorView, Method::getStages() >& k,
+      const Value& time,
+      const Value& currentTau,
+      const ConstVectorView& u,
+      VectorView aux,
+      RHSFunction&& rhsFunction,
+      Params&&... params )
    {
       static_assert( ! IsStaticArrayType< VectorView >::value, "VectorView must NOT be a static array type" );
 

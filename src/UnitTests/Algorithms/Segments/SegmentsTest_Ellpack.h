@@ -15,18 +15,19 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using EllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int >,
-                                               TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, long >
+using EllpackSegmentsTypes = ::testing::Types<
+   TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int >,
+   TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, long >
 #if defined( __CUDACC__ )
-                                               ,
-                                               TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int >,
-                                               TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, long >
+   ,
+   TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int >,
+   TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
-                                               ,
-                                               TNL::Algorithms::Segments::Ellpack< TNL::Devices::Hip, int >,
-                                               TNL::Algorithms::Segments::Ellpack< TNL::Devices::Hip, long >
+   ,
+   TNL::Algorithms::Segments::Ellpack< TNL::Devices::Hip, int >,
+   TNL::Algorithms::Segments::Ellpack< TNL::Devices::Hip, long >
 #endif
-                                               >;
+   >;
 
 TYPED_TEST_SUITE( EllpackSegmentsTest, EllpackSegmentsTypes );
 
@@ -47,8 +48,8 @@ TYPED_TEST( EllpackSegmentsTest, setSegmentsSizes_EqualSizes_EllpackOnly )
 TYPED_TEST( EllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
 {
    using EllpackSegmentsType = typename TestFixture::EllpackSegmentsType;
-   using Kernel = TNL::Algorithms::SegmentsReductionKernels::EllpackKernel< typename EllpackSegmentsType::IndexType,
-                                                                            typename EllpackSegmentsType::DeviceType >;
+   using Kernel = TNL::Algorithms::SegmentsReductionKernels::
+      EllpackKernel< typename EllpackSegmentsType::IndexType, typename EllpackSegmentsType::DeviceType >;
 
    test_reduceAllSegments_MaximumInSegments< EllpackSegmentsType, Kernel >();
 }

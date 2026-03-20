@@ -78,11 +78,12 @@ pickPivotIdx( TNL::Containers::ArrayView< Value, Device, Index > src, const CMP&
 template< typename Value, typename Index, typename CMP >
 __device__
 void
-countElem( Containers::ArrayView< Value, Devices::Cuda, Index > arr,
-           const CMP& Cmp,
-           int& smaller,
-           int& bigger,
-           const Value& pivot )
+countElem(
+   Containers::ArrayView< Value, Devices::Cuda, Index > arr,
+   const CMP& Cmp,
+   int& smaller,
+   int& bigger,
+   const Value& pivot )
 {
    for( int i = threadIdx.x; i < arr.getSize(); i += blockDim.x ) {
       const Value& data = arr[ i ];
@@ -96,17 +97,18 @@ countElem( Containers::ArrayView< Value, Devices::Cuda, Index > arr,
 template< typename Value, typename Index, typename CMP >
 __device__
 void
-copyDataShared( Containers::ArrayView< Value, Devices::Cuda, Index > src,
-                Containers::ArrayView< Value, Devices::Cuda, Index > dst,
-                const CMP& Cmp,
-                Value* sharedMem,
-                int smallerStart,
-                int biggerStart,
-                int smallerTotal,
-                int biggerTotal,
-                int smallerOffset,
-                int biggerOffset,  // exclusive prefix sum of elements
-                const Value& pivot )
+copyDataShared(
+   Containers::ArrayView< Value, Devices::Cuda, Index > src,
+   Containers::ArrayView< Value, Devices::Cuda, Index > dst,
+   const CMP& Cmp,
+   Value* sharedMem,
+   int smallerStart,
+   int biggerStart,
+   int smallerTotal,
+   int biggerTotal,
+   int smallerOffset,
+   int biggerOffset,  // exclusive prefix sum of elements
+   const Value& pivot )
 {
    for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
       const Value& data = src[ i ];
@@ -128,12 +130,13 @@ copyDataShared( Containers::ArrayView< Value, Devices::Cuda, Index > src,
 template< typename Value, typename Index, typename CMP >
 __device__
 void
-copyData( Containers::ArrayView< Value, Devices::Cuda, Index > src,
-          Containers::ArrayView< Value, Devices::Cuda, Index > dst,
-          const CMP& Cmp,
-          int smallerStart,
-          int biggerStart,
-          const Value& pivot )
+copyData(
+   Containers::ArrayView< Value, Devices::Cuda, Index > src,
+   Containers::ArrayView< Value, Devices::Cuda, Index > dst,
+   const CMP& Cmp,
+   int smallerStart,
+   int biggerStart,
+   const Value& pivot )
 {
    for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
       const Value& data = src[ i ];
@@ -159,13 +162,14 @@ copyData( Containers::ArrayView< Value, Devices::Cuda, Index > src,
 template< typename Value, typename Index, typename CMP, bool useShared >
 __device__
 void
-cudaPartition( Containers::ArrayView< Value, Devices::Cuda, Index > src,
-               Containers::ArrayView< Value, Devices::Cuda, Index > dst,
-               const CMP& Cmp,
-               Value* sharedMem,
-               const Value& pivot,
-               int elemPerBlock,
-               TASK& task )
+cudaPartition(
+   Containers::ArrayView< Value, Devices::Cuda, Index > src,
+   Containers::ArrayView< Value, Devices::Cuda, Index > dst,
+   const CMP& Cmp,
+   Value* sharedMem,
+   const Value& pivot,
+   int elemPerBlock,
+   TASK& task )
 {
    static __shared__ int smallerStart;
    static __shared__ int biggerStart;
@@ -201,17 +205,18 @@ cudaPartition( Containers::ArrayView< Value, Devices::Cuda, Index > src,
       }
       __syncthreads();
 
-      copyDataShared( srcView,
-                      dst,
-                      Cmp,
-                      sharedMem,
-                      smallerStart,
-                      biggerStart,
-                      smallerTotal,
-                      biggerTotal,
-                      smallerPrefSumInc - smaller,
-                      biggerPrefSumInc - bigger,  // exclusive prefix sum of elements
-                      pivot );
+      copyDataShared(
+         srcView,
+         dst,
+         Cmp,
+         sharedMem,
+         smallerStart,
+         biggerStart,
+         smallerTotal,
+         biggerTotal,
+         smallerPrefSumInc - smaller,
+         biggerPrefSumInc - bigger,  // exclusive prefix sum of elements
+         pivot );
    }
    else {
       int destSmaller = smallerStart + smallerPrefSumInc - smaller;

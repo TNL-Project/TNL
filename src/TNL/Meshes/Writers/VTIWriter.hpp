@@ -52,10 +52,11 @@ VTIWriter< Mesh >::writeMetadata( int cycle, double time )
 
 template< typename Mesh >
 void
-VTIWriter< Mesh >::writeImageData( const typename Mesh::PointType& gridOrigin,
-                                   const typename Mesh::CoordinatesType& begin,
-                                   const typename Mesh::CoordinatesType& end,
-                                   const typename Mesh::PointType& spaceSteps )
+VTIWriter< Mesh >::writeImageData(
+   const typename Mesh::PointType& gridOrigin,
+   const typename Mesh::CoordinatesType& begin,
+   const typename Mesh::CoordinatesType& end,
+   const typename Mesh::PointType& spaceSteps )
 {
    if( ! vtkfileOpen )
       writeHeader();
@@ -125,8 +126,9 @@ VTIWriter< Mesh >::writePointData( const Array& array, const std::string& name, 
    if( ! pieceOpen )
       throw std::logic_error( "The <Piece> tag has not been opened yet - call writeEntities first." );
    if( array.getSize() / numberOfComponents != typename Array::IndexType( pointsCount ) )
-      throw std::length_error( "Mismatched array size for <PointData> section: " + std::to_string( array.getSize() )
-                               + " (there are " + std::to_string( pointsCount ) + " points in the file)" );
+      throw std::length_error(
+         "Mismatched array size for <PointData> section: " + std::to_string( array.getSize() ) + " (there are "
+         + std::to_string( pointsCount ) + " points in the file)" );
    openPointData();
    writeDataArray( array, name, numberOfComponents );
 }
@@ -139,8 +141,9 @@ VTIWriter< Mesh >::writeCellData( const Array& array, const std::string& name, c
    if( ! pieceOpen )
       throw std::logic_error( "The <Piece> tag has not been opened yet - call writeEntities first." );
    if( array.getSize() / numberOfComponents != typename Array::IndexType( cellsCount ) )
-      throw std::length_error( "Mismatched array size for <CellData> section: " + std::to_string( array.getSize() )
-                               + " (there are " + std::to_string( cellsCount ) + " cells in the file)" );
+      throw std::length_error(
+         "Mismatched array size for <CellData> section: " + std::to_string( array.getSize() ) + " (there are "
+         + std::to_string( cellsCount ) + " cells in the file)" );
    openCellData();
    writeDataArray( array, name, numberOfComponents );
 }

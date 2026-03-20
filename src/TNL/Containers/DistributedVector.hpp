@@ -8,8 +8,9 @@
 namespace TNL::Containers {
 
 template< typename Real, typename Device, typename Index, typename Allocator >
-DistributedVector< Real, Device, Index, Allocator >::DistributedVector( const DistributedVector& vector,
-                                                                        const AllocatorType& allocator )
+DistributedVector< Real, Device, Index, Allocator >::DistributedVector(
+   const DistributedVector& vector,
+   const AllocatorType& allocator )
 : BaseType::DistributedArray( vector, allocator )
 {}
 

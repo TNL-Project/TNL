@@ -52,16 +52,17 @@ public:
    ChunkedEllpackBase() = default;
 
    __cuda_callable__
-   ChunkedEllpackBase( IndexType size,
-                       IndexType storageSize,
-                       IndexType numberOfSlices,
-                       IndexType chunksInSlice,
-                       IndexType desiredChunkSize,
-                       OffsetsView segmentToChunkMapping,
-                       OffsetsView segmentToSliceMapping,
-                       OffsetsView chunksToSegmentsMapping,
-                       OffsetsView segmentPointers,
-                       SliceInfoContainerView slices );
+   ChunkedEllpackBase(
+      IndexType size,
+      IndexType storageSize,
+      IndexType numberOfSlices,
+      IndexType chunksInSlice,
+      IndexType desiredChunkSize,
+      OffsetsView segmentToChunkMapping,
+      OffsetsView segmentToSliceMapping,
+      OffsetsView chunksToSegmentsMapping,
+      OffsetsView segmentPointers,
+      SliceInfoContainerView slices );
 
    __cuda_callable__
    ChunkedEllpackBase( const ChunkedEllpackBase& ) = default;
@@ -208,16 +209,17 @@ protected:
     */
    __cuda_callable__
    void
-   bind( IndexType size,
-         IndexType storageSize,
-         IndexType numberOfSlices,
-         IndexType chunksInSlice,
-         IndexType desiredChunkSize,
-         OffsetsView segmentToChunkMapping,
-         OffsetsView segmentToSliceMapping,
-         OffsetsView chunksToSegmentsMapping,
-         OffsetsView segmentPointers,
-         SliceInfoContainerView slices );
+   bind(
+      IndexType size,
+      IndexType storageSize,
+      IndexType numberOfSlices,
+      IndexType chunksInSlice,
+      IndexType desiredChunkSize,
+      OffsetsView segmentToChunkMapping,
+      OffsetsView segmentToSliceMapping,
+      OffsetsView chunksToSegmentsMapping,
+      OffsetsView segmentPointers,
+      SliceInfoContainerView slices );
 };
 
 template< typename Device, typename Index, ElementsOrganization Organization >

@@ -65,10 +65,11 @@ template< typename Vector, typename SolverMonitor >
 void
 MersonNonET< Vector, SolverMonitor >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {
-   config.addEntry< double >( prefix + "merson-adaptivity",
-                              "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
-                              "zero means no adaptivity).",
-                              1.0e-4 );
+   config.addEntry< double >(
+      prefix + "merson-adaptivity",
+      "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
+      "zero means no adaptivity).",
+      1.0e-4 );
 }
 
 template< typename Vector, typename SolverMonitor >
@@ -190,10 +191,11 @@ MersonNonET< Vector, SolverMonitor >::solve( DofVectorType& u, RHSFunction&& rhs
 template< typename Vector, typename SolverMonitor >
 template< typename RHSFunction >
 void
-MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
-                                                         const RealType& time,
-                                                         RealType tau,
-                                                         RHSFunction&& rhsFunction )
+MersonNonET< Vector, SolverMonitor >::computeKFunctions(
+   DofVectorType& u,
+   const RealType& time,
+   RealType tau,
+   RHSFunction&& rhsFunction )
 {
    IndexType size = u.getSize();
 
@@ -277,13 +279,14 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
-         Backend::launchKernelAsync( computeK2Arg< RealType, IndexType >,
-                                     Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ) ),
-                                     currentSize,
-                                     tau,
-                                     &_u[ gridOffset ],
-                                     &_k1[ gridOffset ],
-                                     &_kAux[ gridOffset ] );
+         Backend::launchKernelAsync(
+            computeK2Arg< RealType, IndexType >,
+            Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ) ),
+            currentSize,
+            tau,
+            &_u[ gridOffset ],
+            &_k1[ gridOffset ],
+            &_kAux[ gridOffset ] );
       }
       Backend::streamSynchronize( 0 );
       rhsFunction( time + tau_3, tau, kAux_view, k2_view );
@@ -292,14 +295,15 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
-         Backend::launchKernelAsync( computeK3Arg< RealType, IndexType >,
-                                     Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ) ),
-                                     currentSize,
-                                     tau,
-                                     &_u[ gridOffset ],
-                                     &_k1[ gridOffset ],
-                                     &_k2[ gridOffset ],
-                                     &_kAux[ gridOffset ] );
+         Backend::launchKernelAsync(
+            computeK3Arg< RealType, IndexType >,
+            Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ) ),
+            currentSize,
+            tau,
+            &_u[ gridOffset ],
+            &_k1[ gridOffset ],
+            &_k2[ gridOffset ],
+            &_kAux[ gridOffset ] );
       }
       Backend::streamSynchronize( 0 );
       rhsFunction( time + tau_3, tau, kAux_view, k3_view );
@@ -308,14 +312,15 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
-         Backend::launchKernelAsync( computeK4Arg< RealType, IndexType >,
-                                     Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ) ),
-                                     currentSize,
-                                     tau,
-                                     &_u[ gridOffset ],
-                                     &_k1[ gridOffset ],
-                                     &_k3[ gridOffset ],
-                                     &_kAux[ gridOffset ] );
+         Backend::launchKernelAsync(
+            computeK4Arg< RealType, IndexType >,
+            Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ) ),
+            currentSize,
+            tau,
+            &_u[ gridOffset ],
+            &_k1[ gridOffset ],
+            &_k3[ gridOffset ],
+            &_kAux[ gridOffset ] );
       }
       Backend::streamSynchronize( 0 );
       rhsFunction( time + 0.5 * tau, tau, kAux_view, k4_view );
@@ -324,15 +329,16 @@ MersonNonET< Vector, SolverMonitor >::computeKFunctions( DofVectorType& u,
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
-         Backend::launchKernelAsync( computeK5Arg< RealType, IndexType >,
-                                     Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ) ),
-                                     currentSize,
-                                     tau,
-                                     &_u[ gridOffset ],
-                                     &_k1[ gridOffset ],
-                                     &_k3[ gridOffset ],
-                                     &_k4[ gridOffset ],
-                                     &_kAux[ gridOffset ] );
+         Backend::launchKernelAsync(
+            computeK5Arg< RealType, IndexType >,
+            Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ) ),
+            currentSize,
+            tau,
+            &_u[ gridOffset ],
+            &_k1[ gridOffset ],
+            &_k3[ gridOffset ],
+            &_k4[ gridOffset ],
+            &_kAux[ gridOffset ] );
       }
       Backend::streamSynchronize( 0 );
       rhsFunction( time + tau, tau, kAux_view, k5_view );
@@ -387,15 +393,16 @@ MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
       for( IndexType gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
-         Backend::launchKernelSync( computeErrorKernel< RealType, IndexType >,
-                                    Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ) ),
-                                    currentSize,
-                                    tau,
-                                    &_k1[ gridOffset ],
-                                    &_k3[ gridOffset ],
-                                    &_k4[ gridOffset ],
-                                    &_k5[ gridOffset ],
-                                    &_kAux[ gridOffset ] );
+         Backend::launchKernelSync(
+            computeErrorKernel< RealType, IndexType >,
+            Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ) ),
+            currentSize,
+            tau,
+            &_k1[ gridOffset ],
+            &_k3[ gridOffset ],
+            &_k4[ gridOffset ],
+            &_k5[ gridOffset ],
+            &_kAux[ gridOffset ] );
          eps = std::max( eps, TNL::max( kAux ) );
       }
    }
@@ -405,10 +412,11 @@ MersonNonET< Vector, SolverMonitor >::computeError( const RealType tau )
 
 template< typename Vector, typename SolverMonitor >
 void
-MersonNonET< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
-                                                           const RealType tau,
-                                                           DofVectorType& u,
-                                                           RealType& currentResidue )
+MersonNonET< Vector, SolverMonitor >::computeNewTimeLevel(
+   const RealType time,
+   const RealType tau,
+   DofVectorType& u,
+   RealType& currentResidue )
 {
    RealType localResidue = RealType( 0.0 );
    IndexType size = k1.getSize();
@@ -448,15 +456,16 @@ MersonNonET< Vector, SolverMonitor >::computeNewTimeLevel( const RealType time,
          const IndexType gridOffset = gridIdx * threadsPerGrid;
          const IndexType currentSize = min( size - gridOffset, threadsPerGrid );
 
-         Backend::launchKernelSync( updateUMersonNonET< RealType, IndexType >,
-                                    Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ), sharedMemory ),
-                                    currentSize,
-                                    tau,
-                                    &_k1[ gridOffset ],
-                                    &_k4[ gridOffset ],
-                                    &_k5[ gridOffset ],
-                                    &_u[ gridOffset ],
-                                    this->cudaBlockResidue.getData() );
+         Backend::launchKernelSync(
+            updateUMersonNonET< RealType, IndexType >,
+            Backend::LaunchConfiguration( dim3( cudaBlocks ), dim3( cudaBlockSize ), sharedMemory ),
+            currentSize,
+            tau,
+            &_k1[ gridOffset ],
+            &_k4[ gridOffset ],
+            &_k5[ gridOffset ],
+            &_u[ gridOffset ],
+            this->cudaBlockResidue.getData() );
          localResidue += sum( this->cudaBlockResidue );
       }
    }
@@ -500,12 +509,13 @@ computeK2Arg( const Index size, const RealType tau, const RealType* u, const Rea
 template< typename RealType, typename Index >
 __global__
 void
-computeK3Arg( const Index size,
-              const RealType tau,
-              const RealType* u,
-              const RealType* k1,
-              const RealType* k2,
-              RealType* k3_arg )
+computeK3Arg(
+   const Index size,
+   const RealType tau,
+   const RealType* u,
+   const RealType* k1,
+   const RealType* k2,
+   RealType* k3_arg )
 {
 #ifdef __CUDACC__
    Index i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -517,12 +527,13 @@ computeK3Arg( const Index size,
 template< typename RealType, typename Index >
 __global__
 void
-computeK4Arg( const Index size,
-              const RealType tau,
-              const RealType* u,
-              const RealType* k1,
-              const RealType* k3,
-              RealType* k4_arg )
+computeK4Arg(
+   const Index size,
+   const RealType tau,
+   const RealType* u,
+   const RealType* k1,
+   const RealType* k3,
+   RealType* k4_arg )
 {
 #ifdef __CUDACC__
    Index i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -534,13 +545,14 @@ computeK4Arg( const Index size,
 template< typename RealType, typename Index >
 __global__
 void
-computeK5Arg( const Index size,
-              const RealType tau,
-              const RealType* u,
-              const RealType* k1,
-              const RealType* k3,
-              const RealType* k4,
-              RealType* k5_arg )
+computeK5Arg(
+   const Index size,
+   const RealType tau,
+   const RealType* u,
+   const RealType* k1,
+   const RealType* k3,
+   const RealType* k4,
+   RealType* k5_arg )
 {
 #ifdef __CUDACC__
    Index i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -552,13 +564,14 @@ computeK5Arg( const Index size,
 template< typename RealType, typename Index >
 __global__
 void
-computeErrorKernel( const Index size,
-                    const RealType tau,
-                    const RealType* k1,
-                    const RealType* k3,
-                    const RealType* k4,
-                    const RealType* k5,
-                    RealType* err )
+computeErrorKernel(
+   const Index size,
+   const RealType tau,
+   const RealType* k1,
+   const RealType* k3,
+   const RealType* k4,
+   const RealType* k5,
+   RealType* err )
 {
 #ifdef __CUDACC__
    Index i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -570,13 +583,14 @@ computeErrorKernel( const Index size,
 template< typename RealType, typename Index >
 __global__
 void
-updateUMersonNonET( const Index size,
-                    const RealType tau,
-                    const RealType* k1,
-                    const RealType* k4,
-                    const RealType* k5,
-                    RealType* u,
-                    RealType* cudaBlockResidue )
+updateUMersonNonET(
+   const Index size,
+   const RealType tau,
+   const RealType* k1,
+   const RealType* k4,
+   const RealType* k5,
+   RealType* u,
+   RealType* cudaBlockResidue )
 {
 #ifdef __CUDACC__
    extern __shared__ void* d_u[];

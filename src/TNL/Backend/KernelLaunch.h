@@ -36,11 +36,12 @@ struct LaunchConfiguration
    constexpr LaunchConfiguration( const LaunchConfiguration& ) = default;
    constexpr LaunchConfiguration( LaunchConfiguration&& ) = default;
 
-   constexpr LaunchConfiguration( dim3 gridSize,
-                                  dim3 blockSize,
-                                  std::size_t dynamicSharedMemorySize = 0U,
-                                  Backend::stream_t stream = 0,  // NOLINT(modernize-use-nullptr)
-                                  bool blockHostUntilFinished = true )
+   constexpr LaunchConfiguration(
+      dim3 gridSize,
+      dim3 blockSize,
+      std::size_t dynamicSharedMemorySize = 0U,
+      Backend::stream_t stream = 0,  // NOLINT(modernize-use-nullptr)
+      bool blockHostUntilFinished = true )
    : gridSize( gridSize ),
      blockSize( blockSize ),
      dynamicSharedMemorySize( dynamicSharedMemorySize ),
@@ -53,10 +54,11 @@ template< typename RawKernel, typename... KernelParameters >
 inline void
 launchKernel( RawKernel kernel_function, LaunchConfiguration launch_configuration, KernelParameters&&... parameters )
 {
-   static_assert( std::is_function_v< RawKernel >
-                     || (std::is_pointer_v< RawKernel > && std::is_function_v< ::std::remove_pointer_t< RawKernel > >),
-                  "Only a plain function or function pointer can be launched as a CUDA kernel. "
-                  "You are attempting to launch something else." );
+   static_assert(
+      std::is_function_v< RawKernel >
+         || (std::is_pointer_v< RawKernel > && std::is_function_v< ::std::remove_pointer_t< RawKernel > >),
+      "Only a plain function or function pointer can be launched as a CUDA kernel. "
+      "You are attempting to launch something else." );
 
    if( kernel_function == nullptr )
       throw std::logic_error( "cannot call a function via nullptr" );

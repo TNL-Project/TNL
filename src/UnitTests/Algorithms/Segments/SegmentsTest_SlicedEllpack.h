@@ -15,18 +15,19 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using SlicedEllpackSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Host, int >,
-                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Host, long >
+using SlicedEllpackSegmentsTypes = ::testing::Types<
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Host, int >,
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Host, long >
 #if defined( __CUDACC__ )
-                                                     ,
-                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Cuda, int >,
-                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Cuda, long >
+   ,
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Cuda, int >,
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
-                                                     ,
-                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Hip, int >,
-                                                     TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Hip, long >
+   ,
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Hip, int >,
+   TNL::Algorithms::Segments::SlicedEllpack< TNL::Devices::Hip, long >
 #endif
-                                                     >;
+   >;
 
 TYPED_TEST_SUITE( SlicedEllpackSegmentsTest, SlicedEllpackSegmentsTypes );
 
@@ -40,9 +41,8 @@ TYPED_TEST( SlicedEllpackSegmentsTest, setSegmentsSizes_EqualSizes )
 TYPED_TEST( SlicedEllpackSegmentsTest, reduceAllSegments_MaximumInSegments )
 {
    using SlicedEllpackSegmentsType = typename TestFixture::SlicedEllpackSegmentsType;
-   using Kernel =
-      TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel< typename SlicedEllpackSegmentsType::IndexType,
-                                                                      typename SlicedEllpackSegmentsType::DeviceType >;
+   using Kernel = TNL::Algorithms::SegmentsReductionKernels::
+      SlicedEllpackKernel< typename SlicedEllpackSegmentsType::IndexType, typename SlicedEllpackSegmentsType::DeviceType >;
 
    test_reduceAllSegments_MaximumInSegments< SlicedEllpackSegmentsType, Kernel >();
 }

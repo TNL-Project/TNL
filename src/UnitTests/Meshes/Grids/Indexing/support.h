@@ -2,10 +2,11 @@
 
 template< typename Grid, int EntityDimension >
 void
-testGetEntityFromIndex( Grid& grid,
-                        const typename Grid::CoordinatesType& dimensions,
-                        const typename Grid::PointType& origin = typename Grid::PointType( 0 ),
-                        const typename Grid::PointType& spaceSteps = typename Grid::PointType( 1 ) )
+testGetEntityFromIndex(
+   Grid& grid,
+   const typename Grid::CoordinatesType& dimensions,
+   const typename Grid::PointType& origin = typename Grid::PointType( 0 ),
+   const typename Grid::PointType& spaceSteps = typename Grid::PointType( 1 ) )
 {
    SCOPED_TRACE( "Grid Dimension: " + TNL::convertToString( Grid::getMeshDimension() ) );
    SCOPED_TRACE( "Entity Dimension: " + TNL::convertToString( EntityDimension ) );

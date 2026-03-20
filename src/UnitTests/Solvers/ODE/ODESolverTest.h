@@ -82,11 +82,12 @@ TYPED_TEST( ODESolverTest, LinearFunctionTest_iterate )
    DofContainerType u( 5, 0.0 );
    solver.init( u );
    while( solver.getTime() < final_time ) {
-      solver.iterate( u,
-                      []( const Real& time, const Real& tau, const auto& u, auto& fu )
-                      {
-                         fu = time;
-                      } );
+      solver.iterate(
+         u,
+         []( const Real& time, const Real& tau, const auto& u, auto& fu )
+         {
+            fu = time;
+         } );
    }
    solver.reset();
    Real exact_solution = 0.5 * final_time * final_time;

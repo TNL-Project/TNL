@@ -47,9 +47,10 @@ public:
    {
       if( mesh.getGhostLevels() <= 0 )
          throw std::logic_error( "There are no ghost levels on the distributed mesh." );
-      TNL_ASSERT_EQ( mesh.template getGlobalIndices< EntityDimension >().getSize(),
-                     mesh.getLocalMesh().template getEntitiesCount< EntityDimension >(),
-                     "Global indices are not allocated properly." );
+      TNL_ASSERT_EQ(
+         mesh.template getGlobalIndices< EntityDimension >().getSize(),
+         mesh.getLocalMesh().template getEntitiesCount< EntityDimension >(),
+         "Global indices are not allocated properly." );
 
       communicator = mesh.getCommunicator();
       const int rank = communicator.rank();
@@ -77,17 +78,20 @@ public:
             {
                if constexpr( ! std::is_same_v< DeviceType, Devices::Cuda > )
                   if( ! mesh.getLocalMesh().template isGhostEntity< EntityDimension >( local_idx ) )
-                     throw std::runtime_error( "encountered local entity while iterating over ghost entities - the mesh is "
-                                               "probably inconsistent or there is a bug in the DistributedMeshSynchronizer" );
+                     throw std::runtime_error(
+                        "encountered local entity while iterating over ghost entities - the mesh is "
+                        "probably inconsistent or there is a bug in the DistributedMeshSynchronizer" );
                const GlobalIndexType global_idx = hostGlobalIndices[ local_idx ];
                if( global_idx < prev_global_idx )
-                  throw std::runtime_error( "ghost indices are not sorted - the mesh is probably inconsistent or there is a "
-                                            "bug in the DistributedMeshSynchronizer" );
+                  throw std::runtime_error(
+                     "ghost indices are not sorted - the mesh is probably inconsistent or there is a "
+                     "bug in the DistributedMeshSynchronizer" );
                prev_global_idx = global_idx;
                const int owner = getEntityOwner( global_idx );
                if( owner == rank )
-                  throw std::runtime_error( "the owner of a ghost entity cannot be the local rank - the mesh is probably "
-                                            "inconsistent or there is a bug in the DistributedMeshSynchronizer" );
+                  throw std::runtime_error(
+                     "the owner of a ghost entity cannot be the local rank - the mesh is probably "
+                     "inconsistent or there is a bug in the DistributedMeshSynchronizer" );
                ++localGhostCounts[ owner ];
             } );
       }
@@ -125,25 +129,33 @@ public:
          ghostOffsets[ 0 ] = ghostOffset;
          for( int i = 0; i < nproc; i++ ) {
             if( ghostEntitiesCounts( rank, i ) > 0 ) {
-               requests.push_back( MPI::Isend( mesh.template getGlobalIndices< EntityDimension >().getData() + ghostOffset,
-                                               ghostEntitiesCounts( rank, i ),
-                                               i,
-                                               0,
-                                               communicator ) );
+               requests.push_back(
+                  MPI::Isend(
+                     mesh.template getGlobalIndices< EntityDimension >().getData() + ghostOffset,
+                     ghostEntitiesCounts( rank, i ),
+                     i,
+                     0,
+                     communicator ) );
                ghostOffset += ghostEntitiesCounts( rank, i );
             }
             // update ghost offsets
             ghostOffsets[ i + 1 ] = ghostOffset;
          }
-         TNL_ASSERT_EQ( ghostOffsets[ nproc ],
-                        mesh.getLocalMesh().template getEntitiesCount< EntityDimension >(),
-                        "bug in setting ghost offsets" );
+         TNL_ASSERT_EQ(
+            ghostOffsets[ nproc ],
+            mesh.getLocalMesh().template getEntitiesCount< EntityDimension >(),
+            "bug in setting ghost offsets" );
 
          // receive ghost indices from the neighboring ranks
          for( int j = 0; j < nproc; j++ ) {
             if( ghostEntitiesCounts( j, rank ) > 0 ) {
-               requests.push_back( MPI::Irecv(
-                  ghostNeighbors.getData() + ghostNeighborOffsets[ j ], ghostEntitiesCounts( j, rank ), j, 0, communicator ) );
+               requests.push_back(
+                  MPI::Irecv(
+                     ghostNeighbors.getData() + ghostNeighborOffsets[ j ],
+                     ghostEntitiesCounts( j, rank ),
+                     j,
+                     0,
+                     communicator ) );
             }
          }
 
@@ -159,10 +171,11 @@ public:
    void
    synchronize( MeshFunction& function )
    {
-      static_assert( MeshFunction::getEntitiesDimension() == EntityDimension,
-                     "the mesh function's entity dimension does not match" );
-      static_assert( std::is_same_v< typename MeshFunction::MeshType, typename DistributedMesh::MeshType >,
-                     "The type of the mesh function's mesh does not match the local mesh." );
+      static_assert(
+         MeshFunction::getEntitiesDimension() == EntityDimension, "the mesh function's entity dimension does not match" );
+      static_assert(
+         std::is_same_v< typename MeshFunction::MeshType, typename DistributedMesh::MeshType >,
+         "The type of the mesh function's mesh does not match the local mesh." );
 
       synchronize( function.getData() );
    }
@@ -212,11 +225,13 @@ public:
       // issue all receive async operations
       for( int j = 0; j < nproc; j++ ) {
          if( ghostEntitiesCounts( rank, j ) > 0 ) {
-            requests.push_back( MPI::Irecv( array.getData() + bytesPerValue * ghostOffsets[ j ],
-                                            bytesPerValue * ghostEntitiesCounts( rank, j ),
-                                            j,
-                                            0,
-                                            communicator ) );
+            requests.push_back(
+               MPI::Irecv(
+                  array.getData() + bytesPerValue * ghostOffsets[ j ],
+                  bytesPerValue * ghostEntitiesCounts( rank, j ),
+                  j,
+                  0,
+                  communicator ) );
          }
       }
 
@@ -239,11 +254,13 @@ public:
             Algorithms::parallelFor< DeviceType >( 0, ghostEntitiesCounts( i, rank ), copy_kernel, offset );
 
             // issue async send operation
-            requests.push_back( MPI::Isend( sendBuffersView.getData() + bytesPerValue * ghostNeighborOffsets[ i ],
-                                            bytesPerValue * ghostEntitiesCounts( i, rank ),
-                                            i,
-                                            0,
-                                            communicator ) );
+            requests.push_back(
+               MPI::Isend(
+                  sendBuffersView.getData() + bytesPerValue * ghostNeighborOffsets[ i ],
+                  bytesPerValue * ghostEntitiesCounts( i, rank ),
+                  i,
+                  0,
+                  communicator ) );
          }
       }
 
@@ -307,11 +324,13 @@ public:
             // send our row sizes to the target rank
             if( ! assumeConsistentRowCapacities )
                // issue async send operation
-               requests.push_back( MPI::Isend( send_rowCapacities.getData() + send_rankOffsets[ i ],
-                                               ghostNeighborOffsets[ i + 1 ] - ghostNeighborOffsets[ i ],
-                                               i,
-                                               1,
-                                               communicator ) );
+               requests.push_back(
+                  MPI::Isend(
+                     send_rowCapacities.getData() + send_rankOffsets[ i ],
+                     ghostNeighborOffsets[ i + 1 ] - ghostNeighborOffsets[ i ],
+                     i,
+                     1,
+                     communicator ) );
          }
 
          // allocate column indices
@@ -337,11 +356,12 @@ public:
                continue;
             // issue async send operation
             requests.push_back(
-               MPI::Isend( send_columnIndices.getData() + send_rowPointers[ send_rankOffsets[ i ] ],
-                           send_rowPointers[ send_rankOffsets[ i + 1 ] ] - send_rowPointers[ send_rankOffsets[ i ] ],
-                           i,
-                           0,
-                           communicator ) );
+               MPI::Isend(
+                  send_columnIndices.getData() + send_rowPointers[ send_rankOffsets[ i ] ],
+                  send_rowPointers[ send_rankOffsets[ i + 1 ] ] - send_rowPointers[ send_rankOffsets[ i ] ],
+                  i,
+                  0,
+                  communicator ) );
          }
       }
 
@@ -373,11 +393,13 @@ public:
             else {
                // receive row sizes from the sender
                // issue async recv operation
-               row_lengths_requests.push_back( MPI::Irecv( recv_rowPointers.getData() + recv_rankOffsets[ i ],
-                                                           ghostOffsets[ i + 1 ] - ghostOffsets[ i ],
-                                                           i,
-                                                           1,
-                                                           communicator ) );
+               row_lengths_requests.push_back(
+                  MPI::Irecv(
+                     recv_rowPointers.getData() + recv_rankOffsets[ i ],
+                     ghostOffsets[ i + 1 ] - ghostOffsets[ i ],
+                     i,
+                     1,
+                     communicator ) );
             }
          }
 
@@ -399,11 +421,12 @@ public:
                continue;
             // issue async recv operation
             requests.push_back(
-               MPI::Irecv( recv_columnIndices.getData() + recv_rowPointers[ recv_rankOffsets[ i ] ],
-                           recv_rowPointers[ recv_rankOffsets[ i + 1 ] ] - recv_rowPointers[ recv_rankOffsets[ i ] ],
-                           i,
-                           0,
-                           communicator ) );
+               MPI::Irecv(
+                  recv_columnIndices.getData() + recv_rowPointers[ recv_rankOffsets[ i ] ],
+                  recv_rowPointers[ recv_rankOffsets[ i + 1 ] ] - recv_rowPointers[ recv_rankOffsets[ i ] ],
+                  i,
+                  0,
+                  communicator ) );
          }
       }
 

@@ -52,12 +52,13 @@ main( int argc, char* argv[] )
    /****
     * Change the first half of b and test it again
     */
-   b.forElements( 0,
-                  5,
-                  [ = ] __cuda_callable__( int i, float& value )
-                  {
-                     value = 0.0;
-                  } );
+   b.forElements(
+      0,
+      5,
+      [ = ] __cuda_callable__( int i, float& value )
+      {
+         value = 0.0;
+      } );
    if( containsOnlyValue( b, 0.0, 0, 5 ) )
       std::cout << "First five elements of b contains only 0\n";
 }

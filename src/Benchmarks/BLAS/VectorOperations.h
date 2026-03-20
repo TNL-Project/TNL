@@ -45,12 +45,13 @@ struct VectorOperations< Devices::Host >
 
    template< typename Vector1, typename Vector2, typename Vector3, typename Scalar1, typename Scalar2, typename Scalar3 >
    static void
-   addVectors( Vector1& v,
-               const Vector2& v1,
-               const Scalar1 multiplicator1,
-               const Vector3& v2,
-               const Scalar2 multiplicator2,
-               const Scalar3 thisMultiplicator = 1.0 )
+   addVectors(
+      Vector1& v,
+      const Vector2& v1,
+      const Scalar1 multiplicator1,
+      const Vector3& v2,
+      const Scalar2 multiplicator2,
+      const Scalar3 thisMultiplicator = 1.0 )
    {
       using Index = typename Vector1::IndexType;
 
@@ -106,12 +107,13 @@ struct VectorOperations< Devices::Cuda >
 
    template< typename Vector1, typename Vector2, typename Vector3, typename Scalar1, typename Scalar2, typename Scalar3 >
    static void
-   addVectors( Vector1& _v,
-               const Vector2& _v1,
-               const Scalar1 multiplicator1,
-               const Vector3& _v2,
-               const Scalar2 multiplicator2,
-               const Scalar3 thisMultiplicator = 1.0 )
+   addVectors(
+      Vector1& _v,
+      const Vector2& _v1,
+      const Scalar1 multiplicator1,
+      const Vector3& _v2,
+      const Scalar2 multiplicator2,
+      const Scalar3 thisMultiplicator = 1.0 )
    {
       TNL_ASSERT_GT( _v.getSize(), 0, "Vector size must be positive." );
       TNL_ASSERT_EQ( _v.getSize(), _v1.getSize(), "The vector sizes must be the same." );

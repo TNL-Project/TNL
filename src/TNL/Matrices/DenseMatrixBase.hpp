@@ -15,14 +15,15 @@ namespace TNL::Matrices {
 template< int BlockSize, int ThreadsPerRow, typename Matrix, typename InVector, typename OutVector >
 __global__
 void
-VectorColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
-                                                        const InVector inVector,
-                                                        OutVector outVector,
-                                                        int begin,
-                                                        int end,
-                                                        int gridIdx,
-                                                        typename Matrix::RealType matrixMultiplicator,
-                                                        typename Matrix::RealType outVectorMultiplicator )
+VectorColumnMajorDenseMatrixVectorMultiplicationKernel(
+   const Matrix matrix,
+   const InVector inVector,
+   OutVector outVector,
+   int begin,
+   int end,
+   int gridIdx,
+   typename Matrix::RealType matrixMultiplicator,
+   typename Matrix::RealType outVectorMultiplicator )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using Real = typename Matrix::RealType;
@@ -91,14 +92,15 @@ VectorColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
 template< typename Matrix, typename InVector, typename OutVector >
 __global__
 void
-ColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
-                                                  const InVector inVector,
-                                                  OutVector outVector,
-                                                  int begin,
-                                                  int end,
-                                                  int gridIdx,
-                                                  typename Matrix::RealType matrixMultiplicator,
-                                                  typename Matrix::RealType outVectorMultiplicator )
+ColumnMajorDenseMatrixVectorMultiplicationKernel(
+   const Matrix matrix,
+   const InVector inVector,
+   OutVector outVector,
+   int begin,
+   int end,
+   int gridIdx,
+   typename Matrix::RealType matrixMultiplicator,
+   typename Matrix::RealType outVectorMultiplicator )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using Real = typename Matrix::RealType;
@@ -149,10 +151,11 @@ ColumnMajorDenseMatrixVectorMultiplicationKernel( const Matrix matrix,
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 void
-DenseMatrixBase< Real, Device, Index, Organization >::bind( IndexType rows,
-                                                            IndexType columns,
-                                                            typename Base::ValuesViewType values,
-                                                            SegmentsViewType segments )
+DenseMatrixBase< Real, Device, Index, Organization >::bind(
+   IndexType rows,
+   IndexType columns,
+   typename Base::ValuesViewType values,
+   SegmentsViewType segments )
 {
    Base::bind( rows, columns, std::move( values ) );
    this->segments.bind( std::move( segments ) );
@@ -160,9 +163,10 @@ DenseMatrixBase< Real, Device, Index, Organization >::bind( IndexType rows,
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
-DenseMatrixBase< Real, Device, Index, Organization >::DenseMatrixBase( IndexType rows,
-                                                                       IndexType columns,
-                                                                       typename Base::ValuesViewType values )
+DenseMatrixBase< Real, Device, Index, Organization >::DenseMatrixBase(
+   IndexType rows,
+   IndexType columns,
+   typename Base::ValuesViewType values )
 : Base( rows, columns, std::move( values ) ),
   segments( rows, columns )
 {}
@@ -285,17 +289,18 @@ DenseMatrixBase< Real, Device, Index, Organization >::setElement( IndexType row,
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 void
-DenseMatrixBase< Real, Device, Index, Organization >::addElement( IndexType row,
-                                                                  IndexType column,
-                                                                  const RealType& value,
-                                                                  const RealType& thisElementMultiplicator )
+DenseMatrixBase< Real, Device, Index, Organization >::addElement(
+   IndexType row,
+   IndexType column,
+   const RealType& value,
+   const RealType& thisElementMultiplicator )
 {
    const IndexType elementIndex = this->getElementIndex( row, column );
    if( thisElementMultiplicator == RealType{ 1 } )
       this->getValues().setElement( elementIndex, this->getValues().getElement( elementIndex ) + value );
    else
-      this->getValues().setElement( elementIndex,
-                                    thisElementMultiplicator * this->getValues().getElement( elementIndex ) + value );
+      this->getValues().setElement(
+         elementIndex, thisElementMultiplicator * this->getValues().getElement( elementIndex ) + value );
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
@@ -309,12 +314,13 @@ DenseMatrixBase< Real, Device, Index, Organization >::getElement( IndexType row,
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchValue >
 void
-DenseMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begin,
-                                                                  IndexType end,
-                                                                  Fetch&& fetch,
-                                                                  const Reduce& reduce,
-                                                                  Keep&& keep,
-                                                                  const FetchValue& identity ) const
+DenseMatrixBase< Real, Device, Index, Organization >::reduceRows(
+   IndexType begin,
+   IndexType end,
+   Fetch&& fetch,
+   const Reduce& reduce,
+   Keep&& keep,
+   const FetchValue& identity ) const
 {
    const auto values = this->getValues().getConstView();
    auto fetch_ = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, IndexType globalIdx ) mutable
@@ -328,11 +334,12 @@ DenseMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begi
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep >
 void
-DenseMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begin,
-                                                                  IndexType end,
-                                                                  Fetch&& fetch,
-                                                                  const Reduce& reduce,
-                                                                  Keep&& keep ) const
+DenseMatrixBase< Real, Device, Index, Organization >::reduceRows(
+   IndexType begin,
+   IndexType end,
+   Fetch&& fetch,
+   const Reduce& reduce,
+   Keep&& keep ) const
 {
    using FetchType = decltype( fetch( IndexType(), IndexType(), RealType() ) );
    this->reduceRows( begin, end, fetch, reduce, keep, reduce.template getIdentity< FetchType >() );
@@ -341,10 +348,11 @@ DenseMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begi
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-DenseMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch&& fetch,
-                                                                     const Reduce& reduce,
-                                                                     Keep&& keep,
-                                                                     const FetchReal& identity ) const
+DenseMatrixBase< Real, Device, Index, Organization >::reduceAllRows(
+   Fetch&& fetch,
+   const Reduce& reduce,
+   Keep&& keep,
+   const FetchReal& identity ) const
 {
    this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
 }
@@ -448,9 +456,8 @@ DenseMatrixBase< Real, Device, Index, Organization >::forAllRows( Function&& fun
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-DenseMatrixBase< Real, Device, Index, Organization >::sequentialForRows( IndexType begin,
-                                                                         IndexType end,
-                                                                         Function&& function ) const
+DenseMatrixBase< Real, Device, Index, Organization >::sequentialForRows( IndexType begin, IndexType end, Function&& function )
+   const
 {
    for( IndexType row = begin; row < end; row++ )
       this->forRows( row, row + 1, function );
@@ -484,12 +491,13 @@ DenseMatrixBase< Real, Device, Index, Organization >::sequentialForAllRows( Func
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename InVector, typename OutVector >
 void
-DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVector& inVector,
-                                                                     OutVector& outVector,
-                                                                     const RealType& matrixMultiplicator,
-                                                                     const RealType& outVectorMultiplicator,
-                                                                     IndexType begin,
-                                                                     IndexType end ) const
+DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct(
+   const InVector& inVector,
+   OutVector& outVector,
+   const RealType& matrixMultiplicator,
+   const RealType& outVectorMultiplicator,
+   IndexType begin,
+   IndexType end ) const
 {
    if( this->getColumns() != inVector.getSize() )
       throw std::invalid_argument( "vectorProduct: input vector size differs from the matrix columns count." );
@@ -514,19 +522,21 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
          launch_config.gridSize.x = Backend::getMaxGridXSize();
          if( gridIdx == gridsCount - 1 )
             launch_config.gridSize.x = blocksCount % Backend::getMaxGridXSize();
-         constexpr auto kernel = ColumnMajorDenseMatrixVectorMultiplicationKernel< DenseMatrixBase,
-                                                                                   decltype( inVectorView ),
-                                                                                   decltype( outVectorView ) >;
-         Backend::launchKernelAsync( kernel,
-                                     launch_config,
-                                     *this,
-                                     inVectorView,
-                                     outVectorView,
-                                     begin,
-                                     end,
-                                     gridIdx,
-                                     matrixMultiplicator,
-                                     outVectorMultiplicator );
+         constexpr auto kernel = ColumnMajorDenseMatrixVectorMultiplicationKernel<
+            DenseMatrixBase,
+            decltype( inVectorView ),
+            decltype( outVectorView ) >;
+         Backend::launchKernelAsync(
+            kernel,
+            launch_config,
+            *this,
+            inVectorView,
+            outVectorView,
+            begin,
+            end,
+            gridIdx,
+            matrixMultiplicator,
+            outVectorMultiplicator );
       }
       Backend::streamSynchronize( launch_config.stream );
       return;
@@ -578,10 +588,11 @@ DenseMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVec
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Matrix >
 void
-DenseMatrixBase< Real, Device, Index, Organization >::addMatrix( const Matrix& matrix,
-                                                                 const RealType& matrixMultiplicator,
-                                                                 const RealType& thisMatrixMultiplicator,
-                                                                 TransposeState transpose )
+DenseMatrixBase< Real, Device, Index, Organization >::addMatrix(
+   const Matrix& matrix,
+   const RealType& matrixMultiplicator,
+   const RealType& thisMatrixMultiplicator,
+   TransposeState transpose )
 {
    if( transpose == TransposeState::None
        && ( this->getColumns() != matrix.getColumns() || this->getRows() != matrix.getRows() ) )

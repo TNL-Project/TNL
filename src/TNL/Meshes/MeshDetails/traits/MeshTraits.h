@@ -19,16 +19,18 @@ namespace TNL::Meshes {
 template< typename MeshConfig, typename Device, typename EntityTopology >
 class MeshEntity;
 
-template< typename MeshConfig,
-          typename EntityTopology,
-          bool IsDynamicTopology = Topologies::IsDynamicTopology< EntityTopology >::value >
+template<
+   typename MeshConfig,
+   typename EntityTopology,
+   bool IsDynamicTopology = Topologies::IsDynamicTopology< EntityTopology >::value >
 class EntitySeed;
 
 template< typename MeshConfig, typename DimensionTag >
 struct EntityTopologyGetter
 {
-   static_assert( DimensionTag::value <= MeshConfig::meshDimension,
-                  "There are no entities with dimension higher than the mesh dimension." );
+   static_assert(
+      DimensionTag::value <= MeshConfig::meshDimension,
+      "There are no entities with dimension higher than the mesh dimension." );
    using Topology = typename Topologies::Subtopology< typename MeshConfig::CellTopology, DimensionTag::value >::Topology;
 };
 
@@ -41,11 +43,12 @@ struct EntityTopologyGetter< MeshConfig, DimensionTag< MeshConfig::CellTopology:
 template< typename MeshConfig, typename Device, int Dimension >
 class MeshEntityTraits;
 
-template< typename MeshConfig,
-          typename Device,
-          typename EntityTopology,
-          int Dimension,
-          bool IsDynamicTopology = Topologies::IsDynamicTopology< EntityTopology >::value >
+template<
+   typename MeshConfig,
+   typename Device,
+   typename EntityTopology,
+   int Dimension,
+   bool IsDynamicTopology = Topologies::IsDynamicTopology< EntityTopology >::value >
 class MeshSubentityTraits;
 
 template< typename MeshConfig, typename Device, typename MeshEntity, int Superdimension >

@@ -18,11 +18,12 @@ struct GunrockBenchmark
 
    template< typename Graph >
    void
-   breadthFirstSearch( TNL::Benchmarks::Benchmark<>& benchmark,
-                       Graph& graph,
-                       Index start,
-                       Index size,
-                       std::vector< Index >& distances )
+   breadthFirstSearch(
+      TNL::Benchmarks::Benchmark<>& benchmark,
+      Graph& graph,
+      Index start,
+      Index size,
+      std::vector< Index >& distances )
    {
 #ifdef HAVE_GUNROCK
       thrust::device_vector< typename Graph::vertex_type > d_distances( size );
@@ -39,11 +40,12 @@ struct GunrockBenchmark
 
    template< typename Graph >
    void
-   singleSourceShortestPath( TNL::Benchmarks::Benchmark<>& benchmark,
-                             Graph& graph,
-                             Index start,
-                             Index size,
-                             std::vector< Real >& distances )
+   singleSourceShortestPath(
+      TNL::Benchmarks::Benchmark<>& benchmark,
+      Graph& graph,
+      Index start,
+      Index size,
+      std::vector< Real >& distances )
    {
 #ifdef HAVE_GUNROCK
       thrust::device_vector< Real > d_distances( size );

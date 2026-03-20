@@ -11,14 +11,15 @@ public:
    using Coordinate = TNL::Containers::StaticVector< GridDimension, Index >;
    using Point = TNL::Containers::StaticVector< GridDimension, Real >;
 
-   EntityPrototype( const Coordinate& coordinate,
-                    const Coordinate& normals,
-                    const Index index,
-                    const Index calls,
-                    const Index orientation,
-                    const bool isBoundary,
-                    const Point& center,
-                    const Real& measure )
+   EntityPrototype(
+      const Coordinate& coordinate,
+      const Coordinate& normals,
+      const Index index,
+      const Index calls,
+      const Index orientation,
+      const bool isBoundary,
+      const Point& center,
+      const Real& measure )
    : coordinate( coordinate ),
      normals( normals ),
      index( index ),
@@ -71,14 +72,15 @@ public:
 
    struct View
    {
-      View( typename Container< Index >::ViewType calls,
-            typename Container< Index >::ViewType indices,
-            typename Container< Index >::ViewType coordinates,
-            typename Container< Index >::ViewType normals,
-            typename Container< Index >::ViewType orientations,
-            typename Container< Index >::ViewType isBoundary,
-            typename Container< Real >::ViewType center,
-            typename Container< Real >::ViewType measure )
+      View(
+         typename Container< Index >::ViewType calls,
+         typename Container< Index >::ViewType indices,
+         typename Container< Index >::ViewType coordinates,
+         typename Container< Index >::ViewType normals,
+         typename Container< Index >::ViewType orientations,
+         typename Container< Index >::ViewType isBoundary,
+         typename Container< Real >::ViewType center,
+         typename Container< Real >::ViewType measure )
       : calls( std::move( calls ) ),
         indices( std::move( indices ) ),
         coordinates( std::move( coordinates ) ),
@@ -200,15 +202,16 @@ public:
       measure = 0;
    }
 
-   EntityDataStore( const Index& entitiesCount,
-                    const Container< Index >& calls,
-                    const Container< Index >& indices,
-                    const Container< Index >& coordinates,
-                    const Container< Index >& normals,
-                    const Container< Index >& orientations,
-                    const Container< Index >& isBoundary,
-                    const Container< Real >& center,
-                    const Container< Real >& measure )
+   EntityDataStore(
+      const Index& entitiesCount,
+      const Container< Index >& calls,
+      const Container< Index >& indices,
+      const Container< Index >& coordinates,
+      const Container< Index >& normals,
+      const Container< Index >& orientations,
+      const Container< Index >& isBoundary,
+      const Container< Real >& center,
+      const Container< Real >& measure )
    : entitiesCount( entitiesCount ),
      calls( calls ),
      indices( indices ),
@@ -234,15 +237,16 @@ public:
       using NewIndexContainer = TNL::Containers::Array< Index, NewDevice, Index >;
       using NewRealContainer = TNL::Containers::Array< Real, NewDevice, Index >;
 
-      EntityDataStore< Index, Real, NewDevice, GridDimension > newContainer( this->entitiesCount,
-                                                                             NewIndexContainer( this->calls ),
-                                                                             NewIndexContainer( this->indices ),
-                                                                             NewIndexContainer( this->coordinates ),
-                                                                             NewIndexContainer( this->normals ),
-                                                                             NewIndexContainer( this->orientations ),
-                                                                             NewIndexContainer( this->isBoundary ),
-                                                                             NewRealContainer( this->center ),
-                                                                             NewRealContainer( this->measure ) );
+      EntityDataStore< Index, Real, NewDevice, GridDimension > newContainer(
+         this->entitiesCount,
+         NewIndexContainer( this->calls ),
+         NewIndexContainer( this->indices ),
+         NewIndexContainer( this->coordinates ),
+         NewIndexContainer( this->normals ),
+         NewIndexContainer( this->orientations ),
+         NewIndexContainer( this->isBoundary ),
+         NewRealContainer( this->center ),
+         NewRealContainer( this->measure ) );
 
       return newContainer;
    }

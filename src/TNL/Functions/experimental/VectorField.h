@@ -65,8 +65,9 @@ protected:
 
 template< int Size, typename Mesh, int MeshEntityDimension, typename Real >
 class VectorField< Size, MeshFunction< Mesh, MeshEntityDimension, Real > >
-: public Domain< MeshFunction< Mesh, MeshEntityDimension, Real >::getDomainDimension(),
-                 MeshFunction< Mesh, MeshEntityDimension, Real >::getDomainType() >
+: public Domain<
+     MeshFunction< Mesh, MeshEntityDimension, Real >::getDomainDimension(),
+     MeshFunction< Mesh, MeshEntityDimension, Real >::getDomainType() >
 {
 public:
    typedef Mesh MeshType;
@@ -284,8 +285,9 @@ protected:
 
 template< int Size, typename Mesh, int MeshEntityDimension, typename Real >
 class VectorField< Size, MeshFunctionView< Mesh, MeshEntityDimension, Real > >
-: public Domain< MeshFunctionView< Mesh, MeshEntityDimension, Real >::getDomainDimension(),
-                 MeshFunctionView< Mesh, MeshEntityDimension, Real >::getDomainType() >
+: public Domain<
+     MeshFunctionView< Mesh, MeshEntityDimension, Real >::getDomainDimension(),
+     MeshFunctionView< Mesh, MeshEntityDimension, Real >::getDomainType() >
 {
 public:
    typedef Mesh MeshType;
@@ -380,9 +382,10 @@ public:
    void
    bind( const MeshPointer& meshPointer, Vector& data, IndexType offset = 0 )
    {
-      TNL_ASSERT_GE( data.getSize(),
-                     offset + Size * this->vectorField[ 0 ]->getDofs( meshPointer ),
-                     "Attempt to bind vector which is not large enough." );
+      TNL_ASSERT_GE(
+         data.getSize(),
+         offset + Size * this->vectorField[ 0 ]->getDofs( meshPointer ),
+         "Attempt to bind vector which is not large enough." );
       for( int i = 0; i < Size; i++ ) {
          this->vectorField[ i ]->bind( meshPointer, data, offset );
          offset += this->vectorField[ i ]->getDofs( meshPointer );
@@ -393,9 +396,10 @@ public:
    void
    bind( const MeshPointer& meshPointer, Pointers::SharedPointer< Vector >& dataPtr, IndexType offset = 0 )
    {
-      TNL_ASSERT_GE( dataPtr->getSize(),
-                     offset + Size * this->vectorField[ 0 ]->getDofs( meshPointer ),
-                     "Attempt to bind vector which is not large enough." );
+      TNL_ASSERT_GE(
+         dataPtr->getSize(),
+         offset + Size * this->vectorField[ 0 ]->getDofs( meshPointer ),
+         "Attempt to bind vector which is not large enough." );
       for( int i = 0; i < Size; i++ ) {
          this->vectorField[ i ]->bind( meshPointer, dataPtr, offset );
          offset += this->vectorField[ i ]->getDofs( meshPointer );

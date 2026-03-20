@@ -16,16 +16,17 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using GraphTestTypes = ::testing::Types< TNL::Matrices::SparseMatrix< float, TNL::Devices::Sequential, int >,
-                                         TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, int >
+using GraphTestTypes = ::testing::Types<
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Sequential, int >,
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, int >
 #if defined( __CUDACC__ )
-                                         ,
-                                         TNL::Matrices::SparseMatrix< float, TNL::Devices::Cuda, int >
+   ,
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Cuda, int >
 #elif defined( __HIP__ )
-                                         ,
-                                         TNL::Matrices::SparseMatrix< float, TNL::Devices::Hip, int >
+   ,
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Hip, int >
 #endif
-                                         >;
+   >;
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
 
@@ -117,12 +118,13 @@ TYPED_TEST( GraphTest, test_BFS_largest )
    using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
 
    // Create a sample graph with 15 nodes.
-   GraphType graph( 15,  // graph nodes count
-                    {    // definition of graph edges
-                      { 0, 1, 2.4 },   { 0, 4, 4.6 },   { 1, 3, 3.1 },   { 2, 1, 1.2 },  { 2, 8, 5.7 },   { 3, 5, 3.8 },
-                      { 3, 6, 2.9 },   { 4, 6, 5.5 },   { 4, 11, 8.2 },  { 5, 9, 4.4 },  { 6, 5, 1.6 },   { 6, 10, 7.3 },
-                      { 7, 2, 1.9 },   { 7, 13, 6.1 },  { 8, 7, 3.3 },   { 8, 9, 2.7 },  { 9, 12, 4.8 },  { 10, 9, 2.5 },
-                      { 10, 14, 6.6 }, { 11, 12, 3.7 }, { 12, 10, 3.9 }, { 13, 8, 4.0 }, { 13, 12, 5.1 }, { 14, 13, 2.8 } } );
+   GraphType graph(
+      15,  // graph nodes count
+      {    // definition of graph edges
+        { 0, 1, 2.4 },   { 0, 4, 4.6 },   { 1, 3, 3.1 },   { 2, 1, 1.2 },  { 2, 8, 5.7 },   { 3, 5, 3.8 },
+        { 3, 6, 2.9 },   { 4, 6, 5.5 },   { 4, 11, 8.2 },  { 5, 9, 4.4 },  { 6, 5, 1.6 },   { 6, 10, 7.3 },
+        { 7, 2, 1.9 },   { 7, 13, 6.1 },  { 8, 7, 3.3 },   { 8, 9, 2.7 },  { 9, 12, 4.8 },  { 10, 9, 2.5 },
+        { 10, 14, 6.6 }, { 11, 12, 3.7 }, { 12, 10, 3.9 }, { 13, 8, 4.0 }, { 13, 12, 5.1 }, { 14, 13, 2.8 } } );
 
    VectorType distances( graph.getNodeCount() );
    std::vector< VectorType > expectedDistances = {

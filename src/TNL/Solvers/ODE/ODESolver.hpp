@@ -37,10 +37,11 @@ void
 ODESolver< Method, Value, SolverMonitor, true >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {
    ExplicitSolver< RealType, IndexType >::configSetup( config, prefix );
-   config.addEntry< double >( prefix + "integrator-adaptivity",
-                              "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
-                              "zero means no adaptivity).",
-                              1.0e-4 );
+   config.addEntry< double >(
+      prefix + "integrator-adaptivity",
+      "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
+      "zero means no adaptivity).",
+      1.0e-4 );
 }
 
 template< typename Method, typename Value, typename SolverMonitor >
@@ -194,10 +195,11 @@ void
 ODESolver< Method, Vector, SolverMonitor, false >::configSetup( Config::ConfigDescription& config, const String& prefix )
 {
    ExplicitSolver< RealType, IndexType >::configSetup( config, prefix );
-   config.addEntry< double >( prefix + "integrator-adaptivity",
-                              "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
-                              "zero means no adaptivity).",
-                              1.0e-4 );
+   config.addEntry< double >(
+      prefix + "integrator-adaptivity",
+      "Time step adaptivity controlling coefficient (the smaller the more precise the computation is, "
+      "zero means no adaptivity).",
+      1.0e-4 );
 }
 
 template< typename Method, typename Vector, typename SolverMonitor >

@@ -18,16 +18,17 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::ChunkedEllpack( c
   slices( segments.slices )
 {
    // update the base
-   Base::bind( segments.getSize(),
-               segments.getStorageSize(),
-               segments.getNumberOfSlices(),
-               segments.getChunksInSlice(),
-               segments.getDesiredChunkSize(),
-               this->segmentToChunkMapping.getView(),
-               this->segmentToSliceMapping.getView(),
-               this->chunksToSegmentsMapping.getView(),
-               this->segmentPointers.getView(),
-               this->slices.getView() );
+   Base::bind(
+      segments.getSize(),
+      segments.getStorageSize(),
+      segments.getNumberOfSlices(),
+      segments.getChunksInSlice(),
+      segments.getDesiredChunkSize(),
+      this->segmentToChunkMapping.getView(),
+      this->segmentToSliceMapping.getView(),
+      this->chunksToSegmentsMapping.getView(),
+      this->segmentPointers.getView(),
+      this->slices.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
@@ -55,16 +56,17 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=( const 
    this->chunksToSegmentsMapping = segments.chunksToSegmentsMapping;
    this->slices = segments.slices;
    // update the base
-   Base::bind( segments.getSize(),
-               segments.getStorageSize(),
-               segments.getNumberOfSlices(),
-               segments.getChunksInSlice(),
-               segments.getDesiredChunkSize(),
-               this->segmentToChunkMapping.getView(),
-               this->segmentToSliceMapping.getView(),
-               this->chunksToSegmentsMapping.getView(),
-               this->segmentPointers.getView(),
-               this->slices.getView() );
+   Base::bind(
+      segments.getSize(),
+      segments.getStorageSize(),
+      segments.getNumberOfSlices(),
+      segments.getChunksInSlice(),
+      segments.getDesiredChunkSize(),
+      this->segmentToChunkMapping.getView(),
+      this->segmentToSliceMapping.getView(),
+      this->chunksToSegmentsMapping.getView(),
+      this->segmentPointers.getView(),
+      this->slices.getView() );
    return *this;
 }
 
@@ -78,16 +80,17 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=( Chunke
    this->chunksToSegmentsMapping = std::move( segments.chunksToSegmentsMapping );
    this->slices = std::move( segments.slices );
    // update the base
-   Base::bind( segments.getSize(),
-               segments.getStorageSize(),
-               segments.getNumberOfSlices(),
-               segments.getChunksInSlice(),
-               segments.getDesiredChunkSize(),
-               this->segmentToChunkMapping.getView(),
-               this->segmentToSliceMapping.getView(),
-               this->chunksToSegmentsMapping.getView(),
-               this->segmentPointers.getView(),
-               this->slices.getView() );
+   Base::bind(
+      segments.getSize(),
+      segments.getStorageSize(),
+      segments.getNumberOfSlices(),
+      segments.getChunksInSlice(),
+      segments.getDesiredChunkSize(),
+      this->segmentToChunkMapping.getView(),
+      this->segmentToSliceMapping.getView(),
+      this->chunksToSegmentsMapping.getView(),
+      this->segmentPointers.getView(),
+      this->slices.getView() );
    return *this;
 }
 
@@ -103,16 +106,17 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::operator=(
    this->chunksToSegmentsMapping = segments.getChunksToSegmentsMappingView();
    this->slices = segments.getSlicesView();
    // update the base
-   Base::bind( segments.getSize(),
-               segments.getStorageSize(),
-               segments.getNumberOfSlices(),
-               segments.getChunksInSlice(),
-               segments.getDesiredChunkSize(),
-               this->segmentToChunkMapping.getView(),
-               this->segmentToSliceMapping.getView(),
-               this->chunksToSegmentsMapping.getView(),
-               this->segmentPointers.getView(),
-               this->slices.getView() );
+   Base::bind(
+      segments.getSize(),
+      segments.getStorageSize(),
+      segments.getNumberOfSlices(),
+      segments.getChunksInSlice(),
+      segments.getDesiredChunkSize(),
+      this->segmentToChunkMapping.getView(),
+      this->segmentToSliceMapping.getView(),
+      this->chunksToSegmentsMapping.getView(),
+      this->segmentPointers.getView(),
+      this->slices.getView() );
    return *this;
 }
 
@@ -184,22 +188,24 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSegmentsSizes(
       }
 
       // update the base
-      Base::bind( this->size,
-                  this->storageSize,
-                  this->numberOfSlices,
-                  this->chunksInSlice,
-                  this->desiredChunkSize,
-                  this->segmentToChunkMapping.getView(),
-                  this->segmentToSliceMapping.getView(),
-                  this->chunksToSegmentsMapping.getView(),
-                  this->segmentPointers.getView(),
-                  this->slices.getView() );
+      Base::bind(
+         this->size,
+         this->storageSize,
+         this->numberOfSlices,
+         this->chunksInSlice,
+         this->desiredChunkSize,
+         this->segmentToChunkMapping.getView(),
+         this->segmentToSliceMapping.getView(),
+         this->chunksToSegmentsMapping.getView(),
+         this->segmentPointers.getView(),
+         this->slices.getView() );
    }
    else {
-      ChunkedEllpack< Devices::Host,
-                      Index,
-                      typename Allocators::Default< Devices::Host >::template Allocator< Index >,
-                      Organization >
+      ChunkedEllpack<
+         Devices::Host,
+         Index,
+         typename Allocators::Default< Devices::Host >::template Allocator< Index >,
+         Organization >
          hostSegments;
       Containers::Vector< Index, Devices::Host, Index > hostSegmentsSizes;
       hostSegmentsSizes = segmentsSizes;
@@ -219,16 +225,17 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::reset()
    this->slices.reset();
 
    // update the base
-   Base::bind( 0,
-               0,
-               0,
-               this->getChunksInSlice(),
-               this->getDesiredChunkSize(),
-               this->segmentToChunkMapping.getView(),
-               this->segmentToSliceMapping.getView(),
-               this->chunksToSegmentsMapping.getView(),
-               this->segmentPointers.getView(),
-               this->slices.getView() );
+   Base::bind(
+      0,
+      0,
+      0,
+      this->getChunksInSlice(),
+      this->getDesiredChunkSize(),
+      this->segmentToChunkMapping.getView(),
+      this->segmentToSliceMapping.getView(),
+      this->chunksToSegmentsMapping.getView(),
+      this->segmentPointers.getView(),
+      this->slices.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
@@ -257,16 +264,17 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::load( File& file 
       >> this->slices;
 
    // update the base
-   Base::bind( this->size,
-               this->storageSize,
-               this->numberOfSlices,
-               this->chunksInSlice,
-               this->desiredChunkSize,
-               this->segmentToChunkMapping.getView(),
-               this->segmentToSliceMapping.getView(),
-               this->chunksToSegmentsMapping.getView(),
-               this->segmentPointers.getView(),
-               this->slices.getView() );
+   Base::bind(
+      this->size,
+      this->storageSize,
+      this->numberOfSlices,
+      this->chunksInSlice,
+      this->desiredChunkSize,
+      this->segmentToChunkMapping.getView(),
+      this->segmentToSliceMapping.getView(),
+      this->chunksToSegmentsMapping.getView(),
+      this->segmentPointers.getView(),
+      this->slices.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
@@ -304,9 +312,10 @@ ChunkedEllpack< Device, Index, IndexAllocator, Organization >::resolveSliceSizes
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization >
 template< typename SizesContainer >
 bool
-ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice( SizesContainer& segmentsSizes,
-                                                                         Index sliceIndex,
-                                                                         Index& elementsToAllocation )
+ChunkedEllpack< Device, Index, IndexAllocator, Organization >::setSlice(
+   SizesContainer& segmentsSizes,
+   Index sliceIndex,
+   Index& elementsToAllocation )
 {
    /* Now, compute the number of chunks per each segment. Each segment gets one chunk
     * by default. Then each segment will get additional chunks with respect to the

@@ -37,9 +37,10 @@ Grid< Dimension, Real, Device, Index >::Grid()
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< typename... Dimensions,
-          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool >,
-          std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > >
+template<
+   typename... Dimensions,
+   std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool >,
+   std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > >
 Grid< Dimension, Real, Device, Index >::Grid( Dimensions... dimensions )
 {
    proportions = 0;
@@ -69,9 +70,10 @@ Grid< Dimension, Real, Device, Index >::getEntityOrientationsCount( IndexType en
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< typename... Dimensions,
-          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool >,
-          std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > >
+template<
+   typename... Dimensions,
+   std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Dimensions >... >, bool >,
+   std::enable_if_t< sizeof...( Dimensions ) == Dimension, bool > >
 void
 Grid< Dimension, Real, Device, Index >::setDimensions( Dimensions... dimensions )
 {
@@ -135,8 +137,9 @@ Grid< Dimension, Real, Device, Index >::getEntitiesCount() const noexcept
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< typename EntityType_,
-          std::enable_if_t< Templates::isInClosedInterval( 0, EntityType_::getEntityDimension(), Dimension ), bool > >
+template<
+   typename EntityType_,
+   std::enable_if_t< Templates::isInClosedInterval( 0, EntityType_::getEntityDimension(), Dimension ), bool > >
 __cuda_callable__
 Index
 Grid< Dimension, Real, Device, Index >::getEntitiesCount() const noexcept
@@ -145,9 +148,10 @@ Grid< Dimension, Real, Device, Index >::getEntitiesCount() const noexcept
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< typename... DimensionIndex,
-          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool >,
-          std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > >
+template<
+   typename... DimensionIndex,
+   std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, DimensionIndex >... >, bool >,
+   std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ), bool > >
 __cuda_callable__
 Containers::StaticVector< sizeof...( DimensionIndex ), Index >
 Grid< Dimension, Real, Device, Index >::getEntitiesCounts( DimensionIndex... indices ) const
@@ -177,9 +181,10 @@ Grid< Dimension, Real, Device, Index >::setOrigin(
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< typename... Coordinates,
-          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Coordinates >... >, bool >,
-          std::enable_if_t< sizeof...( Coordinates ) == Dimension, bool > >
+template<
+   typename... Coordinates,
+   std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Coordinates >... >, bool >,
+   std::enable_if_t< sizeof...( Coordinates ) == Dimension, bool > >
 void
 Grid< Dimension, Real, Device, Index >::setOrigin( Coordinates... coordinates ) noexcept
 {
@@ -241,9 +246,10 @@ template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension >
 __cuda_callable__
 auto
-Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityIdx,
-                                                              CoordinatesType& entityNormals,
-                                                              Index& orientation ) const noexcept -> CoordinatesType
+Grid< Dimension, Real, Device, Index >::getEntityCoordinates(
+   IndexType entityIdx,
+   CoordinatesType& entityNormals,
+   Index& orientation ) const noexcept -> CoordinatesType
 {
    orientation = firstKCombinationsSum( EntityDimension, Dimension );
    const Index end = orientation + getEntityOrientationsCount( EntityDimension );
@@ -266,10 +272,11 @@ Grid< Dimension, Real, Device, Index >::getEntityCoordinates( IndexType entityId
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< int EntityDimension,
-          int EntityOrientation,
-          std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool >,
-          std::enable_if_t< Templates::isInClosedInterval( 0, EntityOrientation, Dimension ), bool > >
+template<
+   int EntityDimension,
+   int EntityOrientation,
+   std::enable_if_t< Templates::isInClosedInterval( 0, EntityDimension, Dimension ), bool >,
+   std::enable_if_t< Templates::isInClosedInterval( 0, EntityOrientation, Dimension ), bool > >
 __cuda_callable__
 Index
 Grid< Dimension, Real, Device, Index >::getOrientedEntitiesCount() const noexcept
@@ -314,9 +321,10 @@ Grid< Dimension, Real, Device, Index >::setSpaceSteps(
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< typename... Steps,
-          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Steps >... >, bool >,
-          std::enable_if_t< sizeof...( Steps ) == Dimension, bool > >
+template<
+   typename... Steps,
+   std::enable_if_t< Templates::conjunction_v< std::is_convertible< Real, Steps >... >, bool >,
+   std::enable_if_t< sizeof...( Steps ) == Dimension, bool > >
 void
 Grid< Dimension, Real, Device, Index >::setSpaceSteps( Steps... spaceSteps ) noexcept
 {
@@ -343,9 +351,10 @@ Grid< Dimension, Real, Device, Index >::getProportions() const noexcept
 }
 
 template< int Dimension, typename Real, typename Device, typename Index >
-template< typename... Powers,
-          std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool >,
-          std::enable_if_t< sizeof...( Powers ) == Dimension, bool > >
+template<
+   typename... Powers,
+   std::enable_if_t< Templates::conjunction_v< std::is_convertible< Index, Powers >... >, bool >,
+   std::enable_if_t< sizeof...( Powers ) == Dimension, bool > >
 __cuda_callable__
 Real
 Grid< Dimension, Real, Device, Index >::getSpaceStepsProducts( Powers... powers ) const
@@ -401,10 +410,11 @@ Grid< Dimension, Real, Device, Index >::traverseAll( Func func, FuncArgs... args
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
-Grid< Dimension, Real, Device, Index >::traverseAll( const CoordinatesType& from,
-                                                     const CoordinatesType& to,
-                                                     Func func,
-                                                     FuncArgs... args ) const
+Grid< Dimension, Real, Device, Index >::traverseAll(
+   const CoordinatesType& from,
+   const CoordinatesType& to,
+   Func func,
+   FuncArgs... args ) const
 {
    TNL_ASSERT_ALL_GE( from, 0, "Traverse rect must be in the grid dimensions" );
    TNL_ASSERT_ALL_LE( to, this->getDimensions(), "Traverse rect be in the grid dimensions" );
@@ -430,10 +440,11 @@ Grid< Dimension, Real, Device, Index >::traverseInterior( Func func, FuncArgs...
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
-Grid< Dimension, Real, Device, Index >::traverseInterior( const CoordinatesType& from,
-                                                          const CoordinatesType& to,
-                                                          Func func,
-                                                          FuncArgs... args ) const
+Grid< Dimension, Real, Device, Index >::traverseInterior(
+   const CoordinatesType& from,
+   const CoordinatesType& to,
+   Func func,
+   FuncArgs... args ) const
 {
    TNL_ASSERT_ALL_GE( from, 0, "Traverse rect must be in the grid dimensions" );
    TNL_ASSERT_ALL_LE( to, this->getDimensions(), "Traverse rect be in the grid dimensions" );
@@ -479,10 +490,11 @@ Grid< Dimension, Real, Device, Index >::traverseBoundary( Func func, FuncArgs...
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
-Grid< Dimension, Real, Device, Index >::traverseBoundary( const CoordinatesType& from,
-                                                          const CoordinatesType& to,
-                                                          Func func,
-                                                          FuncArgs... args ) const
+Grid< Dimension, Real, Device, Index >::traverseBoundary(
+   const CoordinatesType& from,
+   const CoordinatesType& to,
+   Func func,
+   FuncArgs... args ) const
 {
    // Boundaries of the grid are formed by the entities of Dimension - 1.
    // We need to traverse each orientation independently.
@@ -556,8 +568,8 @@ __cuda_callable__
 Index
 Grid< Dimension, Real, Device, Index >::getEntityIndex( const Entity& entity ) const
 {
-   static_assert( Entity::getEntityDimension() <= Dimension && Entity::getEntityDimension() >= 0,
-                  "Wrong grid entity dimensions." );
+   static_assert(
+      Entity::getEntityDimension() <= Dimension && Entity::getEntityDimension() >= 0, "Wrong grid entity dimensions." );
 
    return GridEntityGetter< Grid, Entity::getEntityDimension() >::getEntityIndex( *this, entity );
 }
@@ -568,8 +580,8 @@ __cuda_callable__
 EntityType_
 Grid< Dimension, Real, Device, Index >::getEntity( const CoordinatesType& coordinates ) const
 {
-   static_assert( EntityType_::getEntityDimension() <= getMeshDimension(),
-                  "Entity dimension must be lower or equal to grid dimension." );
+   static_assert(
+      EntityType_::getEntityDimension() <= getMeshDimension(), "Entity dimension must be lower or equal to grid dimension." );
    return EntityType_( *this, coordinates );
 }
 
@@ -589,8 +601,8 @@ __cuda_callable__
 EntityType_
 Grid< Dimension, Real, Device, Index >::getEntity( IndexType entityIdx ) const
 {
-   static_assert( EntityType_::getEntityDimension() <= getMeshDimension(),
-                  "Entity dimension must be lower or equal to grid dimension." );
+   static_assert(
+      EntityType_::getEntityDimension() <= getMeshDimension(), "Entity dimension must be lower or equal to grid dimension." );
    return EntityType_( *this, entityIdx );
 }
 
@@ -814,11 +826,12 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::forAllEntities( Func func, FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                        const CoordinatesType& normals,
-                                        const Index orientation,
-                                        const Grid& grid,
-                                        FuncArgs... args ) mutable
+   auto exec = [ = ] __cuda_callable__(
+                  const CoordinatesType& coordinate,
+                  const CoordinatesType& normals,
+                  const Index orientation,
+                  const Grid& grid,
+                  FuncArgs... args ) mutable
    {
       EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
 
@@ -831,16 +844,18 @@ Grid< Dimension, Real, Device, Index >::forAllEntities( Func func, FuncArgs... a
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
-Grid< Dimension, Real, Device, Index >::forEntities( const CoordinatesType& begin,
-                                                     const CoordinatesType& end,
-                                                     Func func,
-                                                     FuncArgs... args ) const
+Grid< Dimension, Real, Device, Index >::forEntities(
+   const CoordinatesType& begin,
+   const CoordinatesType& end,
+   Func func,
+   FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                        const CoordinatesType& normals,
-                                        const Index orientation,
-                                        const Grid& grid,
-                                        FuncArgs... args ) mutable
+   auto exec = [ = ] __cuda_callable__(
+                  const CoordinatesType& coordinate,
+                  const CoordinatesType& normals,
+                  const Index orientation,
+                  const Grid& grid,
+                  FuncArgs... args ) mutable
    {
       EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
 
@@ -855,11 +870,12 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::forBoundaryEntities( Func func, FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                        const CoordinatesType& normals,
-                                        const Index orientation,
-                                        const Grid& grid,
-                                        FuncArgs... args ) mutable
+   auto exec = [ = ] __cuda_callable__(
+                  const CoordinatesType& coordinate,
+                  const CoordinatesType& normals,
+                  const Index orientation,
+                  const Grid& grid,
+                  FuncArgs... args ) mutable
    {
       EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
 
@@ -872,16 +888,18 @@ Grid< Dimension, Real, Device, Index >::forBoundaryEntities( Func func, FuncArgs
 template< int Dimension, typename Real, typename Device, typename Index >
 template< int EntityDimension, typename Func, typename... FuncArgs >
 void
-Grid< Dimension, Real, Device, Index >::forBoundaryEntities( const CoordinatesType& begin,
-                                                             const CoordinatesType& end,
-                                                             Func func,
-                                                             FuncArgs... args ) const
+Grid< Dimension, Real, Device, Index >::forBoundaryEntities(
+   const CoordinatesType& begin,
+   const CoordinatesType& end,
+   Func func,
+   FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                        const CoordinatesType& normals,
-                                        const Index orientation,
-                                        const Grid& grid,
-                                        FuncArgs... args ) mutable
+   auto exec = [ = ] __cuda_callable__(
+                  const CoordinatesType& coordinate,
+                  const CoordinatesType& normals,
+                  const Index orientation,
+                  const Grid& grid,
+                  FuncArgs... args ) mutable
    {
       EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
 
@@ -896,11 +914,12 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::forInteriorEntities( Func func, FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                        const CoordinatesType& normals,
-                                        const Index orientation,
-                                        const Grid& grid,
-                                        FuncArgs... args ) mutable
+   auto exec = [ = ] __cuda_callable__(
+                  const CoordinatesType& coordinate,
+                  const CoordinatesType& normals,
+                  const Index orientation,
+                  const Grid& grid,
+                  FuncArgs... args ) mutable
    {
       EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
 
@@ -915,11 +934,12 @@ template< int EntityDimension, typename Func, typename... FuncArgs >
 void
 Grid< Dimension, Real, Device, Index >::forLocalEntities( Func func, FuncArgs... args ) const
 {
-   auto exec = [ = ] __cuda_callable__( const CoordinatesType& coordinate,
-                                        const CoordinatesType& normals,
-                                        const Index orientation,
-                                        const Grid& grid,
-                                        FuncArgs... args ) mutable
+   auto exec = [ = ] __cuda_callable__(
+                  const CoordinatesType& coordinate,
+                  const CoordinatesType& normals,
+                  const Index orientation,
+                  const Grid& grid,
+                  FuncArgs... args ) mutable
    {
       EntityType< EntityDimension > entity( grid, coordinate, normals, orientation );
 

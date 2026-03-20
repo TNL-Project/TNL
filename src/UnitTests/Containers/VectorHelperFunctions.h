@@ -148,9 +148,10 @@ expect_near( const T1& arg, const T2& expected, double epsilon )
    }
 }
 
-template< typename T1,
-          typename T2,
-          std::enable_if_t< TNL::HasSubscriptOperator< T1 >::value && ! TNL::HasSubscriptOperator< T2 >::value, bool > = true >
+template<
+   typename T1,
+   typename T2,
+   std::enable_if_t< TNL::HasSubscriptOperator< T1 >::value && ! TNL::HasSubscriptOperator< T2 >::value, bool > = true >
 void
 expect_near( const T1& arg, const T2& expected, double epsilon )
 {
@@ -158,9 +159,10 @@ expect_near( const T1& arg, const T2& expected, double epsilon )
       expect_near( arg[ i ], expected, epsilon );
 }
 
-template< typename T1,
-          typename T2,
-          std::enable_if_t< TNL::HasSubscriptOperator< T1 >::value && TNL::HasSubscriptOperator< T2 >::value, bool > = true >
+template<
+   typename T1,
+   typename T2,
+   std::enable_if_t< TNL::HasSubscriptOperator< T1 >::value && TNL::HasSubscriptOperator< T2 >::value, bool > = true >
 void
 expect_near( const T1& arg, const T2& expected, double epsilon )
 {

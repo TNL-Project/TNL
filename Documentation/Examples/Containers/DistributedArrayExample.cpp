@@ -22,19 +22,21 @@ distributedArrayExample()
 
    const LocalRangeType localRange = TNL::Containers::splitRange< IndexType >( size, communicator );
    ArrayType a( localRange, ghosts, size, communicator );
-   a.forElements( 0,
-                  size,
-                  [] __cuda_callable__( int idx, int& value )
-                  {
-                     value = idx;
-                  } );
+   a.forElements(
+      0,
+      size,
+      [] __cuda_callable__( int idx, int& value )
+      {
+         value = idx;
+      } );
    ArrayType b( localRange, ghosts, size, communicator );
-   b.forElements( 0,
-                  size,
-                  [] __cuda_callable__( int idx, int& value )
-                  {
-                     value = idx - ( idx == 90 );
-                  } );
+   b.forElements(
+      0,
+      size,
+      [] __cuda_callable__( int idx, int& value )
+      {
+         value = idx - ( idx == 90 );
+      } );
    for( int i = 0; i < communicator.size(); i++ ) {
       if( communicator.rank() == i )
          std::cout << "MPI rank = " << communicator.rank() << '\n'

@@ -7,10 +7,11 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Device,
-          typename Index,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int WarpSize = 32 >
+template<
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int WarpSize = 32 >
 class BiEllpackView : public BiEllpackBase< Device, Index, Organization, WarpSize >
 {
    using Base = BiEllpackBase< Device, Index, Organization, WarpSize >;
@@ -27,10 +28,11 @@ public:
    BiEllpackView() = default;
 
    __cuda_callable__
-   BiEllpackView( Index size,
-                  Index storageSize,
-                  typename Base::OffsetsView segmentsPermutation,
-                  typename Base::OffsetsView groupPointers );
+   BiEllpackView(
+      Index size,
+      Index storageSize,
+      typename Base::OffsetsView segmentsPermutation,
+      typename Base::OffsetsView groupPointers );
 
    __cuda_callable__
    BiEllpackView( const BiEllpackView& ) = default;

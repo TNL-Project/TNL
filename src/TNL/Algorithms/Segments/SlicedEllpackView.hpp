@@ -9,11 +9,12 @@ namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 __cuda_callable__
-SlicedEllpackView< Device, Index, Organization, SliceSize >::SlicedEllpackView( Index size,
-                                                                                Index alignedSize,
-                                                                                Index segmentsCount,
-                                                                                typename Base::OffsetsView sliceOffsets,
-                                                                                typename Base::OffsetsView sliceSegmentSizes )
+SlicedEllpackView< Device, Index, Organization, SliceSize >::SlicedEllpackView(
+   Index size,
+   Index alignedSize,
+   Index segmentsCount,
+   typename Base::OffsetsView sliceOffsets,
+   typename Base::OffsetsView sliceSegmentSizes )
 : Base( size, alignedSize, segmentsCount, std::move( sliceOffsets ), std::move( sliceSegmentSizes ) )
 {}
 
@@ -22,11 +23,12 @@ __cuda_callable__
 void
 SlicedEllpackView< Device, Index, Organization, SliceSize >::bind( SlicedEllpackView view )
 {
-   Base::bind( view.getSize(),
-               view.getStorageSize(),
-               view.getSegmentsCount(),
-               view.getSliceOffsetsView(),
-               view.getSliceSegmentSizesView() );
+   Base::bind(
+      view.getSize(),
+      view.getStorageSize(),
+      view.getSegmentsCount(),
+      view.getSliceOffsetsView(),
+      view.getSliceSegmentSizesView() );
 }
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >

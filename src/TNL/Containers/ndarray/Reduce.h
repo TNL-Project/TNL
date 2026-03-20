@@ -191,13 +191,14 @@ nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType id
       };
 
       // 4. call reduction function for specific dimension
-      Algorithms::Reduction3D< DeviceType >::reduce( identity,
-                                                     fetch,
-                                                     reduction,
-                                                     input.template getSize< axis >(),
-                                                     input.template getSize< axis1 >(),
-                                                     input.template getSize< axis2 >(),
-                                                     result );
+      Algorithms::Reduction3D< DeviceType >::reduce(
+         identity,
+         fetch,
+         reduction,
+         input.template getSize< axis >(),
+         input.template getSize< axis1 >(),
+         input.template getSize< axis2 >(),
+         result );
    }
    else if constexpr( dimension == 4 ) {
       //2. size of input -> allocate memory for output
@@ -244,10 +245,11 @@ nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType id
 
       using Permutation = std::index_sequence< axis, axis1, axis2, axis3, axis4 >;
 
-      output.setSizes( input.template getSize< axis1 >(),
-                       input.template getSize< axis2 >(),
-                       input.template getSize< axis3 >(),
-                       input.template getSize< axis4 >() );
+      output.setSizes(
+         input.template getSize< axis1 >(),
+         input.template getSize< axis2 >(),
+         input.template getSize< axis3 >(),
+         input.template getSize< axis4 >() );
 
       using MultiIndex = Containers::StaticArray< 3, IndexType >;
 
@@ -288,11 +290,12 @@ nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType id
 
       using Permutation = std::index_sequence< axis, axis1, axis2, axis3, axis4, axis5 >;
 
-      output.setSizes( input.template getSize< axis1 >(),
-                       input.template getSize< axis2 >(),
-                       input.template getSize< axis3 >(),
-                       input.template getSize< axis4 >(),
-                       input.template getSize< axis5 >() );
+      output.setSizes(
+         input.template getSize< axis1 >(),
+         input.template getSize< axis2 >(),
+         input.template getSize< axis3 >(),
+         input.template getSize< axis4 >(),
+         input.template getSize< axis5 >() );
 
       using MultiIndex = Containers::StaticArray< 3, IndexType >;
 
@@ -311,13 +314,14 @@ nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType id
             return output_view( m, n, idx[ 0 ], idx[ 1 ], idx[ 2 ] );
          };
 
-         Algorithms::Reduction3D< Devices::Sequential >::reduce( identity,
-                                                                 fetch,
-                                                                 reduction,
-                                                                 input.template getSize< axis >(),
-                                                                 input.template getSize< axis1 >(),
-                                                                 input.template getSize< axis2 >(),
-                                                                 result );
+         Algorithms::Reduction3D< Devices::Sequential >::reduce(
+            identity,
+            fetch,
+            reduction,
+            input.template getSize< axis >(),
+            input.template getSize< axis1 >(),
+            input.template getSize< axis2 >(),
+            result );
       };
 
       const MultiIndex begin = { 0, 0, 0 };
@@ -464,46 +468,51 @@ nd_reduce( const Input& input, Reduction reduction, typename Input::ValueType id
       return output;
    }
    else if constexpr( dimension == 2 ) {
-      NDArray< typename Input::ValueType,
-               SizesHolder< typename Input::ValueType, 0 >,
-               std::index_sequence< 0 >,
-               typename Input::DeviceType >
+      NDArray<
+         typename Input::ValueType,
+         SizesHolder< typename Input::ValueType, 0 >,
+         std::index_sequence< 0 >,
+         typename Input::DeviceType >
          output;
       nd_reduce< axis >( input, reduction, identity, output );
       return output;
    }
    else if constexpr( dimension == 3 ) {
-      NDArray< typename Input::ValueType,
-               SizesHolder< typename Input::ValueType, 0, 0 >,
-               std::index_sequence< 0, 1 >,
-               typename Input::DeviceType >
+      NDArray<
+         typename Input::ValueType,
+         SizesHolder< typename Input::ValueType, 0, 0 >,
+         std::index_sequence< 0, 1 >,
+         typename Input::DeviceType >
          output;
       nd_reduce< axis >( input, reduction, identity, output );
       return output;
    }
    else if constexpr( dimension == 4 ) {
-      NDArray< typename Input::ValueType,
-               SizesHolder< typename Input::ValueType, 0, 0, 0 >,
-               std::index_sequence< 0, 1, 2 >,
-               typename Input::DeviceType >
+      NDArray<
+         typename Input::ValueType,
+         SizesHolder< typename Input::ValueType, 0, 0, 0 >,
+         std::index_sequence< 0, 1, 2 >,
+         typename Input::DeviceType >
          output;
       nd_reduce< axis >( input, reduction, identity, output );
       return output;
    }
    else if constexpr( dimension == 5 ) {
-      NDArray< typename Input::ValueType,
-               SizesHolder< typename Input::ValueType, 0, 0, 0, 0 >,
-               std::index_sequence< 0, 1, 2, 3 >,
-               typename Input::DeviceType >
+      NDArray<
+         typename Input::ValueType,
+         SizesHolder< typename Input::ValueType, 0, 0, 0, 0 >,
+         std::index_sequence< 0, 1, 2, 3 >,
+         typename Input::DeviceType >
          output;
       nd_reduce< axis >( input, reduction, identity, output );
       return output;
    }
    else if constexpr( dimension == 6 ) {
-      NDArray< typename Input::ValueType,
-               SizesHolder< typename Input::ValueType, 0, 0, 0, 0, 0 >,
-               std::index_sequence< 0, 1, 2, 3, 4 >,
-               typename Input::DeviceType >
+      NDArray<
+         typename Input::ValueType,
+         SizesHolder< typename Input::ValueType, 0, 0, 0, 0, 0 >,
+         std::index_sequence< 0, 1, 2, 3, 4 >,
+         typename Input::DeviceType >
          output;
       nd_reduce< axis >( input, reduction, identity, output );
       return output;

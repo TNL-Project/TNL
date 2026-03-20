@@ -29,13 +29,14 @@ SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   segments.forElements( 0,
-                         size,
-                         [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-                         {
-                            if( localIdx <= segmentIdx )
-                               data_view[ globalIdx ] = segmentIdx;
-                         } );
+   segments.forElements(
+      0,
+      size,
+      [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+      {
+         if( localIdx <= segmentIdx )
+            data_view[ globalIdx ] = segmentIdx;
+      } );
 
    /***
     * Compute sums of elements in each segment.

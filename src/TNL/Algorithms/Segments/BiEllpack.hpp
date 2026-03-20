@@ -234,8 +234,9 @@ template< typename SizesHolder >
 void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::initSegmentsPermutation( const SizesHolder& segmentsSizes )
 {
-   static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential >,
-                  "The initiation of the segmentPermutationArray can be done only on the CPU." );
+   static_assert(
+      std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential >,
+      "The initiation of the segmentPermutationArray can be done only on the CPU." );
 
    // TODO: The following function could be probably replaced with general sorting algorithms (e.g. bitonnic sort) and run on
    // the GPU.

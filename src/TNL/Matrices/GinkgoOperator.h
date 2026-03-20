@@ -125,23 +125,25 @@ protected:
 
       // Check that alpha and beta are Dense<ValueType> of size (1,1):
       if( alpha->get_size()[ 0 ] > 1 || alpha->get_size()[ 1 ] > 1 )
-         throw gko::BadDimension( __FILE__,
-                                  __LINE__,
-                                  __func__,
-                                  "alpha",
-                                  alpha->get_size()[ 0 ],
-                                  alpha->get_size()[ 1 ],
-                                  "Expected an object of size [1 x 1] for scaling "
-                                  " in this operator's apply_impl" );
+         throw gko::BadDimension(
+            __FILE__,
+            __LINE__,
+            __func__,
+            "alpha",
+            alpha->get_size()[ 0 ],
+            alpha->get_size()[ 1 ],
+            "Expected an object of size [1 x 1] for scaling "
+            " in this operator's apply_impl" );
       if( beta->get_size()[ 0 ] > 1 || beta->get_size()[ 1 ] > 1 )
-         throw gko::BadDimension( __FILE__,
-                                  __LINE__,
-                                  __func__,
-                                  "beta",
-                                  beta->get_size()[ 0 ],
-                                  beta->get_size()[ 1 ],
-                                  "Expected an object of size [1 x 1] for scaling "
-                                  " in this operator's apply_impl" );
+         throw gko::BadDimension(
+            __FILE__,
+            __LINE__,
+            __func__,
+            "beta",
+            beta->get_size()[ 0 ],
+            beta->get_size()[ 1 ],
+            "Expected an object of size [1 x 1] for scaling "
+            " in this operator's apply_impl" );
 
       ValueType alpha_f;
       ValueType beta_f;

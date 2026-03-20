@@ -47,13 +47,14 @@ SlicedEllpackKernel< Index, Device >::getKernelType()
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                      Index begin,
-                                                      Index end,
-                                                      Fetch& fetch,
-                                                      const Reduction& reduction,
-                                                      ResultKeeper& keeper,
-                                                      const Value& identity )
+SlicedEllpackKernel< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
@@ -74,8 +75,8 @@ SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segmen
          const IndexType end = begin + segmentSize;
 
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx++ )
-            aux = reduction( aux,
-                             detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
+            aux = reduction(
+               aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
       }
       else {
          (void) sliceSegmentSizes;  // ignore warning due to unused capture - let the compiler optimize it out...
@@ -83,8 +84,8 @@ SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segmen
          const IndexType end = sliceOffsets[ sliceIdx + 1 ];
 
          for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SegmentsView::getSliceSize() )
-            aux = reduction( aux,
-                             detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
+            aux = reduction(
+               aux, detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx++, globalIdx ) );
       }
       keeper( segmentIdx, aux );
    };
@@ -95,11 +96,12 @@ SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segmen
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-SlicedEllpackKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                         Fetch& fetch,
-                                                         const Reduction& reduction,
-                                                         ResultKeeper& keeper,
-                                                         const Value& identity )
+SlicedEllpackKernel< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }

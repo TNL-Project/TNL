@@ -71,9 +71,10 @@ struct Graph
    : MatrixType( std::forward< typename OtherGraph::MatrixType >( other.getAdjacencyMatrix() ) )
    {}
 
-   Graph( IndexType nodesCount,
-          const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
-          Matrices::SymmetricMatrixEncoding encoding = Matrices::SymmetricMatrixEncoding::LowerPart )
+   Graph(
+      IndexType nodesCount,
+      const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
+      Matrices::SymmetricMatrixEncoding encoding = Matrices::SymmetricMatrixEncoding::LowerPart )
    {
       if( isUndirected() && ! MatrixType::isSymmetric() ) {
          std::map< std::pair< IndexType, IndexType >, ValueType > symmetric_map;
@@ -91,9 +92,10 @@ struct Graph
    }
 
    template< typename MapIndex, typename MapValue >
-   Graph( IndexType nodesCount,
-          const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-          Matrices::SymmetricMatrixEncoding encoding = Matrices::SymmetricMatrixEncoding::LowerPart )
+   Graph(
+      IndexType nodesCount,
+      const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+      Matrices::SymmetricMatrixEncoding encoding = Matrices::SymmetricMatrixEncoding::LowerPart )
    {
       if( isUndirected() && ! MatrixType::isSymmetric() ) {
          std::map< std::pair< MapIndex, MapIndex >, MapValue > symmetric_map;

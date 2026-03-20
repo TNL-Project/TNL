@@ -41,8 +41,9 @@ template< typename Grid >
 void
 PVTIWriter< Grid >::writeImageData( const DistributedMeshes::DistributedMesh< Grid >& distributedGrid )
 {
-   writeImageData( distributedGrid.getGlobalGrid(),
-                   distributedGrid.getGhostLevels() );  // TODO: ..., Grid::Config::dualGraphMinCommonVertices );
+   writeImageData(
+      distributedGrid.getGlobalGrid(),
+      distributedGrid.getGhostLevels() );  // TODO: ..., Grid::Config::dualGraphMinCommonVertices );
 }
 
 template< typename Grid >
@@ -149,10 +150,11 @@ PVTIWriter< Grid >::writePDataArray( const std::string& name, const int numberOf
 
 template< typename Grid >
 std::string
-PVTIWriter< Grid >::addPiece( const std::string& mainFileName,
-                              const unsigned subdomainIndex,
-                              const typename Grid::CoordinatesType& globalBegin,
-                              const typename Grid::CoordinatesType& globalEnd )
+PVTIWriter< Grid >::addPiece(
+   const std::string& mainFileName,
+   const unsigned subdomainIndex,
+   const typename Grid::CoordinatesType& globalBegin,
+   const typename Grid::CoordinatesType& globalEnd )
 {
    namespace fs = std::filesystem;
 
@@ -160,8 +162,9 @@ PVTIWriter< Grid >::addPiece( const std::string& mainFileName,
    const fs::path mainPath = mainFileName;
    const fs::path basename = mainPath.stem();
    if( mainPath.extension() != ".pvti" )
-      throw std::logic_error( "The mainFileName parameter must be the name of the "
-                              ".pvti file (i.e., it must have the .pvti suffix)." );
+      throw std::logic_error(
+         "The mainFileName parameter must be the name of the "
+         ".pvti file (i.e., it must have the .pvti suffix)." );
 
    // close PCellData and PPointData sections
    closePCellData();
@@ -190,8 +193,9 @@ PVTIWriter< Grid >::addPiece( const std::string& mainFileName,
 
 template< typename Grid >
 std::string
-PVTIWriter< Grid >::addPiece( const std::string& mainFileName,
-                              const DistributedMeshes::DistributedMesh< Grid >& distributedMesh )
+PVTIWriter< Grid >::addPiece(
+   const std::string& mainFileName,
+   const DistributedMeshes::DistributedMesh< Grid >& distributedMesh )
 {
    const MPI::Comm& communicator = distributedMesh.getCommunicator();
    const typename Grid::CoordinatesType& globalBegin = distributedMesh.getGlobalBegin() - distributedMesh.getLowerOverlap();
@@ -211,16 +215,18 @@ PVTIWriter< Grid >::addPiece( const std::string& mainFileName,
    // NOTE: exchanging general data types does not work with MPI
    // MPI::Alltoall( beginsForScatter.get(), 1, globalBegins.get(), 1, communicator );
    // MPI::Alltoall( endsForScatter.get(), 1, globalEnds.get(), 1, communicator );
-   MPI::Alltoall( reinterpret_cast< const std::uint8_t* >( beginsForScatter.get() ),
-                  sizeof( typename Grid::CoordinatesType ),
-                  reinterpret_cast< std::uint8_t* >( globalBegins.get() ),
-                  sizeof( typename Grid::CoordinatesType ),
-                  communicator );
-   MPI::Alltoall( reinterpret_cast< const std::uint8_t* >( endsForScatter.get() ),
-                  sizeof( typename Grid::CoordinatesType ),
-                  reinterpret_cast< std::uint8_t* >( globalEnds.get() ),
-                  sizeof( typename Grid::CoordinatesType ),
-                  communicator );
+   MPI::Alltoall(
+      reinterpret_cast< const std::uint8_t* >( beginsForScatter.get() ),
+      sizeof( typename Grid::CoordinatesType ),
+      reinterpret_cast< std::uint8_t* >( globalBegins.get() ),
+      sizeof( typename Grid::CoordinatesType ),
+      communicator );
+   MPI::Alltoall(
+      reinterpret_cast< const std::uint8_t* >( endsForScatter.get() ),
+      sizeof( typename Grid::CoordinatesType ),
+      reinterpret_cast< std::uint8_t* >( globalEnds.get() ),
+      sizeof( typename Grid::CoordinatesType ),
+      communicator );
 
    // add pieces for all ranks, return the source for the current rank
    std::string source;

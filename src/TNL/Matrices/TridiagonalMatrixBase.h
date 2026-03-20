@@ -640,18 +640,20 @@ public:
     */
    template< typename InVector, typename OutVector >
    void
-   vectorProduct( const InVector& inVector,
-                  OutVector& outVector,
-                  RealType matrixMultiplicator = 1.0,
-                  RealType outVectorMultiplicator = 0.0,
-                  IndexType begin = 0,
-                  IndexType end = 0 ) const;
+   vectorProduct(
+      const InVector& inVector,
+      OutVector& outVector,
+      RealType matrixMultiplicator = 1.0,
+      RealType outVectorMultiplicator = 0.0,
+      IndexType begin = 0,
+      IndexType end = 0 ) const;
 
    template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization_ >
    void
-   addMatrix( const TridiagonalMatrixBase< Real_, Device_, Index_, Organization_ >& matrix,
-              const RealType& matrixMultiplicator = 1.0,
-              const RealType& thisMatrixMultiplicator = 1.0 );
+   addMatrix(
+      const TridiagonalMatrixBase< Real_, Device_, Index_, Organization_ >& matrix,
+      const RealType& matrixMultiplicator = 1.0,
+      const RealType& thisMatrixMultiplicator = 1.0 );
 
    /**
     * \brief Method for printing the matrix to output stream.

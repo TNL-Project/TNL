@@ -38,27 +38,30 @@ namespace TNL::Matrices {
  * \tparam RealAllocator is allocator for the matrix elements values.
  * \tparam IndexAllocator is allocator for the matrix elements column indexes.
  */
-template< typename Real = double,
-          typename Device = Devices::Host,
-          typename Index = int,
-          typename MatrixType_ = GeneralMatrix,
-          template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments = Algorithms::Segments::CSR,
-          typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type,
-          typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
-class SparseMatrix : public SparseMatrixBase< Real,
-                                              Device,
-                                              Index,
-                                              MatrixType_,
-                                              typename Segments< Device, Index, IndexAllocator >::ViewType,
-                                              ComputeReal >
+template<
+   typename Real = double,
+   typename Device = Devices::Host,
+   typename Index = int,
+   typename MatrixType_ = GeneralMatrix,
+   template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments = Algorithms::Segments::CSR,
+   typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type,
+   typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+class SparseMatrix : public SparseMatrixBase<
+                        Real,
+                        Device,
+                        Index,
+                        MatrixType_,
+                        typename Segments< Device, Index, IndexAllocator >::ViewType,
+                        ComputeReal >
 {
-   using Base = SparseMatrixBase< Real,
-                                  Device,
-                                  Index,
-                                  MatrixType_,
-                                  typename Segments< Device, Index, IndexAllocator >::ViewType,
-                                  ComputeReal >;
+   using Base = SparseMatrixBase<
+      Real,
+      Device,
+      Index,
+      MatrixType_,
+      typename Segments< Device, Index, IndexAllocator >::ViewType,
+      ComputeReal >;
 
 public:
    /**
@@ -126,14 +129,15 @@ public:
    /**
     * \brief Helper type for getting self type or its modifications.
     */
-   template< typename _Real = Real,
-             typename _Device = Device,
-             typename _Index = Index,
-             typename _MatrixType = MatrixType,
-             template< typename, typename, typename > class _Segments = SegmentsTemplate,
-             typename _ComputeReal = ComputeReal,
-             typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real >,
-             typename _IndexAllocator = typename Allocators::Default< _Device >::template Allocator< _Index > >
+   template<
+      typename _Real = Real,
+      typename _Device = Device,
+      typename _Index = Index,
+      typename _MatrixType = MatrixType,
+      template< typename, typename, typename > class _Segments = SegmentsTemplate,
+      typename _ComputeReal = ComputeReal,
+      typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real >,
+      typename _IndexAllocator = typename Allocators::Default< _Device >::template Allocator< _Index > >
    using Self = SparseMatrix< _Real, _Device, _Index, _MatrixType, _Segments, _ComputeReal, _RealAllocator, _IndexAllocator >;
 
    /**
@@ -142,8 +146,9 @@ public:
     * \param realAllocator is used for allocation of matrix elements values.
     * \param indexAllocator is used for allocation of matrix elements column indexes.
     */
-   SparseMatrix( const RealAllocatorType& realAllocator = RealAllocatorType(),
-                 const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
+   SparseMatrix(
+      const RealAllocatorType& realAllocator = RealAllocatorType(),
+      const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
    /**
     * \brief Copy constructor.
@@ -164,10 +169,11 @@ public:
     * \param indexAllocator is used for allocation of matrix elements column indexes.
     */
    template< typename Index_t, std::enable_if_t< std::is_integral_v< Index_t >, int > = 0 >
-   SparseMatrix( Index_t rows,
-                 Index_t columns,
-                 const RealAllocatorType& realAllocator = RealAllocatorType(),
-                 const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
+   SparseMatrix(
+      Index_t rows,
+      Index_t columns,
+      const RealAllocatorType& realAllocator = RealAllocatorType(),
+      const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
    /**
     * \brief Constructor with matrix rows capacities and number of columns.
@@ -187,10 +193,11 @@ public:
     * \include SparseMatrixExample_Constructor_init_list_1.out
     */
    template< typename ListIndex >
-   explicit SparseMatrix( const std::initializer_list< ListIndex >& rowCapacities,
-                          Index columns,
-                          const RealAllocatorType& realAllocator = RealAllocatorType(),
-                          const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
+   explicit SparseMatrix(
+      const std::initializer_list< ListIndex >& rowCapacities,
+      Index columns,
+      const RealAllocatorType& realAllocator = RealAllocatorType(),
+      const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
    /**
     * \brief Constructor with matrix rows capacities given as a vector and number of columns.
@@ -212,10 +219,11 @@ public:
     * \include SparseMatrixExample_Constructor_rowCapacities_vector.out
     */
    template< typename RowCapacitiesVector, std::enable_if_t< TNL::IsArrayType< RowCapacitiesVector >::value, int > = 0 >
-   explicit SparseMatrix( const RowCapacitiesVector& rowCapacities,
-                          Index columns,
-                          const RealAllocatorType& realAllocator = RealAllocatorType(),
-                          const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
+   explicit SparseMatrix(
+      const RowCapacitiesVector& rowCapacities,
+      Index columns,
+      const RealAllocatorType& realAllocator = RealAllocatorType(),
+      const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
    /**
     * \brief Constructor with matrix dimensions and data in initializer list.
@@ -237,12 +245,13 @@ public:
     * \par Output
     * \include SparseMatrixExample_Constructor_init_list_2.out
     */
-   explicit SparseMatrix( Index rows,
-                          Index columns,
-                          const std::initializer_list< std::tuple< Index, Index, Real > >& data,
-                          SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart,
-                          const RealAllocatorType& realAllocator = RealAllocatorType(),
-                          const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
+   explicit SparseMatrix(
+      Index rows,
+      Index columns,
+      const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+      SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart,
+      const RealAllocatorType& realAllocator = RealAllocatorType(),
+      const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
    /**
     * \brief Constructor with matrix dimensions and data in std::map.
@@ -267,12 +276,13 @@ public:
     * \include SparseMatrixExample_Constructor_std_map.out
     */
    template< typename MapIndex, typename MapValue >
-   explicit SparseMatrix( Index rows,
-                          Index columns,
-                          const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-                          SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart,
-                          const RealAllocatorType& realAllocator = RealAllocatorType(),
-                          const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
+   explicit SparseMatrix(
+      Index rows,
+      Index columns,
+      const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+      SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart,
+      const RealAllocatorType& realAllocator = RealAllocatorType(),
+      const IndexAllocatorType& indexAllocator = IndexAllocatorType() );
 
    /**
     * \brief Returns a modifiable view of the sparse matrix.
@@ -381,8 +391,9 @@ public:
     * \include SparseMatrixExample_setElements.out
     */
    void
-   setElements( const std::initializer_list< std::tuple< Index, Index, Real > >& data,
-                SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
+   setElements(
+      const std::initializer_list< std::tuple< Index, Index, Real > >& data,
+      SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
 
    /**
     * \brief This method sets the sparse matrix elements from std::map.
@@ -404,8 +415,9 @@ public:
     */
    template< typename MapIndex, typename MapValue >
    void
-   setElements( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-                SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
+   setElements(
+      const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+      SymmetricMatrixEncoding encoding = SymmetricMatrixEncoding::LowerPart );
 
    /**
     * \brief Resets the matrix to zero dimensions.
@@ -431,8 +443,9 @@ public:
     */
    template< typename Real2, typename Index2, template< typename, typename, typename > class Segments2 >
    void
-   getTransposition( const SparseMatrix< Real2, Device, Index2, MatrixType, Segments2 >& matrix,
-                     const ComputeReal& matrixMultiplicator = 1.0 );
+   getTransposition(
+      const SparseMatrix< Real2, Device, Index2, MatrixType, Segments2 >& matrix,
+      const ComputeReal& matrixMultiplicator = 1.0 );
 
    /**
     * \brief Copy-assignment of exactly the same matrix type.
@@ -505,29 +518,33 @@ protected:
 /**
  * \brief Deserialization of sparse matrices from binary files.
  */
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 File&
-operator>>( File& file,
-            SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix );
+operator>>(
+   File& file,
+   SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix );
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 File&
-operator>>( File&& file,
-            SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix );
+operator>>(
+   File&& file,
+   SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix );
 
 }  // namespace TNL::Matrices
 

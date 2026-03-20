@@ -21,8 +21,9 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::bind( typename Base:
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
-TridiagonalMatrixBase< Real, Device, Index, Organization >::TridiagonalMatrixBase( typename Base::ValuesViewType values,
-                                                                                   IndexerType indexer )
+TridiagonalMatrixBase< Real, Device, Index, Organization >::TridiagonalMatrixBase(
+   typename Base::ValuesViewType values,
+   IndexerType indexer )
 : Base( indexer.getRows(), indexer.getColumns(), std::move( values ) ),
   indexer( std::move( indexer ) )
 {}
@@ -85,8 +86,8 @@ bool
 TridiagonalMatrixBase< Real, Device, Index, Organization >::operator==(
    const TridiagonalMatrixBase< Real_, Device_, Index_, Organization_ >& matrix ) const
 {
-   static_assert( Organization == Organization_,
-                  "comparison of tridiagonal matrices with different organizations is not implemented" );
+   static_assert(
+      Organization == Organization_, "comparison of tridiagonal matrices with different organizations is not implemented" );
    return this->values == matrix.values;
 }
 
@@ -146,10 +147,11 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::setElement( IndexTyp
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::addElement( IndexType row,
-                                                                        IndexType column,
-                                                                        const RealType& value,
-                                                                        const RealType& thisElementMultiplicator )
+TridiagonalMatrixBase< Real, Device, Index, Organization >::addElement(
+   IndexType row,
+   IndexType column,
+   const RealType& value,
+   const RealType& thisElementMultiplicator )
 {
    TNL_ASSERT_GE( row, 0, "" );
    TNL_ASSERT_LT( row, this->getRows(), "" );
@@ -186,12 +188,13 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::getElement( IndexTyp
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begin,
-                                                                        IndexType end,
-                                                                        Fetch&& fetch,
-                                                                        const Reduce& reduce,
-                                                                        Keep&& keep,
-                                                                        const FetchReal& identity ) const
+TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows(
+   IndexType begin,
+   IndexType end,
+   Fetch&& fetch,
+   const Reduce& reduce,
+   Keep&& keep,
+   const FetchReal& identity ) const
 {
    using Real_ = decltype( fetch( IndexType(), IndexType(), RealType() ) );
    const auto values_view = this->values.getConstView();
@@ -227,10 +230,11 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexTyp
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch&& fetch,
-                                                                           const Reduce& reduce,
-                                                                           Keep&& keep,
-                                                                           const FetchReal& identity ) const
+TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows(
+   Fetch&& fetch,
+   const Reduce& reduce,
+   Keep&& keep,
+   const FetchReal& identity ) const
 {
    this->reduceRows( (IndexType) 0, this->getRows(), fetch, reduce, keep, identity );
 }
@@ -238,9 +242,8 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexType begin,
-                                                                         IndexType end,
-                                                                         Function& function ) const
+TridiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexType begin, IndexType end, Function& function )
+   const
 {
    const auto values_view = this->values.getConstView();
    const auto indexer = this->indexer;
@@ -356,9 +359,10 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::forAllRows( Function
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForRows( IndexType begin,
-                                                                               IndexType end,
-                                                                               Function& function ) const
+TridiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForRows(
+   IndexType begin,
+   IndexType end,
+   Function& function ) const
 {
    for( IndexType row = begin; row < end; row++ )
       this->forElements( row, row + 1, function );
@@ -367,9 +371,10 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForRows( I
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForRows( IndexType begin,
-                                                                               IndexType end,
-                                                                               Function& function )
+TridiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForRows(
+   IndexType begin,
+   IndexType end,
+   Function& function )
 {
    for( IndexType row = begin; row < end; row++ )
       this->forElements( row, row + 1, function );
@@ -394,12 +399,13 @@ TridiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForAllRows
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename InVector, typename OutVector >
 void
-TridiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVector& inVector,
-                                                                           OutVector& outVector,
-                                                                           RealType matrixMultiplicator,
-                                                                           RealType outVectorMultiplicator,
-                                                                           IndexType begin,
-                                                                           IndexType end ) const
+TridiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct(
+   const InVector& inVector,
+   OutVector& outVector,
+   RealType matrixMultiplicator,
+   RealType outVectorMultiplicator,
+   IndexType begin,
+   IndexType end ) const
 {
    if( this->getColumns() != inVector.getSize() )
       throw std::invalid_argument( "vectorProduct: size of the input vector does not match the number of matrix columns" );

@@ -57,23 +57,25 @@ protected:
 };
 
 // types for which DistributedNDArrayOverlaps_2D_test is instantiated
-using DistributedNDArrayTypes =
-   ::testing::Types< DistributedNDArray< NDArray< double,
-                                                  SizesHolder< int, 0, 0 >,     // X, Y
-                                                  std::index_sequence< 0, 1 >,  // permutation - should not matter
-                                                  Devices::Host,
-                                                  int,
-                                                  StaticSizesHolder< int, 2, 3 > > >  // overlaps
+using DistributedNDArrayTypes = ::testing::Types<
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0, 0 >,     // X, Y
+      std::index_sequence< 0, 1 >,  // permutation - should not matter
+      Devices::Host,
+      int,
+      StaticSizesHolder< int, 2, 3 > > >  // overlaps
 #ifdef __CUDACC__
-                     ,
-                     DistributedNDArray< NDArray< double,
-                                                  SizesHolder< int, 0, 0 >,     // X, Y
-                                                  std::index_sequence< 0, 1 >,  // permutation - should not matter
-                                                  Devices::Cuda,
-                                                  int,
-                                                  StaticSizesHolder< int, 2, 3 > > >  // overlaps
+   ,
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0, 0 >,     // X, Y
+      std::index_sequence< 0, 1 >,  // permutation - should not matter
+      Devices::Cuda,
+      int,
+      StaticSizesHolder< int, 2, 3 > > >  // overlaps
 #endif
-                     >;
+   >;
 
 TYPED_TEST_SUITE( DistributedNDArrayOverlaps_2D_test, DistributedNDArrayTypes );
 
@@ -330,11 +332,12 @@ TYPED_TEST( DistributedNDArrayOverlaps_2D_test, forGhosts )
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray, typename BlockType >
 void
-test_helper_synchronize_D2Q5( DistributedArray& a,
-                              int globalSize,
-                              int rank,
-                              const std::vector< BlockType >& decomposition,
-                              const BlockType& globalBlock )
+test_helper_synchronize_D2Q5(
+   DistributedArray& a,
+   int globalSize,
+   int rank,
+   const std::vector< BlockType >& decomposition,
+   const BlockType& globalBlock )
 {
    using IndexType = typename DistributedArray::IndexType;
 
@@ -414,11 +417,12 @@ TYPED_TEST( DistributedNDArrayOverlaps_2D_test, synchronize_D2Q5 )
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray, typename BlockType >
 void
-test_helper_synchronize_D2Q9( DistributedArray& a,
-                              int globalSize,
-                              int rank,
-                              const std::vector< BlockType >& decomposition,
-                              const BlockType& globalBlock )
+test_helper_synchronize_D2Q9(
+   DistributedArray& a,
+   int globalSize,
+   int rank,
+   const std::vector< BlockType >& decomposition,
+   const BlockType& globalBlock )
 {
    using IndexType = typename DistributedArray::IndexType;
 

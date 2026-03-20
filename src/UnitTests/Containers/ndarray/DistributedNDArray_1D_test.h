@@ -23,11 +23,12 @@ protected:
    using DeviceType = typename DistributedNDArray::DeviceType;
    using IndexType = typename DistributedNDArray::IndexType;
    using DistributedNDArrayType = DistributedNDArray;
-   using LocalArrayType = NDArray< ValueType,
-                                   typename DistributedNDArrayType::SizesHolderType,
-                                   typename DistributedNDArrayType::PermutationType,
-                                   DeviceType,
-                                   IndexType >;
+   using LocalArrayType = NDArray<
+      ValueType,
+      typename DistributedNDArrayType::SizesHolderType,
+      typename DistributedNDArrayType::PermutationType,
+      DeviceType,
+      IndexType >;
 
    const int globalSize = 97;  // prime number to force non-uniform distribution
 
@@ -52,16 +53,16 @@ protected:
 };
 
 // types for which DistributedNDArray_1D_test is instantiated
-using DistributedNDArrayTypes =
-   ::testing::Types< DistributedNDArray< NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Host > >
+using DistributedNDArrayTypes = ::testing::Types<
+   DistributedNDArray< NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Host > >
 #if defined( __CUDACC__ )
-                     ,
-                     DistributedNDArray< NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Cuda > >
+   ,
+   DistributedNDArray< NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Cuda > >
 #elif defined( __HIP__ )
-                     ,
-                     DistributedNDArray< NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Hip > >
+   ,
+   DistributedNDArray< NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Hip > >
 #endif
-                     >;
+   >;
 
 TYPED_TEST_SUITE( DistributedNDArray_1D_test, DistributedNDArrayTypes );
 

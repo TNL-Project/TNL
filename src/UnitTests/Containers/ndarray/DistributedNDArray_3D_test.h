@@ -49,19 +49,21 @@ protected:
 };
 
 // types for which DistributedNDArray_3D_test is instantiated
-using DistributedNDArrayTypes =
-   ::testing::Types< DistributedNDArray< NDArray< double,
-                                                  SizesHolder< int, 0, 0, 0 >,     // X, Y, Z
-                                                  std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
-                                                  Devices::Host > >
+using DistributedNDArrayTypes = ::testing::Types<
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0, 0, 0 >,     // X, Y, Z
+      std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
+      Devices::Host > >
 #ifdef __CUDACC__
-                     ,
-                     DistributedNDArray< NDArray< double,
-                                                  SizesHolder< int, 0, 0, 0 >,     // X, Y, Z
-                                                  std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
-                                                  Devices::Cuda > >
+   ,
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0, 0, 0 >,     // X, Y, Z
+      std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
+      Devices::Cuda > >
 #endif
-                     >;
+   >;
 
 TYPED_TEST_SUITE( DistributedNDArray_3D_test, DistributedNDArrayTypes );
 
@@ -197,9 +199,10 @@ test_helper_comparisonOperators( DistributedArray& u, DistributedArray& v, Distr
       v_view( i[ 0 ] - localRangeX.getBegin(), i[ 1 ] - localRangeY.getBegin(), i[ 2 ] - localRangeZ.getBegin() ) = i[ 0 ];
       w_view( i[ 0 ] - localRangeX.getBegin(), i[ 1 ] - localRangeY.getBegin(), i[ 2 ] - localRangeZ.getBegin() ) = 2 * i[ 0 ];
    };
-   Algorithms::parallelFor< DeviceType >( MultiIndex{ localRangeX.getBegin(), localRangeY.getBegin(), localRangeZ.getBegin() },
-                                          MultiIndex{ localRangeX.getEnd(), localRangeY.getEnd(), localRangeZ.getEnd() },
-                                          kernel );
+   Algorithms::parallelFor< DeviceType >(
+      MultiIndex{ localRangeX.getBegin(), localRangeY.getBegin(), localRangeZ.getBegin() },
+      MultiIndex{ localRangeX.getEnd(), localRangeY.getEnd(), localRangeZ.getEnd() },
+      kernel );
 }
 
 TYPED_TEST( DistributedNDArray_3D_test, comparisonOperators )

@@ -25,11 +25,12 @@ template< typename T1, typename Operation >
 struct HasEnabledExpressionTemplates< UnaryExpressionTemplate< T1, Operation > > : std::true_type
 {};
 
-template< typename T1,
-          typename T2,
-          typename Operation,
-          ExpressionVariableType T1Type = getExpressionVariableType< T1, T2 >(),
-          ExpressionVariableType T2Type = getExpressionVariableType< T2, T1 >() >
+template<
+   typename T1,
+   typename T2,
+   typename Operation,
+   ExpressionVariableType T1Type = getExpressionVariableType< T1, T2 >(),
+   ExpressionVariableType T2Type = getExpressionVariableType< T2, T1 >() >
 struct BinaryExpressionTemplate;
 
 template< typename T1, typename T2, typename Operation, ExpressionVariableType T1Type, ExpressionVariableType T2Type >
@@ -53,8 +54,9 @@ struct BinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariable, Ve
    static_assert(
       HasEnabledExpressionTemplates< T2 >::value,
       "Invalid operand in binary expression templates - expression templates are not enabled for the right operand." );
-   static_assert( std::is_same_v< typename T1::DeviceType, typename T2::DeviceType >,
-                  "Attempt to mix operands which have different DeviceType." );
+   static_assert(
+      std::is_same_v< typename T1::DeviceType, typename T2::DeviceType >,
+      "Attempt to mix operands which have different DeviceType." );
 
    BinaryExpressionTemplate( const T1& a, const T2& b )
    : op1( a.getConstView() ),
@@ -225,8 +227,9 @@ struct UnaryExpressionTemplate
    using IndexType = typename T1::IndexType;
    using ConstViewType = UnaryExpressionTemplate;
 
-   static_assert( HasEnabledExpressionTemplates< T1 >::value,
-                  "Invalid operand in unary expression templates - expression templates are not enabled for the operand." );
+   static_assert(
+      HasEnabledExpressionTemplates< T1 >::value,
+      "Invalid operand in unary expression templates - expression templates are not enabled for the operand." );
 
    // the constructor is explicit to prevent issues with the ternary operator,
    // see https://gitlab.com/tnl-project/tnl/-/issues/140
@@ -520,12 +523,13 @@ operator!=( const ET1& a, const ET2& b )
 
 ////
 // Lexicographical comparison operators
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template<
+   typename ET1,
+   typename ET2,
+   typename...,
+   std::enable_if_t<
+      HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
+      bool > = true >
 constexpr bool
 operator<( const ET1& a, const ET2& b )
 {
@@ -537,12 +541,13 @@ operator<( const ET1& a, const ET2& b )
    return false;
 }
 
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template<
+   typename ET1,
+   typename ET2,
+   typename...,
+   std::enable_if_t<
+      HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
+      bool > = true >
 constexpr bool
 operator<=( const ET1& a, const ET2& b )
 {
@@ -554,12 +559,13 @@ operator<=( const ET1& a, const ET2& b )
    return true;
 }
 
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template<
+   typename ET1,
+   typename ET2,
+   typename...,
+   std::enable_if_t<
+      HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
+      bool > = true >
 constexpr bool
 operator>( const ET1& a, const ET2& b )
 {
@@ -571,12 +577,13 @@ operator>( const ET1& a, const ET2& b )
    return false;
 }
 
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template<
+   typename ET1,
+   typename ET2,
+   typename...,
+   std::enable_if_t<
+      HasEnabledExpressionTemplates< std::decay_t< ET1 > >::value && HasEnabledExpressionTemplates< std::decay_t< ET2 > >::value,
+      bool > = true >
 constexpr bool
 operator>=( const ET1& a, const ET2& b )
 {

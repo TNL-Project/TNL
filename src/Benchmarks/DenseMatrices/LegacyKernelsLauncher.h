@@ -18,46 +18,55 @@ class LegacyKernelsLauncher
 {
 public:
    static void
-   launchMatrixMultiplicationKernel1( Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
+   launchMatrixMultiplicationKernel1(
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
 
    static void
-   launchMatrixMultiplicationKernel2( Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
+   launchMatrixMultiplicationKernel2(
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
 
    static void
-   launchMatrixMultiplicationKernel3( Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
+   launchMatrixMultiplicationKernel3(
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
 
    static void
-   launchMatrixMultiplicationKernel4( Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
+   launchMatrixMultiplicationKernel4(
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
 
    static void
-   launchMatrixMultiplicationKernel5( Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
+   launchMatrixMultiplicationKernel5(
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
 
    static void
-   launchMatrixMultiplicationKernel6( Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
+   launchMatrixMultiplicationKernel6(
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
 
    static void
-   launchMatrixMultiplicationKernel7( Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
-                                      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
+   launchMatrixMultiplicationKernel7(
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix1,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix2,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& resultMatrix );
 
    static void
-   launchMatrixTranspositionKernel1( Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix,
-                                     Matrices::DenseMatrix< RealType, DeviceType, IndexType >& outputMatrix );
+   launchMatrixTranspositionKernel1(
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& outputMatrix );
    static void
-   launchMatrixTranspositionKernel2( Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix,
-                                     Matrices::DenseMatrix< RealType, DeviceType, IndexType >& outputMatrix );
+   launchMatrixTranspositionKernel2(
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& matrix,
+      Matrices::DenseMatrix< RealType, DeviceType, IndexType >& outputMatrix );
 };
 
 template< typename RealType, typename DeviceType, typename IndexType >
@@ -97,18 +106,20 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
          auto matrix1View = matrix1.getConstView();
          auto matrix2View = matrix2.getConstView();
 
-         Backend::launchKernelAsync( MultiplicationKernel1< tileDim,
-                                                            cudaBlockRows,
-                                                            decltype( resultMatrixView ),
-                                                            decltype( matrix1View ),
-                                                            decltype( matrix2View ) >,
-                                     launch_config,
-                                     resultMatrixView,
-                                     matrix1View,
-                                     matrix2View,
-                                     1.0,
-                                     gridIdx_x,
-                                     gridIdx_y );
+         Backend::launchKernelAsync(
+            MultiplicationKernel1<
+               tileDim,
+               cudaBlockRows,
+               decltype( resultMatrixView ),
+               decltype( matrix1View ),
+               decltype( matrix2View ) >,
+            launch_config,
+            resultMatrixView,
+            matrix1View,
+            matrix2View,
+            1.0,
+            gridIdx_x,
+            gridIdx_y );
       }
    }
    Backend::streamSynchronize( launch_config.stream );
@@ -153,18 +164,20 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
          auto matrix1View = matrix1.getConstView();
          auto matrix2View = matrix2.getConstView();
 
-         Backend::launchKernelAsync( MultiplicationKernel2< tileDim,
-                                                            cudaBlockRows,
-                                                            decltype( resultMatrixView ),
-                                                            decltype( matrix1View ),
-                                                            decltype( matrix2View ) >,
-                                     launch_config,
-                                     resultMatrixView,
-                                     matrix1View,
-                                     matrix2View,
-                                     1.0,
-                                     gridIdx_x,
-                                     gridIdx_y );
+         Backend::launchKernelAsync(
+            MultiplicationKernel2<
+               tileDim,
+               cudaBlockRows,
+               decltype( resultMatrixView ),
+               decltype( matrix1View ),
+               decltype( matrix2View ) >,
+            launch_config,
+            resultMatrixView,
+            matrix1View,
+            matrix2View,
+            1.0,
+            gridIdx_x,
+            gridIdx_y );
       }
    }
    Backend::streamSynchronize( launch_config.stream );
@@ -209,18 +222,20 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
          auto matrix1View = matrix1.getConstView();
          auto matrix2View = matrix2.getConstView();
 
-         Backend::launchKernelAsync( MultiplicationKernel3< tileDim,
-                                                            cudaBlockRows,
-                                                            decltype( resultMatrixView ),
-                                                            decltype( matrix1View ),
-                                                            decltype( matrix2View ) >,
-                                     launch_config,
-                                     resultMatrixView,
-                                     matrix1View,
-                                     matrix2View,
-                                     1.0,
-                                     gridIdx_x,
-                                     gridIdx_y );
+         Backend::launchKernelAsync(
+            MultiplicationKernel3<
+               tileDim,
+               cudaBlockRows,
+               decltype( resultMatrixView ),
+               decltype( matrix1View ),
+               decltype( matrix2View ) >,
+            launch_config,
+            resultMatrixView,
+            matrix1View,
+            matrix2View,
+            1.0,
+            gridIdx_x,
+            gridIdx_y );
       }
    }
    Backend::streamSynchronize( launch_config.stream );
@@ -444,23 +459,25 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixTransposit
          {
             auto outputMatrixView = outputMatrix.getView();
             auto denseMatrixView = matrix.getConstView();
-            constexpr auto kernel = DenseTranspositionAlignedKernel< tileDim,
-                                                                     cudaBlockRows,
-                                                                     decltype( outputMatrixView ),
-                                                                     decltype( denseMatrixView ),
-                                                                     RealType,
-                                                                     IndexType >;
+            constexpr auto kernel = DenseTranspositionAlignedKernel<
+               tileDim,
+               cudaBlockRows,
+               decltype( outputMatrixView ),
+               decltype( denseMatrixView ),
+               RealType,
+               IndexType >;
             Backend::launchKernelAsync( kernel, launch_config, outputMatrixView, denseMatrixView, 1.0, gridIdx_x, gridIdx_y );
          }
          else {
             auto outputMatrixView = outputMatrix.getView();
             auto denseMatrixView = matrix.getConstView();
-            constexpr auto kernel = DenseTranspositionNonAlignedKernel< tileDim,
-                                                                        cudaBlockRows,
-                                                                        decltype( outputMatrixView ),
-                                                                        decltype( denseMatrixView ),
-                                                                        RealType,
-                                                                        IndexType >;
+            constexpr auto kernel = DenseTranspositionNonAlignedKernel<
+               tileDim,
+               cudaBlockRows,
+               decltype( outputMatrixView ),
+               decltype( denseMatrixView ),
+               RealType,
+               IndexType >;
             Backend::launchKernelAsync( kernel, launch_config, outputMatrixView, denseMatrixView, 1.0, gridIdx_x, gridIdx_y );
          }
       }
@@ -506,12 +523,13 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixTransposit
 
          auto outputMatrixView = outputMatrix.getView();
          auto denseMatrixView = matrix.getConstView();
-         constexpr auto kernel = TranspositionKernel2< tileDim,
-                                                       cudaBlockRows,
-                                                       decltype( outputMatrixView ),
-                                                       decltype( denseMatrixView ),
-                                                       RealType,
-                                                       IndexType >;
+         constexpr auto kernel = TranspositionKernel2<
+            tileDim,
+            cudaBlockRows,
+            decltype( outputMatrixView ),
+            decltype( denseMatrixView ),
+            RealType,
+            IndexType >;
 
          // Launch the unified kernel with the isAligned parameter
          Backend::launchKernelAsync(

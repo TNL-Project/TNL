@@ -49,11 +49,12 @@ public:
    SlicedEllpackBase() = default;
 
    __cuda_callable__
-   SlicedEllpackBase( IndexType size,
-                      IndexType storageSize,
-                      IndexType segmentsCount,
-                      OffsetsView&& sliceOffsets,
-                      OffsetsView&& sliceSegmentSizes );
+   SlicedEllpackBase(
+      IndexType size,
+      IndexType storageSize,
+      IndexType segmentsCount,
+      OffsetsView&& sliceOffsets,
+      OffsetsView&& sliceSegmentSizes );
 
    __cuda_callable__
    SlicedEllpackBase( const SlicedEllpackBase& ) = default;
@@ -149,11 +150,12 @@ protected:
     */
    __cuda_callable__
    void
-   bind( IndexType size,
-         IndexType storageSize,
-         IndexType segmentsCount,
-         OffsetsView sliceOffsets,
-         OffsetsView sliceSegmentSizes );
+   bind(
+      IndexType size,
+      IndexType storageSize,
+      IndexType segmentsCount,
+      OffsetsView sliceOffsets,
+      OffsetsView sliceSegmentSizes );
 };
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >

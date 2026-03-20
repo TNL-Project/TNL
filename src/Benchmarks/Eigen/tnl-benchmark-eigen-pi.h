@@ -123,104 +123,124 @@ benchmark_spi( Benchmark<>& benchmark, MatrixType& matrix, VectorType& initialVe
 
 template< typename Device, typename PrecisionType, typename MatrixTypeCMO, typename VectorType >
 void
-run_benchmarks_DM( Benchmark<>& benchmark,
-                   const std::string& matrixName,
-                   int& size,
-                   MatrixTypeCMO& matrixCMO,
-                   VectorType& initialVecOrig,
-                   const PrecisionType& shiftValue )
+run_benchmarks_DM(
+   Benchmark<>& benchmark,
+   const std::string& matrixName,
+   int& size,
+   MatrixTypeCMO& matrixCMO,
+   VectorType& initialVecOrig,
+   const PrecisionType& shiftValue )
 {
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-      { "operation", "PI" },
-      { "precision", getType< PrecisionType >() },
-      { "matrixName", matrixName },
-      { "matrixType", "DM_CMO" },
-      { "size", std::to_string( size ) },
-   } ) );
+   benchmark.setMetadataColumns(
+      Benchmark<>::MetadataColumns(
+         {
+            { "operation", "PI" },
+            { "precision", getType< PrecisionType >() },
+            { "matrixName", matrixName },
+            { "matrixType", "DM_CMO" },
+            { "size", std::to_string( size ) },
+         } ) );
    benchmark_pi< Device, MatrixTypeCMO, VectorType, PrecisionType >( benchmark, matrixCMO, initialVecOrig );
    if( shiftValue != 0 ) {
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "operation", "SPI" },
-         { "precision", getType< PrecisionType >() },
-         { "matrixName", matrixName },
-         { "matrixType", "DM_CMO" },
-         { "size", std::to_string( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "operation", "SPI" },
+               { "precision", getType< PrecisionType >() },
+               { "matrixName", matrixName },
+               { "matrixType", "DM_CMO" },
+               { "size", std::to_string( size ) },
+            } ) );
       benchmark_spi< Device, MatrixTypeCMO, VectorType, PrecisionType >( benchmark, matrixCMO, initialVecOrig, shiftValue );
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "operation", "SPI0" },
-         { "precision", getType< PrecisionType >() },
-         { "matrixName", matrixName },
-         { "matrixType", "DM_CMO" },
-         { "size", std::to_string( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "operation", "SPI0" },
+               { "precision", getType< PrecisionType >() },
+               { "matrixName", matrixName },
+               { "matrixType", "DM_CMO" },
+               { "size", std::to_string( size ) },
+            } ) );
       benchmark_spi< Device, MatrixTypeCMO, VectorType, PrecisionType >( benchmark, matrixCMO, initialVecOrig, 0 );
    }
 
    using MatrixTypeRMO = Matrices::DenseMatrix< PrecisionType, Device, int, TNL::Algorithms::Segments::RowMajorOrder >;
    MatrixTypeRMO matrixRMO( size, size );
    matrixRMO = matrixCMO;
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-      { "operation", "PI" },
-      { "precision", getType< PrecisionType >() },
-      { "matrixName", matrixName },
-      { "matrixType", "DM_RMO" },
-      { "size", std::to_string( size ) },
-   } ) );
+   benchmark.setMetadataColumns(
+      Benchmark<>::MetadataColumns(
+         {
+            { "operation", "PI" },
+            { "precision", getType< PrecisionType >() },
+            { "matrixName", matrixName },
+            { "matrixType", "DM_RMO" },
+            { "size", std::to_string( size ) },
+         } ) );
    benchmark_pi< Device, MatrixTypeRMO, VectorType, PrecisionType >( benchmark, matrixRMO, initialVecOrig );
    if( shiftValue != 0 ) {
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "operation", "SPI" },
-         { "precision", getType< PrecisionType >() },
-         { "matrixName", matrixName },
-         { "matrixType", "DM_RMO" },
-         { "size", std::to_string( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "operation", "SPI" },
+               { "precision", getType< PrecisionType >() },
+               { "matrixName", matrixName },
+               { "matrixType", "DM_RMO" },
+               { "size", std::to_string( size ) },
+            } ) );
       benchmark_spi< Device, MatrixTypeRMO, VectorType, PrecisionType >( benchmark, matrixRMO, initialVecOrig, shiftValue );
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "operation", "SPI0" },
-         { "precision", getType< PrecisionType >() },
-         { "matrixName", matrixName },
-         { "matrixType", "DM_RMO" },
-         { "size", std::to_string( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "operation", "SPI0" },
+               { "precision", getType< PrecisionType >() },
+               { "matrixName", matrixName },
+               { "matrixType", "DM_RMO" },
+               { "size", std::to_string( size ) },
+            } ) );
       benchmark_spi< Device, MatrixTypeRMO, VectorType, PrecisionType >( benchmark, matrixRMO, initialVecOrig, 0 );
    }
 }
 
 template< typename Device, typename PrecisionType, typename MatrixType, typename VectorType >
 void
-run_benchmarks_SM( Benchmark<>& benchmark,
-                   const std::string& matrixName,
-                   const int& size,
-                   MatrixType& matrixSM,
-                   VectorType& initialVecOrig,
-                   const PrecisionType& shiftValue )
+run_benchmarks_SM(
+   Benchmark<>& benchmark,
+   const std::string& matrixName,
+   const int& size,
+   MatrixType& matrixSM,
+   VectorType& initialVecOrig,
+   const PrecisionType& shiftValue )
 {
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-      { "operation", "PI" },
-      { "precision", getType< PrecisionType >() },
-      { "matrixName", matrixName },
-      { "matrixType", "SM" },
-      { "size", std::to_string( size ) },
-   } ) );
+   benchmark.setMetadataColumns(
+      Benchmark<>::MetadataColumns(
+         {
+            { "operation", "PI" },
+            { "precision", getType< PrecisionType >() },
+            { "matrixName", matrixName },
+            { "matrixType", "SM" },
+            { "size", std::to_string( size ) },
+         } ) );
    benchmark_pi< Device, MatrixType, VectorType, PrecisionType >( benchmark, matrixSM, initialVecOrig );
    if( shiftValue != 0 ) {
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "operation", "SPI" },
-         { "precision", getType< PrecisionType >() },
-         { "matrixName", matrixName },
-         { "matrixType", "SM" },
-         { "size", std::to_string( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "operation", "SPI" },
+               { "precision", getType< PrecisionType >() },
+               { "matrixName", matrixName },
+               { "matrixType", "SM" },
+               { "size", std::to_string( size ) },
+            } ) );
       benchmark_spi< Device, MatrixType, VectorType, PrecisionType >( benchmark, matrixSM, initialVecOrig, shiftValue );
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "operation", "SPI0" },
-         { "precision", getType< PrecisionType >() },
-         { "matrixName", matrixName },
-         { "matrixType", "SM" },
-         { "size", std::to_string( size ) },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "operation", "SPI0" },
+               { "precision", getType< PrecisionType >() },
+               { "matrixName", matrixName },
+               { "matrixType", "SM" },
+               { "size", std::to_string( size ) },
+            } ) );
       benchmark_spi< Device, MatrixType, VectorType, PrecisionType >( benchmark, matrixSM, initialVecOrig, 0 );
    }
 }

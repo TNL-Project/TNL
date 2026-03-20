@@ -41,15 +41,17 @@ namespace TNL::Algorithms {
  */
 template< typename InputDistributedArray, typename OutputDistributedArray, typename Reduction >
 void
-distributedInclusiveScan( const InputDistributedArray& input,
-                          OutputDistributedArray& output,
-                          typename InputDistributedArray::IndexType begin,
-                          typename InputDistributedArray::IndexType end,
-                          Reduction&& reduction,
-                          typename OutputDistributedArray::ValueType identity )
+distributedInclusiveScan(
+   const InputDistributedArray& input,
+   OutputDistributedArray& output,
+   typename InputDistributedArray::IndexType begin,
+   typename InputDistributedArray::IndexType end,
+   Reduction&& reduction,
+   typename OutputDistributedArray::ValueType identity )
 {
-   static_assert( std::is_same_v< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >,
-                  "The input and output arrays must have the same device type." );
+   static_assert(
+      std::is_same_v< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >,
+      "The input and output arrays must have the same device type." );
    if( input.getCommunicator() != output.getCommunicator() )
       throw std::invalid_argument(
          "distributedInclusiveScan: the input and output arrays must have the same MPI communicator." );
@@ -74,11 +76,12 @@ distributedInclusiveScan( const InputDistributedArray& input,
  */
 template< typename InputDistributedArray, typename OutputDistributedArray, typename Reduction = TNL::Plus >
 void
-distributedInclusiveScan( const InputDistributedArray& input,
-                          OutputDistributedArray& output,
-                          typename InputDistributedArray::IndexType begin = 0,
-                          typename InputDistributedArray::IndexType end = 0,
-                          Reduction&& reduction = TNL::Plus{} )
+distributedInclusiveScan(
+   const InputDistributedArray& input,
+   OutputDistributedArray& output,
+   typename InputDistributedArray::IndexType begin = 0,
+   typename InputDistributedArray::IndexType end = 0,
+   Reduction&& reduction = TNL::Plus{} )
 {
    if( end == 0 )
       end = input.getSize();
@@ -117,15 +120,17 @@ distributedInclusiveScan( const InputDistributedArray& input,
  */
 template< typename InputDistributedArray, typename OutputDistributedArray, typename Reduction >
 void
-distributedExclusiveScan( const InputDistributedArray& input,
-                          OutputDistributedArray& output,
-                          typename InputDistributedArray::IndexType begin,
-                          typename InputDistributedArray::IndexType end,
-                          Reduction&& reduction,
-                          typename OutputDistributedArray::ValueType identity )
+distributedExclusiveScan(
+   const InputDistributedArray& input,
+   OutputDistributedArray& output,
+   typename InputDistributedArray::IndexType begin,
+   typename InputDistributedArray::IndexType end,
+   Reduction&& reduction,
+   typename OutputDistributedArray::ValueType identity )
 {
-   static_assert( std::is_same_v< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >,
-                  "The input and output arrays must have the same device type." );
+   static_assert(
+      std::is_same_v< typename InputDistributedArray::DeviceType, typename OutputDistributedArray::DeviceType >,
+      "The input and output arrays must have the same device type." );
    if( input.getCommunicator() != output.getCommunicator() )
       throw std::invalid_argument(
          "distributedExclusiveScan: the input and output arrays must have the same MPI communicator." );
@@ -150,11 +155,12 @@ distributedExclusiveScan( const InputDistributedArray& input,
  */
 template< typename InputDistributedArray, typename OutputDistributedArray, typename Reduction = TNL::Plus >
 void
-distributedExclusiveScan( const InputDistributedArray& input,
-                          OutputDistributedArray& output,
-                          typename InputDistributedArray::IndexType begin = 0,
-                          typename InputDistributedArray::IndexType end = 0,
-                          Reduction&& reduction = TNL::Plus{} )
+distributedExclusiveScan(
+   const InputDistributedArray& input,
+   OutputDistributedArray& output,
+   typename InputDistributedArray::IndexType begin = 0,
+   typename InputDistributedArray::IndexType end = 0,
+   Reduction&& reduction = TNL::Plus{} )
 {
    if( end == 0 )
       end = input.getSize();
@@ -192,11 +198,12 @@ distributedExclusiveScan( const InputDistributedArray& input,
  */
 template< typename DistributedArray, typename Reduction >
 void
-distributedInplaceInclusiveScan( DistributedArray& array,
-                                 typename DistributedArray::IndexType begin,
-                                 typename DistributedArray::IndexType end,
-                                 Reduction&& reduction,
-                                 typename DistributedArray::ValueType identity )
+distributedInplaceInclusiveScan(
+   DistributedArray& array,
+   typename DistributedArray::IndexType begin,
+   typename DistributedArray::IndexType end,
+   Reduction&& reduction,
+   typename DistributedArray::ValueType identity )
 {
    using Scan = detail::DistributedScan< detail::ScanType::Inclusive, detail::ScanPhaseType::WriteInSecondPhase >;
    Scan::perform( array, array, begin, end, std::forward< Reduction >( reduction ), identity );
@@ -213,10 +220,11 @@ distributedInplaceInclusiveScan( DistributedArray& array,
  */
 template< typename DistributedArray, typename Reduction = TNL::Plus >
 void
-distributedInplaceInclusiveScan( DistributedArray& array,
-                                 typename DistributedArray::IndexType begin = 0,
-                                 typename DistributedArray::IndexType end = 0,
-                                 Reduction&& reduction = TNL::Plus{} )
+distributedInplaceInclusiveScan(
+   DistributedArray& array,
+   typename DistributedArray::IndexType begin = 0,
+   typename DistributedArray::IndexType end = 0,
+   Reduction&& reduction = TNL::Plus{} )
 {
    if( end == 0 )
       end = array.getSize();
@@ -254,11 +262,12 @@ distributedInplaceInclusiveScan( DistributedArray& array,
  */
 template< typename DistributedArray, typename Reduction >
 void
-distributedInplaceExclusiveScan( DistributedArray& array,
-                                 typename DistributedArray::IndexType begin,
-                                 typename DistributedArray::IndexType end,
-                                 Reduction&& reduction,
-                                 typename DistributedArray::ValueType identity )
+distributedInplaceExclusiveScan(
+   DistributedArray& array,
+   typename DistributedArray::IndexType begin,
+   typename DistributedArray::IndexType end,
+   Reduction&& reduction,
+   typename DistributedArray::ValueType identity )
 {
    using Scan = detail::DistributedScan< detail::ScanType::Exclusive, detail::ScanPhaseType::WriteInSecondPhase >;
    Scan::perform( array, array, begin, end, std::forward< Reduction >( reduction ), identity );
@@ -275,10 +284,11 @@ distributedInplaceExclusiveScan( DistributedArray& array,
  */
 template< typename DistributedArray, typename Reduction = TNL::Plus >
 void
-distributedInplaceExclusiveScan( DistributedArray& array,
-                                 typename DistributedArray::IndexType begin = 0,
-                                 typename DistributedArray::IndexType end = 0,
-                                 Reduction&& reduction = TNL::Plus{} )
+distributedInplaceExclusiveScan(
+   DistributedArray& array,
+   typename DistributedArray::IndexType begin = 0,
+   typename DistributedArray::IndexType end = 0,
+   Reduction&& reduction = TNL::Plus{} )
 {
    if( end == 0 )
       end = array.getSize();

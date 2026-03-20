@@ -12,23 +12,25 @@
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
-template< int ThreadsPerSegment,
-          typename Offsets,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultKeeper,
-          typename Value >
+template<
+   int ThreadsPerSegment,
+   typename Offsets,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultKeeper,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRHybridVectorKernel( int gridIdx,
-                                     const Offsets offsets,
-                                     Index begin,
-                                     Index end,
-                                     Fetch fetch,
-                                     const Reduction reduction,
-                                     ResultKeeper keep,
-                                     const Value identity )
+reduceSegmentsCSRHybridVectorKernel(
+   int gridIdx,
+   const Offsets offsets,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   const Reduction reduction,
+   ResultKeeper keep,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -79,24 +81,26 @@ reduceSegmentsCSRHybridVectorKernel( int gridIdx,
 #endif
 }
 
-template< int BlockSize,
-          int ThreadsPerSegment,
-          typename Offsets,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultKeeper,
-          typename Value >
+template<
+   int BlockSize,
+   int ThreadsPerSegment,
+   typename Offsets,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultKeeper,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRHybridMultivectorKernel( int gridIdx,
-                                          const Offsets offsets,
-                                          Index begin,
-                                          Index end,
-                                          Fetch fetch,
-                                          const Reduction reduction,
-                                          ResultKeeper keep,
-                                          const Value identity )
+reduceSegmentsCSRHybridMultivectorKernel(
+   int gridIdx,
+   const Offsets offsets,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   const Reduction reduction,
+   ResultKeeper keep,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -213,13 +217,14 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::getConstView() const -> ConstV
 template< typename Index, typename Device, int ThreadsInBlock >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const SegmentsView& segments,
-                                                                  Index begin,
-                                                                  Index end,
-                                                                  Fetch& fetch,
-                                                                  const Reduction& reduction,
-                                                                  ResultKeeper& keeper,
-                                                                  const Value& identity ) const
+CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity ) const
 {
    constexpr bool DispatchScalarCSR = std::is_same_v< Device, Devices::Host >;
    if constexpr( DispatchScalarCSR ) {
@@ -295,49 +300,52 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
                }
             case 64:
                {
-                  constexpr auto kernel = reduceSegmentsCSRHybridMultivectorKernel< ThreadsInBlock,
-                                                                                    64,
-                                                                                    OffsetsView,
-                                                                                    Index,
-                                                                                    Fetch,
-                                                                                    Reduction,
-                                                                                    ResultKeeper,
-                                                                                    Value >;
+                  constexpr auto kernel = reduceSegmentsCSRHybridMultivectorKernel<
+                     ThreadsInBlock,
+                     64,
+                     OffsetsView,
+                     Index,
+                     Fetch,
+                     Reduction,
+                     ResultKeeper,
+                     Value >;
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             case 128:
                {
-                  constexpr auto kernel = reduceSegmentsCSRHybridMultivectorKernel< ThreadsInBlock,
-                                                                                    128,
-                                                                                    OffsetsView,
-                                                                                    Index,
-                                                                                    Fetch,
-                                                                                    Reduction,
-                                                                                    ResultKeeper,
-                                                                                    Value >;
+                  constexpr auto kernel = reduceSegmentsCSRHybridMultivectorKernel<
+                     ThreadsInBlock,
+                     128,
+                     OffsetsView,
+                     Index,
+                     Fetch,
+                     Reduction,
+                     ResultKeeper,
+                     Value >;
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             case 256:
                {
-                  constexpr auto kernel = reduceSegmentsCSRHybridMultivectorKernel< ThreadsInBlock,
-                                                                                    256,
-                                                                                    OffsetsView,
-                                                                                    Index,
-                                                                                    Fetch,
-                                                                                    Reduction,
-                                                                                    ResultKeeper,
-                                                                                    Value >;
+                  constexpr auto kernel = reduceSegmentsCSRHybridMultivectorKernel<
+                     ThreadsInBlock,
+                     256,
+                     OffsetsView,
+                     Index,
+                     Fetch,
+                     Reduction,
+                     ResultKeeper,
+                     Value >;
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, offsets, begin, end, fetch, reduction, keeper, identity );
                   break;
                }
             default:
-               throw std::runtime_error( std::string( "Wrong value of threadsPerSegment: " )
-                                         + std::to_string( this->threadsPerSegment ) );
+               throw std::runtime_error(
+                  std::string( "Wrong value of threadsPerSegment: " ) + std::to_string( this->threadsPerSegment ) );
          }
       }
       Backend::streamSynchronize( launch_config.stream );
@@ -347,11 +355,12 @@ CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceSegments( const Segments
 template< typename Index, typename Device, int ThreadsInBlock >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceAllSegments( const SegmentsView& segments,
-                                                                     Fetch& fetch,
-                                                                     const Reduction& reduction,
-                                                                     ResultKeeper& keeper,
-                                                                     const Value& identity ) const
+CSRHybridKernel< Index, Device, ThreadsInBlock >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity ) const
 {
    reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }

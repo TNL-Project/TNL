@@ -631,18 +631,19 @@ test_AddElement()
    const IndexType rows = 6;
    const IndexType cols = 5;
 
-   Matrix m( 6,
-             5,
-             { { 0, 0, 1 },
-               { 1, 0, 2 },
-               { 1, 1, 3 },
-               { 2, 1, 4 },
-               { 2, 2, 5 },
-               { 3, 2, 6 },
-               { 3, 3, 7 },
-               { 4, 3, 8 },
-               { 4, 4, 9 },
-               { 5, 4, 10 } } );
+   Matrix m(
+      6,
+      5,
+      { { 0, 0, 1 },
+        { 1, 0, 2 },
+        { 1, 1, 3 },
+        { 2, 1, 4 },
+        { 2, 2, 5 },
+        { 3, 2, 6 },
+        { 3, 3, 7 },
+        { 4, 3, 8 },
+        { 4, 4, 9 },
+        { 5, 4, 10 } } );
 
    // Check the set elements
    EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
@@ -805,19 +806,20 @@ test_VectorProduct()
    const IndexType m_rows_3 = 4;
    const IndexType m_cols_3 = 4;
 
-   Matrix m_3( m_rows_3,
-               m_cols_3,
-               { { 0, 0, 1 },
-                 { 0, 1, 2 },
-                 { 0, 2, 3 },
-                 { 0, 3, 4 },
-                 { 1, 0, 2 },
-                 { 1, 1, 5 },
-                 { 2, 0, 3 },
-                 { 2, 2, 6 },
-                 { 3, 0, 4 },
-                 { 3, 3, 7 } },
-               TNL::Matrices::SymmetricMatrixEncoding::Complete );
+   Matrix m_3(
+      m_rows_3,
+      m_cols_3,
+      { { 0, 0, 1 },
+        { 0, 1, 2 },
+        { 0, 2, 3 },
+        { 0, 3, 4 },
+        { 1, 0, 2 },
+        { 1, 1, 5 },
+        { 2, 0, 3 },
+        { 2, 2, 6 },
+        { 3, 0, 4 },
+        { 3, 3, 7 } },
+      TNL::Matrices::SymmetricMatrixEncoding::Complete );
 
    VectorType inVector_3( { 0, 1, 2, 3 } );
    VectorType outVector_3( m_rows_3, 0 );
@@ -878,26 +880,27 @@ test_VectorProduct()
    const IndexType m_rows_5 = 8;
    const IndexType m_cols_5 = 8;
 
-   Matrix m_5( m_rows_5,
-               m_cols_5,
-               { { 0, 0, 1 },
-                 {
-                    1,
-                    1,
-                    2,
-                 },
-                 { 2, 2, 3 },
-                 { 3, 2, 4 },
-                 { 3, 3, 5 },
-                 { 4, 2, 6 },
-                 { 4, 3, 7 },
-                 { 4, 4, 8 },
-                 { 5, 2, 9 },
-                 { 5, 3, 10 },
-                 { 5, 4, 11 },
-                 { 5, 5, 12 },
-                 { 6, 6, 13 },
-                 { 7, 7, 14 } } );
+   Matrix m_5(
+      m_rows_5,
+      m_cols_5,
+      { { 0, 0, 1 },
+        {
+           1,
+           1,
+           2,
+        },
+        { 2, 2, 3 },
+        { 3, 2, 4 },
+        { 3, 3, 5 },
+        { 4, 2, 6 },
+        { 4, 3, 7 },
+        { 4, 4, 8 },
+        { 5, 2, 9 },
+        { 5, 3, 10 },
+        { 5, 4, 11 },
+        { 5, 5, 12 },
+        { 6, 6, 13 },
+        { 7, 7, 14 } } );
 
    VectorType inVector_5( { 1, 2, 3, 4, 5, 6, 7, 8 } );
    VectorType outVector_5( m_rows_5, 0.0 );
@@ -937,26 +940,27 @@ test_reduceRows()
    const IndexType m_rows_5 = 8;
    const IndexType m_cols_5 = 8;
 
-   Matrix m_5( m_rows_5,
-               m_cols_5,
-               { { 0, 0, 1 },
-                 {
-                    1,
-                    1,
-                    2,
-                 },
-                 { 2, 2, 3 },
-                 { 3, 2, 4 },
-                 { 3, 3, 5 },
-                 { 4, 2, 6 },
-                 { 4, 3, 7 },
-                 { 4, 4, 8 },
-                 { 5, 2, 9 },
-                 { 5, 3, 10 },
-                 { 5, 4, 11 },
-                 { 5, 5, 12 },
-                 { 6, 6, 13 },
-                 { 7, 7, 14 } } );
+   Matrix m_5(
+      m_rows_5,
+      m_cols_5,
+      { { 0, 0, 1 },
+        {
+           1,
+           1,
+           2,
+        },
+        { 2, 2, 3 },
+        { 3, 2, 4 },
+        { 3, 3, 5 },
+        { 4, 2, 6 },
+        { 4, 3, 7 },
+        { 4, 4, 8 },
+        { 5, 2, 9 },
+        { 5, 3, 10 },
+        { 5, 4, 11 },
+        { 5, 5, 12 },
+        { 6, 6, 13 },
+        { 7, 7, 14 } } );
 
    ////
    // Compute number of non-zero elements in rows.
@@ -1019,18 +1023,19 @@ test_SaveAndLoad( const char* filename )
    //const IndexType rows = 6;
    //const IndexType cols = 5;
 
-   Matrix savedMatrix( 6,
-                       5,
-                       { { 0, 0, 1 },
-                         { 1, 0, 2 },
-                         { 1, 1, 3 },
-                         { 2, 1, 4 },
-                         { 2, 2, 5 },
-                         { 3, 2, 6 },
-                         { 3, 3, 7 },
-                         { 4, 3, 8 },
-                         { 4, 4, 9 },
-                         { 5, 4, 10 } } );
+   Matrix savedMatrix(
+      6,
+      5,
+      { { 0, 0, 1 },
+        { 1, 0, 2 },
+        { 1, 1, 3 },
+        { 2, 1, 4 },
+        { 2, 2, 5 },
+        { 3, 2, 6 },
+        { 3, 3, 7 },
+        { 4, 3, 8 },
+        { 4, 4, 9 },
+        { 5, 4, 10 } } );
 
    // Check the set elements
    EXPECT_EQ( savedMatrix.getElement( 0, 0 ), RealType{ 1 } );

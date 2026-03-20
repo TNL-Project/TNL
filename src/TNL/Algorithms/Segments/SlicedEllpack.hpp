@@ -17,11 +17,12 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::SlicedE
   sliceSegmentSizes( segments.sliceSegmentSizes )
 {
    // update the base
-   Base::bind( segments.getSize(),
-               segments.getStorageSize(),
-               segments.getSegmentsCount(),
-               this->sliceOffsets.getView(),
-               this->sliceSegmentSizes.getView() );
+   Base::bind(
+      segments.getSize(),
+      segments.getStorageSize(),
+      segments.getSegmentsCount(),
+      this->sliceOffsets.getView(),
+      this->sliceSegmentSizes.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >
@@ -46,11 +47,12 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    this->sliceOffsets = segments.sliceOffsets;
    this->sliceSegmentSizes = segments.sliceSegmentSizes;
    // update the base
-   Base::bind( segments.getSize(),
-               segments.getStorageSize(),
-               segments.getSegmentsCount(),
-               this->sliceOffsets.getView(),
-               this->sliceSegmentSizes.getView() );
+   Base::bind(
+      segments.getSize(),
+      segments.getStorageSize(),
+      segments.getSegmentsCount(),
+      this->sliceOffsets.getView(),
+      this->sliceSegmentSizes.getView() );
    return *this;
 }
 
@@ -61,11 +63,12 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    this->sliceOffsets = std::move( segments.sliceOffsets );
    this->sliceSegmentSizes = std::move( segments.sliceSegmentSizes );
    // update the base
-   Base::bind( segments.getSize(),
-               segments.getStorageSize(),
-               segments.getSegmentsCount(),
-               this->sliceOffsets.getView(),
-               this->sliceSegmentSizes.getView() );
+   Base::bind(
+      segments.getSize(),
+      segments.getStorageSize(),
+      segments.getSegmentsCount(),
+      this->sliceOffsets.getView(),
+      this->sliceSegmentSizes.getView() );
    return *this;
 }
 
@@ -78,11 +81,12 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::operato
    this->sliceOffsets = segments.getSliceOffsetsView();
    this->sliceSegmentSizes = segments.getSliceSegmentSizesView();
    // update the base
-   Base::bind( segments.getSize(),
-               segments.getStorageSize(),
-               segments.getSegmentsCount(),
-               this->sliceOffsets.getView(),
-               this->sliceSegmentSizes.getView() );
+   Base::bind(
+      segments.getSize(),
+      segments.getStorageSize(),
+      segments.getSegmentsCount(),
+      this->sliceOffsets.getView(),
+      this->sliceSegmentSizes.getView() );
    return *this;
 }
 
@@ -144,11 +148,12 @@ SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::setSegm
    Algorithms::inplaceExclusiveScan( this->sliceOffsets );
 
    // update the base
-   Base::bind( sum( sizes ),
-               this->sliceOffsets.getElement( slicesCount ),
-               sizes.getSize(),
-               this->sliceOffsets.getView(),
-               this->sliceSegmentSizes.getView() );
+   Base::bind(
+      sum( sizes ),
+      this->sliceOffsets.getElement( slicesCount ),
+      sizes.getSize(),
+      this->sliceOffsets.getView(),
+      this->sliceSegmentSizes.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int SliceSize >

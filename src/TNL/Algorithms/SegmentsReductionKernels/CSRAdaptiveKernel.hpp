@@ -68,13 +68,14 @@ CSRAdaptiveKernel< Index, Device >::getConstView() const -> ConstViewType
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRAdaptiveKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                    Index begin,
-                                                    Index end,
-                                                    Fetch& fetch,
-                                                    const Reduction& reduction,
-                                                    ResultKeeper& keeper,
-                                                    const Value& identity ) const
+CSRAdaptiveKernel< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity ) const
 {
    view.reduceSegments( segments, begin, end, fetch, reduction, keeper, identity );
 }
@@ -82,11 +83,12 @@ CSRAdaptiveKernel< Index, Device >::reduceSegments( const SegmentsView& segments
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRAdaptiveKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                       Fetch& fetch,
-                                                       const Reduction& reduction,
-                                                       ResultKeeper& keeper,
-                                                       const Value& identity ) const
+CSRAdaptiveKernel< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity ) const
 {
    view.reduceAllSegments( segments, fetch, reduction, keeper, identity );
 }

@@ -22,8 +22,9 @@ getRowExample()
 
    const int matrixSize( 5 );
    using MatrixType = TNL::Matrices::TridiagonalMatrix< double, Device >;
-   MatrixType matrix( matrixSize,  // number of matrix rows
-                      matrixSize   // number of matrix columns
+   MatrixType matrix(
+      matrixSize,  // number of matrix rows
+      matrixSize   // number of matrix columns
    );
    auto view = matrix.getView();
 

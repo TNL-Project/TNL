@@ -12,22 +12,24 @@
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
-template< typename BlocksView,
-          typename Offsets,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultKeeper,
-          typename Value >
+template<
+   typename BlocksView,
+   typename Offsets,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultKeeper,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRAdaptiveKernel( BlocksView blocks,
-                                 int gridIdx,
-                                 Offsets offsets,
-                                 Fetch fetch,
-                                 Reduction reduction,
-                                 ResultKeeper keep,
-                                 Value identity )
+reduceSegmentsCSRAdaptiveKernel(
+   BlocksView blocks,
+   int gridIdx,
+   Offsets offsets,
+   Fetch fetch,
+   Reduction reduction,
+   ResultKeeper keep,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -182,13 +184,14 @@ CSRAdaptiveKernelView< Index, Device >::getKernelType()
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                        Index begin,
-                                                        Index end,
-                                                        Fetch& fetch,
-                                                        const Reduction& reduction,
-                                                        ResultKeeper& keeper,
-                                                        const Value& identity ) const
+CSRAdaptiveKernelView< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity ) const
 {
    int valueSizeLog = getSizeValueLog( sizeof( Value ) );
 
@@ -239,11 +242,12 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segm
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRAdaptiveKernelView< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                           Fetch& fetch,
-                                                           const Reduction& reduction,
-                                                           ResultKeeper& keeper,
-                                                           const Value& identity ) const
+CSRAdaptiveKernelView< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity ) const
 {
    reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }

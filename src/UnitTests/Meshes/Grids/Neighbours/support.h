@@ -174,9 +174,10 @@ protected:
 
 template< typename Grid, int EntityDimension, int NeighbourEntityDimension >
 void
-testDynamicNeighbourEntityGetter( Grid& grid,
-                                  const typename Grid::CoordinatesType& dimensions,
-                                  const typename Grid::CoordinatesType& offset )
+testDynamicNeighbourEntityGetter(
+   Grid& grid,
+   const typename Grid::CoordinatesType& dimensions,
+   const typename Grid::CoordinatesType& offset )
 {
    SCOPED_TRACE( "Grid Dimension: " + TNL::convertToString( Grid::getMeshDimension() ) );
    SCOPED_TRACE( "Entity Dimension: " + TNL::convertToString( EntityDimension ) );
@@ -196,9 +197,10 @@ testDynamicNeighbourEntityGetter( Grid& grid,
 
 template< typename Grid, int EntityDimension, int NeighbourEntityDimension, int NeighbourEntityOrientation >
 void
-testDynamicNeighbourEntityGetter( Grid& grid,
-                                  const typename Grid::CoordinatesType& dimensions,
-                                  const typename Grid::CoordinatesType& offset )
+testDynamicNeighbourEntityGetter(
+   Grid& grid,
+   const typename Grid::CoordinatesType& dimensions,
+   const typename Grid::CoordinatesType& offset )
 {
    SCOPED_TRACE( "Grid Dimension: " + TNL::convertToString( Grid::getMeshDimension() ) );
    SCOPED_TRACE( "Entity Dimension: " + TNL::convertToString( EntityDimension ) );

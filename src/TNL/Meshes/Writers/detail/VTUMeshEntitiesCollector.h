@@ -14,10 +14,11 @@ template< typename Mesh, int EntityDimension >
 struct MeshEntitiesVTUCollector
 {
    static void
-   exec( const Mesh& mesh,
-         std::vector< typename Mesh::GlobalIndexType >& connectivity,
-         std::vector< typename Mesh::GlobalIndexType >& offsets,
-         std::vector< std::uint8_t >& types )
+   exec(
+      const Mesh& mesh,
+      std::vector< typename Mesh::GlobalIndexType >& connectivity,
+      std::vector< typename Mesh::GlobalIndexType >& offsets,
+      std::vector< std::uint8_t >& types )
    {
       using EntityType = typename Mesh::template EntityType< EntityDimension >;
       using Index = typename Mesh::GlobalIndexType;
@@ -41,10 +42,11 @@ template< typename Mesh >
 struct MeshEntitiesVTUCollector< Mesh, 0 >
 {
    static void
-   exec( const Mesh& mesh,
-         std::vector< typename Mesh::GlobalIndexType >& connectivity,
-         std::vector< typename Mesh::GlobalIndexType >& offsets,
-         std::vector< std::uint8_t >& types )
+   exec(
+      const Mesh& mesh,
+      std::vector< typename Mesh::GlobalIndexType >& connectivity,
+      std::vector< typename Mesh::GlobalIndexType >& offsets,
+      std::vector< std::uint8_t >& types )
    {
       using EntityType = typename Mesh::template EntityType< 0 >;
       using Index = typename Mesh::GlobalIndexType;
@@ -68,10 +70,11 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 1, MeshReal, Device, MeshIndex >,
    using Entity = typename Mesh::template EntityType< 1 >;
 
    static void
-   exec( const Mesh& mesh,
-         std::vector< typename Mesh::GlobalIndexType >& connectivity,
-         std::vector< typename Mesh::GlobalIndexType >& offsets,
-         std::vector< std::uint8_t >& types )
+   exec(
+      const Mesh& mesh,
+      std::vector< typename Mesh::GlobalIndexType >& connectivity,
+      std::vector< typename Mesh::GlobalIndexType >& offsets,
+      std::vector< std::uint8_t >& types )
    {
       for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
          connectivity.push_back( i );
@@ -90,10 +93,11 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 1, MeshReal, Device, MeshIndex >,
    using Entity = typename Mesh::template EntityType< 0 >;
 
    static void
-   exec( const Mesh& mesh,
-         std::vector< typename Mesh::GlobalIndexType >& connectivity,
-         std::vector< typename Mesh::GlobalIndexType >& offsets,
-         std::vector< std::uint8_t >& types )
+   exec(
+      const Mesh& mesh,
+      std::vector< typename Mesh::GlobalIndexType >& connectivity,
+      std::vector< typename Mesh::GlobalIndexType >& offsets,
+      std::vector< std::uint8_t >& types )
    {
       for( MeshIndex i = 0; i < mesh.getDimensions().x() + 1; i++ ) {
          connectivity.push_back( i );
@@ -111,10 +115,11 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 2, MeshReal, Device, MeshIndex >,
    using Entity = typename Mesh::template EntityType< 2 >;
 
    static void
-   exec( const Mesh& mesh,
-         std::vector< typename Mesh::GlobalIndexType >& connectivity,
-         std::vector< typename Mesh::GlobalIndexType >& offsets,
-         std::vector< std::uint8_t >& types )
+   exec(
+      const Mesh& mesh,
+      std::vector< typename Mesh::GlobalIndexType >& connectivity,
+      std::vector< typename Mesh::GlobalIndexType >& offsets,
+      std::vector< std::uint8_t >& types )
    {
       for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
          for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
@@ -136,10 +141,11 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 2, MeshReal, Device, MeshIndex >,
    using Entity = typename Mesh::template EntityType< 1 >;
 
    static void
-   exec( const Mesh& mesh,
-         std::vector< typename Mesh::GlobalIndexType >& connectivity,
-         std::vector< typename Mesh::GlobalIndexType >& offsets,
-         std::vector< std::uint8_t >& types )
+   exec(
+      const Mesh& mesh,
+      std::vector< typename Mesh::GlobalIndexType >& connectivity,
+      std::vector< typename Mesh::GlobalIndexType >& offsets,
+      std::vector< std::uint8_t >& types )
    {
       for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
          for( MeshIndex i = 0; i < ( mesh.getDimensions().x() + 1 ); i++ ) {
@@ -167,10 +173,11 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 2, MeshReal, Device, MeshIndex >,
    using Entity = typename Mesh::template EntityType< 0 >;
 
    static void
-   exec( const Mesh& mesh,
-         std::vector< typename Mesh::GlobalIndexType >& connectivity,
-         std::vector< typename Mesh::GlobalIndexType >& offsets,
-         std::vector< std::uint8_t >& types )
+   exec(
+      const Mesh& mesh,
+      std::vector< typename Mesh::GlobalIndexType >& connectivity,
+      std::vector< typename Mesh::GlobalIndexType >& offsets,
+      std::vector< std::uint8_t >& types )
    {
       for( MeshIndex j = 0; j < ( mesh.getDimensions().y() + 1 ); j++ )
          for( MeshIndex i = 0; i < ( mesh.getDimensions().x() + 1 ); i++ ) {
@@ -189,30 +196,39 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
    using Entity = typename Mesh::template EntityType< 3 >;
 
    static void
-   exec( const Mesh& mesh,
-         std::vector< typename Mesh::GlobalIndexType >& connectivity,
-         std::vector< typename Mesh::GlobalIndexType >& offsets,
-         std::vector< std::uint8_t >& types )
+   exec(
+      const Mesh& mesh,
+      std::vector< typename Mesh::GlobalIndexType >& connectivity,
+      std::vector< typename Mesh::GlobalIndexType >& offsets,
+      std::vector< std::uint8_t >& types )
    {
       for( MeshIndex k = 0; k < mesh.getDimensions().z(); k++ )
          for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
             for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i + 1 );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i + 1 );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+               connectivity.push_back(
+                  ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + j * ( mesh.getDimensions().x() + 1 ) + i );
+               connectivity.push_back(
+                  ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+               connectivity.push_back(
+                  ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
+               connectivity.push_back(
+                  ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i + 1 );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
@@ -227,22 +243,27 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
    using Entity = typename Mesh::template EntityType< 2 >;
 
    static void
-   exec( const Mesh& mesh,
-         std::vector< typename Mesh::GlobalIndexType >& connectivity,
-         std::vector< typename Mesh::GlobalIndexType >& offsets,
-         std::vector< std::uint8_t >& types )
+   exec(
+      const Mesh& mesh,
+      std::vector< typename Mesh::GlobalIndexType >& connectivity,
+      std::vector< typename Mesh::GlobalIndexType >& offsets,
+      std::vector< std::uint8_t >& types )
    {
       for( MeshIndex k = 0; k < mesh.getDimensions().z(); k++ )
          for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
             for( MeshIndex i = 0; i <= mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
+               connectivity.push_back(
+                  ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + j * ( mesh.getDimensions().x() + 1 ) + i );
+               connectivity.push_back(
+                  ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
@@ -250,14 +271,18 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
       for( MeshIndex k = 0; k < mesh.getDimensions().z(); k++ )
          for( MeshIndex j = 0; j <= mesh.getDimensions().y(); j++ )
             for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i + 1 );
+               connectivity.push_back(
+                  ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + j * ( mesh.getDimensions().x() + 1 ) + i );
+               connectivity.push_back(
+                  ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
@@ -265,14 +290,18 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
       for( MeshIndex k = 0; k <= mesh.getDimensions().z(); k++ )
          for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
             for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i + 1 );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i + 1 );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
@@ -287,18 +316,21 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
    using Entity = typename Mesh::template EntityType< 1 >;
 
    static void
-   exec( const Mesh& mesh,
-         std::vector< typename Mesh::GlobalIndexType >& connectivity,
-         std::vector< typename Mesh::GlobalIndexType >& offsets,
-         std::vector< std::uint8_t >& types )
+   exec(
+      const Mesh& mesh,
+      std::vector< typename Mesh::GlobalIndexType >& connectivity,
+      std::vector< typename Mesh::GlobalIndexType >& offsets,
+      std::vector< std::uint8_t >& types )
    {
       for( MeshIndex k = 0; k <= mesh.getDimensions().z(); k++ )
          for( MeshIndex j = 0; j <= mesh.getDimensions().y(); j++ )
             for( MeshIndex i = 0; i < mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i + 1 );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i + 1 );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
@@ -306,10 +338,12 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
       for( MeshIndex k = 0; k <= mesh.getDimensions().z(); k++ )
          for( MeshIndex j = 0; j < mesh.getDimensions().y(); j++ )
             for( MeshIndex i = 0; i <= mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + ( j + 1 ) * ( mesh.getDimensions().x() + 1 ) + i );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
@@ -317,10 +351,12 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
       for( MeshIndex k = 0; k < mesh.getDimensions().z(); k++ )
          for( MeshIndex j = 0; j <= mesh.getDimensions().y(); j++ )
             for( MeshIndex i = 0; i <= mesh.getDimensions().x(); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
-               connectivity.push_back( ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i );
+               connectivity.push_back(
+                  ( k + 1 ) * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
+                  + j * ( mesh.getDimensions().x() + 1 ) + i );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }
@@ -335,16 +371,18 @@ struct MeshEntitiesVTUCollector< Meshes::Grid< 3, MeshReal, Device, MeshIndex >,
    using Entity = typename Mesh::template EntityType< 0 >;
 
    static void
-   exec( const Mesh& mesh,
-         std::vector< typename Mesh::GlobalIndexType >& connectivity,
-         std::vector< typename Mesh::GlobalIndexType >& offsets,
-         std::vector< std::uint8_t >& types )
+   exec(
+      const Mesh& mesh,
+      std::vector< typename Mesh::GlobalIndexType >& connectivity,
+      std::vector< typename Mesh::GlobalIndexType >& offsets,
+      std::vector< std::uint8_t >& types )
    {
       for( MeshIndex k = 0; k < ( mesh.getDimensions().z() + 1 ); k++ )
          for( MeshIndex j = 0; j < ( mesh.getDimensions().y() + 1 ); j++ )
             for( MeshIndex i = 0; i < ( mesh.getDimensions().x() + 1 ); i++ ) {
-               connectivity.push_back( k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 )
-                                       + j * ( mesh.getDimensions().x() + 1 ) + i );
+               connectivity.push_back(
+                  k * ( mesh.getDimensions().y() + 1 ) * ( mesh.getDimensions().x() + 1 ) + j * ( mesh.getDimensions().x() + 1 )
+                  + i );
                offsets.push_back( connectivity.size() );
                types.push_back( static_cast< std::uint8_t >( VTK::GridEntityShape< Entity >::shape ) );
             }

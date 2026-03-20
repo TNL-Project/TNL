@@ -12,20 +12,20 @@ namespace TNL::Containers::detail {
 /**
  * \brief Vector assignment
  */
-template< typename Vector,
-          typename T,
-          bool vectorVectorAssignment =
-             HasSubscriptOperator< T >::value && ! Expressions::IsArithmeticSubtype< T, Vector >::value >
+template<
+   typename Vector,
+   typename T,
+   bool vectorVectorAssignment = HasSubscriptOperator< T >::value && ! Expressions::IsArithmeticSubtype< T, Vector >::value >
 struct VectorAssignment;
 
 /**
  * \brief Vector assignment with an operation: +=, -=, *=, /=, %=
  */
-template< typename Vector,
-          typename T,
-          bool vectorVectorAssignment =
-             HasSubscriptOperator< T >::value && ! Expressions::IsArithmeticSubtype< T, Vector >::value,
-          bool hasSetSizeMethod = HasSetSizeMethod< T >::value >
+template<
+   typename Vector,
+   typename T,
+   bool vectorVectorAssignment = HasSubscriptOperator< T >::value && ! Expressions::IsArithmeticSubtype< T, Vector >::value,
+   bool hasSetSizeMethod = HasSetSizeMethod< T >::value >
 struct VectorAssignmentWithOperation;
 
 /**
@@ -51,8 +51,9 @@ struct VectorAssignment< Vector, T, true >
    static void
    assign( Vector& v, const T& t )
    {
-      static_assert( std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
-                     "Cannot assign an expression to a vector allocated on a different device." );
+      static_assert(
+         std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
+         "Cannot assign an expression to a vector allocated on a different device." );
       TNL_ASSERT_EQ( v.getSize(), t.getSize(), "The sizes of the vectors must be equal." );
       using RealType = typename Vector::RealType;
       using DeviceType = typename Vector::DeviceType;
@@ -159,8 +160,9 @@ struct VectorAssignmentWithOperation< Vector, T, true, false >
    static void
    addition( Vector& v, const T& t )
    {
-      static_assert( std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
-                     "Cannot assign an expression to a vector allocated on a different device." );
+      static_assert(
+         std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
+         "Cannot assign an expression to a vector allocated on a different device." );
       TNL_ASSERT_EQ( v.getSize(), t.getSize(), "The sizes of the vectors must be equal." );
       using RealType = typename Vector::RealType;
       using DeviceType = typename Vector::DeviceType;
@@ -185,8 +187,9 @@ struct VectorAssignmentWithOperation< Vector, T, true, false >
    static void
    subtraction( Vector& v, const T& t )
    {
-      static_assert( std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
-                     "Cannot assign an expression to a vector allocated on a different device." );
+      static_assert(
+         std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
+         "Cannot assign an expression to a vector allocated on a different device." );
       TNL_ASSERT_EQ( v.getSize(), t.getSize(), "The sizes of the vectors must be equal." );
       using RealType = typename Vector::RealType;
       using DeviceType = typename Vector::DeviceType;
@@ -211,8 +214,9 @@ struct VectorAssignmentWithOperation< Vector, T, true, false >
    static void
    multiplication( Vector& v, const T& t )
    {
-      static_assert( std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
-                     "Cannot assign an expression to a vector allocated on a different device." );
+      static_assert(
+         std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
+         "Cannot assign an expression to a vector allocated on a different device." );
       TNL_ASSERT_EQ( v.getSize(), t.getSize(), "The sizes of the vectors must be equal." );
       using RealType = typename Vector::RealType;
       using DeviceType = typename Vector::DeviceType;
@@ -237,8 +241,9 @@ struct VectorAssignmentWithOperation< Vector, T, true, false >
    static void
    division( Vector& v, const T& t )
    {
-      static_assert( std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
-                     "Cannot assign an expression to a vector allocated on a different device." );
+      static_assert(
+         std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
+         "Cannot assign an expression to a vector allocated on a different device." );
       TNL_ASSERT_EQ( v.getSize(), t.getSize(), "The sizes of the vectors must be equal." );
       using RealType = typename Vector::RealType;
       using DeviceType = typename Vector::DeviceType;
@@ -263,8 +268,9 @@ struct VectorAssignmentWithOperation< Vector, T, true, false >
    static void
    modulo( Vector& v, const T& t )
    {
-      static_assert( std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
-                     "Cannot assign an expression to a vector allocated on a different device." );
+      static_assert(
+         std::is_same_v< typename Vector::DeviceType, typename T::DeviceType >,
+         "Cannot assign an expression to a vector allocated on a different device." );
       TNL_ASSERT_EQ( v.getSize(), t.getSize(), "The sizes of the vectors must be equal." );
       using RealType = typename Vector::RealType;
       using DeviceType = typename Vector::DeviceType;

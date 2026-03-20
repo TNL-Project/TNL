@@ -92,16 +92,16 @@ protected:
 };
 
 // types for which DistributedMatrixTest is instantiated
-using DistributedMatrixTypes =
-   ::testing::Types< Matrices::DistributedMatrix< Matrices::SparseMatrix< double, Devices::Host, int > >
+using DistributedMatrixTypes = ::testing::Types<
+   Matrices::DistributedMatrix< Matrices::SparseMatrix< double, Devices::Host, int > >
 #if defined( __CUDACC__ )
-                     ,
-                     Matrices::DistributedMatrix< Matrices::SparseMatrix< double, Devices::Cuda, int > >
+   ,
+   Matrices::DistributedMatrix< Matrices::SparseMatrix< double, Devices::Cuda, int > >
 #elif defined( __HIP__ )
-                     ,
-                     Matrices::DistributedMatrix< Matrices::SparseMatrix< double, Devices::Hip, int > >
+   ,
+   Matrices::DistributedMatrix< Matrices::SparseMatrix< double, Devices::Hip, int > >
 #endif
-                     >;
+   >;
 
 TYPED_TEST_SUITE( DistributedMatrixTest, DistributedMatrixTypes );
 

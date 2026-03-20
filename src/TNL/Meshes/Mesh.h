@@ -36,9 +36,10 @@ public:
 
    // The points and cellSeeds arrays will be reset when not needed to save memory.
    void
-   init( typename MeshTraitsType::PointArrayType& points,
-         typename MeshTraitsType::FaceSeedMatrixType& faceSeeds,
-         typename MeshTraitsType::CellSeedMatrixType& cellSeeds );
+   init(
+      typename MeshTraitsType::PointArrayType& points,
+      typename MeshTraitsType::FaceSeedMatrixType& faceSeeds,
+      typename MeshTraitsType::CellSeedMatrixType& cellSeeds );
 };
 
 // The mesh cannot be initialized on CUDA GPU, so this specialization is empty.

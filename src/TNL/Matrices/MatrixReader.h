@@ -125,12 +125,13 @@ protected:
    checkMtxHeader( const String& header, bool& symmetric, bool& matrixPattern );
 
    static void
-   readMtxHeader( std::istream& file,
-                  IndexType& rows,
-                  IndexType& columns,
-                  bool& symmetricMatrix,
-                  bool& matrixPattern,
-                  bool verbose );
+   readMtxHeader(
+      std::istream& file,
+      IndexType& rows,
+      IndexType& columns,
+      bool& symmetricMatrix,
+      bool& matrixPattern,
+      bool verbose );
 
    static void
    readMatrixElementsFromMtxFile( std::istream& file, Matrix& matrix, bool symmetricMatrix, bool matrixPattern, bool verbose );
