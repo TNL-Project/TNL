@@ -102,6 +102,16 @@ check-format:
     just _ensure-command ruff
     ruff format --diff
 
+# Reformats supported files using clang-format, gersemi, and ruff
+format:
+    just --unstable --fmt
+    just _ensure-command clang-format
+    ./scripts/run-clang-format.py {{ color_always }} --style file --in-place --exclude "src/TNL/3rdparty/*" --recursive Documentation src
+    just _ensure-command gersemi
+    gersemi {{ color }} --in-place .
+    just _ensure-command ruff
+    ruff format .
+
 # Checks justfile recipe for shell issues using shellcheck
 _check-recipe recipe:
     just _ensure-command grep shellcheck
