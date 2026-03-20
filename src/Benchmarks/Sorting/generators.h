@@ -2,162 +2,162 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include <numeric>
-#include <random>
-#include <vector>
+
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include <random>
+#include <type_traits>
+#include <vector>
 
-std::vector< int >
-generateSorted( int size )
+template< typename T >
+std::vector< T >
+generateSorted( std::size_t size, std::uint32_t seed = 0 )
 {
-   std::vector< int > vec( size );
-
-   iota( vec.begin(), vec.end(), 0 );
-
+   std::vector< T > vec( size );
+   std::iota( vec.begin(), vec.end(), 0 );
    return vec;
 }
 
-std::vector< int >
-generateRandom( int size )
+template< typename T >
+std::vector< T >
+generateRandom( std::size_t size, std::uint32_t seed = 2021 )
 {
-   std::vector< int > vec( size );
+   std::vector< T > vec( size );
+   std::mt19937 rng( size + seed );
 
-   srand( size + 2021 );
-   std::generate(
-      vec.begin(),
-      vec.end(),
-      [ = ]()
-      {
-         return std::rand() % ( 2 * size );
-      } );
-
-   return vec;
-}
-
-std::vector< int >
-generateShuffle( int size )
-{
-   std::vector< int > vec( size );
-
-   iota( vec.begin(), vec.end(), 0 );
-   srand( size );
-   std::shuffle( vec.begin(), vec.end(), std::mt19937( std::random_device()() ) );
-
-   return vec;
-}
-
-std::vector< int >
-generateAlmostSorted( int size )
-{
-   std::vector< int > vec( size );
-
-   iota( vec.begin(), vec.end(), 0 );
-   srand( 9451 );
-   for( int i = 0; i < 3; i++ )  //swaps 3 times in array
-   {
-      int s = rand() % ( size - 3 );
-      std::swap( vec[ s ], vec[ s + 1 ] );
+   if constexpr( std::is_integral_v< T > ) {
+      std::uniform_int_distribution< T > dist( std::numeric_limits< T >::min(), std::numeric_limits< T >::max() );
+      std::generate(
+         vec.begin(),
+         vec.end(),
+         [ &rng, &dist ]()
+         {
+            return dist( rng );
+         } );
+   }
+   else {
+      std::uniform_real_distribution< T > dist( -size / 2, size / 2 );
+      std::generate(
+         vec.begin(),
+         vec.end(),
+         [ &rng, &dist ]()
+         {
+            return dist( rng );
+         } );
    }
 
    return vec;
 }
 
-std::vector< int >
-generateDecreasing( int size )
+template< typename T >
+std::vector< T >
+generateShuffle( std::size_t size, std::uint32_t seed = 0 )
 {
-   std::vector< int > vec( size );
+   std::vector< T > vec( size );
+   std::iota( vec.begin(), vec.end(), 0 );
+   std::mt19937 rng( size + seed );
+   std::shuffle( vec.begin(), vec.end(), rng );
+   return vec;
+}
 
-   for( int i = 0; i < size; i++ )
+template< typename T >
+std::vector< T >
+generateAlmostSorted( std::size_t size, std::uint32_t seed = 9451 )
+{
+   std::vector< T > vec( size );
+   std::iota( vec.begin(), vec.end(), 0 );
+
+   // swap 3 times in array
+   if( size > 3 ) {
+      std::mt19937 rng( size + seed );
+      for( int i = 0; i < 3; i++ ) {
+         std::size_t s = rng() % ( size - 3 );
+         std::swap( vec[ s ], vec[ s + 1 ] );
+      }
+   }
+
+   return vec;
+}
+
+template< typename T >
+std::vector< T >
+generateDecreasing( std::size_t size, std::uint32_t seed = 0 )
+{
+   std::vector< T > vec( size );
+   for( std::size_t i = 0; i < size; i++ )
       vec[ i ] = size - i;
-
    return vec;
 }
 
-std::vector< int >
-generateZero_entropy( int size )
+template< typename T >
+std::vector< T >
+generateZeroEntropy( std::size_t size, std::uint32_t seed = 0 )
 {
-   std::vector< int > vec( size, 515 );
-   return vec;
+   return std::vector< T >( size, 515 );
 }
 
-std::vector< int >
-generateGaussian( int size )
+template< typename T >
+std::vector< T >
+generateGaussian( std::size_t size, std::uint32_t seed = 2000 )
 {
-   std::vector< int > vec( size );
-   srand( size + 2000 );
-
-   for( int i = 0; i < size; ++i ) {
-      int value = 0;
+   std::vector< T > vec( size );
+   std::mt19937 rng( size + seed );
+   for( std::size_t i = 0; i < size; ++i ) {
+      T value = 0;
       for( int j = 0; j < 4; ++j )
-         value += rand() % 16384;
-
+         value += rng() % 16384;
       vec[ i ] = value / 4;
    }
-
    return vec;
 }
 
-std::vector< int >
-generateBucket( int size )
+template< typename T >
+std::vector< T >
+generateBucket( std::size_t size, std::uint32_t seed = 94215 )
 {
-   std::vector< int > vec( size );
+   if( size == 0 )
+      return {};
 
-   srand( size + 94215 );
-   double tmp = static_cast< double >( size ) * 3000000;  //(RAND_MAX)/p; --> ((double)N)*30000;
-   double tmp2 = sqrt( tmp );
+   std::vector< T > vec( size );
+   std::mt19937 rng( size + seed );
+   double tmp = static_cast< double >( size ) * 3000000;  // (RAND_MAX)/p; --> ((double)N)*30000;
+   double tmp2 = std::sqrt( tmp );
 
-   int p = ( size + tmp2 - 1 ) / tmp2;
+   std::size_t p = ( size + tmp2 - 1 ) / tmp2;
 
-   const int VALUE = 8192 / p;  //(RAND_MAX)/p;
+   const T VALUE = 8192 / p;  // (RAND_MAX)/p;
 
-   int i = 0;
-   int x = 0;
-   //the array of size N is split into 'p' buckets
-   while( i < p ) {
-      for( int z = 0; z < p; ++z )
-         for( int j = 0; j < size / ( p * p ); ++j ) {
-            //every bucket has N/(p*p) items and the range is [min : VALUE-1 ]
-            int min = VALUE * z;
-
-            vec[ x ] = min + ( rand() % ( VALUE - 1 ) );
-            x++;
-         }
-      i++;
-   }
-
-   return vec;
-}
-
-std::vector< int >
-generateStaggered( int size )
-{
-   std::vector< int > vec( size );
-
-   srand( size + 815618 );
-   int tmp = 4096;  //(RAND_MAX)/p; --> size=2048
-   int p = ( size + tmp - 1 ) / tmp;
-
-   const int VALUE = ( 1 << 30 ) / p;  //(RAND_MAX)/p;
-
-   int i = 1;
-   int x = 0;
-   //the array of size N is split into 'p' buckets
-   while( i <= p ) {
-      //every bucket has N/(p) items
-      for( int j = 0; j < size / p; ++j ) {
-         int min;
-
-         if( i <= ( p / 2 ) )
-            min = ( 2 * i - 1 ) * VALUE;
-
-         else
-            min = ( 2 * i - p - 1 ) * VALUE;
-
-         vec[ x++ ] = min + ( rand() % ( VALUE - 1 ) );
+   std::size_t x = 0;
+   // the array of size N is split into 'p' buckets
+   for( std::size_t z = 0; z < p; ++z ) {
+      T min = VALUE * z;
+      for( std::size_t j = 0; j < size / ( p * p ); ++j ) {
+         vec[ x++ ] = min + ( rng() % static_cast< int >( VALUE - 1 ) );
       }
-      i++;
    }
+   return vec;
+}
 
+template< typename T >
+std::vector< T >
+generateStaggered( std::size_t size, std::uint32_t seed = 815618 )
+{
+   std::vector< T > vec( size );
+   std::mt19937 rng( size + seed );
+   std::size_t tmp = 4096;
+   std::size_t p = ( size + tmp - 1 ) / tmp;
+
+   const T VALUE = ( 1 << 30 ) / p;
+
+   std::size_t x = 0;
+   // the array of size N is split into 'p' buckets
+   for( std::size_t i = 1; i <= p; ++i ) {
+      T min = ( i <= ( p / 2 ) ) ? ( 2 * i - 1 ) * VALUE : ( 2 * i - p - 1 ) * VALUE;
+
+      for( std::size_t j = 0; j < size / p; ++j ) {
+         vec[ x++ ] = min + ( rng() % static_cast< int >( VALUE - 1 ) );
+      }
+   }
    return vec;
 }
