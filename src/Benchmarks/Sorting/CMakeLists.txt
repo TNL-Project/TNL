@@ -14,6 +14,8 @@ if(TNL_BUILD_CUDA)
     target_compile_options(tnl-benchmark-sort-cuda PRIVATE ${CUDA_SAMPLES_FLAGS})
     find_package(CUDAToolkit REQUIRED)
     target_link_libraries(tnl-benchmark-sort-cuda PUBLIC CUDA::cusparse)
+    find_package(CCCL REQUIRED COMPONENTS Thrust)
+    target_link_libraries(tnl-benchmark-sort-cuda PUBLIC CCCL::Thrust)
     install(TARGETS tnl-benchmark-sort-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
 endif()
 
