@@ -62,8 +62,13 @@ Cpp11BracedListStyle: false
 PackConstructorInitializers: Never
 ConstructorInitializerIndentWidth: 0
 
+BreakAfterAttributes: Never
+BreakAfterOpenBracketBracedList: true
+BreakAfterOpenBracketFunction: true
+BreakAfterOpenBracketIf: false
+BreakAfterOpenBracketLoop: false
 BreakAfterReturnType: All
-AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakBeforeMultilineStrings: true
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel:  false
@@ -89,7 +94,6 @@ BreakInheritanceList: BeforeColon
 BreakConstructorInitializers: BeforeColon
 BreakTemplateDeclarations: Yes
 BreakBeforeConceptDeclarations: Always
-BreakAfterAttributes: Never
 
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: None
