@@ -36,3 +36,7 @@
 # macOS system file (stores custom attributes of its containing folder, such as
 # folder view options, icon positions, and other visual information)
 .DS_Store
+
+# Benchmark logs
+*.log
+*.metadata.json
