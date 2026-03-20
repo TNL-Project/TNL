@@ -36,13 +36,3 @@
 # macOS system file (stores custom attributes of its containing folder, such as
 # folder view options, icon positions, and other visual information)
 .DS_Store
-
-# old/deprecated directories (can be removed later, they are not used anymore)
-/Debug
-/Release
-/RelWithDebInfo
-/Build
-/Documentation/output_snippets/
-/Documentation/html/
-/build-tinyxml2/
-/builddir
