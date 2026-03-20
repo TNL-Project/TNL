@@ -108,14 +108,16 @@ public:
 
    template< typename MeshFunctionType, typename PeriodicBoundariesMaskPointer = Pointers::SharedPointer< MeshFunctionType > >
    void
-   synchronize( MeshFunctionType& meshFunction,
-                bool periodicBoundaries = false,
-                const PeriodicBoundariesMaskPointer& mask = PeriodicBoundariesMaskPointer( nullptr ) )
+   synchronize(
+      MeshFunctionType& meshFunction,
+      bool periodicBoundaries = false,
+      const PeriodicBoundariesMaskPointer& mask = PeriodicBoundariesMaskPointer( nullptr ) )
    {
       using RealType = typename MeshFunctionType::RealType;
 
-      static_assert( MeshFunctionType::getEntitiesDimension() == MeshFunctionType::getMeshDimension(),
-                     "this specialization works only for synchronizations on cells" );
+      static_assert(
+         MeshFunctionType::getEntitiesDimension() == MeshFunctionType::getMeshDimension(),
+         "this specialization works only for synchronizations on cells" );
       TNL_ASSERT_TRUE( isSet, "Synchronizer is not set, but used to synchronize" );
 
       if( ! distributedGrid->isDistributed() )
@@ -131,14 +133,15 @@ public:
       const int* periodicNeighbors = distributedGrid->getPeriodicNeighbors();
 
       // fill send buffers
-      copyBuffers( meshFunction,
-                   sendBuffers,
-                   sendBegin,
-                   sendDimensions,
-                   true,
-                   neighbors,
-                   periodicBoundaries,
-                   PeriodicBoundariesMaskPointer( nullptr ) );  // the mask is used only when receiving data );
+      copyBuffers(
+         meshFunction,
+         sendBuffers,
+         sendBegin,
+         sendDimensions,
+         true,
+         neighbors,
+         periodicBoundaries,
+         PeriodicBoundariesMaskPointer( nullptr ) );  // the mask is used only when receiving data );
 
       // async send and receive
       std::unique_ptr< MPI_Request[] > requests{ new MPI_Request[ 2 * getNeighborsCount() ] };
@@ -155,25 +158,28 @@ public:
             requests[ requestsCount++ ] = MPI::Isend(
                reinterpret_cast< RealType* >( sendBuffers[ i ].getData() ), sendSizes[ i ], neighbors[ i ], 0, communicator );
             // TNL_MPI_PRINT( "Receiving data from node " << neighbors[ i ] );
-            requests[ requestsCount++ ] = MPI::Irecv( reinterpret_cast< RealType* >( receiveBuffers[ i ].getData() ),
-                                                      sendSizes[ i ],
-                                                      neighbors[ i ],
-                                                      0,
-                                                      communicator );
+            requests[ requestsCount++ ] = MPI::Irecv(
+               reinterpret_cast< RealType* >( receiveBuffers[ i ].getData() ),
+               sendSizes[ i ],
+               neighbors[ i ],
+               0,
+               communicator );
          }
          else if( periodicBoundaries && sendSizes[ i ] != 0 ) {
             // TNL_MPI_PRINT( "Sending data to node " << periodicNeighbors[ i ] );
-            requests[ requestsCount++ ] = MPI::Isend( reinterpret_cast< RealType* >( sendBuffers[ i ].getData() ),
-                                                      sendSizes[ i ],
-                                                      periodicNeighbors[ i ],
-                                                      1,
-                                                      communicator );
+            requests[ requestsCount++ ] = MPI::Isend(
+               reinterpret_cast< RealType* >( sendBuffers[ i ].getData() ),
+               sendSizes[ i ],
+               periodicNeighbors[ i ],
+               1,
+               communicator );
             // TNL_MPI_PRINT( "Receiving data to node " << periodicNeighbors[ i ] );
-            requests[ requestsCount++ ] = MPI::Irecv( reinterpret_cast< RealType* >( receiveBuffers[ i ].getData() ),
-                                                      sendSizes[ i ],
-                                                      periodicNeighbors[ i ],
-                                                      1,
-                                                      communicator );
+            requests[ requestsCount++ ] = MPI::Irecv(
+               reinterpret_cast< RealType* >( receiveBuffers[ i ].getData() ),
+               sendSizes[ i ],
+               periodicNeighbors[ i ],
+               1,
+               communicator );
          }
       }
 
@@ -189,14 +195,15 @@ public:
 private:
    template< typename MeshFunctionType, typename PeriodicBoundariesMaskPointer >
    void
-   copyBuffers( MeshFunctionType& meshFunction,
-                Containers::Array< std::uint8_t, Device, Index >* buffers,
-                CoordinatesType* begins,
-                CoordinatesType* sizes,
-                bool toBuffer,
-                const int* neighbor,
-                bool periodicBoundaries,
-                const PeriodicBoundariesMaskPointer& mask )
+   copyBuffers(
+      MeshFunctionType& meshFunction,
+      Containers::Array< std::uint8_t, Device, Index >* buffers,
+      CoordinatesType* begins,
+      CoordinatesType* sizes,
+      bool toBuffer,
+      const int* neighbor,
+      bool periodicBoundaries,
+      const PeriodicBoundariesMaskPointer& mask )
    {
       using RealType = typename MeshFunctionType::RealType;
       using Helper =
@@ -205,13 +212,14 @@ private:
       for( int i = 0; i < getNeighborsCount(); i++ ) {
          bool isBoundary = ( neighbor[ i ] == -1 );
          if( ! isBoundary || periodicBoundaries ) {
-            Helper::BufferEntities( meshFunction,
-                                    mask,
-                                    reinterpret_cast< RealType* >( buffers[ i ].getData() ),
-                                    isBoundary,
-                                    begins[ i ],
-                                    sizes[ i ],
-                                    toBuffer );
+            Helper::BufferEntities(
+               meshFunction,
+               mask,
+               reinterpret_cast< RealType* >( buffers[ i ].getData() ),
+               isBoundary,
+               begins[ i ],
+               sizes[ i ],
+               toBuffer );
          }
       }
    }

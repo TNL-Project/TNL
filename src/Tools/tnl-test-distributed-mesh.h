@@ -81,11 +81,12 @@ struct MeshLocalIndexTag< MyConfigTag, short int >
 template<>
 struct MeshConfigTemplateTag< MyConfigTag >
 {
-   template< typename Cell,
-             int SpaceDimension = Cell::dimension,
-             typename Real = double,
-             typename GlobalIndex = int,
-             typename LocalIndex = GlobalIndex >
+   template<
+      typename Cell,
+      int SpaceDimension = Cell::dimension,
+      typename Real = double,
+      typename GlobalIndex = int,
+      typename LocalIndex = GlobalIndex >
    struct MeshConfig
    {
       using CellTopology = Cell;
@@ -203,8 +204,8 @@ testSynchronizerOnDevice( const MeshType& mesh )
    // initialize
    DeviceMesh deviceMesh;
    deviceMesh = mesh;
-   Array f( mesh.getLocalMesh().template getEntitiesCount< EntityType::getEntityDimension() >()
-            * MeshType::getMeshDimension() );
+   Array f(
+      mesh.getLocalMesh().template getEntitiesCount< EntityType::getEntityDimension() >() * MeshType::getMeshDimension() );
    f.setValue( 0 );
 
    // set center of each local entity
@@ -378,18 +379,20 @@ testPropagationOverFaces( const Mesh& mesh, int max_iterations )
       // iterate over all local faces
       auto faceAverageKernel = [ f_K_view, f_E_view, localMeshPointer ] __cuda_callable__( Index E ) mutable
       {
-         TNL_ASSERT_FALSE( localMeshPointer->template isGhostEntity< LocalMesh::getMeshDimension() - 1 >( E ),
-                           "iterator bug - got a ghost entity" );
+         TNL_ASSERT_FALSE(
+            localMeshPointer->template isGhostEntity< LocalMesh::getMeshDimension() - 1 >( E ),
+            "iterator bug - got a ghost entity" );
 
          Index cellIndexes[ 2 ] = { 0, 0 };
          const int numCells = getCellsForFace( *localMeshPointer, E, cellIndexes );
 
          if( numCells == 1 ) {
-            TNL_ASSERT_FALSE( localMeshPointer->template isGhostEntity< LocalMesh::getMeshDimension() >( cellIndexes[ 0 ] ),
-                              // NOTE: c_str does not work on GPU
-                              //("iterator bug - boundary face " + std::to_string(E) + " on a ghost cell "
-                              // + std::to_string(cellIndexes[0])).c_str() );
-                              "iterator bug - boundary face on a ghost cell" );
+            TNL_ASSERT_FALSE(
+               localMeshPointer->template isGhostEntity< LocalMesh::getMeshDimension() >( cellIndexes[ 0 ] ),
+               // NOTE: c_str does not work on GPU
+               //("iterator bug - boundary face " + std::to_string(E) + " on a ghost cell "
+               // + std::to_string(cellIndexes[0])).c_str() );
+               "iterator bug - boundary face on a ghost cell" );
             f_E_view[ E ] = boundary_value;
          }
          else {

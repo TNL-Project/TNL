@@ -23,10 +23,11 @@ struct TriangleConfig : public ParentConfig
    using CellTopology = Topologies::Triangle;
 };
 
-template< EntityDecomposerVersion DecomposerVersion,
-          EntityDecomposerVersion SubdecomposerVersion = EntityDecomposerVersion::ConnectEdgesToPoint,
-          typename MeshConfig,
-          std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polygon >, bool > = true >
+template<
+   EntityDecomposerVersion DecomposerVersion,
+   EntityDecomposerVersion SubdecomposerVersion = EntityDecomposerVersion::ConnectEdgesToPoint,
+   typename MeshConfig,
+   std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polygon >, bool > = true >
 auto  // returns MeshBuilder
 decomposeMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
 {
@@ -108,10 +109,11 @@ decomposeMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
    return meshBuilder;
 }
 
-template< EntityDecomposerVersion DecomposerVersion,
-          EntityDecomposerVersion SubdecomposerVersion = EntityDecomposerVersion::ConnectEdgesToPoint,
-          typename MeshConfig,
-          std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polygon >, bool > = true >
+template<
+   EntityDecomposerVersion DecomposerVersion,
+   EntityDecomposerVersion SubdecomposerVersion = EntityDecomposerVersion::ConnectEdgesToPoint,
+   typename MeshConfig,
+   std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polygon >, bool > = true >
 auto  // returns Mesh
 getDecomposedMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
 {
@@ -131,10 +133,11 @@ struct TetrahedronConfig : public ParentConfig
    using CellTopology = Topologies::Tetrahedron;
 };
 
-template< EntityDecomposerVersion DecomposerVersion,
-          EntityDecomposerVersion SubdecomposerVersion,
-          typename MeshConfig,
-          std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polyhedron >, bool > = true >
+template<
+   EntityDecomposerVersion DecomposerVersion,
+   EntityDecomposerVersion SubdecomposerVersion,
+   typename MeshConfig,
+   std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polyhedron >, bool > = true >
 auto  // returns MeshBuilder
 decomposeMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
 {
@@ -217,10 +220,11 @@ decomposeMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
    return meshBuilder;
 }
 
-template< EntityDecomposerVersion DecomposerVersion,
-          EntityDecomposerVersion SubDecomposerVersion,
-          typename MeshConfig,
-          std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polyhedron >, bool > = true >
+template<
+   EntityDecomposerVersion DecomposerVersion,
+   EntityDecomposerVersion SubDecomposerVersion,
+   typename MeshConfig,
+   std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Polyhedron >, bool > = true >
 auto  // returns Mesh
 getDecomposedMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
 {

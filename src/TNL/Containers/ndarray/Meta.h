@@ -23,10 +23,11 @@ get_from_pack( T&& arg, Ts&&... args )
    return std::forward< T >( arg );
 }
 
-template< std::size_t index,
-          typename T,
-          typename... Ts,
-          typename = std::enable_if_t< ( index > 0 ) && index <= sizeof...( Ts ) > >
+template<
+   std::size_t index,
+   typename T,
+   typename... Ts,
+   typename = std::enable_if_t< ( index > 0 ) && index <= sizeof...( Ts ) > >
 constexpr auto
 get_from_pack( T&& arg, Ts&&... args )
 {
@@ -35,10 +36,11 @@ get_from_pack( T&& arg, Ts&&... args )
 
 // complementary specialization for getting a more readable compilation error
 // in case calling get with a bad index
-template< long long index,
-          typename T,
-          typename... Ts,
-          typename = std::enable_if_t< ( index < 0 ) || ( index > sizeof...( Ts ) ) > >
+template<
+   long long index,
+   typename T,
+   typename... Ts,
+   typename = std::enable_if_t< ( index < 0 ) || ( index > sizeof...( Ts ) ) > >
 constexpr T
 get_from_pack( T&& arg, Ts&&... args )
 {
@@ -214,12 +216,13 @@ constexpr bool
 all_elements_equal_to_value( std::size_t value, std::initializer_list< std::size_t > list )
 {
 #if defined( __cpp_lib_constexpr_algorithms ) && __cpp_lib_constexpr_algorithms >= 201907L
-   return std::all_of( list.begin(),
-                       list.end(),
-                       [ value ]( std::size_t elem ) constexpr
-                       {
-                          return elem == value;
-                       } );
+   return std::all_of(
+      list.begin(),
+      list.end(),
+      [ value ]( std::size_t elem ) constexpr
+      {
+         return elem == value;
+      } );
 #else
    // std::all_of is not constexpr before C++20
    for( auto elem : list )  // NOLINT(readability-use-anyofallof)
@@ -235,12 +238,13 @@ constexpr bool
 all_elements_in_range( std::size_t begin, std::size_t end, std::initializer_list< std::size_t > list )
 {
 #if defined( __cpp_lib_constexpr_algorithms ) && __cpp_lib_constexpr_algorithms >= 201907L
-   return std::all_of( list.begin(),
-                       list.end(),
-                       [ begin, end ]( std::size_t elem ) constexpr
-                       {
-                          return begin <= elem && elem < end;
-                       } );
+   return std::all_of(
+      list.begin(),
+      list.end(),
+      [ begin, end ]( std::size_t elem ) constexpr
+      {
+         return begin <= elem && elem < end;
+      } );
 #else
    // std::all_of is not constexpr before C++20
    for( auto elem : list )  // NOLINT(readability-use-anyofallof)

@@ -16,10 +16,11 @@ namespace TNL::Containers {
  * \par Output
  * \include DistributedArrayExample.out
  */
-template< typename Value,
-          typename Device = Devices::Host,
-          typename Index = int,
-          typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
+template<
+   typename Value,
+   typename Device = Devices::Host,
+   typename Index = int,
+   typename Allocator = typename Allocators::Default< Device >::template Allocator< Value > >
 class DistributedArray
 {
    using LocalArrayType = Containers::Array< Value, Device, Index, Allocator >;
@@ -41,10 +42,11 @@ public:
     * \ref TNL::Containers::DistributedArray "DistributedArray" type with
     * changed template parameters.
     */
-   template< typename _Value,
-             typename _Device = Device,
-             typename _Index = Index,
-             typename _Allocator = typename Allocators::Default< _Device >::template Allocator< _Value > >
+   template<
+      typename _Value,
+      typename _Device = Device,
+      typename _Index = Index,
+      typename _Allocator = typename Allocators::Default< _Device >::template Allocator< _Value > >
    using Self = DistributedArray< _Value, _Device, _Index, _Allocator >;
 
    ~DistributedArray();
@@ -79,11 +81,12 @@ public:
     */
    explicit DistributedArray( const DistributedArray& array, const AllocatorType& allocator );
 
-   DistributedArray( LocalRangeType localRange,
-                     Index ghosts,
-                     Index globalSize,
-                     const MPI::Comm& communicator,
-                     const AllocatorType& allocator = AllocatorType() );
+   DistributedArray(
+      LocalRangeType localRange,
+      Index ghosts,
+      Index globalSize,
+      const MPI::Comm& communicator,
+      const AllocatorType& allocator = AllocatorType() );
 
    /**
     * \brief Set new global size and distribution of the array.

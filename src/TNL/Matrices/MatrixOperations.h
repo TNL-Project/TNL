@@ -37,14 +37,15 @@ public:
     */
    template< typename RealType, typename IndexType >
    static void
-   gemv( const IndexType m,
-         const IndexType n,
-         const RealType alpha,
-         const RealType* A,
-         const IndexType lda,
-         const RealType* x,
-         const RealType beta,
-         RealType* y )
+   gemv(
+      const IndexType m,
+      const IndexType n,
+      const RealType alpha,
+      const RealType* A,
+      const IndexType lda,
+      const RealType* x,
+      const RealType beta,
+      RealType* y )
    {
       if( m <= 0 )
          throw std::invalid_argument( "gemv: m must be positive" );
@@ -156,16 +157,17 @@ public:
     */
    template< typename RealType, typename IndexType >
    static void
-   geam( const IndexType m,
-         const IndexType n,
-         const RealType alpha,
-         const RealType* A,
-         const IndexType lda,
-         const RealType beta,
-         const RealType* B,
-         const IndexType ldb,
-         RealType* C,
-         const IndexType ldc )
+   geam(
+      const IndexType m,
+      const IndexType n,
+      const RealType alpha,
+      const RealType* A,
+      const IndexType lda,
+      const RealType beta,
+      const RealType* B,
+      const IndexType ldb,
+      RealType* C,
+      const IndexType ldc )
    {
       if( m <= 0 )
          throw std::invalid_argument( "geam: m must be positive" );
@@ -231,14 +233,15 @@ public:
 template< typename RealType, typename IndexType >
 __global__
 void
-GemvCudaKernel( const IndexType m,
-                const IndexType n,
-                const RealType alpha,
-                const RealType* A,
-                const IndexType lda,
-                const RealType* x,
-                const RealType beta,
-                RealType* y )
+GemvCudaKernel(
+   const IndexType m,
+   const IndexType n,
+   const RealType alpha,
+   const RealType* A,
+   const IndexType lda,
+   const RealType* x,
+   const RealType beta,
+   RealType* y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    IndexType elementIdx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -275,16 +278,17 @@ GemvCudaKernel( const IndexType m,
 template< typename RealType, typename IndexType >
 __global__
 void
-GeamCudaKernel( const IndexType m,
-                const IndexType n,
-                const RealType alpha,
-                const RealType* A,
-                const IndexType lda,
-                const RealType beta,
-                const RealType* B,
-                const IndexType ldb,
-                RealType* C,
-                const IndexType ldc )
+GeamCudaKernel(
+   const IndexType m,
+   const IndexType n,
+   const RealType alpha,
+   const RealType* A,
+   const IndexType lda,
+   const RealType beta,
+   const RealType* B,
+   const IndexType ldb,
+   RealType* C,
+   const IndexType ldc )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    IndexType x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -321,14 +325,15 @@ public:
     */
    template< typename RealType, typename IndexType >
    static void
-   gemv( const IndexType m,
-         const IndexType n,
-         const RealType alpha,
-         const RealType* A,
-         const IndexType lda,
-         const RealType* x,
-         const RealType beta,
-         RealType* y )
+   gemv(
+      const IndexType m,
+      const IndexType n,
+      const RealType alpha,
+      const RealType* A,
+      const IndexType lda,
+      const RealType* x,
+      const RealType beta,
+      RealType* y )
    {
       if( m > lda )
          throw std::invalid_argument( "gemv: the size 'm' must be less than or equal to 'lda'." );
@@ -364,16 +369,17 @@ public:
     */
    template< typename RealType, typename IndexType >
    static void
-   geam( const IndexType m,
-         const IndexType n,
-         const RealType alpha,
-         const RealType* A,
-         const IndexType lda,
-         const RealType beta,
-         const RealType* B,
-         const IndexType ldb,
-         RealType* C,
-         const IndexType ldc )
+   geam(
+      const IndexType m,
+      const IndexType n,
+      const RealType alpha,
+      const RealType* A,
+      const IndexType lda,
+      const RealType beta,
+      const RealType* B,
+      const IndexType ldb,
+      RealType* C,
+      const IndexType ldc )
    {
       if( m <= 0 )
          throw std::invalid_argument( "geam: m must be positive" );

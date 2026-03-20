@@ -124,11 +124,12 @@ struct MeshLocalIndexTag< DecomposeMeshConfigTag, short int >
 template<>
 struct MeshConfigTemplateTag< DecomposeMeshConfigTag >
 {
-   template< typename Cell,
-             int SpaceDimension = Cell::dimension,
-             typename Real = double,
-             typename GlobalIndex = int,
-             typename LocalIndex = GlobalIndex >
+   template<
+      typename Cell,
+      int SpaceDimension = Cell::dimension,
+      typename Real = double,
+      typename GlobalIndex = int,
+      typename LocalIndex = GlobalIndex >
    struct MeshConfig : public TNL::Meshes::DefaultConfig< Cell, SpaceDimension, Real, GlobalIndex, LocalIndex >
    {
       static constexpr bool
@@ -179,9 +180,10 @@ configSetup( Config::ConfigDescription& config )
    config.addRequiredEntry< String >( "output-file", "Output mesh file (PVTU format)." );
    config.addRequiredEntry< unsigned >( "subdomains", "Number of subdomains to decompose the mesh." );
    config.addEntry< unsigned >( "ghost-levels", "Number of ghost levels by which the subdomains overlap.", 0 );
-   config.addEntry< unsigned >( "min-common-vertices",
-                                "Specifies the number of common nodes that two elements must have in order to put an "
-                                "edge between them in the dual graph. By default it is equal to the mesh dimension." );
+   config.addEntry< unsigned >(
+      "min-common-vertices",
+      "Specifies the number of common nodes that two elements must have in order to put an "
+      "edge between them in the dual graph. By default it is equal to the mesh dimension." );
    config.addDelimiter( "METIS options:" );
    config.addEntry< String >( "metis-ptype", "Partitioning method.", "KWAY" );
    config.addEntryEnum( "KWAY" );
@@ -203,36 +205,42 @@ configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "GREEDY" );
    config.addEntryEnum( "SEP2SIDED" );
    config.addEntryEnum( "SEP1SIDED" );
-   config.addEntry< int >( "metis-no2hop",
-                           "Specifies that the coarsening will not perform any 2–hop matchings when the standard "
-                           "matching approach fails to sufficiently coarsen the graph. The 2–hop matching is very "
-                           "effective for graphs with power-law degree distributions. "
-                           "0 - Performs a 2–hop matching. 1 - Does not perform a 2–hop matching. ",
-                           0 );
+   config.addEntry< int >(
+      "metis-no2hop",
+      "Specifies that the coarsening will not perform any 2–hop matchings when the standard "
+      "matching approach fails to sufficiently coarsen the graph. The 2–hop matching is very "
+      "effective for graphs with power-law degree distributions. "
+      "0 - Performs a 2–hop matching. 1 - Does not perform a 2–hop matching. ",
+      0 );
    config.addEntryEnum( 0 );
    config.addEntryEnum( 1 );
-   config.addEntry< unsigned >( "metis-ncuts",
-                                "Specifies the number of different partitionings that it will compute. The final "
-                                "partitioning is the one that achieves the best edgecut or communication volume.",
-                                1 );
-   config.addEntry< unsigned >( "metis-niter",
-                                "Specifies the number of iterations for the refinement algorithms at each stage of the "
-                                "uncoarsening process.",
-                                10 );
-   config.addEntry< unsigned >( "metis-ufactor",
-                                "Specifies the maximum allowed load imbalance among the partitions. "
-                                "The default value is 1 for metis-ptype=RB and 30 for metis-ptype=KWAY." );
-   config.addEntry< int >( "metis-minconn",
-                           "Specifies that the partitioning routines should try to minimize the maximum degree of the "
-                           "subdomain graph. Note that the option applies only to metis-ptype=KWAY.",
-                           1 );
+   config.addEntry< unsigned >(
+      "metis-ncuts",
+      "Specifies the number of different partitionings that it will compute. The final "
+      "partitioning is the one that achieves the best edgecut or communication volume.",
+      1 );
+   config.addEntry< unsigned >(
+      "metis-niter",
+      "Specifies the number of iterations for the refinement algorithms at each stage of the "
+      "uncoarsening process.",
+      10 );
+   config.addEntry< unsigned >(
+      "metis-ufactor",
+      "Specifies the maximum allowed load imbalance among the partitions. "
+      "The default value is 1 for metis-ptype=RB and 30 for metis-ptype=KWAY." );
+   config.addEntry< int >(
+      "metis-minconn",
+      "Specifies that the partitioning routines should try to minimize the maximum degree of the "
+      "subdomain graph. Note that the option applies only to metis-ptype=KWAY.",
+      1 );
    config.addEntryEnum( 0 );
    config.addEntryEnum( 1 );
-   config.addEntry< int >( "metis-contig",
-                           "Specifies that the partitioning routines should try to produce partitions that are "
-                           "contiguous. Note that if the input graph is not connected this option is ignored. "
-                           "Note that the option applies only to metis-ptype=KWAY.",
-                           1 );
+   config.addEntry< int >(
+      "metis-contig",
+      "Specifies that the partitioning routines should try to produce partitions that are "
+      "contiguous. Note that if the input graph is not connected this option is ignored. "
+      "Note that the option applies only to metis-ptype=KWAY.",
+      1 );
    config.addEntryEnum( 0 );
    config.addEntryEnum( 1 );
    config.addEntry< unsigned >(
@@ -338,14 +346,15 @@ setMETISoptions( idx_t options[ METIS_NOPTIONS ], const Config::ParameterContain
 
 template< typename Mesh >
 void
-decompose_and_save( const Mesh& mesh,
-                    const unsigned nparts,
-                    const MetisIndexArray& part,
-                    const std::shared_ptr< idx_t >& dual_xadj,
-                    const std::shared_ptr< idx_t >& dual_adjncy,
-                    const unsigned ncommon,
-                    const unsigned ghost_levels,
-                    const std::string& pvtuFileName )
+decompose_and_save(
+   const Mesh& mesh,
+   const unsigned nparts,
+   const MetisIndexArray& part,
+   const std::shared_ptr< idx_t >& dual_xadj,
+   const std::shared_ptr< idx_t >& dual_adjncy,
+   const unsigned ncommon,
+   const unsigned ghost_levels,
+   const std::string& pvtuFileName )
 {
    using Index = typename Mesh::GlobalIndexType;
    using IndexArray = Containers::Array< Index, Devices::Sequential, Index >;
@@ -659,12 +668,13 @@ decompose_and_save( const Mesh& mesh,
          std::iota( permutation.begin(), permutation.end(), static_cast< Index >( 0 ) );
 
          // sort the subarray corresponding to ghost entities by the global index
-         std::stable_sort( permutation.begin() + points.getSize() - pointsGhostCount,
-                           permutation.end(),
-                           [ &pointsGlobalIndices ]( auto& left, auto& right )
-                           {
-                              return pointsGlobalIndices[ left ] < pointsGlobalIndices[ right ];
-                           } );
+         std::stable_sort(
+            permutation.begin() + points.getSize() - pointsGhostCount,
+            permutation.end(),
+            [ &pointsGlobalIndices ]( auto& left, auto& right )
+            {
+               return pointsGlobalIndices[ left ] < pointsGlobalIndices[ right ];
+            } );
 
          // copy the permutation into TNL array
          typename Mesh::GlobalIndexArray perm( permutation );

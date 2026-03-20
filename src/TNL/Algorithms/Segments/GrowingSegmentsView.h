@@ -79,12 +79,13 @@ struct GrowingSegmentsView : public SegmentsView_
 
    template< typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    void
-   reduceSegments( IndexType begin,
-                   IndexType end,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   ResultKeeper&& keeper,
-                   const Value& identity ) const
+   reduceSegments(
+      IndexType begin,
+      IndexType end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultKeeper&& keeper,
+      const Value& identity ) const
    {
       // NVCC does not allow if constexpr inside lambda
       /*if constexpr( detail::CheckFetchLambda< IndexType, Fetch >::hasAllParameters() ) {

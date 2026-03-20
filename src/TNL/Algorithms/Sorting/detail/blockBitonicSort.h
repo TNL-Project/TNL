@@ -19,10 +19,11 @@ namespace TNL::Algorithms::Sorting::detail {
 template< typename Value, typename Index, typename CMP >
 __device__
 void
-bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src,
-                   TNL::Containers::ArrayView< Value, TNL::Devices::Cuda, Index > dst,
-                   Value* sharedMem,
-                   const CMP& Cmp )
+bitonicSort_Block(
+   TNL::Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src,
+   TNL::Containers::ArrayView< Value, TNL::Devices::Cuda, Index > dst,
+   Value* sharedMem,
+   const CMP& Cmp )
 {
    // copy from globalMem into sharedMem
    for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x )

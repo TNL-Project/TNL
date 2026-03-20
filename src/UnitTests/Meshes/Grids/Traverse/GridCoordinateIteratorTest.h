@@ -10,15 +10,16 @@ using Device = TNL::Devices::Host;
 
 template< typename Grid, typename Iterator >
 void
-test( Iterator& iterator,
-      Grid& grid,
-      const typename Grid::CoordinatesType& coordinate,
-      const typename Grid::CoordinatesType& normals,
-      const typename Grid::PointType& center,
-      bool isBoundary,
-      typename Iterator::Index index,
-      typename Iterator::Real measure,
-      bool next )
+test(
+   Iterator& iterator,
+   Grid& grid,
+   const typename Grid::CoordinatesType& coordinate,
+   const typename Grid::CoordinatesType& normals,
+   const typename Grid::PointType& center,
+   bool isBoundary,
+   typename Iterator::Index index,
+   typename Iterator::Real measure,
+   bool next )
 {
    static Real precision = 9e-5;
 

@@ -11,10 +11,11 @@ main()
    // dynamic (run-time specified) number of columns
    int num_cols = 10;
 
-   using HalfStaticArray = NDArray< int,                              // Value
-                                    SizesHolder< int, num_rows, 0 >,  // SizesHolder
-                                    std::index_sequence< 0, 1 >,      // Permutation
-                                    TNL::Devices::Host >;             // Device
+   using HalfStaticArray = NDArray<
+      int,                              // Value
+      SizesHolder< int, num_rows, 0 >,  // SizesHolder
+      std::index_sequence< 0, 1 >,      // Permutation
+      TNL::Devices::Host >;             // Device
    HalfStaticArray a;
 
    // set array sizes: statically-sized axes must have 0

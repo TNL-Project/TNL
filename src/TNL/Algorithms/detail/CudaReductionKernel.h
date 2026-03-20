@@ -43,13 +43,14 @@ struct CudaBlockReduceSharedMemory
     */
    __device__
    static ValueType
-   reduce( const Reduction& reduction,
-           ValueType identity,
-           ValueType threadValue,
-           Storage& storage,
-           int global_tid,
-           int segment_tid,
-           int result_idx = 0 )
+   reduce(
+      const Reduction& reduction,
+      ValueType identity,
+      ValueType threadValue,
+      Storage& storage,
+      int global_tid,
+      int segment_tid,
+      int result_idx = 0 )
    {
       storage.data[ global_tid ] = threadValue;
       __syncthreads();
@@ -161,8 +162,9 @@ struct CudaBlockReduceShfl
    reduce( const Reduction& reduction, ValueType identity, ValueType threadValue, Storage& storage, int tid )
    {
       // verify the configuration
-      static_assert( blockSize / Backend::getWarpSize() <= Backend::getWarpSize(),
-                     "blockSize is too large, it would not be possible to reduce warpResults using one warp" );
+      static_assert(
+         blockSize / Backend::getWarpSize() <= Backend::getWarpSize(),
+         "blockSize is too large, it would not be possible to reduce warpResults using one warp" );
 
       int lane_id = tid % Backend::getWarpSize();
       int warp_id = tid / Backend::getWarpSize();
@@ -317,12 +319,13 @@ struct CudaBlockReduceWithArgument
     */
    __device__
    static std::pair< ValueType, IndexType >
-   reduceWithArgument( const Reduction& reduction,
-                       ValueType identity,
-                       ValueType threadValue,
-                       IndexType threadIndex,
-                       Storage& storage,
-                       int tid )
+   reduceWithArgument(
+      const Reduction& reduction,
+      ValueType identity,
+      ValueType threadValue,
+      IndexType threadIndex,
+      Storage& storage,
+      int tid )
    {
       storage.data[ tid ] = threadValue;
       storage.idx[ tid ] = threadIndex;
@@ -422,12 +425,13 @@ struct CudaBlockReduceWithArgument
 template< int blockSize, typename DataFetcher, typename Reduction, typename Result, typename Index >
 __global__
 void
-CudaReductionKernel( DataFetcher dataFetcher,
-                     const Reduction reduction,
-                     Result identity,
-                     Index begin,
-                     Index end,
-                     Result* output )
+CudaReductionKernel(
+   DataFetcher dataFetcher,
+   const Reduction reduction,
+   Result identity,
+   Index begin,
+   Index end,
+   Result* output )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaReductionKernel" );
@@ -482,14 +486,15 @@ CudaReductionKernel( DataFetcher dataFetcher,
 template< int blockSize, typename DataFetcher, typename Reduction, typename Result, typename Index >
 __global__
 void
-CudaReductionWithArgumentKernel( DataFetcher dataFetcher,
-                                 const Reduction reduction,
-                                 Result identity,
-                                 Index begin,
-                                 Index end,
-                                 Result* output,
-                                 Index* idxOutput,
-                                 const Index* idxInput = nullptr )
+CudaReductionWithArgumentKernel(
+   DataFetcher dataFetcher,
+   const Reduction reduction,
+   Result identity,
+   Index begin,
+   Index end,
+   Result* output,
+   Index* idxOutput,
+   const Index* idxInput = nullptr )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    TNL_ASSERT_EQ( blockDim.x, blockSize, "unexpected block size in CudaReductionKernel" );
@@ -616,11 +621,12 @@ struct CudaReductionKernelLauncher
 
    template< typename DataFetcher, typename Reduction >
    int
-   startWithArgument( const Reduction& reduction,
-                      DataFetcher& dataFetcher,
-                      const Result& identity,
-                      Result*& output,
-                      Index*& idxOutput )
+   startWithArgument(
+      const Reduction& reduction,
+      DataFetcher& dataFetcher,
+      const Result& identity,
+      Result*& output,
+      Index*& idxOutput )
    {
       // create reference to the reduction buffer singleton and set size
       const std::size_t buf_size = 2 * desGridSize * ( sizeof( Result ) + sizeof( Index ) );
@@ -701,12 +707,13 @@ struct CudaReductionKernelLauncher
 protected:
    template< typename DataFetcher, typename Reduction >
    int
-   launch( const Index begin,
-           const Index end,
-           const Reduction& reduction,
-           DataFetcher& dataFetcher,
-           const Result& identity,
-           Result* output )
+   launch(
+      const Index begin,
+      const Index end,
+      const Reduction& reduction,
+      DataFetcher& dataFetcher,
+      const Result& identity,
+      Result* output )
    {
       const Index size = end - begin;
       Backend::LaunchConfiguration launch_config;
@@ -716,20 +723,22 @@ protected:
 
       // Check just to future-proof the code setting blockSize.x
       if( launch_config.blockSize.x == maxThreadsPerBlock ) {
-         Backend::funcSetCacheConfig( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-                                      Backend::FuncCachePreferShared );
-         Backend::launchKernelSync( CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
-                                    launch_config,
-                                    dataFetcher,
-                                    reduction,
-                                    identity,
-                                    begin,
-                                    end,
-                                    output );
+         Backend::funcSetCacheConfig(
+            CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >, Backend::FuncCachePreferShared );
+         Backend::launchKernelSync(
+            CudaReductionKernel< maxThreadsPerBlock, DataFetcher, Reduction, Result, Index >,
+            launch_config,
+            dataFetcher,
+            reduction,
+            identity,
+            begin,
+            end,
+            output );
       }
       else {
-         throw std::runtime_error( "Block size was expected to be " + std::to_string( maxThreadsPerBlock ) + ", but "
-                                   + std::to_string( launch_config.blockSize.x ) + " was specified." );
+         throw std::runtime_error(
+            "Block size was expected to be " + std::to_string( maxThreadsPerBlock ) + ", but "
+            + std::to_string( launch_config.blockSize.x ) + " was specified." );
       }
 
       // Return the size of the output array on the CUDA device
@@ -738,14 +747,15 @@ protected:
 
    template< typename DataFetcher, typename Reduction >
    int
-   launchWithArgument( const Index begin,
-                       const Index end,
-                       const Reduction& reduction,
-                       DataFetcher& dataFetcher,
-                       const Result& identity,
-                       Result* output,
-                       Index* idxOutput,
-                       const Index* idxInput )
+   launchWithArgument(
+      const Index begin,
+      const Index end,
+      const Reduction& reduction,
+      DataFetcher& dataFetcher,
+      const Result& identity,
+      Result* output,
+      Index* idxOutput,
+      const Index* idxInput )
    {
       const Index size = end - begin;
       Backend::LaunchConfiguration launch_config;
@@ -771,8 +781,9 @@ protected:
             idxInput );
       }
       else {
-         throw std::runtime_error( "Block size was expected to be " + std::to_string( maxThreadsPerBlock ) + ", but "
-                                   + std::to_string( launch_config.blockSize.x ) + " was specified." );
+         throw std::runtime_error(
+            "Block size was expected to be " + std::to_string( maxThreadsPerBlock ) + ", but "
+            + std::to_string( launch_config.blockSize.x ) + " was specified." );
       }
 
       // return the size of the output array on the CUDA device

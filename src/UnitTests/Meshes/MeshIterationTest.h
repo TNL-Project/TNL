@@ -51,10 +51,11 @@ public:
 
 template< typename EntityType, typename DeviceMeshPointer, typename HostArray >
 void
-testIteration( const DeviceMeshPointer& deviceMeshPointer,
-               const HostArray& host_array_boundary,
-               const HostArray& host_array_interior,
-               const HostArray& host_array_all )
+testIteration(
+   const DeviceMeshPointer& deviceMeshPointer,
+   const HostArray& host_array_boundary,
+   const HostArray& host_array_interior,
+   const HostArray& host_array_all )
 {
    using MeshType = typename DeviceMeshPointer::ObjectType;
    using DeviceType = typename MeshType::DeviceType;
@@ -261,8 +262,8 @@ TEST( MeshTest, RegularMeshOfHexahedronsTest )
    for( IndexType k = 0; k <= zSize; k++ )
       for( IndexType j = 0; j <= ySize; j++ )
          for( IndexType i = 0; i <= xSize; i++ )
-            meshBuilder.setPoint( k * ( xSize + 1 ) * ( ySize + 1 ) + j * ( xSize + 1 ) + i,
-                                  PointType( i * hx, j * hy, k * hz ) );
+            meshBuilder.setPoint(
+               k * ( xSize + 1 ) * ( ySize + 1 ) + j * ( xSize + 1 ) + i, PointType( i * hx, j * hy, k * hz ) );
 
    /****
     * Setup cells

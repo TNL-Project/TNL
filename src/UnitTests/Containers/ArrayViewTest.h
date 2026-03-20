@@ -293,8 +293,9 @@ testArrayViewElementwiseAccess( Array< Value, Devices::Host, Index >&& a )
 template< typename ValueType, typename IndexType >
 __global__
 void
-testSetGetElementKernel( ArrayView< ValueType, Devices::Cuda, IndexType > u,
-                         ArrayView< ValueType, Devices::Cuda, IndexType > v )
+testSetGetElementKernel(
+   ArrayView< ValueType, Devices::Cuda, IndexType > u,
+   ArrayView< ValueType, Devices::Cuda, IndexType > v )
 {
    if( threadIdx.x < v.getSize() )
       u[ threadIdx.x ] = v( threadIdx.x ) = ValueType( threadIdx.x );
@@ -563,9 +564,10 @@ testArrayAssignmentWithDifferentType()
    EXPECT_EQ( v_host.getData(), b_host.getData() );
 }
 
-template< typename ArrayType,
-          typename = std::enable_if_t< ! std::is_arithmetic_v< typename ArrayType::ValueType > >,
-          typename = void >
+template<
+   typename ArrayType,
+   typename = std::enable_if_t< ! std::is_arithmetic_v< typename ArrayType::ValueType > >,
+   typename = void >
 void
 testArrayAssignmentWithDifferentType()
 {}

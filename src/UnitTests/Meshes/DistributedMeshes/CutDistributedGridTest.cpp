@@ -11,10 +11,11 @@ using namespace TNL::Devices;
 
 template< typename MeshType >
 void
-SetUpDistributedGrid( DistributedMesh< MeshType >& distributedGrid,
-                      MeshType& globalGrid,
-                      int size,
-                      typename MeshType::CoordinatesType distribution )
+SetUpDistributedGrid(
+   DistributedMesh< MeshType >& distributedGrid,
+   MeshType& globalGrid,
+   int size,
+   typename MeshType::CoordinatesType distribution )
 {
    typename MeshType::PointType globalOrigin;
    typename MeshType::PointType globalProportions;

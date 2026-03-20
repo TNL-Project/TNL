@@ -136,9 +136,10 @@ MemoryAccessBenchmarkTestArray< Size >::setupRandomTLBWorstTest()
 
 template< int Size >
 bool
-MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock( std::uintptr_t blockSize,
-                                                              PtrArrayType& blockLink,
-                                                              int numThreads )
+MemoryAccessBenchmarkTestArray< Size >::setupRandomTestBlock(
+   std::uintptr_t blockSize,
+   PtrArrayType& blockLink,
+   int numThreads )
 {
    TNL::Containers::Array< char > usedElements( blockSize, 0 );
    TNL::Containers::Array< std::uintptr_t > previousElement( numThreads, 0 );

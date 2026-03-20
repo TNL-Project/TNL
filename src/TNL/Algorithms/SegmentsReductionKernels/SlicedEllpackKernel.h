@@ -36,31 +36,35 @@ struct SlicedEllpackKernel
    [[nodiscard]] static std::string
    getKernelType();
 
-   template< typename SegmentsView,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename SegmentsView,
+      typename Fetch,
+      typename Reduction,
+      typename ResultKeeper,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegments( const SegmentsView& segments,
-                   Index begin,
-                   Index end,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Value& identity = Reduction::template getIdentity< Value >() );
+   reduceSegments(
+      const SegmentsView& segments,
+      Index begin,
+      Index end,
+      Fetch& fetch,
+      const Reduction& reduction,
+      ResultKeeper& keeper,
+      const Value& identity = Reduction::template getIdentity< Value >() );
 
-   template< typename SegmentsView,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename SegmentsView,
+      typename Fetch,
+      typename Reduction,
+      typename ResultKeeper,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceAllSegments( const SegmentsView& segments,
-                      Fetch& fetch,
-                      const Reduction& reduction,
-                      ResultKeeper& keeper,
-                      const Value& identity = Reduction::template getIdentity< Value >() );
+   reduceAllSegments(
+      const SegmentsView& segments,
+      Fetch& fetch,
+      const Reduction& reduction,
+      ResultKeeper& keeper,
+      const Value& identity = Reduction::template getIdentity< Value >() );
 };
 
 template< typename Index, typename Device >

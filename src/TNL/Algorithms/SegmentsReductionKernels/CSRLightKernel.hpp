@@ -11,23 +11,25 @@
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
-template< int ThreadsPerSegment,
-          typename Value,
-          typename Index,
-          typename OffsetsView,
-          typename Fetch,
-          typename Reduce,
-          typename Keep >
+template<
+   int ThreadsPerSegment,
+   typename Value,
+   typename Index,
+   typename OffsetsView,
+   typename Fetch,
+   typename Reduce,
+   typename Keep >
 __global__
 void
-CSRVectorReduction( OffsetsView offsets,
-                    const Index begin,
-                    const Index end,
-                    Fetch fetch,
-                    Reduce reduce,
-                    Keep keep,
-                    const Value identity,
-                    const Index gridID )
+CSRVectorReduction(
+   OffsetsView offsets,
+   const Index begin,
+   const Index end,
+   Fetch fetch,
+   Reduce reduce,
+   Keep keep,
+   const Value identity,
+   const Index gridID )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -104,24 +106,26 @@ CSRVectorReduction( OffsetsView offsets,
 #endif
 }
 
-template< int BlockSize,
-          int ThreadsPerSegment,
-          typename Offsets,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultKeeper,
-          typename Value >
+template<
+   int BlockSize,
+   int ThreadsPerSegment,
+   typename Offsets,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultKeeper,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
-                                         const Offsets offsets,
-                                         Index begin,
-                                         Index end,
-                                         Fetch fetch,
-                                         const Reduction reduce,
-                                         ResultKeeper keep,
-                                         const Value identity )
+reduceSegmentsCSRLightMultivectorKernel(
+   int gridIdx,
+   const Offsets offsets,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   const Reduction reduce,
+   ResultKeeper keep,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -276,13 +280,14 @@ CSRLightKernel< Index, Device >::getConstView() const -> ConstViewType
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename Keep, typename Value >
 void
-CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                 Index begin,
-                                                 Index end,
-                                                 Fetch& fetch,
-                                                 const Reduction& reduction,
-                                                 Keep& keep,
-                                                 const Value& identity ) const
+CSRLightKernel< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   Keep& keep,
+   const Value& identity ) const
 {
    constexpr bool DispatchScalarCSR = detail::CheckFetchLambda< Index, Fetch >::hasAllParameters()
                                    || std::is_same_v< Device, Devices::Host > || ! std::is_fundamental_v< Value >;
@@ -357,11 +362,12 @@ CSRLightKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRLightKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                    Fetch& fetch,
-                                                    const Reduction& reduction,
-                                                    ResultKeeper& keeper,
-                                                    const Value& identity ) const
+CSRLightKernel< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity ) const
 {
    reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }

@@ -50,8 +50,8 @@ GridTypeResolver< ConfigTag, Device >::detail< Reader, Functor >::resolveReal( R
          throw std::invalid_argument( "Unsupported real type: " + reader.getRealType() );
    }
    else {
-      throw std::invalid_argument( "The grid dimension " + std::to_string( MeshDimension )
-                                   + " is disabled in the build configuration." );
+      throw std::invalid_argument(
+         "The grid dimension " + std::to_string( MeshDimension ) + " is disabled in the build configuration." );
    }
 }
 

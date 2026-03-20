@@ -67,8 +67,9 @@ MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::getValu
 template< typename ValuesView, typename Indexer, typename DiagonalsOffsetsView >
 __cuda_callable__
 void
-MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::setElement( const IndexType localIdx,
-                                                                                     const RealType& value )
+MultidiagonalMatrixRowView< ValuesView, Indexer, DiagonalsOffsetsView >::setElement(
+   const IndexType localIdx,
+   const RealType& value )
 {
    this->values[ indexer.getGlobalIndex( rowIdx, localIdx ) ] = value;
 }

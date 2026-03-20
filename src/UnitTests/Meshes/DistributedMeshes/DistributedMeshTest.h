@@ -39,11 +39,12 @@ struct GridDistributor< TNL::Meshes::Grid< 2, Real, Device, Index > >
    using GridType = TNL::Meshes::Grid< 2, Real, Device, Index >;
    using CoordinatesType = typename GridType::CoordinatesType;
    using CellTopology = TNL::Meshes::Topologies::Quadrangle;
-   using MeshConfig = TNL::Meshes::DefaultConfig< CellTopology,
-                                                  CellTopology::dimension,
-                                                  typename GridType::RealType,
-                                                  typename GridType::GlobalIndexType,
-                                                  LocalIndexType >;
+   using MeshConfig = TNL::Meshes::DefaultConfig<
+      CellTopology,
+      CellTopology::dimension,
+      typename GridType::RealType,
+      typename GridType::GlobalIndexType,
+      LocalIndexType >;
    using LocalMeshType = TNL::Meshes::Mesh< MeshConfig >;
 
    GridDistributor() = delete;
@@ -373,8 +374,8 @@ validateMesh( const Mesh& mesh, const Distributor& distributor, int ghostLevels 
    // check entities counts
    EXPECT_EQ( mesh.getLocalMesh().template getEntitiesCount< 0 >(), distributor.verticesCount );
    EXPECT_EQ( mesh.getLocalMesh().template getEntitiesCount< 2 >(), distributor.cellsCount );
-   EXPECT_EQ( mesh.getLocalMesh().template getGhostEntitiesCount< 0 >(),
-              distributor.verticesCount - distributor.localVerticesCount );
+   EXPECT_EQ(
+      mesh.getLocalMesh().template getGhostEntitiesCount< 0 >(), distributor.verticesCount - distributor.localVerticesCount );
    EXPECT_EQ( mesh.getLocalMesh().template getGhostEntitiesCount< 2 >(), distributor.cellsCount - distributor.localCellsCount );
    EXPECT_EQ( mesh.getLocalMesh().template getGhostEntitiesOffset< 0 >(), distributor.localVerticesCount );
    EXPECT_EQ( mesh.getLocalMesh().template getGhostEntitiesOffset< 2 >(), distributor.localCellsCount );
@@ -382,14 +383,16 @@ validateMesh( const Mesh& mesh, const Distributor& distributor, int ghostLevels 
    if( ghostLevels > 0 ) {
       // check that vtkPointGhostTypes is consistent with the tags array
       for( Index i = 0; i < distributor.verticesCount; i++ ) {
-         EXPECT_EQ( mesh.getLocalMesh().template isGhostEntity< 0 >( i ),
-                    mesh.vtkPointGhostTypes()[ i ] & (std::uint8_t) VTK::PointGhostTypes::DUPLICATEPOINT )
+         EXPECT_EQ(
+            mesh.getLocalMesh().template isGhostEntity< 0 >( i ),
+            mesh.vtkPointGhostTypes()[ i ] & (std::uint8_t) VTK::PointGhostTypes::DUPLICATEPOINT )
             << "vertex idx = " << i;
       }
       // check that vtkPointGhostTypes and vtkCellGhostTypes are consistent with the entities tags arrays
       for( Index i = 0; i < distributor.cellsCount; i++ ) {
-         EXPECT_EQ( mesh.getLocalMesh().template isGhostEntity< 2 >( i ),
-                    mesh.vtkCellGhostTypes()[ i ] & (std::uint8_t) VTK::CellGhostTypes::DUPLICATECELL )
+         EXPECT_EQ(
+            mesh.getLocalMesh().template isGhostEntity< 2 >( i ),
+            mesh.vtkCellGhostTypes()[ i ] & (std::uint8_t) VTK::CellGhostTypes::DUPLICATECELL )
             << "cell idx = " << i;
       }
    }
@@ -460,12 +463,13 @@ struct TestEntitiesProcessor
 
 template< typename Device, typename EntityType, typename MeshType, typename HostArray >
 void
-testIterationOnDevice( const MeshType& mesh,
-                       const HostArray& expected_array_boundary,
-                       const HostArray& expected_array_interior,
-                       const HostArray& expected_array_all,
-                       const HostArray& expected_array_ghost,
-                       const HostArray& expected_array_local )
+testIterationOnDevice(
+   const MeshType& mesh,
+   const HostArray& expected_array_boundary,
+   const HostArray& expected_array_interior,
+   const HostArray& expected_array_all,
+   const HostArray& expected_array_ghost,
+   const HostArray& expected_array_local )
 {
    using DeviceMesh = Mesh< typename MeshType::Config, Device >;
    Pointers::SharedPointer< DeviceMesh > meshPointer;
@@ -587,30 +591,33 @@ testIteration( const Mesh& mesh )
    // test
    testIterationOnDevice< Devices::Host, typename Mesh::Cell >(
       mesh.getLocalMesh(), array_cells_boundary, array_cells_interior, array_cells_all, array_cells_ghost, array_cells_local );
-   testIterationOnDevice< Devices::Host, typename Mesh::Vertex >( mesh.getLocalMesh(),
-                                                                  array_vertices_boundary,
-                                                                  array_vertices_interior,
-                                                                  array_vertices_all,
-                                                                  array_vertices_ghost,
-                                                                  array_vertices_local );
+   testIterationOnDevice< Devices::Host, typename Mesh::Vertex >(
+      mesh.getLocalMesh(),
+      array_vertices_boundary,
+      array_vertices_interior,
+      array_vertices_all,
+      array_vertices_ghost,
+      array_vertices_local );
 #if defined( __CUDACC__ )
    testIterationOnDevice< Devices::Cuda, typename Mesh::Cell >(
       mesh.getLocalMesh(), array_cells_boundary, array_cells_interior, array_cells_all, array_cells_ghost, array_cells_local );
-   testIterationOnDevice< Devices::Cuda, typename Mesh::Vertex >( mesh.getLocalMesh(),
-                                                                  array_vertices_boundary,
-                                                                  array_vertices_interior,
-                                                                  array_vertices_all,
-                                                                  array_vertices_ghost,
-                                                                  array_vertices_local );
+   testIterationOnDevice< Devices::Cuda, typename Mesh::Vertex >(
+      mesh.getLocalMesh(),
+      array_vertices_boundary,
+      array_vertices_interior,
+      array_vertices_all,
+      array_vertices_ghost,
+      array_vertices_local );
 #elif defined( __HIP__ )
    testIterationOnDevice< Devices::Hip, typename Mesh::Cell >(
       mesh.getLocalMesh(), array_cells_boundary, array_cells_interior, array_cells_all, array_cells_ghost, array_cells_local );
-   testIterationOnDevice< Devices::Hip, typename Mesh::Vertex >( mesh.getLocalMesh(),
-                                                                 array_vertices_boundary,
-                                                                 array_vertices_interior,
-                                                                 array_vertices_all,
-                                                                 array_vertices_ghost,
-                                                                 array_vertices_local );
+   testIterationOnDevice< Devices::Hip, typename Mesh::Vertex >(
+      mesh.getLocalMesh(),
+      array_vertices_boundary,
+      array_vertices_interior,
+      array_vertices_all,
+      array_vertices_ghost,
+      array_vertices_local );
 #endif
 }
 
@@ -676,8 +683,8 @@ testSynchronizerOnDevice_entity_centers( const MeshType& mesh )
    // initialize
    DeviceMesh deviceMesh;
    deviceMesh = mesh;
-   Array f( mesh.getLocalMesh().template getEntitiesCount< EntityType::getEntityDimension() >()
-            * MeshType::getMeshDimension() );
+   Array f(
+      mesh.getLocalMesh().template getEntitiesCount< EntityType::getEntityDimension() >() * MeshType::getMeshDimension() );
    f.setValue( 0 );
 
    // set center of each local entity

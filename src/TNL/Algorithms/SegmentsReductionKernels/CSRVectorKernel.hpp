@@ -15,14 +15,15 @@ namespace TNL::Algorithms::SegmentsReductionKernels {
 template< typename Offsets, typename Index, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 __global__
 void
-reduceSegmentsCSRKernelVector( int gridIdx,
-                               const Offsets offsets,
-                               Index begin,
-                               Index end,
-                               Fetch fetch,
-                               const Reduction reduction,
-                               ResultKeeper keep,
-                               const Value identity )
+reduceSegmentsCSRKernelVector(
+   int gridIdx,
+   const Offsets offsets,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   const Reduction reduction,
+   ResultKeeper keep,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -91,13 +92,14 @@ CSRVectorKernel< Index, Device >::getKernelType()
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                  Index begin,
-                                                  Index end,
-                                                  Fetch& fetch,
-                                                  const Reduction& reduction,
-                                                  ResultKeeper& keeper,
-                                                  const Value& identity )
+CSRVectorKernel< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    constexpr bool DispatchScalarCSR = std::is_same_v< Device, Devices::Host >;
    if constexpr( DispatchScalarCSR ) {
@@ -130,11 +132,12 @@ CSRVectorKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-CSRVectorKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                     Fetch& fetch,
-                                                     const Reduction& reduction,
-                                                     ResultKeeper& keeper,
-                                                     const Value& identity )
+CSRVectorKernel< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    reduceSegments( segments, 0, segments.getSegmentsCount(), fetch, reduction, keeper, identity );
 }

@@ -40,8 +40,8 @@ class PVTUReader : public XMLVTK
       verifyDataArray( pointsData, "PDataArray" );
       const std::string pointsDataName = getAttributeString( pointsData, "Name" );
       if( pointsDataName != "Points" )
-         throw MeshReaderError( "PVTUReader",
-                                "the <PPoints> tag does not contain a <PDataArray> with Name=\"Points\" attribute" );
+         throw MeshReaderError(
+            "PVTUReader", "the <PPoints> tag does not contain a <PDataArray> with Name=\"Points\" attribute" );
       pointsType = VTKDataTypes.at( getAttributeString( pointsData, "type" ) );
 
       // read pieces info
@@ -61,9 +61,10 @@ class PVTUReader : public XMLVTK
       // check that the number of pieces matches the number of MPI ranks
       const int nproc = communicator.size();
       if( static_cast< int >( pieceSources.size() ) != nproc )
-         throw MeshReaderError( "PVTUReader",
-                                "the number of subdomains does not match the number of MPI ranks ("
-                                   + std::to_string( pieceSources.size() ) + " vs " + std::to_string( nproc ) + ")." );
+         throw MeshReaderError(
+            "PVTUReader",
+            "the number of subdomains does not match the number of MPI ranks (" + std::to_string( pieceSources.size() ) + " vs "
+               + std::to_string( nproc ) + ")." );
 
       // read the local piece source
       const int rank = communicator.rank();
@@ -185,8 +186,8 @@ public:
          using std::get;
          const std::vector< std::uint8_t > cellTags = get< std::vector< std::uint8_t > >( this->cellTags );
          if( static_cast< Index >( cellTags.size() ) != cellsCount )
-            throw MeshReaderError( "PVTUReader",
-                                   "the vtkGhostType array in CellData has wrong size: " + std::to_string( cellTags.size() ) );
+            throw MeshReaderError(
+               "PVTUReader", "the vtkGhostType array in CellData has wrong size: " + std::to_string( cellTags.size() ) );
          mesh.vtkCellGhostTypes() = cellTags;
          for( Index i = 0; i < cellsCount; i++ ) {
             if( cellTags[ i ] & static_cast< std::uint8_t >( VTK::CellGhostTypes::DUPLICATECELL ) )
@@ -207,9 +208,10 @@ public:
                [ &array, expectedSize ]( auto&& vector )
                {
                   if( static_cast< Index >( vector.size() ) != expectedSize )
-                     throw MeshReaderError( "PVTUReader",
-                                            "the GlobalIndex array has wrong size: " + std::to_string( vector.size() )
-                                               + " (expected " + std::to_string( expectedSize ) + ")." );
+                     throw MeshReaderError(
+                        "PVTUReader",
+                        "the GlobalIndex array has wrong size: " + std::to_string( vector.size() ) + " (expected "
+                           + std::to_string( expectedSize ) + ")." );
                   array.setSize( vector.size() );
                   std::size_t idx = 0;
                   for( auto v : vector )

@@ -735,12 +735,13 @@ public:
     */
    template< typename InVector, typename OutVector >
    void
-   vectorProduct( const InVector& inVector,
-                  OutVector& outVector,
-                  const RealType& matrixMultiplicator = 1.0,
-                  const RealType& outVectorMultiplicator = 0.0,
-                  IndexType begin = 0,
-                  IndexType end = 0 ) const;
+   vectorProduct(
+      const InVector& inVector,
+      OutVector& outVector,
+      const RealType& matrixMultiplicator = 1.0,
+      const RealType& outVectorMultiplicator = 0.0,
+      IndexType begin = 0,
+      IndexType end = 0 ) const;
 
    /**
     * \brief Computes matrix addition.
@@ -753,10 +754,11 @@ public:
     */
    template< typename Matrix >
    void
-   addMatrix( const Matrix& matrix,
-              const RealType& matrixMultiplicator = 1.0,
-              const RealType& thisMatrixMultiplicator = 1.0,
-              TransposeState transpose = TransposeState::None );
+   addMatrix(
+      const Matrix& matrix,
+      const RealType& matrixMultiplicator = 1.0,
+      const RealType& thisMatrixMultiplicator = 1.0,
+      TransposeState transpose = TransposeState::None );
 
    /**
     * \brief Comparison operator with another dense matrix view.

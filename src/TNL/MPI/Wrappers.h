@@ -139,33 +139,35 @@ Recv( T* data, int count, int src, int tag, MPI_Comm communicator = MPI_COMM_WOR
 
 template< typename T >
 void
-Sendrecv( const T* sendData,
-          int sendCount,
-          int destination,
-          int sendTag,
-          T* receiveData,
-          int receiveCount,
-          int source,
-          int receiveTag,
-          MPI_Comm communicator = MPI_COMM_WORLD )
+Sendrecv(
+   const T* sendData,
+   int sendCount,
+   int destination,
+   int sendTag,
+   T* receiveData,
+   int receiveCount,
+   int source,
+   int receiveTag,
+   MPI_Comm communicator = MPI_COMM_WORLD )
 {
    if( communicator == MPI_COMM_NULL )
       throw std::invalid_argument( "Sendrecv cannot be called with MPI_COMM_NULL" );
 #ifdef HAVE_MPI
    if( ! Initialized() || Finalized() )
       throw std::logic_error( "MPI is not initialized" );
-   MPI_Sendrecv( reinterpret_cast< const void* >( sendData ),
-                 sendCount,
-                 getDataType< T >(),
-                 destination,
-                 sendTag,
-                 reinterpret_cast< void* >( receiveData ),
-                 receiveCount,
-                 getDataType< T >(),
-                 source,
-                 receiveTag,
-                 communicator,
-                 MPI_STATUS_IGNORE );
+   MPI_Sendrecv(
+      reinterpret_cast< const void* >( sendData ),
+      sendCount,
+      getDataType< T >(),
+      destination,
+      sendTag,
+      reinterpret_cast< void* >( receiveData ),
+      receiveCount,
+      getDataType< T >(),
+      source,
+      receiveTag,
+      communicator,
+      MPI_STATUS_IGNORE );
 #else
    throw Exceptions::MPISupportMissing();
 #endif
@@ -215,12 +217,13 @@ Allreduce( const T* data, T* reduced_data, int count, const MPI_Op& op, MPI_Comm
    if( ! Initialized() || Finalized() )
       throw std::logic_error( "MPI is not initialized" );
    getTimerAllreduce().start();
-   MPI_Allreduce( reinterpret_cast< const void* >( data ),
-                  reinterpret_cast< void* >( reduced_data ),
-                  count,
-                  getDataType< T >(),
-                  op,
-                  communicator );
+   MPI_Allreduce(
+      reinterpret_cast< const void* >( data ),
+      reinterpret_cast< void* >( reduced_data ),
+      count,
+      getDataType< T >(),
+      op,
+      communicator );
    getTimerAllreduce().stop();
 #else
    std::memcpy( reinterpret_cast< void* >( reduced_data ), reinterpret_cast< const void* >( data ), count * sizeof( T ) );
@@ -252,13 +255,14 @@ Reduce( const T* data, T* reduced_data, int count, const MPI_Op& op, int root, M
 #ifdef HAVE_MPI
    if( ! Initialized() || Finalized() )
       throw std::logic_error( "MPI is not initialized" );
-   MPI_Reduce( reinterpret_cast< const void* >( data ),
-               reinterpret_cast< void* >( reduced_data ),
-               count,
-               getDataType< T >(),
-               op,
-               root,
-               communicator );
+   MPI_Reduce(
+      reinterpret_cast< const void* >( data ),
+      reinterpret_cast< void* >( reduced_data ),
+      count,
+      getDataType< T >(),
+      op,
+      root,
+      communicator );
 #else
    std::memcpy( reinterpret_cast< void* >( reduced_data ), reinterpret_cast< const void* >( data ), count * sizeof( T ) );
 #endif
@@ -286,13 +290,14 @@ Alltoall( const T* sendData, int sendCount, T* receiveData, int receiveCount, MP
 #ifdef HAVE_MPI
    if( ! Initialized() || Finalized() )
       throw std::logic_error( "MPI is not initialized" );
-   MPI_Alltoall( reinterpret_cast< const void* >( sendData ),
-                 sendCount,
-                 getDataType< T >(),
-                 reinterpret_cast< void* >( receiveData ),
-                 receiveCount,
-                 getDataType< T >(),
-                 communicator );
+   MPI_Alltoall(
+      reinterpret_cast< const void* >( sendData ),
+      sendCount,
+      getDataType< T >(),
+      reinterpret_cast< void* >( receiveData ),
+      receiveCount,
+      getDataType< T >(),
+      communicator );
 #else
    if( sendCount != receiveCount )
       throw std::invalid_argument( "Alltoall: sendCount must be equal to receiveCount when running without MPI" );

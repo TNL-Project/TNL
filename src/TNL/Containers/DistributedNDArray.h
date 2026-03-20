@@ -410,8 +410,8 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forAll( Func f,
-           const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
+   forAll( Func f, const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} )
+      const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( localBegins, localEnds, launch_configuration, f );
@@ -641,8 +641,8 @@ public:
    void
    setDistribution( IndexType begin, IndexType end, const MPI::Comm& communicator = MPI_COMM_WORLD )
    {
-      static_assert( SizesHolderType::template getStaticSize< level >() == 0,
-                     "NDArray cannot be distributed in static dimensions." );
+      static_assert(
+         SizesHolderType::template getStaticSize< level >() == 0, "NDArray cannot be distributed in static dimensions." );
       if( begin < 0 || begin >= end )
          throw std::out_of_range( "setDistribution: begin is out of range" );
       if( end < 0 || end > globalSizes.template getSize< level >() )
@@ -663,9 +663,10 @@ public:
     * \param communicator MPI communicator to associate with the array.
     */
    void
-   setDistribution( const StaticArray< getDimension(), IndexType >& begin,
-                    const StaticArray< getDimension(), IndexType >& end,
-                    const MPI::Comm& communicator = MPI_COMM_WORLD )
+   setDistribution(
+      const StaticArray< getDimension(), IndexType >& begin,
+      const StaticArray< getDimension(), IndexType >& end,
+      const MPI::Comm& communicator = MPI_COMM_WORLD )
    {
       Algorithms::staticFor< std::size_t, 0, getDimension() >(
          [ & ]( auto level )

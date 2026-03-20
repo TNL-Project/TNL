@@ -54,23 +54,25 @@ protected:
 };
 
 // types for which DistributedNDArrayOverlaps_3D_test is instantiated
-using DistributedNDArrayTypes =
-   ::testing::Types< DistributedNDArray< NDArray< double,
-                                                  SizesHolder< int, 0, 0, 0 >,     // X, Y, Z
-                                                  std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
-                                                  Devices::Host,
-                                                  int,
-                                                  StaticSizesHolder< int, 2, 3, 1 > > >  // overlaps
+using DistributedNDArrayTypes = ::testing::Types<
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0, 0, 0 >,     // X, Y, Z
+      std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
+      Devices::Host,
+      int,
+      StaticSizesHolder< int, 2, 3, 1 > > >  // overlaps
 #ifdef __CUDACC__
-                     ,
-                     DistributedNDArray< NDArray< double,
-                                                  SizesHolder< int, 0, 0, 0 >,     // X, Y, Z
-                                                  std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
-                                                  Devices::Cuda,
-                                                  int,
-                                                  StaticSizesHolder< int, 2, 3, 1 > > >  // overlaps
+   ,
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0, 0, 0 >,     // X, Y, Z
+      std::index_sequence< 0, 1, 2 >,  // permutation - should not matter
+      Devices::Cuda,
+      int,
+      StaticSizesHolder< int, 2, 3, 1 > > >  // overlaps
 #endif
-                     >;
+   >;
 
 TYPED_TEST_SUITE( DistributedNDArrayOverlaps_3D_test, DistributedNDArrayTypes );
 
@@ -360,11 +362,12 @@ TYPED_TEST( DistributedNDArrayOverlaps_3D_test, forGhosts )
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray, typename BlockType >
 void
-test_helper_synchronize_D3Q7( DistributedArray& a,
-                              int globalSize,
-                              int rank,
-                              const std::vector< BlockType >& decomposition,
-                              const BlockType& globalBlock )
+test_helper_synchronize_D3Q7(
+   DistributedArray& a,
+   int globalSize,
+   int rank,
+   const std::vector< BlockType >& decomposition,
+   const BlockType& globalBlock )
 {
    using IndexType = typename DistributedArray::IndexType;
 
@@ -402,10 +405,12 @@ test_helper_synchronize_D3Q7( DistributedArray& a,
             // corners are skipped in the D3Q7 synchronization pattern
             if( ! ( gi >= localRangeX.getBegin() && gi < localRangeX.getEnd() && gj >= localRangeY.getBegin()
                     && gj < localRangeY.getEnd() )
-                && ! ( gi >= localRangeX.getBegin() && gi < localRangeX.getEnd() && gk >= localRangeZ.getBegin()
-                       && gk < localRangeZ.getEnd() )
-                && ! ( gj >= localRangeY.getBegin() && gj < localRangeY.getEnd() && gk >= localRangeZ.getBegin()
-                       && gk < localRangeZ.getEnd() ) )
+                && ! (
+                   gi >= localRangeX.getBegin() && gi < localRangeX.getEnd() && gk >= localRangeZ.getBegin()
+                   && gk < localRangeZ.getEnd() )
+                && ! (
+                   gj >= localRangeY.getBegin() && gj < localRangeY.getEnd() && gk >= localRangeZ.getBegin()
+                   && gk < localRangeZ.getEnd() ) )
                expected_value = -1;
             // check the result
             EXPECT_EQ( value, expected_value ) << "gi = " << gi << ", gj = " << gj << ", gk = " << gk;
@@ -434,10 +439,12 @@ test_helper_synchronize_D3Q7( DistributedArray& a,
             // corners are skipped in the D3Q7 synchronization pattern
             if( ! ( gi >= localRangeX.getBegin() && gi < localRangeX.getEnd() && gj >= localRangeY.getBegin()
                     && gj < localRangeY.getEnd() )
-                && ! ( gi >= localRangeX.getBegin() && gi < localRangeX.getEnd() && gk >= localRangeZ.getBegin()
-                       && gk < localRangeZ.getEnd() )
-                && ! ( gj >= localRangeY.getBegin() && gj < localRangeY.getEnd() && gk >= localRangeZ.getBegin()
-                       && gk < localRangeZ.getEnd() ) )
+                && ! (
+                   gi >= localRangeX.getBegin() && gi < localRangeX.getEnd() && gk >= localRangeZ.getBegin()
+                   && gk < localRangeZ.getEnd() )
+                && ! (
+                   gj >= localRangeY.getBegin() && gj < localRangeY.getEnd() && gk >= localRangeZ.getBegin()
+                   && gk < localRangeZ.getEnd() ) )
                expected_value = -1;
             // check the result
             EXPECT_EQ( value, expected_value ) << "gi = " << gi << ", gj = " << gj << ", gk = " << gk;
@@ -456,11 +463,12 @@ TYPED_TEST( DistributedNDArrayOverlaps_3D_test, synchronize_D3Q7 )
 // private or protected methods (which are created by TYPED_TEST macro)
 template< typename DistributedArray, typename BlockType >
 void
-test_helper_synchronize_D3Q27( DistributedArray& a,
-                               int globalSize,
-                               int rank,
-                               const std::vector< BlockType >& decomposition,
-                               const BlockType& globalBlock )
+test_helper_synchronize_D3Q27(
+   DistributedArray& a,
+   int globalSize,
+   int rank,
+   const std::vector< BlockType >& decomposition,
+   const BlockType& globalBlock )
 {
    using IndexType = typename DistributedArray::IndexType;
 

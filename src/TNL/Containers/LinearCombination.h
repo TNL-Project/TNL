@@ -33,9 +33,10 @@ namespace TNL::Containers {
 template< class Coefficients, typename Vector >
 constexpr auto
 linearCombination( const std::array< Vector, Coefficients::getSize() >& vectors ) ->
-   typename detail::LinearCombinationReturnType< Coefficients,
-                                                 detail::ConstantVectorTypesWrapper< Vector >,
-                                                 std::integral_constant< std::size_t, 0 > >::type
+   typename detail::LinearCombinationReturnType<
+      Coefficients,
+      detail::ConstantVectorTypesWrapper< Vector >,
+      std::integral_constant< std::size_t, 0 > >::type
 {
    return detail::LinearCombinationEvaluation<
       Coefficients,
@@ -69,16 +70,17 @@ linearCombination( const std::array< Vector, Coefficients::getSize() >& vectors 
 template<
    class Coefficients,
    typename... Vectors,
-   std::enable_if_t< IsArrayType< decltype( Containers::detail::get_from_pack< 0 >( std::declval< Vectors >()... ) ) >::value,
-                     bool > = true >
+   std::enable_if_t<
+      IsArrayType< decltype( Containers::detail::get_from_pack< 0 >( std::declval< Vectors >()... ) ) >::value,
+      bool > = true >
 constexpr auto
-linearCombination( const Vectors&... vectors ) ->
-   typename detail::LinearCombinationReturnType< Coefficients,
-                                                 detail::VectorTypesWrapper< Vectors... >,
-                                                 std::integral_constant< std::size_t, 0 > >::type
+linearCombination( const Vectors&... vectors ) -> typename detail::LinearCombinationReturnType<
+   Coefficients,
+   detail::VectorTypesWrapper< Vectors... >,
+   std::integral_constant< std::size_t, 0 > >::type
 {
-   static_assert( sizeof...( Vectors ) == Coefficients::getSize(),
-                  "Number of input vectors must match number of coefficients" );
+   static_assert(
+      sizeof...( Vectors ) == Coefficients::getSize(), "Number of input vectors must match number of coefficients" );
    return detail::LinearCombinationEvaluation<
       Coefficients,
       std::integral_constant< std::size_t, 0 >,

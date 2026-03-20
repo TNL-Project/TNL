@@ -52,10 +52,11 @@ public:
 
    // low-level writing method (used also when writing a subdomain for a PVTI dataset)
    void
-   writeImageData( const typename Mesh::PointType& origin,
-                   const typename Mesh::CoordinatesType& begin,
-                   const typename Mesh::CoordinatesType& end,
-                   const typename Mesh::PointType& spaceSteps );
+   writeImageData(
+      const typename Mesh::PointType& origin,
+      const typename Mesh::CoordinatesType& begin,
+      const typename Mesh::CoordinatesType& end,
+      const typename Mesh::PointType& spaceSteps );
 
    void
    writeImageData( const Mesh& mesh );

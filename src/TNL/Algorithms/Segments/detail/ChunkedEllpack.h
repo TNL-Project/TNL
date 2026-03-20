@@ -46,10 +46,11 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static IndexType
-   getSegmentSizeDirect( const ConstOffsetsView& segmentsToSlicesMapping,
-                         const ConstSliceInfoContainerView& slices,
-                         const ConstOffsetsView& segmentsToChunksMapping,
-                         const IndexType segmentIdx )
+   getSegmentSizeDirect(
+      const ConstOffsetsView& segmentsToSlicesMapping,
+      const ConstSliceInfoContainerView& slices,
+      const ConstOffsetsView& segmentsToChunksMapping,
+      const IndexType segmentIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping[ segmentIdx ];
       IndexType firstChunkOfSegment = 0;
@@ -63,10 +64,11 @@ public:
    }
 
    [[nodiscard]] static IndexType
-   getSegmentSize( const ConstOffsetsView& segmentsToSlicesMapping,
-                   const ConstSliceInfoContainerView& slices,
-                   const ConstOffsetsView& segmentsToChunksMapping,
-                   const IndexType segmentIdx )
+   getSegmentSize(
+      const ConstOffsetsView& segmentsToSlicesMapping,
+      const ConstSliceInfoContainerView& slices,
+      const ConstOffsetsView& segmentsToChunksMapping,
+      const IndexType segmentIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping.getElement( segmentIdx );
       IndexType firstChunkOfSegment = 0;
@@ -81,12 +83,13 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static IndexType
-   getGlobalIndexDirect( const ConstOffsetsView& segmentsToSlicesMapping,
-                         const ConstSliceInfoContainerView& slices,
-                         const ConstOffsetsView& segmentsToChunksMapping,
-                         const IndexType chunksInSlice,
-                         const IndexType segmentIdx,
-                         const IndexType localIdx )
+   getGlobalIndexDirect(
+      const ConstOffsetsView& segmentsToSlicesMapping,
+      const ConstSliceInfoContainerView& slices,
+      const ConstOffsetsView& segmentsToChunksMapping,
+      const IndexType chunksInSlice,
+      const IndexType segmentIdx,
+      const IndexType localIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping[ segmentIdx ];
       IndexType firstChunkOfSegment = 0;
@@ -110,12 +113,13 @@ public:
    }
 
    [[nodiscard]] static IndexType
-   getGlobalIndex( const ConstOffsetsView& segmentsToSlicesMapping,
-                   const ConstSliceInfoContainerView& slices,
-                   const ConstOffsetsView& segmentsToChunksMapping,
-                   const IndexType chunksInSlice,
-                   const IndexType segmentIdx,
-                   const IndexType localIdx )
+   getGlobalIndex(
+      const ConstOffsetsView& segmentsToSlicesMapping,
+      const ConstSliceInfoContainerView& slices,
+      const ConstOffsetsView& segmentsToChunksMapping,
+      const IndexType chunksInSlice,
+      const IndexType segmentIdx,
+      const IndexType localIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping.getElement( segmentIdx );
       IndexType firstChunkOfSegment = 0;
@@ -140,11 +144,12 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static SegmentViewType
-   getSegmentViewDirect( const ConstOffsetsView& segmentsToSlicesMapping,
-                         const ConstSliceInfoContainerView& slices,
-                         const ConstOffsetsView& segmentsToChunksMapping,
-                         const IndexType& chunksInSlice,
-                         const IndexType& segmentIdx )
+   getSegmentViewDirect(
+      const ConstOffsetsView& segmentsToSlicesMapping,
+      const ConstSliceInfoContainerView& slices,
+      const ConstOffsetsView& segmentsToChunksMapping,
+      const IndexType& chunksInSlice,
+      const IndexType& segmentIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping[ segmentIdx ];
       IndexType firstChunkOfSegment = 0;
@@ -166,11 +171,12 @@ public:
 
    [[nodiscard]] __cuda_callable__
    static SegmentViewType
-   getSegmentView( const ConstOffsetsView& segmentsToSlicesMapping,
-                   const ConstSliceInfoContainerView& slices,
-                   const ConstOffsetsView& segmentsToChunksMapping,
-                   const IndexType chunksInSlice,
-                   const IndexType segmentIdx )
+   getSegmentView(
+      const ConstOffsetsView& segmentsToSlicesMapping,
+      const ConstSliceInfoContainerView& slices,
+      const ConstOffsetsView& segmentsToChunksMapping,
+      const IndexType chunksInSlice,
+      const IndexType segmentIdx )
    {
       const IndexType& sliceIndex = segmentsToSlicesMapping.getElement( segmentIdx );
       IndexType firstChunkOfSegment = 0;

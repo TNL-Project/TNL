@@ -161,8 +161,9 @@ getArea( const Block< 3, idx >& block, const StaticVector< 3, idx >& axes_weight
    if( block.begin.z() == block.end.z() ) {
       return std::abs( block.end.x() - block.begin.x() ) * std::abs( block.end.y() - block.begin.y() ) * axes_weights.z();
    }
-   throw std::logic_error( "3D block passed to the area function is not a 2D "
-                           "object (it has a non-zero volume)" );
+   throw std::logic_error(
+      "3D block passed to the area function is not a 2D "
+      "object (it has a non-zero volume)" );
 }
 
 /**
@@ -246,8 +247,9 @@ createInteriorSides( const std::vector< Block< 3, idx > >& decomposition )
  */
 template< typename idx >
 idx
-getInterfaceArea( const std::vector< Block< 3, idx > >& decomposition,
-                  const StaticVector< 3, idx >& axes_weights = { 1, 1, 1 } )
+getInterfaceArea(
+   const std::vector< Block< 3, idx > >& decomposition,
+   const StaticVector< 3, idx >& axes_weights = { 1, 1, 1 } )
 {
    idx result = 0;
    for( const auto& side : createInteriorSides( decomposition ) )

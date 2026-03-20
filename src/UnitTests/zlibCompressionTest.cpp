@@ -47,10 +47,10 @@ TEST( base64Test, decode )
 {
    test_decompress< std::int32_t >( "AQAAAAwAAAAMAAAAFAAAAA==eJzLSM3JyddRKM8vykkBAB1UBIk=", "hello, world" );
    test_decompress< std::uint32_t >( "AQAAAAwAAAAMAAAAFAAAAA==eJzLSM3JyddRKM8vykkBAB1UBIk=", "hello, world" );
-   test_decompress< std::int64_t >( "AQAAAAAAAAAMAAAAAAAAAAwAAAAAAAAAFAAAAAAAAAA=eJzLSM3JyddRKM8vykkBAB1UBIk=",
-                                    "hello, world" );
-   test_decompress< std::uint64_t >( "AQAAAAAAAAAMAAAAAAAAAAwAAAAAAAAAFAAAAAAAAAA=eJzLSM3JyddRKM8vykkBAB1UBIk=",
-                                     "hello, world" );
+   test_decompress< std::int64_t >(
+      "AQAAAAAAAAAMAAAAAAAAAAwAAAAAAAAAFAAAAAAAAAA=eJzLSM3JyddRKM8vykkBAB1UBIk=", "hello, world" );
+   test_decompress< std::uint64_t >(
+      "AQAAAAAAAAAMAAAAAAAAAAwAAAAAAAAAFAAAAAAAAAA=eJzLSM3JyddRKM8vykkBAB1UBIk=", "hello, world" );
 }
 
 #include "main.h"

@@ -21,23 +21,26 @@ struct bool_pack
 template< bool... Bs >
 using conjunction = std::is_same< bool_pack< true, Bs... >, bool_pack< Bs..., true > >;
 
-template< int Dimension,
-          typename Index,
-          typename = std::enable_if_t< ( Dimension > 0 ) >,
-          typename = std::enable_if_t< std::is_integral_v< Index > > >
+template<
+   int Dimension,
+   typename Index,
+   typename = std::enable_if_t< ( Dimension > 0 ) >,
+   typename = std::enable_if_t< std::is_integral_v< Index > > >
 using Container = TNL::Containers::StaticArray< Dimension, Index >;
 
-template< int Dimension,
-          typename Index,
-          typename = std::enable_if_t< ( Dimension > 0 ) >,
-          typename = std::enable_if_t< std::is_integral_v< Index > > >
+template<
+   int Dimension,
+   typename Index,
+   typename = std::enable_if_t< ( Dimension > 0 ) >,
+   typename = std::enable_if_t< std::is_integral_v< Index > > >
 class GridEntity
 {
 public:
    __cuda_callable__
-   explicit GridEntity( const Index& vertexIndex,
-                        const Container< Dimension, Index >& coordinates,
-                        const Container< Dimension, bool >& direction )
+   explicit GridEntity(
+      const Index& vertexIndex,
+      const Container< Dimension, Index >& coordinates,
+      const Container< Dimension, bool >& direction )
    : vertexIndex( vertexIndex ),
      coordinates( coordinates ),
      direction( direction )
@@ -79,9 +82,10 @@ public:
     *                          Most significant dimension is in the beginning of the list.
     *                          Least significant dimension is in the end of the list
     */
-   template< typename... Dimensions,
-             typename = std::enable_if_t< conjunction< std::is_same_v< Index, Dimensions >... >::value >,
-             typename = std::enable_if_t< sizeof...( Dimensions ) == Dimension > >
+   template<
+      typename... Dimensions,
+      typename = std::enable_if_t< conjunction< std::is_same_v< Index, Dimensions >... >::value >,
+      typename = std::enable_if_t< sizeof...( Dimensions ) == Dimension > >
    void
    setDimensions( Dimensions... dimensions ) noexcept
    {
@@ -110,9 +114,10 @@ public:
    /**
     * @param[in] indices - A dimension index pack
     */
-   template< typename... DimensionIndex,
-             typename = std::enable_if_t< conjunction< std::is_same_v< Index, DimensionIndex >... >::value >,
-             typename = std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ) > >
+   template<
+      typename... DimensionIndex,
+      typename = std::enable_if_t< conjunction< std::is_same_v< Index, DimensionIndex >... >::value >,
+      typename = std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ) > >
    [[nodiscard]] Container< sizeof...( DimensionIndex ), Index >
    getDimensions( DimensionIndex... indices ) const noexcept
    {
@@ -138,9 +143,10 @@ public:
    /**
     * @brief - Returns the number of entities of specific dimension
     */
-   template< typename... DimensionIndex,
-             typename = std::enable_if_t< conjunction< std::is_same_v< Index, DimensionIndex >... >::value >,
-             typename = std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ) > >
+   template<
+      typename... DimensionIndex,
+      typename = std::enable_if_t< conjunction< std::is_same_v< Index, DimensionIndex >... >::value >,
+      typename = std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ) > >
    [[nodiscard]] Container< sizeof...( DimensionIndex ), Index >
    getEntitiesCounts( DimensionIndex... indices ) const noexcept
    {
@@ -166,9 +172,10 @@ public:
    /**
     * @brief - Returns the last index of specific dimensions
     */
-   template< typename... DimensionIndex,
-             typename = std::enable_if_t< conjunction< std::is_same_v< Index, DimensionIndex >... >::value >,
-             typename = std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ) > >
+   template<
+      typename... DimensionIndex,
+      typename = std::enable_if_t< conjunction< std::is_same_v< Index, DimensionIndex >... >::value >,
+      typename = std::enable_if_t< ( sizeof...( DimensionIndex ) > 0 ) > >
    [[nodiscard]] Container< sizeof...( DimensionIndex ), Index >
    getEndIndices( DimensionIndex... indices ) const noexcept
    {
@@ -208,11 +215,12 @@ public:
     */
    template< typename Function, typename... FunctionArgs >
    void
-   traverse( const Container< Dimension, Index >& firstVertex,
-             const Container< Dimension, Index >& secondVertex,
-             const TNL::Containers::Array< Container< Dimension, bool >, Device >& directions,
-             Function function,
-             FunctionArgs... args ) const noexcept
+   traverse(
+      const Container< Dimension, Index >& firstVertex,
+      const Container< Dimension, Index >& secondVertex,
+      const TNL::Containers::Array< Container< Dimension, bool >, Device >& directions,
+      Function function,
+      FunctionArgs... args ) const noexcept
    {
       Index verticesCount = 1;
       Container< Dimension, Index > traverseRectOrigin;
@@ -233,12 +241,13 @@ public:
       traverseRectDimensionsProducts = getDimensionProducts( traverseRectDimensions );
 
       auto& grid = *this;
-      auto outerFunction = [ = ] __cuda_callable__( Index offset,
-                                                    const Container< Dimension, Index >& traverseRectOrigin,
-                                                    const Container< Dimension, Index >& traverseRectDimensions,
-                                                    const Container< Dimension, Index >& traverseRectDimensionsProducts,
-                                                    const Container< Dimension, Index >& dimensionsProducts,
-                                                    FunctionArgs... args ) mutable
+      auto outerFunction = [ = ] __cuda_callable__(
+                              Index offset,
+                              const Container< Dimension, Index >& traverseRectOrigin,
+                              const Container< Dimension, Index >& traverseRectDimensions,
+                              const Container< Dimension, Index >& traverseRectDimensionsProducts,
+                              const Container< Dimension, Index >& dimensionsProducts,
+                              FunctionArgs... args ) mutable
       {
          auto entity = grid.makeEntity(
             offset, traverseRectOrigin, traverseRectDimensions, traverseRectDimensionsProducts, dimensionsProducts );
@@ -250,14 +259,15 @@ public:
       Index upperBound = verticesCount;
 
       for( Index i = 0; i < directions.getSize(); i++ ) {
-         TNL::Algorithms::parallelFor< Device >( lowerBound,
-                                                 upperBound,
-                                                 outerFunction,
-                                                 traverseRectOrigin,
-                                                 traverseRectDimensions,
-                                                 traverseRectDimensionsProducts,
-                                                 dimensionsProducts,
-                                                 args... );
+         TNL::Algorithms::parallelFor< Device >(
+            lowerBound,
+            upperBound,
+            outerFunction,
+            traverseRectOrigin,
+            traverseRectDimensions,
+            traverseRectDimensionsProducts,
+            dimensionsProducts,
+            args... );
       }
    }
 
@@ -316,11 +326,12 @@ private:
 
    __cuda_callable__
    [[nodiscard]] GridEntity< Dimension, Index >
-   makeEntity( const Index& index,
-               const Container< Dimension, Index >& traverseRectOrigin,
-               const Container< Dimension, Index >& traverseRectDimensions,
-               const Container< Dimension, Index >& traverseRectDimensionsProducts,
-               const Container< Dimension, Index >& dimensionsProducts ) const
+   makeEntity(
+      const Index& index,
+      const Container< Dimension, Index >& traverseRectOrigin,
+      const Container< Dimension, Index >& traverseRectDimensions,
+      const Container< Dimension, Index >& traverseRectDimensionsProducts,
+      const Container< Dimension, Index >& dimensionsProducts ) const
    {
       //Container<Dimension, Index> traverseCoordinates = 0;
       Container< Dimension, Index > traverseCoordinates = getCoordinates( index, traverseRectDimensions );

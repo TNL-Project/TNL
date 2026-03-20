@@ -16,11 +16,12 @@ struct ParallelFor2D
 {
    template< typename MultiIndex, typename Function, typename... FunctionArgs >
    static void
-   exec( MultiIndex begin,
-         MultiIndex end,
-         typename Device::LaunchConfiguration launch_config,
-         Function f,
-         FunctionArgs... args )
+   exec(
+      MultiIndex begin,
+      MultiIndex end,
+      typename Device::LaunchConfiguration launch_config,
+      Function f,
+      FunctionArgs... args )
    {
       static_assert( MultiIndex::getSize() == 2, "ParallelFor2D requires a multi-index of size 2" );
 

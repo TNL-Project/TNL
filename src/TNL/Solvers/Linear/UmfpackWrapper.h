@@ -18,9 +18,10 @@ template< typename Matrix, typename SolverMonitor = IterativeSolverMonitor< doub
 class UmfpackWrapper : public LinearSolver< Matrix >
 {
    static_assert( Matrices::is_sparse_csr_matrix_v< Matrix >, "Umfpack works only with CSR format." );
-   static_assert( std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Host >
-                     || std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Sequential >,
-                  "Umfpack is only available on the host." );
+   static_assert(
+      std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Host >
+         || std::is_same_v< typename Matrix::DeviceType, TNL::Devices::Sequential >,
+      "Umfpack is only available on the host." );
    static_assert( std::is_same_v< typename Matrix::RealType, double >, "Umfpack is only available for double precision." );
    static_assert( std::is_same_v< typename Matrix::IndexType, int >, "Umfpack is only available for int indexing." );
 

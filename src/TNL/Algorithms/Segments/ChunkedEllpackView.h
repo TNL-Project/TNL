@@ -7,9 +7,10 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Device,
-          typename Index,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
+template<
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
 class ChunkedEllpackView : public ChunkedEllpackBase< Device, Index, Organization >
 {
    using Base = ChunkedEllpackBase< Device, Index, Organization >;
@@ -26,16 +27,17 @@ public:
    ChunkedEllpackView() = default;
 
    __cuda_callable__
-   ChunkedEllpackView( Index size,
-                       Index storageSize,
-                       Index numberOfSlices,
-                       Index chunksInSlice,
-                       Index desiredChunkSize,
-                       typename Base::OffsetsView segmentToChunkMapping,
-                       typename Base::OffsetsView segmentToSliceMapping,
-                       typename Base::OffsetsView chunksToSegmentsMapping,
-                       typename Base::OffsetsView segmentPointers,
-                       typename Base::SliceInfoContainerView slices );
+   ChunkedEllpackView(
+      Index size,
+      Index storageSize,
+      Index numberOfSlices,
+      Index chunksInSlice,
+      Index desiredChunkSize,
+      typename Base::OffsetsView segmentToChunkMapping,
+      typename Base::OffsetsView segmentToSliceMapping,
+      typename Base::OffsetsView chunksToSegmentsMapping,
+      typename Base::OffsetsView segmentPointers,
+      typename Base::SliceInfoContainerView slices );
 
    __cuda_callable__
    ChunkedEllpackView( const ChunkedEllpackView& ) = default;

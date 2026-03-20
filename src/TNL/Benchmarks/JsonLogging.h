@@ -34,10 +34,11 @@ public:
    }
 
    void
-   writeRow( const HeaderElements& headerElements,
-             const RowElements& rowElements,
-             const WidthHints& widths,
-             const std::string& errorMessage )
+   writeRow(
+      const HeaderElements& headerElements,
+      const RowElements& rowElements,
+      const WidthHints& widths,
+      const std::string& errorMessage )
    {
       if( headerElements.size() != rowElements.size() ) {
          std::stringstream ss;
@@ -86,11 +87,12 @@ public:
    }
 
    void
-   logResult( const std::string& performer,
-              const HeaderElements& headerElements,
-              const RowElements& rowElements,
-              const WidthHints& columnWidthHints,
-              const std::string& errorMessage = "" ) override
+   logResult(
+      const std::string& performer,
+      const HeaderElements& headerElements,
+      const RowElements& rowElements,
+      const WidthHints& columnWidthHints,
+      const std::string& errorMessage = "" ) override
    {
       setMetadataElement( { "performer", performer } );
       writeHeader( headerElements, columnWidthHints );

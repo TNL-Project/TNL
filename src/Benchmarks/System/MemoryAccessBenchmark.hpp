@@ -65,14 +65,15 @@ MemoryAccessBenchmark::performBenchmark( const TNL::Config::ParameterContainer& 
    for( size_t size = min_size; size <= max_size; size *= 2 ) {
       const long long int elementsPerTest = TNL::max( size, 1 << 26 ) / sizeof( ElementType );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "threads", TNL::convertToString( threads_count ) },
-                                                          { "access type", access_type },
-                                                          { "read test", TNL::convertToString( read_test ) },
-                                                          { "write test", TNL::convertToString( write_test ) },
-                                                          { "central data", TNL::convertToString( central_data_access ) },
-                                                          { "interleaving", TNL::convertToString( interleaving ) },
-                                                          { "element size", TNL::convertToString( ElementSize ) },
-                                                          { "array size", TNL::convertToString( size ) } } ) );
+         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+            { { "threads", TNL::convertToString( threads_count ) },
+              { "access type", access_type },
+              { "read test", TNL::convertToString( read_test ) },
+              { "write test", TNL::convertToString( write_test ) },
+              { "central data", TNL::convertToString( central_data_access ) },
+              { "interleaving", TNL::convertToString( interleaving ) },
+              { "element size", TNL::convertToString( ElementSize ) },
+              { "array size", TNL::convertToString( size ) } } ) );
       TestArrayType array( size );
       array.setThreadsCount( threads_count );
       array.setElementsPerTest( elementsPerTest );

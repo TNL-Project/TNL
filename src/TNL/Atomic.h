@@ -24,9 +24,10 @@ atomicAdd( long int* address, long int val )
    do {
       assumed = old;
       long int sum = val + assumed;
-      old = atomicCAS( address_as_unsigned,
-                       *reinterpret_cast< unsigned long long int* >( &assumed ),
-                       *reinterpret_cast< unsigned long long int* >( &sum ) );
+      old = atomicCAS(
+         address_as_unsigned,
+         *reinterpret_cast< unsigned long long int* >( &assumed ),
+         *reinterpret_cast< unsigned long long int* >( &sum ) );
    } while( assumed != old );
 
    return old;

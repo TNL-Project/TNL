@@ -95,11 +95,12 @@ struct MeshLocalIndexTag< MeshRefineConfigTag, short int >
 template<>
 struct MeshConfigTemplateTag< MeshRefineConfigTag >
 {
-   template< typename Cell,
-             int SpaceDimension = Cell::dimension,
-             typename Real = float,
-             typename GlobalIndex = int,
-             typename LocalIndex = short int >
+   template<
+      typename Cell,
+      int SpaceDimension = Cell::dimension,
+      typename Real = float,
+      typename GlobalIndex = int,
+      typename LocalIndex = short int >
    struct MeshConfig : public DefaultConfig< Cell, SpaceDimension, Real, GlobalIndex, LocalIndex >
    {
       static constexpr bool
@@ -140,11 +141,12 @@ getRefinedMeshHelper( const Mesh& mesh, const std::string& decompositionType )
 
 template< typename Mesh >
 bool
-refineMesh( Mesh& mesh,
-            const std::string& outputFileName,
-            const std::string& outputFormat,
-            const std::string& decompositionType,
-            int iterations )
+refineMesh(
+   Mesh& mesh,
+   const std::string& outputFileName,
+   const std::string& outputFormat,
+   const std::string& decompositionType,
+   int iterations )
 {
    for( int i = 1; i <= iterations; i++ ) {
       std::cout << "Refining mesh (iteration " << i << ")\n";
@@ -189,17 +191,19 @@ configSetup( Config::ConfigDescription& config )
    config.addDelimiter( "General settings:" );
    config.addRequiredEntry< std::string >( "input-file", "Input file with the mesh." );
    config.addEntry< std::string >( "input-file-format", "Input mesh file format.", "auto" );
-   config.addEntry< std::string >( "real-type",
-                                   "Type to use for the representation of spatial coordinates in the output mesh. When 'auto', "
-                                   "the real type from the input mesh is used.",
-                                   "auto" );
+   config.addEntry< std::string >(
+      "real-type",
+      "Type to use for the representation of spatial coordinates in the output mesh. When 'auto', "
+      "the real type from the input mesh is used.",
+      "auto" );
    config.addEntryEnum( "auto" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
-   config.addEntry< std::string >( "global-index-type",
-                                   "Type to use for the representation of global indices in the output mesh. When 'auto', the "
-                                   "global index type from the input mesh is used.",
-                                   "auto" );
+   config.addEntry< std::string >(
+      "global-index-type",
+      "Type to use for the representation of global indices in the output mesh. When 'auto', the "
+      "global index type from the input mesh is used.",
+      "auto" );
    config.addEntryEnum( "auto" );
    config.addEntryEnum( "std::int32_t" );
    config.addEntryEnum( "std::int64_t" );

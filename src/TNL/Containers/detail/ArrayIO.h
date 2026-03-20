@@ -62,9 +62,10 @@ struct ArrayIO< Value, Index, Allocator, true >
             file << data[ i ];
       }
       catch( ... ) {
-         throw Exceptions::FileSerializationError( file.getFileName(),
-                                                   "unable to write the " + std::to_string( i ) + "-th array element of "
-                                                      + std::to_string( elements ) + " into the file." );
+         throw Exceptions::FileSerializationError(
+            file.getFileName(),
+            "unable to write the " + std::to_string( i ) + "-th array element of " + std::to_string( elements )
+               + " into the file." );
       }
    }
 
@@ -77,9 +78,10 @@ struct ArrayIO< Value, Index, Allocator, true >
             file >> data[ i ];
       }
       catch( ... ) {
-         throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                     "unable to read the " + std::to_string( i ) + "-th array element of "
-                                                        + std::to_string( elements ) + " from the file." );
+         throw Exceptions::FileDeserializationError(
+            file.getFileName(),
+            "unable to read the " + std::to_string( i ) + "-th array element of " + std::to_string( elements )
+               + " from the file." );
       }
    }
 
@@ -101,10 +103,10 @@ struct ArrayIO< Value, Index, Allocator, true >
          file.ignore< Value >( elementsInFile - offset - size );
       }
       catch( ... ) {
-         throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                     "unable to read array elements in the subrange ["
-                                                        + std::to_string( offset ) + ", " + std::to_string( offset + size )
-                                                        + ") from the file." );
+         throw Exceptions::FileDeserializationError(
+            file.getFileName(),
+            "unable to read array elements in the subrange [" + std::to_string( offset ) + ", "
+               + std::to_string( offset + size ) + ") from the file." );
       }
    }
 };
@@ -207,9 +209,9 @@ struct ArrayIO< Value, Index, Allocator, false >
       else if( typeInFile == getType< double >() )
          load< double >( file, data, elements );
       else
-         throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                     "value type " + std::string( typeInFile )
-                                                        + " cannot be type-cast to the requested type " + getType< Value >() );
+         throw Exceptions::FileDeserializationError(
+            file.getFileName(),
+            "value type " + std::string( typeInFile ) + " cannot be type-cast to the requested type " + getType< Value >() );
    }
 
    template< typename SourceValue = Value >
@@ -233,10 +235,10 @@ struct ArrayIO< Value, Index, Allocator, false >
          file.ignore< SourceValue >( elementsInFile - offset - size );
       }
       catch( ... ) {
-         throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                     "unable to read array elements in the subrange ["
-                                                        + std::to_string( offset ) + ", " + std::to_string( offset + size )
-                                                        + ") from the file." );
+         throw Exceptions::FileDeserializationError(
+            file.getFileName(),
+            "unable to read array elements in the subrange [" + std::to_string( offset ) + ", "
+               + std::to_string( offset + size ) + ") from the file." );
       }
    }
 
@@ -269,9 +271,9 @@ struct ArrayIO< Value, Index, Allocator, false >
       else if( typeInFile == getType< double >() )
          loadSubrange< double >( file, elementsInFile, offset, data, size );
       else
-         throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                     "value type " + std::string( typeInFile )
-                                                        + " cannot be type-cast to the requested type " + getType< Value >() );
+         throw Exceptions::FileDeserializationError(
+            file.getFileName(),
+            "value type " + std::string( typeInFile ) + " cannot be type-cast to the requested type " + getType< Value >() );
    }
 };
 

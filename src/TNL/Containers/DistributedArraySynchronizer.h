@@ -64,21 +64,26 @@ public:
       RequestsVector requests;
 
       // issue all async receive operations
-      requests.push_back( MPI::Irecv(
-         array.getData() + bytesPerValue * localRange.getSize(), bytesPerValue * overlaps, left, 0, communicator ) );
-      requests.push_back( MPI::Irecv( array.getData() + bytesPerValue * ( localRange.getSize() + overlaps ),
-                                      bytesPerValue * overlaps,
-                                      right,
-                                      0,
-                                      communicator ) );
+      requests.push_back(
+         MPI::Irecv(
+            array.getData() + bytesPerValue * localRange.getSize(), bytesPerValue * overlaps, left, 0, communicator ) );
+      requests.push_back(
+         MPI::Irecv(
+            array.getData() + bytesPerValue * ( localRange.getSize() + overlaps ),
+            bytesPerValue * overlaps,
+            right,
+            0,
+            communicator ) );
 
       // issue all async send operations
       requests.push_back( MPI::Isend( array.getData(), bytesPerValue * overlaps, left, 0, communicator ) );
-      requests.push_back( MPI::Isend( array.getData() + bytesPerValue * ( localRange.getSize() - overlaps ),
-                                      bytesPerValue * overlaps,
-                                      right,
-                                      0,
-                                      communicator ) );
+      requests.push_back(
+         MPI::Isend(
+            array.getData() + bytesPerValue * ( localRange.getSize() - overlaps ),
+            bytesPerValue * overlaps,
+            right,
+            0,
+            communicator ) );
 
       return requests;
    }

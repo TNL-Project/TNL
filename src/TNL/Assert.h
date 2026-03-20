@@ -135,12 +135,13 @@ struct AssertionError : public std::runtime_error
 namespace TNL::Assert {
 
 inline void
-abortWithDiagnosticsHost( const char* assertion,
-                          const char* message,
-                          const char* file,
-                          const char* function,
-                          int line,
-                          const char* diagnostics )
+abortWithDiagnosticsHost(
+   const char* assertion,
+   const char* message,
+   const char* file,
+   const char* function,
+   int line,
+   const char* diagnostics )
 {
    std::stringstream str;
    str << "Assertion '" << assertion << "' failed !!!\n"
@@ -155,28 +156,30 @@ abortWithDiagnosticsHost( const char* assertion,
 
 __cuda_callable__
 inline void
-abortWithDiagnosticsCuda( const char* assertion,
-                          const char* message,
-                          const char* file,
-                          const char* function,
-                          int line,
-                          const char* diagnostics )
+abortWithDiagnosticsCuda(
+   const char* assertion,
+   const char* message,
+   const char* file,
+   const char* function,
+   int line,
+   const char* diagnostics )
 {
    // NOTE: HIP requires printf instead of std::printf (the latter is not __host__ __device__)
    // FIXME: using printf in HIP kernels hangs on gfx803
    #if ! defined( __HIP_DEVICE_COMPILE__ )
-   std::printf( "Assertion '%s' failed !!!\n"
-                "Message: %s\n"
-                "File: %s\n"
-                "Function: %s\n"
-                "Line: %d\n"
-                "Diagnostics: %s\n",
-                assertion,
-                message,
-                file,
-                function,
-                line,
-                diagnostics );
+   std::printf(
+      "Assertion '%s' failed !!!\n"
+      "Message: %s\n"
+      "File: %s\n"
+      "Function: %s\n"
+      "Line: %d\n"
+      "Diagnostics: %s\n",
+      assertion,
+      message,
+      file,
+      function,
+      line,
+      diagnostics );
    #endif
 
    #ifdef __CUDA_ARCH__
@@ -228,16 +231,17 @@ struct Formatter< std::pair< T, U > >
 template< typename T1, typename T2 >
 __cuda_callable__
 void
-cmpHelperOpFailure( const char* assertion,
-                    const char* message,
-                    const char* file,
-                    const char* function,
-                    int line,
-                    const char* lhs_expression,
-                    const char* rhs_expression,
-                    const T1& lhs_value,
-                    const T2& rhs_value,
-                    const char* op )
+cmpHelperOpFailure(
+   const char* assertion,
+   const char* message,
+   const char* file,
+   const char* function,
+   int line,
+   const char* lhs_expression,
+   const char* rhs_expression,
+   const T1& lhs_value,
+   const T2& rhs_value,
+   const char* op )
 {
    #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
    // diagnostics is not supported - we don't have the machinery
@@ -270,15 +274,16 @@ TNL_NVCC_HD_WARNING_DISABLE
 template< typename T1, typename T2 >
 __cuda_callable__
 void
-cmpHelperTrue( const char* assertion,
-               const char* message,
-               const char* file,
-               const char* function,
-               int line,
-               const char* expr1,
-               const char* expr2,
-               const T1& val1,
-               const T2& val2 )
+cmpHelperTrue(
+   const char* assertion,
+   const char* message,
+   const char* file,
+   const char* function,
+   int line,
+   const char* expr1,
+   const char* expr2,
+   const T1& val1,
+   const T2& val2 )
 {
    // explicit cast is necessary, because T1::operator! might not be defined
    if( ! static_cast< bool >( val1 ) )
@@ -289,15 +294,16 @@ TNL_NVCC_HD_WARNING_DISABLE
 template< typename T1, typename T2 >
 __cuda_callable__
 void
-cmpHelperFalse( const char* assertion,
-                const char* message,
-                const char* file,
-                const char* function,
-                int line,
-                const char* expr1,
-                const char* expr2,
-                const T1& val1,
-                const T2& val2 )
+cmpHelperFalse(
+   const char* assertion,
+   const char* message,
+   const char* file,
+   const char* function,
+   int line,
+   const char* expr1,
+   const char* expr2,
+   const T1& val1,
+   const T2& val2 )
 {
    if( val1 )
       ::TNL::Assert::cmpHelperOpFailure( assertion, message, file, function, line, expr1, "false", val1, false, "==" );
@@ -308,15 +314,16 @@ cmpHelperFalse( const char* assertion,
    #define TNL_IMPL_CMP_HELPER_( op_name, op )                                                                            \
       template< typename T1, typename T2 >                                                                                \
       __cuda_callable__                                                                                                   \
-      void cmpHelper##op_name( const char* assertion,                                                                     \
-                               const char* message,                                                                       \
-                               const char* file,                                                                          \
-                               const char* function,                                                                      \
-                               int line,                                                                                  \
-                               const char* expr1,                                                                         \
-                               const char* expr2,                                                                         \
-                               const T1& val1,                                                                            \
-                               const T2& val2 )                                                                           \
+      void cmpHelper##op_name(                                                                                            \
+         const char* assertion,                                                                                           \
+         const char* message,                                                                                             \
+         const char* file,                                                                                                \
+         const char* function,                                                                                            \
+         int line,                                                                                                        \
+         const char* expr1,                                                                                               \
+         const char* expr2,                                                                                               \
+         const T1& val1,                                                                                                  \
+         const T2& val2 )                                                                                                 \
       {                                                                                                                   \
          if( ! ( (val1) op( val2 ) ) )                                                                                    \
             ::TNL::Assert::cmpHelperOpFailure( assertion, message, file, function, line, expr1, expr2, val1, val2, #op ); \

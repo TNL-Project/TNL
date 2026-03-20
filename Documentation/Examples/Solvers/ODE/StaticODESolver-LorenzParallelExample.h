@@ -45,13 +45,14 @@ solveParallelODEs( const char* file_name )
    //! [Vector for results]
 
    //! [Lambda function for ODE]
-   auto f = [ = ] __cuda_callable__( const Real& t,
-                                     const Real& tau,
-                                     const StaticVector& u,
-                                     StaticVector& fu,
-                                     const Real& sigma_i,
-                                     const Real& rho_j,
-                                     const Real& beta_k )
+   auto f = [ = ] __cuda_callable__(
+               const Real& t,
+               const Real& tau,
+               const StaticVector& u,
+               StaticVector& fu,
+               const Real& sigma_i,
+               const Real& rho_j,
+               const Real& beta_k )
    {
       const Real& x = u[ 0 ];
       const Real& y = u[ 1 ];

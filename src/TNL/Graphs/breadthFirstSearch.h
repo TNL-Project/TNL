@@ -15,16 +15,19 @@ namespace TNL::Graphs {
 
 template< bool haveExplorer, typename Matrix, typename Vector, typename Visitor, typename Explorer >
 void
-breadthFirstSearchTransposed_impl( const Matrix& transposedAdjacencyMatrix,
-                                   typename Matrix::IndexType start,
-                                   Vector& distances,
-                                   Visitor&& visitor,
-                                   Explorer&& explorer )
+breadthFirstSearchTransposed_impl(
+   const Matrix& transposedAdjacencyMatrix,
+   typename Matrix::IndexType start,
+   Vector& distances,
+   Visitor&& visitor,
+   Explorer&& explorer )
 {
-   TNL_ASSERT_TRUE( transposedAdjacencyMatrix.getRows() == transposedAdjacencyMatrix.getColumns(),
-                    "Adjacency matrix must be square matrix." );
-   TNL_ASSERT_TRUE( distances.getSize() == transposedAdjacencyMatrix.getRows(),
-                    "v must have the same size as the number of rows in adjacencyMatrix" );
+   TNL_ASSERT_TRUE(
+      transposedAdjacencyMatrix.getRows() == transposedAdjacencyMatrix.getColumns(),
+      "Adjacency matrix must be square matrix." );
+   TNL_ASSERT_TRUE(
+      distances.getSize() == transposedAdjacencyMatrix.getRows(),
+      "v must have the same size as the number of rows in adjacencyMatrix" );
 
    using Real = typename Matrix::RealType;
    using Index = typename Matrix::IndexType;
@@ -79,10 +82,11 @@ breadthFirstSearchTransposed( const Matrix& transposedAdjacencyMatrix, typename 
 
 template< typename Matrix, typename Vector, typename Visitor >
 void
-breadthFirstSearchTransposed( const Matrix& transposedAdjacencyMatrix,
-                              typename Matrix::IndexType start,
-                              Vector& distances,
-                              Visitor&& visitor )
+breadthFirstSearchTransposed(
+   const Matrix& transposedAdjacencyMatrix,
+   typename Matrix::IndexType start,
+   Vector& distances,
+   Visitor&& visitor )
 {
    using Index = typename Matrix::IndexType;
    breadthFirstSearchTransposed_impl< false >(
@@ -91,26 +95,28 @@ breadthFirstSearchTransposed( const Matrix& transposedAdjacencyMatrix,
 
 template< typename Matrix, typename Vector, typename Visitor, typename Explorer >
 void
-breadthFirstSearchTransposed( const Matrix& transposedAdjacencyMatrix,
-                              typename Matrix::IndexType start,
-                              Vector& distances,
-                              Visitor&& visitor,
-                              Explorer&& explorer )
+breadthFirstSearchTransposed(
+   const Matrix& transposedAdjacencyMatrix,
+   typename Matrix::IndexType start,
+   Vector& distances,
+   Visitor&& visitor,
+   Explorer&& explorer )
 {
    breadthFirstSearchTransposed_impl< true >( transposedAdjacencyMatrix, start, distances, visitor, explorer );
 }
 
 template< bool haveExplorer, typename Matrix, typename Vector, typename Visitor, typename Explorer >
 void
-breadthFirstSearch_impl( const Matrix& adjacencyMatrix,
-                         typename Matrix::IndexType start,
-                         Vector& distances,
-                         Visitor&& visitor,
-                         Explorer&& explorer )
+breadthFirstSearch_impl(
+   const Matrix& adjacencyMatrix,
+   typename Matrix::IndexType start,
+   Vector& distances,
+   Visitor&& visitor,
+   Explorer&& explorer )
 {
    TNL_ASSERT_TRUE( adjacencyMatrix.getRows() == adjacencyMatrix.getColumns(), "Adjacency matrix must be square matrix." );
-   TNL_ASSERT_TRUE( distances.getSize() == adjacencyMatrix.getRows(),
-                    "v must have the same size as the number of rows in adjacencyMatrix" );
+   TNL_ASSERT_TRUE(
+      distances.getSize() == adjacencyMatrix.getRows(), "v must have the same size as the number of rows in adjacencyMatrix" );
 
    using Index = typename Matrix::IndexType;
    using Device = typename Matrix::DeviceType;
@@ -169,11 +175,12 @@ breadthFirstSearch( const Graph& graph, typename Graph::IndexType start, Vector&
 
 template< typename Graph, typename Vector, typename Visitor, typename Explorer >
 void
-breadthFirstSearch( const Graph& graph,
-                    typename Graph::IndexType start,
-                    Vector& distances,
-                    Visitor&& visitor,
-                    Explorer&& explorer )
+breadthFirstSearch(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   Vector& distances,
+   Visitor&& visitor,
+   Explorer&& explorer )
 {
    breadthFirstSearch_impl< true >( graph.getAdjacencyMatrix(), start, distances, visitor, explorer );
 }

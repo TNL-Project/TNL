@@ -17,21 +17,21 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using GraphTestTypes =
-   ::testing::Types< TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int, TNL::Matrices::SymmetricMatrix >,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix >
+using GraphTestTypes = ::testing::Types<
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int, TNL::Matrices::SymmetricMatrix >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix >
 #if defined( __CUDACC__ )
-                     ,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::SymmetricMatrix >
+   ,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::SymmetricMatrix >
 #elif defined( __HIP__ )
-                     ,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::SymmetricMatrix >
+   ,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::SymmetricMatrix >
 #endif
-                     >;
+   >;
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
 
@@ -96,13 +96,13 @@ TYPED_TEST( GraphTest, test_large_tree )
 {
    using GraphType = typename TestFixture::GraphType;
 
-   GraphType tree( 29,
-                   { { 3, 18, 1.0 },  { 0, 11, 1.0 },  { 4, 19, 1.0 },  { 2, 28, 1.0 },  { 1, 5, 1.0 },   { 8, 12, 1.0 },
-                     { 8, 26, 1.0 },  { 11, 28, 1.0 }, { 16, 23, 1.0 }, { 17, 23, 1.0 }, { 13, 19, 1.0 }, { 15, 25, 1.0 },
-                     { 18, 25, 1.0 }, { 25, 20, 1.0 }, { 3, 10, 2.0 },  { 4, 12, 2.0 },  { 1, 25, 2.0 },  { 7, 19, 2.0 },
-                     { 10, 12, 2.0 }, { 10, 23, 2.0 }, { 14, 18, 2.0 }, { 27, 28, 2.0 }, { 24, 28, 2.0 }, { 0, 22, 3.0 },
-                     { 6, 11, 3.0 },  { 9, 17, 3.0 },  { 21, 23, 3.0 }, { 8, 27, 4.0 } },
-                   TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
+   GraphType tree(
+      29,
+      { { 3, 18, 1.0 },  { 0, 11, 1.0 },  { 4, 19, 1.0 },  { 2, 28, 1.0 },  { 1, 5, 1.0 },   { 8, 12, 1.0 },  { 8, 26, 1.0 },
+        { 11, 28, 1.0 }, { 16, 23, 1.0 }, { 17, 23, 1.0 }, { 13, 19, 1.0 }, { 15, 25, 1.0 }, { 18, 25, 1.0 }, { 25, 20, 1.0 },
+        { 3, 10, 2.0 },  { 4, 12, 2.0 },  { 1, 25, 2.0 },  { 7, 19, 2.0 },  { 10, 12, 2.0 }, { 10, 23, 2.0 }, { 14, 18, 2.0 },
+        { 27, 28, 2.0 }, { 24, 28, 2.0 }, { 0, 22, 3.0 },  { 6, 11, 3.0 },  { 9, 17, 3.0 },  { 21, 23, 3.0 }, { 8, 27, 4.0 } },
+      TNL::Matrices::SymmetricMatrixEncoding::SparseMixed );
 
    ASSERT_TRUE( TNL::Graphs::isTree( tree ) );
 }

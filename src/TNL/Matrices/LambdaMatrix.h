@@ -45,11 +45,12 @@ namespace TNL::Matrices {
  * \tparam Device is a device on which the lambda functions will be evaluated.
  * \tparam Index is a type to be used for indexing.
  */
-template< typename MatrixElementsLambda,
-          typename CompressedRowLengthsLambda,
-          typename Real = double,
-          typename Device = Devices::Host,
-          typename Index = int >
+template<
+   typename MatrixElementsLambda,
+   typename CompressedRowLengthsLambda,
+   typename Real = double,
+   typename Device = Devices::Host,
+   typename Index = int >
 class LambdaMatrix
 {
 public:
@@ -131,10 +132,11 @@ public:
     * \par Output
     * \include LambdaMatrixExample_Constructor.out
     */
-   LambdaMatrix( IndexType rows,
-                 IndexType columns,
-                 MatrixElementsLambda& matrixElements,
-                 CompressedRowLengthsLambda& compressedRowLengths );
+   LambdaMatrix(
+      IndexType rows,
+      IndexType columns,
+      MatrixElementsLambda& matrixElements,
+      CompressedRowLengthsLambda& compressedRowLengths );
 
    /**
     * \brief Copy constructor.
@@ -505,12 +507,13 @@ public:
     */
    template< typename InVector, typename OutVector >
    void
-   vectorProduct( const InVector& inVector,
-                  OutVector& outVector,
-                  const RealType& matrixMultiplicator = 1.0,
-                  const RealType& outVectorMultiplicator = 0.0,
-                  IndexType begin = 0,
-                  IndexType end = 0 ) const;
+   vectorProduct(
+      const InVector& inVector,
+      OutVector& outVector,
+      const RealType& matrixMultiplicator = 1.0,
+      const RealType& outVectorMultiplicator = 0.0,
+      IndexType begin = 0,
+      IndexType end = 0 ) const;
 
    /**
     * \brief Method for printing the matrix to output stream.
@@ -537,8 +540,9 @@ protected:
  */
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
 std::ostream&
-operator<<( std::ostream& str,
-            const LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >& matrix );
+operator<<(
+   std::ostream& str,
+   const LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >& matrix );
 
 /**
  * \brief Helper class for creating instances of LambdaMatrix.
@@ -575,9 +579,10 @@ struct LambdaMatrixFactory
       // TODO: fix the following asserts, they do not work in fact
       static_assert(
          std::is_same_v<
-            std::enable_if_t< true,
-                              decltype( matrixElementsLambda(
-                                 Index(), Index(), Index(), Index(), std::declval< Index& >(), std::declval< Real& >() ) ) >,
+            std::enable_if_t<
+               true,
+               decltype( matrixElementsLambda(
+                  Index(), Index(), Index(), Index(), std::declval< Index& >(), std::declval< Real& >() ) ) >,
             void >,
          "Wong type of MatrixElementsLambda, it should be - matrixElementsLambda( Index rows, Index columns, Index rowIdx, "
          "Index localIdx, Index& columnIdx, Real& value )" );
@@ -606,18 +611,20 @@ struct LambdaMatrixFactory
     */
    template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda >
    [[nodiscard]] static auto
-   create( IndexType rows,
-           IndexType columns,
-           MatrixElementsLambda& matrixElementsLambda,
-           CompressedRowLengthsLambda& compressedRowLengthsLambda )
+   create(
+      IndexType rows,
+      IndexType columns,
+      MatrixElementsLambda& matrixElementsLambda,
+      CompressedRowLengthsLambda& compressedRowLengthsLambda )
       -> LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >
    {
       // TODO: fix the following asserts, they do not work in fact
       static_assert(
          std::is_same_v<
-            std::enable_if_t< true,
-                              decltype( matrixElementsLambda(
-                                 Index(), Index(), Index(), Index(), std::declval< Index& >(), std::declval< Real& >() ) ) >,
+            std::enable_if_t<
+               true,
+               decltype( matrixElementsLambda(
+                  Index(), Index(), Index(), Index(), std::declval< Index& >(), std::declval< Real& >() ) ) >,
             void >,
          "Wong type of MatrixElementsLambda, it should be - matrixElementsLambda( Index rows, Index columns, Index rowIdx, "
          "Index localIdx, Index& columnIdx, Real& value )" );

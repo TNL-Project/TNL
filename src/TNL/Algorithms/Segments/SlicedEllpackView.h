@@ -7,10 +7,11 @@
 
 namespace TNL::Algorithms::Segments {
 
-template< typename Device,
-          typename Index,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int SliceSize = 32 >
+template<
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int SliceSize = 32 >
 class SlicedEllpackView : public SlicedEllpackBase< Device, Index, Organization, SliceSize >
 {
    using Base = SlicedEllpackBase< Device, Index, Organization, SliceSize >;
@@ -27,11 +28,12 @@ public:
    SlicedEllpackView() = default;
 
    __cuda_callable__
-   SlicedEllpackView( Index size,
-                      Index alignedSize,
-                      Index segmentsCount,
-                      typename Base::OffsetsView sliceOffsets,
-                      typename Base::OffsetsView sliceSegmentSizes );
+   SlicedEllpackView(
+      Index size,
+      Index alignedSize,
+      Index segmentsCount,
+      typename Base::OffsetsView sliceOffsets,
+      typename Base::OffsetsView sliceSegmentSizes );
 
    __cuda_callable__
    SlicedEllpackView( const SlicedEllpackView& ) = default;

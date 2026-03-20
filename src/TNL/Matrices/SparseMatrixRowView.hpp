@@ -11,9 +11,10 @@ namespace TNL::Matrices {
 
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::SparseMatrixRowView( SegmentViewType segmentView,
-                                                                                         ValuesViewType values,
-                                                                                         ColumnsIndexesViewType columnIndexes )
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::SparseMatrixRowView(
+   SegmentViewType segmentView,
+   ValuesViewType values,
+   ColumnsIndexesViewType columnIndexes )
 : segmentView( std::move( segmentView ) ),
   values( std::move( values ) ),
   columnIndexes( std::move( columnIndexes ) )
@@ -101,8 +102,9 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::setValue( co
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
 void
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::setColumnIndex( const IndexType localIdx,
-                                                                                    const IndexType& columnIndex )
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::setColumnIndex(
+   const IndexType localIdx,
+   const IndexType& columnIndex )
 {
    TNL_ASSERT_LT( localIdx, this->getSize(), "Local index exceeds matrix row capacity." );
    const IndexType globalIdx = segmentView.getGlobalIndex( localIdx );
@@ -112,9 +114,10 @@ SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::setColumnInd
 template< typename SegmentView, typename ValuesView, typename ColumnsIndexesView >
 __cuda_callable__
 void
-SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::setElement( const IndexType localIdx,
-                                                                                const IndexType column,
-                                                                                const RealType& value )
+SparseMatrixRowView< SegmentView, ValuesView, ColumnsIndexesView >::setElement(
+   const IndexType localIdx,
+   const IndexType column,
+   const RealType& value )
 {
    TNL_ASSERT_LT( localIdx, this->getSize(), "Local index exceeds matrix row capacity." );
    const IndexType globalIdx = segmentView.getGlobalIndex( localIdx );

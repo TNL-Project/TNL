@@ -78,18 +78,21 @@ Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::setSegmentsSi
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >
 void
-Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::setSegmentsSizes( const Index segmentsCount,
-                                                                                     const Index segmentSize )
+Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::setSegmentsSizes(
+   const Index segmentsCount,
+   const Index segmentSize )
 {
    if constexpr( Organization == RowMajorOrder )
       Base::bind( segmentsCount, segmentSize, segmentsCount );
    else
-      Base::bind( segmentsCount,
-                  segmentSize,
-                  roundUpDivision( segmentsCount, static_cast< Index >( this->getAlignment() ) ) * this->getAlignment() );
+      Base::bind(
+         segmentsCount,
+         segmentSize,
+         roundUpDivision( segmentsCount, static_cast< Index >( this->getAlignment() ) ) * this->getAlignment() );
    if( integerMultiplyOverflow( this->alignedSize, this->segmentSize ) )
-      throw( std::overflow_error( "Ellpack: multiplication overflow - the storage size required for the segments is larger "
-                                  "than the maximal value of used index type." ) );
+      throw( std::overflow_error(
+         "Ellpack: multiplication overflow - the storage size required for the segments is larger "
+         "than the maximal value of used index type." ) );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int Alignment >

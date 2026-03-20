@@ -6,10 +6,11 @@ int
 main()
 {
    //! [instantiation]
-   using RowMajorArray = NDArray< int,                          // Value
-                                  SizesHolder< int, 0, 0 >,     // SizesHolder
-                                  std::index_sequence< 0, 1 >,  // Permutation
-                                  TNL::Devices::Host >;         // Device
+   using RowMajorArray = NDArray<
+      int,                          // Value
+      SizesHolder< int, 0, 0 >,     // SizesHolder
+      std::index_sequence< 0, 1 >,  // Permutation
+      TNL::Devices::Host >;         // Device
    RowMajorArray a;
    //! [instantiation]
 

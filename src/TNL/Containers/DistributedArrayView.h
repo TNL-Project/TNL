@@ -40,11 +40,12 @@ public:
    ~DistributedArrayView();
 
    // Initialization by raw data
-   DistributedArrayView( const LocalRangeType& localRange,
-                         IndexType ghosts,
-                         IndexType globalSize,
-                         MPI::Comm communicator,
-                         LocalViewType localData )
+   DistributedArrayView(
+      const LocalRangeType& localRange,
+      IndexType ghosts,
+      IndexType globalSize,
+      MPI::Comm communicator,
+      LocalViewType localData )
    : localRange( localRange ),
      ghosts( ghosts ),
      globalSize( globalSize ),
@@ -72,11 +73,12 @@ public:
 
    // method for rebinding (reinitialization) to raw data
    void
-   bind( const LocalRangeType& localRange,
-         IndexType ghosts,
-         IndexType globalSize,
-         const MPI::Comm& communicator,
-         LocalViewType localData );
+   bind(
+      const LocalRangeType& localRange,
+      IndexType ghosts,
+      IndexType globalSize,
+      const MPI::Comm& communicator,
+      LocalViewType localData );
 
    // Note that you can also bind directly to DistributedArray and other types implicitly
    // convertible to DistributedArrayView.

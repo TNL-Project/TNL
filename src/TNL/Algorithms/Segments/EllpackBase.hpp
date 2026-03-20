@@ -12,9 +12,10 @@ namespace TNL::Algorithms::Segments {
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 __cuda_callable__
 void
-EllpackBase< Device, Index, Organization, Alignment >::bind( IndexType segmentsCount,
-                                                             IndexType segmentSize,
-                                                             IndexType alignedSize )
+EllpackBase< Device, Index, Organization, Alignment >::bind(
+   IndexType segmentsCount,
+   IndexType segmentSize,
+   IndexType alignedSize )
 {
    this->segmentSize = segmentSize;
    this->segmentsCount = segmentsCount;
@@ -23,9 +24,10 @@ EllpackBase< Device, Index, Organization, Alignment >::bind( IndexType segmentsC
 
 template< typename Device, typename Index, ElementsOrganization Organization, int Alignment >
 __cuda_callable__
-EllpackBase< Device, Index, Organization, Alignment >::EllpackBase( IndexType segmentsCount,
-                                                                    IndexType segmentSize,
-                                                                    IndexType alignedSize )
+EllpackBase< Device, Index, Organization, Alignment >::EllpackBase(
+   IndexType segmentsCount,
+   IndexType segmentSize,
+   IndexType alignedSize )
 : segmentSize( segmentSize ),
   segmentsCount( segmentsCount ),
   alignedSize( alignedSize )

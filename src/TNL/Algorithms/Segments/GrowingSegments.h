@@ -91,12 +91,13 @@ struct GrowingSegments : public Segments
 
    template< typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
    void
-   reduceSegments( IndexType begin,
-                   IndexType end,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Value& identity ) const
+   reduceSegments(
+      IndexType begin,
+      IndexType end,
+      Fetch& fetch,
+      const Reduction& reduction,
+      ResultKeeper& keeper,
+      const Value& identity ) const
    {
       this->view.reduceSegments( begin, end, fetch, reduction, keeper, identity );
    }

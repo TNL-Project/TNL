@@ -23,10 +23,11 @@ namespace TNL::Matrices {
  *
  * See \ref DenseMatrix.
  */
-template< typename Real = double,
-          typename Device = Devices::Host,
-          typename Index = int,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
+template<
+   typename Real = double,
+   typename Device = Devices::Host,
+   typename Index = int,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
 class DenseMatrixView : public DenseMatrixBase< Real, Device, Index, Organization >
 {
    using Base = DenseMatrixBase< Real, Device, Index, Organization >;

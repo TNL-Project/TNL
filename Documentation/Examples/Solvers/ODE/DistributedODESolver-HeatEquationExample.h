@@ -45,16 +45,17 @@ solveHeatEquation( const char* file_name )
    //! [Domain decomposition]
 
    //! [Initial condition]
-   u.forElements( 0,
-                  n,
-                  [ = ] __cuda_callable__( Index i, Real & value )
-                  {
-                     const Real x = i * h;
-                     if( x >= 0.4 && x <= 0.6 )
-                        value = 1.0;
-                     else
-                        value = 0.0;
-                  } );
+   u.forElements(
+      0,
+      n,
+      [ = ] __cuda_callable__( Index i, Real & value )
+      {
+         const Real x = i * h;
+         if( x >= 0.4 && x <= 0.6 )
+            value = 1.0;
+         else
+            value = 0.0;
+      } );
    std::fstream file;
    file.open( file_name, std::ios::out );
    write( file, u, h, (Real) 0.0 );

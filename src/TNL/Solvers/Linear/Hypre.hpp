@@ -30,8 +30,8 @@ HypreSolver::setup( const Containers::HypreParVector& b, Containers::HypreParVec
       if( error_mode == WARN_HYPRE_ERRORS )
          std::cout << "HypreSolver::setup(...) : error code " << err_flag << " : " << std::string( buffer ) << '\n';
       else if( error_mode == ABORT_HYPRE_ERRORS )
-         throw std::runtime_error( "HypreSolver::setup(...) : error code " + std::to_string( err_flag ) + " : "
-                                   + std::string( buffer ) );
+         throw std::runtime_error(
+            "HypreSolver::setup(...) : error code " + std::to_string( err_flag ) + " : " + std::string( buffer ) );
    }
    hypre_error_flag = 0;
 
@@ -54,8 +54,8 @@ HypreSolver::solve( const Containers::HypreParVector& b, Containers::HypreParVec
       if( error_mode == WARN_HYPRE_ERRORS )
          std::cout << "HypreSolver::solve(...) : error code " << err_flag << " : " << std::string( buffer ) << '\n';
       else if( error_mode == ABORT_HYPRE_ERRORS )
-         throw std::runtime_error( "HypreSolver::solve(...) : error code " + std::to_string( err_flag ) + " : "
-                                   + std::string( buffer ) );
+         throw std::runtime_error(
+            "HypreSolver::solve(...) : error code " + std::to_string( err_flag ) + " : " + std::string( buffer ) );
    }
    hypre_error_flag = 0;
 

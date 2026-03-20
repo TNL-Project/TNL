@@ -18,13 +18,14 @@ reduceRows()
     *
     * The diagonals offsets are { -2, -1, 0 }.
     */
-   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix( 5,              // number of matrix columns
-                                                                { -2, -1, 0 },  // diagonals offsets
-                                                                { { 0, 0, 1 },  // matrix elements
-                                                                  { 0, 2, 1 },
-                                                                  { 3, 2, 1 },
-                                                                  { 3, 2, 1 },
-                                                                  { 3, 2, 1 } } );
+   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix(
+      5,              // number of matrix columns
+      { -2, -1, 0 },  // diagonals offsets
+      { { 0, 0, 1 },  // matrix elements
+        { 0, 2, 1 },
+        { 3, 2, 1 },
+        { 3, 2, 1 },
+        { 3, 2, 1 } } );
    auto view = matrix.getView();
 
    /***

@@ -281,18 +281,21 @@ TEST( MeshTest, TwoTrianglesTest )
    using EdgeMeshEntityType = typename TriangleMeshEntityType::SubentityTraits< 1 >::SubentityType;
    using VertexMeshEntityType = typename TriangleMeshEntityType::SubentityTraits< 0 >::SubentityType;
 
-   static_assert( TriangleMeshEntityType::SubentityTraits< 1 >::storageEnabled,
-                  "Testing triangle entity does not store edges as required." );
-   static_assert( TriangleMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing triangle entity does not store vertices as required." );
-   static_assert( EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing edge entity does not store vertices as required." );
-   static_assert( EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing edge entity does not store triangles as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing vertex entity does not store triangles as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled,
-                  "Testing vertex entity does not store edges as required." );
+   static_assert(
+      TriangleMeshEntityType::SubentityTraits< 1 >::storageEnabled,
+      "Testing triangle entity does not store edges as required." );
+   static_assert(
+      TriangleMeshEntityType::SubentityTraits< 0 >::storageEnabled,
+      "Testing triangle entity does not store vertices as required." );
+   static_assert(
+      EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled, "Testing edge entity does not store vertices as required." );
+   static_assert(
+      EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled, "Testing edge entity does not store triangles as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
+      "Testing vertex entity does not store triangles as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled, "Testing vertex entity does not store edges as required." );
 
    using PointType = typename VertexMeshEntityType::PointType;
    static_assert( std::is_same_v< PointType, Containers::StaticVector< 2, RealType > >, "unexpected PointType" );
@@ -776,8 +779,9 @@ TEST( MeshTest, RegularMeshOfQuadranglesTest )
          else if( i == 0 || i == xSize || j == 0 || j == ySize ) {
             EXPECT_EQ( vertex.template getSuperentitiesCount< 1 >(), 3 );
             EXPECT_EQ( vertex.template getSuperentitiesCount< 2 >(), 2 );
-            EXPECT_EQ( vertex.template getSuperentityIndex< 2 >( 0 ),
-                       ( j - ( j == ySize || i == 0 || i == xSize ) ) * xSize + i - ( i == xSize ) - ( j == 0 || j == ySize ) );
+            EXPECT_EQ(
+               vertex.template getSuperentityIndex< 2 >( 0 ),
+               ( j - ( j == ySize || i == 0 || i == xSize ) ) * xSize + i - ( i == xSize ) - ( j == 0 || j == ySize ) );
             EXPECT_EQ( vertex.template getSuperentityIndex< 2 >( 1 ), ( j - ( j == ySize ) ) * xSize + i - ( i == xSize ) );
          }
          else {
@@ -851,8 +855,8 @@ TEST( MeshTest, RegularMeshOfHexahedronsTest )
    for( IndexType k = 0; k <= zSize; k++ )
       for( IndexType j = 0; j <= ySize; j++ )
          for( IndexType i = 0; i <= xSize; i++ )
-            meshBuilder.setPoint( k * ( xSize + 1 ) * ( ySize + 1 ) + j * ( xSize + 1 ) + i,
-                                  PointType( i * hx, j * hy, k * hz ) );
+            meshBuilder.setPoint(
+               k * ( xSize + 1 ) * ( ySize + 1 ) + j * ( xSize + 1 ) + i, PointType( i * hx, j * hy, k * hz ) );
 
    /****
     * Setup cells
@@ -918,8 +922,9 @@ TEST( MeshTest, RegularMeshOfHexahedronsTest )
                EXPECT_EQ( vertex.template getSuperentitiesCount< 1 >(), 3 );
                EXPECT_EQ( vertex.template getSuperentitiesCount< 2 >(), 3 );
                EXPECT_EQ( vertex.template getSuperentitiesCount< 3 >(), 1 );
-               EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 0 ),
-                          ( k - ( k == zSize ) ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - ( i == xSize ) );
+               EXPECT_EQ(
+                  vertex.template getSuperentityIndex< 3 >( 0 ),
+                  ( k - ( k == zSize ) ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - ( i == xSize ) );
             }
             else if( i == 0 || i == xSize || j == 0 || j == ySize || k == 0 || k == zSize ) {
                if( ( i != 0 && i != xSize && j != 0 && j != ySize ) || ( i != 0 && i != xSize && k != 0 && k != zSize )
@@ -929,34 +934,45 @@ TEST( MeshTest, RegularMeshOfHexahedronsTest )
                   EXPECT_EQ( vertex.template getSuperentitiesCount< 2 >(), 8 );
                   EXPECT_EQ( vertex.template getSuperentitiesCount< 3 >(), 4 );
                   if( k == 0 || k == zSize ) {
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 0 ),
-                                ( k - ( k == zSize ) ) * xSize * ySize + ( j - 1 ) * xSize + i - 1 );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 1 ),
-                                ( k - ( k == zSize ) ) * xSize * ySize + ( j - 1 ) * xSize + i );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 2 ),
-                                ( k - ( k == zSize ) ) * xSize * ySize + (j) *xSize + i - 1 );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 3 ),
-                                ( k - ( k == zSize ) ) * xSize * ySize + (j) *xSize + i );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 0 ),
+                        ( k - ( k == zSize ) ) * xSize * ySize + ( j - 1 ) * xSize + i - 1 );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 1 ),
+                        ( k - ( k == zSize ) ) * xSize * ySize + ( j - 1 ) * xSize + i );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 2 ),
+                        ( k - ( k == zSize ) ) * xSize * ySize + (j) *xSize + i - 1 );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 3 ),
+                        ( k - ( k == zSize ) ) * xSize * ySize + (j) *xSize + i );
                   }
                   else if( j == 0 || j == ySize ) {
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 0 ),
-                                ( k - 1 ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - 1 );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 1 ),
-                                ( k - 1 ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 2 ),
-                                (k) *xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - 1 );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 3 ),
-                                (k) *xSize * ySize + ( j - ( j == ySize ) ) * xSize + i );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 0 ),
+                        ( k - 1 ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - 1 );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 1 ),
+                        ( k - 1 ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 2 ),
+                        (k) *xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - 1 );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 3 ),
+                        (k) *xSize * ySize + ( j - ( j == ySize ) ) * xSize + i );
                   }
                   else {
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 0 ),
-                                ( k - 1 ) * xSize * ySize + ( j - 1 ) * xSize + i - ( i == xSize ) );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 1 ),
-                                ( k - 1 ) * xSize * ySize + (j) *xSize + i - ( i == xSize ) );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 2 ),
-                                (k) *xSize * ySize + ( j - 1 ) * xSize + i - ( i == xSize ) );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 3 ),
-                                (k) *xSize * ySize + (j) *xSize + i - ( i == xSize ) );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 0 ),
+                        ( k - 1 ) * xSize * ySize + ( j - 1 ) * xSize + i - ( i == xSize ) );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 1 ),
+                        ( k - 1 ) * xSize * ySize + (j) *xSize + i - ( i == xSize ) );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 2 ),
+                        (k) *xSize * ySize + ( j - 1 ) * xSize + i - ( i == xSize ) );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 3 ), (k) *xSize * ySize + (j) *xSize + i - ( i == xSize ) );
                   }
                }
                else {
@@ -964,22 +980,28 @@ TEST( MeshTest, RegularMeshOfHexahedronsTest )
                   EXPECT_EQ( vertex.template getSuperentitiesCount< 2 >(), 5 );
                   EXPECT_EQ( vertex.template getSuperentitiesCount< 3 >(), 2 );
                   if( k != 0 && k != zSize ) {
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 0 ),
-                                ( k - 1 ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - ( i == xSize ) );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 1 ),
-                                (k) *xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - ( i == xSize ) );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 0 ),
+                        ( k - 1 ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - ( i == xSize ) );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 1 ),
+                        (k) *xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - ( i == xSize ) );
                   }
                   else if( j != 0 && j != ySize ) {
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 0 ),
-                                ( k - ( k == zSize ) ) * xSize * ySize + ( j - 1 ) * xSize + i - ( i == xSize ) );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 1 ),
-                                ( k - ( k == zSize ) ) * xSize * ySize + (j) *xSize + i - ( i == xSize ) );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 0 ),
+                        ( k - ( k == zSize ) ) * xSize * ySize + ( j - 1 ) * xSize + i - ( i == xSize ) );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 1 ),
+                        ( k - ( k == zSize ) ) * xSize * ySize + (j) *xSize + i - ( i == xSize ) );
                   }
                   else {
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 0 ),
-                                ( k - ( k == zSize ) ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - 1 );
-                     EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 1 ),
-                                ( k - ( k == zSize ) ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 0 ),
+                        ( k - ( k == zSize ) ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i - 1 );
+                     EXPECT_EQ(
+                        vertex.template getSuperentityIndex< 3 >( 1 ),
+                        ( k - ( k == zSize ) ) * xSize * ySize + ( j - ( j == ySize ) ) * xSize + i );
                   }
                }
             }
@@ -987,8 +1009,8 @@ TEST( MeshTest, RegularMeshOfHexahedronsTest )
                EXPECT_EQ( vertex.template getSuperentitiesCount< 1 >(), 6 );
                EXPECT_EQ( vertex.template getSuperentitiesCount< 2 >(), 12 );
                EXPECT_EQ( vertex.template getSuperentitiesCount< 3 >(), 8 );
-               EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 0 ),
-                          ( k - 1 ) * xSize * ySize + ( j - 1 ) * xSize + i - 1 );
+               EXPECT_EQ(
+                  vertex.template getSuperentityIndex< 3 >( 0 ), ( k - 1 ) * xSize * ySize + ( j - 1 ) * xSize + i - 1 );
                EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 1 ), ( k - 1 ) * xSize * ySize + ( j - 1 ) * xSize + i );
                EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 2 ), ( k - 1 ) * xSize * ySize + (j) *xSize + i - 1 );
                EXPECT_EQ( vertex.template getSuperentityIndex< 3 >( 3 ), ( k - 1 ) * xSize * ySize + (j) *xSize + i );
@@ -1177,18 +1199,20 @@ TEST( MeshTest, TwoPolygonsTest )
    using EdgeMeshEntityType = typename PolygonMeshEntityType::SubentityTraits< 1 >::SubentityType;
    using VertexMeshEntityType = typename PolygonMeshEntityType::SubentityTraits< 0 >::SubentityType;
 
-   static_assert( PolygonMeshEntityType::SubentityTraits< 1 >::storageEnabled,
-                  "Testing polygon entity does not store edges as required." );
-   static_assert( PolygonMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing polygon entity does not store vertices as required." );
-   static_assert( EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing edge entity does not store vertices as required." );
-   static_assert( EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing edge entity does not store polygons as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing vertex entity does not store polygons as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled,
-                  "Testing vertex entity does not store edges as required." );
+   static_assert(
+      PolygonMeshEntityType::SubentityTraits< 1 >::storageEnabled, "Testing polygon entity does not store edges as required." );
+   static_assert(
+      PolygonMeshEntityType::SubentityTraits< 0 >::storageEnabled,
+      "Testing polygon entity does not store vertices as required." );
+   static_assert(
+      EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled, "Testing edge entity does not store vertices as required." );
+   static_assert(
+      EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled, "Testing edge entity does not store polygons as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
+      "Testing vertex entity does not store polygons as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled, "Testing vertex entity does not store edges as required." );
 
    using PointType = typename VertexMeshEntityType::PointType;
    static_assert( std::is_same_v< PointType, Containers::StaticVector< 2, RealType > >, "unexpected PointType" );
@@ -1361,18 +1385,20 @@ TEST( MeshTest, SevenPolygonsTest )
    using EdgeMeshEntityType = typename PolygonMeshEntityType::SubentityTraits< 1 >::SubentityType;
    using VertexMeshEntityType = typename PolygonMeshEntityType::SubentityTraits< 0 >::SubentityType;
 
-   static_assert( PolygonMeshEntityType::SubentityTraits< 1 >::storageEnabled,
-                  "Testing polygon entity does not store edges as required." );
-   static_assert( PolygonMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing polygon entity does not store vertices as required." );
-   static_assert( EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing edge entity does not store vertices as required." );
-   static_assert( EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing edge entity does not store polygons as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing vertex entity does not store polygons as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled,
-                  "Testing vertex entity does not store edges as required." );
+   static_assert(
+      PolygonMeshEntityType::SubentityTraits< 1 >::storageEnabled, "Testing polygon entity does not store edges as required." );
+   static_assert(
+      PolygonMeshEntityType::SubentityTraits< 0 >::storageEnabled,
+      "Testing polygon entity does not store vertices as required." );
+   static_assert(
+      EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled, "Testing edge entity does not store vertices as required." );
+   static_assert(
+      EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled, "Testing edge entity does not store polygons as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
+      "Testing vertex entity does not store polygons as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled, "Testing vertex entity does not store edges as required." );
 
    using PointType = typename VertexMeshEntityType::PointType;
    static_assert( std::is_same_v< PointType, Containers::StaticVector< 2, RealType > >, "unexpected PointType" );
@@ -1833,33 +1859,37 @@ TEST( MeshTest, TwoWedgesTest )
    using EdgeMeshEntityType = typename WedgeMeshEntityType::SubentityTraits< 1 >::SubentityType;
    using VertexMeshEntityType = typename WedgeMeshEntityType::SubentityTraits< 0 >::SubentityType;
 
-   static_assert( WedgeMeshEntityType::SubentityTraits< 2 >::storageEnabled,
-                  "Testing wedge entity does not store polygons as required." );
-   static_assert( WedgeMeshEntityType::SubentityTraits< 1 >::storageEnabled,
-                  "Testing wedge entity does not store edges as required." );
-   static_assert( WedgeMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing wedge entity does not store vertices as required." );
+   static_assert(
+      WedgeMeshEntityType::SubentityTraits< 2 >::storageEnabled, "Testing wedge entity does not store polygons as required." );
+   static_assert(
+      WedgeMeshEntityType::SubentityTraits< 1 >::storageEnabled, "Testing wedge entity does not store edges as required." );
+   static_assert(
+      WedgeMeshEntityType::SubentityTraits< 0 >::storageEnabled, "Testing wedge entity does not store vertices as required." );
 
-   static_assert( PolygonMeshEntityType::SubentityTraits< 1 >::storageEnabled,
-                  "Testing polygon entity does not store edges as required." );
-   static_assert( PolygonMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing polygon entity does not store vertices as required." );
-   static_assert( PolygonMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
-                  "Testing polygon entity does not store wedges as required." );
+   static_assert(
+      PolygonMeshEntityType::SubentityTraits< 1 >::storageEnabled, "Testing polygon entity does not store edges as required." );
+   static_assert(
+      PolygonMeshEntityType::SubentityTraits< 0 >::storageEnabled,
+      "Testing polygon entity does not store vertices as required." );
+   static_assert(
+      PolygonMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
+      "Testing polygon entity does not store wedges as required." );
 
-   static_assert( EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing edge entity does not store vertices as required." );
-   static_assert( EdgeMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
-                  "Testing edge entity does not store wedges as required." );
-   static_assert( EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing edge entity does not store polygons as required." );
+   static_assert(
+      EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled, "Testing edge entity does not store vertices as required." );
+   static_assert(
+      EdgeMeshEntityType::SuperentityTraits< 3 >::storageEnabled, "Testing edge entity does not store wedges as required." );
+   static_assert(
+      EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled, "Testing edge entity does not store polygons as required." );
 
-   static_assert( VertexMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
-                  "Testing vertex entity does not store wedges as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing vertex entity does not store triangles as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled,
-                  "Testing vertex entity does not store edges as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
+      "Testing vertex entity does not store wedges as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
+      "Testing vertex entity does not store triangles as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled, "Testing vertex entity does not store edges as required." );
 
    using PointType = typename VertexMeshEntityType::PointType;
    static_assert( std::is_same_v< PointType, Containers::StaticVector< 3, RealType > >, "unexpected PointType" );
@@ -2309,33 +2339,39 @@ TEST( MeshTest, TwoPyramidsTest )
    using EdgeMeshEntityType = typename PyramidMeshEntityType::SubentityTraits< 1 >::SubentityType;
    using VertexMeshEntityType = typename PyramidMeshEntityType::SubentityTraits< 0 >::SubentityType;
 
-   static_assert( PyramidMeshEntityType::SubentityTraits< 2 >::storageEnabled,
-                  "Testing pyramid entity does not store polygons as required." );
-   static_assert( PyramidMeshEntityType::SubentityTraits< 1 >::storageEnabled,
-                  "Testing pyramid entity does not store edges as required." );
-   static_assert( PyramidMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing pyramid entity does not store vertices as required." );
+   static_assert(
+      PyramidMeshEntityType::SubentityTraits< 2 >::storageEnabled,
+      "Testing pyramid entity does not store polygons as required." );
+   static_assert(
+      PyramidMeshEntityType::SubentityTraits< 1 >::storageEnabled, "Testing pyramid entity does not store edges as required." );
+   static_assert(
+      PyramidMeshEntityType::SubentityTraits< 0 >::storageEnabled,
+      "Testing pyramid entity does not store vertices as required." );
 
-   static_assert( PolygonMeshEntityType::SubentityTraits< 1 >::storageEnabled,
-                  "Testing polygon entity does not store edges as required." );
-   static_assert( PolygonMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing polygon entity does not store vertices as required." );
-   static_assert( PolygonMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
-                  "Testing polygon entity does not store pyramids as required." );
+   static_assert(
+      PolygonMeshEntityType::SubentityTraits< 1 >::storageEnabled, "Testing polygon entity does not store edges as required." );
+   static_assert(
+      PolygonMeshEntityType::SubentityTraits< 0 >::storageEnabled,
+      "Testing polygon entity does not store vertices as required." );
+   static_assert(
+      PolygonMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
+      "Testing polygon entity does not store pyramids as required." );
 
-   static_assert( EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing edge entity does not store vertices as required." );
-   static_assert( EdgeMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
-                  "Testing edge entity does not store pyramids as required." );
-   static_assert( EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing edge entity does not store polygons as required." );
+   static_assert(
+      EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled, "Testing edge entity does not store vertices as required." );
+   static_assert(
+      EdgeMeshEntityType::SuperentityTraits< 3 >::storageEnabled, "Testing edge entity does not store pyramids as required." );
+   static_assert(
+      EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled, "Testing edge entity does not store polygons as required." );
 
-   static_assert( VertexMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
-                  "Testing vertex entity does not store pyramids as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing vertex entity does not store triangles as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled,
-                  "Testing vertex entity does not store edges as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
+      "Testing vertex entity does not store pyramids as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
+      "Testing vertex entity does not store triangles as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled, "Testing vertex entity does not store edges as required." );
 
    using PointType = typename VertexMeshEntityType::PointType;
    static_assert( std::is_same_v< PointType, Containers::StaticVector< 3, RealType > >, "unexpected PointType" );
@@ -2711,33 +2747,40 @@ TEST( MeshTest, TwoPolyhedronsTest )
    using EdgeMeshEntityType = typename PolyhedronMeshEntityType::SubentityTraits< 1 >::SubentityType;
    using VertexMeshEntityType = typename PolyhedronMeshEntityType::SubentityTraits< 0 >::SubentityType;
 
-   static_assert( PolyhedronMeshEntityType::SubentityTraits< 2 >::storageEnabled,
-                  "Testing polyhedron entity does not store polygons as required." );
-   static_assert( PolyhedronMeshEntityType::SubentityTraits< 1 >::storageEnabled,
-                  "Testing polyhedron entity does not store edges as required." );
-   static_assert( PolyhedronMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing polyhedron entity does not store vertices as required." );
+   static_assert(
+      PolyhedronMeshEntityType::SubentityTraits< 2 >::storageEnabled,
+      "Testing polyhedron entity does not store polygons as required." );
+   static_assert(
+      PolyhedronMeshEntityType::SubentityTraits< 1 >::storageEnabled,
+      "Testing polyhedron entity does not store edges as required." );
+   static_assert(
+      PolyhedronMeshEntityType::SubentityTraits< 0 >::storageEnabled,
+      "Testing polyhedron entity does not store vertices as required." );
 
-   static_assert( PolygonMeshEntityType::SubentityTraits< 1 >::storageEnabled,
-                  "Testing polygon entity does not store edges as required." );
-   static_assert( PolygonMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing polygon entity does not store vertices as required." );
-   static_assert( PolygonMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
-                  "Testing polygon entity does not store pyramids as required." );
+   static_assert(
+      PolygonMeshEntityType::SubentityTraits< 1 >::storageEnabled, "Testing polygon entity does not store edges as required." );
+   static_assert(
+      PolygonMeshEntityType::SubentityTraits< 0 >::storageEnabled,
+      "Testing polygon entity does not store vertices as required." );
+   static_assert(
+      PolygonMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
+      "Testing polygon entity does not store pyramids as required." );
 
-   static_assert( EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled,
-                  "Testing edge entity does not store vertices as required." );
-   static_assert( EdgeMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
-                  "Testing edge entity does not store pyramids as required." );
-   static_assert( EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing edge entity does not store polygons as required." );
+   static_assert(
+      EdgeMeshEntityType::SubentityTraits< 0 >::storageEnabled, "Testing edge entity does not store vertices as required." );
+   static_assert(
+      EdgeMeshEntityType::SuperentityTraits< 3 >::storageEnabled, "Testing edge entity does not store pyramids as required." );
+   static_assert(
+      EdgeMeshEntityType::SuperentityTraits< 2 >::storageEnabled, "Testing edge entity does not store polygons as required." );
 
-   static_assert( VertexMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
-                  "Testing vertex entity does not store pyramids as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
-                  "Testing vertex entity does not store triangles as required." );
-   static_assert( VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled,
-                  "Testing vertex entity does not store edges as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 3 >::storageEnabled,
+      "Testing vertex entity does not store pyramids as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 2 >::storageEnabled,
+      "Testing vertex entity does not store triangles as required." );
+   static_assert(
+      VertexMeshEntityType::SuperentityTraits< 1 >::storageEnabled, "Testing vertex entity does not store edges as required." );
 
    using PointType = typename VertexMeshEntityType::PointType;
    static_assert( std::is_same_v< PointType, Containers::StaticVector< 3, RealType > >, "unexpected PointType" );

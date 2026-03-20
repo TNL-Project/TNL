@@ -88,12 +88,13 @@ public:
    [[nodiscard]] bool
    checkParameters( std::initializer_list< std::string > names ) const
    {
-      return std::all_of( names.begin(),
-                          names.end(),
-                          [ this ]( const std::string& name )
-                          {
-                             return checkParameter( name );
-                          } );
+      return std::all_of(
+         names.begin(),
+         names.end(),
+         [ this ]( const std::string& name )
+         {
+            return checkParameter( name );
+         } );
    }
 
    /**

@@ -46,31 +46,35 @@ struct CSRLightKernel
    [[nodiscard]] std::string
    getSetup() const;
 
-   template< typename SegmentsView,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename SegmentsView,
+      typename Fetch,
+      typename Reduction,
+      typename ResultKeeper,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    void
-   reduceSegments( const SegmentsView& segments,
-                   Index begin,
-                   Index end,
-                   Fetch& fetch,
-                   const Reduction& reduction,
-                   ResultKeeper& keeper,
-                   const Value& identity = Reduction::template getIdentity< Value >() ) const;
+   reduceSegments(
+      const SegmentsView& segments,
+      Index begin,
+      Index end,
+      Fetch& fetch,
+      const Reduction& reduction,
+      ResultKeeper& keeper,
+      const Value& identity = Reduction::template getIdentity< Value >() ) const;
 
-   template< typename SegmentsView,
-             typename Fetch,
-             typename Reduction,
-             typename ResultKeeper,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename SegmentsView,
+      typename Fetch,
+      typename Reduction,
+      typename ResultKeeper,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    void
-   reduceAllSegments( const SegmentsView& segments,
-                      Fetch& fetch,
-                      const Reduction& reduction,
-                      ResultKeeper& keeper,
-                      const Value& identity = Reduction::template getIdentity< Value >() ) const;
+   reduceAllSegments(
+      const SegmentsView& segments,
+      Fetch& fetch,
+      const Reduction& reduction,
+      ResultKeeper& keeper,
+      const Value& identity = Reduction::template getIdentity< Value >() ) const;
 
    void
    setThreadsMapping( LightCSRSThreadsMapping mapping );
