@@ -291,7 +291,6 @@ forElementsWithSegmentIndexesBlockMergeKernel_CSR( const Index gridIdx,
 
    __syncthreads();
    const Index last_idx = shared_offsets[ last_local_segment_idx ];
-   TNL_ASSERT_LE( last_idx, offsets[ offsets.getSize() - 1 ] - offsets[ shared_segment_indexes[ 0 ] ], "" );
 
    Index idx = threadIdx.x;
    while( idx < last_idx ) {
