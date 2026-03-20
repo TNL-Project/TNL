@@ -4,7 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-using namespace std;
 
 #include "generators.h"
 #include "Measurer.h"
@@ -27,7 +26,7 @@ using namespace TNL::Algorithms::Sorting;
 
 template< typename Sorter >
 void
-start( ostream& out, const string& delim )
+start( std::ostream& out, const std::string& delim )
 {
    out << "size" << delim;
    out << "random" << delim;
@@ -45,34 +44,34 @@ start( ostream& out, const string& delim )
 
    for( int pow = LOW_POW; pow <= HIGH_POW; pow++ ) {
       int size = ( 1 << pow );
-      vector< int > vec( size );
+      std::vector< int > vec( size );
 
-      out << "2^" << pow << delim << flush;
-      out << fixed << setprecision( 3 );
+      out << "2^" << pow << delim << std::flush;
+      out << std::fixed << std::setprecision( 3 );
 
       out << Measurer< Sorter >::measure( generateRandom( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+      out << delim << std::flush;
 
       out << Measurer< Sorter >::measure( generateShuffle( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+      out << delim << std::flush;
 
       out << Measurer< Sorter >::measure( generateSorted( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+      out << delim << std::flush;
 
       out << Measurer< Sorter >::measure( generateAlmostSorted( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+      out << delim << std::flush;
 
       out << Measurer< Sorter >::measure( generateDecreasing( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+      out << delim << std::flush;
 
       out << Measurer< Sorter >::measure( generateGaussian( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+      out << delim << std::flush;
 
       out << Measurer< Sorter >::measure( generateBucket( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+      out << delim << std::flush;
 
       out << Measurer< Sorter >::measure( generateStaggered( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+      out << delim << std::flush;
 
       out << Measurer< Sorter >::measure( generateZero_entropy( size ), TRIES, wrongAnsCnt );
       out << '\n';
@@ -88,26 +87,26 @@ main( int argc, char* argv[] )
    if( argc == 1 ) {
 #ifdef __CUDACC__
       std::cout << "Quicksort on GPU ...\n";
-      start< experimental::Quicksort >( cout, "\t" );
+      start< experimental::Quicksort >( std::cout, "\t" );
       std::cout << "Bitonic sort on GPU ...\n";
-      start< BitonicSort >( cout, "\t" );
+      start< BitonicSort >( std::cout, "\t" );
 
    #if defined( __CUDACC__ )
       #ifdef HAVE_CUDA_SAMPLES
       std::cout << "Manca quicksort on GPU ...\n";
-      start< MancaQuicksort >( cout, "\t" );
+      start< MancaQuicksort >( std::cout, "\t" );
       std::cout << "Nvidia bitonic sort on GPU ...\n";
-      start< NvidiaBitonicSort >( cout, "\t" );
+      start< NvidiaBitonicSort >( std::cout, "\t" );
       #endif
       std::cout << "Cederman quicksort on GPU ...\n";
-      start< CedermanQuicksort >( cout, "\t" );
+      start< CedermanQuicksort >( std::cout, "\t" );
       std::cout << "Thrust radixsort on GPU ...\n";
-      start< ThrustRadixsort >( cout, "\t" );
+      start< ThrustRadixsort >( std::cout, "\t" );
    #endif
 #endif
 
       std::cout << "STL sort on CPU ...\n";
-      start< STLSort >( cout, "\t" );
+      start< STLSort >( std::cout, "\t" );
    }
    else {
       std::ofstream out( argv[ 1 ] );
