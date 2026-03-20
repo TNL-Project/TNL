@@ -214,9 +214,10 @@ protected:
     */
    __cuda_callable__
    void
-   bind( const EmbeddedSegmentsView& embeddedSegmentsView,
-         const PermutationView& segmentsPermutation,
-         const PermutationView& inverseSegmentsPermutation );
+   bind(
+      const EmbeddedSegmentsView& embeddedSegmentsView,
+      const PermutationView& segmentsPermutation,
+      const PermutationView& inverseSegmentsPermutation );
 };
 
 }  // namespace TNL::Algorithms::Segments

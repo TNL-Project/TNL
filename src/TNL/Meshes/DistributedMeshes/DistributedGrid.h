@@ -116,10 +116,11 @@ public:
 
    template< typename DistributedGridType >
    [[nodiscard]] bool
-   SetupByCut( DistributedGridType& inputDistributedGrid,
-               Containers::StaticVector< Dimension, int > savedDimensions,
-               Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, int > reducedDimensions,
-               Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, IndexType > fixedIndexes );
+   SetupByCut(
+      DistributedGridType& inputDistributedGrid,
+      Containers::StaticVector< Dimension, int > savedDimensions,
+      Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, int > reducedDimensions,
+      Containers::StaticVector< DistributedGridType::getMeshDimension() - Dimension, IndexType > fixedIndexes );
 
    [[nodiscard]] int
    getRankOfProcCoord( const CoordinatesType& nodeCoordinates ) const;

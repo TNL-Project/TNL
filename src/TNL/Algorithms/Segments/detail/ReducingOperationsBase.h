@@ -21,23 +21,25 @@ struct ReducingOperationsBase
    using DeviceType = typename Segments::DeviceType;
    using IndexType = typename Segments::IndexType;
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value >
    static IndexType
-   reduceSegmentsIf( const Segments& segments,
-                     IndexBegin begin,
-                     IndexEnd end,
-                     Condition&& condition,
-                     Fetch&& fetch,
-                     Reduction&& reduction,
-                     ResultStorer&& storer,
-                     const Value& identity,
-                     LaunchConfiguration launchConfig )
+   reduceSegmentsIf(
+      const Segments& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
    {
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
 
@@ -50,33 +52,36 @@ struct ReducingOperationsBase
 
       auto indexes = compressFast< VectorType >( conditions );
       indexes += begin;
-      reduceSegments( segments,
-                      indexes,
-                      std::forward< Fetch >( fetch ),
-                      std::forward< Reduction >( reduction ),
-                      std::forward< ResultStorer >( storer ),
-                      identity,
-                      launchConfig );
+      reduceSegments(
+         segments,
+         indexes,
+         std::forward< Fetch >( fetch ),
+         std::forward< Reduction >( reduction ),
+         std::forward< ResultStorer >( storer ),
+         identity,
+         launchConfig );
       return indexes.getSize();
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value >
    static IndexType
-   reduceSegmentsWithArgumentIf( const Segments& segments,
-                                 IndexBegin begin,
-                                 IndexEnd end,
-                                 Condition&& condition,
-                                 Fetch&& fetch,
-                                 Reduction&& reduction,
-                                 ResultStorer&& storer,
-                                 const Value& identity,
-                                 LaunchConfiguration launchConfig )
+   reduceSegmentsWithArgumentIf(
+      const Segments& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
    {
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
 
@@ -89,13 +94,14 @@ struct ReducingOperationsBase
 
       auto indexes = compressFast< VectorType >( conditions );
       indexes += begin;
-      reduceSegmentsWithArgument( segments,
-                                  indexes,
-                                  std::forward< Fetch >( fetch ),
-                                  std::forward< Reduction >( reduction ),
-                                  std::forward< ResultStorer >( storer ),
-                                  identity,
-                                  launchConfig );
+      reduceSegmentsWithArgument(
+         segments,
+         indexes,
+         std::forward< Fetch >( fetch ),
+         std::forward< Reduction >( reduction ),
+         std::forward< ResultStorer >( storer ),
+         identity,
+         launchConfig );
       return indexes.getSize();
    }
 };

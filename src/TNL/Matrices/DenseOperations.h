@@ -19,12 +19,13 @@ copyDenseToDenseMatrix( Matrix1& A, const Matrix2& B );
 
 template< typename ResultMatrix, typename Matrix1, typename Matrix2, typename Real, int tileDim = 16 >
 void
-getMatrixProduct( ResultMatrix& resultMatrix,
-                  const Matrix1& matrix1,
-                  const Matrix2& matrix2,
-                  Real matrixMultiplicator = 1.0,
-                  TransposeState transposeA = TransposeState::None,
-                  TransposeState transposeB = TransposeState::None );
+getMatrixProduct(
+   ResultMatrix& resultMatrix,
+   const Matrix1& matrix1,
+   const Matrix2& matrix2,
+   Real matrixMultiplicator = 1.0,
+   TransposeState transposeA = TransposeState::None,
+   TransposeState transposeB = TransposeState::None );
 
 template< typename ResultMatrix, typename Matrix, typename Real, int tileDim = 16 >
 void

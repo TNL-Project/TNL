@@ -22,12 +22,13 @@ protected:
 using DofNumericTypes = ::testing::Types< float, double >;
 
 // types for which DofContainerTest is instantiated
-using DofStaticVectorTypes = ::testing::Types< StaticVector< 1, float >,
-                                               StaticVector< 2, float >,
-                                               StaticVector< 3, float >,
-                                               StaticVector< 1, double >,
-                                               StaticVector< 2, double >,
-                                               StaticVector< 3, double > >;
+using DofStaticVectorTypes = ::testing::Types<
+   StaticVector< 1, float >,
+   StaticVector< 2, float >,
+   StaticVector< 3, float >,
+   StaticVector< 1, double >,
+   StaticVector< 2, double >,
+   StaticVector< 3, double > >;
 
 TYPED_TEST_SUITE( ODEStaticSolverTest, DofStaticVectorTypes );
 

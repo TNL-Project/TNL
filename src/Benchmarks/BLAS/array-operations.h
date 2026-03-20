@@ -10,10 +10,11 @@
 
 namespace TNL::Benchmarks {
 
-template< typename Real = double,
-          typename Index = int,
-          template< typename > class HostAllocator = Allocators::Default< Devices::Host >::Allocator,
-          template< typename > class CudaAllocator = Allocators::Default< Devices::Cuda >::Allocator >
+template<
+   typename Real = double,
+   typename Index = int,
+   template< typename > class HostAllocator = Allocators::Default< Devices::Host >::Allocator,
+   template< typename > class CudaAllocator = Allocators::Default< Devices::Cuda >::Allocator >
 void
 benchmarkArrayOperations( Benchmark<>& benchmark, const long& size )
 {
@@ -78,10 +79,11 @@ benchmarkArrayOperations( Benchmark<>& benchmark, const long& size )
 #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto copyCuda = [ & ]()
       {
-         Backend::memcpy( deviceArray.getData(),
-                          deviceArray2.getData(),
-                          deviceArray.getSize() * sizeof( Real ),
-                          Backend::MemcpyDeviceToDevice );
+         Backend::memcpy(
+            deviceArray.getData(),
+            deviceArray2.getData(),
+            deviceArray.getSize() * sizeof( Real ),
+            Backend::MemcpyDeviceToDevice );
       };
       benchmark.time< Devices::Cuda >( reset12, "GPU", copyCuda );
 #endif

@@ -273,18 +273,20 @@ namespace TNL::Algorithms::Segments {
  * \par Output
  * \include SegmentsExample_reduceSegments.out
  */
-template< typename Segments,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+template<
+   typename Segments,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
 static void
-reduceAllSegments( const Segments& segments,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   ResultStorer&& storer,
-                   const Value& identity,
-                   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllSegments(
+   const Segments& segments,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment.
@@ -309,11 +311,12 @@ reduceAllSegments( const Segments& segments,
  */
 template< typename Segments, typename Fetch, typename Reduction, typename ResultStorer >
 static void
-reduceAllSegments( const Segments& segments,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   ResultStorer&& storer,
-                   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllSegments(
+   const Segments& segments,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes.
@@ -348,23 +351,25 @@ reduceAllSegments( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegments.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
-reduceSegments( const Segments& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                ResultStorer&& storer,
-                const Value& identity,
-                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegments(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes.
@@ -395,21 +400,23 @@ reduceSegments( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegments.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
-reduceSegments( const Segments& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                ResultStorer&& storer,
-                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegments(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes.
@@ -438,21 +445,23 @@ reduceSegments( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithSegmentIndexes.out
  */
-template< typename Segments,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Segments,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 static void
-reduceSegments( const Segments& segments,
-                const Array& segmentIndexes,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                ResultStorer&& storer,
-                const Value& identity,
-                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegments(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes.
@@ -477,19 +486,21 @@ reduceSegments( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithSegmentIndexes.out
  */
-template< typename Segments,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Segments,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 static void
-reduceSegments( const Segments& segments,
-                const Array& segmentIndexes,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                ResultStorer&& storer,
-                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegments(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
@@ -520,20 +531,22 @@ reduceSegments( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsIf.out
  */
-template< typename Segments,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+template<
+   typename Segments,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
 static typename Segments::IndexType
-reduceAllSegmentsIf( const Segments& segments,
-                     Condition&& condition,
-                     Fetch&& fetch,
-                     Reduction&& reduction,
-                     ResultStorer&& storer,
-                     const Value& identity,
-                     LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllSegmentsIf(
+   const Segments& segments,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
@@ -562,12 +575,13 @@ reduceAllSegmentsIf( const Segments& segments,
  */
 template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultStorer >
 static typename Segments::IndexType
-reduceAllSegmentsIf( const Segments& segments,
-                     Condition&& condition,
-                     Fetch&& fetch,
-                     Reduction&& reduction,
-                     ResultStorer&& storer,
-                     LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllSegmentsIf(
+   const Segments& segments,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
@@ -606,25 +620,27 @@ reduceAllSegmentsIf( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsIf.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static typename Segments::IndexType
-reduceSegmentsIf( const Segments& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Fetch&& fetch,
-                  Reduction&& reduction,
-                  ResultStorer&& storer,
-                  const Value& identity,
-                  LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegmentsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition.
@@ -659,23 +675,25 @@ reduceSegmentsIf( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsIf.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static typename Segments::IndexType
-reduceSegmentsIf( const Segments& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Fetch&& fetch,
-                  Reduction&& reduction,
-                  ResultStorer&& storer,
-                  LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegmentsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
@@ -703,18 +721,20 @@ reduceSegmentsIf( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgument.out
  */
-template< typename Segments,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+template<
+   typename Segments,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
 static void
-reduceAllSegmentsWithArgument( const Segments& segments,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               ResultStorer&& storer,
-                               const Value& identity,
-                               LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllSegmentsWithArgument(
+   const Segments& segments,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
@@ -740,11 +760,12 @@ reduceAllSegmentsWithArgument( const Segments& segments,
  */
 template< typename Segments, typename Fetch, typename Reduction, typename ResultStorer >
 static void
-reduceAllSegmentsWithArgument( const Segments& segments,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               ResultStorer&& storer,
-                               LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllSegmentsWithArgument(
+   const Segments& segments,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
@@ -781,22 +802,24 @@ reduceAllSegmentsWithArgument( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgument.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
 static void
-reduceSegmentsWithArgument( const Segments& segments,
-                            IndexBegin begin,
-                            IndexEnd end,
-                            Fetch&& fetch,
-                            Reduction&& reduction,
-                            ResultStorer&& storer,
-                            const Value& identity,
-                            LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegmentsWithArgument(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes while
@@ -830,13 +853,14 @@ reduceSegmentsWithArgument( const Segments& segments,
  */
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename ResultStorer >
 static void
-reduceSegmentsWithArgument( const Segments& segments,
-                            IndexBegin begin,
-                            IndexEnd end,
-                            Fetch&& fetch,
-                            Reduction&& reduction,
-                            ResultStorer&& storer,
-                            LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegmentsWithArgument(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes while
@@ -866,21 +890,23 @@ reduceSegmentsWithArgument( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument.out
  */
-template< typename Segments,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Segments,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 static void
-reduceSegmentsWithArgument( const Segments& segments,
-                            const Array& segmentIndexes,
-                            Fetch&& fetch,
-                            Reduction&& reduction,
-                            ResultStorer&& storer,
-                            const Value& identity,
-                            LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegmentsWithArgument(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within segments specified by a given set of segment indexes while
@@ -907,19 +933,21 @@ reduceSegmentsWithArgument( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithSegmentIndexesWithArgument.out
  */
-template< typename Segments,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Segments,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 static void
-reduceSegmentsWithArgument( const Segments& segments,
-                            const Array& segmentIndexes,
-                            Fetch&& fetch,
-                            Reduction&& reduction,
-                            ResultStorer&& storer,
-                            LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegmentsWithArgument(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
@@ -952,20 +980,22 @@ reduceSegmentsWithArgument( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
-template< typename Segments,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
+template<
+   typename Segments,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType >
 static typename Segments::IndexType
-reduceAllSegmentsWithArgumentIf( const Segments& segments,
-                                 Condition&& condition,
-                                 Fetch&& fetch,
-                                 Reduction&& reduction,
-                                 ResultStorer&& storer,
-                                 const Value& identity,
-                                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllSegmentsWithArgumentIf(
+   const Segments& segments,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
@@ -1003,12 +1033,13 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  */
 template< typename Segments, typename Condition, typename Fetch, typename Reduction, typename ResultStorer >
 static typename Segments::IndexType
-reduceAllSegmentsWithArgumentIf( const Segments& segments,
-                                 Condition&& condition,
-                                 Fetch&& fetch,
-                                 Reduction&& reduction,
-                                 ResultStorer&& storer,
-                                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllSegmentsWithArgumentIf(
+   const Segments& segments,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
@@ -1048,25 +1079,27 @@ reduceAllSegmentsWithArgumentIf( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value = typename detail::FetchLambdaAdapter< typename Segments::IndexType, Fetch >::ReturnType,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static typename Segments::IndexType
-reduceSegmentsWithArgumentIf( const Segments& segments,
-                              IndexBegin begin,
-                              IndexEnd end,
-                              Condition&& condition,
-                              Fetch&& fetch,
-                              Reduction&& reduction,
-                              ResultStorer&& storer,
-                              const Value& identity,
-                              LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegmentsWithArgumentIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   const Value& identity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each segment over a given range of segment indexes based on a condition while
@@ -1102,23 +1135,25 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceSegmentsWithArgumentIf.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static typename Segments::IndexType
-reduceSegmentsWithArgumentIf( const Segments& segments,
-                              IndexBegin begin,
-                              IndexEnd end,
-                              Condition&& condition,
-                              Fetch&& fetch,
-                              Reduction&& reduction,
-                              ResultStorer&& storer,
-                              LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceSegmentsWithArgumentIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs a complete reduction over all segment reduction results with separate operations.
@@ -1149,22 +1184,24 @@ reduceSegmentsWithArgumentIf( const Segments& segments,
  *
  * \return The final reduction result combining all segment reduction results.
  */
-template< typename Segments,
-          typename SegmentFetch,
-          typename SegmentReduction,
-          typename FinalFetch,
-          typename FinalReduction,
-          typename SegmentsReductionValue,
-          typename FinalReductionValue >
+template<
+   typename Segments,
+   typename SegmentFetch,
+   typename SegmentReduction,
+   typename FinalFetch,
+   typename FinalReduction,
+   typename SegmentsReductionValue,
+   typename FinalReductionValue >
 static FinalReductionValue
-reduceAll( const Segments& segments,
-           SegmentFetch&& segmentFetch,
-           SegmentReduction&& segmentReduction,
-           FinalFetch&& finalFetch,
-           FinalReduction&& finalReduction,
-           const SegmentsReductionValue& segmentsReductionIdentity,
-           const FinalReductionValue& finalReductionIdentity,
-           LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAll(
+   const Segments& segments,
+   SegmentFetch&& segmentFetch,
+   SegmentReduction&& segmentReduction,
+   FinalFetch&& finalFetch,
+   FinalReduction&& finalReduction,
+   const SegmentsReductionValue& segmentsReductionIdentity,
+   const FinalReductionValue& finalReductionIdentity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs a complete reduction over all segment reduction results with separate operations.
@@ -1193,12 +1230,13 @@ reduceAll( const Segments& segments,
  */
 template< typename Segments, typename SegmentFetch, typename SegmentReduction, typename FinalFetch, typename FinalReduction >
 static typename detail::FetchLambdaAdapter< typename Segments::IndexType, FinalFetch >::ReturnType
-reduceAll( const Segments& segments,
-           SegmentFetch&& segmentFetch,
-           SegmentReduction&& segmentReduction,
-           FinalFetch&& finalFetch,
-           FinalReduction&& finalReduction,
-           LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAll(
+   const Segments& segments,
+   SegmentFetch&& segmentFetch,
+   SegmentReduction&& segmentReduction,
+   FinalFetch&& finalFetch,
+   FinalReduction&& finalReduction,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs a complete reduction over given segment reduction results with separate operations.
@@ -1241,27 +1279,29 @@ reduceAll( const Segments& segments,
  * \par Output
  * \include SegmentsExample_reduceAll.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename SegmentFetch,
-          typename SegmentReduction,
-          typename FinalFetch,
-          typename FinalReduction,
-          typename SegmentsReductionValue,
-          typename FinalReductionValue,
-          typename T = std::enable_if_t< isSegments_v< Segments > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename SegmentFetch,
+   typename SegmentReduction,
+   typename FinalFetch,
+   typename FinalReduction,
+   typename SegmentsReductionValue,
+   typename FinalReductionValue,
+   typename T = std::enable_if_t< isSegments_v< Segments > > >
 static FinalReductionValue
-reduce( const Segments& segments,
-        IndexBegin begin,
-        IndexEnd end,
-        SegmentFetch&& segmentFetch,
-        SegmentReduction&& segmentReduction,
-        FinalFetch&& finalFetch,
-        FinalReduction&& finalReduction,
-        const SegmentsReductionValue& segmentsReductionIdentity,
-        const FinalReductionValue& finalReductionIdentity,
-        LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduce(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   SegmentFetch&& segmentFetch,
+   SegmentReduction&& segmentReduction,
+   FinalFetch&& finalFetch,
+   FinalReduction&& finalReduction,
+   const SegmentsReductionValue& segmentsReductionIdentity,
+   const FinalReductionValue& finalReductionIdentity,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs a complete reduction over given segments reduction results with separate operations.
@@ -1295,23 +1335,25 @@ reduce( const Segments& segments,
  *
  * \return The final reduction result combining all segment reduction results.
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename SegmentFetch,
-          typename SegmentReduction,
-          typename FinalFetch,
-          typename FinalReduction,
-          typename T = std::enable_if_t< isSegments_v< Segments > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename SegmentFetch,
+   typename SegmentReduction,
+   typename FinalFetch,
+   typename FinalReduction,
+   typename T = std::enable_if_t< isSegments_v< Segments > > >
 static typename detail::FetchLambdaAdapter< typename Segments::IndexType, SegmentFetch >::ReturnType
-reduce( const Segments& segments,
-        IndexBegin begin,
-        IndexEnd end,
-        SegmentFetch&& segmentFetch,
-        SegmentReduction&& segmentReduction,
-        FinalFetch&& finalFetch,
-        FinalReduction&& finalReduction,
-        LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduce(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   SegmentFetch&& segmentFetch,
+   SegmentReduction&& segmentReduction,
+   FinalFetch&& finalFetch,
+   FinalReduction&& finalReduction,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 }  // namespace TNL::Algorithms::Segments
 #include "reduce.hpp"

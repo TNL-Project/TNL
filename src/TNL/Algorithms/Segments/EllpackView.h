@@ -17,10 +17,11 @@ namespace TNL::Algorithms::Segments {
  * \tparam Organization is the organization of the elements in the segments—either row-major or column-major order.
  * \tparam Alignment is the alignment of the number of segments (to optimize data alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int Alignment = 32 >
+template<
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int Alignment = 32 >
 class EllpackView : public EllpackBase< Device, Index, Organization, Alignment >
 {
    using Base = EllpackBase< Device, Index, Organization, Alignment >;
@@ -138,10 +139,11 @@ using ColumnMajorEllpackView = EllpackView< Device, Index, ColumnMajorOrder, Ali
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int Alignment = 32 >
+template<
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int Alignment = 32 >
 using SortedEllpackView = SortedSegmentsView< EllpackView< Device, Index, Organization, Alignment > >;
 
 /**

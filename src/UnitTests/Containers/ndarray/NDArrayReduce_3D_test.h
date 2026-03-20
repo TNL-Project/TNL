@@ -13,10 +13,11 @@ class NDArrayReduce3DTest : public ::testing::Test
 protected:
    using Array3D = T;
    using IndexType = typename Array3D::IndexType;
-   using Array2D_host = NDArray< typename Array3D::ValueType,  //
-                                 SizesHolder< IndexType, 0, 0 >,
-                                 std::index_sequence< 0, 1 >,
-                                 Devices::Host >;
+   using Array2D_host = NDArray<
+      typename Array3D::ValueType,  //
+      SizesHolder< IndexType, 0, 0 >,
+      std::index_sequence< 0, 1 >,
+      Devices::Host >;
 
    Array3D a;
    Array2D_host result_host;

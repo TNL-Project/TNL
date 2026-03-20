@@ -125,8 +125,9 @@ decode_block( const char* input, std::size_t input_length, std::uint8_t* output,
 {
    const std::size_t min_buffer_size = std::ceil( input_length * ( 3.0 / 4.0 ) );
    if( output_length < min_buffer_size )
-      throw std::logic_error( "base64: insufficient output buffer size " + std::to_string( output_length )
-                              + " (needed at least " + std::to_string( min_buffer_size ) + " bytes)" );
+      throw std::logic_error(
+         "base64: insufficient output buffer size " + std::to_string( output_length ) + " (needed at least "
+         + std::to_string( min_buffer_size ) + " bytes)" );
 
    std::size_t count = 0;
    int pad = 0;

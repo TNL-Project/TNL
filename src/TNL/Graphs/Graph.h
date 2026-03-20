@@ -46,13 +46,13 @@ namespace TNL::Graphs {
  * \par Output
  * \include GraphExample_Constructors.out
  */
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation = DirectedGraph,
-          template< typename, typename, typename > class Segments = TNL::Algorithms::Segments::CSR,
-          typename AdjacencyMatrix =
-             TNL::Matrices::SparseMatrix< Value, Device, Index, TNL::Matrices::GeneralMatrix, Segments > >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation = DirectedGraph,
+   template< typename, typename, typename > class Segments = TNL::Algorithms::Segments::CSR,
+   typename AdjacencyMatrix = TNL::Matrices::SparseMatrix< Value, Device, Index, TNL::Matrices::GeneralMatrix, Segments > >
 struct Graph : public GraphBase< Value, Device, Index, Orientation, typename AdjacencyMatrix::ViewType >
 {
 protected:
@@ -93,12 +93,13 @@ public:
    using ConstVertexView = typename VertexView::ConstVertexView;
 
    //! \brief Helper type for getting self type or its modifications.
-   template< typename Value_ = Value,
-             typename Device_ = Device,
-             typename Index_ = Index,
-             typename Orientation_ = Orientation,
-             template< typename, typename, typename > class Segments_ = Segments,
-             typename AdjacencyMatrix_ = AdjacencyMatrix >
+   template<
+      typename Value_ = Value,
+      typename Device_ = Device,
+      typename Index_ = Index,
+      typename Orientation_ = Orientation,
+      template< typename, typename, typename > class Segments_ = Segments,
+      typename AdjacencyMatrix_ = AdjacencyMatrix >
    using Self = Graph< Value_, Device_, Index_, Orientation_, Segments_, AdjacencyMatrix_ >;
 
    using Base::isDirected;
@@ -148,10 +149,11 @@ public:
     * \par Output
     * \include GraphExample_Constructors.out
     */
-   Graph( IndexType vertexCount,
-          const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
-          Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
-                                                                   : Matrices::MatrixElementsEncoding::SymmetricMixed );
+   Graph(
+      IndexType vertexCount,
+      const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
+      Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                               : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    /**
     * \brief Constructor with number of nodes and edges given as nested initializer list (for dense adjacency matrix).
@@ -173,9 +175,10 @@ public:
     * \include GraphExample_Constructors.out
     */
    template< typename T = AdjacencyMatrixType, typename C = std::enable_if_t< Matrices::is_dense_matrix_v< T > > >
-   Graph( const std::initializer_list< std::initializer_list< ValueType > >& data,
-          Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
-                                                                   : Matrices::MatrixElementsEncoding::SymmetricMixed );
+   Graph(
+      const std::initializer_list< std::initializer_list< ValueType > >& data,
+      Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                               : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    /**
     * \brief Constructor with number of nodes and edges given as a map.
@@ -196,10 +199,11 @@ public:
     * \include GraphExample_Constructors.out
     */
    template< typename MapIndex, typename MapValue >
-   Graph( IndexType vertexCount,
-          const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-          Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
-                                                                   : Matrices::MatrixElementsEncoding::SymmetricMixed );
+   Graph(
+      IndexType vertexCount,
+      const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+      Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                               : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    //! \brief Copy-assignment operator.
    Graph&
@@ -259,9 +263,10 @@ public:
     * \include GraphExample_setEdges.out
     */
    void
-   setEdges( const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
-             Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
-                                                                      : Matrices::MatrixElementsEncoding::SymmetricMixed );
+   setEdges(
+      const std::initializer_list< std::tuple< IndexType, IndexType, ValueType > >& data,
+      Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                               : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    /**
     * \brief Sets the edges of the graph from a nested initializer list (for dense adjacency matrix).
@@ -288,9 +293,10 @@ public:
     */
    template< typename T = AdjacencyMatrixType, typename C = std::enable_if_t< Matrices::is_dense_matrix_v< T > > >
    void
-   setDenseEdges( const std::initializer_list< std::initializer_list< ValueType > >& data,
-                  Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
-                                                                           : Matrices::MatrixElementsEncoding::SymmetricLower );
+   setDenseEdges(
+      const std::initializer_list< std::initializer_list< ValueType > >& data,
+      Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                               : Matrices::MatrixElementsEncoding::SymmetricLower );
 
    /**
     * \brief Sets the edges of the graph from a map.
@@ -311,9 +317,10 @@ public:
     */
    template< typename MapIndex, typename MapValue >
    void
-   setEdges( const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
-             Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
-                                                                      : Matrices::MatrixElementsEncoding::SymmetricMixed );
+   setEdges(
+      const std::map< std::pair< MapIndex, MapIndex >, MapValue >& map,
+      Matrices::MatrixElementsEncoding encoding = isDirected() ? Matrices::MatrixElementsEncoding::Complete
+                                                               : Matrices::MatrixElementsEncoding::SymmetricMixed );
 
    /**
     * \brief Sets the capacities of the graph nodes.
@@ -376,22 +383,24 @@ protected:
 };
 
 //! \brief Deserialization of graphs from binary files.
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 File&
 operator>>( File& file, Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >& graph );
 
 //! \brief Deserialization of graphs from binary files.
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 File&
 operator>>( File&& file, Graph< Value, Device, Index, Orientation, Segments, AdjacencyMatrix >& graph );
 

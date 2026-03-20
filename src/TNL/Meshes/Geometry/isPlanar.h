@@ -11,9 +11,10 @@ namespace TNL::Meshes {
 template< typename MeshConfig, typename Device, std::enable_if_t< MeshConfig::spaceDimension == 3, bool > = true >
 __cuda_callable__
 bool
-isPlanar( const Mesh< MeshConfig, Device >& mesh,
-          const MeshEntity< MeshConfig, Device, Topologies::Polygon >& entity,
-          const typename MeshConfig::RealType precision )
+isPlanar(
+   const Mesh< MeshConfig, Device >& mesh,
+   const MeshEntity< MeshConfig, Device, Topologies::Polygon >& entity,
+   const typename MeshConfig::RealType precision )
 {
    using Real = typename MeshConfig::RealType;
    using Index = typename MeshConfig::LocalIndexType;

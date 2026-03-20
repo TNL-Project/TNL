@@ -26,81 +26,88 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forEdges( GraphViewType& graph,
-             IndexBegin begin,
-             IndexEnd end,
-             Function&& function,
-             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forEdges(
+      GraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElements( graph.getAdjacencyMatrixView(), begin, end, function, launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forEdges( const ConstGraphViewType& graph,
-             IndexBegin begin,
-             IndexEnd end,
-             Function&& function,
-             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forEdges(
+      const ConstGraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElements( graph.getAdjacencyMatrixView(), begin, end, function, launchConfig );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forEdges( GraphViewType& graph,
-             const Array& rowIndexes,
-             IndexBegin begin,
-             IndexEnd end,
-             Function&& function,
-             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forEdges(
+      GraphViewType& graph,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElements( graph.getAdjacencyMatrixView(), rowIndexes.getConstView( begin, end ), function, launchConfig );
    }
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forEdges( const ConstGraphViewType& graph,
-             const Array& rowIndexes,
-             IndexBegin begin,
-             IndexEnd end,
-             Function&& function,
-             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forEdges(
+      const ConstGraphViewType& graph,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElements( graph.getAdjacencyMatrixView(), rowIndexes.getConstView( begin, end ), function, launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forEdgesIf( GraphViewType& graph,
-               IndexBegin begin,
-               IndexEnd end,
-               Condition&& condition,
-               Function&& function,
-               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forEdgesIf(
+      GraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElementsIf( graph.getAdjacencyMatrixView(), begin, end, condition, function, launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forEdgesIf( const ConstGraphViewType& graph,
-               IndexBegin begin,
-               IndexEnd end,
-               Condition&& condition,
-               Function&& function,
-               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forEdgesIf(
+      const ConstGraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElementsIf( graph.getAdjacencyMatrixView(), begin, end, condition, function, launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forVertices( GraphViewType& graph,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forVertices(
+      GraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( RowViewType & rowView ) mutable
       {
@@ -112,11 +119,12 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forVertices( const ConstGraphViewType& graph,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forVertices(
+      const ConstGraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( const RowViewType& rowView ) mutable
       {
@@ -127,12 +135,13 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forVertices( GraphViewType& graph,
-                const Array& rowIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forVertices(
+      GraphViewType& graph,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( RowViewType & rowView ) mutable
       {
@@ -144,12 +153,13 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forVertices( const ConstGraphViewType& graph,
-                const Array& rowIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forVertices(
+      const ConstGraphViewType& graph,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( const RowViewType& rowView ) mutable
       {
@@ -160,12 +170,13 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
 
    template< typename IndexBegin, typename IndexEnd, typename VertexCondition, typename Function >
    static void
-   forVerticesIf( GraphViewType& graph,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  VertexCondition&& rowCondition,
-                  Function&& function,
-                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forVerticesIf(
+      GraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      VertexCondition&& rowCondition,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( RowViewType & rowView ) mutable
       {
@@ -177,12 +188,13 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
 
    template< typename IndexBegin, typename IndexEnd, typename VertexCondition, typename Function >
    static void
-   forVerticesIf( const ConstGraphViewType& graph,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  VertexCondition&& rowCondition,
-                  Function&& function,
-                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   forVerticesIf(
+      const ConstGraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      VertexCondition&& rowCondition,
+      Function&& function,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( const RowViewType& rowView ) mutable
       {

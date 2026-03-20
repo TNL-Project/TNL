@@ -13,10 +13,11 @@ namespace TNL::Meshes::EntityTags {
 
 // This is the implementation of the boundary tags layer for one specific dimension.
 // It is inherited by the EntityTags::LayerFamily.
-template< typename MeshConfig,
-          typename Device,
-          typename DimensionTag,
-          bool TagStorage = WeakStorageTrait< MeshConfig, Device, DimensionTag >::entityTagsEnabled >
+template<
+   typename MeshConfig,
+   typename Device,
+   typename DimensionTag,
+   bool TagStorage = WeakStorageTrait< MeshConfig, Device, DimensionTag >::entityTagsEnabled >
 class Layer
 {
    using MeshTraitsType = MeshTraits< MeshConfig, Device >;
@@ -143,8 +144,9 @@ public:
             else
                interiorIndices[ i++ ] = e;
             if( tags[ e ] & EntityTags::GhostEntity && ghostEntities > 0 && e < ghostsOffset )
-               throw std::runtime_error( "The mesh is inconsistent - ghost entities of dimension "
-                                         + std::to_string( DimensionTag::value ) + " are not ordered after local entities." );
+               throw std::runtime_error(
+                  "The mesh is inconsistent - ghost entities of dimension " + std::to_string( DimensionTag::value )
+                  + " are not ordered after local entities." );
          }
       }
       // TODO: parallelize directly on the device
@@ -171,8 +173,9 @@ public:
             else
                hostInteriorIndices[ i++ ] = e;
             if( hostTags[ e ] & EntityTags::GhostEntity && ghostEntities > 0 && e < ghostsOffset )
-               throw std::runtime_error( "The mesh is inconsistent - ghost entities of dimension "
-                                         + std::to_string( DimensionTag::value ) + " are not ordered after local entities." );
+               throw std::runtime_error(
+                  "The mesh is inconsistent - ghost entities of dimension " + std::to_string( DimensionTag::value )
+                  + " are not ordered after local entities." );
          }
 
          interiorIndices = hostInteriorIndices;

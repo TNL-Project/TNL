@@ -67,11 +67,12 @@ public:
       return *this;
    }
 
-   HypreCSRMatrix( IndexType rows,
-                   IndexType columns,
-                   ValuesViewType values,
-                   ColumnIndexesViewType columnIndexes,
-                   ColumnIndexesViewType rowOffsets )
+   HypreCSRMatrix(
+      IndexType rows,
+      IndexType columns,
+      ValuesViewType values,
+      ColumnIndexesViewType columnIndexes,
+      ColumnIndexesViewType rowOffsets )
    {
       bind( rows, columns, std::move( values ), std::move( columnIndexes ), std::move( rowOffsets ) );
    }
@@ -162,8 +163,9 @@ public:
    {
       if( m == nullptr )
          return {};
-      static_assert( std::is_same_v< HYPRE_Int, HYPRE_BigInt >,
-                     "The J array cannot be accessed via this method when HYPRE_Int and HYPRE_BigInt are different types." );
+      static_assert(
+         std::is_same_v< HYPRE_Int, HYPRE_BigInt >,
+         "The J array cannot be accessed via this method when HYPRE_Int and HYPRE_BigInt are different types." );
       if( hypre_CSRMatrixBigJ( m ) != nullptr )
          return { hypre_CSRMatrixBigJ( m ), hypre_CSRMatrixNumNonzeros( m ) };
       return { hypre_CSRMatrixJ( m ), hypre_CSRMatrixNumNonzeros( m ) };
@@ -174,8 +176,9 @@ public:
    {
       if( m == nullptr )
          return {};
-      static_assert( std::is_same_v< HYPRE_Int, HYPRE_BigInt >,
-                     "The J array cannot be accessed via this method when HYPRE_Int and HYPRE_BigInt are different types." );
+      static_assert(
+         std::is_same_v< HYPRE_Int, HYPRE_BigInt >,
+         "The J array cannot be accessed via this method when HYPRE_Int and HYPRE_BigInt are different types." );
       if( hypre_CSRMatrixBigJ( m ) != nullptr )
          return { hypre_CSRMatrixBigJ( m ), hypre_CSRMatrixNumNonzeros( m ) };
       return { hypre_CSRMatrixJ( m ), hypre_CSRMatrixNumNonzeros( m ) };
@@ -234,11 +237,12 @@ public:
     * and bind to the given data (i.e., the matrix does not become the owner).
     */
    void
-   bind( IndexType rows,
-         IndexType columns,
-         ValuesViewType values,
-         ColumnIndexesViewType columnIndexes,
-         ColumnIndexesViewType rowOffsets )
+   bind(
+      IndexType rows,
+      IndexType columns,
+      ValuesViewType values,
+      ColumnIndexesViewType columnIndexes,
+      ColumnIndexesViewType rowOffsets )
    {
       if( rowOffsets.getSize() != rows + 1 )
          throw std::invalid_argument( "bind: wrong size of rowOffsets" );
@@ -404,12 +408,13 @@ public:
 
    template< typename InVector, typename OutVector >
    void
-   vectorProduct( const InVector& inVector,
-                  OutVector& outVector,
-                  RealType matrixMultiplicator = 1.0,
-                  RealType outVectorMultiplicator = 0.0,
-                  IndexType begin = 0,
-                  IndexType end = 0 ) const
+   vectorProduct(
+      const InVector& inVector,
+      OutVector& outVector,
+      RealType matrixMultiplicator = 1.0,
+      RealType outVectorMultiplicator = 0.0,
+      IndexType begin = 0,
+      IndexType end = 0 ) const
    {
       static_assert( std::is_same_v< typename InVector::RealType, RealType >, "Wrong value type." );
       static_assert( std::is_same_v< typename InVector::IndexType, IndexType >, "Wrong index type." );
@@ -426,11 +431,12 @@ public:
       TNL::Containers::HypreVector x( const_cast< RealType* >( inVector.getData() ), inVector.getSize() );
       TNL::Containers::HypreVector y( outVector.getData(), outVector.getSize() );
       // y = alpha*A + beta*y
-      auto err = hypre_CSRMatrixMatvec( matrixMultiplicator,                // HYPRE_Complex alpha,
-                                        this->m,                            // hypre_CSRMatrix *A,
-                                        static_cast< hypre_Vector* >( x ),  // hypre_Vector *x,
-                                        outVectorMultiplicator,             // HYPRE_Complex beta,
-                                        static_cast< hypre_Vector* >( y )   // hypre_Vector *y
+      auto err = hypre_CSRMatrixMatvec(
+         matrixMultiplicator,                // HYPRE_Complex alpha,
+         this->m,                            // hypre_CSRMatrix *A,
+         static_cast< hypre_Vector* >( x ),  // hypre_Vector *x,
+         outVectorMultiplicator,             // HYPRE_Complex beta,
+         static_cast< hypre_Vector* >( y )   // hypre_Vector *y
       );
 
       if( err != 0 )

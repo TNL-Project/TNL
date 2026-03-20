@@ -85,10 +85,11 @@ struct ODESolversBenchmark
       int eoc_steps_count = adaptivity ? 1 : 5;
       for( int eoc_steps = 0; eoc_steps < eoc_steps_count; eoc_steps++ ) {
          benchmark.setMetadataColumns(
-            TNL::Benchmarks::Benchmark<>::MetadataColumns( { { "precision", TNL::getType< RealType >() },
-                                                             { "index type", TNL::getType< IndexType >() },
-                                                             { "solver", std::string( solverName ) },
-                                                             { "DOFs", convertToString( dofs ) } } ) );
+            TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               { { "precision", TNL::getType< RealType >() },
+                 { "index type", TNL::getType< IndexType >() },
+                 { "solver", std::string( solverName ) },
+                 { "DOFs", convertToString( dofs ) } } ) );
          solver.setStopTime( 1.0 );
          u = 0;
          std::size_t iterations = 1.0 / tau + 1;
@@ -106,15 +107,16 @@ struct ODESolversBenchmark
                {
                   fu = TNL::exp( t );
                };
-               TNL::Algorithms::parallelFor< DeviceType >( 0,
-                                                           u.getSize(),
-                                                           [ = ] __cuda_callable__( IndexType i ) mutable
-                                                           {
-                                                              solver.setTime( 0.0 );
-                                                              solver.setTau( tau );
-                                                              solver.setAdaptivity( adaptivity );
-                                                              solver.solve( u_view[ i ], problem );
-                                                           } );
+               TNL::Algorithms::parallelFor< DeviceType >(
+                  0,
+                  u.getSize(),
+                  [ = ] __cuda_callable__( IndexType i ) mutable
+                  {
+                     solver.setTime( 0.0 );
+                     solver.setTau( tau );
+                     solver.setAdaptivity( adaptivity );
+                     solver.solve( u_view[ i ], problem );
+                  } );
             };
             benchmark.time< DeviceType >( reset_u, device, solve, benchmarkResult );
          }

@@ -49,9 +49,10 @@ GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, const Coordin
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
-                                                 const CoordinatesType& coordinates,
-                                                 const CoordinatesType& normals )
+GridEntity< Grid, EntityDimension >::GridEntity(
+   const Grid& grid,
+   const CoordinatesType& coordinates,
+   const CoordinatesType& normals )
 : grid( grid ),
   coordinates( coordinates ),
   normals( normals ),
@@ -71,10 +72,11 @@ GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid, IndexType ent
 
 template< class Grid, int EntityDimension >
 __cuda_callable__
-GridEntity< Grid, EntityDimension >::GridEntity( const Grid& grid,
-                                                 const CoordinatesType& coordinates,
-                                                 const CoordinatesType& normals,
-                                                 const IndexType orientation )
+GridEntity< Grid, EntityDimension >::GridEntity(
+   const Grid& grid,
+   const CoordinatesType& coordinates,
+   const CoordinatesType& normals,
+   const IndexType orientation )
 : grid( grid ),
   coordinates( coordinates ),
   normals( normals ),

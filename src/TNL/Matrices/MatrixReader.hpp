@@ -123,11 +123,12 @@ MatrixReader< Matrix, TNL::Devices::Host >::verifyMtxFile( std::istream& file, c
 
 template< typename Matrix >
 bool
-MatrixReader< Matrix, TNL::Devices::Host >::findLineByElement( std::istream& file,
-                                                               const IndexType& row,
-                                                               const IndexType& column,
-                                                               String& line,
-                                                               IndexType& lineNumber )
+MatrixReader< Matrix, TNL::Devices::Host >::findLineByElement(
+   std::istream& file,
+   const IndexType& row,
+   const IndexType& column,
+   String& line,
+   IndexType& lineNumber )
 {
    file.clear();
    file.seekg( 0, std::ios::beg );
@@ -164,11 +165,11 @@ MatrixReader< Matrix, TNL::Devices::Host >::checkMtxHeader( const String& header
    if( parsedLine[ 1 ] != "matrix" )
       throw std::runtime_error( std::string( "Keyword 'matrix' is expected in the header line: " ) + header.getString() );
    if( parsedLine[ 2 ] != "coordinates" && parsedLine[ 2 ] != "coordinate" )
-      throw std::runtime_error( std::string( "Error: Only 'coordinates' format is supported now, not " )
-                                + parsedLine[ 2 ].getString() );
+      throw std::runtime_error(
+         std::string( "Error: Only 'coordinates' format is supported now, not " ) + parsedLine[ 2 ].getString() );
    if( parsedLine[ 3 ] != "real" && parsedLine[ 3 ] != "integer" && parsedLine[ 3 ] != "pattern" )
-      throw std::runtime_error( std::string( "Only 'real' and 'integer' matrices are supported, not " )
-                                + parsedLine[ 3 ].getString() );
+      throw std::runtime_error(
+         std::string( "Only 'real' and 'integer' matrices are supported, not " ) + parsedLine[ 3 ].getString() );
    matrixPattern = parsedLine[ 3 ] == "pattern";
    if( parsedLine[ 4 ] != "general" ) {
       if( parsedLine[ 4 ] == "symmetric" )
@@ -180,12 +181,13 @@ MatrixReader< Matrix, TNL::Devices::Host >::checkMtxHeader( const String& header
 
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file,
-                                                           IndexType& rows,
-                                                           IndexType& columns,
-                                                           bool& symmetricMatrix,
-                                                           bool& matrixPattern,
-                                                           bool verbose )
+MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader(
+   std::istream& file,
+   IndexType& rows,
+   IndexType& columns,
+   bool& symmetricMatrix,
+   bool& matrixPattern,
+   bool verbose )
 {
    file.clear();
    file.seekg( 0, std::ios::beg );
@@ -220,11 +222,12 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMtxHeader( std::istream& file,
 
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::istream& file,
-                                                                           Matrix& matrix,
-                                                                           bool symmetricMatrix,
-                                                                           bool matrixPattern,
-                                                                           bool verbose )
+MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile(
+   std::istream& file,
+   Matrix& matrix,
+   bool symmetricMatrix,
+   bool matrixPattern,
+   bool verbose )
 {
    file.clear();
    file.seekg( 0, std::ios::beg );
@@ -297,11 +300,12 @@ MatrixReader< Matrix, TNL::Devices::Host >::readMatrixElementsFromMtxFile( std::
 
 template< typename Matrix >
 void
-MatrixReader< Matrix, TNL::Devices::Host >::parseMtxLineWithElement( const String& line,
-                                                                     bool matrixPattern,
-                                                                     IndexType& row,
-                                                                     IndexType& column,
-                                                                     RealType& value )
+MatrixReader< Matrix, TNL::Devices::Host >::parseMtxLineWithElement(
+   const String& line,
+   bool matrixPattern,
+   IndexType& row,
+   IndexType& column,
+   RealType& value )
 {
    std::vector< String > parsedLine = line.split( ' ', String::SplitSkip::SkipEmpty );
    if( (int) parsedLine.size() != 3 - (int) matrixPattern ) {

@@ -89,13 +89,14 @@ DistributedMesh< Grid< Dimension, Real, Device, Index > >::setGlobalGrid( const 
 
 template< int Dimension, typename Real, typename Device, typename Index >
 void
-DistributedMesh< Grid< Dimension, Real, Device, Index > >::setOverlaps( const SubdomainOverlapsType& lower,
-                                                                        const SubdomainOverlapsType& upper )
+DistributedMesh< Grid< Dimension, Real, Device, Index > >::setOverlaps(
+   const SubdomainOverlapsType& lower,
+   const SubdomainOverlapsType& upper )
 {
    this->lowerOverlap = lower;
    this->upperOverlap = upper;
-   localGrid.setOrigin( this->globalGrid.getOrigin()
-                        + this->globalGrid.getSpaceSteps() * ( this->globalBegin - this->lowerOverlap ) );
+   localGrid.setOrigin(
+      this->globalGrid.getOrigin() + this->globalGrid.getSpaceSteps() * ( this->globalBegin - this->lowerOverlap ) );
    localGrid.setDimensions( this->localSize + this->lowerOverlap + this->upperOverlap );
    // setting space steps computes the grid proportions as a side effect
    localGrid.setSpaceSteps( globalGrid.getSpaceSteps() );

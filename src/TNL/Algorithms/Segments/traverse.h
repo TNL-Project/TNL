@@ -181,9 +181,10 @@ namespace TNL::Algorithms::Segments {
  */
 template< typename Segments, typename Function >
 void
-forAllElements( const Segments& segments,
-                Function&& function,
-                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllElements(
+   const Segments& segments,
+   Function&& function,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements in the given range of segments and applies the specified lambda function.
@@ -214,11 +215,12 @@ forAllElements( const Segments& segments,
  */
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Function >
 void
-forElements( const Segments& segments,
-             IndexBegin begin,
-             IndexEnd end,
-             Function&& function,
-             LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forElements(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Function&& function,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements of segments with the given indexes and applies the specified lambda function.
@@ -244,10 +246,11 @@ forElements( const Segments& segments,
  */
 template< typename Segments, typename Array, typename Function >
 void
-forElements( const Segments& segments,
-             const Array& segmentIndexes,
-             Function function,
-             LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forElements(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Function function,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements of **all** segments based on a condition.
@@ -276,10 +279,11 @@ forElements( const Segments& segments,
  */
 template< typename Segments, typename Condition, typename Function >
 void
-forAllElementsIf( const Segments& segments,
-                  Condition condition,
-                  Function function,
-                  LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllElementsIf(
+   const Segments& segments,
+   Condition condition,
+   Function function,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all elements in a given range of segments based on a condition.
@@ -316,12 +320,13 @@ forAllElementsIf( const Segments& segments,
  */
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
 void
-forElementsIf( const Segments& segments,
-               IndexBegin begin,
-               IndexEnd end,
-               Condition condition,
-               Function function,
-               LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forElementsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition condition,
+   Function function,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over **all** segments and applies the given lambda function to each segment.
@@ -346,9 +351,10 @@ forElementsIf( const Segments& segments,
  */
 template< typename Segments, typename Function >
 void
-forAllSegments( const Segments& segments,
-                Function&& function,
-                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllSegments(
+   const Segments& segments,
+   Function&& function,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over segments within the specified range of segment indexes
@@ -380,17 +386,19 @@ forAllSegments( const Segments& segments,
  * \par Output
  * \include SegmentsExample_forSegments-2.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Function,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Function,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-forSegments( const Segments& segments,
-             IndexBegin begin,
-             IndexEnd end,
-             Function&& function,
-             LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forSegments(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Function&& function,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over segments with the given indexes and applies the specified
@@ -416,10 +424,11 @@ forSegments( const Segments& segments,
  */
 template< typename Segments, typename Array, typename Function, typename T = std::enable_if_t< IsArrayType< Array >::value > >
 void
-forSegments( const Segments& segments,
-             const Array& segmentIndexes,
-             Function&& function,
-             LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forSegments(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Function&& function,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 /**
  * \brief Iterates in parallel over **all** segments, applying a condition
  * to determine whether each segment should be processed.
@@ -446,10 +455,11 @@ forSegments( const Segments& segments,
  */
 template< typename Segments, typename SegmentCondition, typename Function >
 void
-forAllSegmentsIf( const Segments& segments,
-                  SegmentCondition&& segmentCondition,
-                  Function&& function,
-                  LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllSegmentsIf(
+   const Segments& segments,
+   SegmentCondition&& segmentCondition,
+   Function&& function,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over segments within the given range of segment indexes, applying a condition
@@ -483,19 +493,21 @@ forAllSegmentsIf( const Segments& segments,
  * \par Output
  * \include SegmentsExample_forSegmentsIf.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename SegmentCondition,
-          typename Function,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename SegmentCondition,
+   typename Function,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-forSegmentsIf( const Segments& segments,
-               IndexBegin begin,
-               IndexEnd end,
-               SegmentCondition&& segmentCondition,
-               Function&& function,
-               LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forSegmentsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   SegmentCondition&& segmentCondition,
+   Function&& function,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 // TODO: Sequential variants should be achieved via LaunchConfiguration
 /**

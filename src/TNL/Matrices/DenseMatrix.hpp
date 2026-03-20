@@ -28,9 +28,10 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::DenseMatrix( co
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-DenseMatrix< Real, Device, Index, Organization, RealAllocator >::DenseMatrix( Index rows,
-                                                                              Index columns,
-                                                                              const RealAllocatorType& allocator )
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::DenseMatrix(
+   Index rows,
+   Index columns,
+   const RealAllocatorType& allocator )
 : values( allocator )
 {
    setDimensions( rows, columns );
@@ -154,9 +155,10 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
       if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
          auto query = map.find( { columnIdx, rowIdx } );
          if( query != map.end() && query->second != value )
-            throw std::logic_error( "The input data are supposed to be symmetric (matrix elements encoding equals "
-                                    "SymmetricMixed) but it is not. The matrix elements at position ("
-                                    + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
+            throw std::logic_error(
+               "The input data are supposed to be symmetric (matrix elements encoding equals "
+               "SymmetricMixed) but it is not. The matrix elements at position ("
+               + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
       }
 
       this->setElement( rowIdx, columnIdx, value );
@@ -226,11 +228,12 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::reset()
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Matrix1, typename Matrix2, int tileDim >
 void
-DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduct( const Matrix1& matrix1,
-                                                                                   const Matrix2& matrix2,
-                                                                                   Real matrixMultiplicator,
-                                                                                   TransposeState transposeA,
-                                                                                   TransposeState transposeB )
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduct(
+   const Matrix1& matrix1,
+   const Matrix2& matrix2,
+   Real matrixMultiplicator,
+   TransposeState transposeA,
+   TransposeState transposeB )
 {
    TNL::Matrices::getMatrixProduct( *this, matrix1, matrix2, matrixMultiplicator, transposeA, transposeB );
 }
@@ -238,8 +241,9 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getMatrixProduc
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
 template< typename Matrix, int tileDim >
 void
-DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTransposition( const Matrix& matrix,
-                                                                                   Real matrixMultiplicator )
+DenseMatrix< Real, Device, Index, Organization, RealAllocator >::getTransposition(
+   const Matrix& matrix,
+   Real matrixMultiplicator )
 {
    TNL::Matrices::getTransposition( *this, matrix, matrixMultiplicator );
 }
@@ -293,11 +297,12 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=(
 }
 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization, typename RealAllocator >
-template< typename RHSReal,
-          typename RHSDevice,
-          typename RHSIndex,
-          ElementsOrganization RHSOrganization,
-          typename RHSRealAllocator >
+template<
+   typename RHSReal,
+   typename RHSDevice,
+   typename RHSIndex,
+   ElementsOrganization RHSOrganization,
+   typename RHSRealAllocator >
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >&
 DenseMatrix< Real, Device, Index, Organization, RealAllocator >::operator=(
    const DenseMatrix< RHSReal, RHSDevice, RHSIndex, RHSOrganization, RHSRealAllocator >& matrix )
@@ -344,9 +349,9 @@ operator>>( File& file, DenseMatrix< Real, Device, Index, Organization, RealAllo
 {
    const std::string type = getObjectType( file );
    if( type != matrix.getSerializationType() )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "object type does not match (expected " + matrix.getSerializationType()
-                                                     + ", found " + type + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "object type does not match (expected " + matrix.getSerializationType() + ", found " + type + ")." );
    std::size_t rows = 0;
    std::size_t columns = 0;
    file.load( &rows );

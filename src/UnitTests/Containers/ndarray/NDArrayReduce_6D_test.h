@@ -13,15 +13,17 @@ class NDArrayReduce6DTest : public ::testing::Test
 protected:
    using Array6D = T;
    using IndexType = typename Array6D::IndexType;
-   using Array5D = NDArray< typename Array6D::ValueType,
-                            SizesHolder< IndexType, 0, 0, 0, 0, 0 >,
-                            std::index_sequence< 0, 1, 2, 3, 4 >,
-                            typename T::DeviceType >;
+   using Array5D = NDArray<
+      typename Array6D::ValueType,
+      SizesHolder< IndexType, 0, 0, 0, 0, 0 >,
+      std::index_sequence< 0, 1, 2, 3, 4 >,
+      typename T::DeviceType >;
 
-   using Array5D_host = NDArray< typename Array6D::ValueType,
-                                 SizesHolder< IndexType, 0, 0, 0, 0, 0 >,
-                                 std::index_sequence< 0, 1, 2, 3, 4 >,
-                                 Devices::Host >;
+   using Array5D_host = NDArray<
+      typename Array6D::ValueType,
+      SizesHolder< IndexType, 0, 0, 0, 0, 0 >,
+      std::index_sequence< 0, 1, 2, 3, 4 >,
+      Devices::Host >;
 
    Array6D a;
    Array5D result;

@@ -15,10 +15,11 @@ namespace TNL::Algorithms::Sorting::experimental::detail {
 template< typename Value, typename Index, typename CMP >
 __device__
 void
-externSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src,
-            Containers::ArrayView< Value, TNL::Devices::Cuda, Index > dst,
-            const CMP& Cmp,
-            Value* sharedMem )
+externSort(
+   Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src,
+   Containers::ArrayView< Value, TNL::Devices::Cuda, Index > dst,
+   const CMP& Cmp,
+   Value* sharedMem )
 {
    Sorting::detail::bitonicSort_Block( src, dst, sharedMem, Cmp );
 }
@@ -34,26 +35,28 @@ externSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src, const
 template< int stackSize >
 __device__
 void
-stackPush( int stackArrBegin[],
-           int stackArrEnd[],
-           int stackDepth[],
-           int& stackTop,
-           int begin,
-           int pivotBegin,
-           int pivotEnd,
-           int end,
-           int iteration );
+stackPush(
+   int stackArrBegin[],
+   int stackArrEnd[],
+   int stackDepth[],
+   int& stackTop,
+   int begin,
+   int pivotBegin,
+   int pivotEnd,
+   int end,
+   int iteration );
 
 template< typename Value, typename Index, typename CMP, int stackSize, bool useShared >
 __device__
 void
-singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > arr,
-                      Containers::ArrayView< Value, TNL::Devices::Cuda, Index > aux,
-                      const CMP& Cmp,
-                      int _iteration,
-                      Value* sharedMem,
-                      int memSize,
-                      int maxBitonicSize )
+singleBlockQuickSort(
+   Containers::ArrayView< Value, TNL::Devices::Cuda, Index > arr,
+   Containers::ArrayView< Value, TNL::Devices::Cuda, Index > aux,
+   const CMP& Cmp,
+   int _iteration,
+   Value* sharedMem,
+   int memSize,
+   int maxBitonicSize )
 {
    if( arr.getSize() <= maxBitonicSize ) {
       auto& src = ( _iteration & 1 ) == 0 ? arr : aux;
@@ -156,17 +159,18 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > 
          }
          __syncthreads();
 
-         copyDataShared( src.getView( begin, end ),
-                         dst.getView( begin, end ),
-                         Cmp,
-                         sharedMem,
-                         0,
-                         pivotEnd,
-                         smallerTotal,
-                         biggerTotal,
-                         smallerPrefSumInc - smaller,
-                         biggerPrefSumInc - bigger,  // exclusive prefix sum of elements
-                         pivot );
+         copyDataShared(
+            src.getView( begin, end ),
+            dst.getView( begin, end ),
+            Cmp,
+            sharedMem,
+            0,
+            pivotEnd,
+            smallerTotal,
+            biggerTotal,
+            smallerPrefSumInc - smaller,
+            biggerPrefSumInc - bigger,  // exclusive prefix sum of elements
+            pivot );
       }
       else {
          int destSmaller = 0 + ( smallerPrefSumInc - smaller );
@@ -192,15 +196,16 @@ singleBlockQuickSort( Containers::ArrayView< Value, TNL::Devices::Cuda, Index > 
 template< int stackSize >
 __device__
 void
-stackPush( int stackArrBegin[],
-           int stackArrEnd[],
-           int stackDepth[],
-           int& stackTop,
-           int begin,
-           int pivotBegin,
-           int pivotEnd,
-           int end,
-           int iteration )
+stackPush(
+   int stackArrBegin[],
+   int stackArrEnd[],
+   int stackDepth[],
+   int& stackTop,
+   int begin,
+   int pivotBegin,
+   int pivotEnd,
+   int end,
+   int iteration )
 {
    int sizeL = pivotBegin - begin;
    int sizeR = end - pivotEnd;

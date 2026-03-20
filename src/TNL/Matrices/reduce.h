@@ -314,12 +314,13 @@ namespace TNL::Matrices {
  */
 template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
-reduceAllRows( Matrix& matrix,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               const FetchValue& identity,
-               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllRows(
+   Matrix& matrix,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over all rows (const version).
@@ -341,12 +342,13 @@ reduceAllRows( Matrix& matrix,
  */
 template< typename Matrix, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
-reduceAllRows( const Matrix& matrix,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               const FetchValue& identity,
-               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllRows(
+   const Matrix& matrix,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over all rows
@@ -372,11 +374,12 @@ reduceAllRows( const Matrix& matrix,
  */
 template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
-reduceAllRows( Matrix& matrix,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllRows(
+   Matrix& matrix,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over all rows
@@ -402,11 +405,12 @@ reduceAllRows( Matrix& matrix,
  */
 template< typename Matrix, typename Fetch, typename Reduction, typename Store >
 void
-reduceAllRows( const Matrix& matrix,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllRows(
+   const Matrix& matrix,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes.
@@ -439,23 +443,25 @@ reduceAllRows( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRows.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceRows( Matrix& matrix,
-            IndexBegin begin,
-            IndexEnd end,
-            Fetch&& fetch,
-            Reduction&& reduction,
-            Store&& store,
-            const FetchValue& identity,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRows(
+   Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes (const version).
@@ -483,23 +489,25 @@ reduceRows( Matrix& matrix,
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceRows( const Matrix& matrix,
-            IndexBegin begin,
-            IndexEnd end,
-            Fetch&& fetch,
-            Reduction&& reduction,
-            Store&& store,
-            const FetchValue& identity,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRows(
+   const Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes
@@ -531,21 +539,23 @@ reduceRows( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRows.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceRows( Matrix& matrix,
-            IndexBegin begin,
-            IndexEnd end,
-            Fetch&& fetch,
-            Reduction&& reduction,
-            Store&& store,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRows(
+   Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes
@@ -577,21 +587,23 @@ reduceRows( Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRows.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceRows( const Matrix& matrix,
-            IndexBegin begin,
-            IndexEnd end,
-            Fetch&& fetch,
-            Reduction&& reduction,
-            Store&& store,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRows(
+   const Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes.
@@ -617,21 +629,23 @@ reduceRows( const Matrix& matrix,
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Matrix,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Matrix,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceRows( Matrix& matrix,
-            const Array& rowIndexes,
-            Fetch&& fetch,
-            Reduction&& reduction,
-            Store&& store,
-            const FetchValue& identity,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRows(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes (const version).
@@ -653,21 +667,23 @@ reduceRows( Matrix& matrix,
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Matrix,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Matrix,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceRows( const Matrix& matrix,
-            const Array& rowIndexes,
-            Fetch&& fetch,
-            Reduction&& reduction,
-            Store&& store,
-            const FetchValue& identity,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRows(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes
@@ -693,19 +709,21 @@ reduceRows( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRows.out
  */
-template< typename Matrix,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Matrix,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceRows( Matrix& matrix,
-            const Array& rowIndexes,
-            Fetch&& fetch,
-            Reduction&& reduction,
-            Store&& store,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRows(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes
@@ -731,19 +749,21 @@ reduceRows( Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRows.out
  */
-template< typename Matrix,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Matrix,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceRows( const Matrix& matrix,
-            const Array& rowIndexes,
-            Fetch&& fetch,
-            Reduction&& reduction,
-            Store&& store,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRows(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition.
@@ -774,13 +794,14 @@ reduceRows( const Matrix& matrix,
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Matrix::IndexType
-reduceAllRowsIf( Matrix& matrix,
-                 Condition&& condition,
-                 Fetch&& fetch,
-                 Reduction&& reduction,
-                 Store&& store,
-                 const FetchValue& identity,
-                 Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllRowsIf(
+   Matrix& matrix,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition (const version).
@@ -811,13 +832,14 @@ reduceAllRowsIf( Matrix& matrix,
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Matrix::IndexType
-reduceAllRowsIf( const Matrix& matrix,
-                 Condition&& condition,
-                 Fetch&& fetch,
-                 Reduction&& reduction,
-                 Store&& store,
-                 const FetchValue& identity,
-                 Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllRowsIf(
+   const Matrix& matrix,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition
@@ -847,12 +869,13 @@ reduceAllRowsIf( const Matrix& matrix,
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
-reduceAllRowsIf( Matrix& matrix,
-                 Condition&& condition,
-                 Fetch&& fetch,
-                 Reduction&& reduction,
-                 Store&& store,
-                 Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllRowsIf(
+   Matrix& matrix,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition
@@ -882,12 +905,13 @@ reduceAllRowsIf( Matrix& matrix,
  */
 template< typename Matrix, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Matrix::IndexType
-reduceAllRowsIf( const Matrix& matrix,
-                 Condition&& condition,
-                 Fetch&& fetch,
-                 Reduction&& reduction,
-                 Store&& store,
-                 Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllRowsIf(
+   const Matrix& matrix,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition.
@@ -922,24 +946,26 @@ reduceAllRowsIf( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRowsIf.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue >
 typename Matrix::IndexType
-reduceRowsIf( Matrix& matrix,
-              IndexBegin begin,
-              IndexEnd end,
-              Condition&& condition,
-              Fetch&& fetch,
-              Reduction&& reduction,
-              Store&& store,
-              const FetchValue& identity,
-              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsIf(
+   Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition (const
@@ -975,24 +1001,26 @@ reduceRowsIf( Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRowsIf.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue >
 typename Matrix::IndexType
-reduceRowsIf( const Matrix& matrix,
-              IndexBegin begin,
-              IndexEnd end,
-              Condition&& condition,
-              Fetch&& fetch,
-              Reduction&& reduction,
-              Store&& store,
-              const FetchValue& identity,
-              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsIf(
+   const Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition
@@ -1026,22 +1054,24 @@ reduceRowsIf( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRowsIf.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store >
 typename Matrix::IndexType
-reduceRowsIf( Matrix& matrix,
-              IndexBegin begin,
-              IndexEnd end,
-              Condition&& condition,
-              Fetch&& fetch,
-              Reduction&& reduction,
-              Store&& store,
-              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsIf(
+   Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes based on a condition
@@ -1075,22 +1105,24 @@ reduceRowsIf( Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRowsIf.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store >
 typename Matrix::IndexType
-reduceRowsIf( const Matrix& matrix,
-              IndexBegin begin,
-              IndexEnd end,
-              Condition&& condition,
-              Fetch&& fetch,
-              Reduction&& reduction,
-              Store&& store,
-              Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsIf(
+   const Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over all rows while
@@ -1247,23 +1279,25 @@ reduceAllRowsWithArgument(
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceRowsWithArgument( Matrix& matrix,
-                        IndexBegin begin,
-                        IndexEnd end,
-                        Fetch&& fetch,
-                        Reduction&& reduction,
-                        Store&& store,
-                        const FetchValue& identity,
-                        Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsWithArgument(
+   Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes while
@@ -1290,23 +1324,25 @@ reduceRowsWithArgument( Matrix& matrix,
  * \param identity The initial value for the reduction operation.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceRowsWithArgument( const Matrix& matrix,
-                        IndexBegin begin,
-                        IndexEnd end,
-                        Fetch&& fetch,
-                        Reduction&& reduction,
-                        Store&& store,
-                        const FetchValue& identity,
-                        Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsWithArgument(
+   const Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes while
@@ -1331,21 +1367,23 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceRowsWithArgument( Matrix& matrix,
-                        IndexBegin begin,
-                        IndexEnd end,
-                        Fetch&& fetch,
-                        Reduction&& reduction,
-                        Store&& store,
-                        Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsWithArgument(
+   Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over a given range of row indexes while
@@ -1370,21 +1408,23 @@ reduceRowsWithArgument( Matrix& matrix,
  * \param store Lambda function for storing results. See \ref MatrixStoreLambda_WithLocalIdx.
  * \param launchConfig The configuration of the launch - see \ref TNL::Algorithms::Segments::LaunchConfiguration.
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceRowsWithArgument( const Matrix& matrix,
-                        IndexBegin begin,
-                        IndexEnd end,
-                        Fetch&& fetch,
-                        Reduction&& reduction,
-                        Store&& store,
-                        Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsWithArgument(
+   const Matrix& matrix,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes while
@@ -1413,21 +1453,23 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRowsWithArgument.out
  */
-template< typename Matrix,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Matrix,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceRowsWithArgument( Matrix& matrix,
-                        const Array& rowIndexes,
-                        Fetch&& fetch,
-                        Reduction&& reduction,
-                        Store&& store,
-                        const FetchValue& identity,
-                        Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsWithArgument(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes while
@@ -1456,21 +1498,23 @@ reduceRowsWithArgument( Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRowsWithArgument.out
  */
-template< typename Matrix,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Matrix,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceRowsWithArgument( const Matrix& matrix,
-                        const Array& rowIndexes,
-                        Fetch&& fetch,
-                        Reduction&& reduction,
-                        Store&& store,
-                        const FetchValue& identity,
-                        Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsWithArgument(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes while
@@ -1497,19 +1541,21 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRowsWithArgument.out
  */
-template< typename Matrix,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Matrix,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceRowsWithArgument( Matrix& matrix,
-                        const Array& rowIndexes,
-                        Fetch&& fetch,
-                        Reduction&& reduction,
-                        Store&& store,
-                        Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsWithArgument(
+   Matrix& matrix,
+   const Array& rowIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within matrix rows specified by a given set of row indexes while
@@ -1536,19 +1582,21 @@ reduceRowsWithArgument( Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceRowsWithArgument.out
  */
-template< typename Matrix,
-          typename Array,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Matrix,
+   typename Array,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceRowsWithArgument( const Matrix& matrix,
-                        const Array& rowIndexes,
-                        Fetch&& fetch,
-                        Reduction&& reduction,
-                        Store&& store,
-                        Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceRowsWithArgument(
+   const Matrix& matrix,
+   const Array& rowIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each matrix row over all rows based on a condition while
@@ -1578,12 +1626,13 @@ reduceRowsWithArgument( const Matrix& matrix,
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
-template< typename Matrix,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
+template<
+   typename Matrix,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 typename Matrix::IndexType
 reduceAllRowsWithArgumentIf(
    Matrix& matrix,
@@ -1622,12 +1671,13 @@ reduceAllRowsWithArgumentIf(
  * \par Output
  * \include MatrixExample_reduceAllRowsWithArgumentIf.out
  */
-template< typename Matrix,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
+template<
+   typename Matrix,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 typename Matrix::IndexType
 reduceAllRowsWithArgumentIf(
    const Matrix& matrix,
@@ -1744,14 +1794,15 @@ reduceAllRowsWithArgumentIf(
  * \par Output
  * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf(
    Matrix& matrix,
@@ -1798,14 +1849,15 @@ reduceRowsWithArgumentIf(
  * \par Output
  * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store,
-          typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store,
+   typename FetchValue = decltype( std::declval< Fetch >()( 0, 0, std::declval< typename Matrix::RealType >() ) ) >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf(
    const Matrix& matrix,
@@ -1850,13 +1902,14 @@ reduceRowsWithArgumentIf(
  * \par Output
  * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf(
    Matrix& matrix,
@@ -1900,13 +1953,14 @@ reduceRowsWithArgumentIf(
  * \par Output
  * \include MatrixExample_reduceRowsWithArgumentIf.out
  */
-template< typename Matrix,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduction,
-          typename Store >
+template<
+   typename Matrix,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduction,
+   typename Store >
 typename Matrix::IndexType
 reduceRowsWithArgumentIf(
    const Matrix& matrix,

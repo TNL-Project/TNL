@@ -55,13 +55,15 @@ namespace experimental {
  * does not match the matrix dimensions.
  */
 template< typename MatrixType >
-std::tuple< typename MatrixType::RealType,
-            TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >,
-            int >
-powerIteration( const MatrixType& matrix,
-                const typename MatrixType::RealType& epsilon,
-                TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >& initialVec,
-                const int& maxIterations = 100000 )
+std::tuple<
+   typename MatrixType::RealType,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >,
+   int >
+powerIteration(
+   const MatrixType& matrix,
+   const typename MatrixType::RealType& epsilon,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >& initialVec,
+   const int& maxIterations = 100000 )
 {
    if( matrix.getRows() != matrix.getColumns() )
       throw std::invalid_argument( "Power iteration is possible only for square matrices" );
@@ -105,9 +107,10 @@ powerIteration( const MatrixType& matrix,
  * appropriate for the matrix size and type. The nature of the initial vector can affect the convergence speed of the algorithm.
  */
 template< typename MatrixType >
-std::tuple< typename MatrixType::RealType,
-            TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >,
-            int >
+std::tuple<
+   typename MatrixType::RealType,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >,
+   int >
 powerIteration( const MatrixType& matrix, const typename MatrixType::RealType& epsilon, const int& maxIterations = 100000 )
 {
    if( matrix.getRows() == 0 )

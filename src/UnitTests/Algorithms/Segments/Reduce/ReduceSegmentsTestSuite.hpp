@@ -46,12 +46,13 @@ TYPED_TEST_P( ReduceSegmentsTest, reduceSegmentsWithArgumentIf_MaximumInSegments
 }
 
 // Register all test cases
-REGISTER_TYPED_TEST_SUITE_P( ReduceSegmentsTest,
-                             reduceSegments_MaximumInSegments,
-                             reduceSegments_MaximumInTriangularSegments,
-                             reduceSegments_MaximumInSegments_short_fetch,
-                             reduceSegmentsWithArgument_MaximumInSegments,
-                             reduceSegmentsWithSegmentIndexes_MaximumInSegments,
-                             reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments,
-                             reduceSegmentsIf_MaximumInSegments,
-                             reduceSegmentsWithArgumentIf_MaximumInSegments );
+REGISTER_TYPED_TEST_SUITE_P(
+   ReduceSegmentsTest,
+   reduceSegments_MaximumInSegments,
+   reduceSegments_MaximumInTriangularSegments,
+   reduceSegments_MaximumInSegments_short_fetch,
+   reduceSegmentsWithArgument_MaximumInSegments,
+   reduceSegmentsWithSegmentIndexes_MaximumInSegments,
+   reduceSegmentsWithSegmentIndexesAndArgument_MaximumInSegments,
+   reduceSegmentsIf_MaximumInSegments,
+   reduceSegmentsWithArgumentIf_MaximumInSegments );

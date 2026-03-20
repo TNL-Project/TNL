@@ -26,22 +26,30 @@ void
 test_GetSerializationType()
 {
    using namespace TNL::Algorithms::Segments;
-   EXPECT_EQ( ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], RowMajorOrder >" ) );
-   EXPECT_EQ( ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], RowMajorOrder >" ) );
-   EXPECT_EQ( ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], RowMajorOrder >" ) );
-   EXPECT_EQ( ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], RowMajorOrder >" ) );
-   EXPECT_EQ( ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], ColumnMajorOrder >" ) );
-   EXPECT_EQ( ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], ColumnMajorOrder >" ) );
-   EXPECT_EQ( ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], ColumnMajorOrder >" ) );
-   EXPECT_EQ( ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
-              TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], ColumnMajorOrder >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], RowMajorOrder >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], RowMajorOrder >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], RowMajorOrder >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], RowMajorOrder >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], ColumnMajorOrder >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], ColumnMajorOrder >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::DenseMatrix< float, [any_device], [any_index], ColumnMajorOrder >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, int, ColumnMajorOrder >::getSerializationType() ),
+      TNL::String( "Matrices::DenseMatrix< int, [any_device], [any_index], ColumnMajorOrder >" ) );
 }
 
 template< typename Matrix >
@@ -90,11 +98,12 @@ test_SetElements()
    using RealType = typename Matrix::RealType;
    using IndexType = typename Matrix::IndexType;
 
-   Matrix m_full( {
-      { 1, 2, 3 },
-      { 4, 5, 6 },
-      { 7, 8, 9 },
-   } );
+   Matrix m_full(
+      {
+         { 1, 2, 3 },
+         { 4, 5, 6 },
+         { 7, 8, 9 },
+      } );
 
    EXPECT_EQ( m_full.getRows(), 3 );
    EXPECT_EQ( m_full.getColumns(), 3 );
@@ -804,11 +813,12 @@ test_ForElementsWithArray()
       } );
 
    TNL::Containers::Vector< IndexType, typename Matrix::DeviceType, IndexType > rowIndices{ 1, 3, 5, 7 };
-   m.forElements( rowIndices,
-                  [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
-                  {
-                     value = rowIdx + 1.0;
-                  } );
+   m.forElements(
+      rowIndices,
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = rowIdx + 1.0;
+      } );
 
    for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
       for( IndexType colIdx = 0; colIdx < cols; colIdx++ )
@@ -941,14 +951,15 @@ test_reduceRows()
    const IndexType rows = 8;
    const IndexType cols = 8;
 
-   Matrix m( { { 1, 2, 3, 0, 4, 5, 0, 1 },
-               { 0, 6, 0, 7, 0, 0, 0, 1 },
-               { 0, 8, 9, 0, 10, 0, 0, 1 },
-               { 0, 11, 12, 13, 14, 0, 0, 1 },
-               { 0, 15, 0, 0, 0, 0, 0, 1 },
-               { 0, 16, 17, 18, 19, 20, 21, 1 },
-               { 22, 23, 24, 25, 26, 27, 28, 1 },
-               { 29, 30, 31, 32, 33, 34, 35, 36 } } );
+   Matrix m(
+      { { 1, 2, 3, 0, 4, 5, 0, 1 },
+        { 0, 6, 0, 7, 0, 0, 0, 1 },
+        { 0, 8, 9, 0, 10, 0, 0, 1 },
+        { 0, 11, 12, 13, 14, 0, 0, 1 },
+        { 0, 15, 0, 0, 0, 0, 0, 1 },
+        { 0, 16, 17, 18, 19, 20, 21, 1 },
+        { 22, 23, 24, 25, 26, 27, 28, 1 },
+        { 29, 30, 31, 32, 33, 34, 35, 36 } } );
    typename Matrix::RowCapacitiesType rowCapacities{ 6, 3, 4, 5, 2, 7, 8, 8 };
 
    IndexType value = 1;
@@ -1200,8 +1211,9 @@ test_AddMatrix()
 
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < cols; j++ )
-         EXPECT_EQ( mResult.getElement( i, j ),
-                    matrixMultiplicator * m2.getElement( i, j ) + thisMatrixMultiplicator * m.getElement( i, j ) )
+         EXPECT_EQ(
+            mResult.getElement( i, j ),
+            matrixMultiplicator * m2.getElement( i, j ) + thisMatrixMultiplicator * m.getElement( i, j ) )
             << "i: " << i << " j: " << j << " m_ij: " << m.getElement( i, j ) << " m2_ij: " << m2.getElement( i, j );
 
    RealType testValue = 0;

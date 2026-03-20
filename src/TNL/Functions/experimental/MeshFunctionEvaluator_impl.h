@@ -12,16 +12,18 @@ namespace TNL::Functions::experimental {
 template< typename OutMeshFunction, typename InFunction >
 template< typename OutMeshFunctionPointer, typename InFunctionPointer >
 void
-MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluate( OutMeshFunctionPointer& meshFunction,
-                                                                const InFunctionPointer& function,
-                                                                const RealType& time,
-                                                                const RealType& outFunctionMultiplicator,
-                                                                const RealType& inFunctionMultiplicator )
+MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluate(
+   OutMeshFunctionPointer& meshFunction,
+   const InFunctionPointer& function,
+   const RealType& time,
+   const RealType& outFunctionMultiplicator,
+   const RealType& inFunctionMultiplicator )
 {
-   static_assert( std::is_same_v< std::decay_t< typename OutMeshFunctionPointer::ObjectType >, OutMeshFunction >,
-                  "expected a smart pointer" );
-   static_assert( std::is_same_v< std::decay_t< typename InFunctionPointer::ObjectType >, InFunction >,
-                  "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename OutMeshFunctionPointer::ObjectType >, OutMeshFunction >,
+      "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename InFunctionPointer::ObjectType >, InFunction >, "expected a smart pointer" );
 
    switch( InFunction::getDomainType() ) {
       case NonspaceDomain:
@@ -41,16 +43,18 @@ MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluate( OutMeshFunctionP
 template< typename OutMeshFunction, typename InFunction >
 template< typename OutMeshFunctionPointer, typename InFunctionPointer >
 void
-MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateAllEntities( OutMeshFunctionPointer& meshFunction,
-                                                                           const InFunctionPointer& function,
-                                                                           const RealType& time,
-                                                                           const RealType& outFunctionMultiplicator,
-                                                                           const RealType& inFunctionMultiplicator )
+MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateAllEntities(
+   OutMeshFunctionPointer& meshFunction,
+   const InFunctionPointer& function,
+   const RealType& time,
+   const RealType& outFunctionMultiplicator,
+   const RealType& inFunctionMultiplicator )
 {
-   static_assert( std::is_same_v< std::decay_t< typename OutMeshFunctionPointer::ObjectType >, OutMeshFunction >,
-                  "expected a smart pointer" );
-   static_assert( std::is_same_v< std::decay_t< typename InFunctionPointer::ObjectType >, InFunction >,
-                  "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename OutMeshFunctionPointer::ObjectType >, OutMeshFunction >,
+      "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename InFunctionPointer::ObjectType >, InFunction >, "expected a smart pointer" );
 
    return evaluateEntities( meshFunction, function, time, outFunctionMultiplicator, inFunctionMultiplicator, all );
 }
@@ -58,16 +62,18 @@ MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateAllEntities( OutMe
 template< typename OutMeshFunction, typename InFunction >
 template< typename OutMeshFunctionPointer, typename InFunctionPointer >
 void
-MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateInteriorEntities( OutMeshFunctionPointer& meshFunction,
-                                                                                const InFunctionPointer& function,
-                                                                                const RealType& time,
-                                                                                const RealType& outFunctionMultiplicator,
-                                                                                const RealType& inFunctionMultiplicator )
+MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateInteriorEntities(
+   OutMeshFunctionPointer& meshFunction,
+   const InFunctionPointer& function,
+   const RealType& time,
+   const RealType& outFunctionMultiplicator,
+   const RealType& inFunctionMultiplicator )
 {
-   static_assert( std::is_same_v< std::decay_t< typename OutMeshFunctionPointer::ObjectType >, OutMeshFunction >,
-                  "expected a smart pointer" );
-   static_assert( std::is_same_v< std::decay_t< typename InFunctionPointer::ObjectType >, InFunction >,
-                  "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename OutMeshFunctionPointer::ObjectType >, OutMeshFunction >,
+      "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename InFunctionPointer::ObjectType >, InFunction >, "expected a smart pointer" );
 
    return evaluateEntities( meshFunction, function, time, outFunctionMultiplicator, inFunctionMultiplicator, interior );
 }
@@ -75,16 +81,18 @@ MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateInteriorEntities( 
 template< typename OutMeshFunction, typename InFunction >
 template< typename OutMeshFunctionPointer, typename InFunctionPointer >
 void
-MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateBoundaryEntities( OutMeshFunctionPointer& meshFunction,
-                                                                                const InFunctionPointer& function,
-                                                                                const RealType& time,
-                                                                                const RealType& outFunctionMultiplicator,
-                                                                                const RealType& inFunctionMultiplicator )
+MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateBoundaryEntities(
+   OutMeshFunctionPointer& meshFunction,
+   const InFunctionPointer& function,
+   const RealType& time,
+   const RealType& outFunctionMultiplicator,
+   const RealType& inFunctionMultiplicator )
 {
-   static_assert( std::is_same_v< std::decay_t< typename OutMeshFunctionPointer::ObjectType >, OutMeshFunction >,
-                  "expected a smart pointer" );
-   static_assert( std::is_same_v< std::decay_t< typename InFunctionPointer::ObjectType >, InFunction >,
-                  "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename OutMeshFunctionPointer::ObjectType >, OutMeshFunction >,
+      "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename InFunctionPointer::ObjectType >, InFunction >, "expected a smart pointer" );
 
    return evaluateEntities( meshFunction, function, time, outFunctionMultiplicator, inFunctionMultiplicator, boundary );
 }
@@ -92,12 +100,13 @@ MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateBoundaryEntities( 
 template< typename OutMeshFunction, typename InFunction >
 template< typename OutMeshFunctionPointer, typename InFunctionPointer >
 void
-MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateEntities( OutMeshFunctionPointer& meshFunction,
-                                                                        const InFunctionPointer& function,
-                                                                        const RealType& time,
-                                                                        const RealType& outFunctionMultiplicator,
-                                                                        const RealType& inFunctionMultiplicator,
-                                                                        EntitiesType entitiesType )
+MeshFunctionEvaluator< OutMeshFunction, InFunction >::evaluateEntities(
+   OutMeshFunctionPointer& meshFunction,
+   const InFunctionPointer& function,
+   const RealType& time,
+   const RealType& outFunctionMultiplicator,
+   const RealType& inFunctionMultiplicator,
+   EntitiesType entitiesType )
 {
    throw Exceptions::NotImplementedError( "MeshFunctionEvaluator is not implemented with the current Grid implementation" );
    /*

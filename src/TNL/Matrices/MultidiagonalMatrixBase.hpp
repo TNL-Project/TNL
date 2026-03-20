@@ -13,10 +13,11 @@ namespace TNL::Matrices {
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::bind( typename Base::ValuesViewType values,
-                                                                    DiagonalOffsetsView diagonalOffsets,
-                                                                    HostDiagonalOffsetsView hostDiagonalOffsets,
-                                                                    IndexerType indexer )
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::bind(
+   typename Base::ValuesViewType values,
+   DiagonalOffsetsView diagonalOffsets,
+   HostDiagonalOffsetsView hostDiagonalOffsets,
+   IndexerType indexer )
 {
    Base::bind( indexer.getRows(), indexer.getColumns(), std::move( values ) );
    this->diagonalOffsets.bind( std::move( diagonalOffsets ) );
@@ -104,8 +105,8 @@ bool
 MultidiagonalMatrixBase< Real, Device, Index, Organization >::operator==(
    const MultidiagonalMatrixBase< Real_, Device_, Index_, Organization_ >& matrix ) const
 {
-   static_assert( Organization == Organization_,
-                  "comparison of multidiagonal matrices with different organizations is not implemented" );
+   static_assert(
+      Organization == Organization_, "comparison of multidiagonal matrices with different organizations is not implemented" );
    return this->values == matrix.values;
 }
 
@@ -152,9 +153,10 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::getRow( IndexType 
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::setElement( IndexType row,
-                                                                          IndexType column,
-                                                                          const RealType& value )
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::setElement(
+   IndexType row,
+   IndexType column,
+   const RealType& value )
 {
    TNL_ASSERT_GE( row, 0, "" );
    TNL_ASSERT_LT( row, this->getRows(), "" );
@@ -170,8 +172,9 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::setElement( IndexT
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       TNL_ASSERT_TRUE( false, "" );
 #else
-      throw std::logic_error( "Wrong matrix element coordinates ( " + std::to_string( row ) + ", " + std::to_string( column )
-                              + " ) in multidiagonal matrix." );
+      throw std::logic_error(
+         "Wrong matrix element coordinates ( " + std::to_string( row ) + ", " + std::to_string( column )
+         + " ) in multidiagonal matrix." );
 #endif
    }
 }
@@ -179,10 +182,11 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::setElement( IndexT
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::addElement( IndexType row,
-                                                                          IndexType column,
-                                                                          const RealType& value,
-                                                                          const RealType& thisElementMultiplicator )
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::addElement(
+   IndexType row,
+   IndexType column,
+   const RealType& value,
+   const RealType& thisElementMultiplicator )
 {
    TNL_ASSERT_GE( row, 0, "" );
    TNL_ASSERT_LT( row, this->getRows(), "" );
@@ -199,8 +203,9 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::addElement( IndexT
 #if defined( __CUDA_ARCH__ ) || defined( __HIP_DEVICE_COMPILE__ )
       TNL_ASSERT_TRUE( false, "" );
 #else
-      throw std::logic_error( "Wrong matrix element coordinates ( " + std::to_string( row ) + ", " + std::to_string( column )
-                              + " ) in multidiagonal matrix." );
+      throw std::logic_error(
+         "Wrong matrix element coordinates ( " + std::to_string( row ) + ", " + std::to_string( column )
+         + " ) in multidiagonal matrix." );
 #endif
    }
 }
@@ -224,12 +229,13 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::getElement( IndexT
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexType begin,
-                                                                          IndexType end,
-                                                                          Fetch&& fetch,
-                                                                          const Reduce& reduce,
-                                                                          Keep&& keep,
-                                                                          const FetchReal& identity ) const
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows(
+   IndexType begin,
+   IndexType end,
+   Fetch&& fetch,
+   const Reduce& reduce,
+   Keep&& keep,
+   const FetchReal& identity ) const
 {
    using Real_ = decltype( fetch( IndexType(), IndexType(), RealType() ) );
    const auto values_view = this->values.getConstView();
@@ -253,10 +259,11 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::reduceRows( IndexT
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Fetch, typename Reduce, typename Keep, typename FetchReal >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fetch&& fetch,
-                                                                             const Reduce& reduce,
-                                                                             Keep&& keep,
-                                                                             const FetchReal& identity ) const
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows(
+   Fetch&& fetch,
+   const Reduce& reduce,
+   Keep&& keep,
+   const FetchReal& identity ) const
 {
    this->reduceRows( (IndexType) 0, this->indexer.getNonemptyRowsCount(), fetch, reduce, keep, identity );
 }
@@ -264,9 +271,8 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::reduceAllRows( Fet
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexType begin,
-                                                                           IndexType end,
-                                                                           Function&& function ) const
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( IndexType begin, IndexType end, Function&& function )
+   const
 {
    const auto values_view = this->values.getConstView();
    const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
@@ -324,10 +330,11 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forAllElements( Fu
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Array, typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes,
-                                                                           IndexType begin,
-                                                                           IndexType end,
-                                                                           Function&& function ) const
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements(
+   const Array& rowIndexes,
+   IndexType begin,
+   IndexType end,
+   Function&& function ) const
 {
    const auto values_view = this->values.getConstView();
    const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
@@ -352,10 +359,11 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Array, typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const Array& rowIndexes,
-                                                                           IndexType begin,
-                                                                           IndexType end,
-                                                                           Function&& function )
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements(
+   const Array& rowIndexes,
+   IndexType begin,
+   IndexType end,
+   Function&& function )
 {
    auto values_view = this->values.getView();
    const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
@@ -376,9 +384,10 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const
       for( IndexType localIdx = 0; localIdx < diagonalsCount; localIdx++ ) {
          const IndexType columnIdx = rowIdx + diagonalOffsets_view[ localIdx ];
          if( columnIdx >= 0 && columnIdx < columns ) {
-            TNL_ASSERT_LT( indexer.getGlobalIndex( rowIdx, localIdx ),
-                           values_view.getSize(),
-                           "Global index is larger than number of matrix elements." );
+            TNL_ASSERT_LT(
+               indexer.getGlobalIndex( rowIdx, localIdx ),
+               values_view.getSize(),
+               "Global index is larger than number of matrix elements." );
             function( rowIdx, localIdx, columnIdx, values_view[ indexer.getGlobalIndex( rowIdx, localIdx ) ] );
          }
       }
@@ -405,10 +414,11 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElements( const
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Condition, typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf( IndexType begin,
-                                                                             IndexType end,
-                                                                             Condition&& condition,
-                                                                             Function&& function ) const
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf(
+   IndexType begin,
+   IndexType end,
+   Condition&& condition,
+   Function&& function ) const
 {
    const auto values_view = this->values.getConstView();
    const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
@@ -431,10 +441,11 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf( Ind
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Condition, typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf( IndexType begin,
-                                                                             IndexType end,
-                                                                             Condition&& condition,
-                                                                             Function&& function )
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf(
+   IndexType begin,
+   IndexType end,
+   Condition&& condition,
+   Function&& function )
 {
    auto values_view = this->values.getView();
    const auto diagonalOffsets_view = this->diagonalOffsets.getConstView();
@@ -457,8 +468,8 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forElementsIf( Ind
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Condition, typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition,
-                                                                                Function&& function ) const
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forAllElementsIf( Condition&& condition, Function&& function )
+   const
 {
    this->forElementsIf( (IndexType) 0, this->getRows(), condition, function );
 }
@@ -488,9 +499,8 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forRows( IndexType
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::forRows( IndexType begin,
-                                                                       IndexType end,
-                                                                       Function&& function ) const
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::forRows( IndexType begin, IndexType end, Function&& function )
+   const
 {
    auto view = *this;
    auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
@@ -520,9 +530,10 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::forAllRows( Functi
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForRows( IndexType begin,
-                                                                                 IndexType end,
-                                                                                 Function& function ) const
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForRows(
+   IndexType begin,
+   IndexType end,
+   Function& function ) const
 {
    for( IndexType row = begin; row < end; row++ )
       this->forRows( row, row + 1, function );
@@ -531,9 +542,10 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForRows(
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename Function >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForRows( IndexType begin,
-                                                                                 IndexType end,
-                                                                                 Function& function )
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForRows(
+   IndexType begin,
+   IndexType end,
+   Function& function )
 {
    for( IndexType row = begin; row < end; row++ )
       this->forRows( row, row + 1, function );
@@ -558,12 +570,13 @@ MultidiagonalMatrixBase< Real, Device, Index, Organization >::sequentialForAllRo
 template< typename Real, typename Device, typename Index, ElementsOrganization Organization >
 template< typename InVector, typename OutVector >
 void
-MultidiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct( const InVector& inVector,
-                                                                             OutVector& outVector,
-                                                                             RealType matrixMultiplicator,
-                                                                             RealType outVectorMultiplicator,
-                                                                             IndexType begin,
-                                                                             IndexType end ) const
+MultidiagonalMatrixBase< Real, Device, Index, Organization >::vectorProduct(
+   const InVector& inVector,
+   OutVector& outVector,
+   RealType matrixMultiplicator,
+   RealType outVectorMultiplicator,
+   IndexType begin,
+   IndexType end ) const
 {
    if( this->getColumns() != inVector.getSize() )
       throw std::invalid_argument( "vectorProduct: size of the input vector does not match the number of matrix columns" );

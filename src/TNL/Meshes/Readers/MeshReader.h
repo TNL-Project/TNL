@@ -26,16 +26,17 @@ struct MeshReaderError : public std::runtime_error
 class MeshReader
 {
 public:
-   using VariantVector = std::variant< std::vector< std::int8_t >,
-                                       std::vector< std::uint8_t >,
-                                       std::vector< std::int16_t >,
-                                       std::vector< std::uint16_t >,
-                                       std::vector< std::int32_t >,
-                                       std::vector< std::uint32_t >,
-                                       std::vector< std::int64_t >,
-                                       std::vector< std::uint64_t >,
-                                       std::vector< float >,
-                                       std::vector< double > >;
+   using VariantVector = std::variant<
+      std::vector< std::int8_t >,
+      std::vector< std::uint8_t >,
+      std::vector< std::int16_t >,
+      std::vector< std::uint16_t >,
+      std::vector< std::int32_t >,
+      std::vector< std::uint32_t >,
+      std::vector< std::int64_t >,
+      std::vector< std::uint64_t >,
+      std::vector< float >,
+      std::vector< double > >;
 
    MeshReader() = default;
 
@@ -105,14 +106,14 @@ public:
 
       // check that the grid attributes were set
       if( gridExtent.size() != 6 )
-         throw MeshReaderError( "MeshReader",
-                                "gridExtent has invalid size: " + std::to_string( gridExtent.size() ) + " (should be 6)" );
+         throw MeshReaderError(
+            "MeshReader", "gridExtent has invalid size: " + std::to_string( gridExtent.size() ) + " (should be 6)" );
       if( gridOrigin.size() != 3 )
-         throw MeshReaderError( "MeshReader",
-                                "gridOrigin has invalid size: " + std::to_string( gridOrigin.size() ) + " (should be 3)" );
+         throw MeshReaderError(
+            "MeshReader", "gridOrigin has invalid size: " + std::to_string( gridOrigin.size() ) + " (should be 3)" );
       if( gridSpacing.size() != 3 )
-         throw MeshReaderError( "MeshReader",
-                                "gridSpacing has invalid size: " + std::to_string( gridSpacing.size() ) + " (should be 3)" );
+         throw MeshReaderError(
+            "MeshReader", "gridSpacing has invalid size: " + std::to_string( gridSpacing.size() ) + " (should be 3)" );
 
       // split the extent into begin and end
       typename MeshType::CoordinatesType begin;
@@ -166,9 +167,10 @@ public:
       const VTK::EntityShape meshCellShape = VTK::TopologyToEntityShape<
          typename MeshType::template EntityTraits< MeshType::getMeshDimension() >::EntityTopology >::shape;
       if( meshCellShape != cellShape )
-         throw MeshReaderError( "MeshReader",
-                                "the mesh cell shape " + VTK::getShapeName( meshCellShape ) + " does not match the shape "
-                                   + "of cells used in the file (" + VTK::getShapeName( cellShape ) + ")" );
+         throw MeshReaderError(
+            "MeshReader",
+            "the mesh cell shape " + VTK::getShapeName( meshCellShape ) + " does not match the shape "
+               + "of cells used in the file (" + VTK::getShapeName( cellShape ) + ")" );
 
       using MeshBuilder = MeshBuilder< MeshType >;
       using NeighborCountsArray = typename MeshBuilder::NeighborCountsArray;

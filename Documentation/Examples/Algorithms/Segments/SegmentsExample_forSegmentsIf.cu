@@ -27,16 +27,17 @@ SegmentsExample()
     */
    auto data_view = data.getView();
    using SegmentViewType = typename Segments::SegmentViewType;
-   TNL::Algorithms::Segments::forAllSegments( segments,
-                                              [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
-                                              {
-                                                 double sum( 0.0 );
-                                                 for( auto element : segment )
-                                                    if( element.localIndex() <= element.segmentIndex() ) {
-                                                       sum += element.localIndex() + 1;
-                                                       data_view[ element.globalIndex() ] = sum;
-                                                    }
-                                              } );
+   TNL::Algorithms::Segments::forAllSegments(
+      segments,
+      [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
+      {
+         double sum( 0.0 );
+         for( auto element : segment )
+            if( element.localIndex() <= element.segmentIndex() ) {
+               sum += element.localIndex() + 1;
+               data_view[ element.globalIndex() ] = sum;
+            }
+      } );
 
    /***
     * Print the data managed by the segments.

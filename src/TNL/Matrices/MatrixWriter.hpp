@@ -167,10 +167,11 @@ MatrixWriter< Matrix, TNL::Devices::Host >::writeEpsHeader( std::ostream& str, c
 
 template< typename Matrix >
 void
-MatrixWriter< Matrix, TNL::Devices::Host >::writeEpsBody( std::ostream& str,
-                                                          const Matrix& matrix,
-                                                          const int elementSize,
-                                                          bool verbose )
+MatrixWriter< Matrix, TNL::Devices::Host >::writeEpsBody(
+   std::ostream& str,
+   const Matrix& matrix,
+   const int elementSize,
+   bool verbose )
 {
    IndexType lastRow = 0;
    IndexType lastColumn = 0;

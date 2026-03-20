@@ -17,8 +17,9 @@ DistributedExpressionMin( const Expression& expression ) -> std::decay_t< declty
 {
    using ResultType = std::decay_t< decltype( expression[ 0 ] ) >;
 
-   static_assert( std::numeric_limits< ResultType >::is_specialized,
-                  "std::numeric_limits is not specialized for the reduction's result type" );
+   static_assert(
+      std::numeric_limits< ResultType >::is_specialized,
+      "std::numeric_limits is not specialized for the reduction's result type" );
    ResultType result = std::numeric_limits< ResultType >::max();
    if( expression.getCommunicator() != MPI_COMM_NULL ) {
       const ResultType localResult = Algorithms::reduce( expression.getConstLocalView(), TNL::Min{} );
@@ -36,8 +37,8 @@ DistributedExpressionArgMin( const Expression& expression )
    using IndexType = typename Expression::IndexType;
    using ResultType = std::pair< RealType, IndexType >;
 
-   static_assert( std::numeric_limits< RealType >::is_specialized,
-                  "std::numeric_limits is not specialized for the reduction's real type" );
+   static_assert(
+      std::numeric_limits< RealType >::is_specialized, "std::numeric_limits is not specialized for the reduction's real type" );
    ResultType result( -1, std::numeric_limits< RealType >::max() );
    const MPI::Comm& communicator = expression.getCommunicator();
    if( communicator != MPI_COMM_NULL ) {
@@ -54,11 +55,12 @@ DistributedExpressionArgMin( const Expression& expression )
       std::unique_ptr< ResultType[] > gatheredResults{ new ResultType[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
-                     sizeof( ResultType ),
-                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
-                     sizeof( ResultType ),
-                     communicator );
+      MPI::Alltoall(
+         reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
+         sizeof( ResultType ),
+         reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
+         sizeof( ResultType ),
+         communicator );
 
       auto fetch = [ &gatheredResults ]( int i )
       {
@@ -76,8 +78,9 @@ DistributedExpressionMax( const Expression& expression ) -> std::decay_t< declty
 {
    using ResultType = std::decay_t< decltype( expression[ 0 ] ) >;
 
-   static_assert( std::numeric_limits< ResultType >::is_specialized,
-                  "std::numeric_limits is not specialized for the reduction's result type" );
+   static_assert(
+      std::numeric_limits< ResultType >::is_specialized,
+      "std::numeric_limits is not specialized for the reduction's result type" );
    ResultType result = std::numeric_limits< ResultType >::lowest();
    if( expression.getCommunicator() != MPI_COMM_NULL ) {
       const ResultType localResult = Algorithms::reduce( expression.getConstLocalView(), TNL::Max{} );
@@ -95,8 +98,8 @@ DistributedExpressionArgMax( const Expression& expression )
    using IndexType = typename Expression::IndexType;
    using ResultType = std::pair< RealType, IndexType >;
 
-   static_assert( std::numeric_limits< RealType >::is_specialized,
-                  "std::numeric_limits is not specialized for the reduction's real type" );
+   static_assert(
+      std::numeric_limits< RealType >::is_specialized, "std::numeric_limits is not specialized for the reduction's real type" );
    ResultType result( -1, std::numeric_limits< RealType >::lowest() );
    const MPI::Comm& communicator = expression.getCommunicator();
    if( communicator != MPI_COMM_NULL ) {
@@ -113,11 +116,12 @@ DistributedExpressionArgMax( const Expression& expression )
       std::unique_ptr< ResultType[] > gatheredResults{ new ResultType[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
-                     sizeof( ResultType ),
-                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
-                     sizeof( ResultType ),
-                     communicator );
+      MPI::Alltoall(
+         reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
+         sizeof( ResultType ),
+         reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
+         sizeof( ResultType ),
+         communicator );
 
       auto fetch = [ &gatheredResults ]( int i )
       {
@@ -163,8 +167,9 @@ DistributedExpressionAll( const Expression& expression ) -> std::decay_t< declty
 {
    using ResultType = std::decay_t< decltype( expression[ 0 ] && expression[ 0 ] ) >;
 
-   static_assert( std::numeric_limits< ResultType >::is_specialized,
-                  "std::numeric_limits is not specialized for the reduction's result type" );
+   static_assert(
+      std::numeric_limits< ResultType >::is_specialized,
+      "std::numeric_limits is not specialized for the reduction's result type" );
    ResultType result = std::numeric_limits< ResultType >::max();
    if( expression.getCommunicator() != MPI_COMM_NULL ) {
       const ResultType localResult = Algorithms::reduce( expression.getConstLocalView(), TNL::LogicalAnd{} );
@@ -214,11 +219,12 @@ DistributedExpressionArgAny( const Expression& expression )
       std::unique_ptr< ResultType[] > gatheredResults{ new ResultType[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
-                     sizeof( ResultType ),
-                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
-                     sizeof( ResultType ),
-                     communicator );
+      MPI::Alltoall(
+         reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
+         sizeof( ResultType ),
+         reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
+         sizeof( ResultType ),
+         communicator );
 
       auto fetch = [ &gatheredResults ]( int i )
       {

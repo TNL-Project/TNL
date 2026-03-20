@@ -110,18 +110,19 @@ benchmarkGemv( Benchmark<>& benchmark, int rows, int columns )
    {
       Real alpha = 1.0;
       Real beta = 0.0;
-      cublasGemv( cublasHandle,
-                  CUBLAS_OP_N,
-                  rows,
-                  columns,
-                  &alpha,
-                  columnMajorCudaMatrix.getValues().getData(),
-                  rows,
-                  inCudaVector.getData(),
-                  1,
-                  &beta,
-                  outCudaVector1.getData(),
-                  1 );
+      cublasGemv(
+         cublasHandle,
+         CUBLAS_OP_N,
+         rows,
+         columns,
+         &alpha,
+         columnMajorCudaMatrix.getValues().getData(),
+         rows,
+         inCudaVector.getData(),
+         1,
+         &beta,
+         outCudaVector1.getData(),
+         1 );
    };
    benchmark.time< Devices::Cuda >( reset, "GPU hipblas", mvCublas );
    #else
@@ -131,18 +132,19 @@ benchmarkGemv( Benchmark<>& benchmark, int rows, int columns )
    {
       Real alpha = 1.0;
       Real beta = 0.0;
-      hipblasGemv( hipblasHandle,
-                   HIPBLAS_OP_N,
-                   rows,
-                   columns,
-                   &alpha,
-                   columnMajorCudaMatrix.getValues().getData(),
-                   rows,
-                   inCudaVector.getData(),
-                   1,
-                   &beta,
-                   outCudaVector1.getData(),
-                   1 );
+      hipblasGemv(
+         hipblasHandle,
+         HIPBLAS_OP_N,
+         rows,
+         columns,
+         &alpha,
+         columnMajorCudaMatrix.getValues().getData(),
+         rows,
+         inCudaVector.getData(),
+         1,
+         &beta,
+         outCudaVector1.getData(),
+         1 );
    };
    benchmark.time< Devices::Hip >( reset, "GPU hipblas", mvHipblas );
    #endif

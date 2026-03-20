@@ -28,10 +28,11 @@ namespace TNL::Containers {
  * \par Output
  * \include VectorExample.out
  */
-template< typename Real = double,
-          typename Device = Devices::Host,
-          typename Index = int,
-          typename Allocator = typename Allocators::Default< Device >::template Allocator< Real > >
+template<
+   typename Real = double,
+   typename Device = Devices::Host,
+   typename Index = int,
+   typename Allocator = typename Allocators::Default< Device >::template Allocator< Real > >
 class Vector : public Array< Real, Device, Index, Allocator >
 {
 public:
@@ -74,10 +75,11 @@ public:
     * \ref TNL::Containers::Vector "Vector" type with changed template
     * parameters.
     */
-   template< typename _Real,
-             typename _Device = Device,
-             typename _Index = Index,
-             typename _Allocator = typename Allocators::Default< _Device >::template Allocator< _Real > >
+   template<
+      typename _Real,
+      typename _Device = Device,
+      typename _Index = Index,
+      typename _Allocator = typename Allocators::Default< _Device >::template Allocator< _Real > >
    using Self = Vector< _Real, _Device, _Index, _Allocator >;
 
    // constructors are inherited from the class Array
@@ -108,10 +110,11 @@ public:
     *
     * @param expression input expression template
     */
-   template< typename VectorExpression,
-             typename...,
-             typename = std::enable_if_t< Expressions::HasEnabledExpressionTemplates< VectorExpression >::value
-                                          && ! IsArrayType< VectorExpression >::value > >
+   template<
+      typename VectorExpression,
+      typename...,
+      typename = std::enable_if_t<
+         Expressions::HasEnabledExpressionTemplates< VectorExpression >::value && ! IsArrayType< VectorExpression >::value > >
    explicit Vector( const VectorExpression& expression );
 
    /**
@@ -172,9 +175,10 @@ public:
     *
     * \return Reference to this vector.
     */
-   template< typename T,
-             typename...,
-             typename = std::enable_if_t< std::is_convertible_v< T, Real > || IsArrayType< T >::value > >
+   template<
+      typename T,
+      typename...,
+      typename = std::enable_if_t< std::is_convertible_v< T, Real > || IsArrayType< T >::value > >
    Array< Real, Device, Index, Allocator >&
    operator=( const T& data )
    {
@@ -193,10 +197,11 @@ public:
     *                   this vector.
     * \return Reference to this vector.
     */
-   template< typename VectorExpression,
-             typename...,
-             typename = std::enable_if_t< Expressions::HasEnabledExpressionTemplates< VectorExpression >::value
-                                          && ! IsArrayType< VectorExpression >::value > >
+   template<
+      typename VectorExpression,
+      typename...,
+      typename = std::enable_if_t<
+         Expressions::HasEnabledExpressionTemplates< VectorExpression >::value && ! IsArrayType< VectorExpression >::value > >
    Vector&
    operator=( const VectorExpression& expression );
 

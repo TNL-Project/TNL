@@ -31,21 +31,23 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
    using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename SegmentsViewType::ConstOffsetsView;
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsSequential( const ConstViewType& segments,
-                             IndexBegin begin,
-                             IndexEnd end,
-                             Fetch&& fetch,
-                             Reduction&& reduction,
-                             ResultStorer&& storer,
-                             const Value& identity,
-                             const LaunchConfiguration& launchConfig )
+   reduceSegmentsSequential(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
@@ -84,46 +86,50 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       Algorithms::parallelFor< Device >( begin, end, l );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegments( const ConstViewType& segments,
-                   IndexBegin begin,
-                   IndexEnd end,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   ResultStorer&& storer,
-                   const Value& identity,
-                   const LaunchConfiguration& launchConfig )
+   reduceSegments(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::Host > || std::is_same_v< Device, TNL::Devices::Sequential >
                     || is_complex_v< Value > )  // Complex numbers are not supported in CUDA kernels due to use of shfl.
       {
-         reduceSegmentsSequential( segments,
-                                   begin,
-                                   end,
-                                   std::forward< Fetch >( fetch ),
-                                   std::forward< Reduction >( reduction ),
-                                   std::forward< ResultStorer >( storer ),
-                                   identity,
-                                   launchConfig );
+         reduceSegmentsSequential(
+            segments,
+            begin,
+            end,
+            std::forward< Fetch >( fetch ),
+            std::forward< Reduction >( reduction ),
+            std::forward< ResultStorer >( storer ),
+            identity,
+            launchConfig );
       }
       else {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
              && launchConfig.getThreadsPerSegmentCount() == 1 )
          {
-            reduceSegmentsSequential( segments,
-                                      begin,
-                                      end,
-                                      std::forward< Fetch >( fetch ),
-                                      std::forward< Reduction >( reduction ),
-                                      std::forward< ResultStorer >( storer ),
-                                      identity,
-                                      launchConfig );
+            reduceSegmentsSequential(
+               segments,
+               begin,
+               end,
+               std::forward< Fetch >( fetch ),
+               std::forward< Reduction >( reduction ),
+               std::forward< ResultStorer >( storer ),
+               identity,
+               launchConfig );
             return;
          }
          std::size_t sliceCount = end / SliceSize + ( end % SliceSize != 0 ) - begin / SliceSize;
@@ -150,32 +156,34 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                         if constexpr( SlicedEllpackReductionSupported< ConstViewType, 2, 256 >() )
 
                         {
-                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel< 256,
-                                                                                      2,
-                                                                                      ConstViewType,
-                                                                                      IndexType,
-                                                                                      IndexType,
-                                                                                      std::remove_reference_t< Fetch >,
-                                                                                      std::remove_reference_t< Reduction >,
-                                                                                      std::remove_reference_t< ResultStorer >,
-                                                                                      Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                              256,
+                              2,
+                              ConstViewType,
+                              IndexType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                         }
                         else
                            throw std::runtime_error(
                               "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
-                              + std::string( SegmentsViewType::getOrganization() == Segments::RowMajorOrder
-                                                ? "RowMajorOrder"
-                                                : "ColumnMajorOrder" )
+                              + std::string(
+                                 SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
+                                                                                                : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
                               + " TPS = 2, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
                         break;
@@ -185,32 +193,34 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                         if constexpr( SlicedEllpackReductionSupported< ConstViewType, 4, 256 >() )
 
                         {
-                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel< 256,
-                                                                                      4,
-                                                                                      ConstViewType,
-                                                                                      IndexType,
-                                                                                      IndexType,
-                                                                                      std::remove_reference_t< Fetch >,
-                                                                                      std::remove_reference_t< Reduction >,
-                                                                                      std::remove_reference_t< ResultStorer >,
-                                                                                      Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                              256,
+                              4,
+                              ConstViewType,
+                              IndexType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                         }
                         else
                            throw std::runtime_error(
                               "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
-                              + std::string( SegmentsViewType::getOrganization() == Segments::RowMajorOrder
-                                                ? "RowMajorOrder"
-                                                : "ColumnMajorOrder" )
+                              + std::string(
+                                 SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
+                                                                                                : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
                               + " TPS = 4, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
 
@@ -221,32 +231,34 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                         if constexpr( SlicedEllpackReductionSupported< ConstViewType, 8, 256 >() )
 
                         {
-                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel< 256,
-                                                                                      8,
-                                                                                      ConstViewType,
-                                                                                      IndexType,
-                                                                                      IndexType,
-                                                                                      std::remove_reference_t< Fetch >,
-                                                                                      std::remove_reference_t< Reduction >,
-                                                                                      std::remove_reference_t< ResultStorer >,
-                                                                                      Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                              256,
+                              8,
+                              ConstViewType,
+                              IndexType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                         }
                         else
                            throw std::runtime_error(
                               "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
-                              + std::string( SegmentsViewType::getOrganization() == Segments::RowMajorOrder
-                                                ? "RowMajorOrder"
-                                                : "ColumnMajorOrder" )
+                              + std::string(
+                                 SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
+                                                                                                : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
                               + " TPS = 8, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
 
@@ -257,32 +269,34 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                         if constexpr( SlicedEllpackReductionSupported< ConstViewType, 16, 256 >() )
 
                         {
-                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel< 256,
-                                                                                      16,
-                                                                                      ConstViewType,
-                                                                                      IndexType,
-                                                                                      IndexType,
-                                                                                      std::remove_reference_t< Fetch >,
-                                                                                      std::remove_reference_t< Reduction >,
-                                                                                      std::remove_reference_t< ResultStorer >,
-                                                                                      Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                              256,
+                              16,
+                              ConstViewType,
+                              IndexType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                         }
                         else
                            throw std::runtime_error(
                               "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
-                              + std::string( SegmentsViewType::getOrganization() == Segments::RowMajorOrder
-                                                ? "RowMajorOrder"
-                                                : "ColumnMajorOrder" )
+                              + std::string(
+                                 SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
+                                                                                                : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
                               + " TPS = 16, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
 
@@ -293,41 +307,43 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
                         if constexpr( SlicedEllpackReductionSupported< ConstViewType, 32, 256 >() )
 
                         {
-                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel< 256,
-                                                                                      32,
-                                                                                      ConstViewType,
-                                                                                      IndexType,
-                                                                                      IndexType,
-                                                                                      std::remove_reference_t< Fetch >,
-                                                                                      std::remove_reference_t< Reduction >,
-                                                                                      std::remove_reference_t< ResultStorer >,
-                                                                                      Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsSlicedEllpackKernel<
+                              256,
+                              32,
+                              ConstViewType,
+                              IndexType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                         }
                         else
                            throw std::runtime_error(
                               "Wrong configuration of GPU threads for reduction in SlicedEllpak: organization = "
-                              + std::string( SegmentsViewType::getOrganization() == Segments::RowMajorOrder
-                                                ? "RowMajorOrder"
-                                                : "ColumnMajorOrder" )
+                              + std::string(
+                                 SegmentsViewType::getOrganization() == Segments::RowMajorOrder ? "RowMajorOrder"
+                                                                                                : "ColumnMajorOrder" )
                               + ", SliceSize = " + std::to_string( SegmentsViewType::getSliceSize() )
                               + " TPS = 32, warp size = " + std::to_string( Backend::getWarpSize() ) + "." );
 
                         break;
                      }
                   default:
-                     throw std::runtime_error( "Unsupported number of threads per segment"
-                                               + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                                               + ". It can be only 2, 4, 8, 16 or 32." );
+                     throw std::runtime_error(
+                        "Unsupported number of threads per segment" + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                        + ". It can be only 2, 4, 8, 16 or 32." );
                }
             }
             else {
@@ -338,19 +354,21 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       }
    }
 
-   template< typename Array,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename Array,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
-                                     const Array& segmentIndexes,
-                                     Fetch&& fetch,
-                                     Reduction&& reduction,
-                                     ResultStorer&& storer,
-                                     const Value& identity,
-                                     const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithSegmentIndexes(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
@@ -393,21 +411,23 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       Algorithms::parallelFor< Device >( 0, segmentIndexes.getSize(), l );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithArgument( const ConstViewType& segments,
-                               IndexBegin begin,
-                               IndexEnd end,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               ResultStorer&& storer,
-                               const Value& identity,
-                               const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithArgument(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
@@ -429,10 +449,11 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
             const IndexType end = begin + segmentSize;
 
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++, localIdx++ )
-               reduction( result,
-                          detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                          argument,
-                          localIdx );
+               reduction(
+                  result,
+                  detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                  argument,
+                  localIdx );
             bool emptySegment = ( segmentSize == 0 );
             storer( segmentIdx, argument, result, emptySegment );
          }
@@ -443,10 +464,11 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
             const IndexType end = sliceOffsets[ sliceIdx + 1 ];
 
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SegmentsViewType::getSliceSize(), localIdx++ )
-               reduction( result,
-                          detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                          argument,
-                          localIdx );
+               reduction(
+                  result,
+                  detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                  argument,
+                  localIdx );
             bool emptySegment = ( begin == end );
             storer( segmentIdx, argument, result, emptySegment );
          }
@@ -455,19 +477,21 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
       Algorithms::parallelFor< Device >( begin, end, l );
    }
 
-   template< typename Array,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename Array,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
-                                                const Array& segmentIndexes,
-                                                Fetch&& fetch,
-                                                Reduction&& reduction,
-                                                ResultStorer&& storer,
-                                                const Value& identity,
-                                                const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithSegmentIndexesAndArgument(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
@@ -492,10 +516,11 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
             const IndexType end = begin + segmentSize;
 
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx++, localIdx++ )
-               reduction( result,
-                          detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                          argument,
-                          localIdx );
+               reduction(
+                  result,
+                  detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                  argument,
+                  localIdx );
             bool emptySegment = ( segmentSize == 0 );
             storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
          }
@@ -506,10 +531,11 @@ struct ReducingOperations< SlicedEllpackView< Device, Index, Organization, Slice
             const IndexType end = sliceOffsets[ sliceIdx + 1 ];
 
             for( IndexType globalIdx = begin; globalIdx < end; globalIdx += SegmentsViewType::getSliceSize(), localIdx++ )
-               reduction( result,
-                          detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                          argument,
-                          localIdx );
+               reduction(
+                  result,
+                  detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                  argument,
+                  localIdx );
             bool emptySegment = ( begin == end );
             storer( segmentIdx_idx, segmentIdx, argument, result, emptySegment );
          }

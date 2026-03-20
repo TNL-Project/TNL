@@ -32,11 +32,12 @@ namespace TNL::Algorithms::Segments {
  * row-major or column-major order. \tparam Alignment The alignment of the
  * number of segments (to optimize data alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int Alignment = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int Alignment = 32 >
 class Ellpack : public EllpackBase< Device, Index, Organization, Alignment >
 {
    using Base = EllpackBase< Device, Index, Organization, Alignment >;
@@ -57,11 +58,12 @@ public:
     * \tparam Index_ is alternative index type.
     * \tparam IndexAllocator_ is alternative index allocator type.
     */
-   template< typename Device_ = Device,
-             typename Index_ = Index,
-             typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ >,
-             ElementsOrganization Organization_ = Organization,
-             int Alignment_ = Alignment >
+   template<
+      typename Device_ = Device,
+      typename Index_ = Index,
+      typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ >,
+      ElementsOrganization Organization_ = Organization,
+      int Alignment_ = Alignment >
    using Self = Ellpack< Device_, Index_, IndexAllocator_, Organization_, Alignment_ >;
 
    /**
@@ -225,10 +227,11 @@ public:
  * \tparam Alignment The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int Alignment = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int Alignment = 32 >
 using RowMajorEllpack = Ellpack< Device, Index, IndexAllocator, RowMajorOrder, Alignment >;
 
 /**
@@ -242,10 +245,11 @@ using RowMajorEllpack = Ellpack< Device, Index, IndexAllocator, RowMajorOrder, A
  * \tparam Alignment The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int Alignment = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int Alignment = 32 >
 using ColumnMajorEllpack = Ellpack< Device, Index, IndexAllocator, ColumnMajorOrder, Alignment >;
 
 /**
@@ -257,12 +261,12 @@ using ColumnMajorEllpack = Ellpack< Device, Index, IndexAllocator, ColumnMajorOr
  * \tparam Alignment The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization =
-             TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int Alignment = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   ElementsOrganization Organization = TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int Alignment = 32 >
 using SortedEllpack = SortedSegments< Ellpack< Device, Index, IndexAllocator, Organization, Alignment > >;
 
 /**
@@ -274,10 +278,11 @@ using SortedEllpack = SortedSegments< Ellpack< Device, Index, IndexAllocator, Or
  * \tparam Alignment The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int Alignment = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int Alignment = 32 >
 using SortedRowMajorEllpack = SortedSegments< RowMajorEllpack< Device, Index, IndexAllocator, Alignment > >;
 
 /**
@@ -289,10 +294,11 @@ using SortedRowMajorEllpack = SortedSegments< RowMajorEllpack< Device, Index, In
  * \tparam Alignment The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int Alignment = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int Alignment = 32 >
 using SortedColumnMajorEllpack = SortedSegments< ColumnMajorEllpack< Device, Index, IndexAllocator, Alignment > >;
 
 template< typename Segments >

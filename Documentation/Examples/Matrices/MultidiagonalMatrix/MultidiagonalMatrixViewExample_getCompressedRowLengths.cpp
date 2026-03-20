@@ -9,9 +9,10 @@ laplaceOperatorMatrix()
 {
    const int gridSize( 4 );
    const int matrixSize = gridSize * gridSize;
-   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix( matrixSize,                        // number of rows
-                                                                matrixSize,                        // number of columns
-                                                                { -gridSize, -1, 0, 1, gridSize }  // diagonals offsets
+   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix(
+      matrixSize,                        // number of rows
+      matrixSize,                        // number of columns
+      { -gridSize, -1, 0, 1, gridSize }  // diagonals offsets
    );
    matrix.setElements(
       { { 0.0, 0.0, 1.0 },  // set matrix elements corresponding to boundary grid nodes

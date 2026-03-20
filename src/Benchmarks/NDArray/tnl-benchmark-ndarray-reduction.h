@@ -87,10 +87,12 @@ benchmark_ndarray_reduction2D( Benchmark<>& benchmark, index_type size, index_ty
 
    const double datasetSize = ( size * n + n ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "2D", datasetSize );
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "axis", convertToString( axis ) },
-                                                                 { "permutation", print_sequence( Permutation{} ) },
-                                                                 { "size", convertToString( size ) },
-                                                                 { "n", convertToString( n ) } } ) );
+   benchmark.setMetadataColumns(
+      Benchmark<>::MetadataColumns(
+         { { "axis", convertToString( axis ) },
+           { "permutation", print_sequence( Permutation{} ) },
+           { "size", convertToString( size ) },
+           { "n", convertToString( n ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 
@@ -112,11 +114,13 @@ benchmark_ndarray_reduction3D( Benchmark<>& benchmark, index_type size, index_ty
 
    const double datasetSize = ( m * n * size + m * n ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "3D", datasetSize );
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "axis", convertToString( axis ) },
-                                                                 { "permutation", print_sequence( Permutation{} ) },
-                                                                 { "size", convertToString( size ) },
-                                                                 { "m", convertToString( m ) },
-                                                                 { "n", convertToString( n ) } } ) );
+   benchmark.setMetadataColumns(
+      Benchmark<>::MetadataColumns(
+         { { "axis", convertToString( axis ) },
+           { "permutation", print_sequence( Permutation{} ) },
+           { "size", convertToString( size ) },
+           { "m", convertToString( m ) },
+           { "n", convertToString( n ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 
@@ -143,12 +147,14 @@ benchmark_ndarray_reduction4D( Benchmark<>& benchmark, index_type size, index_ty
 
    const double datasetSize = ( m * n * o * size + m * n * o ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "4D", datasetSize );
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "axis", convertToString( axis ) },
-                                                                 { "permutation", print_sequence( Permutation{} ) },
-                                                                 { "size", convertToString( size ) },
-                                                                 { "m", convertToString( m ) },
-                                                                 { "n", convertToString( n ) },
-                                                                 { "o", convertToString( o ) } } ) );
+   benchmark.setMetadataColumns(
+      Benchmark<>::MetadataColumns(
+         { { "axis", convertToString( axis ) },
+           { "permutation", print_sequence( Permutation{} ) },
+           { "size", convertToString( size ) },
+           { "m", convertToString( m ) },
+           { "n", convertToString( n ) },
+           { "o", convertToString( o ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 
@@ -175,25 +181,28 @@ benchmark_ndarray_reduction5D( Benchmark<>& benchmark, index_type size, index_ty
 
    const double datasetSize = ( m * n * o * p * size + m * n * o * p ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "5D", datasetSize );
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "axis", convertToString( axis ) },
-                                                                 { "permutation", print_sequence( Permutation{} ) },
-                                                                 { "size", convertToString( size ) },
-                                                                 { "m", convertToString( m ) },
-                                                                 { "n", convertToString( n ) },
-                                                                 { "o", convertToString( o ) },
-                                                                 { "p", convertToString( p ) } } ) );
+   benchmark.setMetadataColumns(
+      Benchmark<>::MetadataColumns(
+         { { "axis", convertToString( axis ) },
+           { "permutation", print_sequence( Permutation{} ) },
+           { "size", convertToString( size ) },
+           { "m", convertToString( m ) },
+           { "n", convertToString( n ) },
+           { "o", convertToString( o ) },
+           { "p", convertToString( p ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 
 template< typename Device, typename Permutation, std::size_t axis >
 void
-benchmark_ndarray_reduction6D( Benchmark<>& benchmark,
-                               index_type size,
-                               index_type m,
-                               index_type n,
-                               index_type o,
-                               index_type p,
-                               index_type q )
+benchmark_ndarray_reduction6D(
+   Benchmark<>& benchmark,
+   index_type size,
+   index_type m,
+   index_type n,
+   index_type o,
+   index_type p,
+   index_type q )
 {
    NDArray< index_type, SizesHolder< index_type, 0, 0, 0, 0, 0, 0 >, Permutation, Device > input;
    NDArray< index_type, SizesHolder< index_type, 0, 0, 0, 0, 0 >, std::index_sequence< 0, 1, 2, 3, 4 >, Device > result;
@@ -215,14 +224,16 @@ benchmark_ndarray_reduction6D( Benchmark<>& benchmark,
 
    const double datasetSize = ( m * n * o * p * q * size + m * n * o * p * q ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "6D", datasetSize );
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "axis", convertToString( axis ) },
-                                                                 { "permutation", print_sequence( Permutation{} ) },
-                                                                 { "size", convertToString( size ) },
-                                                                 { "m", convertToString( m ) },
-                                                                 { "n", convertToString( n ) },
-                                                                 { "o", convertToString( o ) },
-                                                                 { "p", convertToString( p ) },
-                                                                 { "q", convertToString( q ) } } ) );
+   benchmark.setMetadataColumns(
+      Benchmark<>::MetadataColumns(
+         { { "axis", convertToString( axis ) },
+           { "permutation", print_sequence( Permutation{} ) },
+           { "size", convertToString( size ) },
+           { "m", convertToString( m ) },
+           { "n", convertToString( n ) },
+           { "o", convertToString( o ) },
+           { "p", convertToString( p ) },
+           { "q", convertToString( q ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 

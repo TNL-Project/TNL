@@ -59,8 +59,9 @@ GradientDescent< Vector, SolverMonitor >::solve( VectorView& w, GradientGetter&&
       // Compute the gradient
       getGradient( w_view, gradient_view );
       RealType lastResidue = this->getResidue();
-      this->setResidue( addAndReduceAbs( w_view, -this->relaxation * gradient_view, TNL::Plus(), (RealType) 0.0 )
-                        / ( this->relaxation * (RealType) w.getSize() ) );
+      this->setResidue(
+         addAndReduceAbs( w_view, -this->relaxation * gradient_view, TNL::Plus(), (RealType) 0.0 )
+         / ( this->relaxation * (RealType) w.getSize() ) );
 
       if( ! this->nextIteration() )
          return this->checkConvergence();

@@ -195,8 +195,8 @@ __device__
 T*
 getSharedMemory()
 {
-   static_assert( sizeof( T ) == 1 || sizeof( T ) == 2 || sizeof( T ) == 4 || sizeof( T ) == 8,
-                  "Requested type has unsupported size." );
+   static_assert(
+      sizeof( T ) == 1 || sizeof( T ) == 2 || sizeof( T ) == 4 || sizeof( T ) == 8, "Requested type has unsupported size." );
    return SharedMemory< T >{};
 }
 

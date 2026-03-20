@@ -27,166 +27,181 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceVertices( GraphViewType& graph,
-                   IndexBegin begin,
-                   IndexEnd end,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   Store&& store,
-                   const FetchValue& identity,
-                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVertices(
+      GraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRows( graph.getAdjacencyMatrixView(), begin, end, fetch, reduction, store, identity, launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceVertices( const ConstGraphViewType& graph,
-                   IndexBegin begin,
-                   IndexEnd end,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   Store&& store,
-                   const FetchValue& identity,
-                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVertices(
+      const ConstGraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRows( graph.getAdjacencyMatrixView(), begin, end, fetch, reduction, store, identity, launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceVertices( GraphViewType& graph,
-                   const Array& vertexIndices,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   Store&& store,
-                   const FetchValue& identity,
-                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVertices(
+      GraphViewType& graph,
+      const Array& vertexIndices,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRows( graph.getAdjacencyMatrixView(), vertexIndices, fetch, reduction, store, identity, launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceVertices( const ConstGraphViewType& graph,
-                   const Array& vertexIndices,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   Store&& store,
-                   const FetchValue& identity,
-                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVertices(
+      const ConstGraphViewType& graph,
+      const Array& vertexIndices,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRows( graph.getAdjacencyMatrixView(), vertexIndices, fetch, reduction, store, identity, launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Store >
    static void
-   reduceVertices( GraphViewType& graph,
-                   const Array& vertexIndices,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   Store&& store,
-                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVertices(
+      GraphViewType& graph,
+      const Array& vertexIndices,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       using FetchValue = decltype( fetch( IndexType(), IndexType(), ValueType() ) );
       const FetchValue identity = reduction.template getIdentity< FetchValue >();
-      reduceVertices( graph,
-                      vertexIndices,
-                      std::forward< Fetch >( fetch ),
-                      reduction,
-                      std::forward< Store >( store ),
-                      identity,
-                      launchConfig );
+      reduceVertices(
+         graph,
+         vertexIndices,
+         std::forward< Fetch >( fetch ),
+         reduction,
+         std::forward< Store >( store ),
+         identity,
+         launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Store >
    static void
-   reduceVertices( const ConstGraphViewType& graph,
-                   const Array& vertexIndices,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   Store&& store,
-                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVertices(
+      const ConstGraphViewType& graph,
+      const Array& vertexIndices,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       using FetchValue = decltype( fetch( IndexType(), IndexType(), ValueType() ) );
       const FetchValue identity = reduction.template getIdentity< FetchValue >();
-      reduceVertices( graph,
-                      vertexIndices,
-                      std::forward< Fetch >( fetch ),
-                      reduction,
-                      std::forward< Store >( store ),
-                      identity,
-                      launchConfig );
+      reduceVertices(
+         graph,
+         vertexIndices,
+         std::forward< Fetch >( fetch ),
+         reduction,
+         std::forward< Store >( store ),
+         identity,
+         launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceVerticesIf( GraphViewType& graph,
-                     IndexBegin begin,
-                     IndexEnd end,
-                     Condition&& condition,
-                     Fetch&& fetch,
-                     Reduction&& reduction,
-                     Store&& store,
-                     const FetchValue& identity,
-                     TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVerticesIf(
+      GraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      return Matrices::reduceRowsIf( graph.getAdjacencyMatrixView(),
-                                     begin,
-                                     end,
-                                     std::forward< Condition >( condition ),
-                                     fetch,
-                                     reduction,
-                                     store,
-                                     identity,
-                                     launchConfig );
+      return Matrices::reduceRowsIf(
+         graph.getAdjacencyMatrixView(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetch,
+         reduction,
+         store,
+         identity,
+         launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceVerticesIf( const ConstGraphViewType& graph,
-                     IndexBegin begin,
-                     IndexEnd end,
-                     Condition&& condition,
-                     Fetch&& fetch,
-                     Reduction&& reduction,
-                     Store&& store,
-                     const FetchValue& identity,
-                     TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVerticesIf(
+      const ConstGraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      return Matrices::reduceRowsIf( graph.getAdjacencyMatrixView(),
-                                     begin,
-                                     end,
-                                     std::forward< Condition >( condition ),
-                                     fetch,
-                                     reduction,
-                                     store,
-                                     identity,
-                                     launchConfig );
+      return Matrices::reduceRowsIf(
+         graph.getAdjacencyMatrixView(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetch,
+         reduction,
+         store,
+         identity,
+         launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceVerticesWithArgument( GraphViewType& graph,
-                               IndexBegin begin,
-                               IndexEnd end,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               Store&& store,
-                               const FetchValue& identity,
-                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVerticesWithArgument(
+      GraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRowsWithArgument(
          graph.getAdjacencyMatrixView(), begin, end, fetch, reduction, store, identity, launchConfig );
@@ -194,14 +209,15 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceVerticesWithArgument( const ConstGraphViewType& graph,
-                               IndexBegin begin,
-                               IndexEnd end,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               Store&& store,
-                               const FetchValue& identity,
-                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVerticesWithArgument(
+      const ConstGraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRowsWithArgument(
          graph.getAdjacencyMatrixView(), begin, end, fetch, reduction, store, identity, launchConfig );
@@ -209,13 +225,14 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceVerticesWithArgument( GraphViewType& graph,
-                               const Array& vertexIndices,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               Store&& store,
-                               const FetchValue& identity,
-                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVerticesWithArgument(
+      GraphViewType& graph,
+      const Array& vertexIndices,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRowsWithArgument(
          graph.getAdjacencyMatrixView(), vertexIndices, fetch, reduction, store, identity, launchConfig );
@@ -223,74 +240,81 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceVerticesWithArgument( const ConstGraphViewType& graph,
-                               const Array& vertexIndices,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               Store&& store,
-                               const FetchValue& identity,
-                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVerticesWithArgument(
+      const ConstGraphViewType& graph,
+      const Array& vertexIndices,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRowsWithArgument(
          graph.getAdjacencyMatrixView(), vertexIndices, fetch, reduction, store, identity, launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceVerticesWithArgumentIf( GraphViewType& graph,
-                                 IndexBegin begin,
-                                 IndexEnd end,
-                                 Condition&& condition,
-                                 Fetch&& fetch,
-                                 Reduction&& reduction,
-                                 Store&& store,
-                                 const FetchValue& identity,
-                                 TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVerticesWithArgumentIf(
+      GraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      return Matrices::reduceRowsWithArgumentIf( graph.getAdjacencyMatrixView(),
-                                                 begin,
-                                                 end,
-                                                 std::forward< Condition >( condition ),
-                                                 fetch,
-                                                 reduction,
-                                                 store,
-                                                 identity,
-                                                 launchConfig );
+      return Matrices::reduceRowsWithArgumentIf(
+         graph.getAdjacencyMatrixView(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetch,
+         reduction,
+         store,
+         identity,
+         launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceVerticesWithArgumentIf( const ConstGraphViewType& graph,
-                                 IndexBegin begin,
-                                 IndexEnd end,
-                                 Condition&& condition,
-                                 Fetch&& fetch,
-                                 Reduction&& reduction,
-                                 Store&& store,
-                                 const FetchValue& identity,
-                                 TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceVerticesWithArgumentIf(
+      const ConstGraphViewType& graph,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
-      return Matrices::reduceRowsWithArgumentIf( graph.getAdjacencyMatrixView(),
-                                                 begin,
-                                                 end,
-                                                 std::forward< Condition >( condition ),
-                                                 fetch,
-                                                 reduction,
-                                                 store,
-                                                 identity,
-                                                 launchConfig );
+      return Matrices::reduceRowsWithArgumentIf(
+         graph.getAdjacencyMatrixView(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetch,
+         reduction,
+         store,
+         identity,
+         launchConfig );
    }
 };
 }  // namespace TNL::Graphs::detail

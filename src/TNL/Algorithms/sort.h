@@ -103,9 +103,10 @@ descendingSort( Array& array, const Sorter& sorter = Sorter{} )
  * \include SortingExample2.out
  *
  */
-template< typename Array,
-          typename Compare,
-          typename Sorter = typename Sorting::DefaultSorter< typename Array::DeviceType >::SorterType >
+template<
+   typename Array,
+   typename Compare,
+   typename Sorter = typename Sorting::DefaultSorter< typename Array::DeviceType >::SorterType >
 void
 sort( Array& array, const Compare& compare, const Sorter& sorter = Sorter{} )
 {
@@ -149,11 +150,12 @@ sort( Array& array, const Compare& compare, const Sorter& sorter = Sorter{} )
  * \include SortingExample3.out
  *
  */
-template< typename Device,
-          typename Index,
-          typename Compare,
-          typename Swap,
-          typename Sorter = typename Sorting::DefaultInplaceSorter< Device >::SorterType >
+template<
+   typename Device,
+   typename Index,
+   typename Compare,
+   typename Swap,
+   typename Sorter = typename Sorting::DefaultInplaceSorter< Device >::SorterType >
 void
 sort( const Index begin, const Index end, Compare&& compare, Swap&& swap, const Sorter& sorter = Sorter{} )
 {

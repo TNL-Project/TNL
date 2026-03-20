@@ -62,10 +62,11 @@ public:
    // add a single piece and return its source path
    // (useful for sequential writing, e.g. from tnl-decompose-grid)
    std::string
-   addPiece( const std::string& mainFileName,
-             unsigned subdomainIndex,
-             const typename Grid::CoordinatesType& globalBegin,
-             const typename Grid::CoordinatesType& globalEnd );
+   addPiece(
+      const std::string& mainFileName,
+      unsigned subdomainIndex,
+      const typename Grid::CoordinatesType& globalBegin,
+      const typename Grid::CoordinatesType& globalEnd );
 
    // add all pieces and return the source path for the current rank
    // (useful for parallel writing)

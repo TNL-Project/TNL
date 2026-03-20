@@ -107,16 +107,18 @@ TEST( StringTest, CStringOperators )
    EXPECT_STREQ( string1.getString(), "stringstring2" );
 
    // addition that forces a new page allocation
-   string1 += " long long long long long long long long long long long long long long"
-              " long long long long long long long long long long long long long long"
-              " long long long long long long long long long long long long long long"
-              " long long long long long long long long long long long long long long";
-   EXPECT_STREQ( string1.getString(),
-                 "stringstring2"
-                 " long long long long long long long long long long long long long long"
-                 " long long long long long long long long long long long long long long"
-                 " long long long long long long long long long long long long long long"
-                 " long long long long long long long long long long long long long long" );
+   string1 +=
+      " long long long long long long long long long long long long long long"
+      " long long long long long long long long long long long long long long"
+      " long long long long long long long long long long long long long long"
+      " long long long long long long long long long long long long long long";
+   EXPECT_STREQ(
+      string1.getString(),
+      "stringstring2"
+      " long long long long long long long long long long long long long long"
+      " long long long long long long long long long long long long long long"
+      " long long long long long long long long long long long long long long"
+      " long long long long long long long long long long long long long long" );
 
    // addition
    EXPECT_STREQ( ( String( "foo " ) + "bar" ).getString(), "foo bar" );
@@ -145,34 +147,40 @@ TEST( StringTest, StringOperators )
    EXPECT_EQ( String( "foo bar" ), string1 );
    EXPECT_NE( String( "bar" ), string1 );
    EXPECT_NE( String( "bar" ), String( "baz" ) );
-   EXPECT_NE( String( "long long long long long long long long long long long "
-                      "long long long long long long long long long long long "
-                      "long long long long long long long long long long long "
-                      "long long long long long long long long long long long "
-                      "long long long long long long long long long long long "
-                      "long long long long long long long long long long long" ),
-              String( "short" ) );
-   String string3( "long long long long long long long long long long long "
-                   "long long long long long long long long long long long "
-                   "long long long long long long long long long long long "
-                   "long long long long long long long long long long long "
-                   "long long long long long long long long long long long "
-                   "long long long long long long long long long long long" );
+   EXPECT_NE(
+      String(
+         "long long long long long long long long long long long "
+         "long long long long long long long long long long long "
+         "long long long long long long long long long long long "
+         "long long long long long long long long long long long "
+         "long long long long long long long long long long long "
+         "long long long long long long long long long long long" ),
+      String( "short" ) );
+   String string3(
+      "long long long long long long long long long long long "
+      "long long long long long long long long long long long "
+      "long long long long long long long long long long long "
+      "long long long long long long long long long long long "
+      "long long long long long long long long long long long "
+      "long long long long long long long long long long long" );
    string3[ 255 ] = 0;
    // std::string knows the original length
-   EXPECT_NE( string3,
-              String( "long long long long long long long long long long long "
-                      "long long long long long long long long long long long "
-                      "long long long long long long long long long long long "
-                      "long long long long long long long long long long long "
-                      "long long long long long long long " ) );
+   EXPECT_NE(
+      string3,
+      String(
+         "long long long long long long long long long long long "
+         "long long long long long long long long long long long "
+         "long long long long long long long long long long long "
+         "long long long long long long long long long long long "
+         "long long long long long long long " ) );
    // C string can be terminated in the middle
-   EXPECT_STREQ( string3.getString(),
-                 "long long long long long long long long long long long "
-                 "long long long long long long long long long long long "
-                 "long long long long long long long long long long long "
-                 "long long long long long long long long long long long "
-                 "long long long long long long long " );
+   EXPECT_STREQ(
+      string3.getString(),
+      "long long long long long long long long long long long "
+      "long long long long long long long long long long long "
+      "long long long long long long long long long long long "
+      "long long long long long long long long long long long "
+      "long long long long long long long " );
 
    // addition
    EXPECT_EQ( String( "foo " ) + String( "bar" ), "foo bar" );
@@ -191,17 +199,19 @@ TEST( StringTest, SingleCharacterOperators )
    EXPECT_STREQ( string2.getString(), "string A" );
 
    // addition of a single character that causes new page allocation
-   string2 = "long long long long long long long long long long long long long "
-             "long long long long long long long long long long long long long "
-             "long long long long long long long long long long long long long "
-             "long long long long long long long long long long long long ";
+   string2 =
+      "long long long long long long long long long long long long long "
+      "long long long long long long long long long long long long long "
+      "long long long long long long long long long long long long long "
+      "long long long long long long long long long long long long ";
    ASSERT_EQ( string2.getLength(), 255 );
    string2 += 'B';
-   EXPECT_STREQ( string2.getString(),
-                 "long long long long long long long long long long long long long "
-                 "long long long long long long long long long long long long long "
-                 "long long long long long long long long long long long long long "
-                 "long long long long long long long long long long long long B" );
+   EXPECT_STREQ(
+      string2.getString(),
+      "long long long long long long long long long long long long long "
+      "long long long long long long long long long long long long long "
+      "long long long long long long long long long long long long long "
+      "long long long long long long long long long long long long B" );
 
    // addition
    EXPECT_STREQ( ( String( "A " ) + 'B' ).getString(), "A B" );

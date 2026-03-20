@@ -26,10 +26,11 @@ public:
    MultidiagonalMatrixIndexer() = default;
 
    __cuda_callable__
-   MultidiagonalMatrixIndexer( const IndexType& rows,
-                               const IndexType& columns,
-                               const IndexType& diagonals,
-                               const IndexType& nonemptyRows )
+   MultidiagonalMatrixIndexer(
+      const IndexType& rows,
+      const IndexType& columns,
+      const IndexType& diagonals,
+      const IndexType& nonemptyRows )
    : rows( rows ),
      columns( columns ),
      diagonals( diagonals ),

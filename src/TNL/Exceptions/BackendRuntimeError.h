@@ -16,24 +16,27 @@ class BackendRuntimeError : public std::runtime_error
 {
 public:
    BackendRuntimeError( Backend::error_t error_code )
-   : std::runtime_error( message_prefix.data() + code_string( error_code ) + " (" + name( error_code )
-                         + "): " + description( error_code ) + "." ),
+   : std::runtime_error(
+        message_prefix.data() + code_string( error_code ) + " (" + name( error_code ) + "): " + description( error_code )
+        + "." ),
      code_( error_code )
    {
       clear_error();
    }
 
    BackendRuntimeError( Backend::error_t error_code, const std::string& what_arg )
-   : std::runtime_error( message_prefix.data() + code_string( error_code ) + " (" + name( error_code )
-                         + "): " + description( error_code ) + ".\nDetails: " + what_arg ),
+   : std::runtime_error(
+        message_prefix.data() + code_string( error_code ) + " (" + name( error_code ) + "): " + description( error_code )
+        + ".\nDetails: " + what_arg ),
      code_( error_code )
    {
       clear_error();
    }
 
    BackendRuntimeError( Backend::error_t error_code, const char* file_name, int line )
-   : std::runtime_error( message_prefix.data() + code_string( error_code ) + " (" + name( error_code ) + "): "
-                         + description( error_code ) + ".\nSource: line " + std::to_string( line ) + " in " + file_name ),
+   : std::runtime_error(
+        message_prefix.data() + code_string( error_code ) + " (" + name( error_code ) + "): " + description( error_code )
+        + ".\nSource: line " + std::to_string( line ) + " in " + file_name ),
      code_( error_code )
    {
       clear_error();

@@ -58,8 +58,9 @@ void
 testEntity( const MeshEntity& entity )
 {
    // static tests for the MeshEntity type
-   static_assert( std::is_constructible_v< MeshEntity, typename MeshEntity::MeshType, typename MeshEntity::GlobalIndexType >,
-                  "MeshEntity should be constructible from its MeshType and GlobalIndexType" );
+   static_assert(
+      std::is_constructible_v< MeshEntity, typename MeshEntity::MeshType, typename MeshEntity::GlobalIndexType >,
+      "MeshEntity should be constructible from its MeshType and GlobalIndexType" );
    static_assert( ! std::is_default_constructible_v< MeshEntity >, "MeshEntity should not be default-constructible" );
    static_assert( std::is_copy_constructible_v< MeshEntity >, "MeshEntity should be copy-constructible" );
    static_assert( std::is_move_constructible_v< MeshEntity >, "MeshEntity should be move-constructible" );

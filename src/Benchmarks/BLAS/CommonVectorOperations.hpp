@@ -128,8 +128,9 @@ CommonVectorOperations< Device >::getVectorL2Norm( const Vector& v )
    {
       return data[ i ] * data[ i ];
    };
-   return std::sqrt( Algorithms::reduce< DeviceType >(
-      static_cast< IndexType >( 0 ), v.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ) );
+   return std::sqrt(
+      Algorithms::reduce< DeviceType >(
+         static_cast< IndexType >( 0 ), v.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ) );
 }
 
 template< typename Device >
@@ -152,9 +153,10 @@ CommonVectorOperations< Device >::getVectorLpNorm( const Vector& v, const Scalar
    {
       return TNL::pow( TNL::abs( data[ i ] ), p );
    };
-   return std::pow( Algorithms::reduce< DeviceType >(
-                       static_cast< IndexType >( 0 ), v.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ),
-                    1.0 / p );
+   return std::pow(
+      Algorithms::reduce< DeviceType >(
+         static_cast< IndexType >( 0 ), v.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ),
+      1.0 / p );
 }
 
 template< typename Device >
@@ -311,8 +313,9 @@ CommonVectorOperations< Device >::getVectorDifferenceL2Norm( const Vector1& v1, 
       auto diff = data1[ i ] - data2[ i ];
       return diff * diff;
    };
-   return std::sqrt( Algorithms::reduce< DeviceType >(
-      static_cast< IndexType >( 0 ), v1.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ) );
+   return std::sqrt(
+      Algorithms::reduce< DeviceType >(
+         static_cast< IndexType >( 0 ), v1.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ) );
 }
 
 template< typename Device >
@@ -337,9 +340,10 @@ CommonVectorOperations< Device >::getVectorDifferenceLpNorm( const Vector1& v1, 
    {
       return TNL::pow( TNL::abs( data1[ i ] - data2[ i ] ), p );
    };
-   return std::pow( Algorithms::reduce< DeviceType >(
-                       static_cast< IndexType >( 0 ), v1.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ),
-                    1.0 / p );
+   return std::pow(
+      Algorithms::reduce< DeviceType >(
+         static_cast< IndexType >( 0 ), v1.getSize(), fetch, std::plus<>{}, static_cast< ResultType >( 0 ) ),
+      1.0 / p );
 }
 
 template< typename Device >

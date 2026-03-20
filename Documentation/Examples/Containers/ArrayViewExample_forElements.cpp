@@ -29,12 +29,13 @@ forElementsExample()
    /****
     * Initiate elements of array `b` with indexes 0-4 using `a_view`
     */
-   b.getView().forElements( 0,
-                            5,
-                            [ = ] __cuda_callable__( int i, float& value )
-                            {
-                               value = a_view[ i ] + 4.0;
-                            } );
+   b.getView().forElements(
+      0,
+      5,
+      [ = ] __cuda_callable__( int i, float& value )
+      {
+         value = a_view[ i ] + 4.0;
+      } );
 
    /****
     * Print the results

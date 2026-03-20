@@ -48,9 +48,10 @@ class VTUReader : public XMLVTK
 
       // connectivity and offsets must have the same type
       if( connectivityType != offsetsType )
-         throw MeshReaderError( "VTUReader",
-                                "the \"connectivity\" and \"offsets\" array do not have the same type (" + connectivityType
-                                   + " vs " + offsetsType + ")" );
+         throw MeshReaderError(
+            "VTUReader",
+            "the \"connectivity\" and \"offsets\" array do not have the same type (" + connectivityType + " vs " + offsetsType
+               + ")" );
       // cell types can be only uint8_t
       if( typesType != "std::uint8_t" )
          throw MeshReaderError( "VTUReader", "unsupported data type for the Name=\"types\" array" );
@@ -62,9 +63,10 @@ class VTUReader : public XMLVTK
          {
             // check array size
             if( array.size() != 3 * NumberOfPoints )
-               throw MeshReaderError( "VTUReader",
-                                      "invalid size of the Points data array (" + std::to_string( array.size() ) + " vs "
-                                         + std::to_string( NumberOfPoints ) + ")" );
+               throw MeshReaderError(
+                  "VTUReader",
+                  "invalid size of the Points data array (" + std::to_string( array.size() ) + " vs "
+                     + std::to_string( NumberOfPoints ) + ")" );
             // set spaceDimension
             spaceDimension = 1;
             std::size_t i = 0;
@@ -117,8 +119,8 @@ class VTUReader : public XMLVTK
          [ this, &max_offset ]( auto&& array ) mutable
          {
             if( array.size() != NumberOfCells )
-               throw MeshReaderError( "VTUReader",
-                                      "size of the offsets data array does not match the NumberOfCells attribute" );
+               throw MeshReaderError(
+                  "VTUReader", "size of the offsets data array does not match the NumberOfCells attribute" );
             for( auto c : array ) {
                if( static_cast< std::size_t >( c ) <= max_offset )
                   throw MeshReaderError( "VTUReader", "the offsets array is not monotonically increasing" );
@@ -164,8 +166,8 @@ class VTUReader : public XMLVTK
             [ this, &max_offset ]( auto&& array ) mutable
             {
                if( array.size() != NumberOfCells )
-                  throw MeshReaderError( "VTUReader",
-                                         "size of the faceoffsets data array does not match the NumberOfCells attribute" );
+                  throw MeshReaderError(
+                     "VTUReader", "size of the faceoffsets data array does not match the NumberOfCells attribute" );
                for( auto c : array ) {
                   // NOTE: VTK stores -1 for cells that are not a polyhedron. We would need to populate
                   if( c < 0 )
@@ -223,9 +225,10 @@ class VTUReader : public XMLVTK
                   cellOffsets.push_back( cellConnectivity.size() );
 
                   if( cell_off_begin != cell_off_end )
-                     throw MeshReaderError( "VTUReader",
-                                            "error while parsing the faces data array: did not reach the end offset for cell "
-                                               + std::to_string( cell ) );
+                     throw MeshReaderError(
+                        "VTUReader",
+                        "error while parsing the faces data array: did not reach the end offset for cell "
+                           + std::to_string( cell ) );
                }
 
                this->NumberOfFaces = faceIndex;

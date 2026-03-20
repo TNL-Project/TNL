@@ -78,8 +78,9 @@ public:
       // assert that indices are 0 for the dimensions in the subarray
       // (contraction of dimensions is not supported yet, and it does not
       // make sense for static dimensions anyway)
-      TNL_ASSERT_TRUE( check_indices( std::forward< IndexTypes >( indices )... ),
-                       "Static dimensions of the subarray must start at index 0 of the array." );
+      TNL_ASSERT_TRUE(
+         check_indices( std::forward< IndexTypes >( indices )... ),
+         "Static dimensions of the subarray must start at index 0 of the array." );
 
       // set dynamic sizes
       Algorithms::staticFor< std::size_t, 0, Dimensions::size() >(

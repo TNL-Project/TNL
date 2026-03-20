@@ -59,11 +59,12 @@ assertIndicesInRange( const SizesHolder1&, const SizesHolder2&, const Overlaps& 
 template< typename SizesHolder1, typename SizesHolder2, typename Overlaps, typename Index, typename... IndexTypes >
 __cuda_callable__
 void
-assertIndicesInRange( const SizesHolder1& begins,
-                      const SizesHolder2& ends,
-                      const Overlaps& overlaps,
-                      Index&& i,
-                      IndexTypes&&... indices )
+assertIndicesInRange(
+   const SizesHolder1& begins,
+   const SizesHolder2& ends,
+   const Overlaps& overlaps,
+   Index&& i,
+   IndexTypes&&... indices )
 {
    static_assert( SizesHolder1::getDimension() == SizesHolder2::getDimension(), "Inconsistent begins and ends." );
 #ifndef NDEBUG
@@ -118,8 +119,8 @@ template< typename SizesHolder1, typename SizesHolder2 >
 bool
 sizesWeakCompare( const SizesHolder1& sizes1, const SizesHolder2& sizes2 )
 {
-   static_assert( SizesHolder1::getDimension() == SizesHolder2::getDimension(),
-                  "Cannot compare sizes of different dimensions." );
+   static_assert(
+      SizesHolder1::getDimension() == SizesHolder2::getDimension(), "Cannot compare sizes of different dimensions." );
    bool result = true;
    Algorithms::staticFor< std::size_t, 0, SizesHolder1::getDimension() >(
       [ &result, &sizes1, &sizes2 ]( auto level )
@@ -130,11 +131,12 @@ sizesWeakCompare( const SizesHolder1& sizes1, const SizesHolder2& sizes2 )
 }
 
 // helper for the forInterior and forBoundary methods (NDArray and DistributedNDArray)
-template< std::size_t ConstValue,
-          typename TargetHolder,
-          typename SourceHolder,
-          typename Overlaps,
-          std::size_t level = TargetHolder::getDimension() - 1 >
+template<
+   std::size_t ConstValue,
+   typename TargetHolder,
+   typename SourceHolder,
+   typename Overlaps,
+   std::size_t level = TargetHolder::getDimension() - 1 >
 struct SetSizesSubtractHelper
 {
    static void
@@ -169,11 +171,12 @@ struct SetSizesSubtractHelper< ConstValue, TargetHolder, SourceHolder, Overlaps,
 };
 
 // helper for the forInterior and forBoundary methods (DistributedNDArray)
-template< std::size_t ConstValue,
-          typename TargetHolder,
-          typename SourceHolder,
-          typename Overlaps,
-          std::size_t level = TargetHolder::getDimension() - 1 >
+template<
+   std::size_t ConstValue,
+   typename TargetHolder,
+   typename SourceHolder,
+   typename Overlaps,
+   std::size_t level = TargetHolder::getDimension() - 1 >
 struct SetSizesAddHelper
 {
    static void

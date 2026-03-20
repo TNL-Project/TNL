@@ -33,11 +33,12 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstViewType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                const LaunchConfiguration& launchConfig )
+   forElements(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      const LaunchConfiguration& launchConfig )
    {
       forElementsIf(
          segments,
@@ -53,10 +54,11 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
 
    template< typename Array, typename Function >
    static void
-   forElements( const ConstViewType& segments,
-                const Array& segmentIndexes,
-                Function&& function,
-                const LaunchConfiguration& launchConfig )
+   forElements(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Function&& function,
+      const LaunchConfiguration& launchConfig )
    {
       const auto segmentsPermutationView = segments.getSegmentsPermutationView();
       const auto groupPointersView = segments.getGroupPointersView();
@@ -105,12 +107,13 @@ struct TraversingOperations< BiEllpackView< Device, Index, Organization, WarpSiz
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ConstViewType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Function&& function,
-                  const LaunchConfiguration& launchConfig )
+   forElementsIf(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      const LaunchConfiguration& launchConfig )
    {
       const auto segmentsPermutationView = segments.getSegmentsPermutationView();
       const auto groupPointersView = segments.getGroupPointersView();

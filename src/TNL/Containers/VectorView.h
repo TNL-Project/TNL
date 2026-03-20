@@ -172,9 +172,10 @@ public:
     * \param data Reference to the source array or value.
     * \return Reference to this vector view.
     */
-   template< typename T,
-             typename...,
-             typename = std::enable_if_t< std::is_convertible_v< T, Real > || IsArrayType< T >::value > >
+   template<
+      typename T,
+      typename...,
+      typename = std::enable_if_t< std::is_convertible_v< T, Real > || IsArrayType< T >::value > >
    ArrayView< Real, Device, Index >&
    operator=( const T& data )
    {
@@ -192,10 +193,11 @@ public:
     *                   this vector view.
     * \return Reference to this vector view.
     */
-   template< typename VectorExpression,
-             typename...,
-             typename = std::enable_if_t< Expressions::HasEnabledExpressionTemplates< VectorExpression >::value
-                                          && ! IsArrayType< VectorExpression >::value > >
+   template<
+      typename VectorExpression,
+      typename...,
+      typename = std::enable_if_t<
+         Expressions::HasEnabledExpressionTemplates< VectorExpression >::value && ! IsArrayType< VectorExpression >::value > >
    VectorView&
    operator=( const VectorExpression& expression );
 

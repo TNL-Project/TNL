@@ -11,10 +11,11 @@ namespace TNL::Containers::detail {
 template< typename DistributedNDArray >
 struct SynchronizerBuffers
 {
-   using NDArrayType = NDArray< typename DistributedNDArray::ValueType,
-                                typename DistributedNDArray::SizesHolderType,
-                                typename DistributedNDArray::PermutationType,
-                                typename DistributedNDArray::DeviceType >;
+   using NDArrayType = NDArray<
+      typename DistributedNDArray::ValueType,
+      typename DistributedNDArray::SizesHolderType,
+      typename DistributedNDArray::PermutationType,
+      typename DistributedNDArray::DeviceType >;
    NDArrayType send_buffer, recv_buffer;
    typename NDArrayType::ViewType send_view, recv_view;
    typename DistributedNDArray::LocalBeginsType send_offsets, recv_offsets;

@@ -11,10 +11,11 @@
 
 namespace TNL::Meshes {
 
-template< typename MeshConfig,
-          typename Device,
-          typename DimensionTag,
-          bool EntityStorage = ( DimensionTag::value <= MeshConfig::meshDimension ) >
+template<
+   typename MeshConfig,
+   typename Device,
+   typename DimensionTag,
+   bool EntityStorage = ( DimensionTag::value <= MeshConfig::meshDimension ) >
 class StorageLayer;
 
 template< typename MeshConfig, typename Device >
@@ -74,9 +75,10 @@ public:
    setSubentitiesCounts( const typename MeshTraitsType::NeighborCountsArray& counts )
    {
       static_assert( Dimension > Subdimension, "Invalid combination of Dimension and Subdimension." );
-      static_assert( SubentityTraits< Dimension, Subdimension >::storageEnabled,
-                     "You try to set subentitiesCounts for a combination of Dimension and Subdimension which is disabled in "
-                     "the mesh configuration." );
+      static_assert(
+         SubentityTraits< Dimension, Subdimension >::storageEnabled,
+         "You try to set subentitiesCounts for a combination of Dimension and Subdimension which is disabled in "
+         "the mesh configuration." );
       using BaseType = SubentityStorageLayerFamily< MeshConfig, Device, typename EntityTraits< Dimension >::EntityTopology >;
       BaseType::template setSubentitiesCounts< Subdimension >( counts );
    }
@@ -86,9 +88,10 @@ public:
    setSubentitiesCounts( typename MeshTraitsType::NeighborCountsArray&& counts )
    {
       static_assert( Dimension > Subdimension, "Invalid combination of Dimension and Subdimension." );
-      static_assert( SubentityTraits< Dimension, Subdimension >::storageEnabled,
-                     "You try to set subentitiesCounts for a combination of Dimension and Subdimension which is disabled in "
-                     "the mesh configuration." );
+      static_assert(
+         SubentityTraits< Dimension, Subdimension >::storageEnabled,
+         "You try to set subentitiesCounts for a combination of Dimension and Subdimension which is disabled in "
+         "the mesh configuration." );
       using BaseType = SubentityStorageLayerFamily< MeshConfig, Device, typename EntityTraits< Dimension >::EntityTopology >;
       BaseType::template setSubentitiesCounts< Subdimension >( std::move( counts ) );
    }
@@ -99,8 +102,9 @@ public:
    getSubentitiesCount( const GlobalIndexType entityIndex ) const
    {
       static_assert( Dimension > Subdimension, "Invalid combination of Dimension and Subdimension." );
-      static_assert( SubentityTraits< Dimension, Subdimension >::storageEnabled,
-                     "You try to get subentities count for subentities which are disabled in the mesh configuration." );
+      static_assert(
+         SubentityTraits< Dimension, Subdimension >::storageEnabled,
+         "You try to get subentities count for subentities which are disabled in the mesh configuration." );
       using BaseType = SubentityStorageLayerFamily< MeshConfig, Device, typename EntityTraits< Dimension >::EntityTopology >;
       return BaseType::template getSubentitiesCount< Subdimension >( entityIndex );
    }
@@ -111,8 +115,9 @@ public:
    getSubentitiesMatrix()
    {
       static_assert( Dimension > Subdimension, "Invalid combination of Dimension and Subdimension." );
-      static_assert( SubentityTraits< Dimension, Subdimension >::storageEnabled,
-                     "You try to get subentities matrix which is disabled in the mesh configuration." );
+      static_assert(
+         SubentityTraits< Dimension, Subdimension >::storageEnabled,
+         "You try to get subentities matrix which is disabled in the mesh configuration." );
       using BaseType = SubentityStorageLayerFamily< MeshConfig, Device, typename EntityTraits< Dimension >::EntityTopology >;
       return BaseType::template getSubentitiesMatrix< Subdimension >();
    }
@@ -123,8 +128,9 @@ public:
    getSubentitiesMatrix() const
    {
       static_assert( Dimension > Subdimension, "Invalid combination of Dimension and Subdimension." );
-      static_assert( SubentityTraits< Dimension, Subdimension >::storageEnabled,
-                     "You try to get subentities matrix which is disabled in the mesh configuration." );
+      static_assert(
+         SubentityTraits< Dimension, Subdimension >::storageEnabled,
+         "You try to get subentities matrix which is disabled in the mesh configuration." );
       using BaseType = SubentityStorageLayerFamily< MeshConfig, Device, typename EntityTraits< Dimension >::EntityTopology >;
       return BaseType::template getSubentitiesMatrix< Subdimension >();
    }
@@ -135,8 +141,9 @@ public:
    getSuperentitiesCountsArray()
    {
       static_assert( Dimension < Superdimension, "Invalid combination of Dimension and Superdimension." );
-      static_assert( SuperentityTraits< Dimension, Superdimension >::storageEnabled,
-                     "You try to get superentities counts array which is disabled in the mesh configuration." );
+      static_assert(
+         SuperentityTraits< Dimension, Superdimension >::storageEnabled,
+         "You try to get superentities counts array which is disabled in the mesh configuration." );
       using BaseType = SuperentityStorageLayerFamily< MeshConfig, Device, DimensionTag< Dimension > >;
       return BaseType::template getSuperentitiesCountsArray< Superdimension >();
    }
@@ -147,8 +154,9 @@ public:
    getSuperentitiesCountsArray() const
    {
       static_assert( Dimension < Superdimension, "Invalid combination of Dimension and Superdimension." );
-      static_assert( SuperentityTraits< Dimension, Superdimension >::storageEnabled,
-                     "You try to get superentities counts array which is disabled in the mesh configuration." );
+      static_assert(
+         SuperentityTraits< Dimension, Superdimension >::storageEnabled,
+         "You try to get superentities counts array which is disabled in the mesh configuration." );
       using BaseType = SuperentityStorageLayerFamily< MeshConfig, Device, DimensionTag< Dimension > >;
       return BaseType::template getSuperentitiesCountsArray< Superdimension >();
    }
@@ -159,8 +167,9 @@ public:
    getSuperentitiesMatrix()
    {
       static_assert( Dimension < Superdimension, "Invalid combination of Dimension and Superdimension." );
-      static_assert( SuperentityTraits< Dimension, Superdimension >::storageEnabled,
-                     "You try to get superentities matrix which is disabled in the mesh configuration." );
+      static_assert(
+         SuperentityTraits< Dimension, Superdimension >::storageEnabled,
+         "You try to get superentities matrix which is disabled in the mesh configuration." );
       using BaseType = SuperentityStorageLayerFamily< MeshConfig, Device, DimensionTag< Dimension > >;
       return BaseType::template getSuperentitiesMatrix< Superdimension >();
    }
@@ -171,8 +180,9 @@ public:
    getSuperentitiesMatrix() const
    {
       static_assert( Dimension < Superdimension, "Invalid combination of Dimension and Superdimension." );
-      static_assert( SuperentityTraits< Dimension, Superdimension >::storageEnabled,
-                     "You try to get superentities matrix which is disabled in the mesh configuration." );
+      static_assert(
+         SuperentityTraits< Dimension, Superdimension >::storageEnabled,
+         "You try to get superentities matrix which is disabled in the mesh configuration." );
       using BaseType = SuperentityStorageLayerFamily< MeshConfig, Device, DimensionTag< Dimension > >;
       return BaseType::template getSuperentitiesMatrix< Superdimension >();
    }

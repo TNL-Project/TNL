@@ -32,9 +32,10 @@ getDimension()
  *
  * \ingroup ndarray
  */
-template< typename SizesHolder,
-          typename StridesHolder,
-          typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
+template<
+   typename SizesHolder,
+   typename StridesHolder,
+   typename Overlaps = ConstStaticSizesHolder< typename SizesHolder::IndexType, SizesHolder::getDimension(), 0 > >
 class NDArrayIndexer
 {
 public:
@@ -53,15 +54,19 @@ public:
 
 // HACK for https://stackoverflow.com/q/74240374
 #ifdef _MSC_VER
-   static_assert( Containers::getDimension< StridesHolder >() == Containers::getDimension< SizesHolder >(),
-                  "Dimension of strides does not match the dimension of sizes." );
-   static_assert( Containers::getDimension< Overlaps >() == Containers::getDimension< SizesHolder >(),
-                  "Dimension of overlaps does not match the dimension of sizes." );
+   static_assert(
+      Containers::getDimension< StridesHolder >() == Containers::getDimension< SizesHolder >(),
+      "Dimension of strides does not match the dimension of sizes." );
+   static_assert(
+      Containers::getDimension< Overlaps >() == Containers::getDimension< SizesHolder >(),
+      "Dimension of overlaps does not match the dimension of sizes." );
 #else
-   static_assert( StridesHolder::getDimension() == SizesHolder::getDimension(),
-                  "Dimension of strides does not match the dimension of sizes." );
-   static_assert( Overlaps::getDimension() == SizesHolder::getDimension(),
-                  "Dimension of overlaps does not match the dimension of sizes." );
+   static_assert(
+      StridesHolder::getDimension() == SizesHolder::getDimension(),
+      "Dimension of strides does not match the dimension of sizes." );
+   static_assert(
+      Overlaps::getDimension() == SizesHolder::getDimension(),
+      "Dimension of overlaps does not match the dimension of sizes." );
 #endif
 
    //! \brief Constructs an empty indexer with zero sizes and strides.

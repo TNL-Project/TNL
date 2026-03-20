@@ -11,12 +11,13 @@
 
 namespace TNL::Matrices::detail {
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType_,
-          template< typename Device_, typename Index_ > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType_,
+   template< typename Device_, typename Index_ > class SegmentsView,
+   typename ComputeReal >
 struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeReal > >
 {
    using MatrixView = SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeReal >;
@@ -27,14 +28,15 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRows( MatrixView& matrix,
-               IndexBegin begin,
-               IndexEnd end,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               const FetchValue& identity,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRows(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getView();
@@ -59,14 +61,15 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRows( const ConstMatrixView& matrix,
-               IndexBegin begin,
-               IndexEnd end,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               const FetchValue& identity,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRows(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       const auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -90,13 +93,14 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRows( MatrixView& matrix,
-               const Array& rowIndexes,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               const FetchValue& identity,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRows(
+      MatrixView& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getView();
@@ -126,13 +130,14 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRows( const ConstMatrixView& matrix,
-               const Array& rowIndexes,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               const FetchValue& identity,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRows(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       const auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -159,23 +164,25 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          matrix.getSegments(), rowIndexes, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceRowsIf( MatrixView& matrix,
-                 IndexBegin begin,
-                 IndexEnd end,
-                 Condition&& condition,
-                 Fetch&& fetch,
-                 Reduction&& reduction,
-                 Store&& store,
-                 const FetchValue& identity,
-                 Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsIf(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -194,34 +201,37 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
          return identity;
       };
-      return Algorithms::Segments::reduceSegmentsIf( matrix.getSegments(),
-                                                     begin,
-                                                     end,
-                                                     std::forward< Condition >( condition ),
-                                                     fetchWrapper,
-                                                     reduction,
-                                                     store,
-                                                     identity,
-                                                     launchConfig );
+      return Algorithms::Segments::reduceSegmentsIf(
+         matrix.getSegments(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetchWrapper,
+         reduction,
+         store,
+         identity,
+         launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceRowsIf( const ConstMatrixView& matrix,
-                 IndexBegin begin,
-                 IndexEnd end,
-                 Condition&& condition,
-                 Fetch&& fetch,
-                 Reduction&& reduction,
-                 Store&& store,
-                 const FetchValue& identity,
-                 Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -239,27 +249,29 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
          return identity;
       };
-      return Algorithms::Segments::reduceSegmentsIf( matrix.getSegments(),
-                                                     begin,
-                                                     end,
-                                                     std::forward< Condition >( condition ),
-                                                     fetchWrapper,
-                                                     reduction,
-                                                     store,
-                                                     identity,
-                                                     launchConfig );
+      return Algorithms::Segments::reduceSegmentsIf(
+         matrix.getSegments(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetchWrapper,
+         reduction,
+         store,
+         identity,
+         launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRowsWithArgument( MatrixView& matrix,
-                           IndexBegin begin,
-                           IndexEnd end,
-                           Fetch&& fetch,
-                           Reduction&& reduction,
-                           Store&& store,
-                           const FetchValue& identity,
-                           Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgument(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -284,12 +296,14 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
       {
          if( ! emptySegment ) {
             TNL_ASSERT_LT( rowIdx, matrix.getRows(), "Row index out of bounds in reduceRowsWithArgument." );
-            TNL_ASSERT_LT( localIdx,
-                           segmentsView.getSegmentSize( rowIdx ),
-                           "Local index out of bounds for segment in reduceRowsWithArgument." );
-            TNL_ASSERT_LT( segmentsView.getGlobalIndex( rowIdx, localIdx ),
-                           columnIndexes_view.getSize(),
-                           "Global index out of bounds for columnIndexes_view in reduceRowsWithArgument." );
+            TNL_ASSERT_LT(
+               localIdx,
+               segmentsView.getSegmentSize( rowIdx ),
+               "Local index out of bounds for segment in reduceRowsWithArgument." );
+            TNL_ASSERT_LT(
+               segmentsView.getGlobalIndex( rowIdx, localIdx ),
+               columnIndexes_view.getSize(),
+               "Global index out of bounds for columnIndexes_view in reduceRowsWithArgument." );
             const auto columnIdx = columnIndexes_view[ segmentsView.getGlobalIndex( rowIdx, localIdx ) ];
             store( rowIdx, localIdx, columnIdx, value, emptySegment );
          }
@@ -304,14 +318,15 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRowsWithArgument( const ConstMatrixView& matrix,
-                           IndexBegin begin,
-                           IndexEnd end,
-                           Fetch&& fetch,
-                           Reduction&& reduction,
-                           Store&& store,
-                           const FetchValue& identity,
-                           Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgument(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -348,13 +363,14 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRowsWithArgument( MatrixView& matrix,
-                           const Array& rowIndexes,
-                           Fetch&& fetch,
-                           Reduction&& reduction,
-                           Store&& store,
-                           const FetchValue& identity,
-                           Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgument(
+      MatrixView& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -390,13 +406,14 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRowsWithArgument( const ConstMatrixView& matrix,
-                           const Array& rowIndexes,
-                           Fetch&& fetch,
-                           Reduction&& reduction,
-                           Store&& store,
-                           const FetchValue& identity,
-                           Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgument(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -432,23 +449,25 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          matrix.getSegments(), rowIndexes, fetchWrapper, reduction, storeWrapper, identity, launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceRowsWithArgumentIf( MatrixView& matrix,
-                             IndexBegin begin,
-                             IndexEnd end,
-                             Condition&& condition,
-                             Fetch&& fetch,
-                             Reduction&& reduction,
-                             Store&& store,
-                             const FetchValue& identity,
-                             Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgumentIf(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -482,34 +501,37 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
       };
 
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
-                                                                 begin,
-                                                                 end,
-                                                                 std::forward< Condition >( condition ),
-                                                                 fetchWrapper,
-                                                                 reduction,
-                                                                 storeWrapper,
-                                                                 identity,
-                                                                 launchConfig );
+      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
+         matrix.getSegments(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetchWrapper,
+         reduction,
+         storeWrapper,
+         identity,
+         launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceRowsWithArgumentIf( const ConstMatrixView& matrix,
-                             IndexBegin begin,
-                             IndexEnd end,
-                             Condition&& condition,
-                             Fetch&& fetch,
-                             Reduction&& reduction,
-                             Store&& store,
-                             const FetchValue& identity,
-                             Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgumentIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -541,36 +563,39 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
       };
 
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
-                                                                 begin,
-                                                                 end,
-                                                                 std::forward< Condition >( condition ),
-                                                                 fetchWrapper,
-                                                                 reduction,
-                                                                 storeWrapper,
-                                                                 identity,
-                                                                 launchConfig );
+      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
+         matrix.getSegments(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetchWrapper,
+         reduction,
+         storeWrapper,
+         identity,
+         launchConfig );
    }
 
-   template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename Array,
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceRowsWithArgumentIf( MatrixView& matrix,
-                             const Array& rowIndexes,
-                             IndexBegin begin,
-                             IndexEnd end,
-                             Condition&& condition,
-                             Fetch&& fetch,
-                             Reduction&& reduction,
-                             Store&& store,
-                             const FetchValue& identity,
-                             Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgumentIf(
+      MatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -603,35 +628,38 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
       };
 
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
-                                                                 rowIndexes.getConstView( begin, end ),
-                                                                 std::forward< Condition >( condition ),
-                                                                 fetchWrapper,
-                                                                 reduction,
-                                                                 storeWrapper,
-                                                                 identity,
-                                                                 launchConfig );
+      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
+         matrix.getSegments(),
+         rowIndexes.getConstView( begin, end ),
+         std::forward< Condition >( condition ),
+         fetchWrapper,
+         reduction,
+         storeWrapper,
+         identity,
+         launchConfig );
    }
 
-   template< typename Array,
-             typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename Array,
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceRowsWithArgumentIf( const ConstMatrixView& matrix,
-                             const Array& rowIndexes,
-                             IndexBegin begin,
-                             IndexEnd end,
-                             Condition&& condition,
-                             Fetch&& fetch,
-                             Reduction&& reduction,
-                             Store&& store,
-                             const FetchValue& identity,
-                             Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgumentIf(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       constexpr IndexType paddingIndex = Matrices::paddingIndex< IndexType >;
       auto columnIndexes_view = matrix.getColumnIndexes().getConstView();
@@ -663,14 +691,15 @@ struct ReductionOperations< SparseMatrixView< Real, Device, Index, MatrixType_, 
          }
       };
 
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
-                                                                 rowIndexes.getConstView( begin, end ),
-                                                                 std::forward< Condition >( condition ),
-                                                                 fetchWrapper,
-                                                                 reduction,
-                                                                 storeWrapper,
-                                                                 identity,
-                                                                 launchConfig );
+      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
+         matrix.getSegments(),
+         rowIndexes.getConstView( begin, end ),
+         std::forward< Condition >( condition ),
+         fetchWrapper,
+         reduction,
+         storeWrapper,
+         identity,
+         launchConfig );
    }
 };
 

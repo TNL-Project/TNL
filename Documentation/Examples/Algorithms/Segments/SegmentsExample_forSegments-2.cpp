@@ -25,11 +25,12 @@ SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   TNL::Algorithms::Segments::forAllElements( segments,
-                                              [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-                                              {
-                                                 data_view[ globalIdx ] = localIdx + 1;
-                                              } );
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+      {
+         data_view[ globalIdx ] = localIdx + 1;
+      } );
 
    /***
     * Print the data by the segments.
@@ -46,19 +47,20 @@ SegmentsExample()
     * Divide elements in each segment by a sum of all elements in the segment
     */
    using SegmentViewType = typename SegmentsType::SegmentViewType;
-   TNL::Algorithms::Segments::forAllSegments( segments,
-                                              [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
-                                              {
-                                                 // Compute the sum first ...
-                                                 double sum = 0.0;
-                                                 for( auto element : segment )
-                                                    if( element.localIndex() <= element.segmentIndex() )
-                                                       sum += data_view[ element.globalIndex() ];
-                                                 // ... divide all elements.
-                                                 for( auto element : segment )
-                                                    if( element.localIndex() <= element.segmentIndex() )
-                                                       data_view[ element.globalIndex() ] /= sum;
-                                              } );
+   TNL::Algorithms::Segments::forAllSegments(
+      segments,
+      [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
+      {
+         // Compute the sum first ...
+         double sum = 0.0;
+         for( auto element : segment )
+            if( element.localIndex() <= element.segmentIndex() )
+               sum += data_view[ element.globalIndex() ];
+         // ... divide all elements.
+         for( auto element : segment )
+            if( element.localIndex() <= element.segmentIndex() )
+               data_view[ element.globalIndex() ] /= sum;
+      } );
    //! [traversing]
 
    /***

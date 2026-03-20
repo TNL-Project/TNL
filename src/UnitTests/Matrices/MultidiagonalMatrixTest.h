@@ -28,16 +28,18 @@ test_GetSerializationType()
       ( TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
       TNL::String(
          "Matrices::MultidiagonalMatrix< float, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String(
-                 "Matrices::MultidiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Host, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String(
+         "Matrices::MultidiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
    EXPECT_EQ(
       ( TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
       TNL::String(
          "Matrices::MultidiagonalMatrix< float, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
-   EXPECT_EQ( ( TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
-              TNL::String(
-                 "Matrices::MultidiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
+   EXPECT_EQ(
+      ( TNL::Matrices::MultidiagonalMatrix< int, TNL::Devices::Cuda, int, RowMajorOrder >::getSerializationType() ),
+      TNL::String(
+         "Matrices::MultidiagonalMatrix< int, [any_device], int, RowMajorOrder, [any_allocator], [any_allocator] >" ) );
    EXPECT_EQ(
       ( TNL::Matrices::MultidiagonalMatrix< float, TNL::Devices::Host, int, ColumnMajorOrder >::getSerializationType() ),
       TNL::String(
@@ -140,22 +142,23 @@ test_SetElements()
    const int gridSize( 4 );
    const int matrixSize( gridSize * gridSize );
    Matrix matrix( matrixSize, matrixSize, { -gridSize, -1, 0, 1, gridSize } );
-   matrix.setElements( { { 0.0, 0.0, 1.0 },
-                         { 0.0, 0.0, 1.0 },
-                         { 0.0, 0.0, 1.0 },
-                         { 0.0, 0.0, 1.0 },
-                         { 0.0, 0.0, 1.0 },
-                         { -1.0, -1.0, 4.0, -1.0, -1.0 },
-                         { -1.0, -1.0, 4.0, -1.0, -1.0 },
-                         { 0.0, 0.0, 1.0 },
-                         { 0.0, 0.0, 1.0 },
-                         { -1.0, -1.0, 4.0, -1.0, -1.0 },
-                         { -1.0, -1.0, 4.0, -1.0, -1.0 },
-                         { 0.0, 0.0, 1.0 },
-                         { 0.0, 0.0, 1.0 },
-                         { 0.0, 0.0, 1.0 },
-                         { 0.0, 0.0, 1.0 },
-                         { 0.0, 0.0, 1.0 } } );
+   matrix.setElements(
+      { { 0.0, 0.0, 1.0 },
+        { 0.0, 0.0, 1.0 },
+        { 0.0, 0.0, 1.0 },
+        { 0.0, 0.0, 1.0 },
+        { 0.0, 0.0, 1.0 },
+        { -1.0, -1.0, 4.0, -1.0, -1.0 },
+        { -1.0, -1.0, 4.0, -1.0, -1.0 },
+        { 0.0, 0.0, 1.0 },
+        { 0.0, 0.0, 1.0 },
+        { -1.0, -1.0, 4.0, -1.0, -1.0 },
+        { -1.0, -1.0, 4.0, -1.0, -1.0 },
+        { 0.0, 0.0, 1.0 },
+        { 0.0, 0.0, 1.0 },
+        { 0.0, 0.0, 1.0 },
+        { 0.0, 0.0, 1.0 },
+        { 0.0, 0.0, 1.0 } } );
 
    for( int i = 0; i < gridSize; i++ )
       for( int j = 0; j < gridSize; j++ ) {
@@ -466,11 +469,12 @@ test_ForElementsWithArray()
       } );
 
    TNL::Containers::Vector< IndexType, typename Matrix::DeviceType, IndexType > rowIndices{ 1, 3 };
-   m.forElements( rowIndices,
-                  [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
-                  {
-                     value = rowIdx + 1;
-                  } );
+   m.forElements(
+      rowIndices,
+      [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType columnIdx, RealType & value ) mutable
+      {
+         value = rowIdx + 1;
+      } );
 
    EXPECT_EQ( m.getElement( 0, 0 ), 1 );
    EXPECT_EQ( m.getElement( 0, 1 ), 0 );
@@ -1175,50 +1179,70 @@ test_AddMatrix()
 
    mResult.addMatrix( m2, matrixMultiplicator, thisMatrixMultiplicator );
 
-   EXPECT_EQ( mResult.getElement( 0, 0 ),
-              matrixMultiplicator * m2.getElement( 0, 0 ) + thisMatrixMultiplicator * m.getElement( 0, 0 ) );
-   EXPECT_EQ( mResult.getElement( 0, 1 ),
-              matrixMultiplicator * m2.getElement( 0, 1 ) + thisMatrixMultiplicator * m.getElement( 0, 1 ) );
-   EXPECT_EQ( mResult.getElement( 0, 2 ),
-              matrixMultiplicator * m2.getElement( 0, 2 ) + thisMatrixMultiplicator * m.getElement( 0, 2 ) );
-   EXPECT_EQ( mResult.getElement( 0, 3 ),
-              matrixMultiplicator * m2.getElement( 0, 3 ) + thisMatrixMultiplicator * m.getElement( 0, 3 ) );
+   EXPECT_EQ(
+      mResult.getElement( 0, 0 ),
+      matrixMultiplicator * m2.getElement( 0, 0 ) + thisMatrixMultiplicator * m.getElement( 0, 0 ) );
+   EXPECT_EQ(
+      mResult.getElement( 0, 1 ),
+      matrixMultiplicator * m2.getElement( 0, 1 ) + thisMatrixMultiplicator * m.getElement( 0, 1 ) );
+   EXPECT_EQ(
+      mResult.getElement( 0, 2 ),
+      matrixMultiplicator * m2.getElement( 0, 2 ) + thisMatrixMultiplicator * m.getElement( 0, 2 ) );
+   EXPECT_EQ(
+      mResult.getElement( 0, 3 ),
+      matrixMultiplicator * m2.getElement( 0, 3 ) + thisMatrixMultiplicator * m.getElement( 0, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 1, 0 ),
-              matrixMultiplicator * m2.getElement( 1, 0 ) + thisMatrixMultiplicator * m.getElement( 1, 0 ) );
-   EXPECT_EQ( mResult.getElement( 1, 1 ),
-              matrixMultiplicator * m2.getElement( 1, 1 ) + thisMatrixMultiplicator * m.getElement( 1, 1 ) );
-   EXPECT_EQ( mResult.getElement( 1, 2 ),
-              matrixMultiplicator * m2.getElement( 1, 2 ) + thisMatrixMultiplicator * m.getElement( 1, 2 ) );
-   EXPECT_EQ( mResult.getElement( 1, 3 ),
-              matrixMultiplicator * m2.getElement( 1, 3 ) + thisMatrixMultiplicator * m.getElement( 1, 3 ) );
+   EXPECT_EQ(
+      mResult.getElement( 1, 0 ),
+      matrixMultiplicator * m2.getElement( 1, 0 ) + thisMatrixMultiplicator * m.getElement( 1, 0 ) );
+   EXPECT_EQ(
+      mResult.getElement( 1, 1 ),
+      matrixMultiplicator * m2.getElement( 1, 1 ) + thisMatrixMultiplicator * m.getElement( 1, 1 ) );
+   EXPECT_EQ(
+      mResult.getElement( 1, 2 ),
+      matrixMultiplicator * m2.getElement( 1, 2 ) + thisMatrixMultiplicator * m.getElement( 1, 2 ) );
+   EXPECT_EQ(
+      mResult.getElement( 1, 3 ),
+      matrixMultiplicator * m2.getElement( 1, 3 ) + thisMatrixMultiplicator * m.getElement( 1, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 2, 0 ),
-              matrixMultiplicator * m2.getElement( 2, 0 ) + thisMatrixMultiplicator * m.getElement( 2, 0 ) );
-   EXPECT_EQ( mResult.getElement( 2, 1 ),
-              matrixMultiplicator * m2.getElement( 2, 1 ) + thisMatrixMultiplicator * m.getElement( 2, 1 ) );
-   EXPECT_EQ( mResult.getElement( 2, 2 ),
-              matrixMultiplicator * m2.getElement( 2, 2 ) + thisMatrixMultiplicator * m.getElement( 2, 2 ) );
-   EXPECT_EQ( mResult.getElement( 2, 3 ),
-              matrixMultiplicator * m2.getElement( 2, 3 ) + thisMatrixMultiplicator * m.getElement( 2, 3 ) );
+   EXPECT_EQ(
+      mResult.getElement( 2, 0 ),
+      matrixMultiplicator * m2.getElement( 2, 0 ) + thisMatrixMultiplicator * m.getElement( 2, 0 ) );
+   EXPECT_EQ(
+      mResult.getElement( 2, 1 ),
+      matrixMultiplicator * m2.getElement( 2, 1 ) + thisMatrixMultiplicator * m.getElement( 2, 1 ) );
+   EXPECT_EQ(
+      mResult.getElement( 2, 2 ),
+      matrixMultiplicator * m2.getElement( 2, 2 ) + thisMatrixMultiplicator * m.getElement( 2, 2 ) );
+   EXPECT_EQ(
+      mResult.getElement( 2, 3 ),
+      matrixMultiplicator * m2.getElement( 2, 3 ) + thisMatrixMultiplicator * m.getElement( 2, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 3, 0 ),
-              matrixMultiplicator * m2.getElement( 3, 0 ) + thisMatrixMultiplicator * m.getElement( 3, 0 ) );
-   EXPECT_EQ( mResult.getElement( 3, 1 ),
-              matrixMultiplicator * m2.getElement( 3, 1 ) + thisMatrixMultiplicator * m.getElement( 3, 1 ) );
-   EXPECT_EQ( mResult.getElement( 3, 2 ),
-              matrixMultiplicator * m2.getElement( 3, 2 ) + thisMatrixMultiplicator * m.getElement( 3, 2 ) );
-   EXPECT_EQ( mResult.getElement( 3, 3 ),
-              matrixMultiplicator * m2.getElement( 3, 3 ) + thisMatrixMultiplicator * m.getElement( 3, 3 ) );
+   EXPECT_EQ(
+      mResult.getElement( 3, 0 ),
+      matrixMultiplicator * m2.getElement( 3, 0 ) + thisMatrixMultiplicator * m.getElement( 3, 0 ) );
+   EXPECT_EQ(
+      mResult.getElement( 3, 1 ),
+      matrixMultiplicator * m2.getElement( 3, 1 ) + thisMatrixMultiplicator * m.getElement( 3, 1 ) );
+   EXPECT_EQ(
+      mResult.getElement( 3, 2 ),
+      matrixMultiplicator * m2.getElement( 3, 2 ) + thisMatrixMultiplicator * m.getElement( 3, 2 ) );
+   EXPECT_EQ(
+      mResult.getElement( 3, 3 ),
+      matrixMultiplicator * m2.getElement( 3, 3 ) + thisMatrixMultiplicator * m.getElement( 3, 3 ) );
 
-   EXPECT_EQ( mResult.getElement( 4, 0 ),
-              matrixMultiplicator * m2.getElement( 4, 0 ) + thisMatrixMultiplicator * m.getElement( 4, 0 ) );
-   EXPECT_EQ( mResult.getElement( 4, 1 ),
-              matrixMultiplicator * m2.getElement( 4, 1 ) + thisMatrixMultiplicator * m.getElement( 4, 1 ) );
-   EXPECT_EQ( mResult.getElement( 4, 2 ),
-              matrixMultiplicator * m2.getElement( 4, 2 ) + thisMatrixMultiplicator * m.getElement( 4, 2 ) );
-   EXPECT_EQ( mResult.getElement( 4, 3 ),
-              matrixMultiplicator * m2.getElement( 4, 3 ) + thisMatrixMultiplicator * m.getElement( 4, 3 ) );
+   EXPECT_EQ(
+      mResult.getElement( 4, 0 ),
+      matrixMultiplicator * m2.getElement( 4, 0 ) + thisMatrixMultiplicator * m.getElement( 4, 0 ) );
+   EXPECT_EQ(
+      mResult.getElement( 4, 1 ),
+      matrixMultiplicator * m2.getElement( 4, 1 ) + thisMatrixMultiplicator * m.getElement( 4, 1 ) );
+   EXPECT_EQ(
+      mResult.getElement( 4, 2 ),
+      matrixMultiplicator * m2.getElement( 4, 2 ) + thisMatrixMultiplicator * m.getElement( 4, 2 ) );
+   EXPECT_EQ(
+      mResult.getElement( 4, 3 ),
+      matrixMultiplicator * m2.getElement( 4, 3 ) + thisMatrixMultiplicator * m.getElement( 4, 3 ) );
 
    EXPECT_EQ( mResult.getElement( 0, 0 ), 3 );
    EXPECT_EQ( mResult.getElement( 0, 1 ), 6 );
@@ -1335,12 +1359,12 @@ test_AssignmentOperator()
             EXPECT_EQ( matrix.getElement( i, j ), 0.0 );
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   using MultidiagonalCuda = TNL::Matrices::MultidiagonalMatrix< RealType,
-                                                                 TNL::Devices::Cuda,
-                                                                 IndexType,
-                                                                 organization == TNL::Algorithms::Segments::RowMajorOrder
-                                                                    ? TNL::Algorithms::Segments::ColumnMajorOrder
-                                                                    : TNL::Algorithms::Segments::RowMajorOrder >;
+   using MultidiagonalCuda = TNL::Matrices::MultidiagonalMatrix<
+      RealType,
+      TNL::Devices::Cuda,
+      IndexType,
+      organization == TNL::Algorithms::Segments::RowMajorOrder ? TNL::Algorithms::Segments::ColumnMajorOrder
+                                                               : TNL::Algorithms::Segments::RowMajorOrder >;
    MultidiagonalCuda cudaMatrix( rows, columns, diagonalsOffsets );
    for( IndexType i = 0; i < rows; i++ )
       for( IndexType j = 0; j < columns; j++ )

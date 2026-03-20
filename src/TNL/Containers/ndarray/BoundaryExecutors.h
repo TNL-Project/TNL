@@ -14,13 +14,14 @@ struct SequentialBoundaryExecutor_inner
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func, typename... Indices >
    __cuda_callable__
    void
-   operator()( const Begins& begins,
-               const SkipBegins& skipBegins,
-               const SkipEnds& skipEnds,
-               const Ends& ends,
-               std::size_t level,
-               Func f,
-               Indices&&... indices )
+   operator()(
+      const Begins& begins,
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      const Ends& ends,
+      std::size_t level,
+      Func f,
+      Indices&&... indices )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -52,17 +53,19 @@ struct SequentialBoundaryExecutor_inner< Permutation, IndexTag< Permutation::siz
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func, typename... Indices >
    __cuda_callable__
    void
-   operator()( const Begins& begins,
-               const SkipBegins& skipBegins,
-               const SkipEnds& skipEnds,
-               const Ends& ends,
-               std::size_t level,
-               Func f,
-               Indices&&... indices )
+   operator()(
+      const Begins& begins,
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      const Ends& ends,
+      std::size_t level,
+      Func f,
+      Indices&&... indices )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
-      static_assert( sizeof...( indices ) == Begins::getDimension() - 1,
-                     "invalid number of indices in the final step of the SequentialBoundaryExecutor" );
+      static_assert(
+         sizeof...( indices ) == Begins::getDimension() - 1,
+         "invalid number of indices in the final step of the SequentialBoundaryExecutor" );
 
       using LevelTag = IndexTag< Permutation::size() - 1 >;
 
@@ -140,12 +143,13 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 3 > >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const SkipBegins& skipBegins,
-               const SkipEnds& skipEnds,
-               const Ends& ends,
-               const typename Device::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      const Ends& ends,
+      const typename Device::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -176,16 +180,18 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 3 > >
          MultiIndex{ skipBegin2, begin1, begin0 }, MultiIndex{ skipEnd2, skipBegin1, end0 }, launch_configuration, kernel, f );
       Algorithms::parallelFor< Device >(
          MultiIndex{ skipBegin2, skipEnd1, begin0 }, MultiIndex{ skipEnd2, end1, end0 }, launch_configuration, kernel, f );
-      Algorithms::parallelFor< Device >( MultiIndex{ skipBegin2, skipBegin1, begin0 },
-                                         MultiIndex{ skipEnd2, skipEnd1, skipBegin0 },
-                                         launch_configuration,
-                                         kernel,
-                                         f );
-      Algorithms::parallelFor< Device >( MultiIndex{ skipBegin2, skipBegin1, skipEnd0 },
-                                         MultiIndex{ skipEnd2, skipEnd1, end0 },
-                                         launch_configuration,
-                                         kernel,
-                                         f );
+      Algorithms::parallelFor< Device >(
+         MultiIndex{ skipBegin2, skipBegin1, begin0 },
+         MultiIndex{ skipEnd2, skipEnd1, skipBegin0 },
+         launch_configuration,
+         kernel,
+         f );
+      Algorithms::parallelFor< Device >(
+         MultiIndex{ skipBegin2, skipBegin1, skipEnd0 },
+         MultiIndex{ skipEnd2, skipEnd1, end0 },
+         launch_configuration,
+         kernel,
+         f );
    }
 };
 
@@ -194,12 +200,13 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 3 > >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const SkipBegins& skipBegins,
-               const SkipEnds& skipEnds,
-               const Ends& ends,
-               Devices::Cuda::LaunchConfiguration launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      const Ends& ends,
+      Devices::Cuda::LaunchConfiguration launch_configuration,
+      Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -247,17 +254,19 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 3 > >
       Algorithms::parallelFor< Devices::Cuda >(
          MultiIndex{ skipBegin2, skipEnd1, begin0 }, MultiIndex{ skipEnd2, end1, end0 }, launch_configuration, kernel, f );
       launch_configuration.stream = stream_5;
-      Algorithms::parallelFor< Devices::Cuda >( MultiIndex{ skipBegin2, skipBegin1, begin0 },
-                                                MultiIndex{ skipEnd2, skipEnd1, skipBegin0 },
-                                                launch_configuration,
-                                                kernel,
-                                                f );
+      Algorithms::parallelFor< Devices::Cuda >(
+         MultiIndex{ skipBegin2, skipBegin1, begin0 },
+         MultiIndex{ skipEnd2, skipEnd1, skipBegin0 },
+         launch_configuration,
+         kernel,
+         f );
       launch_configuration.stream = stream_6;
-      Algorithms::parallelFor< Devices::Cuda >( MultiIndex{ skipBegin2, skipBegin1, skipEnd0 },
-                                                MultiIndex{ skipEnd2, skipEnd1, end0 },
-                                                launch_configuration,
-                                                kernel,
-                                                f );
+      Algorithms::parallelFor< Devices::Cuda >(
+         MultiIndex{ skipBegin2, skipBegin1, skipEnd0 },
+         MultiIndex{ skipEnd2, skipEnd1, end0 },
+         launch_configuration,
+         kernel,
+         f );
 
       if( blockHostUntilFinished ) {
          // synchronize all streams
@@ -276,12 +285,13 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 2 > >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const SkipBegins& skipBegins,
-               const SkipEnds& skipEnds,
-               const Ends& ends,
-               const typename Device::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      const Ends& ends,
+      const typename Device::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -316,12 +326,13 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 2 > >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const SkipBegins& skipBegins,
-               const SkipEnds& skipEnds,
-               const Ends& ends,
-               Devices::Cuda::LaunchConfiguration launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      const Ends& ends,
+      Devices::Cuda::LaunchConfiguration launch_configuration,
+      Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -378,12 +389,13 @@ struct ParallelBoundaryExecutor< Permutation, Device, IndexTag< 1 > >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const SkipBegins& skipBegins,
-               const SkipEnds& skipEnds,
-               const Ends& ends,
-               const typename Device::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      const Ends& ends,
+      const typename Device::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -402,12 +414,13 @@ struct ParallelBoundaryExecutor< Permutation, Devices::Cuda, IndexTag< 1 > >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const SkipBegins& skipBegins,
-               const SkipEnds& skipEnds,
-               const Ends& ends,
-               Devices::Cuda::LaunchConfiguration launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      const Ends& ends,
+      Devices::Cuda::LaunchConfiguration launch_configuration,
+      Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -443,12 +456,13 @@ struct BoundaryExecutorDispatcher
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const SkipBegins& skipBegins,
-               const SkipEnds& skipEnds,
-               const Ends& ends,
-               const typename Device::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      const Ends& ends,
+      const typename Device::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       SequentialBoundaryExecutor< Permutation >()( begins, skipBegins, skipEnds, ends, f );
    }
@@ -459,12 +473,13 @@ struct BoundaryExecutorDispatcher< Permutation, Devices::Host >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const SkipBegins& skipBegins,
-               const SkipEnds& skipEnds,
-               const Ends& ends,
-               const Devices::Host::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      const Ends& ends,
+      const Devices::Host::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       if( Devices::Host::isOMPEnabled() && Devices::Host::getMaxThreadsCount() > 1 )
          ParallelBoundaryExecutor< Permutation, Devices::Host >()(
@@ -479,12 +494,13 @@ struct BoundaryExecutorDispatcher< Permutation, Devices::Cuda >
 {
    template< typename Begins, typename SkipBegins, typename SkipEnds, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const SkipBegins& skipBegins,
-               const SkipEnds& skipEnds,
-               const Ends& ends,
-               const Devices::Cuda::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const SkipBegins& skipBegins,
+      const SkipEnds& skipEnds,
+      const Ends& ends,
+      const Devices::Cuda::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       ParallelBoundaryExecutor< Permutation, Devices::Cuda >()( begins, skipBegins, skipEnds, ends, launch_configuration, f );
    }

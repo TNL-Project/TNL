@@ -169,13 +169,14 @@ recv( Array& view, int src, int tag, MPI_Comm communicator = MPI_COMM_WORLD )
  */
 template< typename SendArray, typename RecvArray >
 std::enable_if_t< ! IsViewType< RecvArray >::value >
-sendrecv( const SendArray& sendArray,
-          int dest,
-          int sendTag,
-          RecvArray& recvArray,
-          int src,
-          int recvTag,
-          MPI_Comm communicator = MPI_COMM_WORLD )
+sendrecv(
+   const SendArray& sendArray,
+   int dest,
+   int sendTag,
+   RecvArray& recvArray,
+   int src,
+   int recvTag,
+   MPI_Comm communicator = MPI_COMM_WORLD )
 {
    using SendIndex = decltype( sendArray.getSize() );
    using RecvIndex = decltype( recvArray.getSize() );
@@ -184,15 +185,16 @@ sendrecv( const SendArray& sendArray,
    RecvIndex recvSize;
    MPI::Sendrecv( &sendSize, 1, dest, sendTag, &recvSize, 1, src, recvTag, communicator );
    recvArray.setSize( recvSize );
-   MPI::Sendrecv( sendArray.getData(),
-                  sendArray.getSize(),
-                  dest,
-                  sendTag,
-                  recvArray.getData(),
-                  recvArray.getSize(),
-                  src,
-                  recvTag,
-                  communicator );
+   MPI::Sendrecv(
+      sendArray.getData(),
+      sendArray.getSize(),
+      dest,
+      sendTag,
+      recvArray.getData(),
+      recvArray.getSize(),
+      src,
+      recvTag,
+      communicator );
 }
 
 /**
@@ -204,13 +206,14 @@ sendrecv( const SendArray& sendArray,
  */
 template< typename SendArray, typename RecvArray >
 std::enable_if_t< IsViewType< RecvArray >::value >
-sendrecv( const SendArray& sendArray,
-          int dest,
-          int sendTag,
-          RecvArray& recvArray,
-          int src,
-          int recvTag,
-          MPI_Comm communicator = MPI_COMM_WORLD )
+sendrecv(
+   const SendArray& sendArray,
+   int dest,
+   int sendTag,
+   RecvArray& recvArray,
+   int src,
+   int recvTag,
+   MPI_Comm communicator = MPI_COMM_WORLD )
 {
    using SendIndex = decltype( sendArray.getSize() );
    using RecvIndex = decltype( recvArray.getSize() );
@@ -223,15 +226,16 @@ sendrecv( const SendArray& sendArray,
                                 + ") does not match "
                                   "the array view size ("
                                 + std::to_string( recvArray.getSize() ) + ")" );
-   MPI::Sendrecv( sendArray.getData(),
-                  sendArray.getSize(),
-                  dest,
-                  sendTag,
-                  recvArray.getData(),
-                  recvArray.getSize(),
-                  src,
-                  recvTag,
-                  communicator );
+   MPI::Sendrecv(
+      sendArray.getData(),
+      sendArray.getSize(),
+      dest,
+      sendTag,
+      recvArray.getData(),
+      recvArray.getSize(),
+      src,
+      recvTag,
+      communicator );
 }
 
 /**

@@ -35,11 +35,12 @@ namespace TNL::Algorithms::Segments {
  * \tparam Organization The organization of the elements in the segments—either row-major or column-major order.
  * \tparam WarpSize The warp size used for the segments.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = DefaultElementsOrganization< Device >::getOrganization(),
-          int WarpSize = Backend::getWarpSize() >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   ElementsOrganization Organization = DefaultElementsOrganization< Device >::getOrganization(),
+   int WarpSize = Backend::getWarpSize() >
 class BiEllpack : public BiEllpackBase< Device, Index, Organization, WarpSize >
 {
    using Base = BiEllpackBase< Device, Index, Organization, WarpSize >;
@@ -58,11 +59,12 @@ public:
     * \tparam Index_ is alternative index type.
     * \tparam IndexAllocator_ is alternative index allocator type.
     */
-   template< typename Device_ = Device,
-             typename Index_ = Index,
-             typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ >,
-             ElementsOrganization Organization_ = Organization,
-             int WarpSize_ = WarpSize >
+   template<
+      typename Device_ = Device,
+      typename Index_ = Index,
+      typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ >,
+      ElementsOrganization Organization_ = Organization,
+      int WarpSize_ = WarpSize >
    using Self = BiEllpack< Device_, Index_, IndexAllocator_, Organization_, WarpSize_ >;
 
    /**
@@ -229,10 +231,11 @@ protected:
  * \tparam Alignment The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int WarpSize = Backend::getWarpSize() >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int WarpSize = Backend::getWarpSize() >
 using RowMajorBiEllpack = BiEllpack< Device, Index, IndexAllocator, RowMajorOrder, WarpSize >;
 
 /**
@@ -246,10 +249,11 @@ using RowMajorBiEllpack = BiEllpack< Device, Index, IndexAllocator, RowMajorOrde
  * \tparam Alignment The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int WarpSize = Backend::getWarpSize() >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int WarpSize = Backend::getWarpSize() >
 using ColumnMajorBiEllpack = BiEllpack< Device, Index, IndexAllocator, ColumnMajorOrder, WarpSize >;
 
 /**
@@ -259,12 +263,12 @@ using ColumnMajorBiEllpack = BiEllpack< Device, Index, IndexAllocator, ColumnMaj
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization =
-             TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int WarpSize = Backend::getWarpSize() >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   ElementsOrganization Organization = TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int WarpSize = Backend::getWarpSize() >
 using SortedBiEllpack = SortedSegments< BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize > >;
 
 /**
@@ -274,10 +278,11 @@ using SortedBiEllpack = SortedSegments< BiEllpack< Device, Index, IndexAllocator
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int WarpSize = Backend::getWarpSize() >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int WarpSize = Backend::getWarpSize() >
 using SortedRowMajorBiEllpack = SortedSegments< RowMajorBiEllpack< Device, Index, IndexAllocator, WarpSize > >;
 
 /**
@@ -287,10 +292,11 @@ using SortedRowMajorBiEllpack = SortedSegments< RowMajorBiEllpack< Device, Index
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int WarpSize = Backend::getWarpSize() >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int WarpSize = Backend::getWarpSize() >
 using SortedColumnMajorBiEllpack = SortedSegments< ColumnMajorBiEllpack< Device, Index, IndexAllocator, WarpSize > >;
 
 template< typename Segments >

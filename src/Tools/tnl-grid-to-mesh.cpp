@@ -69,11 +69,12 @@ struct MeshCreator< Meshes::Grid< 1, Real, Device, Index > >
 {
    using GridType = Meshes::Grid< 1, Real, Device, Index >;
    using CellTopology = Meshes::Topologies::Edge;
-   using MeshConfig = Meshes::DefaultConfig< CellTopology,
-                                             CellTopology::dimension,
-                                             typename GridType::RealType,
-                                             typename GridType::GlobalIndexType,
-                                             LocalIndexType >;
+   using MeshConfig = Meshes::DefaultConfig<
+      CellTopology,
+      CellTopology::dimension,
+      typename GridType::RealType,
+      typename GridType::GlobalIndexType,
+      LocalIndexType >;
    using MeshType = Meshes::Mesh< MeshConfig >;
 
    static void
@@ -106,11 +107,12 @@ struct MeshCreator< Meshes::Grid< 2, Real, Device, Index > >
 {
    using GridType = Meshes::Grid< 2, Real, Device, Index >;
    using CellTopology = Meshes::Topologies::Quadrangle;
-   using MeshConfig = Meshes::DefaultConfig< CellTopology,
-                                             CellTopology::dimension,
-                                             typename GridType::RealType,
-                                             typename GridType::GlobalIndexType,
-                                             LocalIndexType >;
+   using MeshConfig = Meshes::DefaultConfig<
+      CellTopology,
+      CellTopology::dimension,
+      typename GridType::RealType,
+      typename GridType::GlobalIndexType,
+      LocalIndexType >;
    using MeshType = Meshes::Mesh< MeshConfig >;
 
    static void
@@ -144,11 +146,12 @@ struct MeshCreator< Meshes::Grid< 3, Real, Device, Index > >
 {
    using GridType = Meshes::Grid< 3, Real, Device, Index >;
    using CellTopology = Meshes::Topologies::Hexahedron;
-   using MeshConfig = Meshes::DefaultConfig< CellTopology,
-                                             CellTopology::dimension,
-                                             typename GridType::RealType,
-                                             typename GridType::GlobalIndexType,
-                                             LocalIndexType >;
+   using MeshConfig = Meshes::DefaultConfig<
+      CellTopology,
+      CellTopology::dimension,
+      typename GridType::RealType,
+      typename GridType::GlobalIndexType,
+      LocalIndexType >;
    using MeshType = Meshes::Mesh< MeshConfig >;
 
    static void

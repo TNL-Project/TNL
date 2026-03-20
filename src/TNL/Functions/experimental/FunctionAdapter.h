@@ -27,10 +27,11 @@ public:
 
    template< typename MeshPointer >
    static bool
-   setup( FunctionType& function,
-          const MeshPointer& meshPointer,
-          const Config::ParameterContainer& parameters,
-          const String& prefix = "" )
+   setup(
+      FunctionType& function,
+      const MeshPointer& meshPointer,
+      const Config::ParameterContainer& parameters,
+      const String& prefix = "" )
    {
       return function.setup( meshPointer, parameters, prefix );
    }
@@ -60,10 +61,11 @@ public:
 
    template< typename MeshPointer >
    static bool
-   setup( FunctionType& function,
-          const MeshPointer& meshPointer,
-          const Config::ParameterContainer& parameters,
-          const String& prefix = "" )
+   setup(
+      FunctionType& function,
+      const MeshPointer& meshPointer,
+      const Config::ParameterContainer& parameters,
+      const String& prefix = "" )
    {
       return function.setup( parameters, prefix );
    }
@@ -94,10 +96,11 @@ public:
 
    template< typename MeshPointer >
    static bool
-   setup( FunctionType& function,
-          const MeshPointer& meshPointer,
-          const Config::ParameterContainer& parameters,
-          const String& prefix = "" )
+   setup(
+      FunctionType& function,
+      const MeshPointer& meshPointer,
+      const Config::ParameterContainer& parameters,
+      const String& prefix = "" )
    {
       return function.setup( parameters, prefix );
    }

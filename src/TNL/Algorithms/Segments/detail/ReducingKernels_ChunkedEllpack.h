@@ -13,14 +13,15 @@ namespace TNL::Algorithms::Segments::detail {
 template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
 void
-ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
-                                    Index gridIdx,
-                                    Index begin,
-                                    Index end,
-                                    Fetch fetch,
-                                    Reduction reduction,
-                                    ResultStorer storer,
-                                    Value identity )
+ChunkedEllpackReduceSegmentsKernel(
+   SegmentsView segments,
+   Index gridIdx,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer storer,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -96,22 +97,24 @@ ChunkedEllpackReduceSegmentsKernel( SegmentsView segments,
 #endif
 }
 
-template< typename SegmentsView,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   typename SegmentsView,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-ChunkedEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
-                                               ArrayView segmentIndexes,
-                                               Index gridIdx,
-                                               Fetch fetch,
-                                               Reduction reduction,
-                                               ResultStorer storer,
-                                               Value identity )
+ChunkedEllpackReduceSegmentsKernelWithIndexes(
+   SegmentsView segments,
+   ArrayView segmentIndexes,
+   Index gridIdx,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer storer,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
@@ -157,14 +160,15 @@ ChunkedEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
 template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
 void
-ChunkedEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
-                                                Index gridIdx,
-                                                Index begin,
-                                                Index end,
-                                                Fetch fetch,
-                                                Reduction reduction,
-                                                ResultStorer storer,
-                                                Value identity )
+ChunkedEllpackReduceSegmentsKernelWithArgument(
+   SegmentsView segments,
+   Index gridIdx,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer storer,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -199,19 +203,21 @@ ChunkedEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
       Index begin = sliceOffset + threadIdx.x * chunkSize;  // threadIdx.x = chunkIdx within the slice
       Index end = begin + chunkSize;
       for( Index j = begin; j < end; j++, localIdx++ )
-         reduction( chunksResults[ threadIdx.x ],
-                    detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, j ),
-                    chunksArguments[ threadIdx.x ],
-                    localIdx );
+         reduction(
+            chunksResults[ threadIdx.x ],
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, j ),
+            chunksArguments[ threadIdx.x ],
+            localIdx );
    }
    else {
       const Index begin = sliceOffset + threadIdx.x;  // threadIdx.x = chunkIdx within the slice
       const Index end = begin + segments.getChunksInSlice() * chunkSize;
       for( Index j = begin; j < end; j += segments.getChunksInSlice(), localIdx++ )
-         reduction( chunksResults[ threadIdx.x ],
-                    detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, j ),
-                    chunksArguments[ threadIdx.x ],
-                    localIdx );
+         reduction(
+            chunksResults[ threadIdx.x ],
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, j ),
+            chunksArguments[ threadIdx.x ],
+            localIdx );
    }
 
    __syncthreads();
@@ -236,22 +242,24 @@ ChunkedEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
 #endif
 }
 
-template< typename SegmentsView,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   typename SegmentsView,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
-                                                          ArrayView segmentIndexes,
-                                                          Index gridIdx,
-                                                          Fetch fetch,
-                                                          Reduction reduction,
-                                                          ResultStorer storer,
-                                                          Value identity )
+ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument(
+   SegmentsView segments,
+   ArrayView segmentIndexes,
+   Index gridIdx,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer storer,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index segmentIdx_idx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;

@@ -12,9 +12,10 @@ namespace TNL::Meshes::DistributedMeshes {
 
 template< typename GlobalIndexType >
 auto
-exchangeGhostEntitySeeds( MPI_Comm communicator,
-                          const std::vector< std::vector< GlobalIndexType > >& seeds_vertex_indices,
-                          const std::vector< std::vector< GlobalIndexType > >& seeds_entity_offsets )
+exchangeGhostEntitySeeds(
+   MPI_Comm communicator,
+   const std::vector< std::vector< GlobalIndexType > >& seeds_vertex_indices,
+   const std::vector< std::vector< GlobalIndexType > >& seeds_entity_offsets )
 {
    const int rank = MPI::GetRank( communicator );
    const int nproc = MPI::GetSize( communicator );
@@ -74,9 +75,10 @@ exchangeGhostEntitySeeds( MPI_Comm communicator,
 
 template< typename GlobalIndexType >
 auto
-exchangeGhostIndices( MPI_Comm communicator,
-                      const std::vector< std::vector< GlobalIndexType > >& foreign_ghost_indices,
-                      const std::vector< std::vector< GlobalIndexType > >& seeds_local_indices )
+exchangeGhostIndices(
+   MPI_Comm communicator,
+   const std::vector< std::vector< GlobalIndexType > >& foreign_ghost_indices,
+   const std::vector< std::vector< GlobalIndexType > >& seeds_local_indices )
 {
    const int rank = MPI::GetRank( communicator );
    const int nproc = MPI::GetSize( communicator );
@@ -124,8 +126,9 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
    using LocalMesh = typename DistributedMesh::MeshType;
 
    static_assert( ! std::is_same_v< DeviceType, Devices::Cuda >, "this method can be called only for host meshes" );
-   static_assert( 0 < Dimension && Dimension < DistributedMesh::getMeshDimension(),
-                  "Vertices and cells cannot be distributed using this method." );
+   static_assert(
+      0 < Dimension && Dimension < DistributedMesh::getMeshDimension(),
+      "Vertices and cells cannot be distributed using this method." );
    if( mesh.getGhostLevels() <= 0 )
       throw std::logic_error( "There are no ghost levels on the distributed mesh." );
 
@@ -159,8 +162,8 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
    //       and let the iterative algorithm with padding indices to take care of the rest
    //       (the neighbor will return a padding index until it gets the global index from the true owner)
    // TODO: implement getEntityOwner for other subentities
-   static_assert( Dimension == DistributedMesh::getMeshDimension() - 1,
-                  "the getEntityOwner function is implemented only for faces" );
+   static_assert(
+      Dimension == DistributedMesh::getMeshDimension() - 1, "the getEntityOwner function is implemented only for faces" );
    auto getEntityOwner = [ & ]( GlobalIndexType local_idx ) -> int
    {
       auto entity = mesh.getLocalMesh().template getEntity< Dimension >( local_idx );
@@ -313,10 +316,10 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
                            break;
                         }
                      if( localIndex == 0 )
-                        throw std::runtime_error( "vertex with gid=" + std::to_string( vertex ) + " received from rank "
-                                                  + std::to_string( i ) + " was not found on the local mesh for rank "
-                                                  + std::to_string( rank )
-                                                  + " (global offset = " + std::to_string( globalOffset ) + ")" );
+                        throw std::runtime_error(
+                           "vertex with gid=" + std::to_string( vertex ) + " received from rank " + std::to_string( i )
+                           + " was not found on the local mesh for rank " + std::to_string( rank )
+                           + " (global offset = " + std::to_string( globalOffset ) + ")" );
                   }
 
                   // collect superentities of this vertex
@@ -393,21 +396,22 @@ distributeSubentities( DistributedMesh& mesh, bool preferHighRanks = true )
          {
             perm[ i ] = i;
          } );
-      std::stable_sort( perm.getData(),  // + mesh.getLocalMesh().template getGhostEntitiesOffset< Dimension >(),
-                        perm.getData() + perm.getSize(),
-                        [ &mesh, &localMesh ]( auto& left, auto& right )
-                        {
-                           auto is_local = [ & ]( auto& i )
-                           {
-                              return ! localMesh.template isGhostEntity< Dimension >( i );
-                           };
-                           if( is_local( left ) && ! is_local( right ) )
-                              return true;
-                           if( ! is_local( left ) && is_local( right ) )
-                              return false;
-                           return mesh.template getGlobalIndices< Dimension >()[ left ]
-                                < mesh.template getGlobalIndices< Dimension >()[ right ];
-                        } );
+      std::stable_sort(
+         perm.getData(),  // + mesh.getLocalMesh().template getGhostEntitiesOffset< Dimension >(),
+         perm.getData() + perm.getSize(),
+         [ &mesh, &localMesh ]( auto& left, auto& right )
+         {
+            auto is_local = [ & ]( auto& i )
+            {
+               return ! localMesh.template isGhostEntity< Dimension >( i );
+            };
+            if( is_local( left ) && ! is_local( right ) )
+               return true;
+            if( ! is_local( left ) && is_local( right ) )
+               return false;
+            return mesh.template getGlobalIndices< Dimension >()[ left ]
+                 < mesh.template getGlobalIndices< Dimension >()[ right ];
+         } );
 
       // invert the permutation
       localMesh.template forAll< Dimension >(

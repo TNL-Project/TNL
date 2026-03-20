@@ -95,9 +95,8 @@ SOR< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
 
 template< typename Matrix >
 void
-SOR< Matrix >::performIteration( const ConstVectorViewType& b,
-                                 const ConstVectorViewType& diagonalView,
-                                 VectorViewType& x ) const
+SOR< Matrix >::performIteration( const ConstVectorViewType& b, const ConstVectorViewType& diagonalView, VectorViewType& x )
+   const
 {
    const RealType omega_ = this->omega;
    auto fetch = [ = ] __cuda_callable__( IndexType rowIdx, IndexType columnIdx, const RealType& value )

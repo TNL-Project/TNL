@@ -40,14 +40,16 @@ TYPED_TEST( SparseMatrixOperationsTest, copySparseToSparseMatrixWithDifferentDev
    if constexpr( ! std::is_same_v< DeviceType, TNL::Devices::Host >
                  && ! std::is_same_v< DeviceType, TNL::Devices::Sequential > )
    {
-      copySparseToSparseMatrixWithDifferentDevice_test< HostMatrixType,
-                                                        MatrixType,
-                                                        HostSymmetricMatrixType,
-                                                        SymmetricMatrixType >();
-      copySparseToSparseMatrixWithDifferentDevice_test< MatrixType,
-                                                        HostMatrixType,
-                                                        SymmetricMatrixType,
-                                                        HostSymmetricMatrixType >();
+      copySparseToSparseMatrixWithDifferentDevice_test<
+         HostMatrixType,
+         MatrixType,
+         HostSymmetricMatrixType,
+         SymmetricMatrixType >();
+      copySparseToSparseMatrixWithDifferentDevice_test<
+         MatrixType,
+         HostMatrixType,
+         SymmetricMatrixType,
+         HostSymmetricMatrixType >();
    }
 }
 

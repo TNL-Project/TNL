@@ -23,11 +23,12 @@ namespace TNL::Graphs::Algorithms::experimental {
  * \param spanning_tree is the output graph representing the minimum spanning tree.
  * \param roots is the vector containing the roots of the trees in the forest.
  */
-template< typename InGraph,
-          typename OutGraph = InGraph,
-          typename RootsVector = Containers::Vector< typename InGraph::IndexType >,
-          typename Value = typename InGraph::ValueType,
-          typename Index = typename InGraph::IndexType >
+template<
+   typename InGraph,
+   typename OutGraph = InGraph,
+   typename RootsVector = Containers::Vector< typename InGraph::IndexType >,
+   typename Value = typename InGraph::ValueType,
+   typename Index = typename InGraph::IndexType >
 void
 minimumSpanningTree( const InGraph& graph, OutGraph& spanning_tree, RootsVector& roots );
 

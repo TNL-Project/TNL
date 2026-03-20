@@ -14,23 +14,25 @@
 
 namespace TNL::Algorithms::SegmentsReductionKernels {
 
-template< typename SegmentsView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultKeeper,
-          typename Value,
-          int BlockDim >
+template<
+   typename SegmentsView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultKeeper,
+   typename Value,
+   int BlockDim >
 __global__
 void
-BiEllpackreduceSegmentsKernel( SegmentsView segments,
-                               Index gridIdx,
-                               Index begin,
-                               Index end,
-                               Fetch fetch,
-                               Reduction reduction,
-                               ResultKeeper keeper,
-                               Value identity )
+BiEllpackreduceSegmentsKernel(
+   SegmentsView segments,
+   Index gridIdx,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   Reduction reduction,
+   ResultKeeper keeper,
+   Value identity )
 {
    if constexpr( callableArgumentCount< Fetch >() == 3 )
       Segments::detail::reduceSegmentsKernelWithAllParameters< BlockDim >(
@@ -76,13 +78,14 @@ BiEllpackKernel< Index, Device >::getKernelType()
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                  Index begin,
-                                                  Index end,
-                                                  Fetch& fetch,
-                                                  const Reduction& reduction,
-                                                  ResultKeeper& keeper,
-                                                  const Value& identity )
+BiEllpackKernel< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
@@ -151,11 +154,12 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-BiEllpackKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                     Fetch& fetch,
-                                                     const Reduction& reduction,
-                                                     ResultKeeper& keeper,
-                                                     const Value& identity )
+BiEllpackKernel< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    reduceSegments( segments, 0, segments.getSegmentCount(), fetch, reduction, keeper, identity );
 }

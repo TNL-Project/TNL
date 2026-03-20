@@ -45,9 +45,10 @@ protected:
 
 template< typename Grid, int EntityDimension, int NeighbourEntityDimension >
 void
-testDynamicNeighbourEntityGetterForAllStencils( Grid& grid,
-                                                const typename Grid::CoordinatesType& dimension,
-                                                const int scale = 1 )
+testDynamicNeighbourEntityGetterForAllStencils(
+   Grid& grid,
+   const typename Grid::CoordinatesType& dimension,
+   const int scale = 1 )
 {
    for( int i = -1 * scale; i < 1 * scale; i++ )
       for( int j = -1 * scale; j < 1 * scale; j++ )
@@ -57,9 +58,10 @@ testDynamicNeighbourEntityGetterForAllStencils( Grid& grid,
 
 template< typename Grid, int EntityDimension, int NeighbourEntityDimension, int NeighbourEntityOrientation >
 void
-testDynamicNeighbourEntityGetterForAllStencils( Grid& grid,
-                                                const typename Grid::CoordinatesType& dimension,
-                                                const int scale = 1 )
+testDynamicNeighbourEntityGetterForAllStencils(
+   Grid& grid,
+   const typename Grid::CoordinatesType& dimension,
+   const int scale = 1 )
 {
    for( int i = -1 * scale; i < 1 * scale; i++ )
       for( int j = -1 * scale; j < 1 * scale; j++ )

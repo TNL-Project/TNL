@@ -16,9 +16,10 @@ struct TypeResolver
    [[nodiscard]] static MPI_Datatype
    getType()
    {
-      static_assert( sizeof( T ) == sizeof( char ) || sizeof( T ) == sizeof( int ) || sizeof( T ) == sizeof( short int )
-                        || sizeof( T ) == sizeof( long int ),
-                     "Fatal Error - Unknown MPI Type" );
+      static_assert(
+         sizeof( T ) == sizeof( char ) || sizeof( T ) == sizeof( int ) || sizeof( T ) == sizeof( short int )
+            || sizeof( T ) == sizeof( long int ),
+         "Fatal Error - Unknown MPI Type" );
       switch( sizeof( T ) ) {
          case sizeof( char ):
             return MPI_CHAR;

@@ -52,46 +52,52 @@ protected:
 
 // types for which DistributedNDArrayOverlaps_semi1D_test is instantiated
 using DistributedNDArrayTypes = ::testing::Types<
-   DistributedNDArray< NDArray< double,
-                                SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
-                                std::index_sequence< 0, 1, 2 >,  // permutation - non-contiguous blocks for synchronization
-                                Devices::Host,
-                                int,
-                                StaticSizesHolder< int, 0, 2, 0 > > >,  // overlaps
-   DistributedNDArray< NDArray< double,
-                                SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
-                                std::index_sequence< 1, 0, 2 >,  // permutation - contiguous blocks for synchronization
-                                Devices::Host,
-                                int,
-                                StaticSizesHolder< int, 0, 2, 0 > > >  // overlaps
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
+      std::index_sequence< 0, 1, 2 >,  // permutation - non-contiguous blocks for synchronization
+      Devices::Host,
+      int,
+      StaticSizesHolder< int, 0, 2, 0 > > >,  // overlaps
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
+      std::index_sequence< 1, 0, 2 >,  // permutation - contiguous blocks for synchronization
+      Devices::Host,
+      int,
+      StaticSizesHolder< int, 0, 2, 0 > > >  // overlaps
 #if defined( __CUDACC__ )
    ,
-   DistributedNDArray< NDArray< double,
-                                SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
-                                std::index_sequence< 0, 1, 2 >,  // permutation - non-contiguous blocks for synchronization
-                                Devices::Cuda,
-                                int,
-                                StaticSizesHolder< int, 0, 2, 0 > > >,  // overlaps
-   DistributedNDArray< NDArray< double,
-                                SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
-                                std::index_sequence< 1, 0, 2 >,  // permutation - contiguous blocks for synchronization
-                                Devices::Cuda,
-                                int,
-                                StaticSizesHolder< int, 0, 2, 0 > > >  // overlaps
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
+      std::index_sequence< 0, 1, 2 >,  // permutation - non-contiguous blocks for synchronization
+      Devices::Cuda,
+      int,
+      StaticSizesHolder< int, 0, 2, 0 > > >,  // overlaps
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
+      std::index_sequence< 1, 0, 2 >,  // permutation - contiguous blocks for synchronization
+      Devices::Cuda,
+      int,
+      StaticSizesHolder< int, 0, 2, 0 > > >  // overlaps
 #elif defined( __HIP__ )
    ,
-   DistributedNDArray< NDArray< double,
-                                SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
-                                std::index_sequence< 0, 1, 2 >,  // permutation - non-contiguous blocks for synchronization
-                                Devices::Hip,
-                                int,
-                                StaticSizesHolder< int, 0, 2, 0 > > >,  // overlaps
-   DistributedNDArray< NDArray< double,
-                                SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
-                                std::index_sequence< 1, 0, 2 >,  // permutation - contiguous blocks for synchronization
-                                Devices::Hip,
-                                int,
-                                StaticSizesHolder< int, 0, 2, 0 > > >  // overlaps
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
+      std::index_sequence< 0, 1, 2 >,  // permutation - non-contiguous blocks for synchronization
+      Devices::Hip,
+      int,
+      StaticSizesHolder< int, 0, 2, 0 > > >,  // overlaps
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, Q, 0, 0 >,     // Q, X, Y
+      std::index_sequence< 1, 0, 2 >,  // permutation - contiguous blocks for synchronization
+      Devices::Hip,
+      int,
+      StaticSizesHolder< int, 0, 2, 0 > > >  // overlaps
 #endif
    >;
 

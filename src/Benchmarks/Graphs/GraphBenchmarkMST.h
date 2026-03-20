@@ -37,11 +37,12 @@ public:
    }
 
    void
-   runOtherBenchmarks( const HostDigraph& digraph,
-                       const HostGraph& graph,
-                       IndexType smallestNode,
-                       IndexType largestNode,
-                       TNL::Benchmarks::Benchmark<>& benchmark )
+   runOtherBenchmarks(
+      const HostDigraph& digraph,
+      const HostGraph& graph,
+      IndexType smallestNode,
+      IndexType largestNode,
+      TNL::Benchmarks::Benchmark<>& benchmark )
    {
       if( withBoost )
          runBoostBenchmarks( digraph, graph, smallestNode, largestNode, benchmark );
@@ -49,11 +50,12 @@ public:
    }
 
    void
-   runBoostBenchmarks( const HostDigraph& digraph,
-                       const HostGraph& graph,
-                       IndexType smallestNode,
-                       IndexType largestNode,
-                       TNL::Benchmarks::Benchmark<>& benchmark )
+   runBoostBenchmarks(
+      const HostDigraph& digraph,
+      const HostGraph& graph,
+      IndexType smallestNode,
+      IndexType largestNode,
+      TNL::Benchmarks::Benchmark<>& benchmark )
    {
 #ifdef HAVE_BOOST
       BoostGraph< Index, Real, TNL::Graphs::UndirectedGraph > boostGraph( graph );
@@ -85,24 +87,26 @@ public:
    }
 
    void
-   runGunrockBenchmarks( const HostDigraph& hostDigraph,
-                         const HostGraph& hostGraph,
-                         IndexType smallestNode,
-                         IndexType largestNode,
-                         TNL::Benchmarks::Benchmark<>& benchmark )
+   runGunrockBenchmarks(
+      const HostDigraph& hostDigraph,
+      const HostGraph& hostGraph,
+      IndexType smallestNode,
+      IndexType largestNode,
+      TNL::Benchmarks::Benchmark<>& benchmark )
    {
       // Gunrock doesn't have MST implementation, so this is empty
    }
 
    template< typename Digraph, typename Graph >
    void
-   runTNLAlgorithm( Digraph& digraph,
-                    Graph& graph,
-                    IndexType smallestNode,
-                    IndexType largestNode,
-                    TNL::Benchmarks::Benchmark<>& benchmark,
-                    const TNL::String& device,
-                    const TNL::String& segments )
+   runTNLAlgorithm(
+      Digraph& digraph,
+      Graph& graph,
+      IndexType smallestNode,
+      IndexType largestNode,
+      TNL::Benchmarks::Benchmark<>& benchmark,
+      const TNL::String& device,
+      const TNL::String& segments )
    {
       using Device = typename std::remove_reference_t< decltype( digraph ) >::DeviceType;
       using IndexVector = TNL::Containers::Vector< Index, Device, Index >;

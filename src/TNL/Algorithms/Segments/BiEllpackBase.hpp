@@ -13,10 +13,11 @@ namespace TNL::Algorithms::Segments {
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
 void
-BiEllpackBase< Device, Index, Organization, WarpSize >::bind( IndexType size,
-                                                              IndexType storageSize,
-                                                              OffsetsView segmentsPermutation,
-                                                              OffsetsView groupPointers )
+BiEllpackBase< Device, Index, Organization, WarpSize >::bind(
+   IndexType size,
+   IndexType storageSize,
+   OffsetsView segmentsPermutation,
+   OffsetsView groupPointers )
 {
    this->size = size;
    this->storageSize = storageSize;
@@ -26,10 +27,11 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::bind( IndexType size,
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
-BiEllpackBase< Device, Index, Organization, WarpSize >::BiEllpackBase( IndexType size,
-                                                                       IndexType storageSize,
-                                                                       OffsetsView segmentsPermutation,
-                                                                       OffsetsView groupPointers )
+BiEllpackBase< Device, Index, Organization, WarpSize >::BiEllpackBase(
+   IndexType size,
+   IndexType storageSize,
+   OffsetsView segmentsPermutation,
+   OffsetsView groupPointers )
 : size( size ),
   storageSize( storageSize ),
   segmentsPermutation( std::move( segmentsPermutation ) ),
@@ -247,10 +249,11 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::forAllElements( Function
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 template< typename Array, typename Function >
 void
-BiEllpackBase< Device, Index, Organization, WarpSize >::forElements( const Array& segmentIndexes,
-                                                                     Index begin,
-                                                                     Index end,
-                                                                     Function function ) const
+BiEllpackBase< Device, Index, Organization, WarpSize >::forElements(
+   const Array& segmentIndexes,
+   Index begin,
+   Index end,
+   Function function ) const
 {
    const auto segmentsPermutationView = this->segmentsPermutation.getConstView();
    const auto groupPointersView = this->groupPointers.getConstView();
@@ -299,10 +302,11 @@ BiEllpackBase< Device, Index, Organization, WarpSize >::forElements( const Array
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 template< typename Condition, typename Function >
 void
-BiEllpackBase< Device, Index, Organization, WarpSize >::forElementsIf( IndexType begin,
-                                                                       IndexType end,
-                                                                       Condition condition,
-                                                                       Function function ) const
+BiEllpackBase< Device, Index, Organization, WarpSize >::forElementsIf(
+   IndexType begin,
+   IndexType end,
+   Condition condition,
+   Function function ) const
 {
    const auto segmentsPermutationView = this->segmentsPermutation.getConstView();
    const auto groupPointersView = this->groupPointers.getConstView();

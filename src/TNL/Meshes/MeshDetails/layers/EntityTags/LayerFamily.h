@@ -169,8 +169,8 @@ public:
    [[nodiscard]] typename EntityTagsArrayType::ViewType
    getEntityTagsView()
    {
-      static_assert( WeakTrait< Dimension >::entityTagsEnabled,
-                     "You try to access entity tags which are not configured for storage." );
+      static_assert(
+         WeakTrait< Dimension >::entityTagsEnabled, "You try to access entity tags which are not configured for storage." );
       return BaseType::getEntityTagsView( DimensionTag< Dimension >() );
    }
 
@@ -178,8 +178,8 @@ public:
    [[nodiscard]] typename EntityTagsArrayType::ConstViewType
    getEntityTagsView() const
    {
-      static_assert( WeakTrait< Dimension >::entityTagsEnabled,
-                     "You try to access entity tags which are not configured for storage." );
+      static_assert(
+         WeakTrait< Dimension >::entityTagsEnabled, "You try to access entity tags which are not configured for storage." );
       return BaseType::getEntityTagsView( DimensionTag< Dimension >() );
    }
 
@@ -188,8 +188,8 @@ public:
    TagType
    getEntityTag( const GlobalIndexType& entityIndex ) const
    {
-      static_assert( WeakTrait< Dimension >::entityTagsEnabled,
-                     "You try to access entity tags which are not configured for storage." );
+      static_assert(
+         WeakTrait< Dimension >::entityTagsEnabled, "You try to access entity tags which are not configured for storage." );
       return BaseType::getEntityTag( DimensionTag< Dimension >(), entityIndex );
    }
 
@@ -198,8 +198,8 @@ public:
    void
    addEntityTag( const GlobalIndexType& entityIndex, TagType tag )
    {
-      static_assert( WeakTrait< Dimension >::entityTagsEnabled,
-                     "You try to access entity tags which are not configured for storage." );
+      static_assert(
+         WeakTrait< Dimension >::entityTagsEnabled, "You try to access entity tags which are not configured for storage." );
       BaseType::addEntityTag( DimensionTag< Dimension >(), entityIndex, tag );
    }
 
@@ -208,8 +208,8 @@ public:
    void
    removeEntityTag( const GlobalIndexType& entityIndex, TagType tag )
    {
-      static_assert( WeakTrait< Dimension >::entityTagsEnabled,
-                     "You try to access entity tags which are not configured for storage." );
+      static_assert(
+         WeakTrait< Dimension >::entityTagsEnabled, "You try to access entity tags which are not configured for storage." );
       BaseType::removeEntityTag( DimensionTag< Dimension >(), entityIndex, tag );
    }
 
@@ -218,8 +218,8 @@ public:
    bool
    isBoundaryEntity( const GlobalIndexType& entityIndex ) const
    {
-      static_assert( WeakTrait< Dimension >::entityTagsEnabled,
-                     "You try to access entity tags which are not configured for storage." );
+      static_assert(
+         WeakTrait< Dimension >::entityTagsEnabled, "You try to access entity tags which are not configured for storage." );
       return BaseType::isBoundaryEntity( DimensionTag< Dimension >(), entityIndex );
    }
 
@@ -228,8 +228,8 @@ public:
    bool
    isGhostEntity( const GlobalIndexType& entityIndex ) const
    {
-      static_assert( WeakTrait< Dimension >::entityTagsEnabled,
-                     "You try to access entity tags which are not configured for storage." );
+      static_assert(
+         WeakTrait< Dimension >::entityTagsEnabled, "You try to access entity tags which are not configured for storage." );
       return BaseType::isGhostEntity( DimensionTag< Dimension >(), entityIndex );
    }
 
@@ -237,8 +237,8 @@ public:
    [[nodiscard]] auto
    getBoundaryIndices() const
    {
-      static_assert( WeakTrait< Dimension >::entityTagsEnabled,
-                     "You try to access entity tags which are not configured for storage." );
+      static_assert(
+         WeakTrait< Dimension >::entityTagsEnabled, "You try to access entity tags which are not configured for storage." );
       return BaseType::getBoundaryIndices( DimensionTag< Dimension >() );
    }
 
@@ -246,8 +246,8 @@ public:
    [[nodiscard]] auto
    getInteriorIndices() const
    {
-      static_assert( WeakTrait< Dimension >::entityTagsEnabled,
-                     "You try to access entity tags which are not configured for storage." );
+      static_assert(
+         WeakTrait< Dimension >::entityTagsEnabled, "You try to access entity tags which are not configured for storage." );
       return BaseType::getInteriorIndices( DimensionTag< Dimension >() );
    }
 
@@ -256,8 +256,8 @@ public:
    GlobalIndexType
    getGhostEntitiesCount() const
    {
-      static_assert( WeakTrait< Dimension >::entityTagsEnabled,
-                     "You try to access entity tags which are not configured for storage." );
+      static_assert(
+         WeakTrait< Dimension >::entityTagsEnabled, "You try to access entity tags which are not configured for storage." );
       return BaseType::getGhostEntitiesCount( DimensionTag< Dimension >() );
    }
 
@@ -266,8 +266,8 @@ public:
    GlobalIndexType
    getGhostEntitiesOffset() const
    {
-      static_assert( WeakTrait< Dimension >::entityTagsEnabled,
-                     "You try to access entity tags which are not configured for storage." );
+      static_assert(
+         WeakTrait< Dimension >::entityTagsEnabled, "You try to access entity tags which are not configured for storage." );
       return BaseType::getGhostEntitiesOffset( DimensionTag< Dimension >() );
    }
 

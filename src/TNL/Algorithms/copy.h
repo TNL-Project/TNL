@@ -26,11 +26,12 @@ namespace TNL::Algorithms {
  * \param source is the pointer to the \e source data.
  * \param size is the size of the data.
  */
-template< typename DestinationDevice,
-          typename SourceDevice = DestinationDevice,
-          typename DestinationElement,
-          typename SourceElement,
-          typename Index >
+template<
+   typename DestinationDevice,
+   typename SourceDevice = DestinationDevice,
+   typename DestinationElement,
+   typename SourceElement,
+   typename Index >
 void
 copy( DestinationElement* destination, const SourceElement* source, Index size )
 {

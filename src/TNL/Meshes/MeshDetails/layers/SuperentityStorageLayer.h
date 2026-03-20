@@ -10,28 +10,30 @@
 
 namespace TNL::Meshes {
 
-template< typename MeshConfig,
-          typename Device,
-          typename EntityDimensionTag,
-          typename SuperdimensionTag,
-          bool SuperentityStorage = WeakSuperentityStorageTrait<
-             MeshConfig,
-             Device,
-             typename MeshTraits< MeshConfig, Device >::template EntityTraits< EntityDimensionTag::value >::EntityTopology,
-             SuperdimensionTag >::storageEnabled >
+template<
+   typename MeshConfig,
+   typename Device,
+   typename EntityDimensionTag,
+   typename SuperdimensionTag,
+   bool SuperentityStorage = WeakSuperentityStorageTrait<
+      MeshConfig,
+      Device,
+      typename MeshTraits< MeshConfig, Device >::template EntityTraits< EntityDimensionTag::value >::EntityTopology,
+      SuperdimensionTag >::storageEnabled >
 class SuperentityStorageLayer;
 
 template< typename MeshConfig, typename Device, typename EntityDimensionTag >
-class SuperentityStorageLayerFamily
-: public SuperentityStorageLayer< MeshConfig,
-                                  Device,
-                                  EntityDimensionTag,
-                                  DimensionTag< MeshTraits< MeshConfig, Device >::meshDimension > >
+class SuperentityStorageLayerFamily : public SuperentityStorageLayer<
+                                         MeshConfig,
+                                         Device,
+                                         EntityDimensionTag,
+                                         DimensionTag< MeshTraits< MeshConfig, Device >::meshDimension > >
 {
-   using BaseType = SuperentityStorageLayer< MeshConfig,
-                                             Device,
-                                             EntityDimensionTag,
-                                             DimensionTag< MeshTraits< MeshConfig, Device >::meshDimension > >;
+   using BaseType = SuperentityStorageLayer<
+      MeshConfig,
+      Device,
+      EntityDimensionTag,
+      DimensionTag< MeshTraits< MeshConfig, Device >::meshDimension > >;
    using MeshTraitsType = MeshTraits< MeshConfig, Device >;
 
 public:

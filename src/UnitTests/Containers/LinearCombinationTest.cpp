@@ -388,8 +388,8 @@ TYPED_TEST( LinearCombinationTest, TypeTest_1_2_3 )
    using Coefficients = Coefficients_1_2_3< RealType >;
    using ResultType = decltype( linearCombination< Coefficients >(
       std::declval< VectorType >(), std::declval< VectorType >(), std::declval< VectorType >() ) );
-   using TrueResultType = decltype( 1.0 * std::declval< VectorType >()
-                                    + ( 2.0 * std::declval< VectorType >() + 3.0 * std::declval< VectorType >() ) );
+   using TrueResultType =
+      decltype( 1.0 * std::declval< VectorType >() + ( 2.0 * std::declval< VectorType >() + 3.0 * std::declval< VectorType >() ) );
 
    static_assert( std::is_same_v< ResultType, TrueResultType > );
 }

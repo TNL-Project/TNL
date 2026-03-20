@@ -10,12 +10,13 @@
 
 namespace TNL::Graphs {
 
-template< typename Value,
-          typename Device,
-          typename Index,
-          typename Orientation,
-          template< typename, typename, typename > class Segments,
-          typename AdjacencyMatrix >
+template<
+   typename Value,
+   typename Device,
+   typename Index,
+   typename Orientation,
+   template< typename, typename, typename > class Segments,
+   typename AdjacencyMatrix >
 struct Graph;
 
 /**
@@ -55,15 +56,17 @@ struct GraphVertexView;
  * \tparam ComputeRealType Computation real type.
  * \tparam GraphType_ Graph type for orientation information.
  */
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType_,
-          template< typename Device_, typename Index_ > class SegmentsView,
-          typename ComputeRealType,
-          typename GraphType_ >
-struct GraphVertexView< Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >,
-                        GraphType_ >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType_,
+   template< typename Device_, typename Index_ > class SegmentsView,
+   typename ComputeRealType,
+   typename GraphType_ >
+struct GraphVertexView<
+   Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >,
+   GraphType_ >
 : public Matrices::SparseMatrixRowView<
      typename Matrices::SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeRealType >::SegmentsViewType::
         SegmentViewType,
@@ -86,9 +89,10 @@ public:
    //! \brief Type of constant sparse matrix view.
    using ConstMatrixView = typename MatrixView::ConstViewType;
 
-   using MatrixRowView = Matrices::SparseMatrixRowView< typename MatrixView::SegmentsViewType::SegmentViewType,
-                                                        typename MatrixView::ValuesViewType,
-                                                        typename MatrixView::ColumnIndexesViewType >;
+   using MatrixRowView = Matrices::SparseMatrixRowView<
+      typename MatrixView::SegmentsViewType::SegmentViewType,
+      typename MatrixView::ValuesViewType,
+      typename MatrixView::ColumnIndexesViewType >;
 
    using ConstMatrixRowView = typename MatrixRowView::ConstRowView;
 
@@ -113,9 +117,10 @@ public:
     * \param columnIndexesView View of target vertex indices.
     */
    __cuda_callable__
-   GraphVertexView( const SegmentViewType& segmentView,
-                    const ValuesViewType& valuesView,
-                    const ColumnIndexesViewType& columnIndexesView )
+   GraphVertexView(
+      const SegmentViewType& segmentView,
+      const ValuesViewType& valuesView,
+      const ColumnIndexesViewType& columnIndexesView )
    : Base( segmentView, valuesView, columnIndexesView )
    {}
 
@@ -260,14 +265,16 @@ public:
  * \tparam Organization Dense matrix elements organization.
  * \tparam GraphType_ Graph type for orientation information.
  */
-template< typename Real,
-          typename Device,
-          typename Index,
-          TNL::Algorithms::Segments::ElementsOrganization Organization,
-          typename GraphType_ >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   TNL::Algorithms::Segments::ElementsOrganization Organization,
+   typename GraphType_ >
 struct GraphVertexView< Matrices::DenseMatrixView< Real, Device, Index, Organization >, GraphType_ >
-: public Matrices::DenseMatrixRowView< typename Matrices::DenseMatrixView< Real, Device, Index, Organization >::SegmentViewType,
-                                       typename Matrices::DenseMatrixView< Real, Device, Index, Organization >::ValuesViewType >
+: public Matrices::DenseMatrixRowView<
+     typename Matrices::DenseMatrixView< Real, Device, Index, Organization >::SegmentViewType,
+     typename Matrices::DenseMatrixView< Real, Device, Index, Organization >::ValuesViewType >
 {
    //! \brief Type of the dense matrix view.
    using MatrixView = Matrices::DenseMatrixView< Real, Device, Index, Organization >;

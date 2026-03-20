@@ -77,8 +77,8 @@ addDefaultValues( const ConfigDescription& config, ParameterContainer& parameter
             continue;
          }
          else {
-            throw std::runtime_error( "Function addDefaultValues encountered unsupported entry type: "
-                                      + entryBase->getUIEntryType() );
+            throw std::runtime_error(
+               "Function addDefaultValues encountered unsupported entry type: " + entryBase->getUIEntryType() );
          }
       }
    }
@@ -135,10 +135,11 @@ printUsage( const ConfigDescription& config, const char* program_name )
 /*! Returns false if any parameter is missing.
  */
 [[nodiscard]] inline bool
-checkMissingEntries( const ConfigDescription& config,
-                     Config::ParameterContainer& parameters,
-                     bool printUsage,
-                     const char* programName )
+checkMissingEntries(
+   const ConfigDescription& config,
+   Config::ParameterContainer& parameters,
+   bool printUsage,
+   const char* programName )
 {
    std::vector< std::string > missingParameters;
    for( const auto& entryBase : config ) {
@@ -176,9 +177,10 @@ checkEnumValues( const ConfigEntry< EntryType, DefaultValueType >& entry, const 
 
 template< typename EntryType, typename DefaultValueType >
 void
-checkEnumValues( const ConfigEntry< EntryType, DefaultValueType >& entry,
-                 const std::string& name,
-                 const std::vector< EntryType >& values )
+checkEnumValues(
+   const ConfigEntry< EntryType, DefaultValueType >& entry,
+   const std::string& name,
+   const std::vector< EntryType >& values )
 {
    if( entry.getEnumValues().size() > 0 ) {
       for( auto value : values )
@@ -195,17 +197,19 @@ convertStringValue( const std::string& value, const std::string& param )
    str << value;
    str >> v;
    if( str.fail() )
-      throw Exceptions::ConfigError( "Value '" + value + "' could not be converted to type " + TNL::getType< T >()
-                                     + " as required for the parameter " + param + "." );
+      throw Exceptions::ConfigError(
+         "Value '" + value + "' could not be converted to type " + TNL::getType< T >() + " as required for the parameter "
+         + param + "." );
    return v;
 }
 
 [[nodiscard]] inline bool
-parseCommandLine( int argc,
-                  char* argv[],
-                  const Config::ConfigDescription& config_description,
-                  Config::ParameterContainer& parameters,
-                  bool printUsage = true )
+parseCommandLine(
+   int argc,
+   char* argv[],
+   const Config::ConfigDescription& config_description,
+   Config::ParameterContainer& parameters,
+   bool printUsage = true )
 {
    auto iequals = []( const std::string& a, const std::string& b )
    {

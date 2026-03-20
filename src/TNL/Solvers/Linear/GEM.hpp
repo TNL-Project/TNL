@@ -83,55 +83,59 @@ GEM< Matrix >::solve( MatrixType& A, ConstVectorViewType b, VectorViewType x )
 
       // Swap the rows ...
       if( pivot_position != k ) {
-         Algorithms::parallelFor< DeviceType >( k,
-                                                n,
-                                                [ = ] __cuda_callable__( const IndexType i ) mutable
-                                                {
-                                                   swap( matrix_view( k, i ), matrix_view( pivot_position, i ) );
-                                                   if( i == k ) {
-                                                      swap( x_view[ k ], x_view[ pivot_position ] );
-                                                   }
-                                                } );
+         Algorithms::parallelFor< DeviceType >(
+            k,
+            n,
+            [ = ] __cuda_callable__( const IndexType i ) mutable
+            {
+               swap( matrix_view( k, i ), matrix_view( pivot_position, i ) );
+               if( i == k ) {
+                  swap( x_view[ k ], x_view[ pivot_position ] );
+               }
+            } );
       }
 
       // Divide the k-th row by pivot (including the b vector)
-      Algorithms::parallelFor< DeviceType >( k,
-                                             n,
-                                             [ = ] __cuda_callable__( const IndexType i ) mutable
-                                             {
-                                                if( i == k ) {
-                                                   matrix_view( k, i ) = 1.0;
-                                                   x_view[ k ] /= pivot_value;
-                                                }
-                                                else {
-                                                   matrix_view( k, i ) /= pivot_value;
-                                                }
-                                             } );
+      Algorithms::parallelFor< DeviceType >(
+         k,
+         n,
+         [ = ] __cuda_callable__( const IndexType i ) mutable
+         {
+            if( i == k ) {
+               matrix_view( k, i ) = 1.0;
+               x_view[ k ] /= pivot_value;
+            }
+            else {
+               matrix_view( k, i ) /= pivot_value;
+            }
+         } );
 
       // Perform the Gauss-Jordan elimination
-      Algorithms::parallelFor< DeviceType >( CoordinateType{ 0, k },
-                                             CoordinateType{ n, n },
-                                             [ = ] __cuda_callable__( const CoordinateType& c ) mutable
-                                             {
-                                                const auto& i = c[ 0 ];
-                                                const auto& j = c[ 1 ];
-                                                if( i != k ) {
-                                                   // Subtract the k-th row from the current row
-                                                   if( j > k )
-                                                      matrix_view( i, j ) -= matrix_view( i, k ) * matrix_view( k, j );
-                                                   else
-                                                      x_view[ i ] -= matrix_view( i, k ) * x_view[ k ];
-                                                }
-                                             } );
+      Algorithms::parallelFor< DeviceType >(
+         CoordinateType{ 0, k },
+         CoordinateType{ n, n },
+         [ = ] __cuda_callable__( const CoordinateType& c ) mutable
+         {
+            const auto& i = c[ 0 ];
+            const auto& j = c[ 1 ];
+            if( i != k ) {
+               // Subtract the k-th row from the current row
+               if( j > k )
+                  matrix_view( i, j ) -= matrix_view( i, k ) * matrix_view( k, j );
+               else
+                  x_view[ i ] -= matrix_view( i, k ) * x_view[ k ];
+            }
+         } );
 
       // Set the k-th column to zero for all rows except the k-th row
-      Algorithms::parallelFor< DeviceType >( 0,
-                                             n,
-                                             [ = ] __cuda_callable__( const IndexType i ) mutable
-                                             {
-                                                if( i != k )
-                                                   matrix_view( i, k ) = 0.0;
-                                             } );
+      Algorithms::parallelFor< DeviceType >(
+         0,
+         n,
+         [ = ] __cuda_callable__( const IndexType i ) mutable
+         {
+            if( i != k )
+               matrix_view( i, k ) = 0.0;
+         } );
    }
    // Direct solvers set the residue to zero.
    // (And the original matrix is not available anymore, so we cannot compute it anyway.)

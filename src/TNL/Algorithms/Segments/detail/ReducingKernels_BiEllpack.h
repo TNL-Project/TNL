@@ -10,23 +10,25 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< int BlockDim,
-          typename SegmentsView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int BlockDim,
+   typename SegmentsView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __device__
 void
-reduceSegmentsKernelWithAllParameters( SegmentsView segments,
-                                       Index gridIdx,
-                                       Index begin,
-                                       Index end,
-                                       Fetch fetch,
-                                       Reduction reduction,
-                                       ResultStorer storer,
-                                       Value identity )
+reduceSegmentsKernelWithAllParameters(
+   SegmentsView segments,
+   Index gridIdx,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer storer,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -62,23 +64,25 @@ reduceSegmentsKernelWithAllParameters( SegmentsView segments,
 #endif
 }
 
-template< int BlockDim,
-          typename SegmentsView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int BlockDim,
+   typename SegmentsView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __device__
 void
-reduceSegmentsKernel( SegmentsView segments,
-                      Index gridIdx,
-                      Index begin,
-                      Index end,
-                      Fetch fetch,
-                      Reduction reduction,
-                      ResultStorer storer,
-                      Value identity )
+reduceSegmentsKernel(
+   SegmentsView segments,
+   Index gridIdx,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer storer,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -172,28 +176,30 @@ reduceSegmentsKernel( SegmentsView segments,
       return;
 
    // Store the results
-   storer( warpStart + inWarpIdx,
-           results[ segments.getSegmentsPermutationView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1 ) ] );
+   storer(
+      warpStart + inWarpIdx, results[ segments.getSegmentsPermutationView()[ warpStart + inWarpIdx ] & ( blockDim.x - 1 ) ] );
 #endif
 }
 
-template< typename SegmentsView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value,
-          int BlockDim >
+template<
+   typename SegmentsView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value,
+   int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernel( SegmentsView segments,
-                               Index gridIdx,
-                               Index begin,
-                               Index end,
-                               Fetch fetch,
-                               Reduction reduction,
-                               ResultStorer storer,
-                               Value identity )
+BiEllpackReduceSegmentsKernel(
+   SegmentsView segments,
+   Index gridIdx,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer storer,
+   Value identity )
 {
    if constexpr( callableArgumentCount< Fetch >() == 3 )
       reduceSegmentsKernelWithAllParameters< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
@@ -201,23 +207,25 @@ BiEllpackReduceSegmentsKernel( SegmentsView segments,
       reduceSegmentsKernel< BlockDim >( segments, gridIdx, begin, end, fetch, reduction, storer, identity );
 }
 
-template< typename SegmentsView,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value,
-          int BlockDim >
+template<
+   typename SegmentsView,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value,
+   int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
-                                          ArrayView segmentIndexes,
-                                          Index gridIdx,
-                                          Fetch fetch,
-                                          Reduction reduction,
-                                          ResultStorer storer,
-                                          Value identity )
+BiEllpackReduceSegmentsKernelWithIndexes(
+   SegmentsView segments,
+   ArrayView segmentIndexes,
+   Index gridIdx,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer storer,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -243,13 +251,15 @@ BiEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
          const Index groupWidth = groupSize / groupHeight;
          for( Index i = 0; i < groupWidth; i++ ) {
             if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
-               result = reduction( result,
-                                   FetchLambdaAdapter< Index, Fetch >::call(
-                                      fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ) );
+               result = reduction(
+                  result,
+                  FetchLambdaAdapter< Index, Fetch >::call(
+                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ) );
             else
-               result = reduction( result,
-                                   FetchLambdaAdapter< Index, Fetch >::call(
-                                      fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ) );
+               result = reduction(
+                  result,
+                  FetchLambdaAdapter< Index, Fetch >::call(
+                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ) );
             localIdx++;
          }
       }
@@ -259,23 +269,25 @@ BiEllpackReduceSegmentsKernelWithIndexes( SegmentsView segments,
 #endif
 }
 
-template< int BlockDim,
-          typename SegmentsView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int BlockDim,
+   typename SegmentsView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __device__
 void
-reduceSegmentsKernelWithAllParametersWithArgument( SegmentsView segments,
-                                                   Index gridIdx,
-                                                   Index begin,
-                                                   Index end,
-                                                   Fetch fetch,
-                                                   Reduction reduction,
-                                                   ResultStorer storer,
-                                                   Value identity )
+reduceSegmentsKernelWithAllParametersWithArgument(
+   SegmentsView segments,
+   Index gridIdx,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer storer,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -300,17 +312,19 @@ reduceSegmentsKernelWithAllParametersWithArgument( SegmentsView segments,
          const Index groupWidth = groupSize / groupHeight;
          for( Index i = 0; i < groupWidth; i++ ) {
             if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
-               reduction( result,
-                          detail::FetchLambdaAdapter< Index, Fetch >::call(
-                             fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ),
-                          argument,
-                          localIdx );
+               reduction(
+                  result,
+                  detail::FetchLambdaAdapter< Index, Fetch >::call(
+                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ),
+                  argument,
+                  localIdx );
             else
-               reduction( result,
-                          detail::FetchLambdaAdapter< Index, Fetch >::call(
-                             fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ),
-                          argument,
-                          localIdx );
+               reduction(
+                  result,
+                  detail::FetchLambdaAdapter< Index, Fetch >::call(
+                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ),
+                  argument,
+                  localIdx );
             localIdx++;
          }
       }
@@ -321,46 +335,50 @@ reduceSegmentsKernelWithAllParametersWithArgument( SegmentsView segments,
 #endif
 }
 
-template< typename SegmentsView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value,
-          int BlockDim >
+template<
+   typename SegmentsView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value,
+   int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernelWithArgument( SegmentsView segments,
-                                           Index gridIdx,
-                                           Index begin,
-                                           Index end,
-                                           Fetch fetch,
-                                           Reduction reduction,
-                                           ResultStorer storer,
-                                           Value identity )
+BiEllpackReduceSegmentsKernelWithArgument(
+   SegmentsView segments,
+   Index gridIdx,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer storer,
+   Value identity )
 {
    //Currently we do not have specialized kernel for short fetch with argument
    reduceSegmentsKernelWithAllParametersWithArgument< BlockDim >(
       segments, gridIdx, begin, end, fetch, reduction, storer, identity );
 }
 
-template< typename SegmentsView,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value,
-          int BlockDim >
+template<
+   typename SegmentsView,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value,
+   int BlockDim >
 __global__
 void
-BiEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
-                                                     ArrayView segmentIndexes,
-                                                     Index gridIdx,
-                                                     Fetch fetch,
-                                                     Reduction reduction,
-                                                     ResultStorer storer,
-                                                     Value identity )
+BiEllpackReduceSegmentsKernelWithIndexesAndArgument(
+   SegmentsView segments,
+   ArrayView segmentIndexes,
+   Index gridIdx,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer storer,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -387,17 +405,19 @@ BiEllpackReduceSegmentsKernelWithIndexesAndArgument( SegmentsView segments,
          const Index groupWidth = groupSize / groupHeight;
          for( Index i = 0; i < groupWidth; i++ ) {
             if constexpr( SegmentsView::getOrganization() == Segments::RowMajorOrder )
-               reduction( result,
-                          FetchLambdaAdapter< Index, Fetch >::call(
-                             fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ),
-                          argument,
-                          localIdx );
+               reduction(
+                  result,
+                  FetchLambdaAdapter< Index, Fetch >::call(
+                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm * groupWidth + i ),
+                  argument,
+                  localIdx );
             else
-               reduction( result,
-                          FetchLambdaAdapter< Index, Fetch >::call(
-                             fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ),
-                          argument,
-                          localIdx );
+               reduction(
+                  result,
+                  FetchLambdaAdapter< Index, Fetch >::call(
+                     fetch, segmentIdx, localIdx, groupOffset + segmentStripPerm + i * groupHeight ),
+                  argument,
+                  localIdx );
             localIdx++;
          }
       }

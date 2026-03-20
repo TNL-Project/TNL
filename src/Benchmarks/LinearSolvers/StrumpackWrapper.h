@@ -43,10 +43,11 @@ public:
 #ifdef HAVE_STRUMPACK
       LinearSolver< Matrix >::setMatrix( matrix );
 
-      this->solver.set_csr_matrix( matrix->getRows(),
-                                   matrix->getSegments().getOffsets().getData(),
-                                   matrix->getColumnIndexes().getData(),
-                                   matrix->getValues().getData() );
+      this->solver.set_csr_matrix(
+         matrix->getRows(),
+         matrix->getSegments().getOffsets().getData(),
+         matrix->getColumnIndexes().getData(),
+         matrix->getValues().getData() );
 
       this->solver.reorder();
       this->solver.factor();

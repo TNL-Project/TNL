@@ -32,10 +32,11 @@ Copy< Devices::Sequential >::copy( DestinationElement* destination, const Source
 
 template< typename DestinationElement, typename Index, typename SourceIterator >
 void
-Copy< Devices::Sequential >::copy( DestinationElement* destination,
-                                   Index destinationSize,
-                                   SourceIterator begin,
-                                   SourceIterator end )
+Copy< Devices::Sequential >::copy(
+   DestinationElement* destination,
+   Index destinationSize,
+   SourceIterator begin,
+   SourceIterator end )
 {
    Index i = 0;
    while( i < destinationSize && begin != end )

@@ -17,8 +17,9 @@ forElementsExample()
     *   | .  .  3  2  1 |   -> { 3, 2, 1 }
     *   \ .  .  .  3  2 / 0 -> { 3, 2, 0 }
     */
-   TNL::Matrices::TridiagonalMatrix< double, Device > matrix( 5,    // number of matrix rows
-                                                              5 );  // number of matrix columns
+   TNL::Matrices::TridiagonalMatrix< double, Device > matrix(
+      5,    // number of matrix rows
+      5 );  // number of matrix columns
    auto view = matrix.getView();
 
    auto f = [] __cuda_callable__( int rowIdx, int localIdx, int columnIdx, double& value )

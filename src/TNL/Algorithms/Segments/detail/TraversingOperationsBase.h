@@ -27,12 +27,13 @@ struct TraversingOperationsBase
     */
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forSelectedElements( const ConstViewType& segments,
-                        IndexBegin begin,
-                        IndexEnd end,
-                        Condition&& condition,
-                        Function&& function,
-                        LaunchConfiguration launchConfig )
+   forSelectedElements(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
 
@@ -50,11 +51,12 @@ struct TraversingOperationsBase
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forSegments( const Segments& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                LaunchConfiguration launchConfig )
+   forSegments(
+      const Segments& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       auto segments_view = segments.getConstView();
       auto f = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable
@@ -87,12 +89,13 @@ struct TraversingOperationsBase
 
    template< typename IndexBegin, typename IndexEnd, typename SegmentCondition, typename Function >
    static void
-   forSegmentsIf( const Segments& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  SegmentCondition&& segmentCondition,
-                  Function&& function,
-                  LaunchConfiguration launchConfig )
+   forSegmentsIf(
+      const Segments& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      SegmentCondition&& segmentCondition,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       using IndexType = typename Segments::IndexType;
       using DeviceType = typename Segments::DeviceType;

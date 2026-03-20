@@ -38,11 +38,12 @@ namespace TNL::Algorithms::Segments {
  * \tparam Organization The organization of elements in the segments—either row-major or column-major order.
  * \tparam SliceSize The size of each slice.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int SliceSize = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int SliceSize = 32 >
 class SlicedEllpack : public SlicedEllpackBase< Device, Index, Organization, SliceSize >
 {
    using Base = SlicedEllpackBase< Device, Index, Organization, SliceSize >;
@@ -60,11 +61,12 @@ public:
    //! \brief Type of container storing offsets of particular segments.
    using OffsetsContainer = Containers::Vector< Index, Device, typename Base::IndexType, IndexAllocator >;
 
-   template< typename Device_ = Device,
-             typename Index_ = Index,
-             typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ >,
-             ElementsOrganization Organization_ = Organization,
-             int SliceSize_ = SliceSize >
+   template<
+      typename Device_ = Device,
+      typename Index_ = Index,
+      typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ >,
+      ElementsOrganization Organization_ = Organization,
+      int SliceSize_ = SliceSize >
    using Self = SlicedEllpack< Device_, Index_, IndexAllocator_, Organization_, SliceSize_ >;
 
    /**
@@ -205,10 +207,11 @@ protected:
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int SliceSize = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int SliceSize = 32 >
 using RowMajorSlicedEllpack = SlicedEllpack< Device, Index, IndexAllocator, RowMajorOrder, SliceSize >;
 
 /**
@@ -220,10 +223,11 @@ using RowMajorSlicedEllpack = SlicedEllpack< Device, Index, IndexAllocator, RowM
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int SliceSize = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int SliceSize = 32 >
 using ColumnMajorSlicedEllpack = SlicedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder, SliceSize >;
 
 /**
@@ -235,12 +239,12 @@ using ColumnMajorSlicedEllpack = SlicedEllpack< Device, Index, IndexAllocator, C
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization =
-             TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int SliceSize = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   ElementsOrganization Organization = TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int SliceSize = 32 >
 using SortedSlicedEllpack = SortedSegments< SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize > >;
 
 /**
@@ -252,10 +256,11 @@ using SortedSlicedEllpack = SortedSegments< SlicedEllpack< Device, Index, IndexA
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int SliceSize = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int SliceSize = 32 >
 using SortedRowMajorSlicedEllpack = SortedSegments< RowMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > >;
 
 /**
@@ -267,10 +272,11 @@ using SortedRowMajorSlicedEllpack = SortedSegments< RowMajorSlicedEllpack< Devic
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          int SliceSize = 32 >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   int SliceSize = 32 >
 using SortedColumnMajorSlicedEllpack = SortedSegments< ColumnMajorSlicedEllpack< Device, Index, IndexAllocator, SliceSize > >;
 
 template< typename Segments >

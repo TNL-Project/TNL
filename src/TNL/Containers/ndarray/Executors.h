@@ -71,8 +71,9 @@ struct SequentialExecutor< Permutation, IndexTag< Permutation::size() - 1 > >
    operator()( const Begins& begins, const Ends& ends, Func f, Indices&&... indices )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
-      static_assert( sizeof...( indices ) == Begins::getDimension() - 1,
-                     "invalid number of indices in the final step of the SequentialExecutor" );
+      static_assert(
+         sizeof...( indices ) == Begins::getDimension() - 1,
+         "invalid number of indices in the final step of the SequentialExecutor" );
 
       using LevelTag = IndexTag< Permutation::size() - 1 >;
 
@@ -110,8 +111,9 @@ struct SequentialExecutorRTL< Permutation, IndexTag< 0 > >
    operator()( const Begins& begins, const Ends& ends, Func f, Indices&&... indices )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
-      static_assert( sizeof...( indices ) == Begins::getDimension() - 1,
-                     "invalid number of indices in the final step of the SequentialExecutorRTL" );
+      static_assert(
+         sizeof...( indices ) == Begins::getDimension() - 1,
+         "invalid number of indices in the final step of the SequentialExecutorRTL" );
 
       const auto begin = begins.template getSize< get< 0 >( Permutation{} ) >();
       const auto end = ends.template getSize< get< 0 >( Permutation{} ) >();
@@ -125,10 +127,11 @@ struct ParallelExecutorDeviceDispatch
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const Ends& ends,
-               const typename Device::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const Ends& ends,
+      const typename Device::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -184,10 +187,11 @@ struct ParallelExecutor
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const Ends& ends,
-               const typename Device::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const Ends& ends,
+      const typename Device::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       ParallelExecutorDeviceDispatch< Permutation, Device > dispatch;
       dispatch( begins, ends, launch_configuration, f );
@@ -199,10 +203,11 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 3 > >
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const Ends& ends,
-               const typename Device::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const Ends& ends,
+      const typename Device::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -227,10 +232,11 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 2 > >
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const Ends& ends,
-               const typename Device::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const Ends& ends,
+      const typename Device::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -253,10 +259,11 @@ struct ParallelExecutor< Permutation, Device, IndexTag< 1 > >
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const Ends& ends,
-               const typename Device::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const Ends& ends,
+      const typename Device::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       static_assert( Begins::getDimension() == Ends::getDimension(), "wrong begins or ends" );
 
@@ -274,10 +281,11 @@ struct ExecutorDispatcher
 {
    template< typename Begins, typename Ends, typename Func >
    void
-   operator()( const Begins& begins,
-               const Ends& ends,
-               const typename Device::LaunchConfiguration& launch_configuration,
-               Func f )
+   operator()(
+      const Begins& begins,
+      const Ends& ends,
+      const typename Device::LaunchConfiguration& launch_configuration,
+      Func f )
    {
       SequentialExecutor< Permutation >()( begins, ends, f );
    }

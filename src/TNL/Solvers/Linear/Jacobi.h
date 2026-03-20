@@ -126,10 +126,11 @@ protected:
 
 public:  // because nvcc does not accept lambda functions within private or protected methods
    void
-   performIteration( const ConstVectorViewType& b,
-                     const ConstVectorViewType& diagonalView,
-                     const ConstVectorViewType& in,
-                     VectorViewType& out ) const;
+   performIteration(
+      const ConstVectorViewType& b,
+      const ConstVectorViewType& diagonalView,
+      const ConstVectorViewType& in,
+      VectorViewType& out ) const;
 };
 
 }  // namespace TNL::Solvers::Linear

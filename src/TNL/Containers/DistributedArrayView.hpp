@@ -34,11 +34,12 @@ DistributedArrayView< Value, Device, Index >::DistributedArrayView( const Distri
 
 template< typename Value, typename Device, typename Index >
 void
-DistributedArrayView< Value, Device, Index >::bind( const LocalRangeType& localRange,
-                                                    IndexType ghosts,
-                                                    IndexType globalSize,
-                                                    const MPI::Comm& communicator,
-                                                    LocalViewType localData )
+DistributedArrayView< Value, Device, Index >::bind(
+   const LocalRangeType& localRange,
+   IndexType ghosts,
+   IndexType globalSize,
+   const MPI::Comm& communicator,
+   LocalViewType localData )
 {
    if( localData.getSize() != localRange.getSize() + ghosts )
       throw std::invalid_argument( "bind: the local array size does not match the local range of the distributed array" );
@@ -146,8 +147,9 @@ DistributedArrayView< Value, Device, Index >::copyFromGlobal( ConstLocalViewType
 
 template< typename Value, typename Device, typename Index >
 void
-DistributedArrayView< Value, Device, Index >::setSynchronizer( std::shared_ptr< SynchronizerType > synchronizer,
-                                                               int valuesPerElement )
+DistributedArrayView< Value, Device, Index >::setSynchronizer(
+   std::shared_ptr< SynchronizerType > synchronizer,
+   int valuesPerElement )
 {
    this->synchronizer = std::move( synchronizer );
    this->valuesPerElement = valuesPerElement;

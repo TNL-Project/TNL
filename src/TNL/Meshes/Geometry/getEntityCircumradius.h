@@ -18,8 +18,9 @@ getEntityCircumradius( const Mesh< MeshConfig, Device >& mesh, const MeshEntity<
 template< typename MeshConfig, typename Device >
 __cuda_callable__
 typename MeshConfig::RealType
-getEntityCircumradius( const Mesh< MeshConfig, Device >& mesh,
-                       const MeshEntity< MeshConfig, Device, Topologies::Edge >& entity )
+getEntityCircumradius(
+   const Mesh< MeshConfig, Device >& mesh,
+   const MeshEntity< MeshConfig, Device, Topologies::Edge >& entity )
 {
    using Real = typename MeshConfig::RealType;
    return Real( 0.5 ) * getEntityMeasure( mesh, entity );
@@ -28,8 +29,9 @@ getEntityCircumradius( const Mesh< MeshConfig, Device >& mesh,
 template< typename MeshConfig, typename Device >
 __cuda_callable__
 typename MeshConfig::RealType
-getEntityCircumradius( const Mesh< MeshConfig, Device >& mesh,
-                       const MeshEntity< MeshConfig, Device, Topologies::Triangle >& entity )
+getEntityCircumradius(
+   const Mesh< MeshConfig, Device >& mesh,
+   const MeshEntity< MeshConfig, Device, Topologies::Triangle >& entity )
 {
    const auto& v0 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
    const auto& v1 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 1 ) );
@@ -47,8 +49,9 @@ getEntityCircumradius( const Mesh< MeshConfig, Device >& mesh,
 template< typename MeshConfig, typename Device >
 __cuda_callable__
 typename MeshConfig::RealType
-getEntityCircumradius( const Mesh< MeshConfig, Device >& mesh,
-                       const MeshEntity< MeshConfig, Device, Topologies::Tetrahedron >& entity )
+getEntityCircumradius(
+   const Mesh< MeshConfig, Device >& mesh,
+   const MeshEntity< MeshConfig, Device, Topologies::Tetrahedron >& entity )
 {
    const auto& v0 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
    const auto& v1 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 1 ) );

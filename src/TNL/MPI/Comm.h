@@ -127,10 +127,11 @@ public:
    Comm( MPI_Comm comm )
    {
       if( comm != MPI_COMM_NULL && comm != MPI_COMM_WORLD && comm != MPI_COMM_SELF )
-         throw std::logic_error( "Only predefined communicators (MPI_COMM_WORLD, MPI_COMM_NULL and "
-                                 "MPI_COMM_SELF) can be used to initialize this class. Other "
-                                 "handles of the MPI_Comm type *cannot* be used to initialize "
-                                 "the TNL::MPI::Comm class." );
+         throw std::logic_error(
+            "Only predefined communicators (MPI_COMM_WORLD, MPI_COMM_NULL and "
+            "MPI_COMM_SELF) can be used to initialize this class. Other "
+            "handles of the MPI_Comm type *cannot* be used to initialize "
+            "the TNL::MPI::Comm class." );
       wrapper = std::make_shared< Wrapper >( comm );
    }
 

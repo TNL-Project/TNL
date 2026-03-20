@@ -11,16 +11,18 @@ namespace TNL::Functions::experimental {
 template< typename OutVectorField, typename InVectorField >
 template< typename OutVectorFieldPointer, typename InVectorFieldPointer >
 void
-VectorFieldEvaluator< OutVectorField, InVectorField >::evaluate( OutVectorFieldPointer& meshFunction,
-                                                                 const InVectorFieldPointer& function,
-                                                                 const RealType& time,
-                                                                 const RealType& outFunctionMultiplicator,
-                                                                 const RealType& inFunctionMultiplicator )
+VectorFieldEvaluator< OutVectorField, InVectorField >::evaluate(
+   OutVectorFieldPointer& meshFunction,
+   const InVectorFieldPointer& function,
+   const RealType& time,
+   const RealType& outFunctionMultiplicator,
+   const RealType& inFunctionMultiplicator )
 {
-   static_assert( std::is_same_v< std::decay_t< typename OutVectorFieldPointer::ObjectType >, OutVectorField >,
-                  "expected a smart pointer" );
-   static_assert( std::is_same_v< std::decay_t< typename InVectorFieldPointer::ObjectType >, InVectorField >,
-                  "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename OutVectorFieldPointer::ObjectType >, OutVectorField >,
+      "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename InVectorFieldPointer::ObjectType >, InVectorField >, "expected a smart pointer" );
 
    switch( InVectorField::getDomainType() ) {
       case NonspaceDomain:
@@ -40,16 +42,18 @@ VectorFieldEvaluator< OutVectorField, InVectorField >::evaluate( OutVectorFieldP
 template< typename OutVectorField, typename InVectorField >
 template< typename OutVectorFieldPointer, typename InVectorFieldPointer >
 void
-VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateAllEntities( OutVectorFieldPointer& meshFunction,
-                                                                            const InVectorFieldPointer& function,
-                                                                            const RealType& time,
-                                                                            const RealType& outFunctionMultiplicator,
-                                                                            const RealType& inFunctionMultiplicator )
+VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateAllEntities(
+   OutVectorFieldPointer& meshFunction,
+   const InVectorFieldPointer& function,
+   const RealType& time,
+   const RealType& outFunctionMultiplicator,
+   const RealType& inFunctionMultiplicator )
 {
-   static_assert( std::is_same_v< std::decay_t< typename OutVectorFieldPointer::ObjectType >, OutVectorField >,
-                  "expected a smart pointer" );
-   static_assert( std::is_same_v< std::decay_t< typename InVectorFieldPointer::ObjectType >, InVectorField >,
-                  "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename OutVectorFieldPointer::ObjectType >, OutVectorField >,
+      "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename InVectorFieldPointer::ObjectType >, InVectorField >, "expected a smart pointer" );
 
    return evaluateEntities( meshFunction, function, time, outFunctionMultiplicator, inFunctionMultiplicator, all );
 }
@@ -57,16 +61,18 @@ VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateAllEntities( OutV
 template< typename OutVectorField, typename InVectorField >
 template< typename OutVectorFieldPointer, typename InVectorFieldPointer >
 void
-VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateInteriorEntities( OutVectorFieldPointer& meshFunction,
-                                                                                 const InVectorFieldPointer& function,
-                                                                                 const RealType& time,
-                                                                                 const RealType& outFunctionMultiplicator,
-                                                                                 const RealType& inFunctionMultiplicator )
+VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateInteriorEntities(
+   OutVectorFieldPointer& meshFunction,
+   const InVectorFieldPointer& function,
+   const RealType& time,
+   const RealType& outFunctionMultiplicator,
+   const RealType& inFunctionMultiplicator )
 {
-   static_assert( std::is_same_v< std::decay_t< typename OutVectorFieldPointer::ObjectType >, OutVectorField >,
-                  "expected a smart pointer" );
-   static_assert( std::is_same_v< std::decay_t< typename InVectorFieldPointer::ObjectType >, InVectorField >,
-                  "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename OutVectorFieldPointer::ObjectType >, OutVectorField >,
+      "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename InVectorFieldPointer::ObjectType >, InVectorField >, "expected a smart pointer" );
 
    return evaluateEntities( meshFunction, function, time, outFunctionMultiplicator, inFunctionMultiplicator, interior );
 }
@@ -74,16 +80,18 @@ VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateInteriorEntities(
 template< typename OutVectorField, typename InVectorField >
 template< typename OutVectorFieldPointer, typename InVectorFieldPointer >
 void
-VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateBoundaryEntities( OutVectorFieldPointer& meshFunction,
-                                                                                 const InVectorFieldPointer& function,
-                                                                                 const RealType& time,
-                                                                                 const RealType& outFunctionMultiplicator,
-                                                                                 const RealType& inFunctionMultiplicator )
+VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateBoundaryEntities(
+   OutVectorFieldPointer& meshFunction,
+   const InVectorFieldPointer& function,
+   const RealType& time,
+   const RealType& outFunctionMultiplicator,
+   const RealType& inFunctionMultiplicator )
 {
-   static_assert( std::is_same_v< std::decay_t< typename OutVectorFieldPointer::ObjectType >, OutVectorField >,
-                  "expected a smart pointer" );
-   static_assert( std::is_same_v< std::decay_t< typename InVectorFieldPointer::ObjectType >, InVectorField >,
-                  "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename OutVectorFieldPointer::ObjectType >, OutVectorField >,
+      "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename InVectorFieldPointer::ObjectType >, InVectorField >, "expected a smart pointer" );
 
    return evaluateEntities( meshFunction, function, time, outFunctionMultiplicator, inFunctionMultiplicator, boundary );
 }
@@ -91,17 +99,19 @@ VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateBoundaryEntities(
 template< typename OutVectorField, typename InVectorField >
 template< typename OutVectorFieldPointer, typename InVectorFieldPointer >
 void
-VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateEntities( OutVectorFieldPointer& meshFunction,
-                                                                         const InVectorFieldPointer& function,
-                                                                         const RealType& time,
-                                                                         const RealType& outFunctionMultiplicator,
-                                                                         const RealType& inFunctionMultiplicator,
-                                                                         EntitiesType entitiesType )
+VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateEntities(
+   OutVectorFieldPointer& meshFunction,
+   const InVectorFieldPointer& function,
+   const RealType& time,
+   const RealType& outFunctionMultiplicator,
+   const RealType& inFunctionMultiplicator,
+   EntitiesType entitiesType )
 {
-   static_assert( std::is_same_v< std::decay_t< typename OutVectorFieldPointer::ObjectType >, OutVectorField >,
-                  "expected a smart pointer" );
-   static_assert( std::is_same_v< std::decay_t< typename InVectorFieldPointer::ObjectType >, InVectorField >,
-                  "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename OutVectorFieldPointer::ObjectType >, OutVectorField >,
+      "expected a smart pointer" );
+   static_assert(
+      std::is_same_v< std::decay_t< typename InVectorFieldPointer::ObjectType >, InVectorField >, "expected a smart pointer" );
 
    typedef typename MeshType::template EntityType< OutVectorField::getEntitiesDimension() > MeshEntityType;
    typedef VectorFieldEvaluatorAssignmentEntitiesProcessor< MeshType, TraverserUserData > AssignmentEntitiesProcessor;
@@ -109,11 +119,12 @@ VectorFieldEvaluator< OutVectorField, InVectorField >::evaluateEntities( OutVect
    // typedef typename OutVectorField::MeshPointer OutMeshPointer;
    typedef Pointers::SharedPointer< TraverserUserData, DeviceType > TraverserUserDataPointer;
 
-   SharedPointer< TraverserUserData, DeviceType > userData( &function.template getData< DeviceType >(),
-                                                            time,
-                                                            &meshFunction.template modifyData< DeviceType >(),
-                                                            outFunctionMultiplicator,
-                                                            inFunctionMultiplicator );
+   SharedPointer< TraverserUserData, DeviceType > userData(
+      &function.template getData< DeviceType >(),
+      time,
+      &meshFunction.template modifyData< DeviceType >(),
+      outFunctionMultiplicator,
+      inFunctionMultiplicator );
    Meshes::Traverser< MeshType, MeshEntityType > meshTraverser;
    switch( entitiesType ) {
       case all:

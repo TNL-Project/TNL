@@ -66,10 +66,11 @@ public:
     */
    template< typename ParameterType >
    void
-   writeParameter( const std::string& label,
-                   const std::string& parameterName,
-                   const Config::ParameterContainer& parameters,
-                   int parameterLevel = 0 );
+   writeParameter(
+      const std::string& label,
+      const std::string& parameterName,
+      const Config::ParameterContainer& parameters,
+      int parameterLevel = 0 );
 
    /**
     * \brief Inserts parameter information into the log.

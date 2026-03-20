@@ -20,11 +20,12 @@ namespace TNL::Graphs::Algorithms {
 
 template< typename Graph, typename Vector, typename Visitor >
 void
-breadthFirstSearchParallel( const Graph& graph,
-                            typename Graph::IndexType start,
-                            Vector& distances,
-                            Visitor&& visitor,
-                            const TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+breadthFirstSearchParallel(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   Vector& distances,
+   Visitor&& visitor,
+   const TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
@@ -117,14 +118,15 @@ breadthFirstSearchParallel( const Graph& graph,
 
 template< typename Graph, typename Vector, typename Visitor >
 void
-breadthFirstSearch_impl( const Graph& graph,
-                         typename Graph::IndexType start,
-                         Vector& distances,
-                         Visitor&& visitor,
-                         const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
+breadthFirstSearch_impl(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   Vector& distances,
+   Visitor&& visitor,
+   const TNL::Algorithms::Segments::LaunchConfiguration& launchConfig )
 {
-   static_assert( ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
-                  "BFS requires general adjacency matrix, not symmetric." );
+   static_assert(
+      ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(), "BFS requires general adjacency matrix, not symmetric." );
    using Index = typename Graph::IndexType;
    using Device = typename Graph::DeviceType;
    const auto& adjacencyMatrix = graph.getAdjacencyMatrix();
@@ -170,10 +172,11 @@ breadthFirstSearch_impl( const Graph& graph,
 
 template< typename Graph, typename Vector >
 void
-breadthFirstSearch( const Graph& graph,
-                    typename Graph::IndexType start,
-                    Vector& distances,
-                    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+breadthFirstSearch(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using Index = typename Graph::IndexType;
    breadthFirstSearch_impl( graph, start, distances, [] __cuda_callable__( Index, Index ) {}, launchConfig );
@@ -181,11 +184,12 @@ breadthFirstSearch( const Graph& graph,
 
 template< typename Graph, typename Vector, typename Visitor >
 void
-breadthFirstSearch( const Graph& graph,
-                    typename Graph::IndexType start,
-                    Vector& distances,
-                    Visitor&& visitor,
-                    TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+breadthFirstSearch(
+   const Graph& graph,
+   typename Graph::IndexType start,
+   Vector& distances,
+   Visitor&& visitor,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    breadthFirstSearch_impl( graph, start, distances, visitor, launchConfig );
 }

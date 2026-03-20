@@ -66,16 +66,17 @@ TYPED_TEST_P( SegmentsTest, scanSegmentsIf )
 }
 
 // Register all test cases
-REGISTER_TYPED_TEST_SUITE_P( SegmentsTest,
-                             isSegments,
-                             getView,
-                             setSegmentsSizes_EqualSizes,
-                             findInSegments,
-                             findInSegmentsWithIndexes,
-                             findInSegmentsIf,
-                             sortSegments,
-                             sortSegmentsWithSegmentIndexes,
-                             sortSegmentsIf,
-                             scanSegments,
-                             scanSegmentsWithIndexes,
-                             scanSegmentsIf );
+REGISTER_TYPED_TEST_SUITE_P(
+   SegmentsTest,
+   isSegments,
+   getView,
+   setSegmentsSizes_EqualSizes,
+   findInSegments,
+   findInSegmentsWithIndexes,
+   findInSegmentsIf,
+   sortSegments,
+   sortSegmentsWithSegmentIndexes,
+   sortSegmentsIf,
+   scanSegments,
+   scanSegmentsWithIndexes,
+   scanSegmentsIf );

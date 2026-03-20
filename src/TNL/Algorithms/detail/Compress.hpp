@@ -44,12 +44,13 @@ compress( BeginIndex begin, EndIndex end, MarksFunction&& marksFunction, OutputV
    using Index = typename OutputVector::IndexType;
    OutputVector marksVector( end - begin );
    auto marksView = marksVector.getView();
-   Algorithms::parallelFor< Device >( begin,
-                                      end,
-                                      [ = ] __cuda_callable__( Index idx ) mutable
-                                      {
-                                         marksView[ idx - begin ] = marksFunction( idx );
-                                      } );
+   Algorithms::parallelFor< Device >(
+      begin,
+      end,
+      [ = ] __cuda_callable__( Index idx ) mutable
+      {
+         marksView[ idx - begin ] = marksFunction( idx );
+      } );
    return compress_impl( std::forward< OutputVector >( marksVector ), outputVector, begin );
 }
 

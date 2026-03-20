@@ -28,11 +28,12 @@ namespace TNL::Meshes {
  */
 template< typename ConfigTag, typename Device, typename Functor >
 void
-resolveMeshType( Functor&& functor,
-                 const std::string& fileName,
-                 const std::string& fileFormat = "auto",
-                 const std::string& realType = "auto",
-                 const std::string& globalIndexType = "auto" );
+resolveMeshType(
+   Functor&& functor,
+   const std::string& fileName,
+   const std::string& fileFormat = "auto",
+   const std::string& realType = "auto",
+   const std::string& globalIndexType = "auto" );
 
 /**
  * This function dues the same as \ref resolveMeshType, but also reuses the mesh
@@ -50,11 +51,12 @@ resolveMeshType( Functor&& functor,
  */
 template< typename ConfigTag, typename Device, typename Functor >
 void
-resolveAndLoadMesh( Functor&& functor,
-                    const std::string& fileName,
-                    const std::string& fileFormat = "auto",
-                    const std::string& realType = "auto",
-                    const std::string& globalIndexType = "auto" );
+resolveAndLoadMesh(
+   Functor&& functor,
+   const std::string& fileName,
+   const std::string& fileFormat = "auto",
+   const std::string& realType = "auto",
+   const std::string& globalIndexType = "auto" );
 
 /**
  * This function takes a file name and a mesh instance and attempts to load the

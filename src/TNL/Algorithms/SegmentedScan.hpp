@@ -12,12 +12,13 @@ namespace TNL::Algorithms {
 template< detail::ScanType Type >
 template< typename Vector, typename Reduction, typename Flags >
 void
-SegmentedScan< Devices::Sequential, Type >::perform( Vector& v,
-                                                     Flags& flags,
-                                                     typename Vector::IndexType begin,
-                                                     typename Vector::IndexType end,
-                                                     const Reduction& reduction,
-                                                     typename Vector::ValueType identity )
+SegmentedScan< Devices::Sequential, Type >::perform(
+   Vector& v,
+   Flags& flags,
+   typename Vector::IndexType begin,
+   typename Vector::IndexType end,
+   const Reduction& reduction,
+   typename Vector::ValueType identity )
 {
    using ValueType = typename Vector::ValueType;
    using IndexType = typename Vector::IndexType;
@@ -44,12 +45,13 @@ SegmentedScan< Devices::Sequential, Type >::perform( Vector& v,
 template< detail::ScanType Type >
 template< typename Vector, typename Reduction, typename Flags >
 void
-SegmentedScan< Devices::Host, Type >::perform( Vector& v,
-                                               Flags& flags,
-                                               typename Vector::IndexType begin,
-                                               typename Vector::IndexType end,
-                                               const Reduction& reduction,
-                                               typename Vector::ValueType identity )
+SegmentedScan< Devices::Host, Type >::perform(
+   Vector& v,
+   Flags& flags,
+   typename Vector::IndexType begin,
+   typename Vector::IndexType end,
+   const Reduction& reduction,
+   typename Vector::ValueType identity )
 {
 #ifdef HAVE_OPENMP
    // TODO: parallelize with OpenMP
@@ -62,12 +64,13 @@ SegmentedScan< Devices::Host, Type >::perform( Vector& v,
 template< detail::ScanType Type >
 template< typename Vector, typename Reduction, typename Flags >
 void
-SegmentedScan< Devices::Cuda, Type >::perform( Vector& v,
-                                               Flags& flags,
-                                               typename Vector::IndexType begin,
-                                               typename Vector::IndexType end,
-                                               const Reduction& reduction,
-                                               typename Vector::ValueType identity )
+SegmentedScan< Devices::Cuda, Type >::perform(
+   Vector& v,
+   Flags& flags,
+   typename Vector::IndexType begin,
+   typename Vector::IndexType end,
+   const Reduction& reduction,
+   typename Vector::ValueType identity )
 {
    throw Exceptions::NotImplementedError( "Segmented scan (prefix sum) is not implemented for CUDA." );
 }

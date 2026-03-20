@@ -13,8 +13,9 @@ template< typename MatrixType >
 void
 test_orthogonal( const MatrixType matrix )
 {
-   static_assert( MatrixType::getOrganization() == Algorithms::Segments::ColumnMajorOrder,
-                  "The input matrix must have the column-major order." );
+   static_assert(
+      MatrixType::getOrganization() == Algorithms::Segments::ColumnMajorOrder,
+      "The input matrix must have the column-major order." );
 
    using RealType = typename MatrixType::RealType;
    using DeviceType = typename MatrixType::DeviceType;

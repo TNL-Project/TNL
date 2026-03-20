@@ -13,11 +13,12 @@ class MeshFunctionEvaluatorTraverserUserData
 public:
    using InFunctionType = InFunction;
 
-   MeshFunctionEvaluatorTraverserUserData( const InFunction* function,
-                                           const Real& time,
-                                           OutMeshFunction* meshFunction,
-                                           const Real& outFunctionMultiplicator,
-                                           const Real& inFunctionMultiplicator )
+   MeshFunctionEvaluatorTraverserUserData(
+      const InFunction* function,
+      const Real& time,
+      OutMeshFunction* meshFunction,
+      const Real& outFunctionMultiplicator,
+      const Real& inFunctionMultiplicator )
    : meshFunction( meshFunction ),
      function( function ),
      time( time ),
@@ -42,8 +43,9 @@ public:
 template< typename OutMeshFunction, typename InFunction >
 class MeshFunctionEvaluator
 {
-   static_assert( OutMeshFunction::getDomainDimension() == InFunction::getDomainDimension(),
-                  "Input and output functions must have the same domain dimensions." );
+   static_assert(
+      OutMeshFunction::getDomainDimension() == InFunction::getDomainDimension(),
+      "Input and output functions must have the same domain dimensions." );
 
 public:
    using RealType = typename InFunction::RealType;
@@ -53,35 +55,39 @@ public:
 
    template< typename OutMeshFunctionPointer, typename InFunctionPointer >
    static void
-   evaluate( OutMeshFunctionPointer& meshFunction,
-             const InFunctionPointer& function,
-             const RealType& time = (RealType) 0.0,
-             const RealType& outFunctionMultiplicator = (RealType) 0.0,
-             const RealType& inFunctionMultiplicator = (RealType) 1.0 );
+   evaluate(
+      OutMeshFunctionPointer& meshFunction,
+      const InFunctionPointer& function,
+      const RealType& time = (RealType) 0.0,
+      const RealType& outFunctionMultiplicator = (RealType) 0.0,
+      const RealType& inFunctionMultiplicator = (RealType) 1.0 );
 
    template< typename OutMeshFunctionPointer, typename InFunctionPointer >
    static void
-   evaluateAllEntities( OutMeshFunctionPointer& meshFunction,
-                        const InFunctionPointer& function,
-                        const RealType& time = (RealType) 0.0,
-                        const RealType& outFunctionMultiplicator = (RealType) 0.0,
-                        const RealType& inFunctionMultiplicator = (RealType) 1.0 );
+   evaluateAllEntities(
+      OutMeshFunctionPointer& meshFunction,
+      const InFunctionPointer& function,
+      const RealType& time = (RealType) 0.0,
+      const RealType& outFunctionMultiplicator = (RealType) 0.0,
+      const RealType& inFunctionMultiplicator = (RealType) 1.0 );
 
    template< typename OutMeshFunctionPointer, typename InFunctionPointer >
    static void
-   evaluateInteriorEntities( OutMeshFunctionPointer& meshFunction,
-                             const InFunctionPointer& function,
-                             const RealType& time = (RealType) 0.0,
-                             const RealType& outFunctionMultiplicator = (RealType) 0.0,
-                             const RealType& inFunctionMultiplicator = (RealType) 1.0 );
+   evaluateInteriorEntities(
+      OutMeshFunctionPointer& meshFunction,
+      const InFunctionPointer& function,
+      const RealType& time = (RealType) 0.0,
+      const RealType& outFunctionMultiplicator = (RealType) 0.0,
+      const RealType& inFunctionMultiplicator = (RealType) 1.0 );
 
    template< typename OutMeshFunctionPointer, typename InFunctionPointer >
    static void
-   evaluateBoundaryEntities( OutMeshFunctionPointer& meshFunction,
-                             const InFunctionPointer& function,
-                             const RealType& time = (RealType) 0.0,
-                             const RealType& outFunctionMultiplicator = (RealType) 0.0,
-                             const RealType& inFunctionMultiplicator = (RealType) 1.0 );
+   evaluateBoundaryEntities(
+      OutMeshFunctionPointer& meshFunction,
+      const InFunctionPointer& function,
+      const RealType& time = (RealType) 0.0,
+      const RealType& outFunctionMultiplicator = (RealType) 0.0,
+      const RealType& inFunctionMultiplicator = (RealType) 1.0 );
 
 protected:
    enum EntitiesType : std::uint8_t
@@ -93,12 +99,13 @@ protected:
 
    template< typename OutMeshFunctionPointer, typename InFunctionPointer >
    static void
-   evaluateEntities( OutMeshFunctionPointer& meshFunction,
-                     const InFunctionPointer& function,
-                     const RealType& time,
-                     const RealType& outFunctionMultiplicator,
-                     const RealType& inFunctionMultiplicator,
-                     EntitiesType entitiesType );
+   evaluateEntities(
+      OutMeshFunctionPointer& meshFunction,
+      const InFunctionPointer& function,
+      const RealType& time,
+      const RealType& outFunctionMultiplicator,
+      const RealType& inFunctionMultiplicator,
+      EntitiesType entitiesType );
 };
 
 template< typename MeshType, typename UserData >

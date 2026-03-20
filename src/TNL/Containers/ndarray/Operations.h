@@ -14,15 +14,16 @@ template< typename Output, typename Func, typename... Input >
 void
 nd_map_view( Output output, Func f, const Input... input )
 {
-   static_assert( all_elements_equal_to_value( Output::getDimension(), { Input::getDimension()... } ),
-                  "all arrays must be of the same dimension" );
+   static_assert(
+      all_elements_equal_to_value( Output::getDimension(), { Input::getDimension()... } ),
+      "all arrays must be of the same dimension" );
 
    // without mutable, the operator() would be const so output would be const as well
    // https://stackoverflow.com/a/2835645/4180822
    auto wrapper = [ = ] __cuda_callable__( auto... indices ) mutable
    {
-      static_assert( sizeof...( indices ) == Output::getDimension(),
-                     "wrong number of indices passed to the wrapper lambda function" );
+      static_assert(
+         sizeof...( indices ) == Output::getDimension(), "wrong number of indices passed to the wrapper lambda function" );
       output( indices... ) = f( input( indices... )... );
    };
 
@@ -50,8 +51,8 @@ struct nvcc_map_helper_0
    void
    operator()( Ts... indices )
    {
-      static_assert( sizeof...( indices ) == Output::getDimension(),
-                     "wrong number of indices passed to the wrapper operator() function" );
+      static_assert(
+         sizeof...( indices ) == Output::getDimension(), "wrong number of indices passed to the wrapper operator() function" );
       output( indices... ) = f();
    }
 };
@@ -74,8 +75,8 @@ struct nvcc_map_helper_1
    void
    operator()( Ts... indices )
    {
-      static_assert( sizeof...( indices ) == Output::getDimension(),
-                     "wrong number of indices passed to the wrapper operator() function" );
+      static_assert(
+         sizeof...( indices ) == Output::getDimension(), "wrong number of indices passed to the wrapper operator() function" );
       output( indices... ) = f( input1( indices... ) );
    }
 };
@@ -100,8 +101,8 @@ struct nvcc_map_helper_2
    void
    operator()( Ts... indices )
    {
-      static_assert( sizeof...( indices ) == Output::getDimension(),
-                     "wrong number of indices passed to the wrapper operator() function" );
+      static_assert(
+         sizeof...( indices ) == Output::getDimension(), "wrong number of indices passed to the wrapper operator() function" );
       output( indices... ) = f( input1( indices... ), input2( indices... ) );
    }
 };
@@ -128,8 +129,8 @@ struct nvcc_map_helper_3
    void
    operator()( Ts... indices )
    {
-      static_assert( sizeof...( indices ) == Output::getDimension(),
-                     "wrong number of indices passed to the wrapper operator() function" );
+      static_assert(
+         sizeof...( indices ) == Output::getDimension(), "wrong number of indices passed to the wrapper operator() function" );
       output( indices... ) = f( input1( indices... ), input2( indices... ), input3( indices... ) );
    }
 };
@@ -149,8 +150,9 @@ template< typename Output, typename Func, typename Input1 >
 void
 nd_map_view( Output output, Func f, const Input1 input1 )
 {
-   static_assert( all_elements_equal_to_value( Output::getDimension(), { Input1::getDimension() } ),
-                  "all arrays must be of the same dimension" );
+   static_assert(
+      all_elements_equal_to_value( Output::getDimension(), { Input1::getDimension() } ),
+      "all arrays must be of the same dimension" );
 
    nvcc_map_helper_1< Output, Func, Input1 > wrapper( output, f, input1 );
    ExecutorDispatcher< typename Output::PermutationType, typename Output::DeviceType > dispatch;
@@ -163,8 +165,9 @@ template< typename Output, typename Func, typename Input1, typename Input2 >
 void
 nd_map_view( Output output, Func f, const Input1 input1, const Input2 input2 )
 {
-   static_assert( all_elements_equal_to_value( Output::getDimension(), { Input1::getDimension(), Input2::getDimension() } ),
-                  "all arrays must be of the same dimension" );
+   static_assert(
+      all_elements_equal_to_value( Output::getDimension(), { Input1::getDimension(), Input2::getDimension() } ),
+      "all arrays must be of the same dimension" );
 
    nvcc_map_helper_2< Output, Func, Input1, Input2 > wrapper( output, f, input1, input2 );
    ExecutorDispatcher< typename Output::PermutationType, typename Output::DeviceType > dispatch;
@@ -177,9 +180,10 @@ template< typename Output, typename Func, typename Input1, typename Input2, type
 void
 nd_map_view( Output output, Func f, const Input1 input1, const Input2 input2, const Input3 input3 )
 {
-   static_assert( all_elements_equal_to_value( Output::getDimension(),
-                                               { Input1::getDimension(), Input2::getDimension(), Input3::getDimension() } ),
-                  "all arrays must be of the same dimension" );
+   static_assert(
+      all_elements_equal_to_value(
+         Output::getDimension(), { Input1::getDimension(), Input2::getDimension(), Input3::getDimension() } ),
+      "all arrays must be of the same dimension" );
 
    nvcc_map_helper_3< Output, Func, Input1, Input2, Input3 > wrapper( output, f, input1, input2, input3 );
    ExecutorDispatcher< typename Output::PermutationType, typename Output::DeviceType > dispatch;

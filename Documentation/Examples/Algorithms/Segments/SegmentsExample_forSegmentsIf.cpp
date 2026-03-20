@@ -26,11 +26,12 @@ SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   TNL::Algorithms::Segments::forAllElements( segments,
-                                              [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-                                              {
-                                                 data_view[ globalIdx ] = localIdx + 1;
-                                              } );
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+      {
+         data_view[ globalIdx ] = localIdx + 1;
+      } );
 
    /***
     * Print the data by the segments.

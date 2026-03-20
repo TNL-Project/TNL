@@ -19,13 +19,13 @@ protected:
    using DeviceType = typename AdjacencyMatrixType::DeviceType;
    using IndexType = typename AdjacencyMatrixType::IndexType;
 
-   using DirectedGraphType =
-      TNL::Graphs::Graph< ValueType,
-                          DeviceType,
-                          IndexType,
-                          TNL::Graphs::DirectedGraph,
-                          TNL::Algorithms::Segments::CSR,  // this parameter is ignored for dense matrices
-                          AdjacencyMatrixType >;
+   using DirectedGraphType = TNL::Graphs::Graph<
+      ValueType,
+      DeviceType,
+      IndexType,
+      TNL::Graphs::DirectedGraph,
+      TNL::Algorithms::Segments::CSR,  // this parameter is ignored for dense matrices
+      AdjacencyMatrixType >;
 };
 
 // Types for which DenseGraphReductionTest is instantiated
@@ -180,12 +180,13 @@ struct StoreIntoVectorWithArgument
    // For array-based reductions with emptySegment (6 parameters)
    __cuda_callable__
    void
-   operator()( IndexType indexOfVertexIdx,
-               IndexType vertexIdx,
-               IndexType localIdx,
-               IndexType columnIdx,
-               const ValueType& value,
-               bool emptySegment ) const
+   operator()(
+      IndexType indexOfVertexIdx,
+      IndexType vertexIdx,
+      IndexType localIdx,
+      IndexType columnIdx,
+      const ValueType& value,
+      bool emptySegment ) const
    {
       valueView[ vertexIdx ] = value;
       if( ! emptySegment )

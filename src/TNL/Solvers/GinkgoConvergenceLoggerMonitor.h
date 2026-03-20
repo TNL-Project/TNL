@@ -21,31 +21,35 @@ private:
    IterativeSolverMonitor< ValueType >* solver_monitor = nullptr;
 
 public:
-   GinkgoConvergenceLoggerMonitor( std::shared_ptr< const gko::Executor > exec,
-                                   const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
-                                   IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
+   GinkgoConvergenceLoggerMonitor(
+      std::shared_ptr< const gko::Executor > exec,
+      const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
+      IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
    : gko::log::Convergence< ValueType >( exec, enabled_events ),
      solver_monitor( solver_monitor )
    {}
 
-   GinkgoConvergenceLoggerMonitor( const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
-                                   IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
+   GinkgoConvergenceLoggerMonitor(
+      const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
+      IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
    : gko::log::Convergence< ValueType >( enabled_events ),
      solver_monitor( solver_monitor )
    {}
 
    static std::unique_ptr< GinkgoConvergenceLoggerMonitor >
-   create( std::shared_ptr< const gko::Executor > exec,
-           const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
-           IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
+   create(
+      std::shared_ptr< const gko::Executor > exec,
+      const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
+      IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
    {
       return std::unique_ptr< GinkgoConvergenceLoggerMonitor >(
          new GinkgoConvergenceLoggerMonitor( exec, enabled_events, solver_monitor ) );
    }
 
    static std::unique_ptr< GinkgoConvergenceLoggerMonitor >
-   create( const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
-           IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
+   create(
+      const gko::log::Logger::mask_type& enabled_events = gko::log::Logger::all_events_mask,
+      IterativeSolverMonitor< ValueType >* solver_monitor = nullptr )
    {
       return std::unique_ptr< GinkgoConvergenceLoggerMonitor >(
          new GinkgoConvergenceLoggerMonitor( enabled_events, solver_monitor ) );
@@ -58,30 +62,32 @@ public:
    }
 
    void
-   on_criterion_check_completed( const gko::stop::Criterion* criterion,
-                                 const gko::size_type& num_iterations,
-                                 const gko::LinOp* r,
-                                 const gko::LinOp* tau,
-                                 const gko::LinOp* implicit_tau_sq,
-                                 const gko::LinOp* x,
-                                 const gko::uint8& stopping_id,
-                                 const bool& set_finalized,
-                                 const gko::array< gko::stopping_status >* status,
-                                 const bool& one_changed,
-                                 const bool& all_converged ) const override
+   on_criterion_check_completed(
+      const gko::stop::Criterion* criterion,
+      const gko::size_type& num_iterations,
+      const gko::LinOp* r,
+      const gko::LinOp* tau,
+      const gko::LinOp* implicit_tau_sq,
+      const gko::LinOp* x,
+      const gko::uint8& stopping_id,
+      const bool& set_finalized,
+      const gko::array< gko::stopping_status >* status,
+      const bool& one_changed,
+      const bool& all_converged ) const override
    {
       // call the parent implementation
-      gko::log::Convergence< ValueType >::on_criterion_check_completed( criterion,
-                                                                        num_iterations,
-                                                                        r,
-                                                                        tau,
-                                                                        implicit_tau_sq,
-                                                                        x,
-                                                                        stopping_id,
-                                                                        set_finalized,
-                                                                        status,
-                                                                        one_changed,
-                                                                        all_converged );
+      gko::log::Convergence< ValueType >::on_criterion_check_completed(
+         criterion,
+         num_iterations,
+         r,
+         tau,
+         implicit_tau_sq,
+         x,
+         stopping_id,
+         set_finalized,
+         status,
+         one_changed,
+         all_converged );
 
       if( ! solver_monitor )
          return;
@@ -107,16 +113,17 @@ public:
    }
 
    void
-   on_criterion_check_completed( const gko::stop::Criterion* criterion,
-                                 const gko::size_type& num_iterations,
-                                 const gko::LinOp* r,
-                                 const gko::LinOp* tau,
-                                 const gko::LinOp* x,
-                                 const gko::uint8& stopping_id,
-                                 const bool& set_finalized,
-                                 const gko::array< gko::stopping_status >* status,
-                                 const bool& one_changed,
-                                 const bool& all_converged ) const override
+   on_criterion_check_completed(
+      const gko::stop::Criterion* criterion,
+      const gko::size_type& num_iterations,
+      const gko::LinOp* r,
+      const gko::LinOp* tau,
+      const gko::LinOp* x,
+      const gko::uint8& stopping_id,
+      const bool& set_finalized,
+      const gko::array< gko::stopping_status >* status,
+      const bool& one_changed,
+      const bool& all_converged ) const override
    {
       // call the parent implementation
       gko::log::Convergence< ValueType >::on_criterion_check_completed(

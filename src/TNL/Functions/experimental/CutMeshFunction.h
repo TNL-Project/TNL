@@ -7,19 +7,21 @@
 
 namespace TNL::Functions::experimental {
 
-template< typename MeshFunctionType,
-          typename OutMesh,
-          typename OutDof,
-          int outDimension = OutMesh::getMeshDimension(),
-          int codimension = MeshFunctionType::getMeshDimension() - OutMesh::getMeshDimension() >
+template<
+   typename MeshFunctionType,
+   typename OutMesh,
+   typename OutDof,
+   int outDimension = OutMesh::getMeshDimension(),
+   int codimension = MeshFunctionType::getMeshDimension() - OutMesh::getMeshDimension() >
 class CutMeshFunction
 {
    template< typename Index, typename Function, typename... FunctionArgs, int dim >
    static void
-   staticVectorFor( const Containers::StaticVector< dim, Index >& begin,
-                    const Containers::StaticVector< dim, Index >& end,
-                    Function f,
-                    FunctionArgs... args )
+   staticVectorFor(
+      const Containers::StaticVector< dim, Index >& begin,
+      const Containers::StaticVector< dim, Index >& end,
+      Function f,
+      FunctionArgs... args )
    {
       static_assert( 1 <= dim && dim <= 3, "unsupported dimension" );
       Containers::StaticVector< dim, Index > index;
@@ -45,12 +47,13 @@ class CutMeshFunction
 
 public:
    static bool
-   Cut( MeshFunctionType& inputMeshFunction,
-        OutMesh& outMesh,
-        OutDof& outData,
-        Containers::StaticVector< outDimension, int > savedDimensions,
-        Containers::StaticVector< codimension, int > reducedDimensions,
-        Containers::StaticVector< codimension, typename MeshFunctionType::IndexType > fixedIndexes )
+   Cut(
+      MeshFunctionType& inputMeshFunction,
+      OutMesh& outMesh,
+      OutDof& outData,
+      Containers::StaticVector< outDimension, int > savedDimensions,
+      Containers::StaticVector< codimension, int > reducedDimensions,
+      Containers::StaticVector< codimension, typename MeshFunctionType::IndexType > fixedIndexes )
    {
       bool inCut;
       Containers::StaticVector< codimension, typename MeshFunctionType::IndexType > localFixedIndexes;

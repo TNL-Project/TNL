@@ -112,9 +112,9 @@ protected:
       // skip the check for too small arrays
       if( check_cuda_grids && array.getLocalRange().getSize() > 256 ) {
          // we don't care which kernel launcher was actually used
-         const auto gridsCount =
-            TNL::max( CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
-                      CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
+         const auto gridsCount = TNL::max(
+            CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInFirstPhase, ValueType >::gridsCount(),
+            CudaScanKernelLauncher< ScanType, ScanPhaseType::WriteInSecondPhase, ValueType >::gridsCount() );
          EXPECT_GT( gridsCount, 1 );
       }
 #endif

@@ -39,7 +39,8 @@ struct LaunchConfigurationsSetup< TNL::Algorithms::Segments::CSR< Device, Index,
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 1 ), "BlockMerged 1 TPS" },
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 2 ), "BlockMerged 2 TPS" },
             { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 4 ), "BlockMerged 4 TPS" },
-            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 8 ), "BlockMerged 8 TPS" }
+            { LaunchConfiguration( TNL::Algorithms::Segments::ThreadsToSegmentsMapping::BlockMerged, 8 ),
+              "BlockMerged 8 TPS" }
          };
    }
 };

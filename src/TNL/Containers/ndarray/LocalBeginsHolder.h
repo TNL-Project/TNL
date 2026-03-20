@@ -8,9 +8,10 @@
 namespace TNL::Containers {
 
 // wrapper for localBegins in DistributedNDArray (static sizes cannot be distributed, begins are always 0)
-template< typename SizesHolder,
-          // overridable value is useful in the forInterior method
-          std::size_t ConstValue = 0 >
+template<
+   typename SizesHolder,
+   // overridable value is useful in the forInterior method
+   std::size_t ConstValue = 0 >
 struct LocalBeginsHolder : public SizesHolder
 {
    template< std::size_t dimension >
@@ -40,9 +41,10 @@ struct LocalBeginsHolder : public SizesHolder
       if constexpr( SizesHolder::template getStaticSize< level >() == 0 )
          SizesHolder::template setSize< level >( newSize );
       else
-         TNL_ASSERT_EQ( newSize,
-                        (typename SizesHolder::IndexType) ConstValue,
-                        "Dynamic size for a static dimension must be equal to the specified ConstValue." );
+         TNL_ASSERT_EQ(
+            newSize,
+            (typename SizesHolder::IndexType) ConstValue,
+            "Dynamic size for a static dimension must be equal to the specified ConstValue." );
    }
 };
 

@@ -92,35 +92,37 @@ cublasGscal( cublasHandle_t handle, int n, const double* alpha, double* x, int i
 }
 
 inline cublasStatus_t
-cublasGemv( cublasHandle_t handle,
-            cublasOperation_t trans,
-            int m,
-            int n,
-            const float* alpha,
-            const float* A,
-            int lda,
-            const float* x,
-            int incx,
-            const float* beta,
-            float* y,
-            int incy )
+cublasGemv(
+   cublasHandle_t handle,
+   cublasOperation_t trans,
+   int m,
+   int n,
+   const float* alpha,
+   const float* A,
+   int lda,
+   const float* x,
+   int incx,
+   const float* beta,
+   float* y,
+   int incy )
 {
    return cublasSgemv( handle, trans, m, n, alpha, A, lda, x, incx, beta, y, incy );
 }
 
 inline cublasStatus_t
-cublasGemv( cublasHandle_t handle,
-            cublasOperation_t trans,
-            int m,
-            int n,
-            const double* alpha,
-            const double* A,
-            int lda,
-            const double* x,
-            int incx,
-            const double* beta,
-            double* y,
-            int incy )
+cublasGemv(
+   cublasHandle_t handle,
+   cublasOperation_t trans,
+   int m,
+   int n,
+   const double* alpha,
+   const double* A,
+   int lda,
+   const double* x,
+   int incx,
+   const double* beta,
+   double* y,
+   int incy )
 {
    return cublasDgemv( handle, trans, m, n, alpha, A, lda, x, incx, beta, y, incy );
 }

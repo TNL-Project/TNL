@@ -7,12 +7,13 @@
 
 namespace TNL::Matrices {
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename > class SegmentsView,
+   typename ComputeReal >
 __cuda_callable__
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::SparseMatrixView(
    Index rows,
@@ -23,12 +24,13 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 : Base( rows, columns, std::move( values ), std::move( columnIndexes ), std::move( segments ) )
 {}
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename > class SegmentsView,
+   typename ComputeReal >
 __cuda_callable__
 void
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::bind( SparseMatrixView& view )
@@ -36,12 +38,13 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    Base::bind( view.getRows(), view.getColumns(), view.getValues(), view.getColumnIndexes(), view.getSegments() );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename > class SegmentsView,
+   typename ComputeReal >
 __cuda_callable__
 void
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::bind( SparseMatrixView&& view )
@@ -49,12 +52,13 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
    Base::bind( view.getRows(), view.getColumns(), view.getValues(), view.getColumnIndexes(), view.getSegments() );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename > class SegmentsView,
+   typename ComputeReal >
 __cuda_callable__
 auto
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getView() -> ViewType
@@ -66,12 +70,13 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             this->getSegments().getView() };
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename > class SegmentsView,
+   typename ComputeReal >
 __cuda_callable__
 auto
 SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getConstView() const -> ConstViewType
@@ -83,43 +88,46 @@ SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
             this->getSegments().getConstView() };
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename > class SegmentsView,
+   typename ComputeReal >
 File&
 operator>>( File& file, SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix )
 {
    const std::string type = getObjectType( file );
    if( type != matrix.getSerializationType() )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "object type does not match (expected " + matrix.getSerializationType()
-                                                     + ", found " + type + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "object type does not match (expected " + matrix.getSerializationType() + ", found " + type + ")." );
    std::size_t rows = 0;
    std::size_t columns = 0;
    file.load( &rows );
    file.load( &columns );
    if( rows != static_cast< std::size_t >( matrix.getRows() ) )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "invalid number of rows: " + std::to_string( rows ) + " (expected "
-                                                     + std::to_string( matrix.getRows() ) + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "invalid number of rows: " + std::to_string( rows ) + " (expected " + std::to_string( matrix.getRows() ) + ")." );
    if( columns != static_cast< std::size_t >( matrix.getColumns() ) )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "invalid number of columns: " + std::to_string( columns ) + " (expected "
-                                                     + std::to_string( matrix.getColumns() ) + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "invalid number of columns: " + std::to_string( columns ) + " (expected " + std::to_string( matrix.getColumns() )
+            + ")." );
    matrix.getSegments().load( file );
    file >> matrix.getValues() >> matrix.getColumnIndexes();
    return file;
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename > class SegmentsView,
+   typename ComputeReal >
 File&
 operator>>( File&& file, SparseMatrixView< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >& matrix )
 {

@@ -261,11 +261,12 @@ test_reduceRowsWithArgument()
          aIdx = bIdx;
       }
    };
-   auto store = [ = ] __cuda_callable__( const IndexType rowIdx,
-                                         const IndexType localIdx,
-                                         const IndexType columnIdx,
-                                         const RealType& value,
-                                         bool emptyRow ) mutable
+   auto store = [ = ] __cuda_callable__(
+                   const IndexType rowIdx,
+                   const IndexType localIdx,
+                   const IndexType columnIdx,
+                   const RealType& value,
+                   bool emptyRow ) mutable
    {
       maxValues_view[ rowIdx ] = value;
       if( ! emptyRow )
@@ -274,12 +275,13 @@ test_reduceRowsWithArgument()
       //else
       //   maxColumns_view[ rowIdx ] = 0;
    };
-   auto storeWithRowIndexes = [ = ] __cuda_callable__( const IndexType indexOfRowIdx,
-                                                       const IndexType rowIdx,
-                                                       const IndexType localIdx,
-                                                       const IndexType columnIdx,
-                                                       const RealType& value,
-                                                       bool emptyRow ) mutable
+   auto storeWithRowIndexes = [ = ] __cuda_callable__(
+                                 const IndexType indexOfRowIdx,
+                                 const IndexType rowIdx,
+                                 const IndexType localIdx,
+                                 const IndexType columnIdx,
+                                 const RealType& value,
+                                 bool emptyRow ) mutable
    {
       maxValues_view[ rowIdx ] = value;
       if( ! emptyRow )
@@ -412,12 +414,13 @@ test_reduceRowsWithArgumentIf()
          aIdx = bIdx;
       }
    };
-   auto store = [ = ] __cuda_callable__( const IndexType indexOfRowIdx,
-                                         const IndexType rowIdx,
-                                         const IndexType localIdx,
-                                         const IndexType columnIdx,
-                                         const RealType& value,
-                                         bool emptyRow ) mutable
+   auto store = [ = ] __cuda_callable__(
+                   const IndexType indexOfRowIdx,
+                   const IndexType rowIdx,
+                   const IndexType localIdx,
+                   const IndexType columnIdx,
+                   const RealType& value,
+                   bool emptyRow ) mutable
    {
       maxValues_view[ rowIdx ] = value;
       if( ! emptyRow )
@@ -494,10 +497,11 @@ TYPED_TEST_P( MatrixReduceTest, reduceRowsWithArgumentIfTest )
    test_reduceRowsWithArgumentIf< typename TestFixture::MatrixType_ >();
 }
 
-REGISTER_TYPED_TEST_SUITE_P( MatrixReduceTest,
-                             reduceRowsTest,
-                             reduceRowsIfTest,
-                             reduceRowsWithArgumentTest,
-                             reduceRowsWithArgumentIfTest );
+REGISTER_TYPED_TEST_SUITE_P(
+   MatrixReduceTest,
+   reduceRowsTest,
+   reduceRowsIfTest,
+   reduceRowsWithArgumentTest,
+   reduceRowsWithArgumentIfTest );
 
 #include "../../main.h"

@@ -29,10 +29,11 @@ resolveDistributedMeshType( Functor&& functor, const std::string& fileName, cons
 
 template< typename ConfigTag, typename Device, typename Functor >
 void
-resolveAndLoadDistributedMesh( Functor&& functor,
-                               const std::string& fileName,
-                               const std::string& fileFormat,
-                               const MPI::Comm& communicator )
+resolveAndLoadDistributedMesh(
+   Functor&& functor,
+   const std::string& fileName,
+   const std::string& fileFormat,
+   const MPI::Comm& communicator )
 {
    auto wrapper = [ & ]( Readers::MeshReader& reader, auto&& mesh )
    {
@@ -64,10 +65,11 @@ resolveAndLoadDistributedMesh( Functor&& functor,
 
 template< typename Mesh >
 void
-loadDistributedMesh( DistributedMeshes::DistributedMesh< Mesh >& distributedMesh,
-                     const std::string& fileName,
-                     const std::string& fileFormat,
-                     const MPI::Comm& communicator )
+loadDistributedMesh(
+   DistributedMeshes::DistributedMesh< Mesh >& distributedMesh,
+   const std::string& fileName,
+   const std::string& fileFormat,
+   const MPI::Comm& communicator )
 {
    namespace fs = std::filesystem;
    std::string format = fileFormat;
@@ -88,11 +90,12 @@ loadDistributedMesh( DistributedMeshes::DistributedMesh< Mesh >& distributedMesh
    }
    else {
       if( fileFormat == "auto" )
-         throw std::runtime_error( "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
-                                   + ". Supported formats are 'pvtu' and 'pvti'." );
+         throw std::runtime_error(
+            "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
+            + ". Supported formats are 'pvtu' and 'pvti'." );
       else
-         throw std::invalid_argument( "Invalid fileFormat parameter: '" + fileFormat
-                                      + "'. Supported formats are 'pvtu' and 'pvti'." );
+         throw std::invalid_argument(
+            "Invalid fileFormat parameter: '" + fileFormat + "'. Supported formats are 'pvtu' and 'pvti'." );
    }
 }
 

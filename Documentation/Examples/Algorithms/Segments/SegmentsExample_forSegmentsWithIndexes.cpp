@@ -26,11 +26,12 @@ SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   TNL::Algorithms::Segments::forAllElements( segments,
-                                              [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-                                              {
-                                                 data_view[ globalIdx ] = localIdx + 1;
-                                              } );
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+      {
+         data_view[ globalIdx ] = localIdx + 1;
+      } );
 
    /***
     * Print the data by the segments.
@@ -52,17 +53,18 @@ SegmentsExample()
     * Compute cumulative sums in particular segments.
     */
    using SegmentViewType = typename Segments::SegmentViewType;
-   TNL::Algorithms::Segments::forSegments( segments,
-                                           segmentIndexes,
-                                           [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
-                                           {
-                                              double sum( 0.0 );
-                                              for( auto element : segment )
-                                                 if( element.localIndex() <= element.segmentIndex() ) {
-                                                    sum += element.localIndex() + 1;
-                                                    data_view[ element.globalIndex() ] = sum;
-                                                 }
-                                           } );
+   TNL::Algorithms::Segments::forSegments(
+      segments,
+      segmentIndexes,
+      [ = ] __cuda_callable__( const SegmentViewType& segment ) mutable
+      {
+         double sum( 0.0 );
+         for( auto element : segment )
+            if( element.localIndex() <= element.segmentIndex() ) {
+               sum += element.localIndex() + 1;
+               data_view[ element.globalIndex() ] = sum;
+            }
+      } );
    //! [traversing]
 
    /***

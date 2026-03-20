@@ -447,17 +447,18 @@ test_forRows_WithIndexArray()
    IndexVectorType rowSums( 5, 0 );
    auto rowSumsView = rowSums.getView();
 
-   TNL::Matrices::forRows( view,
-                           rowIndexes.getView(),
-                           0,
-                           3,
-                           [ = ] __cuda_callable__( RowView & row ) mutable
-                           {
-                              RealType sum = 0;
-                              for( IndexType i = 0; i < row.getSize(); i++ )
-                                 sum += row.getValue( i );
-                              rowSumsView[ row.getRowIndex() ] = sum;
-                           } );
+   TNL::Matrices::forRows(
+      view,
+      rowIndexes.getView(),
+      0,
+      3,
+      [ = ] __cuda_callable__( RowView & row ) mutable
+      {
+         RealType sum = 0;
+         for( IndexType i = 0; i < row.getSize(); i++ )
+            sum += row.getValue( i );
+         rowSumsView[ row.getRowIndex() ] = sum;
+      } );
 
    EXPECT_EQ( rowSums.getElement( 0 ), 1 );
    EXPECT_EQ( rowSums.getElement( 1 ), 0 );  // not processed
@@ -470,15 +471,15 @@ test_forRows_WithIndexArray()
    IndexVectorType counter( 1, 0 );
    auto counterView = counter.getView();
 
-   TNL::Matrices::forRows( constView,
-                           rowIndexes.getView(),
-                           0,
-                           2,
-                           [ = ] __cuda_callable__( const ConstRowView& row ) mutable
-                           {
-                              TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( counterView[ 0 ],
-                                                                                                         (IndexType) 1 );
-                           } );
+   TNL::Matrices::forRows(
+      constView,
+      rowIndexes.getView(),
+      0,
+      2,
+      [ = ] __cuda_callable__( const ConstRowView& row ) mutable
+      {
+         TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( counterView[ 0 ], (IndexType) 1 );
+      } );
 
    EXPECT_EQ( counter.getElement( 0 ), 2 );
 }
@@ -505,25 +506,25 @@ test_forRows_WithFullIndexArray()
    IndexVectorType counter( 1, 0 );
    auto counterView = counter.getView();
 
-   TNL::Matrices::forRows( view,
-                           rowIndexes.getView(),
-                           [ = ] __cuda_callable__( RowView & row ) mutable
-                           {
-                              TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( counterView[ 0 ],
-                                                                                                         (IndexType) 1 );
-                           } );
+   TNL::Matrices::forRows(
+      view,
+      rowIndexes.getView(),
+      [ = ] __cuda_callable__( RowView & row ) mutable
+      {
+         TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( counterView[ 0 ], (IndexType) 1 );
+      } );
 
    EXPECT_EQ( counter.getElement( 0 ), 2 );
 
    const auto constView = view;
    counter = 0;
-   TNL::Matrices::forRows( constView,
-                           rowIndexes.getView(),
-                           [ = ] __cuda_callable__( const ConstRowView& row ) mutable
-                           {
-                              TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( counterView[ 0 ],
-                                                                                                         (IndexType) 1 );
-                           } );
+   TNL::Matrices::forRows(
+      constView,
+      rowIndexes.getView(),
+      [ = ] __cuda_callable__( const ConstRowView& row ) mutable
+      {
+         TNL::Algorithms::AtomicOperations< typename MatrixType::DeviceType >::add( counterView[ 0 ], (IndexType) 1 );
+      } );
 
    EXPECT_EQ( counter.getElement( 0 ), 2 );
 }
@@ -720,17 +721,18 @@ TYPED_TEST_P( MatrixTraverseTest, forAllRowsIfTest )
    test_forAllRowsIf< typename TestFixture::MatrixType >();
 }
 
-REGISTER_TYPED_TEST_SUITE_P( MatrixTraverseTest,
-                             forElements_RangeTest,
-                             forAllElementsTest,
-                             forElements_WithIndexArrayTest,
-                             forElements_WithFullIndexArrayTest,
-                             forElementsIfTest,
-                             forAllElementsIfTest,
-                             forRowsTest,
-                             forRows_WithIndexArrayTest,
-                             forRows_WithFullIndexArrayTest,
-                             forRowsIfTest,
-                             forAllRowsIfTest );
+REGISTER_TYPED_TEST_SUITE_P(
+   MatrixTraverseTest,
+   forElements_RangeTest,
+   forAllElementsTest,
+   forElements_WithIndexArrayTest,
+   forElements_WithFullIndexArrayTest,
+   forElementsIfTest,
+   forAllElementsIfTest,
+   forRowsTest,
+   forRows_WithIndexArrayTest,
+   forRows_WithFullIndexArrayTest,
+   forRowsIfTest,
+   forAllRowsIfTest );
 
 #include "../../main.h"

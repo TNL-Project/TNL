@@ -22,11 +22,12 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElementsSequential( const ConstViewType& segments,
-                          IndexBegin begin,
-                          IndexEnd end,
-                          Function&& function,
-                          const LaunchConfiguration& launchConfig )
+   forElementsSequential(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      const LaunchConfiguration& launchConfig )
    {
       const auto offsetsView = segments.getOffsets();
       auto l = [ offsetsView, function ] __cuda_callable__( IndexType segmentIdx ) mutable
@@ -49,11 +50,12 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstViewType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                LaunchConfiguration launchConfig )
+   forElements(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       if( end <= begin )
          return;
@@ -87,15 +89,16 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   };
                   constexpr auto kernel =
                      forElementsIfKernel_CSR< ConstOffsetsView, IndexType, decltype( condition ), Function >;
-                  Backend::launchKernelAsync( kernel,
-                                              launchConfig,
-                                              gridIdx,
-                                              launchConfig.getThreadsPerSegmentCount(),
-                                              segments.getOffsets(),
-                                              begin,
-                                              end,
-                                              condition,
-                                              function );
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launchConfig,
+                     gridIdx,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments.getOffsets(),
+                     begin,
+                     end,
+                     condition,
+                     function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
                   constexpr auto kernel = forElementsBlockMergeKernel_CSR< ConstOffsetsView, IndexType, Function >;
@@ -118,10 +121,11 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
 
    template< typename Array, typename Function >
    static void
-   forElementsSequential( const ConstViewType& segments,
-                          const Array& segmentIndexes,
-                          Function&& function,
-                          LaunchConfiguration launchConfig )
+   forElementsSequential(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       auto segmentIndexesView = segmentIndexes.getConstView();
       auto l = [ segmentIndexesView, function, segments ] __cuda_callable__( IndexType idx ) mutable
@@ -129,9 +133,10 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
          TNL_ASSERT_LT( idx, segmentIndexesView.getSize(), "" );
          const IndexType segmentIdx = segmentIndexesView[ idx ];
          TNL_ASSERT_GE( segmentIdx, 0, "Wrong index of segment index - smaller that 0." );
-         TNL_ASSERT_LT( segmentIdx,
-                        segments.getOffsets().getSize() - 1,
-                        "Wrong index of segment index - larger that the number of indexes." );
+         TNL_ASSERT_LT(
+            segmentIdx,
+            segments.getOffsets().getSize() - 1,
+            "Wrong index of segment index - larger that the number of indexes." );
          const IndexType begin = segments.getOffsets()[ segmentIdx ];
          const IndexType end = segments.getOffsets()[ segmentIdx + 1 ];
          if constexpr( callableArgumentCount< Function >() == 3 ) {
@@ -153,10 +158,11 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
 
    template< typename Array, typename Function >
    static void
-   forElements( const ConstViewType& segments,
-                const Array& segmentIndexes,
-                Function&& function,
-                LaunchConfiguration launchConfig )
+   forElements(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       if( segmentIndexes.getSize() == 0 )
          return;
@@ -187,30 +193,31 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launchConfig.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-                  constexpr auto kernel =
-                     detail::forElementsWithSegmentIndexesKernel_CSR< ConstOffsetsView,
-                                                                      typename Array::ConstViewType,
-                                                                      IndexType,
-                                                                      std::remove_reference_t< Function > >;
-                  Backend::launchKernelAsync( kernel,
-                                              launchConfig,
-                                              gridIdx,
-                                              launchConfig.getThreadsPerSegmentCount(),
-                                              segments.getOffsets(),
-                                              segmentIndexesView,
-                                              function );
+                  constexpr auto kernel = detail::forElementsWithSegmentIndexesKernel_CSR<
+                     ConstOffsetsView,
+                     typename Array::ConstViewType,
+                     IndexType,
+                     std::remove_reference_t< Function > >;
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launchConfig,
+                     gridIdx,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments.getOffsets(),
+                     segmentIndexesView,
+                     function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 1:
                         {
                            constexpr int SegmentsPerBlock = 256;
-                           constexpr auto kernel =
-                              detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR< ConstOffsetsView,
-                                                                                         typename Array::ConstViewType,
-                                                                                         IndexType,
-                                                                                         std::remove_reference_t< Function >,
-                                                                                         SegmentsPerBlock >;
+                           constexpr auto kernel = detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR<
+                              ConstOffsetsView,
+                              typename Array::ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Function >,
+                              SegmentsPerBlock >;
                            Backend::launchKernelAsync(
                               kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
                            break;
@@ -218,12 +225,12 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      case 2:
                         {
                            constexpr int SegmentsPerBlock = 128;
-                           constexpr auto kernel =
-                              detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR< ConstOffsetsView,
-                                                                                         typename Array::ConstViewType,
-                                                                                         IndexType,
-                                                                                         std::remove_reference_t< Function >,
-                                                                                         SegmentsPerBlock >;
+                           constexpr auto kernel = detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR<
+                              ConstOffsetsView,
+                              typename Array::ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Function >,
+                              SegmentsPerBlock >;
                            Backend::launchKernelAsync(
                               kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
                            break;
@@ -231,12 +238,12 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      case 4:
                         {
                            constexpr int SegmentsPerBlock = 64;
-                           constexpr auto kernel =
-                              detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR< ConstOffsetsView,
-                                                                                         typename Array::ConstViewType,
-                                                                                         IndexType,
-                                                                                         std::remove_reference_t< Function >,
-                                                                                         SegmentsPerBlock >;
+                           constexpr auto kernel = detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR<
+                              ConstOffsetsView,
+                              typename Array::ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Function >,
+                              SegmentsPerBlock >;
                            Backend::launchKernelAsync(
                               kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
                            break;
@@ -244,12 +251,12 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                      case 8:
                         {
                            constexpr int SegmentsPerBlock = 32;
-                           constexpr auto kernel =
-                              detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR< ConstOffsetsView,
-                                                                                         typename Array::ConstViewType,
-                                                                                         IndexType,
-                                                                                         std::remove_reference_t< Function >,
-                                                                                         SegmentsPerBlock >;
+                           constexpr auto kernel = detail::forElementsWithSegmentIndexesBlockMergeKernel_CSR<
+                              ConstOffsetsView,
+                              typename Array::ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Function >,
+                              SegmentsPerBlock >;
                            Backend::launchKernelAsync(
                               kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
                            break;
@@ -259,11 +266,11 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
                   }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel =
-                     detail::forElementsWithSegmentIndexesDynamicGroupingKernel_CSR< ConstOffsetsView,
-                                                                                     typename Array::ConstViewType,
-                                                                                     IndexType,
-                                                                                     std::remove_reference_t< Function > >;
+                  constexpr auto kernel = detail::forElementsWithSegmentIndexesDynamicGroupingKernel_CSR<
+                     ConstOffsetsView,
+                     typename Array::ConstViewType,
+                     IndexType,
+                     std::remove_reference_t< Function > >;
                   Backend::launchKernelAsync(
                      kernel, launchConfig, gridIdx, segments.getOffsets(), segmentIndexesView, function );
                }
@@ -279,12 +286,13 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIfSequential( const ConstViewType& segments,
-                            IndexBegin begin,
-                            IndexEnd end,
-                            Condition&& condition,
-                            Function&& function,
-                            LaunchConfiguration launchConfig )
+   forElementsIfSequential(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       const auto offsetsView = segments.getOffsets();
       if constexpr( callableArgumentCount< Function >() == 3 ) {
@@ -318,12 +326,13 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ConstViewType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Function&& function,
-                  LaunchConfiguration launchConfig )
+   forElementsIf(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       if constexpr( std::is_same_v< Device, Devices::GPU > ) {
          if( end <= begin )
@@ -349,35 +358,39 @@ struct TraversingOperations< CSRView< Device, Index > > : public TraversingOpera
             for( unsigned int gridIdx = 0; gridIdx < gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
-                  constexpr auto kernel = forElementsIfKernel_CSR< ConstOffsetsView,
-                                                                   IndexType,
-                                                                   std::remove_reference_t< Condition >,
-                                                                   std::remove_reference_t< Function > >;
-                  Backend::launchKernelAsync( kernel,
-                                              launch_config,
-                                              gridIdx,
-                                              launchConfig.getThreadsPerSegmentCount(),
-                                              segments.getOffsets(),
-                                              begin,
-                                              end,
-                                              condition,
-                                              function );
+                  constexpr auto kernel = forElementsIfKernel_CSR<
+                     ConstOffsetsView,
+                     IndexType,
+                     std::remove_reference_t< Condition >,
+                     std::remove_reference_t< Function > >;
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launch_config,
+                     gridIdx,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments.getOffsets(),
+                     begin,
+                     end,
+                     condition,
+                     function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
-                  constexpr auto kernel = forElementsIfBlockMergeKernel_CSR< ConstOffsetsView,
-                                                                             IndexType,
-                                                                             std::remove_reference_t< Condition >,
-                                                                             std::remove_reference_t< Function >,
-                                                                             256,
-                                                                             256 >;
+                  constexpr auto kernel = forElementsIfBlockMergeKernel_CSR<
+                     ConstOffsetsView,
+                     IndexType,
+                     std::remove_reference_t< Condition >,
+                     std::remove_reference_t< Function >,
+                     256,
+                     256 >;
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, segments.getOffsets(), begin, end, condition, function );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel = forElementsIfDynamicGroupingKernel_CSR< ConstOffsetsView,
-                                                                                  IndexType,
-                                                                                  std::remove_reference_t< Condition >,
-                                                                                  std::remove_reference_t< Function > >;
+                  constexpr auto kernel = forElementsIfDynamicGroupingKernel_CSR<
+                     ConstOffsetsView,
+                     IndexType,
+                     std::remove_reference_t< Condition >,
+                     std::remove_reference_t< Function > >;
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, segments.getOffsets(), begin, end, condition, function );
                }

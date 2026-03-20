@@ -21,10 +21,11 @@ namespace TNL::Matrices {
  * \tparam Organization tells the ordering of matrix elements. It is either RowMajorOrder
  *         or ColumnMajorOrder.
  */
-template< typename Real = double,
-          typename Device = Devices::Host,
-          typename Index = int,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
+template<
+   typename Real = double,
+   typename Device = Devices::Host,
+   typename Index = int,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
 class TridiagonalMatrixView : public TridiagonalMatrixBase< Real, Device, Index, Organization >
 {
    using Base = TridiagonalMatrixBase< Real, Device, Index, Organization >;
@@ -42,11 +43,11 @@ public:
    /**
     * \brief Helper type for getting self type or its modifications.
     */
-   template< typename _Real = Real,
-             typename _Device = Device,
-             typename _Index = Index,
-             ElementsOrganization Organization_ =
-                Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
+   template<
+      typename _Real = Real,
+      typename _Device = Device,
+      typename _Index = Index,
+      ElementsOrganization Organization_ = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
    using Self = TridiagonalMatrixView< _Real, _Device, _Index, Organization_ >;
 
    /**

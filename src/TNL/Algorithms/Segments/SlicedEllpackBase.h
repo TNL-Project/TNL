@@ -76,11 +76,12 @@ public:
 
    //! \brief Constructor that initializes segments based on all necessary data.
    __cuda_callable__
-   SlicedEllpackBase( IndexType size,
-                      IndexType storageSize,
-                      IndexType segmentsCount,
-                      OffsetsView&& sliceOffsets,
-                      OffsetsView&& sliceSegmentSizes );
+   SlicedEllpackBase(
+      IndexType size,
+      IndexType storageSize,
+      IndexType segmentsCount,
+      OffsetsView&& sliceOffsets,
+      OffsetsView&& sliceSegmentSizes );
 
    //! \brief Copy-assignment operator.
    SlicedEllpackBase&
@@ -241,11 +242,12 @@ protected:
     */
    __cuda_callable__
    void
-   bind( IndexType size,
-         IndexType storageSize,
-         IndexType segmentsCount,
-         OffsetsView sliceOffsets,
-         OffsetsView sliceSegmentSizes );
+   bind(
+      IndexType size,
+      IndexType storageSize,
+      IndexType segmentsCount,
+      OffsetsView sliceOffsets,
+      OffsetsView sliceSegmentSizes );
 };
 
 }  // namespace TNL::Algorithms::Segments

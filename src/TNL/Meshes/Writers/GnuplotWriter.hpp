@@ -30,8 +30,9 @@ GnuplotWriter< Mesh >::writePointData( const Mesh& mesh, const Array& array, con
    using IndexType = typename Array::IndexType;
    IndexType pointsCount = mesh.template getEntitiesCount< 0 >();
    if( array.getSize() / numberOfComponents != typename Array::IndexType( pointsCount ) )
-      throw std::length_error( "Mismatched array size for POINT_DATA section: " + std::to_string( array.getSize() )
-                               + " (there are " + std::to_string( pointsCount ) + " points in the file)" );
+      throw std::length_error(
+         "Mismatched array size for POINT_DATA section: " + std::to_string( array.getSize() ) + " (there are "
+         + std::to_string( pointsCount ) + " points in the file)" );
 
    str << "# " << name << '\n';
 
@@ -56,8 +57,9 @@ GnuplotWriter< Mesh >::writeCellData( const Mesh& mesh, const Array& array, cons
    using IndexType = typename Array::IndexType;
    IndexType cellsCount = mesh.template getEntitiesCount< Mesh::getMeshDimension() >();
    if( array.getSize() / numberOfComponents != typename Array::IndexType( cellsCount ) )
-      throw std::length_error( "Mismatched array size for CELL_DATA section: " + std::to_string( array.getSize() )
-                               + " (there are " + std::to_string( cellsCount ) + " cells in the file)" );
+      throw std::length_error(
+         "Mismatched array size for CELL_DATA section: " + std::to_string( array.getSize() ) + " (there are "
+         + std::to_string( cellsCount ) + " cells in the file)" );
 
    str << "# " << name << '\n';
 

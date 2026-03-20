@@ -56,14 +56,15 @@ TYPED_TEST_P( TraverseSegmentsTest, forSegmentsSequential )
 }
 
 // Register all test cases
-REGISTER_TYPED_TEST_SUITE_P( TraverseSegmentsTest,
-                             forElements_EmptySegments,
-                             forElements_EqualSizes,
-                             forElements,
-                             forElementsIf,
-                             forElementsWithSegmentIndexes_EmptySegments,
-                             forElementsWithSegmentIndexes,
-                             forSegments,
-                             forSegmentsWithIndexes,
-                             forSegmentsIf,
-                             forSegmentsSequential );
+REGISTER_TYPED_TEST_SUITE_P(
+   TraverseSegmentsTest,
+   forElements_EmptySegments,
+   forElements_EqualSizes,
+   forElements,
+   forElementsIf,
+   forElementsWithSegmentIndexes_EmptySegments,
+   forElementsWithSegmentIndexes,
+   forSegments,
+   forSegmentsWithIndexes,
+   forSegmentsIf,
+   forSegmentsSequential );

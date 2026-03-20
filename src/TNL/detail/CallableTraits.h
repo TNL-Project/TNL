@@ -24,9 +24,10 @@ struct can_accept_impl : std::false_type
 {};
 
 template< typename Callable, std::size_t... Is >
-struct can_accept_impl< Callable,
-                        std::index_sequence< Is... >,
-                        decltype( std::declval< Callable >()( ( (void) Is, any_argument{} )... ), void() ) > : std::true_type
+struct can_accept_impl<
+   Callable,
+   std::index_sequence< Is... >,
+   decltype( std::declval< Callable >()( ( (void) Is, any_argument{} )... ), void() ) > : std::true_type
 {};
 
 template< typename Callable, std::size_t N >

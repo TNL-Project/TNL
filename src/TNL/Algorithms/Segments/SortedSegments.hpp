@@ -188,15 +188,15 @@ SortedSegments< EmbeddedSegments, IndexAllocator >::setSegmentsSizes( const Size
    this->segmentsPermutation.setSize( sizes.getSize() );
    auto inverseSegmentsPermutationView = this->inverseSegmentsPermutation.getView();
    auto segmentsPermutationView = this->segmentsPermutation.getView();
-   Algorithms::parallelFor< DeviceType >( 0,
-                                          this->segmentsPermutation.getSize(),
-                                          [ = ] __cuda_callable__( IndexType i ) mutable
-                                          {
-                                             TNL_ASSERT_LT( i, inverseSegmentsPermutationView.getSize(), "" );
-                                             TNL_ASSERT_LT(
-                                                inverseSegmentsPermutationView[ i ], segmentsPermutationView.getSize(), "" );
-                                             segmentsPermutationView[ inverseSegmentsPermutationView[ i ] ] = i;
-                                          } );
+   Algorithms::parallelFor< DeviceType >(
+      0,
+      this->segmentsPermutation.getSize(),
+      [ = ] __cuda_callable__( IndexType i ) mutable
+      {
+         TNL_ASSERT_LT( i, inverseSegmentsPermutationView.getSize(), "" );
+         TNL_ASSERT_LT( inverseSegmentsPermutationView[ i ], segmentsPermutationView.getSize(), "" );
+         segmentsPermutationView[ inverseSegmentsPermutationView[ i ] ] = i;
+      } );
    TNL_ASSERT_EQ( min( segmentsPermutationView ), 0, "Segments permutation does not contain zero." );
    TNL_ASSERT_EQ( max( segmentsPermutationView ), sizes.getSize() - 1, "Segments permutation does not contain max value." );
 

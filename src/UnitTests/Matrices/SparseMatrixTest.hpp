@@ -101,20 +101,21 @@ test_Constructors()
     *    \  0  0  0 12  0 /
     */
 
-   const Matrix m3( 6,
-                    5,
-                    { { 0, 0, 1.0 },
-                      { 0, 1, 2.0 },
-                      { 0, 2, 3.0 },
-                      { 1, 1, 4.0 },
-                      { 1, 2, 5.0 },
-                      { 1, 3, 6.0 },
-                      { 2, 2, 7.0 },
-                      { 2, 3, 8.0 },
-                      { 2, 4, 9.0 },
-                      { 3, 0, 10.0 },
-                      { 4, 1, 11.0 },
-                      { 5, 3, 12.0 } } );
+   const Matrix m3(
+      6,
+      5,
+      { { 0, 0, 1.0 },
+        { 0, 1, 2.0 },
+        { 0, 2, 3.0 },
+        { 1, 1, 4.0 },
+        { 1, 2, 5.0 },
+        { 1, 3, 6.0 },
+        { 2, 2, 7.0 },
+        { 2, 3, 8.0 },
+        { 2, 4, 9.0 },
+        { 3, 0, 10.0 },
+        { 4, 1, 11.0 },
+        { 5, 3, 12.0 } } );
 
    // Check the set elements
    EXPECT_EQ( m3.getElement( 0, 0 ), RealType{ 1 } );
@@ -594,20 +595,21 @@ test_GetRow()
     *    \  0  0  0 12  0 /
     */
 
-   const Matrix m3( 6,
-                    5,
-                    { { 0, 0, 1.0 },
-                      { 0, 1, 2.0 },
-                      { 0, 2, 3.0 },
-                      { 1, 1, 4.0 },
-                      { 1, 2, 5.0 },
-                      { 1, 3, 6.0 },
-                      { 2, 2, 7.0 },
-                      { 2, 3, 8.0 },
-                      { 2, 4, 9.0 },
-                      { 3, 0, 10.0 },
-                      { 4, 1, 11.0 },
-                      { 5, 3, 12.0 } } );
+   const Matrix m3(
+      6,
+      5,
+      { { 0, 0, 1.0 },
+        { 0, 1, 2.0 },
+        { 0, 2, 3.0 },
+        { 1, 1, 4.0 },
+        { 1, 2, 5.0 },
+        { 1, 3, 6.0 },
+        { 2, 2, 7.0 },
+        { 2, 3, 8.0 },
+        { 2, 4, 9.0 },
+        { 3, 0, 10.0 },
+        { 4, 1, 11.0 },
+        { 5, 3, 12.0 } } );
 
    // Check the set elements
    EXPECT_EQ( m3.getElement( 0, 0 ), RealType{ 1 } );
@@ -1037,26 +1039,27 @@ test_AddElement()
    const IndexType rows = 6;
    const IndexType cols = 5;
 
-   Matrix m( rows,
-             cols,
-             { { 0, 0, 1 },
-               { 0, 1, 2 },
-               { 0, 2, 3 },
-               { 1, 1, 4 },
-               { 1, 2, 5 },
-               { 1, 3, 6 },
-               { 2, 2, 7 },
-               { 2, 3, 8 },
-               { 2, 4, 9 },
-               { 3, 0, 10 },
-               { 3, 1, 1 },
-               { 3, 2, 1 },
-               { 4, 1, 11 },
-               { 4, 2, 1 },
-               { 4, 3, 1 },
-               { 5, 2, 1 },
-               { 5, 3, 12 },
-               { 5, 4, 1 } } );
+   Matrix m(
+      rows,
+      cols,
+      { { 0, 0, 1 },
+        { 0, 1, 2 },
+        { 0, 2, 3 },
+        { 1, 1, 4 },
+        { 1, 2, 5 },
+        { 1, 3, 6 },
+        { 2, 2, 7 },
+        { 2, 3, 8 },
+        { 2, 4, 9 },
+        { 3, 0, 10 },
+        { 3, 1, 1 },
+        { 3, 2, 1 },
+        { 4, 1, 11 },
+        { 4, 2, 1 },
+        { 4, 3, 1 },
+        { 5, 2, 1 },
+        { 5, 3, 12 },
+        { 5, 4, 1 } } );
 
    // Check the set elements
    EXPECT_EQ( m.getElement( 0, 0 ), RealType{ 1 } );
@@ -1185,26 +1188,27 @@ test_FindElement()
    const IndexType rows = 6;
    const IndexType cols = 5;
 
-   Matrix m( rows,
-             cols,
-             { { 0, 0, 1 },
-               { 0, 1, 2 },
-               { 0, 2, 3 },
-               { 1, 1, 4 },
-               { 1, 2, 5 },
-               { 1, 3, 6 },
-               { 2, 2, 7 },
-               { 2, 3, 8 },
-               { 2, 4, 9 },
-               { 3, 0, 10 },
-               { 3, 1, 1 },
-               { 3, 2, 1 },
-               { 4, 1, 11 },
-               { 4, 2, 1 },
-               { 4, 3, 1 },
-               { 5, 2, 1 },
-               { 5, 3, 12 },
-               { 5, 4, 1 } } );
+   Matrix m(
+      rows,
+      cols,
+      { { 0, 0, 1 },
+        { 0, 1, 2 },
+        { 0, 2, 3 },
+        { 1, 1, 4 },
+        { 1, 2, 5 },
+        { 1, 3, 6 },
+        { 2, 2, 7 },
+        { 2, 3, 8 },
+        { 2, 4, 9 },
+        { 3, 0, 10 },
+        { 3, 1, 1 },
+        { 3, 2, 1 },
+        { 4, 1, 11 },
+        { 4, 2, 1 },
+        { 4, 3, 1 },
+        { 5, 2, 1 },
+        { 5, 3, 12 },
+        { 5, 4, 1 } } );
    TNL::Containers::StaticVector< 5, Vector > expected{ Vector{ 1, 0, 0, 1, 0, 0 },
                                                         Vector{ 1, 1, 0, 1, 1, 0 },
                                                         Vector{ 1, 1, 1, 1, 1, 1 },
@@ -1217,13 +1221,13 @@ test_FindElement()
       auto m_view = m.getConstView();
       auto to_find_view = to_find.getConstView();
       auto result_view = result.getView();
-      TNL::Algorithms::parallelFor< DeviceType >( 0,
-                                                  rows,
-                                                  [ = ] __cuda_callable__( IndexType i ) mutable
-                                                  {
-                                                     result_view[ i ] = m_view.findElement( i, to_find_view[ i ] )
-                                                                     != TNL::Matrices::paddingIndex< IndexType >;
-                                                  } );
+      TNL::Algorithms::parallelFor< DeviceType >(
+         0,
+         rows,
+         [ = ] __cuda_callable__( IndexType i ) mutable
+         {
+            result_view[ i ] = m_view.findElement( i, to_find_view[ i ] ) != TNL::Matrices::paddingIndex< IndexType >;
+         } );
       EXPECT_EQ( result, expected[ columnIdx ] );
    }
 }
@@ -1346,12 +1350,13 @@ test_ForElementsWithArray()
       } );
 
    TNL::Containers::Vector< IndexType, typename Matrix::DeviceType, IndexType > rowIndices{ 1, 3, 5, 7 };
-   m.forElements( rowIndices,
-                  [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
-                  {
-                     value = rowIdx + 1.0;
-                     columnIdx = localIdx;
-                  } );
+   m.forElements(
+      rowIndices,
+      [] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType & columnIdx, RealType & value ) mutable
+      {
+         value = rowIdx + 1.0;
+         columnIdx = localIdx;
+      } );
 
    for( IndexType rowIdx = 0; rowIdx < rows; rowIdx++ )
       for( IndexType colIdx = 0; colIdx < cols; colIdx++ )
@@ -1548,47 +1553,49 @@ test_SortColumnIndexes()
    const IndexType rows_1 = 6;
    const IndexType cols_1 = 5;
 
-   Matrix m1_sorted( rows_1,
-                     cols_1,
-                     { { 0, 0, 1 },
-                       { 0, 1, 2 },
-                       { 0, 2, 3 },
-                       { 1, 1, 4 },
-                       { 1, 2, 5 },
-                       { 1, 3, 6 },
-                       { 2, 2, 7 },
-                       { 2, 3, 8 },
-                       { 2, 4, 9 },
-                       { 3, 0, 10 },
-                       { 3, 1, 1 },
-                       { 3, 2, 1 },
-                       { 4, 1, 11 },
-                       { 4, 2, 1 },
-                       { 4, 3, 1 },
-                       { 5, 2, 1 },
-                       { 5, 3, 12 },
-                       { 5, 4, 1 } } );
+   Matrix m1_sorted(
+      rows_1,
+      cols_1,
+      { { 0, 0, 1 },
+        { 0, 1, 2 },
+        { 0, 2, 3 },
+        { 1, 1, 4 },
+        { 1, 2, 5 },
+        { 1, 3, 6 },
+        { 2, 2, 7 },
+        { 2, 3, 8 },
+        { 2, 4, 9 },
+        { 3, 0, 10 },
+        { 3, 1, 1 },
+        { 3, 2, 1 },
+        { 4, 1, 11 },
+        { 4, 2, 1 },
+        { 4, 3, 1 },
+        { 5, 2, 1 },
+        { 5, 3, 12 },
+        { 5, 4, 1 } } );
 
    Matrix m1( rows_1, cols_1 );
-   setElements( m1,
-                { { 0, 0, 1 },
-                  { 0, 2, 3 },
-                  { 0, 1, 2 },
-                  { 1, 2, 5 },
-                  { 1, 3, 6 },
-                  { 1, 1, 4 },
-                  { 2, 4, 9 },
-                  { 2, 3, 8 },
-                  { 2, 2, 7 },
-                  { 3, 0, 10 },
-                  { 3, 1, 1 },
-                  { 3, 2, 1 },
-                  { 4, 3, 1 },
-                  { 4, 1, 11 },
-                  { 4, 2, 1 },
-                  { 5, 2, 1 },
-                  { 5, 4, 1 },
-                  { 5, 3, 12 } } );
+   setElements(
+      m1,
+      { { 0, 0, 1 },
+        { 0, 2, 3 },
+        { 0, 1, 2 },
+        { 1, 2, 5 },
+        { 1, 3, 6 },
+        { 1, 1, 4 },
+        { 2, 4, 9 },
+        { 2, 3, 8 },
+        { 2, 2, 7 },
+        { 3, 0, 10 },
+        { 3, 1, 1 },
+        { 3, 2, 1 },
+        { 4, 3, 1 },
+        { 4, 1, 11 },
+        { 4, 2, 1 },
+        { 5, 2, 1 },
+        { 5, 4, 1 },
+        { 5, 3, 12 } } );
 
    m1.sortColumnIndexes();
    ASSERT_EQ( m1, m1_sorted );

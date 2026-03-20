@@ -10,16 +10,17 @@
 
 namespace TNL::Meshes {
 
-template< typename MeshConfig,
-          typename Device,
-          typename EntityTopology,
-          typename SubdimensionTag,
-          bool SubentityStorage = WeakSubentityStorageTrait<
-             MeshConfig,
-             Device,
-             typename MeshTraits< MeshConfig, Device >::template EntityTraits< EntityTopology::dimension >::EntityTopology,
-             SubdimensionTag >::storageEnabled,
-          bool IsDynamicTopology = Topologies::IsDynamicTopology< EntityTopology >::value >
+template<
+   typename MeshConfig,
+   typename Device,
+   typename EntityTopology,
+   typename SubdimensionTag,
+   bool SubentityStorage = WeakSubentityStorageTrait<
+      MeshConfig,
+      Device,
+      typename MeshTraits< MeshConfig, Device >::template EntityTraits< EntityTopology::dimension >::EntityTopology,
+      SubdimensionTag >::storageEnabled,
+   bool IsDynamicTopology = Topologies::IsDynamicTopology< EntityTopology >::value >
 class SubentityStorageLayer;
 
 template< typename MeshConfig, typename Device, typename EntityTopology >
@@ -176,12 +177,13 @@ private:
    SubentityMatrixType matrix;
 
    // friend class is needed for templated assignment operators
-   template< typename MeshConfig_,
-             typename Device_,
-             typename EntityTopology_,
-             typename SubdimensionTag_,
-             bool Storage_,
-             bool dynamicTopology_ >
+   template<
+      typename MeshConfig_,
+      typename Device_,
+      typename EntityTopology_,
+      typename SubdimensionTag_,
+      bool Storage_,
+      bool dynamicTopology_ >
    friend class SubentityStorageLayer;
 };
 
@@ -303,12 +305,13 @@ private:
    SubentityMatrixType matrix;
 
    // friend class is needed for templated assignment operators
-   template< typename MeshConfig_,
-             typename Device_,
-             typename EntityTopology_,
-             typename SubdimensionTag_,
-             bool Storage_,
-             bool dynamicTopology_ >
+   template<
+      typename MeshConfig_,
+      typename Device_,
+      typename EntityTopology_,
+      typename SubdimensionTag_,
+      bool Storage_,
+      bool dynamicTopology_ >
    friend class SubentityStorageLayer;
 };
 
@@ -425,12 +428,13 @@ private:
    SubentityMatrixType matrix;
 
    // friend class is needed for templated assignment operators
-   template< typename MeshConfig_,
-             typename Device_,
-             typename EntityTopology_,
-             typename SubdimensionTag_,
-             bool Storage_,
-             bool dynamicTopology_ >
+   template<
+      typename MeshConfig_,
+      typename Device_,
+      typename EntityTopology_,
+      typename SubdimensionTag_,
+      bool Storage_,
+      bool dynamicTopology_ >
    friend class SubentityStorageLayer;
 };
 
@@ -527,12 +531,13 @@ private:
    SubentityMatrixType matrix;
 
    // friend class is needed for templated assignment operators
-   template< typename MeshConfig_,
-             typename Device_,
-             typename EntityTopology_,
-             typename SubdimensionTag_,
-             bool Storage_,
-             bool dynamicTopology_ >
+   template<
+      typename MeshConfig_,
+      typename Device_,
+      typename EntityTopology_,
+      typename SubdimensionTag_,
+      bool Storage_,
+      bool dynamicTopology_ >
    friend class SubentityStorageLayer;
 };
 
@@ -557,12 +562,13 @@ public:
 // termination of recursive inheritance (everything is reduced to EntityStorage == false thanks to the
 // WeakSubentityStorageTrait)
 template< typename MeshConfig, typename Device, typename EntityTopology, bool dynamicTopology >
-class SubentityStorageLayer< MeshConfig,
-                             Device,
-                             EntityTopology,
-                             DimensionTag< EntityTopology::dimension >,
-                             false,
-                             dynamicTopology >
+class SubentityStorageLayer<
+   MeshConfig,
+   Device,
+   EntityTopology,
+   DimensionTag< EntityTopology::dimension >,
+   false,
+   dynamicTopology >
 {
    using MeshTraitsType = MeshTraits< MeshConfig, Device >;
    using SubdimensionTag = DimensionTag< EntityTopology::dimension >;

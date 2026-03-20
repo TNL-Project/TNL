@@ -240,14 +240,15 @@ GMRES< Matrix >::orthogonalize_CGS( const int m, const RealType normb, const Rea
          //   w = w - H_l[k] * v_k;
          //}
          // w := w - V_i * H_l
-         Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                         static_cast< IndexType >( i + 1 ),
-                                                         static_cast< RealType >( -1 ),
-                                                         V.getData(),
-                                                         ldSize,
-                                                         H_l.getData(),
-                                                         static_cast< RealType >( 1 ),
-                                                         Traits::getLocalView( w ).getData() );
+         Matrices::MatrixOperations< DeviceType >::gemv(
+            size,
+            static_cast< IndexType >( i + 1 ),
+            static_cast< RealType >( -1 ),
+            V.getData(),
+            ldSize,
+            H_l.getData(),
+            static_cast< RealType >( 1 ),
+            Traits::getLocalView( w ).getData() );
       }
       /***
        * H_{i+1,i} = |w|
@@ -588,14 +589,15 @@ GMRES< Matrix >::hauseholder_cwy( VectorViewType v, const int i )
    }
 
    // v = e_i - Y_i * aux
-   Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                   static_cast< IndexType >( i + 1 ),
-                                                   static_cast< RealType >( -1 ),
-                                                   Y.getData(),
-                                                   ldSize,
-                                                   aux.get(),
-                                                   static_cast< RealType >( 0 ),
-                                                   Traits::getLocalView( v ).getData() );
+   Matrices::MatrixOperations< DeviceType >::gemv(
+      size,
+      static_cast< IndexType >( i + 1 ),
+      static_cast< RealType >( -1 ),
+      Y.getData(),
+      ldSize,
+      aux.get(),
+      static_cast< RealType >( 0 ),
+      Traits::getLocalView( v ).getData() );
    if( localOffset == 0 )
       v.setElement( i, 1.0 + v.getElement( i ) );
 }
@@ -629,14 +631,15 @@ GMRES< Matrix >::hauseholder_cwy_transposed( VectorViewType z, const int i, Cons
 
    // z = w - Y_i * aux
    z = w;
-   Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                   static_cast< IndexType >( i + 1 ),
-                                                   static_cast< RealType >( -1 ),
-                                                   Y.getData(),
-                                                   ldSize,
-                                                   aux.getData(),
-                                                   static_cast< RealType >( 1 ),
-                                                   Traits::getLocalView( z ).getData() );
+   Matrices::MatrixOperations< DeviceType >::gemv(
+      size,
+      static_cast< IndexType >( i + 1 ),
+      static_cast< RealType >( -1 ),
+      Y.getData(),
+      ldSize,
+      aux.getData(),
+      static_cast< RealType >( 1 ),
+      Traits::getLocalView( z ).getData() );
 }
 
 template< typename Matrix >
@@ -669,14 +672,15 @@ GMRES< Matrix >::update( const int k, const int m, const HostVector& H, const Ho
 
    if( variant != Variant::CWY ) {
       // x = V * y + x
-      Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                      static_cast< IndexType >( k + 1 ),
-                                                      static_cast< RealType >( 1 ),
-                                                      V.getData(),
-                                                      ldSize,
-                                                      y.get(),
-                                                      static_cast< RealType >( 1 ),
-                                                      Traits::getLocalView( x ).getData() );
+      Matrices::MatrixOperations< DeviceType >::gemv(
+         size,
+         static_cast< IndexType >( k + 1 ),
+         static_cast< RealType >( 1 ),
+         V.getData(),
+         ldSize,
+         y.get(),
+         static_cast< RealType >( 1 ),
+         Traits::getLocalView( x ).getData() );
    }
    else {
       // The vectors v_i are not stored, they can be reconstructed as P_0...P_j * e_j.
@@ -705,14 +709,15 @@ GMRES< Matrix >::update( const int k, const int m, const HostVector& H, const Ho
       }
 
       // x -= Y_{k+1} * aux
-      Matrices::MatrixOperations< DeviceType >::gemv( size,
-                                                      static_cast< IndexType >( k + 1 ),
-                                                      static_cast< RealType >( -1 ),
-                                                      Y.getData(),
-                                                      ldSize,
-                                                      aux.get(),
-                                                      static_cast< RealType >( 1 ),
-                                                      Traits::getLocalView( x ).getData() );
+      Matrices::MatrixOperations< DeviceType >::gemv(
+         size,
+         static_cast< IndexType >( k + 1 ),
+         static_cast< RealType >( -1 ),
+         Y.getData(),
+         ldSize,
+         aux.get(),
+         static_cast< RealType >( 1 ),
+         Traits::getLocalView( x ).getData() );
 
       // x += y
       if( localOffset == 0 )

@@ -20,17 +20,18 @@ using std::variant;
 using UnsignedInteger = std::size_t;
 using Integer = std::make_signed_t< std::size_t >;
 
-using Parameter = variant< monostate,
-                           bool,
-                           Integer,
-                           UnsignedInteger,
-                           double,
-                           std::string,
-                           std::vector< bool >,
-                           std::vector< Integer >,
-                           std::vector< UnsignedInteger >,
-                           std::vector< double >,
-                           std::vector< std::string > >;
+using Parameter = variant<
+   monostate,
+   bool,
+   Integer,
+   UnsignedInteger,
+   double,
+   std::string,
+   std::vector< bool >,
+   std::vector< Integer >,
+   std::vector< UnsignedInteger >,
+   std::vector< double >,
+   std::vector< std::string > >;
 
 template< typename T >
 struct ParameterTypeCoercion

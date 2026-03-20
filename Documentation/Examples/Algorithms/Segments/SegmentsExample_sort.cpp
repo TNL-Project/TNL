@@ -30,12 +30,12 @@ sortExample()
 
    // Print original data
    std::cout << "Original data in segments:\n";
-   std::cout << TNL::Algorithms::Segments::print( segments,
-                                                  [ = ] __cuda_callable__( Index globalIdx ) -> int
-                                                  {
-                                                     return data_view[ globalIdx ];
-                                                  } )
-             << '\n';
+   std::cout << TNL::Algorithms::Segments::print(
+      segments,
+      [ = ] __cuda_callable__( Index globalIdx ) -> int
+      {
+         return data_view[ globalIdx ];
+      } ) << '\n';
 
    //! [ascending sort]
    // Sort each segment
@@ -57,12 +57,12 @@ sortExample()
 
    // Print sorted data
    std::cout << "\nSorted data in segments (ascending order):\n";
-   std::cout << TNL::Algorithms::Segments::print( segments,
-                                                  [ = ] __cuda_callable__( Index globalIdx ) -> int
-                                                  {
-                                                     return data_view[ globalIdx ];
-                                                  } )
-             << '\n';
+   std::cout << TNL::Algorithms::Segments::print(
+      segments,
+      [ = ] __cuda_callable__( Index globalIdx ) -> int
+      {
+         return data_view[ globalIdx ];
+      } ) << '\n';
    //! [ascending sort]
 
    //! [descending sort]
@@ -78,12 +78,12 @@ sortExample()
    TNL::Algorithms::Segments::sortSegments( segments, segmentIndexes, fetch, compareDesc, swap );
 
    // Print result
-   std::cout << TNL::Algorithms::Segments::print( segments,
-                                                  [ = ] __cuda_callable__( Index globalIdx ) -> int
-                                                  {
-                                                     return data_view[ globalIdx ];
-                                                  } )
-             << '\n';
+   std::cout << TNL::Algorithms::Segments::print(
+      segments,
+      [ = ] __cuda_callable__( Index globalIdx ) -> int
+      {
+         return data_view[ globalIdx ];
+      } ) << '\n';
    //! [descending sort]
 
    // Sort segments conditionally (only even-indexed segments)
@@ -96,12 +96,12 @@ sortExample()
    TNL::Algorithms::Segments::sortAllSegmentsIf( segments, condition, fetch, compareDesc, swap );
 
    // Print result
-   std::cout << TNL::Algorithms::Segments::print( segments,
-                                                  [ = ] __cuda_callable__( Index globalIdx ) -> int
-                                                  {
-                                                     return data_view[ globalIdx ];
-                                                  } )
-             << '\n';
+   std::cout << TNL::Algorithms::Segments::print(
+      segments,
+      [ = ] __cuda_callable__( Index globalIdx ) -> int
+      {
+         return data_view[ globalIdx ];
+      } ) << '\n';
 }
 
 int

@@ -16,10 +16,11 @@ namespace TNL::Containers {
  * \par Output
  * \include DistributedVectorExample.out
  */
-template< typename Real,
-          typename Device = Devices::Host,
-          typename Index = int,
-          typename Allocator = typename Allocators::Default< Device >::template Allocator< Real > >
+template<
+   typename Real,
+   typename Device = Devices::Host,
+   typename Index = int,
+   typename Allocator = typename Allocators::Default< Device >::template Allocator< Real > >
 class DistributedVector : public DistributedArray< Real, Device, Index, Allocator >
 {
    using BaseType = DistributedArray< Real, Device, Index, Allocator >;
@@ -37,10 +38,11 @@ public:
    /**
     * \brief A template which allows to quickly obtain a \ref Vector type with changed template parameters.
     */
-   template< typename _Real,
-             typename _Device = Device,
-             typename _Index = Index,
-             typename _Allocator = typename Allocators::Default< _Device >::template Allocator< _Real > >
+   template<
+      typename _Real,
+      typename _Device = Device,
+      typename _Index = Index,
+      typename _Allocator = typename Allocators::Default< _Device >::template Allocator< _Real > >
    using Self = DistributedVector< _Real, _Device, _Index, _Allocator >;
 
    // inherit all constructors from DistributedArray

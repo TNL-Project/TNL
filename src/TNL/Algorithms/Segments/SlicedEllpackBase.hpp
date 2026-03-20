@@ -12,11 +12,12 @@ namespace TNL::Algorithms::Segments {
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 __cuda_callable__
 void
-SlicedEllpackBase< Device, Index, Organization, SliceSize >::bind( IndexType size,
-                                                                   IndexType storageSize,
-                                                                   IndexType segmentsCount,
-                                                                   OffsetsView sliceOffsets,
-                                                                   OffsetsView sliceSegmentSizes )
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::bind(
+   IndexType size,
+   IndexType storageSize,
+   IndexType segmentsCount,
+   OffsetsView sliceOffsets,
+   OffsetsView sliceSegmentSizes )
 {
    this->size = size;
    this->storageSize = storageSize;
@@ -27,11 +28,12 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::bind( IndexType siz
 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 __cuda_callable__
-SlicedEllpackBase< Device, Index, Organization, SliceSize >::SlicedEllpackBase( IndexType size,
-                                                                                IndexType storageSize,
-                                                                                IndexType segmentsCount,
-                                                                                OffsetsView&& sliceOffsets,
-                                                                                OffsetsView&& sliceSegmentSizes )
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::SlicedEllpackBase(
+   IndexType size,
+   IndexType storageSize,
+   IndexType segmentsCount,
+   OffsetsView&& sliceOffsets,
+   OffsetsView&& sliceSegmentSizes )
 : size( size ),
   storageSize( storageSize ),
   segmentsCount( segmentsCount ),
@@ -116,8 +118,8 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::getStorageSize() co
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 __cuda_callable__
 auto
-SlicedEllpackBase< Device, Index, Organization, SliceSize >::getGlobalIndex( const Index segmentIdx,
-                                                                             const Index localIdx ) const -> IndexType
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::getGlobalIndex( const Index segmentIdx, const Index localIdx )
+   const -> IndexType
 {
    const IndexType sliceIdx = segmentIdx / SliceSize;
    const IndexType segmentInSliceIdx = segmentIdx % SliceSize;
@@ -195,9 +197,8 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::getSliceOffsetsView
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 template< typename Function >
 void
-SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( IndexType begin,
-                                                                          IndexType end,
-                                                                          Function&& function ) const
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( IndexType begin, IndexType end, Function&& function )
+   const
 {
    const auto sliceSegmentSizes_view = this->sliceSegmentSizes.getConstView();
    const auto sliceOffsets_view = this->sliceOffsets.getConstView();
@@ -243,10 +244,11 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forAllElements( Fun
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 template< typename Array, typename Function >
 void
-SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( const Array& segmentIndexes,
-                                                                          Index begin,
-                                                                          Index end,
-                                                                          Function function ) const
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements(
+   const Array& segmentIndexes,
+   Index begin,
+   Index end,
+   Function function ) const
 {
    auto segmentIndexes_view = segmentIndexes.getConstView();
    const auto sliceSegmentSizes_view = this->sliceSegmentSizes.getConstView();
@@ -295,10 +297,11 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElements( const 
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 template< typename Condition, typename Function >
 void
-SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElementsIf( IndexType begin,
-                                                                            IndexType end,
-                                                                            Condition condition,
-                                                                            Function function ) const
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::forElementsIf(
+   IndexType begin,
+   IndexType end,
+   Condition condition,
+   Function function ) const
 {
    const auto sliceSegmentSizes_view = this->sliceSegmentSizes.getConstView();
    const auto sliceOffsets_view = this->sliceOffsets.getConstView();
@@ -348,9 +351,8 @@ SlicedEllpackBase< Device, Index, Organization, SliceSize >::forAllElementsIf( C
 template< typename Device, typename Index, ElementsOrganization Organization, int SliceSize >
 template< typename Function >
 void
-SlicedEllpackBase< Device, Index, Organization, SliceSize >::forSegments( IndexType begin,
-                                                                          IndexType end,
-                                                                          Function&& function ) const
+SlicedEllpackBase< Device, Index, Organization, SliceSize >::forSegments( IndexType begin, IndexType end, Function&& function )
+   const
 {
    const auto& self = *this;
    auto f = [ = ] __cuda_callable__( IndexType segmentIdx ) mutable

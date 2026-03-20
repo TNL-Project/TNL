@@ -23,21 +23,23 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
    using ViewType = SortedSegmentsView< EmbeddedSegmentsView_ >;
    using ConstViewType = typename ViewType::ConstViewType;
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
-   reduceSegments( const ConstViewType& segments,
-                   IndexBegin begin,
-                   IndexEnd end,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   ResultStorer&& storer,
-                   const Value& identity,
-                   const LaunchConfiguration& launchConfig )
+   reduceSegments(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
 
@@ -57,9 +59,10 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                   TNL_ASSERT_LT(
                      segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
                   TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
-                  TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
-                                 inverseSegmentsPermutationView.getSize(),
-                                 "Transformed segment index is larger than number of segments." );
+                  TNL_ASSERT_LT(
+                     inverseSegmentsPermutationView[ segmentIdx ],
+                     inverseSegmentsPermutationView.getSize(),
+                     "Transformed segment index is larger than number of segments." );
 
                   return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
                },
@@ -70,9 +73,10 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                   TNL_ASSERT_LT(
                      segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
                   TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
-                  TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
-                                 inverseSegmentsPermutationView.getSize(),
-                                 "Transformed segment index is larger than number of segments." );
+                  TNL_ASSERT_LT(
+                     inverseSegmentsPermutationView[ segmentIdx ],
+                     inverseSegmentsPermutationView.getSize(),
+                     "Transformed segment index is larger than number of segments." );
 
                   storer( inverseSegmentsPermutationView[ segmentIdx ], result );
                },
@@ -92,9 +96,10 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                   TNL_ASSERT_LT(
                      segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
                   TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
-                  TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
-                                 inverseSegmentsPermutationView.getSize(),
-                                 "Transformed segment index is larger than number of segments." );
+                  TNL_ASSERT_LT(
+                     inverseSegmentsPermutationView[ segmentIdx ],
+                     inverseSegmentsPermutationView.getSize(),
+                     "Transformed segment index is larger than number of segments." );
 
                   storer( inverseSegmentsPermutationView[ segmentIdx ], result );
                },
@@ -110,9 +115,10 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                TNL_ASSERT_LT(
                   segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
                TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
-               TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
-                              inverseSegmentsPermutationView.getSize(),
-                              "Transformed segment index is larger than number of segments." );
+               TNL_ASSERT_LT(
+                  inverseSegmentsPermutationView[ segmentIdx ],
+                  inverseSegmentsPermutationView.getSize(),
+                  "Transformed segment index is larger than number of segments." );
 
                return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
             };
@@ -127,9 +133,10 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                   TNL_ASSERT_LT(
                      segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
                   TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
-                  TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
-                                 inverseSegmentsPermutationView.getSize(),
-                                 "Transformed segment index is larger than number of segments." );
+                  TNL_ASSERT_LT(
+                     inverseSegmentsPermutationView[ segmentIdx ],
+                     inverseSegmentsPermutationView.getSize(),
+                     "Transformed segment index is larger than number of segments." );
 
                   storer( inverseSegmentsPermutationView[ segmentIdx ], result );
                },
@@ -148,9 +155,10 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                   TNL_ASSERT_LT(
                      segmentIdx, inverseSegmentsPermutationView.getSize(), "Segment index is larger than number of segments." );
                   TNL_ASSERT_GE( inverseSegmentsPermutationView[ segmentIdx ], 0, "Transformed segment index is negative." );
-                  TNL_ASSERT_LT( inverseSegmentsPermutationView[ segmentIdx ],
-                                 inverseSegmentsPermutationView.getSize(),
-                                 "Transformed segment index is larger than number of segments." );
+                  TNL_ASSERT_LT(
+                     inverseSegmentsPermutationView[ segmentIdx ],
+                     inverseSegmentsPermutationView.getSize(),
+                     "Transformed segment index is larger than number of segments." );
 
                   storer( inverseSegmentsPermutationView[ segmentIdx ], result );
                },
@@ -160,19 +168,21 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       }
    }
 
-   template< typename Array,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
+   template<
+      typename Array,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
-                                     const Array& segmentIndexes,
-                                     Fetch&& fetch,
-                                     Reduction&& reduction,
-                                     ResultStorer&& storer,
-                                     const Value& identity,
-                                     const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithSegmentIndexes(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
 
@@ -221,21 +231,23 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       }
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithArgument( const ConstViewType& segments,
-                               IndexBegin begin,
-                               IndexEnd end,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               ResultStorer&& storer,
-                               const Value& identity,
-                               const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithArgument(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
 
@@ -289,11 +301,12 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                segments.getSegmentsPermutationView().getConstView( begin, end ),
                fetch_,
                reduction,
-               [ = ] __cuda_callable__( IndexType segmentIdx_idx,
-                                        IndexType segmentIdx,
-                                        IndexType argument,
-                                        const ReturnType& result,
-                                        bool emptySegment ) mutable
+               [ = ] __cuda_callable__(
+                  IndexType segmentIdx_idx,
+                  IndexType segmentIdx,
+                  IndexType argument,
+                  const ReturnType& result,
+                  bool emptySegment ) mutable
                {
                   storer( inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
                },
@@ -306,11 +319,12 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                segments.getSegmentsPermutationView().getConstView( begin, end ),
                fetch,
                reduction,
-               [ = ] __cuda_callable__( IndexType segmentdIdx_idx,
-                                        IndexType segmentIdx,
-                                        IndexType argument,
-                                        const ReturnType& result,
-                                        bool emptySegment ) mutable
+               [ = ] __cuda_callable__(
+                  IndexType segmentdIdx_idx,
+                  IndexType segmentIdx,
+                  IndexType argument,
+                  const ReturnType& result,
+                  bool emptySegment ) mutable
                {
                   storer( inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
                },
@@ -322,13 +336,14 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
    template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
    static void
-   reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
-                                                const Array& segmentIndexes,
-                                                Fetch&& fetch,
-                                                Reduction&& reduction,
-                                                ResultStorer&& storer,
-                                                const Value& identity,
-                                                LaunchConfiguration launchConfig )
+   reduceSegmentsWithSegmentIndexesAndArgument(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
 
@@ -355,11 +370,12 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
             },
             reduction,
-            [ = ] __cuda_callable__( IndexType segmentIdx_idx,
-                                     IndexType segmentIdx,
-                                     IndexType argument,
-                                     const ReturnType& result,
-                                     bool emptySegment ) mutable
+            [ = ] __cuda_callable__(
+               IndexType segmentIdx_idx,
+               IndexType segmentIdx,
+               IndexType argument,
+               const ReturnType& result,
+               bool emptySegment ) mutable
             {
                storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
             },
@@ -372,11 +388,12 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             aux.getConstView(),
             fetch,
             reduction,
-            [ = ] __cuda_callable__( IndexType segmentIdx_idx,
-                                     IndexType segmentIdx,
-                                     IndexType argument,
-                                     const ReturnType& result,
-                                     bool emptySegment ) mutable
+            [ = ] __cuda_callable__(
+               IndexType segmentIdx_idx,
+               IndexType segmentIdx,
+               IndexType argument,
+               const ReturnType& result,
+               bool emptySegment ) mutable
             {
                storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
             },
@@ -385,23 +402,25 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       }
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value >
    static IndexType
-   reduceSegmentsIf( const ConstViewType& segments,
-                     IndexBegin begin,
-                     IndexEnd end,
-                     Condition&& condition,
-                     Fetch&& fetch,
-                     Reduction&& reduction,
-                     ResultStorer&& storer,
-                     const Value& identity,
-                     LaunchConfiguration launchConfig )
+   reduceSegmentsIf(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
@@ -412,12 +431,13 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       VectorType conditions( segments.getSegmentCount() );
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       auto conditionsView = conditions.getView();
-      Algorithms::parallelFor< DeviceType >( begin,
-                                             end,
-                                             [ = ] __cuda_callable__( IndexType i ) mutable
-                                             {
-                                                conditionsView[ i ] = condition( inverseSegmentsPermutationView[ i + begin ] );
-                                             } );
+      Algorithms::parallelFor< DeviceType >(
+         begin,
+         end,
+         [ = ] __cuda_callable__( IndexType i ) mutable
+         {
+            conditionsView[ i ] = condition( inverseSegmentsPermutationView[ i + begin ] );
+         } );
 
       auto indexes = compressFast< VectorType >( conditions );
       if constexpr( callableArgumentCount< Fetch >() == 3 ) {
@@ -452,23 +472,25 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       return indexes.getSize();
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value >
    static IndexType
-   reduceSegmentsWithArgumentIf( const ConstViewType& segments,
-                                 IndexBegin begin,
-                                 IndexEnd end,
-                                 Condition&& condition,
-                                 Fetch&& fetch,
-                                 Reduction&& reduction,
-                                 ResultStorer&& storer,
-                                 const Value& identity,
-                                 LaunchConfiguration launchConfig )
+   reduceSegmentsWithArgumentIf(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< IndexType, Fetch >::ReturnType;
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
@@ -479,12 +501,13 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       VectorType conditions( segments.getSegmentCount() );
       auto inverseSegmentsPermutationView = segments.getInverseSegmentsPermutationView();
       auto conditionsView = conditions.getView();
-      Algorithms::parallelFor< DeviceType >( begin,
-                                             end,
-                                             [ = ] __cuda_callable__( IndexType i ) mutable
-                                             {
-                                                conditionsView[ i ] = condition( inverseSegmentsPermutationView[ i + begin ] );
-                                             } );
+      Algorithms::parallelFor< DeviceType >(
+         begin,
+         end,
+         [ = ] __cuda_callable__( IndexType i ) mutable
+         {
+            conditionsView[ i ] = condition( inverseSegmentsPermutationView[ i + begin ] );
+         } );
 
       auto indexes = compressFast< VectorType >( conditions );
       if constexpr( callableArgumentCount< Fetch >() == 3 ) {
@@ -496,11 +519,12 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
                return fetch( inverseSegmentsPermutationView[ segmentIdx ], localIdx, globalIdx );
             },
             reduction,
-            [ = ] __cuda_callable__( IndexType segmentIdx_idx,
-                                     IndexType segmentIdx,
-                                     IndexType argument,
-                                     const ReturnType& result,
-                                     bool emptySegment ) mutable
+            [ = ] __cuda_callable__(
+               IndexType segmentIdx_idx,
+               IndexType segmentIdx,
+               IndexType argument,
+               const ReturnType& result,
+               bool emptySegment ) mutable
             {
                storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
             },
@@ -513,11 +537,12 @@ struct ReducingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
             indexes.getConstView(),
             fetch,
             reduction,
-            [ = ] __cuda_callable__( IndexType segmentIdx_idx,
-                                     IndexType segmentIdx,
-                                     IndexType argument,
-                                     const ReturnType& result,
-                                     bool emptySegment ) mutable
+            [ = ] __cuda_callable__(
+               IndexType segmentIdx_idx,
+               IndexType segmentIdx,
+               IndexType argument,
+               const ReturnType& result,
+               bool emptySegment ) mutable
             {
                storer( segmentIdx_idx, inverseSegmentsPermutationView[ segmentIdx ], argument, result, emptySegment );
             },

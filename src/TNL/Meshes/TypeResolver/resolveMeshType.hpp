@@ -14,11 +14,12 @@ namespace TNL::Meshes {
 
 template< typename ConfigTag, typename Device, typename Functor >
 void
-resolveMeshType( Functor&& functor,
-                 const std::string& fileName,
-                 const std::string& fileFormat,
-                 const std::string& realType,
-                 const std::string& globalIndexType )
+resolveMeshType(
+   Functor&& functor,
+   const std::string& fileName,
+   const std::string& fileFormat,
+   const std::string& realType,
+   const std::string& globalIndexType )
 {
    std::shared_ptr< Readers::MeshReader > reader = Readers::getMeshReader( fileName, fileFormat );
    if( reader == nullptr )
@@ -41,11 +42,12 @@ resolveMeshType( Functor&& functor,
 
 template< typename ConfigTag, typename Device, typename Functor >
 void
-resolveAndLoadMesh( Functor&& functor,
-                    const std::string& fileName,
-                    const std::string& fileFormat,
-                    const std::string& realType,
-                    const std::string& globalIndexType )
+resolveAndLoadMesh(
+   Functor&& functor,
+   const std::string& fileName,
+   const std::string& fileFormat,
+   const std::string& realType,
+   const std::string& globalIndexType )
 {
    auto wrapper = [ & ]( auto& reader, auto&& mesh ) -> void
    {

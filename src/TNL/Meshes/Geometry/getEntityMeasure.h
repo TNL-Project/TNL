@@ -96,8 +96,9 @@ getEntityMeasure( const Mesh< MeshConfig, Device >& mesh, const MeshEntity< Mesh
 template< typename MeshConfig, typename Device >
 __cuda_callable__
 typename MeshConfig::RealType
-getEntityMeasure( const Mesh< MeshConfig, Device >& mesh,
-                  const MeshEntity< MeshConfig, Device, Topologies::Quadrangle >& entity )
+getEntityMeasure(
+   const Mesh< MeshConfig, Device >& mesh,
+   const MeshEntity< MeshConfig, Device, Topologies::Quadrangle >& entity )
 {
    // measure = 0.5 * |AC x BD|, where AC and BD are the diagonals
    // Hence, we can use the same formula as for the triangle area.
@@ -123,8 +124,9 @@ getTetrahedronVolume( const VectorExpression& v1, const VectorExpression& v2, co
 template< typename MeshConfig, typename Device >
 __cuda_callable__
 typename MeshConfig::RealType
-getEntityMeasure( const Mesh< MeshConfig, Device >& mesh,
-                  const MeshEntity< MeshConfig, Device, Topologies::Tetrahedron >& entity )
+getEntityMeasure(
+   const Mesh< MeshConfig, Device >& mesh,
+   const MeshEntity< MeshConfig, Device, Topologies::Tetrahedron >& entity )
 {
    const auto& v0 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
    const auto& v1 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 1 ) );
@@ -136,8 +138,9 @@ getEntityMeasure( const Mesh< MeshConfig, Device >& mesh,
 template< typename MeshConfig, typename Device >
 __cuda_callable__
 typename MeshConfig::RealType
-getEntityMeasure( const Mesh< MeshConfig, Device >& mesh,
-                  const MeshEntity< MeshConfig, Device, Topologies::Hexahedron >& entity )
+getEntityMeasure(
+   const Mesh< MeshConfig, Device >& mesh,
+   const MeshEntity< MeshConfig, Device, Topologies::Hexahedron >& entity )
 {
    const auto& v0 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 0 ) );
    const auto& v1 = mesh.getPoint( entity.template getSubentityIndex< 0 >( 1 ) );
@@ -161,8 +164,9 @@ getPolygon2DArea( const Mesh< MeshConfig, Device >& mesh, const MeshEntity< Mesh
 {
    // http://geomalgorithms.com/code.html (function area2D_Polygon)
 
-   static_assert( Coord1 >= 0 && Coord1 <= 2 && Coord2 >= 0 && Coord2 <= 2 && Coord1 != Coord2,
-                  "Coord1 and Coord2 must be different integers with possible values {0, 1, 2}." );
+   static_assert(
+      Coord1 >= 0 && Coord1 <= 2 && Coord2 >= 0 && Coord2 <= 2 && Coord1 != Coord2,
+      "Coord1 and Coord2 must be different integers with possible values {0, 1, 2}." );
 
    using Real = typename MeshConfig::RealType;
    using Index = typename MeshConfig::LocalIndexType;
@@ -316,8 +320,9 @@ outside.
 template< typename MeshConfig, typename Device >
 __cuda_callable__
 typename MeshConfig::RealType
-getEntityMeasure( const Mesh< MeshConfig, Device >& mesh,
-                  const MeshEntity< MeshConfig, Device, Topologies::Polyhedron >& entity )
+getEntityMeasure(
+   const Mesh< MeshConfig, Device >& mesh,
+   const MeshEntity< MeshConfig, Device, Topologies::Polyhedron >& entity )
 {
    using Real = typename MeshConfig::RealType;
    using Index = typename MeshConfig::LocalIndexType;

@@ -51,15 +51,16 @@ namespace TNL::Assert {
    #define TNL_IMPL_ALL_CMP_HELPER_( op_name, op_func, op )                                                               \
       template< typename T1, typename T2 >                                                                                \
       __cuda_callable__                                                                                                   \
-      void cmpHelper##op_name( const char* assertion,                                                                     \
-                               const char* message,                                                                       \
-                               const char* file,                                                                          \
-                               const char* function,                                                                      \
-                               int line,                                                                                  \
-                               const char* expr1,                                                                         \
-                               const char* expr2,                                                                         \
-                               const T1& val1,                                                                            \
-                               const T2& val2 )                                                                           \
+      void cmpHelper##op_name(                                                                                            \
+         const char* assertion,                                                                                           \
+         const char* message,                                                                                             \
+         const char* file,                                                                                                \
+         const char* function,                                                                                            \
+         int line,                                                                                                        \
+         const char* expr1,                                                                                               \
+         const char* expr2,                                                                                               \
+         const T1& val1,                                                                                                  \
+         const T2& val2 )                                                                                                 \
       {                                                                                                                   \
          if( ! all( op_func( ( val1 ), ( val2 ) ) ) )                                                                     \
             ::TNL::Assert::cmpHelperOpFailure( assertion, message, file, function, line, expr1, expr2, val1, val2, #op ); \

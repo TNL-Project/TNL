@@ -22,21 +22,23 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
    using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename SegmentsViewType::ConstOffsetsView;
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegments( const ConstViewType& segments,
-                   IndexBegin begin,
-                   IndexEnd end,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   ResultStorer&& storer,
-                   const Value& identity,
-                   const LaunchConfiguration& launchConfig )
+   reduceSegments(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
@@ -88,12 +90,13 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernel< ConstSegmentsView,
-                                                                        IndexType,
-                                                                        std::remove_reference_t< Fetch >,
-                                                                        std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultStorer >,
-                                                                        Value >;
+            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernel<
+               ConstSegmentsView,
+               IndexType,
+               std::remove_reference_t< Fetch >,
+               std::remove_reference_t< Reduction >,
+               std::remove_reference_t< ResultStorer >,
+               Value >;
             Backend::launchKernelAsync(
                kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, storer, identity );
          }
@@ -101,19 +104,21 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
       }
    }
 
-   template< typename Array,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename Array,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
-                                     const Array& segmentIndexes,
-                                     Fetch&& fetch,
-                                     Reduction&& reduction,
-                                     ResultStorer&& storer,
-                                     const Value& identity,
-                                     const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithSegmentIndexes(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
@@ -169,42 +174,46 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithIndexes< ConstSegmentsView,
-                                                                                   ArrayView,
-                                                                                   IndexType,
-                                                                                   std::remove_reference_t< Fetch >,
-                                                                                   std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultStorer >,
-                                                                                   Value >;
-            Backend::launchKernelAsync( kernel,
-                                        launch_config,
-                                        segments.getConstView(),
-                                        segmentIndexes.getConstView(),
-                                        gridIdx,
-                                        fetch,
-                                        reduction,
-                                        storer,
-                                        identity );
+            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithIndexes<
+               ConstSegmentsView,
+               ArrayView,
+               IndexType,
+               std::remove_reference_t< Fetch >,
+               std::remove_reference_t< Reduction >,
+               std::remove_reference_t< ResultStorer >,
+               Value >;
+            Backend::launchKernelAsync(
+               kernel,
+               launch_config,
+               segments.getConstView(),
+               segmentIndexes.getConstView(),
+               gridIdx,
+               fetch,
+               reduction,
+               storer,
+               identity );
          }
          Backend::streamSynchronize( launch_config.stream );
       }
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithArgument( const ConstViewType& segments,
-                               IndexBegin begin,
-                               IndexEnd end,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               ResultStorer&& storer,
-                               const Value& identity,
-                               const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithArgument(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
@@ -228,20 +237,22 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
                IndexType end = begin + segmentSize;
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++, localIdx++ )
-                  reduction( result,
-                             detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                             argument,
-                             localIdx );
+                  reduction(
+                     result,
+                     detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                     argument,
+                     localIdx );
             }
             else {
                for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
                   IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
                   IndexType end = begin + segments.getChunksInSlice() * chunkSize;
                   for( IndexType globalIdx = begin; globalIdx < end; globalIdx += segments.getChunksInSlice(), localIdx++ )
-                     reduction( result,
-                                detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                                argument,
-                                localIdx );
+                     reduction(
+                        result,
+                        detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                        argument,
+                        localIdx );
                }
             }
             bool emptySegment = ( segmentChunksCount == 0 );
@@ -262,12 +273,13 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithArgument< ConstSegmentsView,
-                                                                                    IndexType,
-                                                                                    std::remove_reference_t< Fetch >,
-                                                                                    std::remove_reference_t< Reduction >,
-                                                                                    std::remove_reference_t< ResultStorer >,
-                                                                                    Value >;
+            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithArgument<
+               ConstSegmentsView,
+               IndexType,
+               std::remove_reference_t< Fetch >,
+               std::remove_reference_t< Reduction >,
+               std::remove_reference_t< ResultStorer >,
+               Value >;
             Backend::launchKernelAsync(
                kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, storer, identity );
          }
@@ -275,19 +287,21 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
       }
    }
 
-   template< typename Array,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename Array,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
-                                                const Array& segmentIndexes,
-                                                Fetch&& fetch,
-                                                Reduction&& reduction,
-                                                ResultStorer&& storer,
-                                                const Value& identity,
-                                                const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithSegmentIndexesAndArgument(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
@@ -314,20 +328,22 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
                IndexType begin = sliceOffset + firstChunkOfSegment * chunkSize;
                IndexType end = begin + segmentSize;
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx++, localIdx++ )
-                  reduction( result,
-                             detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                             argument,
-                             localIdx );
+                  reduction(
+                     result,
+                     detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                     argument,
+                     localIdx );
             }
             else {
                for( IndexType chunkIdx = 0; chunkIdx < segmentChunksCount; chunkIdx++ ) {
                   IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
                   IndexType end = begin + segments.getChunksInSlice() * chunkSize;
                   for( IndexType globalIdx = begin; globalIdx < end; globalIdx += segments.getChunksInSlice(), localIdx++ )
-                     reduction( result,
-                                detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                                argument,
-                                localIdx );
+                     reduction(
+                        result,
+                        detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                        argument,
+                        localIdx );
                }
             }
             bool emptySegment = ( segmentChunksCount == 0 );
@@ -348,23 +364,24 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel =
-               ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument< ConstSegmentsView,
-                                                                         ArrayView,
-                                                                         IndexType,
-                                                                         std::remove_reference_t< Fetch >,
-                                                                         std::remove_reference_t< Reduction >,
-                                                                         std::remove_reference_t< ResultStorer >,
-                                                                         Value >;
-            Backend::launchKernelAsync( kernel,
-                                        launch_config,
-                                        segments.getConstView(),
-                                        segmentIndexes.getConstView(),
-                                        gridIdx,
-                                        fetch,
-                                        reduction,
-                                        storer,
-                                        identity );
+            constexpr auto kernel = ChunkedEllpackReduceSegmentsKernelWithIndexesAndArgument<
+               ConstSegmentsView,
+               ArrayView,
+               IndexType,
+               std::remove_reference_t< Fetch >,
+               std::remove_reference_t< Reduction >,
+               std::remove_reference_t< ResultStorer >,
+               Value >;
+            Backend::launchKernelAsync(
+               kernel,
+               launch_config,
+               segments.getConstView(),
+               segmentIndexes.getConstView(),
+               gridIdx,
+               fetch,
+               reduction,
+               storer,
+               identity );
          }
          Backend::streamSynchronize( launch_config.stream );
       }

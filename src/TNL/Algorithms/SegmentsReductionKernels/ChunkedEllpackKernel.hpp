@@ -51,13 +51,14 @@ ChunkedEllpackKernel< Index, Device >::getKernelType()
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                       Index begin,
-                                                       Index end,
-                                                       Fetch& fetch,
-                                                       const Reduction& reduction,
-                                                       ResultKeeper& keeper,
-                                                       const Value& identity )
+ChunkedEllpackKernel< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    if constexpr( std::is_same_v< DeviceType, Devices::Host > ) {
@@ -89,9 +90,10 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
                IndexType begin = sliceOffset + firstChunkOfSegment + chunkIdx;
                IndexType end = begin + segments.getChunksInSlice() * chunkSize;
                for( IndexType globalIdx = begin; globalIdx < end; globalIdx += segments.getChunksInSlice() )
-                  aux = reduction( aux,
-                                   Segments::detail::FetchLambdaAdapter< IndexType, Fetch >::call(
-                                      fetch, segmentIdx, localIdx++, globalIdx ) );
+                  aux = reduction(
+                     aux,
+                     Segments::detail::FetchLambdaAdapter< IndexType, Fetch >::call(
+                        fetch, segmentIdx, localIdx++, globalIdx ) );
             }
          }
          keeper( segmentIdx, aux );
@@ -123,11 +125,12 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-ChunkedEllpackKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                          Fetch& fetch,
-                                                          const Reduction& reduction,
-                                                          ResultKeeper& keeper,
-                                                          const Value& identity )
+ChunkedEllpackKernel< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    reduceSegments( segments, 0, segments.getSegmentCount(), fetch, reduction, keeper, identity );
 }

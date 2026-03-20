@@ -44,9 +44,7 @@ class SparseMatrixBase : public MatrixBase< Real, Device, Index, MatrixType_, Se
 {
    static_assert(
       ! MatrixType_::isSymmetric() || ! std::is_same_v< Device, Devices::Cuda >
-         || (std::is_same_v< std::decay_t< Real >, float > || std::is_same_v< std::decay_t< Real >, double >
-             || std::is_same_v< std::decay_t< Real >, int > || std::is_same_v< std::decay_t< Real >, long long int >
-             || std::is_same_v< std::decay_t< Real >, bool >),
+         || (std::is_same_v< std::decay_t< Real >, float > || std::is_same_v< std::decay_t< Real >, double > || std::is_same_v< std::decay_t< Real >, int > || std::is_same_v< std::decay_t< Real >, long long int > || std::is_same_v< std::decay_t< Real >, bool >),
       "Given Real type is not supported by atomic operations on GPU which are necessary for symmetric operations." );
 
    using Base = MatrixBase< Real, Device, Index, MatrixType_, SegmentsView::getOrganization() >;
@@ -124,11 +122,12 @@ public:
     * \param segments is a segments view representing the sparse matrix format.
     */
    __cuda_callable__
-   SparseMatrixBase( IndexType rows,
-                     IndexType columns,
-                     typename Base::ValuesViewType values,
-                     ColumnIndexesViewType columnIndexes,
-                     SegmentsViewType segments );
+   SparseMatrixBase(
+      IndexType rows,
+      IndexType columns,
+      typename Base::ValuesViewType values,
+      ColumnIndexesViewType columnIndexes,
+      SegmentsViewType segments );
 
    /**
     * \brief Copy constructor.
@@ -392,21 +391,23 @@ public:
       Keep&& keep,
       const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
 
-   template< typename Fetch,
-             typename Reduce,
-             typename Keep,
-             typename FetchValue,
-             typename SegmentsReductionKernel,
-             typename T = std::enable_if_t<
-                Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
+   template<
+      typename Fetch,
+      typename Reduce,
+      typename Keep,
+      typename FetchValue,
+      typename SegmentsReductionKernel,
+      typename T =
+         std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
    [[deprecated( "Use reduceRows without segments reduction kernel instead" )]] void
-   reduceRows( IndexType begin,
-               IndexType end,
-               Fetch&& fetch,
-               const Reduce& reduce,
-               Keep&& keep,
-               const FetchValue& identity,
-               const SegmentsReductionKernel& kernel ) const;
+   reduceRows(
+      IndexType begin,
+      IndexType end,
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const FetchValue& identity,
+      const SegmentsReductionKernel& kernel ) const;
 
    /**
     * \brief Method for performing general reduction on matrix rows for constant instances with function object
@@ -442,19 +443,21 @@ public:
     * \par Output
     * \include SparseMatrixExample_reduceRows.out
     */
-   template< typename Fetch,
-             typename Reduce,
-             typename Keep,
-             typename SegmentsReductionKernel,
-             typename T = std::enable_if_t<
-                Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
+   template<
+      typename Fetch,
+      typename Reduce,
+      typename Keep,
+      typename SegmentsReductionKernel,
+      typename T =
+         std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
    [[deprecated( "Use reduceRows without segments reduction kernel instead" )]] void
-   reduceRows( IndexType begin,
-               IndexType end,
-               Fetch&& fetch,
-               const Reduce& reduce,
-               Keep&& keep,
-               const SegmentsReductionKernel& kernel ) const;
+   reduceRows(
+      IndexType begin,
+      IndexType end,
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const SegmentsReductionKernel& kernel ) const;
 
    /**
     * \brief Method for performing general reduction on all matrix rows for constant instances.
@@ -511,19 +514,21 @@ public:
       Keep&& keep,
       const Algorithms::Segments::LaunchConfiguration& launchConfig = Algorithms::Segments::LaunchConfiguration{} ) const;
 
-   template< typename Fetch,
-             typename Reduce,
-             typename Keep,
-             typename FetchValue,
-             typename SegmentsReductionKernel,
-             typename T = std::enable_if_t<
-                Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
+   template<
+      typename Fetch,
+      typename Reduce,
+      typename Keep,
+      typename FetchValue,
+      typename SegmentsReductionKernel,
+      typename T =
+         std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentReductionKernel< SegmentsReductionKernel >::value > >
    [[deprecated( "Use reduceAllRows without segments reduction kernel instead" )]] void
-   reduceAllRows( Fetch&& fetch,
-                  const Reduce& reduce,
-                  Keep&& keep,
-                  const FetchValue& identity,
-                  const SegmentsReductionKernel& kernel ) const;
+   reduceAllRows(
+      Fetch&& fetch,
+      const Reduce& reduce,
+      Keep&& keep,
+      const FetchValue& identity,
+      const SegmentsReductionKernel& kernel ) const;
 
    /**
     * \brief Method for iteration over all matrix elements for (constant instances).
@@ -627,11 +632,12 @@ public:
     */
    template< typename Array, typename Function >
    void
-   forElements( const Array& rowIndexes,
-                IndexType begin,
-                IndexType end,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() ) const;
+   forElements(
+      const Array& rowIndexes,
+      IndexType begin,
+      IndexType end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() ) const;
 
    /**
     * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
@@ -660,11 +666,12 @@ public:
     */
    template< typename Array, typename Function >
    void
-   forElements( const Array& rowIndexes,
-                IndexType begin,
-                IndexType end,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   forElements(
+      const Array& rowIndexes,
+      IndexType begin,
+      IndexType end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
    /**
     * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant
@@ -691,9 +698,10 @@ public:
     */
    template< typename Array, typename Function >
    void
-   forElements( const Array& rowIndexes,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() ) const;
+   forElements(
+      const Array& rowIndexes,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() ) const;
 
    /**
     * \brief Method for iteration over all matrix elements in the rows enlisted in the array `rowIndexes`. This is variant for
@@ -720,9 +728,10 @@ public:
     */
    template< typename Array, typename Function >
    void
-   forElements( const Array& rowIndexes,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   forElements(
+      const Array& rowIndexes,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
    /**
     * \brief Method for iterating over all matrix elements that meet a condition based on the row index (for constant
@@ -1019,31 +1028,35 @@ public:
 
    template< typename InVector, typename OutVector >
    void
-   vectorProduct( const InVector& inVector,
-                  OutVector& outVector,
-                  const Algorithms::Segments::LaunchConfiguration& launchConfig ) const;
+   vectorProduct(
+      const InVector& inVector,
+      OutVector& outVector,
+      const Algorithms::Segments::LaunchConfiguration& launchConfig ) const;
 
-   template< typename InVector,
-             typename OutVector,
-             typename SegmentsReductionKernel,
-             typename T = std::enable_if_t<
-                Algorithms::SegmentsReductionKernels::isSegmentsReductionKernel_v< SegmentsReductionKernel > > >
+   template<
+      typename InVector,
+      typename OutVector,
+      typename SegmentsReductionKernel,
+      typename T =
+         std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentsReductionKernel_v< SegmentsReductionKernel > > >
    [[deprecated( "Use vectorProduct without segments reduction kernel instead" )]] void
-   vectorProduct( const InVector& inVector,
-                  OutVector& outVector,
-                  ComputeRealType matrixMultiplicator,
-                  ComputeRealType outVectorMultiplicator,
-                  IndexType begin,
-                  IndexType end,
-                  const SegmentsReductionKernel& kernel ) const;
+   vectorProduct(
+      const InVector& inVector,
+      OutVector& outVector,
+      ComputeRealType matrixMultiplicator,
+      ComputeRealType outVectorMultiplicator,
+      IndexType begin,
+      IndexType end,
+      const SegmentsReductionKernel& kernel ) const;
 
-   template< typename InVector,
-             typename OutVector,
-             typename SegmentsReductionKernel,
-             typename...,
-             typename T = std::enable_if_t<
-                Algorithms::SegmentsReductionKernels::isSegmentsReductionKernel_v< SegmentsReductionKernel > >,
-             std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeRealType >, bool > = true >
+   template<
+      typename InVector,
+      typename OutVector,
+      typename SegmentsReductionKernel,
+      typename...,
+      typename T =
+         std::enable_if_t< Algorithms::SegmentsReductionKernels::isSegmentsReductionKernel_v< SegmentsReductionKernel > >,
+      std::enable_if_t< ! std::is_convertible_v< SegmentsReductionKernel, ComputeRealType >, bool > = true >
    [[deprecated( "Use vectorProduct without segments reduction kernel instead" )]] void
    vectorProduct( const InVector& inVector, OutVector& outVector, const SegmentsReductionKernel& kernel ) const;
 
@@ -1070,12 +1083,13 @@ public:
     */
    template< typename InVector, typename OutVector >
    void
-   transposedVectorProduct( const InVector& inVector,
-                            OutVector& outVector,
-                            ComputeReal matrixMultiplicator = 1.0,
-                            ComputeReal outVectorMultiplicator = 0.0,
-                            Index begin = 0,
-                            Index end = 0 ) const;
+   transposedVectorProduct(
+      const InVector& inVector,
+      OutVector& outVector,
+      ComputeReal matrixMultiplicator = 1.0,
+      ComputeReal outVectorMultiplicator = 0.0,
+      Index begin = 0,
+      Index end = 0 ) const;
 
    /**
     * \brief Comparison operator with another arbitrary matrix type.
@@ -1181,11 +1195,12 @@ protected:
     */
    __cuda_callable__
    void
-   bind( IndexType rows,
-         IndexType columns,
-         typename Base::ValuesViewType values,
-         ColumnIndexesViewType columnIndexes,
-         SegmentsViewType segments );
+   bind(
+      IndexType rows,
+      IndexType columns,
+      typename Base::ValuesViewType values,
+      ColumnIndexesViewType columnIndexes,
+      SegmentsViewType segments );
 };
 
 /**

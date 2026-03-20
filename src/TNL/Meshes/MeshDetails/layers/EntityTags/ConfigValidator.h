@@ -11,11 +11,13 @@ namespace TNL::Meshes::EntityTags {
 template< typename MeshConfig, int EntityDimension, bool entityTagsStorage = MeshConfig::entityTagsStorage( EntityDimension ) >
 class ConfigValidatorEntityTagsLayer
 {
-   static_assert( MeshConfig::superentityStorage( MeshConfig::meshDimension - 1, MeshConfig::meshDimension ),
-                  "Faces must store the cell superentity indices when any entity has boundary tags." );
-   static_assert( EntityDimension >= MeshConfig::meshDimension - 1
-                     || MeshConfig::subentityStorage( MeshConfig::meshDimension - 1, EntityDimension ),
-                  "Faces must store the subentity indices of the entities on which the boundary tags are stored." );
+   static_assert(
+      MeshConfig::superentityStorage( MeshConfig::meshDimension - 1, MeshConfig::meshDimension ),
+      "Faces must store the cell superentity indices when any entity has boundary tags." );
+   static_assert(
+      EntityDimension >= MeshConfig::meshDimension - 1
+         || MeshConfig::subentityStorage( MeshConfig::meshDimension - 1, EntityDimension ),
+      "Faces must store the subentity indices of the entities on which the boundary tags are stored." );
 };
 
 template< typename MeshConfig, int EntityDimension >

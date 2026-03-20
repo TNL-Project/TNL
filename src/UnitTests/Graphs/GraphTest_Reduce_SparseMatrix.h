@@ -167,12 +167,13 @@ struct StoreIntoVectorWithArgument
    // For array-based reductions with emptySegment (6 parameters)
    __cuda_callable__
    void
-   operator()( IndexType indexOfVertexIdx,
-               IndexType vertexIdx,
-               IndexType localIdx,
-               IndexType columnIdx,
-               const ValueType& value,
-               bool emptySegment ) const
+   operator()(
+      IndexType indexOfVertexIdx,
+      IndexType vertexIdx,
+      IndexType localIdx,
+      IndexType columnIdx,
+      const ValueType& value,
+      bool emptySegment ) const
    {
       valueView[ vertexIdx ] = value;
       if( ! emptySegment )

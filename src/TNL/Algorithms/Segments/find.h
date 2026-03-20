@@ -166,10 +166,11 @@ namespace TNL::Algorithms::Segments {
  */
 template< typename Segments, typename Condition, typename ResultStorer >
 static void
-findInAllSegments( const Segments& segments,
-                   Condition&& condition,
-                   ResultStorer&& storer,
-                   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+findInAllSegments(
+   const Segments& segments,
+   Condition&& condition,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief In each segment of given range, find the first occurrence of an element fulfilling specified condition.
@@ -197,19 +198,21 @@ findInAllSegments( const Segments& segments,
  * Note: A function like `find` searching for a specific value does not make sense for segments due
  * to the necessity of accessing the data via a lambda function anyway.
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename ResultStorer,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename ResultStorer,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
-findInSegments( const Segments& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Condition&& condition,
-                ResultStorer&& storer,
-                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+findInSegments(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief In each segment within given segment indexes, find the first occurrence of an element fulfilling specified condition.
@@ -235,17 +238,19 @@ findInSegments( const Segments& segments,
  * Note: A function like `find` searching for a specific value does not make sense for segments due
  * to the necessity of accessing the data via a lambda function anyway.
  */
-template< typename Segments,
-          typename Array,
-          typename Condition,
-          typename ResultStorer,
-          typename T = std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Segments,
+   typename Array,
+   typename Condition,
+   typename ResultStorer,
+   typename T = std::enable_if_t< IsArrayType< Array >::value > >
 static void
-findInSegments( const Segments& segments,
-                const Array& segmentIndexes,
-                Condition&& condition,
-                ResultStorer&& storer,
-                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+findInSegments(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Condition&& condition,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief In each segment fulfilling specified segment condition, find the first occurrence of an element fulfilling specified
@@ -275,11 +280,12 @@ findInSegments( const Segments& segments,
  */
 template< typename Segments, typename SegmentCondition, typename Condition, typename ResultStorer >
 static void
-findInAllSegmentsIf( const Segments& segments,
-                     SegmentCondition&& segmentCondition,
-                     Condition&& condition,
-                     ResultStorer&& storer,
-                     LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+findInAllSegmentsIf(
+   const Segments& segments,
+   SegmentCondition&& segmentCondition,
+   Condition&& condition,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief In each segment within given range and fulfilling specified segment condition, find the first occurrence of an element
@@ -311,21 +317,23 @@ findInAllSegmentsIf( const Segments& segments,
  * Note: A function like `find` searching for a specific value does not make sense for segments due
  * to the necessity of accessing the data via a lambda function anyway.
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename SegmentCondition,
-          typename Condition,
-          typename ResultStorer,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename SegmentCondition,
+   typename Condition,
+   typename ResultStorer,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
-findInSegmentsIf( const Segments& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  SegmentCondition&& segmentCondition,
-                  Condition&& condition,
-                  ResultStorer&& storer,
-                  LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+findInSegmentsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   SegmentCondition&& segmentCondition,
+   Condition&& condition,
+   ResultStorer&& storer,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 }  // namespace TNL::Algorithms::Segments
 

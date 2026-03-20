@@ -60,9 +60,10 @@ public:
 
    //! \brief Constructor with embedded segments view and segments permutation.
    __cuda_callable__
-   SortedSegmentsView( EmbeddedSegmentsView embeddedSegmentsView,
-                       PermutationView segmentsPermutation,
-                       PermutationView inverseSegmentsPermutation );
+   SortedSegmentsView(
+      EmbeddedSegmentsView embeddedSegmentsView,
+      PermutationView segmentsPermutation,
+      PermutationView inverseSegmentsPermutation );
 
    //! \brief Copy-assignment operator.
    SortedSegmentsView&
@@ -80,17 +81,19 @@ public:
    //! \brief Method for rebinding (reinitialization) to another view.
    __cuda_callable__
    void
-   bind( const EmbeddedSegmentsView& embeddedSegmentsView,
-         const PermutationView& segmentsPermutation,
-         const PermutationView& inverseSegmentsPermutation );
+   bind(
+      const EmbeddedSegmentsView& embeddedSegmentsView,
+      const PermutationView& segmentsPermutation,
+      const PermutationView& inverseSegmentsPermutation );
 
    // TODO: Ensure somehow that the following can be called only for const views.
    //! \brief Method for rebinding (reinitialization) to another view.
    __cuda_callable__
    void
-   bind( const EmbeddedSegmentsConstView& embeddedSegmentsView,
-         const ConstPermutationView& segmentsPermutation,
-         const ConstPermutationView& inverseSegmentsPermutation );
+   bind(
+      const EmbeddedSegmentsConstView& embeddedSegmentsView,
+      const ConstPermutationView& segmentsPermutation,
+      const ConstPermutationView& inverseSegmentsPermutation );
 
    //! \brief Returns a view for this instance of segments which can be used
    //! for example in lambda functions running in GPU kernels.

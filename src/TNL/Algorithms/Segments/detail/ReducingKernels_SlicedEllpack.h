@@ -10,25 +10,27 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< int BlockSize,
-          int ThreadsPerSegment,
-          typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int BlockSize,
+   int ThreadsPerSegment,
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __device__
 void
-reduceSegmentsRowMajorSlicedEllpackKernel( const int gridIdx,
-                                           const Segments& segments,
-                                           IndexBegin begin,
-                                           IndexEnd end,
-                                           Fetch& fetch,
-                                           Reduction& reduce,
-                                           ResultStorer& store,
-                                           const Value& identity )
+reduceSegmentsRowMajorSlicedEllpackKernel(
+   const int gridIdx,
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch& fetch,
+   Reduction& reduce,
+   ResultStorer& store,
+   const Value& identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using Index = typename Segments::IndexType;
@@ -81,35 +83,39 @@ reduceSegmentsRowMajorSlicedEllpackKernel( const int gridIdx,
 }
 
 // For this kernel we assume that Segments::getSliceSize() * ThreadsPerSegment >= WarpSize.
-template< int BlockSize,
-          int ThreadsPerSegment,
-          typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int BlockSize,
+   int ThreadsPerSegment,
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __device__
 void
-reduceSegmentsColumnMajorSlicedEllpackKernel( const int gridIdx,
-                                              const Segments& segments,
-                                              IndexBegin begin,
-                                              IndexEnd end,
-                                              Fetch& fetch,
-                                              Reduction& reduce,
-                                              ResultStorer& store,
-                                              const Value& identity )
+reduceSegmentsColumnMajorSlicedEllpackKernel(
+   const int gridIdx,
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch& fetch,
+   Reduction& reduce,
+   ResultStorer& store,
+   const Value& identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using Index = typename Segments::IndexType;
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
    constexpr Index SliceSize = Segments::getSliceSize();
 
-   static_assert( ThreadsPerSegment * Segments::getSliceSize() <= BlockSize,
-                  "There are not enough threads in the block for the given configuration (ThreadsPerSegment and SliceSize)." );
-   static_assert( ThreadsPerSegment * Segments::getSliceSize() >= Backend::getWarpSize(),
-                  "The SliceSize is too small for given configuration (ThreadsPerSegment and warp size)." );
+   static_assert(
+      ThreadsPerSegment * Segments::getSliceSize() <= BlockSize,
+      "There are not enough threads in the block for the given configuration (ThreadsPerSegment and SliceSize)." );
+   static_assert(
+      ThreadsPerSegment * Segments::getSliceSize() >= Backend::getWarpSize(),
+      "The SliceSize is too small for given configuration (ThreadsPerSegment and warp size)." );
    /////
    // To describe this kernel we assume that the SlizeSize = 4. Then the mapping of segment elements is as follows:
    //          +----+----+----+----+
@@ -360,28 +366,30 @@ reduceSegmentsColumnMajorSlicedEllpackKernel( const int gridIdx,
 #endif
 }
 
-template< int BlockSize,
-          int ThreadsPerSegment,
-          typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int BlockSize,
+   int ThreadsPerSegment,
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-reduceSegmentsSlicedEllpackKernel( const int gridIdx,
-                                   const Segments segments,
-                                   IndexBegin begin,
-                                   IndexEnd end,
-                                   Fetch fetch,
-                                   Reduction reduce,
-                                   ResultStorer store,
-                                   const Value identity )
+reduceSegmentsSlicedEllpackKernel(
+   const int gridIdx,
+   const Segments segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch fetch,
+   Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
-   static_assert( ThreadsPerSegment <= Backend::getWarpSize(),
-                  "ThreadsPerSegment must be less than or equal to the warp size." );
+   static_assert(
+      ThreadsPerSegment <= Backend::getWarpSize(), "ThreadsPerSegment must be less than or equal to the warp size." );
    if constexpr( Segments::getOrganization() == RowMajorOrder )
       reduceSegmentsRowMajorSlicedEllpackKernel< BlockSize, ThreadsPerSegment >(
          gridIdx, segments, begin, end, fetch, reduce, store, identity );

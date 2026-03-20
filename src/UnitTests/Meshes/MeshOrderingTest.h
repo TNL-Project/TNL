@@ -39,18 +39,24 @@ buildTriangleMesh( Mesh< TestTriangleMeshConfig, Device >& mesh )
    using EdgeMeshEntityType = typename TriangleMesh::template EntityType< 1 >;
    using VertexMeshEntityType = typename TriangleMesh::template EntityType< 0 >;
 
-   static_assert( TriangleMeshEntityType::template SubentityTraits< 1 >::storageEnabled,
-                  "Testing triangle entity does not store edges as required." );
-   static_assert( TriangleMeshEntityType::template SubentityTraits< 0 >::storageEnabled,
-                  "Testing triangle entity does not store vertices as required." );
-   static_assert( EdgeMeshEntityType::template SubentityTraits< 0 >::storageEnabled,
-                  "Testing edge entity does not store vertices as required." );
-   static_assert( EdgeMeshEntityType::template SuperentityTraits< 2 >::storageEnabled,
-                  "Testing edge entity does not store triangles as required." );
-   static_assert( VertexMeshEntityType::template SuperentityTraits< 2 >::storageEnabled,
-                  "Testing vertex entity does not store triangles as required." );
-   static_assert( VertexMeshEntityType::template SuperentityTraits< 1 >::storageEnabled,
-                  "Testing vertex entity does not store edges as required." );
+   static_assert(
+      TriangleMeshEntityType::template SubentityTraits< 1 >::storageEnabled,
+      "Testing triangle entity does not store edges as required." );
+   static_assert(
+      TriangleMeshEntityType::template SubentityTraits< 0 >::storageEnabled,
+      "Testing triangle entity does not store vertices as required." );
+   static_assert(
+      EdgeMeshEntityType::template SubentityTraits< 0 >::storageEnabled,
+      "Testing edge entity does not store vertices as required." );
+   static_assert(
+      EdgeMeshEntityType::template SuperentityTraits< 2 >::storageEnabled,
+      "Testing edge entity does not store triangles as required." );
+   static_assert(
+      VertexMeshEntityType::template SuperentityTraits< 2 >::storageEnabled,
+      "Testing vertex entity does not store triangles as required." );
+   static_assert(
+      VertexMeshEntityType::template SuperentityTraits< 1 >::storageEnabled,
+      "Testing vertex entity does not store edges as required." );
 
    using PointType = typename VertexMeshEntityType::PointType;
    static_assert( std::is_same_v< PointType, Containers::StaticVector< 2, double > > );
@@ -99,10 +105,11 @@ buildTriangleMesh( Mesh< TestTriangleMeshConfig, Device >& mesh )
 
 template< typename PermutationArray >
 void
-testMesh( const Mesh< TestTriangleMeshConfig, Devices::Host >& mesh,
-          const PermutationArray& vertexPermutation,
-          const PermutationArray& edgePermutation,
-          const PermutationArray& cellPermutation )
+testMesh(
+   const Mesh< TestTriangleMeshConfig, Devices::Host >& mesh,
+   const PermutationArray& vertexPermutation,
+   const PermutationArray& edgePermutation,
+   const PermutationArray& cellPermutation )
 {
    using MeshType = Mesh< TestTriangleMeshConfig, Devices::Host >;
    using PointType = typename MeshType::PointType;
@@ -135,116 +142,116 @@ testMesh( const Mesh< TestTriangleMeshConfig, Devices::Host >& mesh,
       EXPECT_EQ( mesh.template getEntity< 2 >( i ).getIndex(), i );
 
    // test subentities
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 0 ] ).template getSubentityIndex< 0 >( 0 ),
-              vertexPermutation[ 1 ] );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 0 ] ).template getSubentityIndex< 0 >( 1 ),
-              vertexPermutation[ 2 ] );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 1 ] ).template getSubentityIndex< 0 >( 0 ),
-              vertexPermutation[ 2 ] );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 1 ] ).template getSubentityIndex< 0 >( 1 ),
-              vertexPermutation[ 0 ] );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 2 ] ).template getSubentityIndex< 0 >( 0 ),
-              vertexPermutation[ 0 ] );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 2 ] ).template getSubentityIndex< 0 >( 1 ),
-              vertexPermutation[ 1 ] );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 3 ] ).template getSubentityIndex< 0 >( 0 ),
-              vertexPermutation[ 2 ] );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 3 ] ).template getSubentityIndex< 0 >( 1 ),
-              vertexPermutation[ 3 ] );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 4 ] ).template getSubentityIndex< 0 >( 0 ),
-              vertexPermutation[ 3 ] );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 4 ] ).template getSubentityIndex< 0 >( 1 ),
-              vertexPermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 0 ] ).template getSubentityIndex< 0 >( 0 ), vertexPermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 0 ] ).template getSubentityIndex< 0 >( 1 ), vertexPermutation[ 2 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 1 ] ).template getSubentityIndex< 0 >( 0 ), vertexPermutation[ 2 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 1 ] ).template getSubentityIndex< 0 >( 1 ), vertexPermutation[ 0 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 2 ] ).template getSubentityIndex< 0 >( 0 ), vertexPermutation[ 0 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 2 ] ).template getSubentityIndex< 0 >( 1 ), vertexPermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 3 ] ).template getSubentityIndex< 0 >( 0 ), vertexPermutation[ 2 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 3 ] ).template getSubentityIndex< 0 >( 1 ), vertexPermutation[ 3 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 4 ] ).template getSubentityIndex< 0 >( 0 ), vertexPermutation[ 3 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 4 ] ).template getSubentityIndex< 0 >( 1 ), vertexPermutation[ 1 ] );
 
-   EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 0 ] ).template getSubentityIndex< 0 >( 0 ),
-              vertexPermutation[ 0 ] );
-   EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 0 ] ).template getSubentityIndex< 0 >( 1 ),
-              vertexPermutation[ 1 ] );
-   EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 0 ] ).template getSubentityIndex< 0 >( 2 ),
-              vertexPermutation[ 2 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 2 >( cellPermutation[ 0 ] ).template getSubentityIndex< 0 >( 0 ), vertexPermutation[ 0 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 2 >( cellPermutation[ 0 ] ).template getSubentityIndex< 0 >( 1 ), vertexPermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 2 >( cellPermutation[ 0 ] ).template getSubentityIndex< 0 >( 2 ), vertexPermutation[ 2 ] );
    EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 0 ] ).template getSubentityIndex< 1 >( 0 ), edgePermutation[ 0 ] );
    EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 0 ] ).template getSubentityIndex< 1 >( 1 ), edgePermutation[ 1 ] );
    EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 0 ] ).template getSubentityIndex< 1 >( 2 ), edgePermutation[ 2 ] );
-   EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 1 ] ).template getSubentityIndex< 0 >( 0 ),
-              vertexPermutation[ 1 ] );
-   EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 1 ] ).template getSubentityIndex< 0 >( 1 ),
-              vertexPermutation[ 2 ] );
-   EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 1 ] ).template getSubentityIndex< 0 >( 2 ),
-              vertexPermutation[ 3 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 2 >( cellPermutation[ 1 ] ).template getSubentityIndex< 0 >( 0 ), vertexPermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 2 >( cellPermutation[ 1 ] ).template getSubentityIndex< 0 >( 1 ), vertexPermutation[ 2 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 2 >( cellPermutation[ 1 ] ).template getSubentityIndex< 0 >( 2 ), vertexPermutation[ 3 ] );
    EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 1 ] ).template getSubentityIndex< 1 >( 0 ), edgePermutation[ 3 ] );
    EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 1 ] ).template getSubentityIndex< 1 >( 1 ), edgePermutation[ 4 ] );
    EXPECT_EQ( mesh.template getEntity< 2 >( cellPermutation[ 1 ] ).template getSubentityIndex< 1 >( 2 ), edgePermutation[ 0 ] );
 
    // test superentities
    ASSERT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 0 ] ).template getSuperentitiesCount< 1 >(), 2 );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 0 ] ).template getSuperentityIndex< 1 >( 0 ),
-              edgePermutation[ 1 ] );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 0 ] ).template getSuperentityIndex< 1 >( 1 ),
-              edgePermutation[ 2 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 0 ] ).template getSuperentityIndex< 1 >( 0 ), edgePermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 0 ] ).template getSuperentityIndex< 1 >( 1 ), edgePermutation[ 2 ] );
 
    ASSERT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentitiesCount< 1 >(), 3 );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentityIndex< 1 >( 0 ),
-              edgePermutation[ 0 ] );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentityIndex< 1 >( 1 ),
-              edgePermutation[ 2 ] );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentityIndex< 1 >( 2 ),
-              edgePermutation[ 4 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentityIndex< 1 >( 0 ), edgePermutation[ 0 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentityIndex< 1 >( 1 ), edgePermutation[ 2 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentityIndex< 1 >( 2 ), edgePermutation[ 4 ] );
 
    ASSERT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentitiesCount< 1 >(), 3 );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentityIndex< 1 >( 0 ),
-              edgePermutation[ 0 ] );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentityIndex< 1 >( 1 ),
-              edgePermutation[ 1 ] );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentityIndex< 1 >( 2 ),
-              edgePermutation[ 3 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentityIndex< 1 >( 0 ), edgePermutation[ 0 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentityIndex< 1 >( 1 ), edgePermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentityIndex< 1 >( 2 ), edgePermutation[ 3 ] );
 
    ASSERT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 3 ] ).template getSuperentitiesCount< 1 >(), 2 );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 3 ] ).template getSuperentityIndex< 1 >( 0 ),
-              edgePermutation[ 3 ] );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 3 ] ).template getSuperentityIndex< 1 >( 1 ),
-              edgePermutation[ 4 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 3 ] ).template getSuperentityIndex< 1 >( 0 ), edgePermutation[ 3 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 3 ] ).template getSuperentityIndex< 1 >( 1 ), edgePermutation[ 4 ] );
 
    ASSERT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 0 ] ).template getSuperentitiesCount< 2 >(), 1 );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 0 ] ).template getSuperentityIndex< 2 >( 0 ),
-              cellPermutation[ 0 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 0 ] ).template getSuperentityIndex< 2 >( 0 ), cellPermutation[ 0 ] );
 
    ASSERT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentitiesCount< 2 >(), 2 );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentityIndex< 2 >( 0 ),
-              cellPermutation[ 0 ] );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentityIndex< 2 >( 1 ),
-              cellPermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentityIndex< 2 >( 0 ), cellPermutation[ 0 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 1 ] ).template getSuperentityIndex< 2 >( 1 ), cellPermutation[ 1 ] );
 
    ASSERT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentitiesCount< 2 >(), 2 );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentityIndex< 2 >( 0 ),
-              cellPermutation[ 0 ] );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentityIndex< 2 >( 1 ),
-              cellPermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentityIndex< 2 >( 0 ), cellPermutation[ 0 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 2 ] ).template getSuperentityIndex< 2 >( 1 ), cellPermutation[ 1 ] );
 
    ASSERT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 3 ] ).template getSuperentitiesCount< 2 >(), 1 );
-   EXPECT_EQ( mesh.template getEntity< 0 >( vertexPermutation[ 3 ] ).template getSuperentityIndex< 2 >( 0 ),
-              cellPermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 0 >( vertexPermutation[ 3 ] ).template getSuperentityIndex< 2 >( 0 ), cellPermutation[ 1 ] );
 
    ASSERT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 0 ] ).template getSuperentitiesCount< 2 >(), 2 );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 0 ] ).template getSuperentityIndex< 2 >( 0 ),
-              cellPermutation[ 0 ] );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 0 ] ).template getSuperentityIndex< 2 >( 1 ),
-              cellPermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 0 ] ).template getSuperentityIndex< 2 >( 0 ), cellPermutation[ 0 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 0 ] ).template getSuperentityIndex< 2 >( 1 ), cellPermutation[ 1 ] );
 
    ASSERT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 1 ] ).template getSuperentitiesCount< 2 >(), 1 );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 1 ] ).template getSuperentityIndex< 2 >( 0 ),
-              cellPermutation[ 0 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 1 ] ).template getSuperentityIndex< 2 >( 0 ), cellPermutation[ 0 ] );
 
    ASSERT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 2 ] ).template getSuperentitiesCount< 2 >(), 1 );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 2 ] ).template getSuperentityIndex< 2 >( 0 ),
-              cellPermutation[ 0 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 2 ] ).template getSuperentityIndex< 2 >( 0 ), cellPermutation[ 0 ] );
 
    ASSERT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 3 ] ).template getSuperentitiesCount< 2 >(), 1 );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 3 ] ).template getSuperentityIndex< 2 >( 0 ),
-              cellPermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 3 ] ).template getSuperentityIndex< 2 >( 0 ), cellPermutation[ 1 ] );
 
    ASSERT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 4 ] ).template getSuperentitiesCount< 2 >(), 1 );
-   EXPECT_EQ( mesh.template getEntity< 1 >( edgePermutation[ 4 ] ).template getSuperentityIndex< 2 >( 0 ),
-              cellPermutation[ 1 ] );
+   EXPECT_EQ(
+      mesh.template getEntity< 1 >( edgePermutation[ 4 ] ).template getSuperentityIndex< 2 >( 0 ), cellPermutation[ 1 ] );
 
    // test boundary tags
    const std::vector< int > boundaryFaces = { 1, 2, 3, 4 };

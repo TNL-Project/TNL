@@ -37,12 +37,13 @@ setEdgesExample()
     * For dense matrix graphs, use nested initializer lists {{row1}, {row2}, ...}
     */
    std::cout << "\nExample 1b: setEdges with initializer list (dense adjacency matrix)\n";
-   using DenseGraphType = TNL::Graphs::Graph< float,
-                                              Device,
-                                              int,
-                                              TNL::Graphs::DirectedGraph,
-                                              TNL::Algorithms::Segments::CSR,  // Type of segments is ignored for dense matrices
-                                              TNL::Matrices::DenseMatrix< float, Device, int > >;
+   using DenseGraphType = TNL::Graphs::Graph<
+      float,
+      Device,
+      int,
+      TNL::Graphs::DirectedGraph,
+      TNL::Algorithms::Segments::CSR,  // Type of segments is ignored for dense matrices
+      TNL::Matrices::DenseMatrix< float, Device, int > >;
    DenseGraphType graph1b;
    graph1b.setVertexCount( 4 );
 

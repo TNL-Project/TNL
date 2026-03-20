@@ -381,21 +381,25 @@ public:
             // negative rank and tag IDs are not valid according to the MPI standard and may be used by
             // applications to skip communication, e.g. over the periodic boundary
             if( buffer.neighbor >= 0 && buffer.tag_send >= 0 ) {
-               requests.push_back( MPI::Isend( buffer.send_view.getData(),
-                                               buffer.send_view.getStorageSize(),
-                                               buffer.neighbor,
-                                               buffer.tag_send,
-                                               array_view.getCommunicator() ) );
+               requests.push_back(
+                  MPI::Isend(
+                     buffer.send_view.getData(),
+                     buffer.send_view.getStorageSize(),
+                     buffer.neighbor,
+                     buffer.tag_send,
+                     array_view.getCommunicator() ) );
                sent_bytes += buffer.send_view.getStorageSize() * sizeof( typename DistributedNDArray::ValueType );
                ++sent_messages;
             }
             auto& opp_buffer = buffers.at( opposite( buffer.direction ) );
             if( opp_buffer.neighbor >= 0 && opp_buffer.tag_recv >= 0 ) {
-               requests.push_back( MPI::Irecv( opp_buffer.recv_view.getData(),
-                                               opp_buffer.recv_view.getStorageSize(),
-                                               opp_buffer.neighbor,
-                                               opp_buffer.tag_recv,
-                                               array_view.getCommunicator() ) );
+               requests.push_back(
+                  MPI::Irecv(
+                     opp_buffer.recv_view.getData(),
+                     opp_buffer.recv_view.getStorageSize(),
+                     opp_buffer.neighbor,
+                     opp_buffer.tag_recv,
+                     array_view.getCommunicator() ) );
                recv_bytes += opp_buffer.recv_view.getStorageSize() * sizeof( typename DistributedNDArray::ValueType );
                ++recv_messages;
             }
@@ -640,11 +644,12 @@ public:
  */
 template< typename DistributedNDArray, std::size_t Q, typename BlockType >
 void
-setNeighbors( DistributedNDArraySynchronizer< DistributedNDArray >& synchronizer,
-              const std::array< SyncDirection, Q >& pattern,
-              int rank,
-              const std::vector< BlockType >& decomposition,
-              const BlockType& global )
+setNeighbors(
+   DistributedNDArraySynchronizer< DistributedNDArray >& synchronizer,
+   const std::array< SyncDirection, Q >& pattern,
+   int rank,
+   const std::vector< BlockType >& decomposition,
+   const BlockType& global )
 {
    const BlockType& reference = decomposition.at( rank );
 
@@ -671,8 +676,9 @@ setNeighbors( DistributedNDArraySynchronizer< DistributedNDArray >& synchronizer
             return;
          }
       }
-      throw std::runtime_error( "coordinate [" + std::to_string( point.x() ) + "," + std::to_string( point.y() ) + ","
-                                + std::to_string( point.z() ) + "] was not found in the decomposition" );
+      throw std::runtime_error(
+         "coordinate [" + std::to_string( point.x() ) + "," + std::to_string( point.y() ) + "," + std::to_string( point.z() )
+         + "] was not found in the decomposition" );
    };
 
    for( SyncDirection direction : pattern ) {

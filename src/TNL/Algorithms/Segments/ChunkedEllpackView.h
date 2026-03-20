@@ -16,9 +16,10 @@ namespace TNL::Algorithms::Segments {
  * \tparam Index is type for indexing of the elements managed by the segments.
  * \tparam Organization is the organization of the elements in the segments—either row-major or column-major order.
  */
-template< typename Device,
-          typename Index,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
+template<
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
 class ChunkedEllpackView : public ChunkedEllpackBase< Device, Index, Organization >
 {
    using Base = ChunkedEllpackBase< Device, Index, Organization >;
@@ -53,16 +54,17 @@ public:
 
    //! \brief Constructor that initializes segments based on all necessary data.
    __cuda_callable__
-   ChunkedEllpackView( Index size,
-                       Index storageSize,
-                       Index numberOfSlices,
-                       Index chunksInSlice,
-                       Index desiredChunkSize,
-                       typename Base::OffsetsView segmentToChunkMapping,
-                       typename Base::OffsetsView segmentToSliceMapping,
-                       typename Base::OffsetsView chunksToSegmentsMapping,
-                       typename Base::OffsetsView segmentPointers,
-                       typename Base::SliceInfoContainerView slices );
+   ChunkedEllpackView(
+      Index size,
+      Index storageSize,
+      Index numberOfSlices,
+      Index chunksInSlice,
+      Index desiredChunkSize,
+      typename Base::OffsetsView segmentToChunkMapping,
+      typename Base::OffsetsView segmentToSliceMapping,
+      typename Base::OffsetsView chunksToSegmentsMapping,
+      typename Base::OffsetsView segmentPointers,
+      typename Base::SliceInfoContainerView slices );
 
    //! \brief Copy-assignment operator.
    ChunkedEllpackView&
@@ -141,9 +143,10 @@ using ColumnMajorChunkedEllpackView = ChunkedEllpackView< Device, Index, ColumnM
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization() >
+template<
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization() >
 using SortedChunkedEllpackView = SortedSegmentsView< ChunkedEllpackView< Device, Index, Organization > >;
 
 /**

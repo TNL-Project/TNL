@@ -21,9 +21,10 @@ forRowsExample()
     * The diagonals offsets are { -1, 0, 1 }.
     */
    const int size = 5;
-   MatrixType matrix( size,            // number of matrix rows
-                      size,            // number of matrix columns
-                      { -1, 0, 1 } );  // matrix diagonals offsets
+   MatrixType matrix(
+      size,            // number of matrix rows
+      size,            // number of matrix columns
+      { -1, 0, 1 } );  // matrix diagonals offsets
    auto view = matrix.getView();
 
    auto f = [] __cuda_callable__( typename MatrixType::RowView & row )

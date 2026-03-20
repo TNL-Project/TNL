@@ -47,13 +47,14 @@ SlicedEllpackKernel< Index, Device >::getKernelType()
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
-                                                      Index begin,
-                                                      Index end,
-                                                      Fetch& fetch,
-                                                      const Reduction& reduction,
-                                                      ResultKeeper& keeper,
-                                                      const Value& identity )
+SlicedEllpackKernel< Index, Device >::reduceSegments(
+   const SegmentsView& segments,
+   Index begin,
+   Index end,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    using ReturnType = typename Segments::detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
 
@@ -97,11 +98,12 @@ SlicedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segmen
 template< typename Index, typename Device >
 template< typename SegmentsView, typename Fetch, typename Reduction, typename ResultKeeper, typename Value >
 void
-SlicedEllpackKernel< Index, Device >::reduceAllSegments( const SegmentsView& segments,
-                                                         Fetch& fetch,
-                                                         const Reduction& reduction,
-                                                         ResultKeeper& keeper,
-                                                         const Value& identity )
+SlicedEllpackKernel< Index, Device >::reduceAllSegments(
+   const SegmentsView& segments,
+   Fetch& fetch,
+   const Reduction& reduction,
+   ResultKeeper& keeper,
+   const Value& identity )
 {
    reduceSegments( segments, 0, segments.getSegmentCount(), fetch, reduction, keeper, identity );
 }

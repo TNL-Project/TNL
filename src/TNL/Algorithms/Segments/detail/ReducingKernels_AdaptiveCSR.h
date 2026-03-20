@@ -12,22 +12,24 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< typename BlocksView,
-          typename Offsets,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   typename BlocksView,
+   typename Offsets,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRAdaptiveKernel( int gridIdx,
-                                 BlocksView blocks,
-                                 Offsets offsets,
-                                 Fetch fetch,
-                                 Reduction reduction,
-                                 ResultStorer store,
-                                 Value identity )
+reduceSegmentsCSRAdaptiveKernel(
+   int gridIdx,
+   BlocksView blocks,
+   Offsets offsets,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer store,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -143,22 +145,24 @@ reduceSegmentsCSRAdaptiveKernel( int gridIdx,
 #endif
 }
 
-template< typename BlocksView,
-          typename Offsets,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   typename BlocksView,
+   typename Offsets,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRAdaptiveKernelWithArgument( int gridIdx,
-                                             BlocksView blocks,
-                                             Offsets offsets,
-                                             Fetch fetch,
-                                             Reduction reduction,
-                                             ResultStorer store,
-                                             Value identity )
+reduceSegmentsCSRAdaptiveKernelWithArgument(
+   int gridIdx,
+   BlocksView blocks,
+   Offsets offsets,
+   Fetch fetch,
+   Reduction reduction,
+   ResultStorer store,
+   Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -255,38 +259,43 @@ reduceSegmentsCSRAdaptiveKernelWithArgument( int gridIdx,
       if( block.getWarpIdx() == 0 && laneIdx < 16 ) {
          constexpr int totalWarps = CudaBlockSize / WarpSize;
          if( totalWarps >= 32 ) {
-            reduction( multivectorShared_result[ laneIdx ],
-                       multivectorShared_result[ laneIdx + 16 ],
-                       multivectorShared_argument[ laneIdx ],
-                       multivectorShared_argument[ laneIdx + 16 ] );
+            reduction(
+               multivectorShared_result[ laneIdx ],
+               multivectorShared_result[ laneIdx + 16 ],
+               multivectorShared_argument[ laneIdx ],
+               multivectorShared_argument[ laneIdx + 16 ] );
             __syncwarp();
          }
          if( totalWarps >= 16 ) {
-            reduction( multivectorShared_result[ laneIdx ],
-                       multivectorShared_result[ laneIdx + 8 ],
-                       multivectorShared_argument[ laneIdx ],
-                       multivectorShared_argument[ laneIdx + 8 ] );
+            reduction(
+               multivectorShared_result[ laneIdx ],
+               multivectorShared_result[ laneIdx + 8 ],
+               multivectorShared_argument[ laneIdx ],
+               multivectorShared_argument[ laneIdx + 8 ] );
             __syncwarp();
          }
          if( totalWarps >= 8 ) {
-            reduction( multivectorShared_result[ laneIdx ],
-                       multivectorShared_result[ laneIdx + 4 ],
-                       multivectorShared_argument[ laneIdx ],
-                       multivectorShared_argument[ laneIdx + 4 ] );
+            reduction(
+               multivectorShared_result[ laneIdx ],
+               multivectorShared_result[ laneIdx + 4 ],
+               multivectorShared_argument[ laneIdx ],
+               multivectorShared_argument[ laneIdx + 4 ] );
             __syncwarp();
          }
          if( totalWarps >= 4 ) {
-            reduction( multivectorShared_result[ laneIdx ],
-                       multivectorShared_result[ laneIdx + 2 ],
-                       multivectorShared_argument[ laneIdx ],
-                       multivectorShared_argument[ laneIdx + 2 ] );
+            reduction(
+               multivectorShared_result[ laneIdx ],
+               multivectorShared_result[ laneIdx + 2 ],
+               multivectorShared_argument[ laneIdx ],
+               multivectorShared_argument[ laneIdx + 2 ] );
             __syncwarp();
          }
          if( totalWarps >= 2 ) {
-            reduction( multivectorShared_result[ laneIdx ],
-                       multivectorShared_result[ laneIdx + 1 ],
-                       multivectorShared_argument[ laneIdx ],
-                       multivectorShared_argument[ laneIdx + 1 ] );
+            reduction(
+               multivectorShared_result[ laneIdx ],
+               multivectorShared_result[ laneIdx + 1 ],
+               multivectorShared_argument[ laneIdx ],
+               multivectorShared_argument[ laneIdx + 1 ] );
             __syncwarp();
          }
          if( laneIdx == 0 ) {

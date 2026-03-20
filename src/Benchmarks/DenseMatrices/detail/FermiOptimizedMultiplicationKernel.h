@@ -16,10 +16,11 @@ namespace TNL::Benchmarks::DenseMatrices {
 template< typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
-MultiplicationKernel6( ResultMatrix resultMatrix,
-                       const Matrix1 matrixA,
-                       const Matrix2 matrixB,
-                       const typename ResultMatrix::RealType matrixMultiplicator )
+MultiplicationKernel6(
+   ResultMatrix resultMatrix,
+   const Matrix1 matrixA,
+   const Matrix2 matrixB,
+   const typename ResultMatrix::RealType matrixMultiplicator )
 {
 #ifdef __CUDACC__
    using IndexType = typename ResultMatrix::IndexType;

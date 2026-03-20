@@ -273,8 +273,8 @@ getLambdaMatrix( Vector& b_local, typename Vector::IndexType n, int myid = 0, in
    FivePointStencilElementsFunctor< Real, Index > elementsFunctor( n, N, ilower );
 
    // Let each rank create its local matrix in the CSR format in TNL
-   auto A_local = TNL::Matrices::LambdaMatrixFactory< Real, typename Vector::DeviceType, Index >::create( elementsFunctor,
-                                                                                                          capacitiesFunctor );
+   auto A_local = TNL::Matrices::LambdaMatrixFactory< Real, typename Vector::DeviceType, Index >::create(
+      elementsFunctor, capacitiesFunctor );
    A_local.setDimensions( local_size, N );
 
    // Initialize the right hand side vector

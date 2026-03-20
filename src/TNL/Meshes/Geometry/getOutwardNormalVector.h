@@ -77,15 +77,16 @@ getOutwardNormalVector( const Grid& grid, const GridEntity< Grid, 2 >& face, con
 template< typename MeshConfig, typename Device >
 __cuda_callable__
 typename MeshTraits< MeshConfig >::PointType
-getOutwardNormalVector( const Mesh< MeshConfig, Device >& mesh,
-                        const MeshEntity< MeshConfig, Device, Topologies::Edge >& face,
-                        typename MeshTraits< MeshConfig >::PointType cellCenter )
+getOutwardNormalVector(
+   const Mesh< MeshConfig, Device >& mesh,
+   const MeshEntity< MeshConfig, Device, Topologies::Edge >& face,
+   typename MeshTraits< MeshConfig >::PointType cellCenter )
 {
    using MeshType = Mesh< MeshConfig, Device >;
    using FaceType = MeshEntity< MeshConfig, Device, Topologies::Edge >;
    using PointType = typename MeshTraits< MeshConfig >::PointType;
-   static_assert( std::is_same_v< typename MeshType::Face, FaceType >,
-                  "getOutwardNormalVector called for an entity which is not a face" );
+   static_assert(
+      std::is_same_v< typename MeshType::Face, FaceType >, "getOutwardNormalVector called for an entity which is not a face" );
    static_assert( MeshConfig::spaceDimension == 2, "TODO: normal vectors for 2D meshes in a 3D space are not implemented yet" );
 
    const auto& v0 = mesh.getPoint( face.template getSubentityIndex< 0 >( 0 ) );
@@ -124,17 +125,18 @@ getNormalVector( const Mesh< MeshConfig, Device >& mesh, const MeshEntity< MeshC
 template< typename MeshConfig, typename Device, typename EntityTopology >
 __cuda_callable__
 typename MeshTraits< MeshConfig >::PointType
-getOutwardNormalVector( const Mesh< MeshConfig, Device >& mesh,
-                        const MeshEntity< MeshConfig, Device, EntityTopology >& face,
-                        typename MeshTraits< MeshConfig >::PointType cellCenter )
+getOutwardNormalVector(
+   const Mesh< MeshConfig, Device >& mesh,
+   const MeshEntity< MeshConfig, Device, EntityTopology >& face,
+   typename MeshTraits< MeshConfig >::PointType cellCenter )
 {
    using MeshType = Mesh< MeshConfig, Device >;
    using FaceType = MeshEntity< MeshConfig, Device, EntityTopology >;
    using PointType = typename MeshTraits< MeshConfig >::PointType;
-   static_assert( std::is_same_v< typename MeshType::Face, FaceType >,
-                  "getOutwardNormalVector called for an entity which is not a face" );
-   static_assert( MeshConfig::spaceDimension == 3,
-                  "general overload intended for 3D was called with the wrong space dimension" );
+   static_assert(
+      std::is_same_v< typename MeshType::Face, FaceType >, "getOutwardNormalVector called for an entity which is not a face" );
+   static_assert(
+      MeshConfig::spaceDimension == 3, "general overload intended for 3D was called with the wrong space dimension" );
 
    const PointType n = getNormalVector( mesh, face );
 

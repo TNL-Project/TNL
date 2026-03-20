@@ -17,12 +17,13 @@ struct DistributedScan
 {
    template< typename InputDistributedArray, typename OutputDistributedArray, typename Reduction >
    static void
-   perform( const InputDistributedArray& input,
-            OutputDistributedArray& output,
-            typename InputDistributedArray::IndexType begin,
-            typename InputDistributedArray::IndexType end,
-            Reduction&& reduction,
-            typename OutputDistributedArray::ValueType identity )
+   perform(
+      const InputDistributedArray& input,
+      OutputDistributedArray& output,
+      typename InputDistributedArray::IndexType begin,
+      typename InputDistributedArray::IndexType end,
+      Reduction&& reduction,
+      typename OutputDistributedArray::ValueType identity )
    {
       using ValueType = typename OutputDistributedArray::ValueType;
       using DeviceType = typename OutputDistributedArray::DeviceType;

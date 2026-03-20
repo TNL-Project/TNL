@@ -38,11 +38,12 @@ namespace TNL::Algorithms {
  */
 template< typename Device, typename Begin, typename End, typename Function, typename... FunctionArgs >
 std::enable_if_t< std::is_integral_v< Begin > && std::is_integral_v< End > >
-parallelFor( const Begin& begin,
-             const End& end,
-             typename Device::LaunchConfiguration launch_config,
-             Function f,
-             FunctionArgs... args )
+parallelFor(
+   const Begin& begin,
+   const End& end,
+   typename Device::LaunchConfiguration launch_config,
+   Function f,
+   FunctionArgs... args )
 {
    using Index = std::common_type_t< Begin, End >;
    detail::ParallelFor1D< Device >::exec(
@@ -82,16 +83,17 @@ parallelFor( const Begin& begin, const End& end, Function f, FunctionArgs... arg
  */
 template< typename Device, typename Begin, typename End, typename Function, typename... FunctionArgs >
 std::enable_if_t< IsStaticArrayType< Begin >::value && IsStaticArrayType< End >::value >
-parallelFor( const Begin& begin,
-             const End& end,
-             typename Device::LaunchConfiguration launch_config,
-             Function f,
-             FunctionArgs... args )
+parallelFor(
+   const Begin& begin,
+   const End& end,
+   typename Device::LaunchConfiguration launch_config,
+   Function f,
+   FunctionArgs... args )
 {
-   static_assert( std::is_integral_v< typename Begin::ValueType >,
-                  "the ValueType of the Begin multi-index must be an integral type" );
-   static_assert( std::is_integral_v< typename End::ValueType >,
-                  "the ValueType of the End multi-index must be an integral type" );
+   static_assert(
+      std::is_integral_v< typename Begin::ValueType >, "the ValueType of the Begin multi-index must be an integral type" );
+   static_assert(
+      std::is_integral_v< typename End::ValueType >, "the ValueType of the End multi-index must be an integral type" );
    static_assert( Begin::getSize() == End::getSize(), "the Begin multi-index must have the same size as the End multi-index" );
 
    if constexpr( Begin::getSize() == 1 ) {

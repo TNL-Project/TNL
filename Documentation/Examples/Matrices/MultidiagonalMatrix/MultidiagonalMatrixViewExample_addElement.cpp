@@ -7,9 +7,10 @@ void
 addElements()
 {
    const int matrixSize( 5 );
-   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix( matrixSize,      // number of rows
-                                                                matrixSize,      // number of columns
-                                                                { -1, 0, 1 } );  // diagonals offsets
+   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix(
+      matrixSize,      // number of rows
+      matrixSize,      // number of columns
+      { -1, 0, 1 } );  // diagonals offsets
    auto view = matrix.getView();
 
    for( int i = 0; i < matrixSize; i++ )

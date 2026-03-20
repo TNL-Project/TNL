@@ -28,11 +28,12 @@ public:
    sort( Array& arr );
 
    void
-   init( Containers::ArrayView< ValueType, Devices::Cuda, IndexType > arr,
-         int gridDim,
-         int blockDim,
-         int desiredElemPerBlock,
-         int maxSharable );
+   init(
+      Containers::ArrayView< ValueType, Devices::Cuda, IndexType > arr,
+      int gridDim,
+      int blockDim,
+      int desiredElemPerBlock,
+      int maxSharable );
 
    template< typename CMP >
    void

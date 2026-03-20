@@ -167,19 +167,21 @@ public:
       std::cout << "Smallest degree is " << nodeDegrees[ smallest ] << " at position " << smallest << '\n';
       std::cout << "Largest degree is " << nodeDegrees[ largest ] << " at position " << largest << '\n';
 
-      benchmark.setMetadataColumns( {
-         { "graph name", inputFile },
-         { "precision", getType< Real >() },
-         { "index type", TNL::getType< Index >() },
-         { "nodes", convertToString( graph.getAdjacencyMatrix().getRows() ) },
-         { "edges", convertToString( graph.getAdjacencyMatrix().getNonzeroElementsCount() ) },
-      } );
-      benchmark.setMetadataWidths( { { "graph name", 32 },
-                                     { "format", 26 },
-                                     { "threads", 5 },
-                                     { "problem", 22 },
-                                     { "kernel", 28 },
-                                     { "launch cfg.", 24 } } );
+      benchmark.setMetadataColumns(
+         {
+            { "graph name", inputFile },
+            { "precision", getType< Real >() },
+            { "index type", TNL::getType< Index >() },
+            { "nodes", convertToString( graph.getAdjacencyMatrix().getRows() ) },
+            { "edges", convertToString( graph.getAdjacencyMatrix().getNonzeroElementsCount() ) },
+         } );
+      benchmark.setMetadataWidths(
+         { { "graph name", 32 },
+           { "format", 26 },
+           { "threads", 5 },
+           { "problem", 22 },
+           { "kernel", 28 },
+           { "launch cfg.", 24 } } );
 
       auto& derived = static_cast< Derived& >( *this );
 
@@ -268,12 +270,13 @@ public:
 protected:
    template< typename Device, template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments >
    void
-   runTNLBenchmarks( const HostDigraph& hostDigraph,
-                     const HostGraph& hostGraph,
-                     IndexType smallestNode,
-                     IndexType largestNode,
-                     TNL::Benchmarks::Benchmark<>& benchmark,
-                     const TNL::String& device )
+   runTNLBenchmarks(
+      const HostDigraph& hostDigraph,
+      const HostGraph& hostGraph,
+      IndexType smallestNode,
+      IndexType largestNode,
+      TNL::Benchmarks::Benchmark<>& benchmark,
+      const TNL::String& device )
    {
       auto& derived = static_cast< Derived& >( *this );
       using Graph = TNL::Graphs::Graph< Real, Device, Index, TNL::Graphs::UndirectedGraph, Segments >;

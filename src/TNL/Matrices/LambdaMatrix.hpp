@@ -37,8 +37,9 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
 void
-LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::setDimensions( IndexType rows,
-                                                                                                      IndexType columns )
+LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::setDimensions(
+   IndexType rows,
+   IndexType columns )
 {
    this->rows = rows;
    this->columns = columns;
@@ -116,8 +117,9 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
 Real
-LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::getElement( IndexType row,
-                                                                                                   IndexType column ) const
+LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::getElement(
+   IndexType row,
+   IndexType column ) const
 {
    Containers::Array< RealType, DeviceType > value( 1 );
    auto valueView = value.getView();
@@ -243,9 +245,10 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
 template< typename Function >
 void
-LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::forElements( IndexType begin,
-                                                                                                    IndexType end,
-                                                                                                    Function& function ) const
+LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::forElements(
+   IndexType begin,
+   IndexType end,
+   Function& function ) const
 {
    const IndexType rows = this->getRows();
    const IndexType columns = this->getColumns();
@@ -277,9 +280,10 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
 template< typename Function >
 void
-LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::forRows( IndexType begin,
-                                                                                                IndexType end,
-                                                                                                Function&& function ) const
+LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >::forRows(
+   IndexType begin,
+   IndexType end,
+   Function&& function ) const
 {
    auto view = *this;
    auto f = [ = ] __cuda_callable__( IndexType rowIdx ) mutable
@@ -339,8 +343,9 @@ LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, In
 
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Device, typename Index >
 std::ostream&
-operator<<( std::ostream& str,
-            const LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >& matrix )
+operator<<(
+   std::ostream& str,
+   const LambdaMatrix< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Device, Index >& matrix )
 {
    matrix.print( str );
    return str;

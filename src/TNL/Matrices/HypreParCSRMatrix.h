@@ -247,12 +247,13 @@ public:
     *        column indices must span the whole `[0, global_cols)` range.
     */
    [[nodiscard]] static HypreParCSRMatrix
-   fromLocalBlocks( MPI_Comm communicator,
-                    IndexType global_num_rows,
-                    IndexType global_num_cols,
-                    LocalRangeType local_row_range,
-                    LocalRangeType local_col_range,
-                    hypre_CSRMatrix* local_A )
+   fromLocalBlocks(
+      MPI_Comm communicator,
+      IndexType global_num_rows,
+      IndexType global_num_cols,
+      LocalRangeType local_row_range,
+      LocalRangeType local_col_range,
+      hypre_CSRMatrix* local_A )
    {
       if( local_A == nullptr )
          throw std::invalid_argument( "fromLocalBlocks: cannot handle nullptr" );
@@ -438,14 +439,15 @@ public:
     *                     pointer.
     */
    void
-   bind( MPI_Comm communicator,
-         IndexType global_num_rows,
-         IndexType global_num_cols,
-         LocalRangeType local_row_range,
-         LocalRangeType local_col_range,
-         hypre_CSRMatrix* diag,
-         hypre_CSRMatrix* offd,
-         IndexType* col_map_offd )
+   bind(
+      MPI_Comm communicator,
+      IndexType global_num_rows,
+      IndexType global_num_cols,
+      LocalRangeType local_row_range,
+      LocalRangeType local_col_range,
+      hypre_CSRMatrix* diag,
+      hypre_CSRMatrix* offd,
+      IndexType* col_map_offd )
    {
       if( diag == nullptr )
          throw std::invalid_argument( "bind: diag must not be nullptr" );

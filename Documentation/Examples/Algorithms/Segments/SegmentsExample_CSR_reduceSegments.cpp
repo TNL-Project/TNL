@@ -28,14 +28,15 @@ SegmentsExample()
     * Insert data into particular segments.
     */
    auto data_view = data.getView();
-   TNL::Algorithms::Segments::forElements( segments,
-                                           0,
-                                           size,
-                                           [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-                                           {
-                                              if( localIdx <= segmentIdx )
-                                                 data_view[ globalIdx ] = segmentIdx;
-                                           } );
+   TNL::Algorithms::Segments::forElements(
+      segments,
+      0,
+      size,
+      [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+      {
+         if( localIdx <= segmentIdx )
+            data_view[ globalIdx ] = segmentIdx;
+      } );
 
    /***
     * Compute sums of elements in each segment.

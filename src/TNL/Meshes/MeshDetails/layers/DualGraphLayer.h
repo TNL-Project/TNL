@@ -81,15 +81,17 @@ public:
    // algorithm inspired by the CreateGraphDual function in METIS
    template< typename Mesh >
    void
-   initializeDualGraph( const Mesh& mesh,
-                        // when this parameter is <= 0, it will be replaced with MeshConfig::dualGraphMinCommonVertices
-                        LocalIndexType minCommon = 0 )
+   initializeDualGraph(
+      const Mesh& mesh,
+      // when this parameter is <= 0, it will be replaced with MeshConfig::dualGraphMinCommonVertices
+      LocalIndexType minCommon = 0 )
    {
       static_assert( std::is_same_v< MeshConfig, typename Mesh::Config >, "mismatched MeshConfig type" );
-      static_assert( MeshConfig::superentityStorage( 0, Mesh::getMeshDimension() ),
-                     "The dual graph cannot be initialized when links from vertices to cells are not stored in the mesh." );
-      static_assert( MeshConfig::dualGraphMinCommonVertices >= 1,
-                     "MeshConfig error: dualGraphMinCommonVertices must be at least 1." );
+      static_assert(
+         MeshConfig::superentityStorage( 0, Mesh::getMeshDimension() ),
+         "The dual graph cannot be initialized when links from vertices to cells are not stored in the mesh." );
+      static_assert(
+         MeshConfig::dualGraphMinCommonVertices >= 1, "MeshConfig error: dualGraphMinCommonVertices must be at least 1." );
       if( minCommon <= 0 )
          minCommon = MeshConfig::dualGraphMinCommonVertices;
 

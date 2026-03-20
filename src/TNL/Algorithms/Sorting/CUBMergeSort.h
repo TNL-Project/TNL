@@ -25,11 +25,12 @@ struct CUBMergeSort
    sort( Array& array )
    {
       using Value = typename Array::ValueType;
-      sort( array,
-            [] __cuda_callable__( const Value& a, const Value& b )
-            {
-               return a < b;
-            } );
+      sort(
+         array,
+         [] __cuda_callable__( const Value& a, const Value& b )
+         {
+            return a < b;
+         } );
    }
 
    template< typename Array, typename Compare >
@@ -52,8 +53,9 @@ struct CUBMergeSort
       Containers::Array< std::uint8_t, Devices::Cuda > temp_storage;
       temp_storage.setSize( temp_storage_bytes );
 
-      TNL_BACKEND_SAFE_CALL( cub::DeviceMergeSort::SortKeys(
-         static_cast< void* >( temp_storage.getData() ), temp_storage_bytes, data, size, compare ) );
+      TNL_BACKEND_SAFE_CALL(
+         cub::DeviceMergeSort::SortKeys(
+            static_cast< void* >( temp_storage.getData() ), temp_storage_bytes, data, size, compare ) );
 #else
       throw Exceptions::NotImplementedError( "CUBMergeSort is supported only when CUDA is enabled." );
 #endif

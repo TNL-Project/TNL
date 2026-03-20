@@ -51,11 +51,12 @@ public:
    //! \brief Type of constant graph nodes view.
    using ConstVertexView = typename VertexView::ConstVertexView;
 
-   template< typename Value_ = Value,
-             typename Device_ = Device,
-             typename Index_ = Index,
-             typename Orientation_ = Orientation,
-             typename AdjacencyMatrixView__ = AdjacencyMatrixView >
+   template<
+      typename Value_ = Value,
+      typename Device_ = Device,
+      typename Index_ = Index,
+      typename Orientation_ = Orientation,
+      typename AdjacencyMatrixView__ = AdjacencyMatrixView >
    using Self = GraphView< Value_, Device_, Index_, Orientation_, AdjacencyMatrixView__ >;
 
    using Base::isDirected;

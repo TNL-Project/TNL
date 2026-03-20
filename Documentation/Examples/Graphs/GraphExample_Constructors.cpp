@@ -19,12 +19,13 @@ constructorsExample()
    //! [undirected graph type definition]
 
    //! [dense graph type definition]
-   using DenseGraphType = TNL::Graphs::Graph< float,
-                                              Device,
-                                              int,
-                                              TNL::Graphs::DirectedGraph,
-                                              TNL::Algorithms::Segments::CSR,  // Type of segments is ignored for dense matrices
-                                              TNL::Matrices::DenseMatrix< float, Device, int > >;
+   using DenseGraphType = TNL::Graphs::Graph<
+      float,
+      Device,
+      int,
+      TNL::Graphs::DirectedGraph,
+      TNL::Algorithms::Segments::CSR,  // Type of segments is ignored for dense matrices
+      TNL::Matrices::DenseMatrix< float, Device, int > >;
    //! [dense graph type definition]
 
    //! [default constructor]

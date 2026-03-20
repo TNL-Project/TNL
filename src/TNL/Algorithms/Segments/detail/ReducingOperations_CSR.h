@@ -22,21 +22,23 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
    using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename SegmentsViewType::ConstOffsetsView;
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsSequential( const ConstViewType& segments,
-                             IndexBegin begin,
-                             IndexEnd end,
-                             Fetch&& fetch,
-                             Reduction&& reduction,
-                             ResultStorer&& storer,
-                             const Value& identity,
-                             const LaunchConfiguration& launchConfig )
+   reduceSegmentsSequential(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
       OffsetsView offsets = segments.getOffsets();
@@ -74,21 +76,23 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          Algorithms::parallelFor< Device >( begin, end, l );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegments( const ConstViewType& segments,
-                   IndexBegin begin,
-                   IndexEnd end,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   ResultStorer&& storer,
-                   const Value& identity,
-                   const LaunchConfiguration& launchConfig )
+   reduceSegments(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
@@ -111,12 +115,13 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             for( IndexType gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
-                  constexpr auto kernel = reduceSegmentsCSRVectorKernel< ConstViewType,
-                                                                         IndexType,
-                                                                         std::remove_reference_t< Fetch >,
-                                                                         std::remove_reference_t< Reduction >,
-                                                                         std::remove_reference_t< ResultStorer >,
-                                                                         Value >;
+                  constexpr auto kernel = reduceSegmentsCSRVectorKernel<
+                     ConstViewType,
+                     IndexType,
+                     std::remove_reference_t< Fetch >,
+                     std::remove_reference_t< Reduction >,
+                     std::remove_reference_t< ResultStorer >,
+                     Value >;
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, storer, identity );
                }
@@ -124,186 +129,196 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernel< 2,
-                                                                     ConstViewType,
-                                                                     IndexType,
-                                                                     std::remove_reference_t< Fetch >,
-                                                                     std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultStorer >,
-                                                                     Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernel<
+                              2,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 4:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernel< 4,
-                                                                     ConstViewType,
-                                                                     IndexType,
-                                                                     std::remove_reference_t< Fetch >,
-                                                                     std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultStorer >,
-                                                                     Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernel<
+                              4,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 8:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernel< 8,
-                                                                     ConstViewType,
-                                                                     IndexType,
-                                                                     std::remove_reference_t< Fetch >,
-                                                                     std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultStorer >,
-                                                                     Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernel<
+                              8,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 16:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernel< 16,
-                                                                     ConstViewType,
-                                                                     IndexType,
-                                                                     std::remove_reference_t< Fetch >,
-                                                                     std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultStorer >,
-                                                                     Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernel<
+                              16,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 32:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernel< 32,
-                                                                     ConstViewType,
-                                                                     IndexType,
-                                                                     std::remove_reference_t< Fetch >,
-                                                                     std::remove_reference_t< Reduction >,
-                                                                     std::remove_reference_t< ResultStorer >,
-                                                                     Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernel<
+                              32,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 64:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRLightMultivectorKernel< 256,
-                                                                       64,
-                                                                       ConstViewType,
-                                                                       IndexType,
-                                                                       std::remove_reference_t< Fetch >,
-                                                                       std::remove_reference_t< Reduction >,
-                                                                       std::remove_reference_t< ResultStorer >,
-                                                                       Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernel<
+                              256,
+                              64,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 128:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRLightMultivectorKernel< 256,
-                                                                       128,
-                                                                       ConstViewType,
-                                                                       IndexType,
-                                                                       std::remove_reference_t< Fetch >,
-                                                                       std::remove_reference_t< Reduction >,
-                                                                       std::remove_reference_t< ResultStorer >,
-                                                                       Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernel<
+                              256,
+                              128,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
 
                      default:
-                        throw std::runtime_error( "Unsupported number of threads per segment"
-                                                  + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                                                  + ". It can be only 2, 4, 8, 16 or 32." );
+                        throw std::runtime_error(
+                           "Unsupported number of threads per segment"
+                           + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                           + ". It can be only 2, 4, 8, 16 or 32." );
                   }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernel< ConstViewType,
-                                                                                  IndexType,
-                                                                                  std::remove_reference_t< Fetch >,
-                                                                                  std::remove_reference_t< Reduction >,
-                                                                                  std::remove_reference_t< ResultStorer >,
-                                                                                  Value,
-                                                                                  256 >;
-                  Backend::launchKernelAsync( kernel,
-                                              launch_config,
-                                              gridIdx,
-                                              launchConfig.getThreadsPerSegmentCount(),
-                                              segments.getConstView(),
-                                              begin,
-                                              end,
-                                              fetch,
-                                              reduction,
-                                              storer,
-                                              identity );
+                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernel<
+                     ConstViewType,
+                     IndexType,
+                     std::remove_reference_t< Fetch >,
+                     std::remove_reference_t< Reduction >,
+                     std::remove_reference_t< ResultStorer >,
+                     Value,
+                     256 >;
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launch_config,
+                     gridIdx,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments.getConstView(),
+                     begin,
+                     end,
+                     fetch,
+                     reduction,
+                     storer,
+                     identity );
                }
                else {
                   throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
@@ -318,13 +333,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
 
    template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
    static void
-   reduceSegmentsWithIndexesSequential( const ConstViewType& segments,
-                                        const Array& segmentIndexes,
-                                        Fetch&& fetch,
-                                        Reduction&& reduction,
-                                        ResultStorer&& storer,
-                                        const Value& identity,
-                                        LaunchConfiguration launchConfig )
+   reduceSegmentsWithIndexesSequential(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
    {
       using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
       OffsetsView offsets = segments.getOffsets();
@@ -367,13 +383,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
 
    template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
    static void
-   reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
-                                     const Array& segmentIndexes,
-                                     Fetch&& fetch,
-                                     Reduction&& reduction,
-                                     ResultStorer&& storer,
-                                     const Value& identity,
-                                     LaunchConfiguration launchConfig )
+   reduceSegmentsWithSegmentIndexes(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
    {
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
@@ -398,208 +415,219 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             for( IndexType gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
-                  constexpr auto kernel = reduceSegmentsCSRVectorKernelWithIndexes< ConstViewType,
-                                                                                    ArrayView,
-                                                                                    IndexType,
-                                                                                    std::remove_reference_t< Fetch >,
-                                                                                    std::remove_reference_t< Reduction >,
-                                                                                    std::remove_reference_t< ResultStorer >,
-                                                                                    Value >;
-                  Backend::launchKernelAsync( kernel,
-                                              launch_config,
-                                              gridIdx,
-                                              segments.getConstView(),
-                                              segmentIndexes.getConstView(),
-                                              fetch,
-                                              reduction,
-                                              storer,
-                                              identity );
+                  constexpr auto kernel = reduceSegmentsCSRVectorKernelWithIndexes<
+                     ConstViewType,
+                     ArrayView,
+                     IndexType,
+                     std::remove_reference_t< Fetch >,
+                     std::remove_reference_t< Reduction >,
+                     std::remove_reference_t< ResultStorer >,
+                     Value >;
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launch_config,
+                     gridIdx,
+                     segments.getConstView(),
+                     segmentIndexes.getConstView(),
+                     fetch,
+                     reduction,
+                     storer,
+                     identity );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernelWithIndexes< 2,
-                                                                                ConstViewType,
-                                                                                ArrayView,
-                                                                                IndexType,
-                                                                                std::remove_reference_t< Fetch >,
-                                                                                std::remove_reference_t< Reduction >,
-                                                                                std::remove_reference_t< ResultStorer >,
-                                                                                Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexes<
+                              2,
+                              ConstViewType,
+                              ArrayView,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 4:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernelWithIndexes< 4,
-                                                                                ConstViewType,
-                                                                                ArrayView,
-                                                                                IndexType,
-                                                                                std::remove_reference_t< Fetch >,
-                                                                                std::remove_reference_t< Reduction >,
-                                                                                std::remove_reference_t< ResultStorer >,
-                                                                                Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexes<
+                              4,
+                              ConstViewType,
+                              ArrayView,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 8:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernelWithIndexes< 8,
-                                                                                ConstViewType,
-                                                                                ArrayView,
-                                                                                IndexType,
-                                                                                std::remove_reference_t< Fetch >,
-                                                                                std::remove_reference_t< Reduction >,
-                                                                                std::remove_reference_t< ResultStorer >,
-                                                                                Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexes<
+                              8,
+                              ConstViewType,
+                              ArrayView,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 16:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernelWithIndexes< 16,
-                                                                                ConstViewType,
-                                                                                ArrayView,
-                                                                                IndexType,
-                                                                                std::remove_reference_t< Fetch >,
-                                                                                std::remove_reference_t< Reduction >,
-                                                                                std::remove_reference_t< ResultStorer >,
-                                                                                Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexes<
+                              16,
+                              ConstViewType,
+                              ArrayView,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 32:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernelWithIndexes< 32,
-                                                                                ConstViewType,
-                                                                                ArrayView,
-                                                                                IndexType,
-                                                                                std::remove_reference_t< Fetch >,
-                                                                                std::remove_reference_t< Reduction >,
-                                                                                std::remove_reference_t< ResultStorer >,
-                                                                                Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithIndexes<
+                              32,
+                              ConstViewType,
+                              ArrayView,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 64:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRLightMultivectorKernelWithIndexes< 256,
-                                                                                  64,
-                                                                                  ConstViewType,
-                                                                                  ArrayView,
-                                                                                  IndexType,
-                                                                                  std::remove_reference_t< Fetch >,
-                                                                                  std::remove_reference_t< Reduction >,
-                                                                                  std::remove_reference_t< ResultStorer >,
-                                                                                  Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernelWithIndexes<
+                              256,
+                              64,
+                              ConstViewType,
+                              ArrayView,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 128:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRLightMultivectorKernelWithIndexes< 256,
-                                                                                  128,
-                                                                                  ConstViewType,
-                                                                                  ArrayView,
-                                                                                  IndexType,
-                                                                                  std::remove_reference_t< Fetch >,
-                                                                                  std::remove_reference_t< Reduction >,
-                                                                                  std::remove_reference_t< ResultStorer >,
-                                                                                  Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernelWithIndexes<
+                              256,
+                              128,
+                              ConstViewType,
+                              ArrayView,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
 
                      default:
-                        throw std::runtime_error( "Unsupported number of threads per segment"
-                                                  + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                                                  + ". It can be only 2, 4, 8, 16 or 32." );
+                        throw std::runtime_error(
+                           "Unsupported number of threads per segment"
+                           + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                           + ". It can be only 2, 4, 8, 16 or 32." );
                   }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel =
-                     reduceSegmentsCSRDynamicGroupingKernelWithIndexes< ConstViewType,
-                                                                        ArrayView,
-                                                                        IndexType,
-                                                                        std::remove_reference_t< Fetch >,
-                                                                        std::remove_reference_t< Reduction >,
-                                                                        std::remove_reference_t< ResultStorer >,
-                                                                        Value,
-                                                                        256 >;
-                  Backend::launchKernelAsync( kernel,
-                                              launch_config,
-                                              gridIdx,
-                                              launchConfig.getThreadsPerSegmentCount(),
-                                              segments.getConstView(),
-                                              segmentIndexes.getConstView(),
-                                              fetch,
-                                              reduction,
-                                              storer,
-                                              identity );
+                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernelWithIndexes<
+                     ConstViewType,
+                     ArrayView,
+                     IndexType,
+                     std::remove_reference_t< Fetch >,
+                     std::remove_reference_t< Reduction >,
+                     std::remove_reference_t< ResultStorer >,
+                     Value,
+                     256 >;
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launch_config,
+                     gridIdx,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments.getConstView(),
+                     segmentIndexes.getConstView(),
+                     fetch,
+                     reduction,
+                     storer,
+                     identity );
                }
                else {
                   throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
@@ -612,21 +640,23 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          reduceSegmentsWithIndexesSequential( segments, segmentIndexes, fetch, reduction, storer, identity, launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsSequentialWithArgument( const ConstViewType& segments,
-                                         IndexBegin begin,
-                                         IndexEnd end,
-                                         Fetch&& fetch,
-                                         Reduction&& reduction,
-                                         ResultStorer&& storer,
-                                         const Value& identity,
-                                         const LaunchConfiguration& launchConfig )
+   reduceSegmentsSequentialWithArgument(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
       OffsetsView offsets = segments.getOffsets();
@@ -665,21 +695,23 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
          Algorithms::parallelFor< Device >( begin, end, l );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithArgument( const ConstViewType& segments,
-                               IndexBegin begin,
-                               IndexEnd end,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               ResultStorer&& storer,
-                               const Value& identity,
-                               const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithArgument(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
          if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed
@@ -702,12 +734,13 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             for( IndexType gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
-                  constexpr auto kernel = reduceSegmentsCSRVectorKernelWithArgument< ConstViewType,
-                                                                                     IndexType,
-                                                                                     std::remove_reference_t< Fetch >,
-                                                                                     std::remove_reference_t< Reduction >,
-                                                                                     std::remove_reference_t< ResultStorer >,
-                                                                                     Value >;
+                  constexpr auto kernel = reduceSegmentsCSRVectorKernelWithArgument<
+                     ConstViewType,
+                     IndexType,
+                     std::remove_reference_t< Fetch >,
+                     std::remove_reference_t< Reduction >,
+                     std::remove_reference_t< ResultStorer >,
+                     Value >;
                   Backend::launchKernelAsync(
                      kernel, launch_config, gridIdx, segments.getConstView(), begin, end, fetch, reduction, storer, identity );
                }
@@ -715,187 +748,196 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
                      case 2:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernelWithArgument< 2,
-                                                                                 ConstViewType,
-                                                                                 IndexType,
-                                                                                 std::remove_reference_t< Fetch >,
-                                                                                 std::remove_reference_t< Reduction >,
-                                                                                 std::remove_reference_t< ResultStorer >,
-                                                                                 Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithArgument<
+                              2,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 4:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernelWithArgument< 4,
-                                                                                 ConstViewType,
-                                                                                 IndexType,
-                                                                                 std::remove_reference_t< Fetch >,
-                                                                                 std::remove_reference_t< Reduction >,
-                                                                                 std::remove_reference_t< ResultStorer >,
-                                                                                 Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithArgument<
+                              4,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 8:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernelWithArgument< 8,
-                                                                                 ConstViewType,
-                                                                                 IndexType,
-                                                                                 std::remove_reference_t< Fetch >,
-                                                                                 std::remove_reference_t< Reduction >,
-                                                                                 std::remove_reference_t< ResultStorer >,
-                                                                                 Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithArgument<
+                              8,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 16:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernelWithArgument< 16,
-                                                                                 ConstViewType,
-                                                                                 IndexType,
-                                                                                 std::remove_reference_t< Fetch >,
-                                                                                 std::remove_reference_t< Reduction >,
-                                                                                 std::remove_reference_t< ResultStorer >,
-                                                                                 Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithArgument<
+                              16,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 32:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRVariableVectorKernelWithArgument< 32,
-                                                                                 ConstViewType,
-                                                                                 IndexType,
-                                                                                 std::remove_reference_t< Fetch >,
-                                                                                 std::remove_reference_t< Reduction >,
-                                                                                 std::remove_reference_t< ResultStorer >,
-                                                                                 Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRVariableVectorKernelWithArgument<
+                              32,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 64:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRLightMultivectorKernelWithArgument< 256,
-                                                                                   64,
-                                                                                   ConstViewType,
-                                                                                   IndexType,
-                                                                                   std::remove_reference_t< Fetch >,
-                                                                                   std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultStorer >,
-                                                                                   Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernelWithArgument<
+                              256,
+                              64,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 128:
                         {
-                           constexpr auto kernel =
-                              reduceSegmentsCSRLightMultivectorKernelWithArgument< 256,
-                                                                                   128,
-                                                                                   ConstViewType,
-                                                                                   IndexType,
-                                                                                   std::remove_reference_t< Fetch >,
-                                                                                   std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultStorer >,
-                                                                                   Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       begin,
-                                                       end,
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           constexpr auto kernel = reduceSegmentsCSRLightMultivectorKernelWithArgument<
+                              256,
+                              128,
+                              ConstViewType,
+                              IndexType,
+                              std::remove_reference_t< Fetch >,
+                              std::remove_reference_t< Reduction >,
+                              std::remove_reference_t< ResultStorer >,
+                              Value >;
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              begin,
+                              end,
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
 
                      default:
-                        throw std::runtime_error( "Unsupported number of threads per segment"
-                                                  + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                                                  + ". It can be only 2, 4, 8, 16 or 32." );
+                        throw std::runtime_error(
+                           "Unsupported number of threads per segment"
+                           + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                           + ". It can be only 2, 4, 8, 16 or 32." );
                   }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel =
-                     reduceSegmentsCSRDynamicGroupingKernelWithArgument< ConstViewType,
-                                                                         IndexType,
-                                                                         std::remove_reference_t< Fetch >,
-                                                                         std::remove_reference_t< Reduction >,
-                                                                         std::remove_reference_t< ResultStorer >,
-                                                                         Value,
-                                                                         256 >;
-                  Backend::launchKernelAsync( kernel,
-                                              launch_config,
-                                              gridIdx,
-                                              launchConfig.getThreadsPerSegmentCount(),
-                                              segments.getConstView(),
-                                              begin,
-                                              end,
-                                              fetch,
-                                              reduction,
-                                              storer,
-                                              identity );
+                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernelWithArgument<
+                     ConstViewType,
+                     IndexType,
+                     std::remove_reference_t< Fetch >,
+                     std::remove_reference_t< Reduction >,
+                     std::remove_reference_t< ResultStorer >,
+                     Value,
+                     256 >;
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launch_config,
+                     gridIdx,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments.getConstView(),
+                     begin,
+                     end,
+                     fetch,
+                     reduction,
+                     storer,
+                     identity );
                }
                else {
                   throw std::runtime_error( "Unsupported threads to segments mapping strategy." );
@@ -910,13 +952,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
 
    template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
    static void
-   reduceSegmentsWithIndexesAndArgumentSequential( const ConstViewType& segments,
-                                                   const Array& segmentIndexes,
-                                                   Fetch&& fetch,
-                                                   Reduction&& reduction,
-                                                   ResultStorer&& storer,
-                                                   const Value& identity,
-                                                   LaunchConfiguration launchConfig )
+   reduceSegmentsWithIndexesAndArgumentSequential(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
    {
       using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
       OffsetsView offsets = segments.getOffsets();
@@ -960,13 +1003,14 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
 
    template< typename Array, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
    static void
-   reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
-                                                const Array& segmentIndexes,
-                                                Fetch&& fetch,
-                                                Reduction&& reduction,
-                                                ResultStorer&& storer,
-                                                const Value& identity,
-                                                LaunchConfiguration launchConfig )
+   reduceSegmentsWithSegmentIndexesAndArgument(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      LaunchConfiguration launchConfig )
    {
       using ArrayView = typename Array::ConstViewType;
       if constexpr( std::is_same_v< Device, TNL::Devices::Cuda > || std::is_same_v< Device, TNL::Devices::Hip > ) {
@@ -992,23 +1036,24 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
             for( IndexType gridIdx = 0; gridIdx < (Index) gridsCount.x; gridIdx++ ) {
                Backend::setupGrid( blocksCount, gridsCount, gridIdx, launch_config.gridSize );
                if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Warp ) {
-                  constexpr auto kernel =
-                     reduceSegmentsCSRVectorKernelWithIndexesAndArgument< ConstViewType,
-                                                                          ArrayView,
-                                                                          IndexType,
-                                                                          std::remove_reference_t< Fetch >,
-                                                                          std::remove_reference_t< Reduction >,
-                                                                          std::remove_reference_t< ResultStorer >,
-                                                                          Value >;
-                  Backend::launchKernelAsync( kernel,
-                                              launch_config,
-                                              gridIdx,
-                                              segments.getConstView(),
-                                              segmentIndexes.getConstView(),
-                                              fetch,
-                                              reduction,
-                                              storer,
-                                              identity );
+                  constexpr auto kernel = reduceSegmentsCSRVectorKernelWithIndexesAndArgument<
+                     ConstViewType,
+                     ArrayView,
+                     IndexType,
+                     std::remove_reference_t< Fetch >,
+                     std::remove_reference_t< Reduction >,
+                     std::remove_reference_t< ResultStorer >,
+                     Value >;
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launch_config,
+                     gridIdx,
+                     segments.getConstView(),
+                     segmentIndexes.getConstView(),
+                     fetch,
+                     reduction,
+                     storer,
+                     identity );
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                   switch( launchConfig.getThreadsPerSegmentCount() ) {
@@ -1023,15 +1068,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               std::remove_reference_t< Reduction >,
                               std::remove_reference_t< ResultStorer >,
                               Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 4:
@@ -1045,15 +1091,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               std::remove_reference_t< Reduction >,
                               std::remove_reference_t< ResultStorer >,
                               Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 8:
@@ -1067,15 +1114,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               std::remove_reference_t< Reduction >,
                               std::remove_reference_t< ResultStorer >,
                               Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 16:
@@ -1089,15 +1137,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               std::remove_reference_t< Reduction >,
                               std::remove_reference_t< ResultStorer >,
                               Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 32:
@@ -1111,15 +1160,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               std::remove_reference_t< Reduction >,
                               std::remove_reference_t< ResultStorer >,
                               Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 64:
@@ -1134,15 +1184,16 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               std::remove_reference_t< Reduction >,
                               std::remove_reference_t< ResultStorer >,
                               Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
                      case 128:
@@ -1157,44 +1208,47 @@ struct ReducingOperations< CSRView< Device, Index > > : public ReducingOperation
                               std::remove_reference_t< Reduction >,
                               std::remove_reference_t< ResultStorer >,
                               Value >;
-                           Backend::launchKernelAsync( kernel,
-                                                       launch_config,
-                                                       gridIdx,
-                                                       segments.getConstView(),
-                                                       segmentIndexes.getConstView(),
-                                                       fetch,
-                                                       reduction,
-                                                       storer,
-                                                       identity );
+                           Backend::launchKernelAsync(
+                              kernel,
+                              launch_config,
+                              gridIdx,
+                              segments.getConstView(),
+                              segmentIndexes.getConstView(),
+                              fetch,
+                              reduction,
+                              storer,
+                              identity );
                            break;
                         }
 
                      default:
-                        throw std::runtime_error( "Unsupported number of threads per segment"
-                                                  + std::to_string( launchConfig.getThreadsPerSegmentCount() )
-                                                  + ". It can be only 2, 4, 8, 16 or 32." );
+                        throw std::runtime_error(
+                           "Unsupported number of threads per segment"
+                           + std::to_string( launchConfig.getThreadsPerSegmentCount() )
+                           + ". It can be only 2, 4, 8, 16 or 32." );
                   }
                }
                else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::DynamicGrouping ) {
-                  constexpr auto kernel =
-                     reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument< ConstViewType,
-                                                                                   ArrayView,
-                                                                                   IndexType,
-                                                                                   std::remove_reference_t< Fetch >,
-                                                                                   std::remove_reference_t< Reduction >,
-                                                                                   std::remove_reference_t< ResultStorer >,
-                                                                                   Value,
-                                                                                   256 >;
-                  Backend::launchKernelAsync( kernel,
-                                              launch_config,
-                                              gridIdx,
-                                              launchConfig.getThreadsPerSegmentCount(),
-                                              segments.getConstView(),
-                                              segmentIndexes.getConstView(),
-                                              fetch,
-                                              reduction,
-                                              storer,
-                                              identity );
+                  constexpr auto kernel = reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument<
+                     ConstViewType,
+                     ArrayView,
+                     IndexType,
+                     std::remove_reference_t< Fetch >,
+                     std::remove_reference_t< Reduction >,
+                     std::remove_reference_t< ResultStorer >,
+                     Value,
+                     256 >;
+                  Backend::launchKernelAsync(
+                     kernel,
+                     launch_config,
+                     gridIdx,
+                     launchConfig.getThreadsPerSegmentCount(),
+                     segments.getConstView(),
+                     segmentIndexes.getConstView(),
+                     fetch,
+                     reduction,
+                     storer,
+                     identity );
                }
                else {
                   throw std::runtime_error( "Unsupported threads to segments mapping strategy." );

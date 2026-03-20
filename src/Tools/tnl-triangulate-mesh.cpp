@@ -92,11 +92,12 @@ struct MeshLocalIndexTag< MeshTriangulatorConfigTag, short int >
 template<>
 struct MeshConfigTemplateTag< MeshTriangulatorConfigTag >
 {
-   template< typename Cell,
-             int SpaceDimension = Cell::dimension,
-             typename Real = float,
-             typename GlobalIndex = int,
-             typename LocalIndex = short int >
+   template<
+      typename Cell,
+      int SpaceDimension = Cell::dimension,
+      typename Real = float,
+      typename GlobalIndex = int,
+      typename LocalIndex = short int >
    struct MeshConfig
    {
       using CellTopology = Cell;
@@ -145,18 +146,21 @@ getDecomposedMeshHelper( const Mesh& mesh, const std::string& decompositionType 
 
    if( decompositionType[ 0 ] == 'c' ) {
       if( decompositionType[ 1 ] == 'c' ) {
-         return getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToCentroid,
-                                   EntityDecomposerVersion::ConnectEdgesToCentroid >( mesh );
+         return getDecomposedMesh<
+            EntityDecomposerVersion::ConnectEdgesToCentroid,
+            EntityDecomposerVersion::ConnectEdgesToCentroid >( mesh );
       }
       else {  // decompositionType[1] == 'p'
-         return getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToCentroid,
-                                   EntityDecomposerVersion::ConnectEdgesToPoint >( mesh );
+         return getDecomposedMesh<
+            EntityDecomposerVersion::ConnectEdgesToCentroid,
+            EntityDecomposerVersion::ConnectEdgesToPoint >( mesh );
       }
    }
    else {  // decompositionType[0] == 'p'
       if( decompositionType[ 1 ] == 'c' ) {
-         return getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToPoint,
-                                   EntityDecomposerVersion::ConnectEdgesToCentroid >( mesh );
+         return getDecomposedMesh<
+            EntityDecomposerVersion::ConnectEdgesToPoint,
+            EntityDecomposerVersion::ConnectEdgesToCentroid >( mesh );
       }
       else {  // decompositionType[1] == 'p'
          return getDecomposedMesh< EntityDecomposerVersion::ConnectEdgesToPoint, EntityDecomposerVersion::ConnectEdgesToPoint >(
@@ -167,10 +171,11 @@ getDecomposedMeshHelper( const Mesh& mesh, const std::string& decompositionType 
 
 template< typename Mesh >
 bool
-triangulateMesh( const Mesh& mesh,
-                 const std::string& outputFileName,
-                 const std::string& outputFormat,
-                 const std::string& decompositionType )
+triangulateMesh(
+   const Mesh& mesh,
+   const std::string& outputFileName,
+   const std::string& outputFormat,
+   const std::string& decompositionType )
 {
    const auto decomposedMesh = getDecomposedMeshHelper( mesh, decompositionType );
 

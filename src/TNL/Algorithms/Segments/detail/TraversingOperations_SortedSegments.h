@@ -22,11 +22,12 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstViewType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                LaunchConfiguration launchConfig )
+   forElements(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       if( end <= begin )
          return;
@@ -82,10 +83,11 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
    template< typename Array, typename Function >
    static void
-   forElements( const ConstViewType& segments,
-                const Array& segmentIndexes,
-                Function&& function,
-                LaunchConfiguration launchConfig )
+   forElements(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       if( segmentIndexes.getSize() == 0 )
          return;
@@ -125,12 +127,13 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ConstViewType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Function&& function,
-                  LaunchConfiguration launchConfig )
+   forElementsIf(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       if( end <= begin )
          return;
@@ -173,12 +176,13 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIfSparse( const ConstViewType& segments,
-                        IndexBegin begin,
-                        IndexEnd end,
-                        Condition&& condition,
-                        Function&& function,
-                        LaunchConfiguration launchConfig )
+   forElementsIfSparse(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
 
@@ -199,11 +203,12 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forSegments( const ConstViewType& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                LaunchConfiguration launchConfig )
+   forSegments(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       using SegmentView = typename ConstViewType::SegmentViewType;
 
@@ -246,10 +251,11 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
    template< typename Array, typename Function >
    static void
-   forSegments( const ConstViewType& segments,
-                const Array& segmentIndexes,
-                Function&& function,
-                LaunchConfiguration launchConfig )
+   forSegments(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       using SegmentView = typename ConstViewType::SegmentViewType;
 
@@ -260,12 +266,13 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
       Containers::Vector< IndexType, DeviceType, IndexType > transformedSegmentIndexes( segmentIndexes.getSize() );
       auto segmentsPermutationView = segments.getConstView().getSegmentsPermutationView();
       auto segmentIndexesView = segmentIndexes.getConstView();
-      transformedSegmentIndexes.forElements( 0,
-                                             segmentIndexes.getSize(),
-                                             [ = ] __cuda_callable__( IndexType i, IndexType & value )
-                                             {
-                                                value = segmentsPermutationView[ segmentIndexesView[ i ] ];
-                                             } );
+      transformedSegmentIndexes.forElements(
+         0,
+         segmentIndexes.getSize(),
+         [ = ] __cuda_callable__( IndexType i, IndexType & value )
+         {
+            value = segmentsPermutationView[ segmentIndexesView[ i ] ];
+         } );
 
       TraversingOperations< EmbeddedSegmentsView >::forSegments(
          segments.getEmbeddedSegmentsView(),
@@ -280,12 +287,13 @@ struct TraversingOperations< SortedSegmentsView< EmbeddedSegmentsView_ > >
 
    template< typename IndexBegin, typename IndexEnd, typename SegmentCondition, typename Function >
    static void
-   forSegmentsIf( const ConstViewType& segments,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  SegmentCondition&& segmentCondition,
-                  Function&& function,
-                  LaunchConfiguration launchConfig )
+   forSegmentsIf(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      SegmentCondition&& segmentCondition,
+      Function&& function,
+      LaunchConfiguration launchConfig )
    {
       using VectorType = Containers::Vector< IndexType, DeviceType, IndexType >;
       if( end <= begin )

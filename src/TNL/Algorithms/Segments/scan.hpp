@@ -56,47 +56,52 @@ exclusiveScanSegment( SegmentView& segment, Fetch&& fetch, Reduce&& reduce, Writ
 
 template< typename Segments, typename Fetch, typename Reduce, typename Write >
 void
-inclusiveScanAllSegments( const Segments& segments,
-                          Fetch&& fetch,
-                          Reduce&& reduce,
-                          Write&& write,
-                          LaunchConfiguration launchConfig )
+inclusiveScanAllSegments(
+   const Segments& segments,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig )
 {
-   inclusiveScanSegments( segments,
-                          0,
-                          segments.getSegmentCount(),
-                          std::forward< Fetch >( fetch ),
-                          std::forward< Reduce >( reduce ),
-                          std::forward< Write >( write ),
-                          launchConfig );
+   inclusiveScanSegments(
+      segments,
+      0,
+      segments.getSegmentCount(),
+      std::forward< Fetch >( fetch ),
+      std::forward< Reduce >( reduce ),
+      std::forward< Write >( write ),
+      launchConfig );
 }
 
 template< typename Segments, typename Fetch, typename Reduce, typename Write >
 void
-exclusiveScanAllSegments( const Segments& segments,
-                          Fetch&& fetch,
-                          Reduce&& reduce,
-                          Write&& write,
-                          LaunchConfiguration launchConfig )
+exclusiveScanAllSegments(
+   const Segments& segments,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig )
 {
-   exclusiveScanSegments( segments,
-                          0,
-                          segments.getSegmentCount(),
-                          std::forward< Fetch >( fetch ),
-                          std::forward< Reduce >( reduce ),
-                          std::forward< Write >( write ),
-                          launchConfig );
+   exclusiveScanSegments(
+      segments,
+      0,
+      segments.getSegmentCount(),
+      std::forward< Fetch >( fetch ),
+      std::forward< Reduce >( reduce ),
+      std::forward< Write >( write ),
+      launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduce, typename Write, typename T >
 void
-inclusiveScanSegments( const Segments& segments,
-                       IndexBegin begin,
-                       IndexEnd end,
-                       Fetch&& fetch,
-                       Reduce&& reduce,
-                       Write&& write,
-                       LaunchConfiguration launchConfig )
+inclusiveScanSegments(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig )
 {
    using SegmentView = typename Segments::SegmentViewType;
 
@@ -114,13 +119,14 @@ inclusiveScanSegments( const Segments& segments,
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduce, typename Write, typename T >
 void
-exclusiveScanSegments( const Segments& segments,
-                       IndexBegin begin,
-                       IndexEnd end,
-                       Fetch&& fetch,
-                       Reduce&& reduce,
-                       Write&& write,
-                       LaunchConfiguration launchConfig )
+exclusiveScanSegments(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig )
 {
    using SegmentView = typename Segments::SegmentViewType;
 
@@ -138,12 +144,13 @@ exclusiveScanSegments( const Segments& segments,
 
 template< typename Segments, typename Array, typename Fetch, typename Reduce, typename Write >
 void
-inclusiveScanSegments( const Segments& segments,
-                       const Array& segmentIndexes,
-                       Fetch&& fetch,
-                       Reduce&& reduce,
-                       Write&& write,
-                       LaunchConfiguration launchConfig )
+inclusiveScanSegments(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig )
 {
    using SegmentView = typename Segments::SegmentViewType;
 
@@ -160,12 +167,13 @@ inclusiveScanSegments( const Segments& segments,
 
 template< typename Segments, typename Array, typename Fetch, typename Reduce, typename Write >
 void
-exclusiveScanSegments( const Segments& segments,
-                       const Array& segmentIndexes,
-                       Fetch&& fetch,
-                       Reduce&& reduce,
-                       Write&& write,
-                       LaunchConfiguration launchConfig )
+exclusiveScanSegments(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig )
 {
    using SegmentView = typename Segments::SegmentViewType;
 
@@ -182,59 +190,65 @@ exclusiveScanSegments( const Segments& segments,
 
 template< typename Segments, typename Condition, typename Fetch, typename Reduce, typename Write >
 void
-inclusiveScanAllSegmentsIf( const Segments& segments,
-                            Condition&& condition,
-                            Fetch&& fetch,
-                            Reduce&& reduce,
-                            Write&& write,
-                            LaunchConfiguration launchConfig )
+inclusiveScanAllSegmentsIf(
+   const Segments& segments,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig )
 {
-   inclusiveScanSegmentsIf( segments,
-                            0,
-                            segments.getSegmentCount(),
-                            std::forward< Condition >( condition ),
-                            std::forward< Fetch >( fetch ),
-                            std::forward< Reduce >( reduce ),
-                            std::forward< Write >( write ),
-                            launchConfig );
+   inclusiveScanSegmentsIf(
+      segments,
+      0,
+      segments.getSegmentCount(),
+      std::forward< Condition >( condition ),
+      std::forward< Fetch >( fetch ),
+      std::forward< Reduce >( reduce ),
+      std::forward< Write >( write ),
+      launchConfig );
 }
 
 template< typename Segments, typename Condition, typename Fetch, typename Reduce, typename Write >
 void
-exclusiveScanAllSegmentsIf( const Segments& segments,
-                            Condition&& condition,
-                            Fetch&& fetch,
-                            Reduce&& reduce,
-                            Write&& write,
-                            LaunchConfiguration launchConfig )
+exclusiveScanAllSegmentsIf(
+   const Segments& segments,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig )
 {
-   exclusiveScanSegmentsIf( segments,
-                            0,
-                            segments.getSegmentCount(),
-                            std::forward< Condition >( condition ),
-                            std::forward< Fetch >( fetch ),
-                            std::forward< Reduce >( reduce ),
-                            std::forward< Write >( write ),
-                            launchConfig );
+   exclusiveScanSegmentsIf(
+      segments,
+      0,
+      segments.getSegmentCount(),
+      std::forward< Condition >( condition ),
+      std::forward< Fetch >( fetch ),
+      std::forward< Reduce >( reduce ),
+      std::forward< Write >( write ),
+      launchConfig );
 }
 
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduce,
-          typename Write,
-          typename T >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduce,
+   typename Write,
+   typename T >
 void
-inclusiveScanSegmentsIf( const Segments& segments,
-                         IndexBegin begin,
-                         IndexEnd end,
-                         Condition&& condition,
-                         Fetch&& fetch,
-                         Reduce&& reduce,
-                         Write&& write,
-                         LaunchConfiguration launchConfig )
+inclusiveScanSegmentsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig )
 {
    using SegmentView = typename Segments::SegmentViewType;
 
@@ -251,23 +265,25 @@ inclusiveScanSegmentsIf( const Segments& segments,
       launchConfig );
 }
 
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduce,
-          typename Write,
-          typename T >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduce,
+   typename Write,
+   typename T >
 void
-exclusiveScanSegmentsIf( const Segments& segments,
-                         IndexBegin begin,
-                         IndexEnd end,
-                         Condition&& condition,
-                         Fetch&& fetch,
-                         Reduce&& reduce,
-                         Write&& write,
-                         LaunchConfiguration launchConfig )
+exclusiveScanSegmentsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig )
 {
    using SegmentView = typename Segments::SegmentViewType;
 

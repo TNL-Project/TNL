@@ -154,9 +154,10 @@ SortedSegmentsBase< EmbeddedSegments >::getInverseSegmentsPermutationView() cons
 template< typename EmbeddedSegments >
 __cuda_callable__
 void
-SortedSegmentsBase< EmbeddedSegments >::bind( const EmbeddedSegmentsView& embeddedSegments,
-                                              const PermutationView& segmentsPermutation,
-                                              const PermutationView& inverseSegmentsPermutation )
+SortedSegmentsBase< EmbeddedSegments >::bind(
+   const EmbeddedSegmentsView& embeddedSegments,
+   const PermutationView& segmentsPermutation,
+   const PermutationView& inverseSegmentsPermutation )
 {
    this->embeddedSegmentsView.bind( embeddedSegments );
    this->segmentsPermutationView.bind( segmentsPermutation );

@@ -131,14 +131,15 @@ IDRs< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
          // make v orthogonal to P
          // v = r - G[:, k:s].dot(c)
          v = r;
-         Matrices::MatrixOperations< DeviceType >::gemv( sizeWithGhosts,
-                                                         IndexType( s - k ),
-                                                         RealType( -1 ),
-                                                         G.getData() + k * sizeWithGhosts,
-                                                         sizeWithGhosts,
-                                                         c.get(),
-                                                         RealType( 1 ),
-                                                         Traits::getLocalView( v ).getData() );
+         Matrices::MatrixOperations< DeviceType >::gemv(
+            sizeWithGhosts,
+            IndexType( s - k ),
+            RealType( -1 ),
+            G.getData() + k * sizeWithGhosts,
+            sizeWithGhosts,
+            c.get(),
+            RealType( 1 ),
+            Traits::getLocalView( v ).getData() );
          // preconditioning
          psolve( v, v );
 
@@ -146,14 +147,15 @@ IDRs< Matrix >::solve( ConstVectorViewType b, VectorViewType x )
          // U_k = U[:, k:s].dot(c) + omega * v;
          // GOTCHA: U_k is included in the lhs as well as rhs, but it works with
          //         this gemv implementation (as long as beta=0)
-         Matrices::MatrixOperations< DeviceType >::gemv( sizeWithGhosts,
-                                                         IndexType( s - k ),
-                                                         RealType( 1 ),
-                                                         U.getData() + k * sizeWithGhosts,
-                                                         sizeWithGhosts,
-                                                         c.get(),
-                                                         RealType( 0 ),
-                                                         Traits::getLocalView( U_k ).getData() );
+         Matrices::MatrixOperations< DeviceType >::gemv(
+            sizeWithGhosts,
+            IndexType( s - k ),
+            RealType( 1 ),
+            U.getData() + k * sizeWithGhosts,
+            sizeWithGhosts,
+            c.get(),
+            RealType( 0 ),
+            Traits::getLocalView( U_k ).getData() );
          U_k += omega * v;
 
          // compute new G(:,k) in the space G_j

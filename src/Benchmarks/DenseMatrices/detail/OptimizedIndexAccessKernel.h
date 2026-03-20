@@ -16,12 +16,13 @@ namespace TNL::Benchmarks::DenseMatrices {
 template< int tileDim, int tileRowBlockSize, typename ResultMatrix, typename Matrix1, typename Matrix2 >
 __global__
 void
-MultiplicationKernel2( ResultMatrix resultMatrix,
-                       const Matrix1 matrixA,
-                       const Matrix2 matrixB,
-                       const typename ResultMatrix::RealType matrixMultiplicator,
-                       const typename ResultMatrix::IndexType gridIdx_x,
-                       const typename ResultMatrix::IndexType gridIdx_y )
+MultiplicationKernel2(
+   ResultMatrix resultMatrix,
+   const Matrix1 matrixA,
+   const Matrix2 matrixB,
+   const typename ResultMatrix::RealType matrixMultiplicator,
+   const typename ResultMatrix::IndexType gridIdx_x,
+   const typename ResultMatrix::IndexType gridIdx_y )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    // Here we compute product C = A * B. To profit from the fast

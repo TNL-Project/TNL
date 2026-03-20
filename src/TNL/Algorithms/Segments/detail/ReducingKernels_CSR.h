@@ -17,14 +17,15 @@ namespace TNL::Algorithms::Segments::detail {
 template< typename Segments, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
 void
-reduceSegmentsCSRVectorKernel( Index gridIdx,
-                               const Segments segments,
-                               Index begin,
-                               Index end,
-                               Fetch fetch,
-                               const Reduction reduction,
-                               ResultStorer store,
-                               const Value identity )
+reduceSegmentsCSRVectorKernel(
+   Index gridIdx,
+   const Segments segments,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   const Reduction reduction,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -58,23 +59,25 @@ reduceSegmentsCSRVectorKernel( Index gridIdx,
 #endif
 }
 
-template< int ThreadsPerSegment,
-          typename Segments,
-          typename Index,
-          typename Fetch,
-          typename Reduce,
-          typename Store,
-          typename Value >
+template<
+   int ThreadsPerSegment,
+   typename Segments,
+   typename Index,
+   typename Fetch,
+   typename Reduce,
+   typename Store,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRVariableVectorKernel( const Index gridID,
-                                       const Segments segments,
-                                       const Index begin,
-                                       const Index end,
-                                       Fetch fetch,
-                                       Reduce reduce,
-                                       Store store,
-                                       const Value identity )
+reduceSegmentsCSRVariableVectorKernel(
+   const Index gridID,
+   const Segments segments,
+   const Index begin,
+   const Index end,
+   Fetch fetch,
+   Reduce reduce,
+   Store store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -110,24 +113,26 @@ reduceSegmentsCSRVariableVectorKernel( const Index gridID,
 #endif
 }
 
-template< int BlockSize,
-          int ThreadsPerSegment,
-          typename Segments,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int BlockSize,
+   int ThreadsPerSegment,
+   typename Segments,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
-                                         const Segments segments,
-                                         Index begin,
-                                         Index end,
-                                         Fetch fetch,
-                                         const Reduction reduce,
-                                         ResultStorer store,
-                                         const Value identity )
+reduceSegmentsCSRLightMultivectorKernel(
+   int gridIdx,
+   const Segments segments,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   const Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -176,24 +181,26 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
 #endif
 }
 
-template< typename Segments,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value,
-          int BlockSize = 256 >
+template<
+   typename Segments,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value,
+   int BlockSize = 256 >
 __global__
 void
-reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
-                                        const Index threadsPerSegment,
-                                        const Segments segments,
-                                        Index begin,
-                                        Index end,
-                                        Fetch fetch,
-                                        const Reduction reduce,
-                                        ResultStorer store,
-                                        const Value identity )
+reduceSegmentsCSRDynamicGroupingKernel(
+   int gridIdx,
+   const Index threadsPerSegment,
+   const Segments segments,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   const Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -340,22 +347,24 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
 
 // TODO: The following vector kernel is special case of the general variable vector kernel.
 // Check the performance and if it is the same, we can erase this kernel.
-template< typename Segments,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   typename Segments,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRVectorKernelWithIndexes( Index gridIdx,
-                                          const Segments segments,
-                                          const ArrayView segmentIndexes,
-                                          Fetch fetch,
-                                          const Reduction reduction,
-                                          ResultStorer store,
-                                          const Value identity )
+reduceSegmentsCSRVectorKernelWithIndexes(
+   Index gridIdx,
+   const Segments segments,
+   const ArrayView segmentIndexes,
+   Fetch fetch,
+   const Reduction reduction,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -391,23 +400,25 @@ reduceSegmentsCSRVectorKernelWithIndexes( Index gridIdx,
 #endif
 }
 
-template< int ThreadsPerSegment,
-          typename Segments,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduce,
-          typename Store,
-          typename Value >
+template<
+   int ThreadsPerSegment,
+   typename Segments,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduce,
+   typename Store,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRVariableVectorKernelWithIndexes( const Index gridID,
-                                                  const Segments segments,
-                                                  const ArrayView segmentIndexes,
-                                                  Fetch fetch,
-                                                  Reduce reduce,
-                                                  Store store,
-                                                  const Value identity )
+reduceSegmentsCSRVariableVectorKernelWithIndexes(
+   const Index gridID,
+   const Segments segments,
+   const ArrayView segmentIndexes,
+   Fetch fetch,
+   Reduce reduce,
+   Store store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -445,24 +456,26 @@ reduceSegmentsCSRVariableVectorKernelWithIndexes( const Index gridID,
 #endif
 }
 
-template< int BlockSize,
-          int ThreadsPerSegment,
-          typename Segments,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int BlockSize,
+   int ThreadsPerSegment,
+   typename Segments,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
-                                                    const Segments segments,
-                                                    const ArrayView segmentIndexes,
-                                                    Fetch fetch,
-                                                    const Reduction reduce,
-                                                    ResultStorer store,
-                                                    const Value identity )
+reduceSegmentsCSRLightMultivectorKernelWithIndexes(
+   int gridIdx,
+   const Segments segments,
+   const ArrayView segmentIndexes,
+   Fetch fetch,
+   const Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -516,24 +529,26 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
 #endif
 }
 
-template< typename Segments,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value,
-          int BlockSize = 256 >
+template<
+   typename Segments,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value,
+   int BlockSize = 256 >
 __global__
 void
-reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
-                                                   const Index threadsPerSegment,
-                                                   const Segments segments,
-                                                   const ArrayView segmentIndexes,
-                                                   Fetch fetch,
-                                                   const Reduction reduce,
-                                                   ResultStorer store,
-                                                   const Value identity )
+reduceSegmentsCSRDynamicGroupingKernelWithIndexes(
+   int gridIdx,
+   const Index threadsPerSegment,
+   const Segments segments,
+   const ArrayView segmentIndexes,
+   Fetch fetch,
+   const Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -648,9 +663,10 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
 
       // Write the result
       if( ( threadIdx.x & ( warpSize - 1 ) ) == 0 )  // first lane in the warp
-         store( warps_scheduler[ warp_idx ],         // segmentIdx_idx
-                scheduled_segment,
-                result );
+         store(
+            warps_scheduler[ warp_idx ],  // segmentIdx_idx
+            scheduled_segment,
+            result );
       warp_idx += warpsPerBlock;
    }
 
@@ -684,14 +700,15 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
 template< typename Segments, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >
 __global__
 void
-reduceSegmentsCSRVectorKernelWithArgument( Index gridIdx,
-                                           const Segments segments,
-                                           Index begin,
-                                           Index end,
-                                           Fetch fetch,
-                                           const Reduction reduction,
-                                           ResultStorer store,
-                                           const Value identity )
+reduceSegmentsCSRVectorKernelWithArgument(
+   Index gridIdx,
+   const Segments segments,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   const Reduction reduction,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -712,10 +729,11 @@ reduceSegmentsCSRVectorKernelWithArgument( Index gridIdx,
         globalIdx += Backend::getWarpSize() )
    {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      reduction( result,
-                 detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                 argument,
-                 localIdx );
+      reduction(
+         result,
+         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+         argument,
+         localIdx );
       localIdx += Backend::getWarpSize();
    }
 
@@ -731,23 +749,25 @@ reduceSegmentsCSRVectorKernelWithArgument( Index gridIdx,
 #endif
 }
 
-template< int ThreadsPerSegment,
-          typename Segments,
-          typename Index,
-          typename Fetch,
-          typename Reduce,
-          typename Store,
-          typename Value >
+template<
+   int ThreadsPerSegment,
+   typename Segments,
+   typename Index,
+   typename Fetch,
+   typename Reduce,
+   typename Store,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRVariableVectorKernelWithArgument( const Index gridID,
-                                                   const Segments segments,
-                                                   const Index begin,
-                                                   const Index end,
-                                                   Fetch fetch,
-                                                   Reduce reduce,
-                                                   Store store,
-                                                   const Value identity )
+reduceSegmentsCSRVariableVectorKernelWithArgument(
+   const Index gridID,
+   const Segments segments,
+   const Index begin,
+   const Index end,
+   Fetch fetch,
+   Reduce reduce,
+   Store store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -766,10 +786,11 @@ reduceSegmentsCSRVariableVectorKernelWithArgument( const Index gridID,
    Index localIdx = laneID;
    Index argument = 0;
    for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment ) {
-      reduce( result,
-              detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-              argument,
-              localIdx );
+      reduce(
+         result,
+         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+         argument,
+         localIdx );
       localIdx += ThreadsPerSegment;
    }
 
@@ -786,24 +807,26 @@ reduceSegmentsCSRVariableVectorKernelWithArgument( const Index gridID,
 #endif
 }
 
-template< int BlockSize,
-          int ThreadsPerSegment,
-          typename Segments,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int BlockSize,
+   int ThreadsPerSegment,
+   typename Segments,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
-                                                     const Segments segments,
-                                                     Index begin,
-                                                     Index end,
-                                                     Fetch fetch,
-                                                     const Reduction reduce,
-                                                     ResultStorer store,
-                                                     const Value identity )
+reduceSegmentsCSRLightMultivectorKernelWithArgument(
+   int gridIdx,
+   const Segments segments,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   const Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -820,10 +843,11 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
    Index argument = 0;
    Index localIdx = laneIdx;
    for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-      reduce( result,
-              detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-              argument,
-              localIdx );
+      reduce(
+         result,
+         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+         argument,
+         localIdx );
       localIdx += ThreadsPerSegment;
    }
 
@@ -864,24 +888,26 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
 #endif
 }
 
-template< typename Segments,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value,
-          int BlockSize = 256 >
+template<
+   typename Segments,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value,
+   int BlockSize = 256 >
 __global__
 void
-reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
-                                                    const Index threadsPerSegment,
-                                                    const Segments segments,
-                                                    Index begin,
-                                                    Index end,
-                                                    Fetch fetch,
-                                                    const Reduction reduce,
-                                                    ResultStorer store,
-                                                    const Value identity )
+reduceSegmentsCSRDynamicGroupingKernelWithArgument(
+   int gridIdx,
+   const Index threadsPerSegment,
+   const Segments segments,
+   Index begin,
+   Index end,
+   Fetch fetch,
+   const Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -923,10 +949,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
 
       Index localIdx = threadIdx.x;
       while( globalIdx < endIdx ) {
-         reduce( result,
-                 detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, scheduled_segment[ 0 ], localIdx, globalIdx ),
-                 argument,
-                 localIdx );
+         reduce(
+            result,
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, scheduled_segment[ 0 ], localIdx, globalIdx ),
+            argument,
+            localIdx );
          localIdx += BlockSize;
          globalIdx += BlockSize;
       }
@@ -975,10 +1002,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
 
       Index localIdx = threadIdx.x & ( warpSize - 1 );  // & is cheaper than %
       for( ; globalIdx < endIdx; globalIdx += warpSize ) {
-         reduce( result,
-                 detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, scheduled_segment, localIdx, globalIdx ),
-                 argument,
-                 localIdx );
+         reduce(
+            result,
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, scheduled_segment, localIdx, globalIdx ),
+            argument,
+            localIdx );
          localIdx += warpSize;
       }
       __syncthreads();
@@ -1004,10 +1032,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
       argument = 0;
       Index localIdx = 0;
       for( ; globalIdx < endIdx; globalIdx++ ) {
-         reduce( result,
-                 detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                 argument,
-                 localIdx );
+         reduce(
+            result,
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+            argument,
+            localIdx );
          localIdx++;
       }
       // Write the result
@@ -1021,22 +1050,24 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
 
 // TODO: The following vector kernel is special case of the general variable vector kernel.
 // Check the performance and if it is the same, we can erase this kernel.
-template< typename Segments,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   typename Segments,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRVectorKernelWithIndexesAndArgument( Index gridIdx,
-                                                     const Segments segments,
-                                                     const ArrayView segmentIndexes,
-                                                     Fetch fetch,
-                                                     const Reduction reduction,
-                                                     ResultStorer store,
-                                                     const Value identity )
+reduceSegmentsCSRVectorKernelWithIndexesAndArgument(
+   Index gridIdx,
+   const Segments segments,
+   const ArrayView segmentIndexes,
+   Fetch fetch,
+   const Reduction reduction,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -1059,10 +1090,11 @@ reduceSegmentsCSRVectorKernelWithIndexesAndArgument( Index gridIdx,
         globalIdx += Backend::getWarpSize() )
    {
       TNL_ASSERT_LT( globalIdx, endIdx, "" );
-      reduction( result,
-                 detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                 argument,
-                 localIdx );
+      reduction(
+         result,
+         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+         argument,
+         localIdx );
       localIdx += Backend::getWarpSize();
    }
    // Reduction in each warp which means in each segment.
@@ -1078,23 +1110,25 @@ reduceSegmentsCSRVectorKernelWithIndexesAndArgument( Index gridIdx,
 #endif
 }
 
-template< int ThreadsPerSegment,
-          typename Segments,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduce,
-          typename Store,
-          typename Value >
+template<
+   int ThreadsPerSegment,
+   typename Segments,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduce,
+   typename Store,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument( const Index gridID,
-                                                             const Segments segments,
-                                                             const ArrayView segmentIndexes,
-                                                             Fetch fetch,
-                                                             Reduce reduce,
-                                                             Store store,
-                                                             const Value identity )
+reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument(
+   const Index gridID,
+   const Segments segments,
+   const ArrayView segmentIndexes,
+   Fetch fetch,
+   Reduce reduce,
+   Store store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -1114,10 +1148,11 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument( const Index gridID,
    Index localIdx = laneID;
    Index argument = 0;
    for( Index globalIdx = segments.getOffsets()[ segmentIdx ] + laneID; globalIdx < endID; globalIdx += ThreadsPerSegment ) {
-      reduce( result,
-              detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-              argument,
-              localIdx );
+      reduce(
+         result,
+         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+         argument,
+         localIdx );
       localIdx += ThreadsPerSegment;
    }
 
@@ -1134,24 +1169,26 @@ reduceSegmentsCSRVariableVectorKernelWithIndexesAndArgument( const Index gridID,
 #endif
 }
 
-template< int BlockSize,
-          int ThreadsPerSegment,
-          typename Segments,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value >
+template<
+   int BlockSize,
+   int ThreadsPerSegment,
+   typename Segments,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value >
 __global__
 void
-reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
-                                                               const Segments segments,
-                                                               const ArrayView segmentIndexes,
-                                                               Fetch fetch,
-                                                               const Reduction reduce,
-                                                               ResultStorer store,
-                                                               const Value identity )
+reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument(
+   int gridIdx,
+   const Segments segments,
+   const ArrayView segmentIndexes,
+   Fetch fetch,
+   const Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -1170,10 +1207,11 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
    Index argument = 0;
    Index localIdx = laneIdx;
    for( Index globalIdx = beginIdx + laneIdx; globalIdx < endIdx; globalIdx += ThreadsPerSegment ) {
-      reduce( result,
-              detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-              argument,
-              localIdx );
+      reduce(
+         result,
+         detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+         argument,
+         localIdx );
       localIdx += ThreadsPerSegment;
    }
 
@@ -1216,24 +1254,26 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
 #endif
 }
 
-template< typename Segments,
-          typename ArrayView,
-          typename Index,
-          typename Fetch,
-          typename Reduction,
-          typename ResultStorer,
-          typename Value,
-          int BlockSize = 256 >
+template<
+   typename Segments,
+   typename ArrayView,
+   typename Index,
+   typename Fetch,
+   typename Reduction,
+   typename ResultStorer,
+   typename Value,
+   int BlockSize = 256 >
 __global__
 void
-reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
-                                                              const Index threadsPerSegment,
-                                                              const Segments segments,
-                                                              const ArrayView segmentIndexes,
-                                                              Fetch fetch,
-                                                              const Reduction reduce,
-                                                              ResultStorer store,
-                                                              const Value identity )
+reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument(
+   int gridIdx,
+   const Index threadsPerSegment,
+   const Segments segments,
+   const ArrayView segmentIndexes,
+   Fetch fetch,
+   const Reduction reduce,
+   ResultStorer store,
+   const Value identity )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
@@ -1279,10 +1319,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
 
       Index localIdx = threadIdx.x;
       while( globalIdx < endIdx ) {
-         reduce( result,
-                 detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, scheduled_segment, localIdx, globalIdx ),
-                 argument,
-                 localIdx );
+         reduce(
+            result,
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, scheduled_segment, localIdx, globalIdx ),
+            argument,
+            localIdx );
          localIdx += BlockSize;
          globalIdx += BlockSize;
       }
@@ -1333,10 +1374,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
 
       Index localIdx = threadIdx.x & ( warpSize - 1 );  // & is cheaper than %
       for( ; globalIdx < endIdx; globalIdx += warpSize ) {
-         reduce( result,
-                 detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, scheduled_segment, localIdx, globalIdx ),
-                 argument,
-                 localIdx );
+         reduce(
+            result,
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, scheduled_segment, localIdx, globalIdx ),
+            argument,
+            localIdx );
          localIdx += warpSize;
       }
       __syncthreads();
@@ -1362,10 +1404,11 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
       argument = 0;
       Index localIdx = 0;
       for( ; globalIdx < endIdx; globalIdx++ ) {
-         reduce( result,
-                 detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                 argument,
-                 localIdx );
+         reduce(
+            result,
+            detail::FetchLambdaAdapter< Index, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+            argument,
+            localIdx );
          localIdx++;
       }
       // Write the result

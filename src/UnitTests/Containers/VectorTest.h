@@ -104,10 +104,10 @@ TEST( VectorSpecialCasesTest, assignmentThroughView )
    using VectorType = Containers::Vector< int, DeviceType >;
    using ViewType = VectorView< int, DeviceType >;
 
-   static_assert( HasSubscriptOperator< VectorType >::value,
-                  "Subscript operator detection by SFINAE does not work for Vector." );
-   static_assert( HasSubscriptOperator< ViewType >::value,
-                  "Subscript operator detection by SFINAE does not work for VectorView." );
+   static_assert(
+      HasSubscriptOperator< VectorType >::value, "Subscript operator detection by SFINAE does not work for Vector." );
+   static_assert(
+      HasSubscriptOperator< ViewType >::value, "Subscript operator detection by SFINAE does not work for VectorView." );
 
    VectorType u( 100 );
    VectorType v( 100 );
