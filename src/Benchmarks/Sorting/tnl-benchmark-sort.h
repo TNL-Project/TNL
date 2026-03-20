@@ -1,138 +1,232 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <iostream>
+#pragma once
+
+#include <TNL/Config/parseCommandLine.h>
+#include <TNL/Devices/Host.h>
+#include <TNL/Devices/Cuda.h>
+#include <TNL/MPI/ScopedInitializer.h>
+#include <TNL/MPI/Config.h>
+
 #include <fstream>
-#include <iomanip>
-using namespace std;
+#include <functional>
 
+#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Algorithms/sort.h>
+#include <TNL/Algorithms/Sorting/BitonicSort.h>
+#include <TNL/Algorithms/Sorting/STLSort.h>
+#include <TNL/Algorithms/Sorting/experimental/Quicksort.h>
 #include "generators.h"
-#include "Measurer.h"
 
-#ifndef LOW_POW
-   #define LOW_POW 10
-#endif
-
-#ifndef HIGH_POW
-   #define HIGH_POW 25
-#endif
-
-#ifndef TRIES
-   #define TRIES 20
+#if defined( __CUDACC__ )
+   #include "ReferenceAlgorithms/CedermanQuicksort.h"
+   #include "ReferenceAlgorithms/ThrustRadixsort.h"
 #endif
 
 using namespace TNL;
-using namespace TNL::Algorithms;
+using namespace TNL::Benchmarks;
 using namespace TNL::Algorithms::Sorting;
 
-template< typename Sorter >
 void
-start( ostream& out, const string& delim )
+setupConfig( Config::ConfigDescription& config )
 {
-   out << "size" << delim;
-   out << "random" << delim;
-   out << "shuffle" << delim;
-   out << "sorted" << delim;
-   out << "almost" << delim;
-   out << "decreasing" << delim;
-   out << "gauss" << delim;
-   out << "bucket" << delim;
-   out << "stagger" << delim;
-   out << "zero_entropy";
-   out << '\n';
+   config.addDelimiter( "Benchmark settings:" );
+   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-sort.log" );
+   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
+   config.addEntryEnum( "append" );
+   config.addEntryEnum( "overwrite" );
+   config.addEntry< int >( "loops", "Number of repetitions of the benchmark.", 10 );
+   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
+   config.addEntry< std::size_t >( "size", "Size of the array to sort.", 1 << 20 );
+   config.addEntry< String >( "device", "Run benchmarks using given device.", "host" );
+   config.addEntryEnum( "host" );
+   config.addEntryEnum( "cuda" );
+   config.addEntryEnum( "all" );
+   config.addEntry< String >( "value-type", "Value type to benchmark.", "int" );
+   config.addEntryEnum( "int" );
+   config.addEntryEnum( "uint" );
+   config.addEntryEnum( "double" );
+   config.addEntryEnum( "all" );
 
-   int wrongAnsCnt = 0;
+   config.addDelimiter( "Device settings:" );
+   Devices::Host::configSetup( config );
+   Devices::Cuda::configSetup( config );
+   TNL::MPI::configSetup( config );
+}
 
-   for( int pow = LOW_POW; pow <= HIGH_POW; pow++ ) {
-      int size = ( 1 << pow );
-      vector< int > vec( size );
+template< typename ValueType >
+void
+runBenchmark( Benchmark<>& benchmark, std::size_t size, const String& device )
+{
+   struct DistributionInfo
+   {
+      const char* name;
+      std::function< std::vector< ValueType >( std::size_t, std::uint32_t ) > generator;
+   };
 
-      out << "2^" << pow << delim << flush;
-      out << fixed << setprecision( 3 );
+   const std::vector< DistributionInfo > distributions = {
+      { "random", generateRandom< ValueType > },           { "shuffle", generateShuffle< ValueType > },
+      { "sorted", generateSorted< ValueType > },           { "almost-sorted", generateAlmostSorted< ValueType > },
+      { "decreasing", generateDecreasing< ValueType > },   { "gaussian", generateGaussian< ValueType > },
+      { "bucket", generateBucket< ValueType > },           { "staggered", generateStaggered< ValueType > },
+      { "zero-entropy", generateZeroEntropy< ValueType > }
+   };
 
-      out << Measurer< Sorter >::measure( generateRandom( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+   for( const auto& dist : distributions ) {
+      // Create a vector for storing generated values
+      const std::vector< ValueType > vec = dist.generator( size, 0 );
 
-      out << Measurer< Sorter >::measure( generateShuffle( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+      if( device == "host" || device == "all" ) {
+         benchmark.setMetadataColumns(
+            Benchmark<>::MetadataColumns(
+               { { "size", std::to_string( size ) },
+                 { "distribution", dist.name },
+                 { "value_type", TNL::getType< ValueType >() },
+                 { "device", "host" } } ) );
+         benchmark.setDatasetSize( size * sizeof( ValueType ) );
 
-      out << Measurer< Sorter >::measure( generateSorted( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+         // Create an Array for sorting
+         Containers::Array< ValueType, Devices::Host > arr;
 
-      out << Measurer< Sorter >::measure( generateAlmostSorted( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+         auto reset = [ &vec, &arr ]()
+         {
+            // Copy the original values to the array
+            arr = vec;
+         };
 
-      out << Measurer< Sorter >::measure( generateDecreasing( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+         auto sort = [ &arr ]()
+         {
+            STLSort::sort( arr );
+         };
 
-      out << Measurer< Sorter >::measure( generateGaussian( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+         BenchmarkResult result;
+         benchmark.time< Devices::Host >( reset, "STL sort", sort, result );
+      }
 
-      out << Measurer< Sorter >::measure( generateBucket( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+#ifdef __CUDACC__
+      if( device == "cuda" || device == "all" ) {
+         benchmark.setMetadataColumns(
+            Benchmark<>::MetadataColumns(
+               { { "size", std::to_string( size ) },
+                 { "distribution", dist.name },
+                 { "value_type", TNL::getType< ValueType >() },
+                 { "device", "cuda" } } ) );
+         benchmark.setDatasetSize( size * sizeof( ValueType ) );
 
-      out << Measurer< Sorter >::measure( generateStaggered( size ), TRIES, wrongAnsCnt );
-      out << delim << flush;
+         // Create an Array for sorting
+         Containers::Array< ValueType, Devices::Cuda > arr;
 
-      out << Measurer< Sorter >::measure( generateZero_entropy( size ), TRIES, wrongAnsCnt );
-      out << '\n';
+         auto reset = [ &vec, &arr ]()
+         {
+            // Copy the original values to the array
+            arr = vec;
+         };
+
+         auto sortBitonic = [ &arr ]()
+         {
+            BitonicSort::sort( arr );
+         };
+
+         BenchmarkResult result;
+         benchmark.time< Devices::Cuda >( reset, "bitonic", sortBitonic, result );
+
+         // Verify bitonic sort result
+         if( ! Algorithms::isAscending( arr ) )
+            throw std::runtime_error( "bitonic sort result is not sorted" );
+
+         auto sortQuicksort = [ &arr ]()
+         {
+            experimental::Quicksort::sort( arr );
+         };
+
+         benchmark.time< Devices::Cuda >( reset, "quicksort", sortQuicksort, result );
+
+         // Verify quicksort result
+         if( ! Algorithms::isAscending( arr ) )
+            throw std::runtime_error( "quicksort result is not sorted" );
+
+         // CedermanQuicksort only works with int
+         if constexpr( std::is_same_v< ValueType, int > ) {
+            auto sortCederman = [ &arr ]()
+            {
+               auto view = arr.getView();
+               CedermanQuicksort::sort( view );
+            };
+
+            benchmark.time< Devices::Cuda >( reset, "CedermanQuicksort", sortCederman, result );
+
+            // Verify Cederman sort result
+            if( ! Algorithms::isAscending( arr ) )
+               throw std::runtime_error( "CedermanQuicksort result is not sorted" );
+         }
+
+         auto sortThrust = [ &arr ]()
+         {
+            auto view = arr.getView();
+            ThrustRadixsort< ValueType >::sort( view );
+         };
+
+         benchmark.time< Devices::Cuda >( reset, "thrust", sortThrust, result );
+
+         // Verify Thrust sort result
+         if( ! Algorithms::isAscending( arr ) )
+            throw std::runtime_error( "thrust sort result is not sorted" );
+      }
+#endif
    }
-
-   if( wrongAnsCnt > 0 )
-      std::cerr << wrongAnsCnt << "tries were sorted incorrectly\n";
 }
 
 int
 main( int argc, char* argv[] )
 {
-   if( argc == 1 ) {
-#ifdef __CUDACC__
-      std::cout << "Quicksort on GPU ...\n";
-      start< experimental::Quicksort >( cout, "\t" );
-      std::cout << "Bitonic sort on GPU ...\n";
-      start< BitonicSort >( cout, "\t" );
+   Config::ParameterContainer parameters;
+   Config::ConfigDescription conf_desc;
 
-   #if defined( __CUDACC__ )
-      #ifdef HAVE_CUDA_SAMPLES
-      std::cout << "Manca quicksort on GPU ...\n";
-      start< MancaQuicksort >( cout, "\t" );
-      std::cout << "Nvidia bitonic sort on GPU ...\n";
-      start< NvidiaBitonicSort >( cout, "\t" );
-      #endif
-      std::cout << "Cederman quicksort on GPU ...\n";
-      start< CedermanQuicksort >( cout, "\t" );
-      std::cout << "Thrust radixsort on GPU ...\n";
-      start< ThrustRadixsort >( cout, "\t" );
-   #endif
-#endif
+   setupConfig( conf_desc );
 
-      std::cout << "STL sort on CPU ...\n";
-      start< STLSort >( cout, "\t" );
+   TNL::MPI::ScopedInitializer mpi( argc, argv );
+   const int rank = TNL::MPI::GetRank();
+
+   if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
+      return EXIT_FAILURE;
+   if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) || ! TNL::MPI::setup( parameters ) )
+      return EXIT_FAILURE;
+
+   const String& logFileName = parameters.getParameter< String >( "log-file" );
+   const String& outputMode = parameters.getParameter< String >( "output-mode" );
+   const int loops = parameters.getParameter< int >( "loops" );
+   const int verbose = ( rank == 0 ) ? parameters.getParameter< int >( "verbose" ) : 0;
+   const auto size = parameters.getParameter< std::size_t >( "size" );
+   const String& device = parameters.getParameter< String >( "device" );
+   const String& valueType = parameters.getParameter< String >( "value-type" );
+
+   // Open log file
+   auto mode = std::ios::out;
+   if( outputMode == "append" )
+      mode |= std::ios::app;
+   std::ofstream logFile;
+   if( rank == 0 ) {
+      logFile.open( logFileName, mode );
+      if( ! logFile.is_open() ) {
+         std::cerr << "Failed to open log file: " << logFileName << "\n";
+         return EXIT_FAILURE;
+      }
    }
-   else {
-      std::ofstream out( argv[ 1 ] );
-#ifdef __CUDACC__
-      std::cout << "Quicksort on GPU ...\n";
-      start< experimental::Quicksort >( out, "," );
-      std::cout << "Bitonic sort on GPU ...\n";
-      start< BitonicSort >( out, "," );
 
-   #if defined( __CUDACC__ )
-      #ifdef HAVE_CUDA_SAMPLES
-      std::cout << "Manca quicksort on GPU ...\n";
-      start< MancaQuicksort >( out, "," );
-      std::cout << "Nvidia bitonic sort on GPU ...\n";
-      start< NvidiaBitonicSort >( out, "," );
-      #endif
-      std::cout << "Cederman quicksort on GPU ...\n";
-      start< CedermanQuicksort >( out, "," );
-      std::cout << "Thrust radixsort on GPU ...\n";
-      start< ThrustRadixsort >( out, "," );
-   #endif
-#endif
+   // Init benchmark and set parameters
+   Benchmark<> benchmark( logFile, loops, verbose );
 
-      std::cout << "STL sort on CPU ...\n";
-      start< STLSort >( out, "," );
-   }
-   return 0;
+   // Write global metadata into a separate file
+   std::map< std::string, std::string > metadata = getHardwareMetadata();
+   writeMapAsJson( metadata, logFileName, ".metadata.json" );
+
+   if( valueType == "int" || valueType == "all" )
+      runBenchmark< int >( benchmark, size, device );
+   if( valueType == "uint" || valueType == "all" )
+      runBenchmark< unsigned int >( benchmark, size, device );
+   if( valueType == "double" || valueType == "all" )
+      runBenchmark< double >( benchmark, size, device );
+
+   return EXIT_SUCCESS;
 }
