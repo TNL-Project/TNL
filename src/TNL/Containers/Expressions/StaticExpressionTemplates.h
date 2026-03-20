@@ -23,11 +23,12 @@ template< typename T1, typename Operation >
 struct HasEnabledStaticExpressionTemplates< StaticUnaryExpressionTemplate< T1, Operation > > : std::true_type
 {};
 
-template< typename T1,
-          typename T2,
-          typename Operation,
-          ExpressionVariableType T1Type = getExpressionVariableType< T1, T2 >(),
-          ExpressionVariableType T2Type = getExpressionVariableType< T2, T1 >() >
+template<
+   typename T1,
+   typename T2,
+   typename Operation,
+   ExpressionVariableType T1Type = getExpressionVariableType< T1, T2 >(),
+   ExpressionVariableType T2Type = getExpressionVariableType< T2, T1 >() >
 struct StaticBinaryExpressionTemplate;
 
 template< typename T1, typename T2, typename Operation, ExpressionVariableType T1Type, ExpressionVariableType T2Type >
@@ -44,16 +45,20 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariab
    using RealType = decltype( Operation{}( std::declval< T1 >()[ 0 ], std::declval< T2 >()[ 0 ] ) );
    using ValueType = RealType;
 
-   static_assert( IsStaticArrayType< T1 >::value,
-                  "Left-hand side operand of static expression is not static, i.e. based on static vector." );
-   static_assert( IsStaticArrayType< T2 >::value,
-                  "Right-hand side operand of static expression is not static, i.e. based on static vector." );
-   static_assert( HasEnabledStaticExpressionTemplates< T1 >::value,
-                  "Invalid operand in static binary expression templates - static expression templates are not enabled for the "
-                  "left operand." );
-   static_assert( HasEnabledStaticExpressionTemplates< T2 >::value,
-                  "Invalid operand in static binary expression templates - static expression templates are not enabled for the "
-                  "right operand." );
+   static_assert(
+      IsStaticArrayType< T1 >::value,
+      "Left-hand side operand of static expression is not static, i.e. based on static vector." );
+   static_assert(
+      IsStaticArrayType< T2 >::value,
+      "Right-hand side operand of static expression is not static, i.e. based on static vector." );
+   static_assert(
+      HasEnabledStaticExpressionTemplates< T1 >::value,
+      "Invalid operand in static binary expression templates - static expression templates are not enabled for the "
+      "left operand." );
+   static_assert(
+      HasEnabledStaticExpressionTemplates< T2 >::value,
+      "Invalid operand in static binary expression templates - static expression templates are not enabled for the "
+      "right operand." );
    static_assert( T1::getSize() == T2::getSize(), "Attempt to mix static operands with different sizes." );
 
    static constexpr int
@@ -104,11 +109,13 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionVariab
    using RealType = decltype( Operation{}( std::declval< T1 >()[ 0 ], std::declval< T2 >() ) );
    using ValueType = RealType;
 
-   static_assert( IsStaticArrayType< T1 >::value,
-                  "Left-hand side operand of static expression is not static, i.e. based on static vector." );
-   static_assert( HasEnabledStaticExpressionTemplates< T1 >::value,
-                  "Invalid operand in static binary expression templates - static expression templates are not enabled for the "
-                  "left operand." );
+   static_assert(
+      IsStaticArrayType< T1 >::value,
+      "Left-hand side operand of static expression is not static, i.e. based on static vector." );
+   static_assert(
+      HasEnabledStaticExpressionTemplates< T1 >::value,
+      "Invalid operand in static binary expression templates - static expression templates are not enabled for the "
+      "left operand." );
 
    static constexpr int
    getSize()
@@ -158,11 +165,13 @@ struct StaticBinaryExpressionTemplate< T1, T2, Operation, ArithmeticVariable, Ve
    using RealType = decltype( Operation{}( std::declval< T1 >(), std::declval< T2 >()[ 0 ] ) );
    using ValueType = RealType;
 
-   static_assert( IsStaticArrayType< T2 >::value,
-                  "Right-hand side operand of static expression is not static, i.e. based on static vector." );
-   static_assert( HasEnabledStaticExpressionTemplates< T2 >::value,
-                  "Invalid operand in static binary expression templates - static expression templates are not enabled for the "
-                  "right operand." );
+   static_assert(
+      IsStaticArrayType< T2 >::value,
+      "Right-hand side operand of static expression is not static, i.e. based on static vector." );
+   static_assert(
+      HasEnabledStaticExpressionTemplates< T2 >::value,
+      "Invalid operand in static binary expression templates - static expression templates are not enabled for the "
+      "right operand." );
 
    static constexpr int
    getSize()
@@ -214,8 +223,9 @@ struct StaticUnaryExpressionTemplate
    using RealType = decltype( Operation{}( std::declval< T1 >()[ 0 ] ) );
    using ValueType = RealType;
 
-   static_assert( IsStaticArrayType< T1 >::value,
-                  "The operand of static expression is not static, i.e. based on static vector." );
+   static_assert(
+      IsStaticArrayType< T1 >::value,
+      "The operand of static expression is not static, i.e. based on static vector." );
    static_assert(
       HasEnabledStaticExpressionTemplates< T1 >::value,
       "Invalid operand in static unary expression templates - static expression templates are not enabled for the operand." );
@@ -423,10 +433,11 @@ l1Norm( const ET1& a )
    return sum( abs( a ) );
 }
 
-template< typename ET1,
-          typename...,
-          EnableIfStaticUnaryExpression_t< ET1, bool > = true,
-          std::enable_if_t< ( ET1::getSize() > 1 ), bool > = true >
+template<
+   typename ET1,
+   typename...,
+   EnableIfStaticUnaryExpression_t< ET1, bool > = true,
+   std::enable_if_t< ( ET1::getSize() > 1 ), bool > = true >
 __cuda_callable__
 auto
 l2Norm( const ET1& a )
@@ -435,10 +446,11 @@ l2Norm( const ET1& a )
    return sqrt( sum( sqr( a ) ) );
 }
 
-template< typename ET1,
-          typename...,
-          EnableIfStaticUnaryExpression_t< ET1, bool > = true,
-          std::enable_if_t< ET1::getSize() == 1, bool > = true >
+template<
+   typename ET1,
+   typename...,
+   EnableIfStaticUnaryExpression_t< ET1, bool > = true,
+   std::enable_if_t< ET1::getSize() == 1, bool > = true >
 __cuda_callable__
 auto
 l2Norm( const ET1& a )
@@ -447,11 +459,12 @@ l2Norm( const ET1& a )
    return l1Norm( a );
 }
 
-template< typename ET1,
-          typename Real,
-          typename...,
-          EnableIfStaticUnaryExpression_t< ET1, bool > = true,
-          std::enable_if_t< ( ET1::getSize() > 1 ), bool > = true >
+template<
+   typename ET1,
+   typename Real,
+   typename...,
+   EnableIfStaticUnaryExpression_t< ET1, bool > = true,
+   std::enable_if_t< ( ET1::getSize() > 1 ), bool > = true >
 __cuda_callable__
 auto
 lpNorm( const ET1& a, const Real& p )
@@ -467,11 +480,12 @@ lpNorm( const ET1& a, const Real& p )
    return pow( sum( pow( abs( a ), p ) ), 1.0 / p );
 }
 
-template< typename ET1,
-          typename Real,
-          typename...,
-          EnableIfStaticUnaryExpression_t< ET1, bool > = true,
-          std::enable_if_t< ET1::getSize() == 1, bool > = true >
+template<
+   typename ET1,
+   typename Real,
+   typename...,
+   EnableIfStaticUnaryExpression_t< ET1, bool > = true,
+   std::enable_if_t< ET1::getSize() == 1, bool > = true >
 __cuda_callable__
 auto
 lpNorm( const ET1& a, const Real& p )
@@ -760,12 +774,12 @@ using Containers::tanh;
 
 ////
 // Evaluation with reduction
-template< typename Vector,
-          typename ET1,
-          typename Reduction,
-          typename Result,
-          std::enable_if_t< Containers::Expressions::HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value, bool > =
-             true >
+template<
+   typename Vector,
+   typename ET1,
+   typename Reduction,
+   typename Result,
+   std::enable_if_t< Containers::Expressions::HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value, bool > = true >
 __cuda_callable__
 Result
 evaluateAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
@@ -778,12 +792,12 @@ evaluateAndReduce( Vector& lhs, const ET1& expression, const Reduction& reductio
 
 ////
 // Addition with reduction
-template< typename Vector,
-          typename ET1,
-          typename Reduction,
-          typename Result,
-          std::enable_if_t< Containers::Expressions::HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value, bool > =
-             true >
+template<
+   typename Vector,
+   typename ET1,
+   typename Reduction,
+   typename Result,
+   std::enable_if_t< Containers::Expressions::HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value, bool > = true >
 __cuda_callable__
 Result
 addAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
@@ -799,12 +813,12 @@ addAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, co
 
 ////
 // Addition with reduction of abs
-template< typename Vector,
-          typename ET1,
-          typename Reduction,
-          typename Result,
-          std::enable_if_t< Containers::Expressions::HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value, bool > =
-             true >
+template<
+   typename Vector,
+   typename ET1,
+   typename Reduction,
+   typename Result,
+   std::enable_if_t< Containers::Expressions::HasEnabledStaticExpressionTemplates< std::decay_t< ET1 > >::value, bool > = true >
 __cuda_callable__
 Result
 addAndReduceAbs( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )

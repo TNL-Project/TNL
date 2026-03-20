@@ -28,8 +28,9 @@ DistributedArray< Value, Device, Index, Allocator >::DistributedArray( const Dis
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-DistributedArray< Value, Device, Index, Allocator >::DistributedArray( const DistributedArray& array,
-                                                                       const Allocator& allocator )
+DistributedArray< Value, Device, Index, Allocator >::DistributedArray(
+   const DistributedArray& array,
+   const Allocator& allocator )
 : localData( allocator )
 {
    setLike( array );
@@ -37,11 +38,12 @@ DistributedArray< Value, Device, Index, Allocator >::DistributedArray( const Dis
 }
 
 template< typename Value, typename Device, typename Index, typename Allocator >
-DistributedArray< Value, Device, Index, Allocator >::DistributedArray( LocalRangeType localRange,
-                                                                       IndexType ghosts,
-                                                                       IndexType globalSize,
-                                                                       const MPI::Comm& communicator,
-                                                                       const Allocator& allocator )
+DistributedArray< Value, Device, Index, Allocator >::DistributedArray(
+   LocalRangeType localRange,
+   IndexType ghosts,
+   IndexType globalSize,
+   const MPI::Comm& communicator,
+   const Allocator& allocator )
 : localData( allocator )
 {
    setDistribution( localRange, ghosts, globalSize, communicator );
@@ -49,10 +51,11 @@ DistributedArray< Value, Device, Index, Allocator >::DistributedArray( LocalRang
 
 template< typename Value, typename Device, typename Index, typename Allocator >
 void
-DistributedArray< Value, Device, Index, Allocator >::setDistribution( LocalRangeType localRange,
-                                                                      IndexType ghosts,
-                                                                      IndexType globalSize,
-                                                                      const MPI::Comm& communicator )
+DistributedArray< Value, Device, Index, Allocator >::setDistribution(
+   LocalRangeType localRange,
+   IndexType ghosts,
+   IndexType globalSize,
+   const MPI::Comm& communicator )
 {
    if( localRange.getEnd() > globalSize )
       throw std::out_of_range( "setDistribution: end of the local range is outside of the global range" );
@@ -126,8 +129,9 @@ DistributedArray< Value, Device, Index, Allocator >::copyFromGlobal( ConstLocalV
 
 template< typename Value, typename Device, typename Index, typename Allocator >
 void
-DistributedArray< Value, Device, Index, Allocator >::setSynchronizer( std::shared_ptr< SynchronizerType > synchronizer,
-                                                                      int valuesPerElement )
+DistributedArray< Value, Device, Index, Allocator >::setSynchronizer(
+   std::shared_ptr< SynchronizerType > synchronizer,
+   int valuesPerElement )
 {
    view.setSynchronizer( std::move( synchronizer ), valuesPerElement );
 }

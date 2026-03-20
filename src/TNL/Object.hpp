@@ -19,8 +19,8 @@ getObjectType( File& file )
    String type;
    file.load( mn, strlen( magic_number ) );
    if( strncmp( mn, magic_number, 5 ) != 0 )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "wrong magic number - file is not in a TNL-compatible format." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(), "wrong magic number - file is not in a TNL-compatible format." );
    file >> type;
    return type;
 }

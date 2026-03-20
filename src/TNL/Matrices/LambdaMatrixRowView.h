@@ -98,11 +98,12 @@ public:
     * row index.
     */
    __cuda_callable__
-   LambdaMatrixRowView( const MatrixElementsLambdaType& matrixElementsLambda,
-                        const CompressedRowLengthsLambdaType& compressedRowLengthsLambda,
-                        const IndexType& rows,
-                        const IndexType& columns,
-                        const IndexType& rowIdx );
+   LambdaMatrixRowView(
+      const MatrixElementsLambdaType& matrixElementsLambda,
+      const CompressedRowLengthsLambdaType& compressedRowLengthsLambda,
+      const IndexType& rows,
+      const IndexType& columns,
+      const IndexType& rowIdx );
 
    /**
     * \brief Returns size of the matrix row, i.e. number of matrix elements in this row.
@@ -210,8 +211,9 @@ protected:
  */
 template< typename MatrixElementsLambda, typename CompressedRowLengthsLambda, typename Real, typename Index >
 std::ostream&
-operator<<( std::ostream& str,
-            const LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Index >& row );
+operator<<(
+   std::ostream& str,
+   const LambdaMatrixRowView< MatrixElementsLambda, CompressedRowLengthsLambda, Real, Index >& row );
 
 }  // namespace TNL::Matrices
 

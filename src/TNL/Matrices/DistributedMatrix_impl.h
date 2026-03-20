@@ -8,20 +8,22 @@
 namespace TNL::Matrices {
 
 template< typename Matrix >
-DistributedMatrix< Matrix >::DistributedMatrix( LocalRangeType localRowRange,
-                                                IndexType rows,
-                                                IndexType columns,
-                                                const MPI::Comm& communicator )
+DistributedMatrix< Matrix >::DistributedMatrix(
+   LocalRangeType localRowRange,
+   IndexType rows,
+   IndexType columns,
+   const MPI::Comm& communicator )
 {
    setDistribution( localRowRange, rows, columns, communicator );
 }
 
 template< typename Matrix >
 void
-DistributedMatrix< Matrix >::setDistribution( LocalRangeType localRowRange,
-                                              IndexType rows,
-                                              IndexType columns,
-                                              const MPI::Comm& communicator )
+DistributedMatrix< Matrix >::setDistribution(
+   LocalRangeType localRowRange,
+   IndexType rows,
+   IndexType columns,
+   const MPI::Comm& communicator )
 {
    this->localRowRange = localRowRange;
    this->rows = rows;

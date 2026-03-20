@@ -131,11 +131,12 @@ struct MeshLocalIndexTag< MeshConverterConfigTag, short int >
 template<>
 struct MeshConfigTemplateTag< MeshConverterConfigTag >
 {
-   template< typename Cell,
-             int SpaceDimension = Cell::dimension,
-             typename Real = double,
-             typename GlobalIndex = int,
-             typename LocalIndex = GlobalIndex >
+   template<
+      typename Cell,
+      int SpaceDimension = Cell::dimension,
+      typename Real = double,
+      typename GlobalIndex = int,
+      typename LocalIndex = GlobalIndex >
    struct MeshConfig : public DefaultConfig< Cell, SpaceDimension, Real, GlobalIndex, LocalIndex >
    {
       static constexpr bool
@@ -237,10 +238,11 @@ writeMesh( const TNL::Meshes::Grid< Dimension, Real, Device, Index >& mesh, std:
 
 template< typename Mesh >
 bool
-convertMesh( const Mesh& mesh,
-             const std::string& inputFileName,
-             const std::string& outputFileName,
-             const std::string& outputFormat )
+convertMesh(
+   const Mesh& mesh,
+   const std::string& inputFileName,
+   const std::string& outputFileName,
+   const std::string& outputFormat )
 {
    std::string format = outputFormat;
    if( outputFormat == "auto" ) {
@@ -270,17 +272,19 @@ configSetup( Config::ConfigDescription& config )
    config.addDelimiter( "General settings:" );
    config.addRequiredEntry< std::string >( "input-file", "Input file with the mesh." );
    config.addEntry< std::string >( "input-file-format", "Input mesh file format.", "auto" );
-   config.addEntry< std::string >( "real-type",
-                                   "Type to use for the representation of spatial coordinates in the output mesh. When 'auto', "
-                                   "the real type from the input mesh is used.",
-                                   "auto" );
+   config.addEntry< std::string >(
+      "real-type",
+      "Type to use for the representation of spatial coordinates in the output mesh. When 'auto', "
+      "the real type from the input mesh is used.",
+      "auto" );
    config.addEntryEnum( "auto" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
-   config.addEntry< std::string >( "global-index-type",
-                                   "Type to use for the representation of global indices in the output mesh. When 'auto', the "
-                                   "global index type from the input mesh is used.",
-                                   "auto" );
+   config.addEntry< std::string >(
+      "global-index-type",
+      "Type to use for the representation of global indices in the output mesh. When 'auto', the "
+      "global index type from the input mesh is used.",
+      "auto" );
    config.addEntryEnum( "auto" );
    config.addEntryEnum( "std::int32_t" );
    config.addEntryEnum( "std::int64_t" );

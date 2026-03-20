@@ -7,8 +7,9 @@ template< typename Device >
 void
 forElementsExample()
 {
-   TNL::Matrices::TridiagonalMatrix< double, Device > matrix( 5,    // number of matrix rows
-                                                              5 );  // number of matrix columns
+   TNL::Matrices::TridiagonalMatrix< double, Device > matrix(
+      5,    // number of matrix rows
+      5 );  // number of matrix columns
 
    auto matrixView = matrix.getView();
 

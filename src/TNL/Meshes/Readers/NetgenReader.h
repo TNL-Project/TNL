@@ -105,10 +105,11 @@ public:
       for( std::size_t cellIndex = 0; cellIndex < NumberOfCells; cellIndex++ ) {
          if( ! inputFile ) {
             reset();
-            throw MeshReaderError( "NetgenReader",
-                                   "unable to read enough cells, the file may be invalid or corrupted."
-                                   " (cellIndex = "
-                                      + std::to_string( cellIndex ) + ")" );
+            throw MeshReaderError(
+               "NetgenReader",
+               "unable to read enough cells, the file may be invalid or corrupted."
+               " (cellIndex = "
+                  + std::to_string( cellIndex ) + ")" );
          }
          getline( inputFile, line );
 
@@ -122,10 +123,11 @@ public:
             iss >> vid;
             if( ! iss ) {
                reset();
-               throw MeshReaderError( "NetgenReader",
-                                      "unable to read enough cells, the file may be invalid or corrupted."
-                                      " (cellIndex = "
-                                         + std::to_string( cellIndex ) + ", subvertex = " + std::to_string( v ) + ")" );
+               throw MeshReaderError(
+                  "NetgenReader",
+                  "unable to read enough cells, the file may be invalid or corrupted."
+                  " (cellIndex = "
+                     + std::to_string( cellIndex ) + ", subvertex = " + std::to_string( v ) + ")" );
             }
             // convert point index from 1-based to 0-based
             connectivityArray.push_back( vid - 1 );

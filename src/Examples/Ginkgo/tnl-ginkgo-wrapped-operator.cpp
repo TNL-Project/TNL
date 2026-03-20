@@ -75,10 +75,11 @@ main( int argc, char* argv[] )
    // Create stopping criteria so we can add the logger
    // https://github.com/ginkgo-project/ginkgo/discussions/1099#discussioncomment-3439954
    auto iter_stop = gko::share( gko::stop::Iteration::build().with_max_iters( 1000 ).on( exec ) );
-   auto tol_stop = gko::share( gko::stop::ResidualNorm< ValueType >::build()
-                                  .with_baseline( gko::stop::mode::rhs_norm )
-                                  .with_reduction_factor( 1e-11 )
-                                  .on( exec ) );
+   auto tol_stop = gko::share(
+      gko::stop::ResidualNorm< ValueType >::build()
+         .with_baseline( gko::stop::mode::rhs_norm )
+         .with_reduction_factor( 1e-11 )
+         .on( exec ) );
    iter_stop->add_logger( logger );
    tol_stop->add_logger( logger );
 

@@ -18,12 +18,13 @@ test_Constructors()
    {
       return 1;
    };
-   auto matrixElements = [ = ] __cuda_callable__( const IndexType rows,
-                                                  const IndexType columns,
-                                                  const IndexType rowIdx,
-                                                  const IndexType localIdx,
-                                                  IndexType& columnIdx,
-                                                  RealType& value )
+   auto matrixElements = [ = ] __cuda_callable__(
+                            const IndexType rows,
+                            const IndexType columns,
+                            const IndexType rowIdx,
+                            const IndexType localIdx,
+                            IndexType& columnIdx,
+                            RealType& value )
    {
       columnIdx = rowIdx;
       value = 1.0;
@@ -52,12 +53,13 @@ test_SetDimensions()
    {
       return 1;
    };
-   auto matrixElements = [ = ] __cuda_callable__( const IndexType rows,
-                                                  const IndexType columns,
-                                                  const IndexType rowIdx,
-                                                  const IndexType localIdx,
-                                                  IndexType& columnIdx,
-                                                  RealType& value )
+   auto matrixElements = [ = ] __cuda_callable__(
+                            const IndexType rows,
+                            const IndexType columns,
+                            const IndexType rowIdx,
+                            const IndexType localIdx,
+                            IndexType& columnIdx,
+                            RealType& value )
    {
       columnIdx = rowIdx;
       value = 1.0;
@@ -93,12 +95,13 @@ test_GetCompressedRowLengths()
       return 3;
    };
 
-   auto matrixElements = [ = ] __cuda_callable__( const IndexType rows,
-                                                  const IndexType columns,
-                                                  const IndexType rowIdx,
-                                                  const IndexType localIdx,
-                                                  IndexType& columnIdx,
-                                                  RealType& value )
+   auto matrixElements = [ = ] __cuda_callable__(
+                            const IndexType rows,
+                            const IndexType columns,
+                            const IndexType rowIdx,
+                            const IndexType localIdx,
+                            IndexType& columnIdx,
+                            RealType& value )
    {
       if( rowIdx == 0 || rowIdx == size - 1 ) {
          columnIdx = rowIdx;
@@ -138,12 +141,13 @@ test_GetElement()
       return 3;
    };
 
-   auto matrixElements = [ = ] __cuda_callable__( const IndexType rows,
-                                                  const IndexType columns,
-                                                  const IndexType rowIdx,
-                                                  const IndexType localIdx,
-                                                  IndexType& columnIdx,
-                                                  RealType& value )
+   auto matrixElements = [ = ] __cuda_callable__(
+                            const IndexType rows,
+                            const IndexType columns,
+                            const IndexType rowIdx,
+                            const IndexType localIdx,
+                            IndexType& columnIdx,
+                            RealType& value )
    {
       if( rowIdx == 0 || rowIdx == size - 1 ) {
          columnIdx = rowIdx;
@@ -217,12 +221,13 @@ test_ForRows()
       return 3;
    };
 
-   auto matrixElements = [ = ] __cuda_callable__( const IndexType rows,
-                                                  const IndexType columns,
-                                                  const IndexType rowIdx,
-                                                  const IndexType localIdx,
-                                                  IndexType& columnIdx,
-                                                  RealType& value )
+   auto matrixElements = [ = ] __cuda_callable__(
+                            const IndexType rows,
+                            const IndexType columns,
+                            const IndexType rowIdx,
+                            const IndexType localIdx,
+                            IndexType& columnIdx,
+                            RealType& value )
    {
       if( rowIdx == 0 || rowIdx == size - 1 ) {
          columnIdx = rowIdx;
@@ -289,12 +294,13 @@ test_VectorProduct()
       return 3;
    };
 
-   auto matrixElements = [ = ] __cuda_callable__( const IndexType rows,
-                                                  const IndexType columns,
-                                                  const IndexType rowIdx,
-                                                  const IndexType localIdx,
-                                                  IndexType& columnIdx,
-                                                  RealType& value )
+   auto matrixElements = [ = ] __cuda_callable__(
+                            const IndexType rows,
+                            const IndexType columns,
+                            const IndexType rowIdx,
+                            const IndexType localIdx,
+                            IndexType& columnIdx,
+                            RealType& value )
    {
       if( rowIdx == 0 || rowIdx == size - 1 ) {
          columnIdx = rowIdx;
@@ -336,12 +342,13 @@ test_reduceRows()
       return 3;
    };
 
-   auto matrixElements = [ = ] __cuda_callable__( const IndexType rows,
-                                                  const IndexType columns,
-                                                  const IndexType rowIdx,
-                                                  const IndexType localIdx,
-                                                  IndexType& columnIdx,
-                                                  RealType& value )
+   auto matrixElements = [ = ] __cuda_callable__(
+                            const IndexType rows,
+                            const IndexType columns,
+                            const IndexType rowIdx,
+                            const IndexType localIdx,
+                            IndexType& columnIdx,
+                            RealType& value )
    {
       if( rowIdx == 0 || rowIdx == size - 1 ) {
          columnIdx = rowIdx;

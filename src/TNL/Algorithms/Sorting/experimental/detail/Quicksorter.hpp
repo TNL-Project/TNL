@@ -78,20 +78,22 @@ template< typename Array >
 void
 Quicksorter< Value, Devices::Cuda, Index >::sort( Array& arr )
 {
-   this->sort( arr,
-               [] __cuda_callable__( const Value& a, const Value& b )
-               {
-                  return a < b;
-               } );
+   this->sort(
+      arr,
+      [] __cuda_callable__( const Value& a, const Value& b )
+      {
+         return a < b;
+      } );
 }
 
 template< typename Value, typename Index >
 void
-Quicksorter< Value, Devices::Cuda, Index >::init( Containers::ArrayView< Value, Devices::Cuda, Index > arr,
-                                                  int gridDim,
-                                                  int blockDim,
-                                                  int desiredElemPerBlock,
-                                                  int maxSharable )
+Quicksorter< Value, Devices::Cuda, Index >::init(
+   Containers::ArrayView< Value, Devices::Cuda, Index > arr,
+   int gridDim,
+   int blockDim,
+   int desiredElemPerBlock,
+   int maxSharable )
 {
    this->maxBlocks = gridDim;
    this->threadsPerBlock = blockDim;
@@ -234,16 +236,17 @@ Quicksorter< Value, Devices::Cuda, Index >::firstPhase( const CMP& Cmp )
       launch_config.gridSize.x = host_1stPhaseTasksAmount;
       launch_config.dynamicSharedMemorySize = sizeof( Value );
       constexpr auto kernel = cudaWritePivot< Value, Index >;
-      Backend::launchKernelSync( kernel,
-                                 launch_config,
-                                 arr,
-                                 aux,
-                                 desired_2ndPhasElemPerBlock,
-                                 task,
-                                 newTask,
-                                 cuda_newTasksAmount.getData(),
-                                 cuda_2ndPhaseTasks,
-                                 cuda_2ndPhaseTasksAmount.getData() );
+      Backend::launchKernelSync(
+         kernel,
+         launch_config,
+         arr,
+         aux,
+         desired_2ndPhasElemPerBlock,
+         task,
+         newTask,
+         cuda_newTasksAmount.getData(),
+         cuda_2ndPhaseTasks,
+         cuda_2ndPhaseTasksAmount.getData() );
 
       processNewTasks();
       iteration++;
@@ -342,14 +345,15 @@ Quicksorter< Value, Devices::Cuda, Index >::initTasks( int elemPerBlock, const C
    {
       const auto& cuda_tasks = tasks.getConstView( 0, host_1stPhaseTasksAmount );
       auto blocksNeeded = cuda_reductionTaskInitMem.getView( 0, host_1stPhaseTasksAmount );
-      parallelFor< Devices::Cuda >( 0,
-                                    host_1stPhaseTasksAmount,
-                                    [ = ] __cuda_callable__( int i ) mutable
-                                    {
-                                       const TASK& task = cuda_tasks[ i ];
-                                       int size = task.partitionEnd - task.partitionBegin;
-                                       blocksNeeded[ i ] = TNL::roundUpDivision( size, elemPerBlock );
-                                    } );
+      parallelFor< Devices::Cuda >(
+         0,
+         host_1stPhaseTasksAmount,
+         [ = ] __cuda_callable__( int i ) mutable
+         {
+            const TASK& task = cuda_tasks[ i ];
+            int size = task.partitionEnd - task.partitionBegin;
+            blocksNeeded[ i ] = TNL::roundUpDivision( size, elemPerBlock );
+         } );
    }
    // cuda_reductionTaskInitMem[i] == how many blocks task i needs
 

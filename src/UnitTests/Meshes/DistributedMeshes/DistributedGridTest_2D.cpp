@@ -30,11 +30,12 @@ setDof_2D( DofType& dof, typename DofType::RealType value )
 
 template< typename DofType, typename GridType >
 void
-checkLeftEdge( const GridType& grid,
-               const DofType& dof,
-               bool with_first,
-               bool with_last,
-               typename DofType::RealType expectedValue )
+checkLeftEdge(
+   const GridType& grid,
+   const DofType& dof,
+   bool with_first,
+   bool with_last,
+   typename DofType::RealType expectedValue )
 {
    int maxx = grid.getDimensions().x();
    int maxy = grid.getDimensions().y();
@@ -51,11 +52,12 @@ checkLeftEdge( const GridType& grid,
 
 template< typename DofType, typename GridType >
 void
-checkRightEdge( const GridType& grid,
-                const DofType& dof,
-                bool with_first,
-                bool with_last,
-                typename DofType::RealType expectedValue )
+checkRightEdge(
+   const GridType& grid,
+   const DofType& dof,
+   bool with_first,
+   bool with_last,
+   typename DofType::RealType expectedValue )
 {
    int maxx = grid.getDimensions().x();
    int maxy = grid.getDimensions().y();
@@ -72,11 +74,12 @@ checkRightEdge( const GridType& grid,
 
 template< typename DofType, typename GridType >
 void
-checkUpEdge( const GridType& grid,
-             const DofType& dof,
-             bool with_first,
-             bool with_last,
-             typename DofType::RealType expectedValue )
+checkUpEdge(
+   const GridType& grid,
+   const DofType& dof,
+   bool with_first,
+   bool with_last,
+   typename DofType::RealType expectedValue )
 {
    int maxx = grid.getDimensions().x();
    int maxy = grid.getDimensions().y();
@@ -93,11 +96,12 @@ checkUpEdge( const GridType& grid,
 
 template< typename DofType, typename GridType >
 void
-checkDownEdge( const GridType& grid,
-               const DofType& dof,
-               bool with_first,
-               bool with_last,
-               typename DofType::RealType expectedValue )
+checkDownEdge(
+   const GridType& grid,
+   const DofType& dof,
+   bool with_first,
+   bool with_last,
+   typename DofType::RealType expectedValue )
 {
    int maxx = grid.getDimensions().x();
    int maxy = grid.getDimensions().y();
@@ -114,11 +118,12 @@ checkDownEdge( const GridType& grid,
 
 template< typename DofType, typename GridType >
 void
-checkLeftBoundary( const GridType& grid,
-                   const DofType& dof,
-                   bool with_first,
-                   bool with_last,
-                   typename DofType::RealType expectedValue )
+checkLeftBoundary(
+   const GridType& grid,
+   const DofType& dof,
+   bool with_first,
+   bool with_last,
+   typename DofType::RealType expectedValue )
 {
    int maxx = grid.getDimensions().x();
    int maxy = grid.getDimensions().y();
@@ -135,11 +140,12 @@ checkLeftBoundary( const GridType& grid,
 
 template< typename DofType, typename GridType >
 void
-checkRightBoundary( const GridType& grid,
-                    const DofType& dof,
-                    bool with_first,
-                    bool with_last,
-                    typename DofType::RealType expectedValue )
+checkRightBoundary(
+   const GridType& grid,
+   const DofType& dof,
+   bool with_first,
+   bool with_last,
+   typename DofType::RealType expectedValue )
 {
    int maxx = grid.getDimensions().x();
    int maxy = grid.getDimensions().y();
@@ -156,11 +162,12 @@ checkRightBoundary( const GridType& grid,
 
 template< typename DofType, typename GridType >
 void
-checkUpBoundary( const GridType& grid,
-                 const DofType& dof,
-                 bool with_first,
-                 bool with_last,
-                 typename DofType::RealType expectedValue )
+checkUpBoundary(
+   const GridType& grid,
+   const DofType& dof,
+   bool with_first,
+   bool with_last,
+   typename DofType::RealType expectedValue )
 {
    int maxx = grid.getDimensions().x();
    int maxy = grid.getDimensions().y();
@@ -177,11 +184,12 @@ checkUpBoundary( const GridType& grid,
 
 template< typename DofType, typename GridType >
 void
-checkDownBoundary( const GridType& grid,
-                   const DofType& dof,
-                   bool with_first,
-                   bool with_last,
-                   typename DofType::RealType expectedValue )
+checkDownBoundary(
+   const GridType& grid,
+   const DofType& dof,
+   bool with_first,
+   bool with_last,
+   typename DofType::RealType expectedValue )
 {
    int maxx = grid.getDimensions().x();
    int maxy = grid.getDimensions().y();

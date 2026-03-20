@@ -27,10 +27,11 @@ namespace TNL::Algorithms::Segments {
  * \tparam IndexAllocator The allocator used for managing index containers.
  * \tparam Organization The organization of the elements in the segments—either row-major or column-major order.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization = DefaultElementsOrganization< Device >::getOrganization() >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   ElementsOrganization Organization = DefaultElementsOrganization< Device >::getOrganization() >
 class ChunkedEllpack : public ChunkedEllpackBase< Device, Index, Organization >
 {
    using Base = ChunkedEllpackBase< Device, Index, Organization >;
@@ -49,10 +50,11 @@ public:
     * \tparam Index_ is alternative index type.
     * \tparam IndexAllocator_ is alternative index allocator type.
     */
-   template< typename Device_ = Device,
-             typename Index_ = Index,
-             typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ >,
-             ElementsOrganization Organization_ = Organization >
+   template<
+      typename Device_ = Device,
+      typename Index_ = Index,
+      typename IndexAllocator_ = typename Allocators::Default< Device_ >::template Allocator< Index_ >,
+      ElementsOrganization Organization_ = Organization >
    using Self = ChunkedEllpack< Device_, Index_, IndexAllocator_, Organization_ >;
 
    /**
@@ -70,11 +72,11 @@ public:
    using IndexAllocatorType = IndexAllocator;
 
    using SliceInfoAllocator = typename Allocators::Default< Device >::template Allocator< typename Base::SliceInfoType >;
-   using SliceInfoContainer =
-      Containers::Array< typename TNL::copy_const< typename Base::SliceInfoType >::template from< Index >::type,
-                         Device,
-                         Index,
-                         SliceInfoAllocator >;
+   using SliceInfoContainer = Containers::Array<
+      typename TNL::copy_const< typename Base::SliceInfoType >::template from< Index >::type,
+      Device,
+      Index,
+      SliceInfoAllocator >;
 
    //! \brief Constructor with no parameters to create empty segments.
    ChunkedEllpack() = default;
@@ -225,9 +227,10 @@ protected:
  * \tparam Alignment The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 using RowMajorChunkedEllpack = ChunkedEllpack< Device, Index, IndexAllocator, RowMajorOrder >;
 
 /**
@@ -241,9 +244,10 @@ using RowMajorChunkedEllpack = ChunkedEllpack< Device, Index, IndexAllocator, Ro
  * \tparam Alignment The alignment of the number of segments (to optimize data
  * alignment, particularly on GPUs).
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 using ColumnMajorChunkedEllpack = ChunkedEllpack< Device, Index, IndexAllocator, ColumnMajorOrder >;
 
 /**
@@ -253,11 +257,11 @@ using ColumnMajorChunkedEllpack = ChunkedEllpack< Device, Index, IndexAllocator,
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
-          ElementsOrganization Organization =
-             TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index >,
+   ElementsOrganization Organization = TNL::Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
 using SortedChunkedEllpack = SortedSegments< ChunkedEllpack< Device, Index, IndexAllocator, Organization > >;
 
 /**
@@ -267,9 +271,10 @@ using SortedChunkedEllpack = SortedSegments< ChunkedEllpack< Device, Index, Inde
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 using SortedRowMajorChunkedEllpack = SortedSegments< RowMajorChunkedEllpack< Device, Index, IndexAllocator > >;
 
 /**
@@ -279,9 +284,10 @@ using SortedRowMajorChunkedEllpack = SortedSegments< RowMajorChunkedEllpack< Dev
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
+template<
+   typename Device,
+   typename Index,
+   typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 using SortedColumnMajorChunkedEllpack = SortedSegments< ColumnMajorChunkedEllpack< Device, Index, IndexAllocator > >;
 
 template< typename Segments >

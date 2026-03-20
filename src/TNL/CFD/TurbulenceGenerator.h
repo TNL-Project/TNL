@@ -57,18 +57,20 @@ struct TurbulenceGenerator
 
    using Vector = TNL::Containers::Vector< Real, Device, unsigned >;
    using Array1D = TNL::Containers::Array< Real, Device, Index >;
-   using Array3D = TNL::Containers::NDArray< Real,
-                                             TNL::Containers::SizesHolder< Index, 0, 0, 0 >,  // t, x, y, z
-                                             xyz_permutation,
-                                             Device,
-                                             Index,
-                                             xyz_overlaps >;
-   using Array4D = TNL::Containers::NDArray< Real,
-                                             TNL::Containers::SizesHolder< Index, 0, 0, 0, 0 >,  // t, x, y, z
-                                             txyz_permutation,
-                                             Device,
-                                             Index,
-                                             txyz_overlaps >;
+   using Array3D = TNL::Containers::NDArray<
+      Real,
+      TNL::Containers::SizesHolder< Index, 0, 0, 0 >,  // t, x, y, z
+      xyz_permutation,
+      Device,
+      Index,
+      xyz_overlaps >;
+   using Array4D = TNL::Containers::NDArray<
+      Real,
+      TNL::Containers::SizesHolder< Index, 0, 0, 0, 0 >,  // t, x, y, z
+      txyz_permutation,
+      Device,
+      Index,
+      txyz_overlaps >;
 
    // constant defined by eq. (27.6) in [2]
    static constexpr Real c_E = 1.452762113;
@@ -118,16 +120,17 @@ struct TurbulenceGenerator
 
    template< typename Array1, typename Array2, typename Array3 >
    void
-   generateFluctuations( Array1& u,          // x-component of velocity fluctuations vector
-                         Array2& v,          // y-component of velocity fluctuations vector
-                         Array3& w,          // z-component of velocity fluctuations vector
-                         const Array1D& xc,  // x-coordinates of cell centers
-                         const Array1D& yc,  // y-coordinates of cell centers
-                         const Array1D& zc,  // z-coordinates of cell centers
-                         Real minSpaceStep,
-                         Real timeStep,
-                         Real timeScale,  // integral time scale of the turbulence
-                         TimeCorrelationMethod timeCorrelation = TimeCorrelationMethod::none )
+   generateFluctuations(
+      Array1& u,          // x-component of velocity fluctuations vector
+      Array2& v,          // y-component of velocity fluctuations vector
+      Array3& w,          // z-component of velocity fluctuations vector
+      const Array1D& xc,  // x-coordinates of cell centers
+      const Array1D& yc,  // y-coordinates of cell centers
+      const Array1D& zc,  // z-coordinates of cell centers
+      Real minSpaceStep,
+      Real timeStep,
+      Real timeScale,  // integral time scale of the turbulence
+      TimeCorrelationMethod timeCorrelation = TimeCorrelationMethod::none )
    {
       static_assert( Array1::getDimension() == 4, "u must be a 4D array (components t,x,y,z)" );
       static_assert( Array2::getDimension() == 4, "v must be a 4D array (components t,x,y,z)" );
@@ -307,18 +310,20 @@ struct TurbulenceGenerator
    }
 
    std::tuple< Array4D, Array4D, Array4D >
-   getFluctuations( const Array1D& xc,  // x-coordinates of cell centers
-                    const Array1D& yc,  // y-coordinates of cell centers
-                    const Array1D& zc,  // z-coordinates of cell centers
-                    Real minSpaceStep,
-                    unsigned ntimes = 1,  // number of time steps
-                    Real timeStep = 1,
-                    Real timeScale = 1,  // integral time scale of the turbulence
-                    TimeCorrelationMethod timeCorrelation = TimeCorrelationMethod::none )
+   getFluctuations(
+      const Array1D& xc,  // x-coordinates of cell centers
+      const Array1D& yc,  // y-coordinates of cell centers
+      const Array1D& zc,  // z-coordinates of cell centers
+      Real minSpaceStep,
+      unsigned ntimes = 1,  // number of time steps
+      Real timeStep = 1,
+      Real timeScale = 1,  // integral time scale of the turbulence
+      TimeCorrelationMethod timeCorrelation = TimeCorrelationMethod::none )
    {
       if( timeCorrelation == TimeCorrelationMethod::initialWraparound )
-         throw std::logic_error( "TimeCorrelationMethod::initialWraparound cannot be used in the getFluctuations method, "
-                                 "it would mean using uninitialized values." );
+         throw std::logic_error(
+            "TimeCorrelationMethod::initialWraparound cannot be used in the getFluctuations method, "
+            "it would mean using uninitialized values." );
 
       // grid sizes
       const Index Nx = xc.getSize();

@@ -9,19 +9,21 @@ laplaceOperatorMatrix()
 {
    const int gridSize( 6 );
    const int matrixSize = gridSize;
-   TNL::Matrices::TridiagonalMatrix< double, Device > matrix( matrixSize,  // number of rows
-                                                              matrixSize   // number of columns
+   TNL::Matrices::TridiagonalMatrix< double, Device > matrix(
+      matrixSize,  // number of rows
+      matrixSize   // number of columns
    );
-   matrix.setElements( {
-      // clang-format off
-      {  0.0, 1.0 },
-      { -1.0, 2.0, -1.0 },
-      { -1.0, 2.0, -1.0 },
-      { -1.0, 2.0, -1.0 },
-      { -1.0, 2.0, -1.0 },
-      {  0.0, 1.0 },
-      // clang-format on
-   } );
+   matrix.setElements(
+      {
+         // clang-format off
+         {  0.0, 1.0 },
+         { -1.0, 2.0, -1.0 },
+         { -1.0, 2.0, -1.0 },
+         { -1.0, 2.0, -1.0 },
+         { -1.0, 2.0, -1.0 },
+         {  0.0, 1.0 },
+         // clang-format on
+      } );
    auto view = matrix.getView();
 
    TNL::Containers::Vector< int, Device > rowLengths;

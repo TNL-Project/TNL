@@ -46,11 +46,13 @@ getMeshReader( const std::string& fileName, const std::string& fileFormat )
       return std::make_shared< Readers::FPMAReader >( fileName );
 
    if( fileFormat == "auto" )
-      throw std::runtime_error( "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
-                                + ". Supported formats are 'ng', 'vtk', 'vtu', 'vti', 'pvtu' and 'pvti'." );
+      throw std::runtime_error(
+         "Unsupported file format detected for file '" + fileName + "'. Detected format: " + format
+         + ". Supported formats are 'ng', 'vtk', 'vtu', 'vti', 'pvtu' and 'pvti'." );
    else
-      throw std::invalid_argument( "Invalid fileFormat parameter: '" + fileFormat
-                                   + "'. Supported formats are 'ng', 'vtk', 'vtu', 'vti', 'pvtu' and 'pvti'." );
+      throw std::invalid_argument(
+         "Invalid fileFormat parameter: '" + fileFormat
+         + "'. Supported formats are 'ng', 'vtk', 'vtu', 'vti', 'pvtu' and 'pvti'." );
 }
 
 }  // namespace TNL::Meshes::Readers

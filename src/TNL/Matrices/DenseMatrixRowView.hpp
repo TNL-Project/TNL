@@ -70,9 +70,10 @@ DenseMatrixRowView< SegmentView, ValuesView >::setValue( const IndexType column,
 template< typename SegmentView, typename ValuesView >
 __cuda_callable__
 void
-DenseMatrixRowView< SegmentView, ValuesView >::setElement( const IndexType localIdx,
-                                                           const IndexType column,
-                                                           const RealType& value )
+DenseMatrixRowView< SegmentView, ValuesView >::setElement(
+   const IndexType localIdx,
+   const IndexType column,
+   const RealType& value )
 {
    TNL_ASSERT_LT( column, this->getSize(), "Column index exceeds matrix row size." );
    const IndexType globalIdx = segmentView.getGlobalIndex( column );

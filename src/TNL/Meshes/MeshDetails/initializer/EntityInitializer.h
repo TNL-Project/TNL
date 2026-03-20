@@ -20,9 +20,10 @@ class Initializer;
 
 template< int subdimension, int superdimension, typename MeshConfig, typename SeedIndexGetter >
 void
-initializeSuperentities( Initializer< MeshConfig >& meshInitializer,
-                         typename Initializer< MeshConfig >::MeshType& mesh,
-                         SeedIndexGetter&& getEntitySeedIndex )
+initializeSuperentities(
+   Initializer< MeshConfig >& meshInitializer,
+   typename Initializer< MeshConfig >::MeshType& mesh,
+   SeedIndexGetter&& getEntitySeedIndex )
 {
    using MeshType = typename Initializer< MeshConfig >::MeshType;
    using GlobalIndexType = typename MeshType::GlobalIndexType;
@@ -84,8 +85,8 @@ initializeSuperentities( Initializer< MeshConfig >& meshInitializer,
                         superentityIndex, i++, subentityIndex );
 
                   if constexpr( superentityStorage ) {
-                     Algorithms::AtomicOperations< Devices::Host >::add( superentitiesCountsView[ subentityIndex ],
-                                                                         LocalIndexType{ 1 } );
+                     Algorithms::AtomicOperations< Devices::Host >::add(
+                        superentitiesCountsView[ subentityIndex ], LocalIndexType{ 1 } );
                   }
                } );
          } );
@@ -114,15 +115,15 @@ initializeSuperentities( Initializer< MeshConfig >& meshInitializer,
       }
       else {
          for( GlobalIndexType superentityIndex = 0; superentityIndex < superentitiesCount; superentityIndex++ ) {
-            SubentitySeedsCreatorType::iterate( mesh,
-                                                superentityIndex,
-                                                [ & ]( SeedType& seed )
-                                                {
-                                                   const GlobalIndexType subentityIndex = getEntitySeedIndex( seed );
-                                                   auto row = matrix.getRow( subentityIndex );
-                                                   row.setElement(
-                                                      superentitiesCountsView[ subentityIndex ]++, superentityIndex, true );
-                                                } );
+            SubentitySeedsCreatorType::iterate(
+               mesh,
+               superentityIndex,
+               [ & ]( SeedType& seed )
+               {
+                  const GlobalIndexType subentityIndex = getEntitySeedIndex( seed );
+                  auto row = matrix.getRow( subentityIndex );
+                  row.setElement( superentitiesCountsView[ subentityIndex ]++, superentityIndex, true );
+               } );
          }
       }
    }
@@ -130,9 +131,10 @@ initializeSuperentities( Initializer< MeshConfig >& meshInitializer,
 
 template< typename MeshConfig >
 void
-initializeFacesOfPolyhedrons( Initializer< MeshConfig >& meshInitializer,
-                              typename Initializer< MeshConfig >::MeshType::MeshTraitsType::CellSeedMatrixType& cellSeeds,
-                              typename Initializer< MeshConfig >::MeshType& mesh )
+initializeFacesOfPolyhedrons(
+   Initializer< MeshConfig >& meshInitializer,
+   typename Initializer< MeshConfig >::MeshType::MeshTraitsType::CellSeedMatrixType& cellSeeds,
+   typename Initializer< MeshConfig >::MeshType& mesh )
 {
    using MeshType = typename Initializer< MeshConfig >::MeshType;
    using GlobalIndexType = typename MeshType::GlobalIndexType;
@@ -234,12 +236,13 @@ public:
       using SubentitySeedsCreator =
          SubentitySeedsCreator< MeshType, typename MeshTraitsType::CellTopology, DimensionTag< EntityDimension > >;
       for( GlobalIndexType i = 0; i < mesh.template getEntitiesCount< MeshType::getMeshDimension() >(); i++ ) {
-         SubentitySeedsCreator::iterate( mesh,
-                                         i,
-                                         [ &seedsIndexedSet ]( SeedType& seed )
-                                         {
-                                            seedsIndexedSet.insert( std::move( seed ) );
-                                         } );
+         SubentitySeedsCreator::iterate(
+            mesh,
+            i,
+            [ &seedsIndexedSet ]( SeedType& seed )
+            {
+               seedsIndexedSet.insert( std::move( seed ) );
+            } );
       }
 
       // set entities count

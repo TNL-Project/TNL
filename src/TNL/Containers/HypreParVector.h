@@ -74,11 +74,12 @@ public:
    }
 
    //! \brief Initialization by raw data
-   HypreParVector( const LocalRangeType& localRange,
-                   IndexType ghosts,
-                   IndexType globalSize,
-                   MPI_Comm communicator,
-                   LocalViewType localData )
+   HypreParVector(
+      const LocalRangeType& localRange,
+      IndexType ghosts,
+      IndexType globalSize,
+      MPI_Comm communicator,
+      LocalViewType localData )
    {
       bind( localRange, ghosts, globalSize, communicator, localData );
    }
@@ -180,11 +181,12 @@ public:
     * and bind to the given data (i.e., the vector does not become the owner).
     */
    void
-   bind( const LocalRangeType& localRange,
-         IndexType ghosts,
-         IndexType globalSize,
-         MPI_Comm communicator,
-         LocalViewType localData )
+   bind(
+      const LocalRangeType& localRange,
+      IndexType ghosts,
+      IndexType globalSize,
+      MPI_Comm communicator,
+      LocalViewType localData )
    {
       if( localData.getSize() != localRange.getSize() + ghosts )
          throw std::invalid_argument( "bind: the local array size does not match the local range of the distributed array." );
@@ -226,11 +228,12 @@ public:
    void
    bind( HypreParVector& vector )
    {
-      bind( vector.getLocalRange(),
-            vector.getGhosts(),
-            vector.getSize(),
-            vector.getCommunicator(),
-            vector.getLocalViewWithGhosts() );
+      bind(
+         vector.getLocalRange(),
+         vector.getGhosts(),
+         vector.getSize(),
+         vector.getCommunicator(),
+         vector.getLocalViewWithGhosts() );
    }
 
    /**

@@ -39,9 +39,10 @@ MeshFunction< Mesh, MeshEntityDimension, Real >::configSetup( Config::ConfigDesc
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
 bool
-MeshFunction< Mesh, MeshEntityDimension, Real >::setup( const MeshPointer& meshPointer,
-                                                        const Config::ParameterContainer& parameters,
-                                                        const String& prefix )
+MeshFunction< Mesh, MeshEntityDimension, Real >::setup(
+   const MeshPointer& meshPointer,
+   const Config::ParameterContainer& parameters,
+   const String& prefix )
 {
    this->setMesh( meshPointer );
    const String fileName = parameters.getParameter< String >( prefix + "file" );
@@ -122,8 +123,9 @@ template< typename EntityType >
 typename MeshFunction< Mesh, MeshEntityDimension, Real >::RealType
 MeshFunction< Mesh, MeshEntityDimension, Real >::getValue( const EntityType& meshEntity ) const
 {
-   static_assert( EntityType::getEntityDimension() == MeshEntityDimension,
-                  "Calling with wrong EntityType -- entity dimensions do not match." );
+   static_assert(
+      EntityType::getEntityDimension() == MeshEntityDimension,
+      "Calling with wrong EntityType -- entity dimensions do not match." );
    return this->data.getElement( meshEntity.getIndex() );
 }
 
@@ -132,8 +134,9 @@ template< typename EntityType >
 void
 MeshFunction< Mesh, MeshEntityDimension, Real >::setValue( const EntityType& meshEntity, const RealType& value )
 {
-   static_assert( EntityType::getEntityDimension() == MeshEntityDimension,
-                  "Calling with wrong EntityType -- entity dimensions do not match." );
+   static_assert(
+      EntityType::getEntityDimension() == MeshEntityDimension,
+      "Calling with wrong EntityType -- entity dimensions do not match." );
    this->data.setElement( meshEntity.getIndex(), value );
 }
 
@@ -143,8 +146,9 @@ __cuda_callable__
 typename MeshFunction< Mesh, MeshEntityDimension, Real >::RealType&
 MeshFunction< Mesh, MeshEntityDimension, Real >::operator()( const EntityType& meshEntity, const RealType& time )
 {
-   static_assert( EntityType::getEntityDimension() == MeshEntityDimension,
-                  "Calling with wrong EntityType -- entity dimensions do not match." );
+   static_assert(
+      EntityType::getEntityDimension() == MeshEntityDimension,
+      "Calling with wrong EntityType -- entity dimensions do not match." );
    return this->data[ meshEntity.getIndex() ];
 }
 
@@ -154,8 +158,9 @@ __cuda_callable__
 const typename MeshFunction< Mesh, MeshEntityDimension, Real >::RealType&
 MeshFunction< Mesh, MeshEntityDimension, Real >::operator()( const EntityType& meshEntity, const RealType& time ) const
 {
-   static_assert( EntityType::getEntityDimension() == MeshEntityDimension,
-                  "Calling with wrong EntityType -- entity dimensions do not match." );
+   static_assert(
+      EntityType::getEntityDimension() == MeshEntityDimension,
+      "Calling with wrong EntityType -- entity dimensions do not match." );
    return this->data[ meshEntity.getIndex() ];
 }
 
@@ -233,9 +238,10 @@ MeshFunction< Mesh, MeshEntityDimension, Real >::getMaxNorm() const
 
 template< typename Mesh, int MeshEntityDimension, typename Real >
 void
-MeshFunction< Mesh, MeshEntityDimension, Real >::write( const std::string& functionName,
-                                                        const std::string& fileName,
-                                                        const std::string& fileFormat ) const
+MeshFunction< Mesh, MeshEntityDimension, Real >::write(
+   const std::string& functionName,
+   const std::string& fileName,
+   const std::string& fileFormat ) const
 {
    writeMeshFunction( *this, functionName, fileName, fileFormat );
 }

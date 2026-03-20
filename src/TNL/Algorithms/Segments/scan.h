@@ -206,11 +206,12 @@ namespace TNL::Algorithms::Segments {
  */
 template< typename Segments, typename Fetch, typename Reduce, typename Write >
 void
-inclusiveScanAllSegments( const Segments& segments,
-                          Fetch&& fetch,
-                          Reduce&& reduce,
-                          Write&& write,
-                          LaunchConfiguration launchConfig = LaunchConfiguration() );
+inclusiveScanAllSegments(
+   const Segments& segments,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig = LaunchConfiguration() );
 
 /**
  * \brief Compute exclusive prefix-sum (scan) within all segments.
@@ -238,11 +239,12 @@ inclusiveScanAllSegments( const Segments& segments,
  */
 template< typename Segments, typename Fetch, typename Reduce, typename Write >
 void
-exclusiveScanAllSegments( const Segments& segments,
-                          Fetch&& fetch,
-                          Reduce&& reduce,
-                          Write&& write,
-                          LaunchConfiguration launchConfig = LaunchConfiguration() );
+exclusiveScanAllSegments(
+   const Segments& segments,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig = LaunchConfiguration() );
 
 /**
  * \brief Compute inclusive prefix-sum (scan) within specified segments in a range.
@@ -273,21 +275,23 @@ exclusiveScanAllSegments( const Segments& segments,
  * \par Output
  * \include SegmentsExample_scan.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduce,
-          typename Write,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduce,
+   typename Write,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-inclusiveScanSegments( const Segments& segments,
-                       IndexBegin begin,
-                       IndexEnd end,
-                       Fetch&& fetch,
-                       Reduce&& reduce,
-                       Write&& write,
-                       LaunchConfiguration launchConfig = LaunchConfiguration() );
+inclusiveScanSegments(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig = LaunchConfiguration() );
 
 /**
  * \brief Compute exclusive prefix-sum (scan) within specified segments in a range.
@@ -318,21 +322,23 @@ inclusiveScanSegments( const Segments& segments,
  * \par Output
  * \include SegmentsExample_scan.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Reduce,
-          typename Write,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Reduce,
+   typename Write,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-exclusiveScanSegments( const Segments& segments,
-                       IndexBegin begin,
-                       IndexEnd end,
-                       Fetch&& fetch,
-                       Reduce&& reduce,
-                       Write&& write,
-                       LaunchConfiguration launchConfig = LaunchConfiguration() );
+exclusiveScanSegments(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig = LaunchConfiguration() );
 
 /**
  * \brief Compute inclusive prefix-sum (scan) within segments specified by a segment index array.
@@ -362,12 +368,13 @@ exclusiveScanSegments( const Segments& segments,
  */
 template< typename Segments, typename Array, typename Fetch, typename Reduce, typename Write >
 void
-inclusiveScanSegments( const Segments& segments,
-                       const Array& segmentIndexes,
-                       Fetch&& fetch,
-                       Reduce&& reduce,
-                       Write&& write,
-                       LaunchConfiguration launchConfig = LaunchConfiguration() );
+inclusiveScanSegments(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig = LaunchConfiguration() );
 
 /**
  * \brief Compute exclusive prefix-sum (scan) within all segments specified by a segment index array.
@@ -397,12 +404,13 @@ inclusiveScanSegments( const Segments& segments,
  */
 template< typename Segments, typename Array, typename Fetch, typename Reduce, typename Write >
 void
-exclusiveScanSegments( const Segments& segments,
-                       const Array& segmentIndexes,
-                       Fetch&& fetch,
-                       Reduce&& reduce,
-                       Write&& write,
-                       LaunchConfiguration launchConfig = LaunchConfiguration() );
+exclusiveScanSegments(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig = LaunchConfiguration() );
 /**
  * \brief Compute inclusive conditional prefix-sum (scan) within all segments.
  * \anchor Segments_inclusiveScanAllSegmentsIf
@@ -432,12 +440,13 @@ exclusiveScanSegments( const Segments& segments,
  */
 template< typename Segments, typename Condition, typename Fetch, typename Reduce, typename Write >
 void
-inclusiveScanAllSegmentsIf( const Segments& segments,
-                            Condition&& condition,
-                            Fetch&& fetch,
-                            Reduce&& reduce,
-                            Write&& write,
-                            LaunchConfiguration launchConfig = LaunchConfiguration() );
+inclusiveScanAllSegmentsIf(
+   const Segments& segments,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig = LaunchConfiguration() );
 
 /**
  * \brief Compute exclusive conditional prefix-sum (scan) within all segments.
@@ -468,12 +477,13 @@ inclusiveScanAllSegmentsIf( const Segments& segments,
  */
 template< typename Segments, typename Condition, typename Fetch, typename Reduce, typename Write >
 void
-exclusiveScanAllSegmentsIf( const Segments& segments,
-                            Condition&& condition,
-                            Fetch&& fetch,
-                            Reduce&& reduce,
-                            Write&& write,
-                            LaunchConfiguration launchConfig = LaunchConfiguration() );
+exclusiveScanAllSegmentsIf(
+   const Segments& segments,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig = LaunchConfiguration() );
 
 /**
  * \brief Computes an inclusive scan (or prefix sum) within a segment.
@@ -544,23 +554,25 @@ exclusiveScanSegment( SegmentView& segment, Fetch&& fetch, Reduce&& reduce, Writ
  * \par Output
  * \include SegmentsExample_scan.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduce,
-          typename Write,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduce,
+   typename Write,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-inclusiveScanSegmentsIf( const Segments& segments,
-                         IndexBegin begin,
-                         IndexEnd end,
-                         Condition&& condition,
-                         Fetch&& fetch,
-                         Reduce&& reduce,
-                         Write&& write,
-                         LaunchConfiguration launchConfig = LaunchConfiguration() );
+inclusiveScanSegmentsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig = LaunchConfiguration() );
 
 /**
  * \brief Compute exclusive conditional prefix-sum (scan) within specified segments in a range.
@@ -593,23 +605,25 @@ inclusiveScanSegmentsIf( const Segments& segments,
  * \par Output
  * \include SegmentsExample_scan.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Reduce,
-          typename Write,
-          typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Reduce,
+   typename Write,
+   typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-exclusiveScanSegmentsIf( const Segments& segments,
-                         IndexBegin begin,
-                         IndexEnd end,
-                         Condition&& condition,
-                         Fetch&& fetch,
-                         Reduce&& reduce,
-                         Write&& write,
-                         LaunchConfiguration launchConfig = LaunchConfiguration() );
+exclusiveScanSegmentsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   Write&& write,
+   LaunchConfiguration launchConfig = LaunchConfiguration() );
 
 }  // namespace TNL::Algorithms::Segments
 

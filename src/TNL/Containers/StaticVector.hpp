@@ -14,8 +14,8 @@ constexpr StaticVector< Size, Real >::StaticVector(
    const Expressions::StaticBinaryExpressionTemplate< T1, T2, Operation >& expr )
 : StaticArray< Size, Real >()
 {
-   detail::VectorAssignment< StaticVector< Size, Real >,
-                             Expressions::StaticBinaryExpressionTemplate< T1, T2, Operation > >::assignStatic( *this, expr );
+   detail::VectorAssignment< StaticVector< Size, Real >, Expressions::StaticBinaryExpressionTemplate< T1, T2, Operation > >::
+      assignStatic( *this, expr );
 }
 
 template< int Size, typename Real >
@@ -23,8 +23,8 @@ template< typename T, typename Operation >
 constexpr StaticVector< Size, Real >::StaticVector( const Expressions::StaticUnaryExpressionTemplate< T, Operation >& expr )
 : StaticArray< Size, Real >()
 {
-   detail::VectorAssignment< StaticVector< Size, Real >,
-                             Expressions::StaticUnaryExpressionTemplate< T, Operation > >::assignStatic( *this, expr );
+   detail::VectorAssignment< StaticVector< Size, Real >, Expressions::StaticUnaryExpressionTemplate< T, Operation > >::
+      assignStatic( *this, expr );
 }
 
 template< int Size, typename Real >

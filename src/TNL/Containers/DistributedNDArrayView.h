@@ -67,11 +67,12 @@ public:
 
    //! \brief Constructs an array view initialized by local array view, global
    //! sizes, local begins and ends, and MPI communicator.
-   DistributedNDArrayView( NDArrayView localView,
-                           SizesHolderType globalSizes,
-                           LocalBeginsType localBegins,
-                           SizesHolderType localEnds,
-                           MPI::Comm communicator )
+   DistributedNDArrayView(
+      NDArrayView localView,
+      SizesHolderType globalSizes,
+      LocalBeginsType localBegins,
+      SizesHolderType localEnds,
+      MPI::Comm communicator )
    : localView( std::move( localView ) ),
      communicator( std::move( communicator ) ),
      globalSizes( std::move( globalSizes ) ),
@@ -444,8 +445,8 @@ public:
     */
    template< typename Device2 = DeviceType, typename Func >
    void
-   forAll( Func f,
-           const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} ) const
+   forAll( Func f, const typename Device2::LaunchConfiguration& launch_configuration = typename Device2::LaunchConfiguration{} )
+      const
    {
       detail::ExecutorDispatcher< PermutationType, Device2 > dispatch;
       dispatch( localBegins, localEnds, launch_configuration, f );

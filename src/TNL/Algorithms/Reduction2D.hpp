@@ -20,12 +20,13 @@
 namespace TNL::Algorithms {
 
 template< typename Result, typename Fetch, typename Reduction, typename Index, typename Output >
-void constexpr Reduction2D< Devices::Sequential >::reduce( Result identity,
-                                                           Fetch fetch,
-                                                           Reduction reduction,
-                                                           Index size,
-                                                           int n,
-                                                           Output result )
+void constexpr Reduction2D< Devices::Sequential >::reduce(
+   Result identity,
+   Fetch fetch,
+   Reduction reduction,
+   Index size,
+   int n,
+   Output result )
 {
    TNL_ASSERT_GT( size, 0, "The size of datasets must be positive." );
    TNL_ASSERT_GT( n, 0, "The number of datasets must be positive." );

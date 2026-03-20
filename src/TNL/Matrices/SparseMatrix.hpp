@@ -8,14 +8,15 @@
 
 namespace TNL::Matrices {
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::SparseMatrix(
    const RealAllocatorType& realAllocator,
    const IndexAllocatorType& indexAllocator )
@@ -23,14 +24,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
   columnIndexes( indexAllocator )
 {}
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::SparseMatrix(
    const SparseMatrix& matrix )
 : values( matrix.values ),
@@ -41,14 +43,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Base::bind( matrix.getRows(), matrix.getColumns(), values.getView(), columnIndexes.getView(), segments.getView() );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 template< typename Index_t, std::enable_if_t< std::is_integral_v< Index_t >, int > >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::SparseMatrix(
    Index_t rows,
@@ -63,14 +66,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Base::bind( rows, columns, values.getView(), columnIndexes.getView(), segments.getView() );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 template< typename ListIndex >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::SparseMatrix(
    const std::initializer_list< ListIndex >& rowCapacities,
@@ -85,14 +89,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    this->setRowCapacities( RowCapacitiesVectorType( rowCapacities ) );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 template< typename RowCapacitiesVector, std::enable_if_t< TNL::IsArrayType< RowCapacitiesVector >::value, int > >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::SparseMatrix(
    const RowCapacitiesVector& rowCapacities,
@@ -107,14 +112,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    this->setRowCapacities( rowCapacities );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::SparseMatrix(
    Index rows,
    Index columns,
@@ -130,14 +136,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    this->setElements( data, encoding );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 template< typename MapIndex, typename MapValue >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::SparseMatrix(
    Index rows,
@@ -154,14 +161,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    this->setElements( map, encoding );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 auto
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::getView() -> ViewType
 {
@@ -172,14 +180,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
             this->getSegments().getView() };
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 auto
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::getConstView() const
    -> ConstViewType
@@ -191,14 +200,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
             this->getSegments().getConstView() };
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setDimensions(
    Index rows,
@@ -211,14 +221,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Base::bind( rows, columns, values.getView(), columnIndexes.getView(), segments.getView() );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setDimensions(
    Index rows,
@@ -241,14 +252,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Base::bind( rows, columns, values.getView(), columnIndexes.getView(), segments.getView() );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setColumnsWithoutReset(
    Index columns )
@@ -257,14 +269,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Base::bind( this->getRows(), columns, values.getView(), columnIndexes.getView(), segments.getView() );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 template< typename Matrix_ >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setLike(
@@ -276,14 +289,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    TNL_ASSERT_EQ( this->getRows(), segments.getSegmentCount(), "mismatched segments count" );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 template< typename RowCapacitiesVector >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setRowCapacities(
@@ -311,14 +325,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Base::bind( this->getRows(), this->getColumns(), values.getView(), columnIndexes.getView(), segments.getView() );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setElements(
    const std::initializer_list< std::tuple< Index, Index, Real > >& data,
@@ -330,14 +345,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    this->setElements( map, encoding );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 template< typename MapIndex, typename MapValue >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::setElements(
@@ -345,8 +361,8 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    MatrixElementsEncoding encoding )
 {
    if constexpr( ! std::is_same_v< Device, Devices::Host > && ! std::is_same_v< Device, Devices::Sequential > ) {
-      SparseMatrix< Real, Devices::Host, Index, MatrixType, Segments, ComputeReal > hostMatrix( this->getRows(),
-                                                                                                this->getColumns() );
+      SparseMatrix< Real, Devices::Host, Index, MatrixType, Segments, ComputeReal > hostMatrix(
+         this->getRows(), this->getColumns() );
       hostMatrix.setElements( map, encoding );
       *this = hostMatrix;
    }
@@ -365,17 +381,19 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
          if( encoding == MatrixElementsEncoding::SymmetricMixed ) {
             auto query = map.find( { columnIdx, rowIdx } );
             if( query != map.end() && query->second != value )
-               throw std::logic_error( "The input data are supposed to be symmetric (matrix elements encoding equals "
-                                       "SymmetricMixed) but it is not. The matrix elements at position ("
-                                       + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
+               throw std::logic_error(
+                  "The input data are supposed to be symmetric (matrix elements encoding equals "
+                  "SymmetricMixed) but it is not. The matrix elements at position ("
+                  + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
          }
          if( Base::isSymmetric() ) {
             if( encoding == MatrixElementsEncoding::Complete ) {
                auto query = map.find( { columnIdx, rowIdx } );
                if( query != map.end() && query->second != value )
-                  throw std::logic_error( "SparseMatrix is configured as symmetric, but the input data is not symmetric. The "
-                                          "matrix elements at position ("
-                                          + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
+                  throw std::logic_error(
+                     "SparseMatrix is configured as symmetric, but the input data is not symmetric. The "
+                     "matrix elements at position ("
+                     + std::to_string( rowIdx ) + ", " + std::to_string( columnIdx ) + ") do not match." );
                if( rowIdx < columnIdx )
                   continue;
             }
@@ -402,9 +420,9 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
       }
       this->setRowCapacities( capacities );
 
-      if( ( ! Base::isSymmetric() && encoding == MatrixElementsEncoding::Complete )
-          || ( Base::isSymmetric()
-               && ( encoding == MatrixElementsEncoding::Complete || encoding == MatrixElementsEncoding::SymmetricLower ) ) )
+      if(
+         ( ! Base::isSymmetric() && encoding == MatrixElementsEncoding::Complete )
+         || ( Base::isSymmetric() && ( encoding == MatrixElementsEncoding::Complete || encoding == MatrixElementsEncoding::SymmetricLower ) ) )
       {
          // The following algorithm is based on the fact that the matrix elements in std::map
          // are sorted in a row-major order and that row capacities were already
@@ -428,17 +446,16 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
          for( const auto& [ coordinates, value ] : map ) {
             auto [ rowIdx, columnIdx ] = coordinates;
             if( Base::isSymmetric()
-                && ( encoding == MatrixElementsEncoding::SymmetricUpper
-                     || encoding == MatrixElementsEncoding::SymmetricMixed ) )
+                && ( encoding == MatrixElementsEncoding::SymmetricUpper || encoding == MatrixElementsEncoding::SymmetricMixed ) )
             {
                if( rowIdx < columnIdx )
                   swap( rowIdx, columnIdx );
             }
             this->setElement( rowIdx, columnIdx, value );
-            if( ! Base::isSymmetric()
-                && ( encoding == MatrixElementsEncoding::SymmetricMixed || encoding == MatrixElementsEncoding::SymmetricLower
-                     || encoding == MatrixElementsEncoding::SymmetricUpper )
-                && rowIdx != columnIdx )
+            if(
+               ! Base::isSymmetric()
+               && ( encoding == MatrixElementsEncoding::SymmetricMixed || encoding == MatrixElementsEncoding::SymmetricLower || encoding == MatrixElementsEncoding::SymmetricUpper )
+               && rowIdx != columnIdx )
             {
                const Index symmetricRowIdx = columnIdx;
                const Index symmetricColumnIdx = rowIdx;
@@ -449,14 +466,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    }
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::reset()
 {
@@ -467,14 +485,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    Base::bind( 0, 0, values.getView(), columnIndexes.getView(), segments.getView() );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 template< typename Real2, typename Index2, template< typename, typename, typename > class Segments2 >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::getTransposition(
@@ -532,14 +551,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
       } );
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >&
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::operator=(
    const SparseMatrix& matrix )
@@ -552,14 +572,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    return *this;
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >&
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::operator=(
    SparseMatrix&& matrix ) noexcept( false )
@@ -572,14 +593,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    return *this;
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 template< typename Real_, typename Device_, typename Index_, ElementsOrganization Organization, typename RealAllocator_ >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >&
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::operator=(
@@ -589,14 +611,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    return *this;
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 template< typename RHSMatrix >
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >&
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::operator=(
@@ -606,14 +629,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    return *this;
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::save(
    const String& fileName ) const
@@ -621,14 +645,15 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    File( fileName, std::ios_base::out ) << *this;
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 void
 SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >::load(
    const String& fileName )
@@ -636,23 +661,25 @@ SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAlloca
    File( fileName, std::ios_base::in ) >> *this;
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 File&
-operator>>( File& file,
-            SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix )
+operator>>(
+   File& file,
+   SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix )
 {
    const std::string type = getObjectType( file );
    if( type != matrix.getSerializationType() )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "object type does not match (expected " + matrix.getSerializationType()
-                                                     + ", found " + type + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "object type does not match (expected " + matrix.getSerializationType() + ", found " + type + ")." );
    std::size_t rows = 0;
    std::size_t columns = 0;
    file.load( &rows );
@@ -667,17 +694,19 @@ operator>>( File& file,
    return file;
 }
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType,
-          template< typename, typename, typename > class Segments,
-          typename ComputeReal,
-          typename RealAllocator,
-          typename IndexAllocator >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType,
+   template< typename, typename, typename > class Segments,
+   typename ComputeReal,
+   typename RealAllocator,
+   typename IndexAllocator >
 File&
-operator>>( File&& file,
-            SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix )
+operator>>(
+   File&& file,
+   SparseMatrix< Real, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >& matrix )
 {
    // named r-value is an l-value reference, so this is not recursion
    return file >> matrix;

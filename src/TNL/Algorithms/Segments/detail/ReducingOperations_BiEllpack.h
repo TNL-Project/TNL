@@ -22,21 +22,23 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
    using IndexType = std::remove_const_t< Index >;
    using ConstOffsetsView = typename SegmentsViewType::ConstOffsetsView;
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegments( const ConstViewType& segments,
-                   IndexBegin begin,
-                   IndexEnd end,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   ResultStorer&& storer,
-                   const Value& identity,
-                   const LaunchConfiguration& launchConfig )
+   reduceSegments(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
@@ -53,13 +55,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             IndexType localIdx = 0;
             ReturnType result = identity;
             for( IndexType group = 0; group < groupsCount; group++ ) {
-               const IndexType groupSize =
-                  Segments::detail::BiEllpack< IndexType,
-                                               DeviceType,
-                                               SegmentsViewType::getOrganization(),
-                                               SegmentsViewType::getWarpSize() >::getGroupSize( segments.getGroupPointersView(),
-                                                                                                stripIdx,
-                                                                                                group );
+               const IndexType groupSize = Segments::detail::
+                  BiEllpack< IndexType, DeviceType, SegmentsViewType::getOrganization(), SegmentsViewType::getWarpSize() >::
+                     getGroupSize( segments.getGroupPointersView(), stripIdx, group );
                IndexType groupWidth = groupSize / groupHeight;
                const IndexType globalIdxBack = globalIdx;
                if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder )
@@ -84,11 +82,11 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          constexpr int BlockDim = 256;
          launch_config.blockSize.x = BlockDim;
-         const IndexType stripsCount = roundUpDivision( static_cast< IndexType >( end - begin ),
-                                                        static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
-         const IndexType cudaBlocks =
-            roundUpDivision( static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
-                             static_cast< IndexType >( launch_config.blockSize.x ) );
+         const IndexType stripsCount = roundUpDivision(
+            static_cast< IndexType >( end - begin ), static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
+         const IndexType cudaBlocks = roundUpDivision(
+            static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
+            static_cast< IndexType >( launch_config.blockSize.x ) );
          const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
@@ -98,13 +96,14 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = BiEllpackReduceSegmentsKernel< ConstSegmentsView,
-                                                                   IndexType,
-                                                                   std::remove_reference_t< Fetch >,
-                                                                   std::remove_reference_t< Reduction >,
-                                                                   std::remove_reference_t< ResultStorer >,
-                                                                   Value,
-                                                                   BlockDim >;
+            constexpr auto kernel = BiEllpackReduceSegmentsKernel<
+               ConstSegmentsView,
+               IndexType,
+               std::remove_reference_t< Fetch >,
+               std::remove_reference_t< Reduction >,
+               std::remove_reference_t< ResultStorer >,
+               Value,
+               BlockDim >;
             Backend::launchKernelAsync(
                kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, storer, identity );
          }
@@ -112,19 +111,21 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
       }
    }
 
-   template< typename Array,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename Array,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithSegmentIndexes( const ConstViewType& segments,
-                                     const Array& segmentIndexes,
-                                     Fetch&& fetch,
-                                     Reduction&& reduction,
-                                     ResultStorer&& storer,
-                                     const Value& identity,
-                                     const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithSegmentIndexes(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
@@ -144,13 +145,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             IndexType localIdx = 0;
             ReturnType result = identity;
             for( IndexType group = 0; group < groupsCount; group++ ) {
-               const IndexType groupSize =
-                  Segments::detail::BiEllpack< IndexType,
-                                               DeviceType,
-                                               SegmentsViewType::getOrganization(),
-                                               SegmentsViewType::getWarpSize() >::getGroupSize( segments.getGroupPointersView(),
-                                                                                                stripIdx,
-                                                                                                group );
+               const IndexType groupSize = Segments::detail::
+                  BiEllpack< IndexType, DeviceType, SegmentsViewType::getOrganization(), SegmentsViewType::getWarpSize() >::
+                     getGroupSize( segments.getGroupPointersView(), stripIdx, group );
                IndexType groupWidth = groupSize / groupHeight;
                const IndexType globalIdxBack = globalIdx;
                if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder )
@@ -175,11 +172,11 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          constexpr int BlockDim = 256;
          launch_config.blockSize.x = BlockDim;
-         const IndexType stripsCount = roundUpDivision( static_cast< IndexType >( segmentIndexes.getSize() ),
-                                                        static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
-         const IndexType cudaBlocks =
-            roundUpDivision( static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
-                             static_cast< IndexType >( launch_config.blockSize.x ) );
+         const IndexType stripsCount = roundUpDivision(
+            static_cast< IndexType >( segmentIndexes.getSize() ), static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
+         const IndexType cudaBlocks = roundUpDivision(
+            static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
+            static_cast< IndexType >( launch_config.blockSize.x ) );
          const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
@@ -189,43 +186,47 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = BiEllpackReduceSegmentsKernelWithIndexes< ConstSegmentsView,
-                                                                              ArrayView,
-                                                                              IndexType,
-                                                                              std::remove_reference_t< Fetch >,
-                                                                              std::remove_reference_t< Reduction >,
-                                                                              std::remove_reference_t< ResultStorer >,
-                                                                              Value,
-                                                                              BlockDim >;
-            Backend::launchKernelAsync( kernel,
-                                        launch_config,
-                                        segments.getConstView(),
-                                        segmentIndexes.getConstView(),
-                                        gridIdx,
-                                        fetch,
-                                        reduction,
-                                        storer,
-                                        identity );
+            constexpr auto kernel = BiEllpackReduceSegmentsKernelWithIndexes<
+               ConstSegmentsView,
+               ArrayView,
+               IndexType,
+               std::remove_reference_t< Fetch >,
+               std::remove_reference_t< Reduction >,
+               std::remove_reference_t< ResultStorer >,
+               Value,
+               BlockDim >;
+            Backend::launchKernelAsync(
+               kernel,
+               launch_config,
+               segments.getConstView(),
+               segmentIndexes.getConstView(),
+               gridIdx,
+               fetch,
+               reduction,
+               storer,
+               identity );
          }
          Backend::streamSynchronize( launch_config.stream );
       }
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithArgument( const ConstViewType& segments,
-                               IndexBegin begin,
-                               IndexEnd end,
-                               Fetch&& fetch,
-                               Reduction&& reduction,
-                               ResultStorer&& storer,
-                               const Value& identity,
-                               const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithArgument(
+      const ConstViewType& segments,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       if constexpr( std::is_same_v< DeviceType, Devices::Host > || std::is_same_v< DeviceType, Devices::Sequential > ) {
@@ -243,13 +244,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             ReturnType result = identity;
             IndexType argument = 0;
             for( IndexType group = 0; group < groupsCount; group++ ) {
-               const IndexType groupSize =
-                  Segments::detail::BiEllpack< IndexType,
-                                               DeviceType,
-                                               SegmentsViewType::getOrganization(),
-                                               SegmentsViewType::getWarpSize() >::getGroupSize( segments.getGroupPointersView(),
-                                                                                                stripIdx,
-                                                                                                group );
+               const IndexType groupSize = Segments::detail::
+                  BiEllpack< IndexType, DeviceType, SegmentsViewType::getOrganization(), SegmentsViewType::getWarpSize() >::
+                     getGroupSize( segments.getGroupPointersView(), stripIdx, group );
                IndexType groupWidth = groupSize / groupHeight;
                const IndexType globalIdxBack = globalIdx;
                if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder )
@@ -257,10 +254,11 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
                else
                   globalIdx += inStripIdx;
                for( IndexType j = 0; j < groupWidth; j++ ) {
-                  reduction( result,
-                             detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                             argument,
-                             localIdx );
+                  reduction(
+                     result,
+                     detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                     argument,
+                     localIdx );
                   if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder )
                      globalIdx++;
                   else
@@ -278,11 +276,11 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          constexpr int BlockDim = 256;
          launch_config.blockSize.x = BlockDim;
-         const IndexType stripsCount = roundUpDivision( static_cast< IndexType >( end - begin ),
-                                                        static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
-         const IndexType cudaBlocks =
-            roundUpDivision( static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
-                             static_cast< IndexType >( launch_config.blockSize.x ) );
+         const IndexType stripsCount = roundUpDivision(
+            static_cast< IndexType >( end - begin ), static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
+         const IndexType cudaBlocks = roundUpDivision(
+            static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
+            static_cast< IndexType >( launch_config.blockSize.x ) );
          const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
@@ -292,13 +290,14 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel = BiEllpackReduceSegmentsKernelWithArgument< ConstSegmentsView,
-                                                                               IndexType,
-                                                                               std::remove_reference_t< Fetch >,
-                                                                               std::remove_reference_t< Reduction >,
-                                                                               std::remove_reference_t< ResultStorer >,
-                                                                               Value,
-                                                                               BlockDim >;
+            constexpr auto kernel = BiEllpackReduceSegmentsKernelWithArgument<
+               ConstSegmentsView,
+               IndexType,
+               std::remove_reference_t< Fetch >,
+               std::remove_reference_t< Reduction >,
+               std::remove_reference_t< ResultStorer >,
+               Value,
+               BlockDim >;
             Backend::launchKernelAsync(
                kernel, launch_config, segments.getConstView(), gridIdx, begin, end, fetch, reduction, storer, identity );
          }
@@ -306,19 +305,21 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
       }
    }
 
-   template< typename Array,
-             typename Fetch,
-             typename Reduction,
-             typename ResultStorer,
-             typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
+   template<
+      typename Array,
+      typename Fetch,
+      typename Reduction,
+      typename ResultStorer,
+      typename Value = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType >
    static void
-   reduceSegmentsWithSegmentIndexesAndArgument( const ConstViewType& segments,
-                                                const Array& segmentIndexes,
-                                                Fetch&& fetch,
-                                                Reduction&& reduction,
-                                                ResultStorer&& storer,
-                                                const Value& identity,
-                                                const LaunchConfiguration& launchConfig )
+   reduceSegmentsWithSegmentIndexesAndArgument(
+      const ConstViewType& segments,
+      const Array& segmentIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      ResultStorer&& storer,
+      const Value& identity,
+      const LaunchConfiguration& launchConfig )
    {
       using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
       using ArrayView = typename Array::ConstViewType;
@@ -339,13 +340,9 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             ReturnType result = identity;
             IndexType argument = 0;
             for( IndexType group = 0; group < groupsCount; group++ ) {
-               const IndexType groupSize =
-                  Segments::detail::BiEllpack< IndexType,
-                                               DeviceType,
-                                               SegmentsViewType::getOrganization(),
-                                               SegmentsViewType::getWarpSize() >::getGroupSize( segments.getGroupPointersView(),
-                                                                                                stripIdx,
-                                                                                                group );
+               const IndexType groupSize = Segments::detail::
+                  BiEllpack< IndexType, DeviceType, SegmentsViewType::getOrganization(), SegmentsViewType::getWarpSize() >::
+                     getGroupSize( segments.getGroupPointersView(), stripIdx, group );
                IndexType groupWidth = groupSize / groupHeight;
                const IndexType globalIdxBack = globalIdx;
                if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder )
@@ -353,10 +350,11 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
                else
                   globalIdx += inStripIdx;
                for( IndexType j = 0; j < groupWidth; j++ ) {
-                  reduction( result,
-                             detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
-                             argument,
-                             localIdx );
+                  reduction(
+                     result,
+                     detail::FetchLambdaAdapter< IndexType, Fetch >::call( fetch, segmentIdx, localIdx, globalIdx ),
+                     argument,
+                     localIdx );
                   if constexpr( SegmentsViewType::getOrganization() == Segments::RowMajorOrder )
                      globalIdx++;
                   else
@@ -374,11 +372,11 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          constexpr int BlockDim = 256;
          launch_config.blockSize.x = BlockDim;
-         const IndexType stripsCount = roundUpDivision( static_cast< IndexType >( segmentIndexes.getSize() ),
-                                                        static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
-         const IndexType cudaBlocks =
-            roundUpDivision( static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
-                             static_cast< IndexType >( launch_config.blockSize.x ) );
+         const IndexType stripsCount = roundUpDivision(
+            static_cast< IndexType >( segmentIndexes.getSize() ), static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
+         const IndexType cudaBlocks = roundUpDivision(
+            static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
+            static_cast< IndexType >( launch_config.blockSize.x ) );
          const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
@@ -388,24 +386,25 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
             if( gridIdx == cudaGrids - 1 )
                launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
             using ConstSegmentsView = typename SegmentsViewType::ConstViewType;
-            constexpr auto kernel =
-               BiEllpackReduceSegmentsKernelWithIndexesAndArgument< ConstSegmentsView,
-                                                                    ArrayView,
-                                                                    IndexType,
-                                                                    std::remove_reference_t< Fetch >,
-                                                                    std::remove_reference_t< Reduction >,
-                                                                    std::remove_reference_t< ResultStorer >,
-                                                                    Value,
-                                                                    BlockDim >;
-            Backend::launchKernelAsync( kernel,
-                                        launch_config,
-                                        segments.getConstView(),
-                                        segmentIndexes.getConstView(),
-                                        gridIdx,
-                                        fetch,
-                                        reduction,
-                                        storer,
-                                        identity );
+            constexpr auto kernel = BiEllpackReduceSegmentsKernelWithIndexesAndArgument<
+               ConstSegmentsView,
+               ArrayView,
+               IndexType,
+               std::remove_reference_t< Fetch >,
+               std::remove_reference_t< Reduction >,
+               std::remove_reference_t< ResultStorer >,
+               Value,
+               BlockDim >;
+            Backend::launchKernelAsync(
+               kernel,
+               launch_config,
+               segments.getConstView(),
+               segmentIndexes.getConstView(),
+               gridIdx,
+               fetch,
+               reduction,
+               storer,
+               identity );
          }
          Backend::streamSynchronize( launch_config.stream );
       }

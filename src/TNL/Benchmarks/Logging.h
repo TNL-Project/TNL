@@ -152,8 +152,9 @@ public:
    }
 
    virtual void
-   setMetadataElement( const typename MetadataColumns::value_type& element,
-                       int insertPosition = -1 /* negative values insert from the end */ )
+   setMetadataElement(
+      const typename MetadataColumns::value_type& element,
+      int insertPosition = -1 /* negative values insert from the end */ )
    {
       bool found = false;
       for( auto& it : metadataColumns )
@@ -183,11 +184,12 @@ public:
    }
 
    virtual void
-   logResult( const std::string& performer,
-              const HeaderElements& headerElements,
-              const RowElements& rowElements,
-              const WidthHints& columnWidthHints,
-              const std::string& errorMessage = "" ) = 0;
+   logResult(
+      const std::string& performer,
+      const HeaderElements& headerElements,
+      const RowElements& rowElements,
+      const WidthHints& columnWidthHints,
+      const std::string& errorMessage = "" ) = 0;
 
    virtual void
    writeErrorMessage( const std::string& message ) = 0;

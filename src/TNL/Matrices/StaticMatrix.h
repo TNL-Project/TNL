@@ -9,15 +9,17 @@
 
 namespace TNL::Matrices {
 
-template< typename Value,
-          std::size_t Rows,
-          std::size_t Columns,
-          typename Permutation = std::index_sequence< 0, 1 > >  // identity by default
-class StaticMatrix : public Containers::StaticNDArray< Value,
-                                                       // note that using std::size_t in SizesHolder does not make sense, since
-                                                       // the StaticNDArray is based on StaticArray, which uses int as IndexType
-                                                       Containers::SizesHolder< int, Rows, Columns >,
-                                                       Permutation >
+template<
+   typename Value,
+   std::size_t Rows,
+   std::size_t Columns,
+   typename Permutation = std::index_sequence< 0, 1 > >  // identity by default
+class StaticMatrix : public Containers::StaticNDArray<
+                        Value,
+                        // note that using std::size_t in SizesHolder does not make sense, since
+                        // the StaticNDArray is based on StaticArray, which uses int as IndexType
+                        Containers::SizesHolder< int, Rows, Columns >,
+                        Permutation >
 {
    using Base = Containers::StaticNDArray< Value, Containers::SizesHolder< int, Rows, Columns >, Permutation >;
 
@@ -203,8 +205,9 @@ operator*( StaticMatrix< Value, Rows, Columns, Permutation > a, const T& value )
 
 template< typename Value, std::size_t Rows1, std::size_t SharedDim, std::size_t Columns2, typename Permutation >
 StaticMatrix< Value, Rows1, Columns2, Permutation >
-operator*( const StaticMatrix< Value, Rows1, SharedDim, Permutation >& matrix1,
-           const StaticMatrix< Value, SharedDim, Columns2, Permutation >& matrix2 )
+operator*(
+   const StaticMatrix< Value, Rows1, SharedDim, Permutation >& matrix1,
+   const StaticMatrix< Value, SharedDim, Columns2, Permutation >& matrix2 )
 {
    StaticMatrix< Value, Rows1, Columns2, Permutation > result;
    for( std::size_t i = 0; i < Rows1; ++i ) {

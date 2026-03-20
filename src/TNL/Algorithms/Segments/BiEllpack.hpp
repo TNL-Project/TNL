@@ -17,10 +17,11 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::BiEllpack( c
   groupPointers( segments.groupPointers )
 {
    // update the base
-   Base::bind( segments.getElementCount(),
-               segments.getStorageSize(),
-               this->segmentsPermutation.getView(),
-               this->groupPointers.getView() );
+   Base::bind(
+      segments.getElementCount(),
+      segments.getStorageSize(),
+      this->segmentsPermutation.getView(),
+      this->groupPointers.getView() );
 }
 
 template< typename Device, typename Index, typename IndexAllocator, ElementsOrganization Organization, int WarpSize >
@@ -45,10 +46,11 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=( c
    this->segmentsPermutation = segments.segmentsPermutation;
    this->groupPointers = segments.groupPointers;
    // update the base
-   Base::bind( segments.getElementCount(),
-               segments.getStorageSize(),
-               this->segmentsPermutation.getView(),
-               this->groupPointers.getView() );
+   Base::bind(
+      segments.getElementCount(),
+      segments.getStorageSize(),
+      this->segmentsPermutation.getView(),
+      this->groupPointers.getView() );
    return *this;
 }
 
@@ -59,10 +61,11 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=( B
    this->segmentsPermutation = std::move( segments.segmentsPermutation );
    this->groupPointers = std::move( segments.groupPointers );
    // update the base
-   Base::bind( segments.getElementCount(),
-               segments.getStorageSize(),
-               this->segmentsPermutation.getView(),
-               this->groupPointers.getView() );
+   Base::bind(
+      segments.getElementCount(),
+      segments.getStorageSize(),
+      this->segmentsPermutation.getView(),
+      this->groupPointers.getView() );
    return *this;
 }
 
@@ -75,10 +78,11 @@ BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::operator=(
    this->segmentsPermutation = segments.getSegmentsPermutationView();
    this->groupPointers = segments.getGroupPointersView();
    // update the base
-   Base::bind( segments.getElementCount(),
-               segments.getStorageSize(),
-               this->segmentsPermutation.getView(),
-               this->groupPointers.getView() );
+   Base::bind(
+      segments.getElementCount(),
+      segments.getStorageSize(),
+      this->segmentsPermutation.getView(),
+      this->groupPointers.getView() );
    return *this;
 }
 
@@ -242,8 +246,9 @@ template< typename SizesHolder >
 void
 BiEllpack< Device, Index, IndexAllocator, Organization, WarpSize >::initSegmentsPermutation( const SizesHolder& segmentsSizes )
 {
-   static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential >,
-                  "The initiation of the segmentPermutationArray can be done only on the CPU." );
+   static_assert(
+      std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Sequential >,
+      "The initiation of the segmentPermutationArray can be done only on the CPU." );
 
    // TODO: The following function could be probably replaced with general sorting algorithms (e.g. bitonnic sort) and run on
    // the GPU.

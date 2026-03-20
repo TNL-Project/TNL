@@ -42,14 +42,16 @@ namespace TNL::Solvers::Eigen::experimental {
  * match the matrix dimensions.
  */
 template< typename MatrixType >
-std::tuple< typename MatrixType::RealType,
-            TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >,
-            int >
-shiftedPowerIteration( const MatrixType& matrix,
-                       const typename MatrixType::RealType& epsilon,
-                       const typename MatrixType::RealType& shiftValue,
-                       TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >& initialVec,
-                       const int& maxIterations = 100000 )
+std::tuple<
+   typename MatrixType::RealType,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >,
+   int >
+shiftedPowerIteration(
+   const MatrixType& matrix,
+   const typename MatrixType::RealType& epsilon,
+   const typename MatrixType::RealType& shiftValue,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >& initialVec,
+   const int& maxIterations = 100000 )
 {
    if( matrix.getRows() != matrix.getColumns() )
       throw std::invalid_argument( "Shifted power iteration is possible only for square matrices" );
@@ -129,13 +131,15 @@ shiftedPowerIteration( const MatrixType& matrix,
  * appropriate for the matrix size and type. The nature of the initial vector can affect the convergence speed of the algorithm.
  */
 template< typename MatrixType >
-std::tuple< typename MatrixType::RealType,
-            TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >,
-            int >
-shiftedPowerIteration( const MatrixType& matrix,
-                       const typename MatrixType::RealType& epsilon,
-                       const typename MatrixType::RealType& shiftValue,
-                       const int& maxIterations = 100000 )
+std::tuple<
+   typename MatrixType::RealType,
+   TNL::Containers::Vector< typename MatrixType::RealType, typename MatrixType::DeviceType >,
+   int >
+shiftedPowerIteration(
+   const MatrixType& matrix,
+   const typename MatrixType::RealType& epsilon,
+   const typename MatrixType::RealType& shiftValue,
+   const int& maxIterations = 100000 )
 {
    if( matrix.getRows() != matrix.getColumns() )
       throw std::invalid_argument( "Shifted power iteration is possible only for square matrices" );

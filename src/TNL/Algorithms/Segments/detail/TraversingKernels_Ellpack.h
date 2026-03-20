@@ -54,12 +54,13 @@ forElementsBlockMergeKernel_Ellpack( Index gridIdx, SegmentsView segments, Index
 template< typename SegmentsView, typename ArrayView, typename Index, typename Function, ElementsOrganization Organization >
 __global__
 void
-forElementsWithSegmentIndexesKernel_Ellpack( const Index gridIdx,
-                                             const Index totalThreadsCount,
-                                             const Index threadsPerSegment,
-                                             SegmentsView segments,
-                                             ArrayView segmentIndexes,
-                                             Function function )
+forElementsWithSegmentIndexesKernel_Ellpack(
+   const Index gridIdx,
+   const Index totalThreadsCount,
+   const Index threadsPerSegment,
+   SegmentsView segments,
+   ArrayView segmentIndexes,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -111,19 +112,21 @@ forElementsWithSegmentIndexesKernel_Ellpack( const Index gridIdx,
 #endif
 }
 
-template< typename SegmentsConstView,
-          typename ArrayView,
-          typename Index,
-          typename Function,
-          ElementsOrganization Organization,
-          int SegmentsPerBlock,
-          int BlockSize = 256 >
+template<
+   typename SegmentsConstView,
+   typename ArrayView,
+   typename Index,
+   typename Function,
+   ElementsOrganization Organization,
+   int SegmentsPerBlock,
+   int BlockSize = 256 >
 __global__
 void
-forElementsWithSegmentIndexesBlockMergeKernel_Ellpack( Index gridIdx,
-                                                       SegmentsConstView segments,
-                                                       ArrayView segmentIndexes,
-                                                       Function function )
+forElementsWithSegmentIndexesBlockMergeKernel_Ellpack(
+   Index gridIdx,
+   SegmentsConstView segments,
+   ArrayView segmentIndexes,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    if( segments.getSegmentSize() == 0 )
@@ -164,22 +167,24 @@ forElementsWithSegmentIndexesBlockMergeKernel_Ellpack( Index gridIdx,
 #endif
 }
 
-template< typename SegmentsView,
-          typename Index,
-          typename Condition,
-          typename Function,
-          ElementsOrganization Organization,
-          int BlockSize = 256 >
+template<
+   typename SegmentsView,
+   typename Index,
+   typename Condition,
+   typename Function,
+   ElementsOrganization Organization,
+   int BlockSize = 256 >
 __global__
 void
-forElementsIfKernel_Ellpack( const Index gridIdx,
-                             const Index totalThreadsCount,
-                             const Index threadsPerSegment,
-                             SegmentsView segments,
-                             const Index begin,
-                             const Index end,
-                             Condition condition,
-                             Function function )
+forElementsIfKernel_Ellpack(
+   const Index gridIdx,
+   const Index totalThreadsCount,
+   const Index threadsPerSegment,
+   SegmentsView segments,
+   const Index begin,
+   const Index end,
+   Condition condition,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -232,22 +237,24 @@ forElementsIfKernel_Ellpack( const Index gridIdx,
 #endif
 }
 
-template< typename SegmentsView,
-          typename Index,
-          typename Condition,
-          typename Function,
-          ElementsOrganization Organization,
-          int SliceSize,
-          int SegmentsPerBlock,
-          int BlockSize = 256 >
+template<
+   typename SegmentsView,
+   typename Index,
+   typename Condition,
+   typename Function,
+   ElementsOrganization Organization,
+   int SliceSize,
+   int SegmentsPerBlock,
+   int BlockSize = 256 >
 __global__
 void
-forElementsIfBlockMergeKernel_Ellpack( Index gridIdx,
-                                       SegmentsView segments,
-                                       const Index begin,
-                                       const Index end,
-                                       Condition condition,
-                                       Function function )
+forElementsIfBlockMergeKernel_Ellpack(
+   Index gridIdx,
+   SegmentsView segments,
+   const Index begin,
+   const Index end,
+   Condition condition,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using InclusiveCudaScan =

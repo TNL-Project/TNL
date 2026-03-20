@@ -112,8 +112,8 @@ struct LogicalAnd : public std::logical_and< void >
    static constexpr T
    getIdentity()
    {
-      static_assert( std::numeric_limits< T >::is_specialized,
-                     "std::numeric_limits is not specialized for the requested type" );
+      static_assert(
+         std::numeric_limits< T >::is_specialized, "std::numeric_limits is not specialized for the requested type" );
       return std::numeric_limits< T >::max();
    }
 };
@@ -249,8 +249,8 @@ struct Min
    static constexpr T
    getIdentity()
    {
-      static_assert( std::numeric_limits< T >::is_specialized,
-                     "std::numeric_limits is not specialized for the requested type" );
+      static_assert(
+         std::numeric_limits< T >::is_specialized, "std::numeric_limits is not specialized for the requested type" );
       return std::numeric_limits< T >::max();
    }
 
@@ -279,8 +279,8 @@ struct Max
    static constexpr T
    getIdentity()
    {
-      static_assert( std::numeric_limits< T >::is_specialized,
-                     "std::numeric_limits is not specialized for the requested type" );
+      static_assert(
+         std::numeric_limits< T >::is_specialized, "std::numeric_limits is not specialized for the requested type" );
       return std::numeric_limits< T >::lowest();
    }
 
@@ -328,8 +328,8 @@ struct MinWithArg
    static constexpr T
    getIdentity()
    {
-      static_assert( std::numeric_limits< T >::is_specialized,
-                     "std::numeric_limits is not specialized for the requested type" );
+      static_assert(
+         std::numeric_limits< T >::is_specialized, "std::numeric_limits is not specialized for the requested type" );
       return std::numeric_limits< T >::max();
    }
 
@@ -362,8 +362,8 @@ struct MaxWithArg
    static constexpr T
    getIdentity()
    {
-      static_assert( std::numeric_limits< T >::is_specialized,
-                     "std::numeric_limits is not specialized for the requested type" );
+      static_assert(
+         std::numeric_limits< T >::is_specialized, "std::numeric_limits is not specialized for the requested type" );
       return std::numeric_limits< T >::lowest();
    }
 

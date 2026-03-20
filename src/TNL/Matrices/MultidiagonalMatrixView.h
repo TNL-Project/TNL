@@ -21,10 +21,11 @@ namespace TNL::Matrices {
  * \tparam Organization tells the ordering of matrix elements. It is either RowMajorOrder
  *         or ColumnMajorOrder.
  */
-template< typename Real = double,
-          typename Device = Devices::Host,
-          typename Index = int,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
+template<
+   typename Real = double,
+   typename Device = Devices::Host,
+   typename Index = int,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
 class MultidiagonalMatrixView : public MultidiagonalMatrixBase< Real, Device, Index, Organization >
 {
    using Base = MultidiagonalMatrixBase< Real, Device, Index, Organization >;
@@ -58,11 +59,11 @@ public:
    /**
     * \brief Helper type for getting self type or its modifications.
     */
-   template< typename _Real = Real,
-             typename _Device = Device,
-             typename _Index = Index,
-             ElementsOrganization Organization_ =
-                Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
+   template<
+      typename _Real = Real,
+      typename _Device = Device,
+      typename _Index = Index,
+      ElementsOrganization Organization_ = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization() >
    using Self = MultidiagonalMatrixView< _Real, _Device, _Index, Organization_ >;
 
    /**
@@ -80,10 +81,11 @@ public:
     * \param indexer is an indexer of matrix elements
     */
    __cuda_callable__
-   MultidiagonalMatrixView( typename Base::ValuesViewType values,
-                            typename Base::DiagonalOffsetsView diagonalOffsets,
-                            typename Base::HostDiagonalOffsetsView hostDiagonalOffsets,
-                            typename Base::IndexerType indexer );
+   MultidiagonalMatrixView(
+      typename Base::ValuesViewType values,
+      typename Base::DiagonalOffsetsView diagonalOffsets,
+      typename Base::HostDiagonalOffsetsView hostDiagonalOffsets,
+      typename Base::IndexerType indexer );
 
    /**
     * \brief Copy constructor.

@@ -120,8 +120,9 @@ benchmark_reduction3D( Benchmark<>& benchmark, index_type size, index_type m, in
 
    const double datasetSize = ( m * n * size + m * n ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "3D", datasetSize );
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns(
-      { { "size", convertToString( size ) }, { "m", convertToString( m ) }, { "n", convertToString( n ) } } ) );
+   benchmark.setMetadataColumns(
+      Benchmark<>::MetadataColumns(
+         { { "size", convertToString( size ) }, { "m", convertToString( m ) }, { "n", convertToString( n ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 

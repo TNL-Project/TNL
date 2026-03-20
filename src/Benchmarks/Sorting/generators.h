@@ -24,12 +24,13 @@ generateRandom( int size )
    std::vector< int > vec( size );
 
    srand( size + 2021 );
-   std::generate( vec.begin(),
-                  vec.end(),
-                  [ = ]()
-                  {
-                     return std::rand() % ( 2 * size );
-                  } );
+   std::generate(
+      vec.begin(),
+      vec.end(),
+      [ = ]()
+      {
+         return std::rand() % ( 2 * size );
+      } );
 
    return vec;
 }

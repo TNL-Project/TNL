@@ -51,19 +51,21 @@ protected:
 };
 
 // types for which DistributedNDArray_2D_test is instantiated
-using DistributedNDArrayTypes =
-   ::testing::Types< DistributedNDArray< NDArray< double,
-                                                  SizesHolder< int, 0, 0 >,     // X, Y
-                                                  std::index_sequence< 0, 1 >,  // permutation - should not matter
-                                                  Devices::Host > >
+using DistributedNDArrayTypes = ::testing::Types<
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0, 0 >,     // X, Y
+      std::index_sequence< 0, 1 >,  // permutation - should not matter
+      Devices::Host > >
 #ifdef __CUDACC__
-                     ,
-                     DistributedNDArray< NDArray< double,
-                                                  SizesHolder< int, 0, 0 >,     // X, Y
-                                                  std::index_sequence< 0, 1 >,  // permutation - should not matter
-                                                  Devices::Cuda > >
+   ,
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0, 0 >,     // X, Y
+      std::index_sequence< 0, 1 >,  // permutation - should not matter
+      Devices::Cuda > >
 #endif
-                     >;
+   >;
 
 TYPED_TEST_SUITE( DistributedNDArray_2D_test, DistributedNDArrayTypes );
 
@@ -182,9 +184,10 @@ test_helper_comparisonOperators( DistributedArray& u, DistributedArray& v, Distr
       v_view( i[ 0 ] - localRangeX.getBegin(), i[ 1 ] - localRangeY.getBegin() ) = i[ 0 ];
       w_view( i[ 0 ] - localRangeX.getBegin(), i[ 1 ] - localRangeY.getBegin() ) = 2 * i[ 0 ];
    };
-   Algorithms::parallelFor< DeviceType >( MultiIndex{ localRangeX.getBegin(), localRangeY.getBegin() },
-                                          MultiIndex{ localRangeX.getEnd(), localRangeY.getEnd() },
-                                          kernel );
+   Algorithms::parallelFor< DeviceType >(
+      MultiIndex{ localRangeX.getBegin(), localRangeY.getBegin() },
+      MultiIndex{ localRangeX.getEnd(), localRangeY.getEnd() },
+      kernel );
 }
 
 TYPED_TEST( DistributedNDArray_2D_test, comparisonOperators )

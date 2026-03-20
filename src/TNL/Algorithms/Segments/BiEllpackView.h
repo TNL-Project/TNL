@@ -17,10 +17,11 @@ namespace TNL::Algorithms::Segments {
  * \tparam Organization is the organization of the elements in the segments—either row-major or column-major order.
  * \tparam WarpSize is the warp size used for the segments.
  */
-template< typename Device,
-          typename Index,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int WarpSize = Backend::getWarpSize() >
+template<
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int WarpSize = Backend::getWarpSize() >
 class BiEllpackView : public BiEllpackBase< Device, Index, Organization, WarpSize >
 {
    using Base = BiEllpackBase< Device, Index, Organization, WarpSize >;
@@ -55,10 +56,11 @@ public:
 
    //! \brief Constructor that initializes segments based on all necessary data.
    __cuda_callable__
-   BiEllpackView( Index size,
-                  Index storageSize,
-                  typename Base::OffsetsView segmentsPermutation,
-                  typename Base::OffsetsView groupPointers );
+   BiEllpackView(
+      Index size,
+      Index storageSize,
+      typename Base::OffsetsView segmentsPermutation,
+      typename Base::OffsetsView groupPointers );
 
    //! \brief Copy-assignment operator.
    BiEllpackView&
@@ -137,10 +139,11 @@ using ColumnMajorBiEllpackView = BiEllpackView< Device, Index, ColumnMajorOrder,
  * \tparam Index The type used for indexing elements managed by the segments.
  * \tparam IndexAllocator The allocator used for managing index containers.
  */
-template< typename Device,
-          typename Index,
-          ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          int WarpSize = Backend::getWarpSize() >
+template<
+   typename Device,
+   typename Index,
+   ElementsOrganization Organization = Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   int WarpSize = Backend::getWarpSize() >
 using SortedBiEllpackView = SortedSegmentsView< BiEllpackView< Device, Index, Organization, WarpSize > >;
 
 /**

@@ -46,11 +46,12 @@ namespace TNL::Matrices {
  *         or ColumnMajorOrder.
  * \tparam RealAllocator is allocator for the matrix elements.
  */
-template< typename Real = double,
-          typename Device = Devices::Host,
-          typename Index = int,
-          ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
-          typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real > >
+template<
+   typename Real = double,
+   typename Device = Devices::Host,
+   typename Index = int,
+   ElementsOrganization Organization = Algorithms::Segments::DefaultElementsOrganization< Device >::getOrganization(),
+   typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real > >
 class TridiagonalMatrix : public TridiagonalMatrixBase< Real, Device, Index, Organization >
 {
    using Base = TridiagonalMatrixBase< Real, Device, Index, Organization >;
@@ -83,12 +84,12 @@ public:
    /**
     * \brief Helper type for getting self type or its modifications.
     */
-   template< typename _Real = Real,
-             typename _Device = Device,
-             typename _Index = Index,
-             ElementsOrganization _Organization =
-                Algorithms::Segments::DefaultElementsOrganization< _Device >::getOrganization(),
-             typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real > >
+   template<
+      typename _Real = Real,
+      typename _Device = Device,
+      typename _Index = Index,
+      ElementsOrganization _Organization = Algorithms::Segments::DefaultElementsOrganization< _Device >::getOrganization(),
+      typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real > >
    using Self = TridiagonalMatrix< _Real, _Device, _Index, _Organization, _RealAllocator >;
 
    /**

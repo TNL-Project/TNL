@@ -7,9 +7,10 @@ template< typename Device >
 void
 forElementsExample()
 {
-   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix( 5,              // number of matrix rows
-                                                                5,              // number of matrix columns
-                                                                { 0, 1, 2 } );  // matrix diagonals offsets
+   TNL::Matrices::MultidiagonalMatrix< double, Device > matrix(
+      5,              // number of matrix rows
+      5,              // number of matrix columns
+      { 0, 1, 2 } );  // matrix diagonals offsets
 
    auto matrixView = matrix.getView();
 

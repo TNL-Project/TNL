@@ -41,11 +41,12 @@ public:
    }
 
    void
-   runOtherBenchmarks( const HostDigraph& digraph,
-                       const HostGraph& graph,
-                       IndexType smallestNode,
-                       IndexType largestNode,
-                       TNL::Benchmarks::Benchmark<>& benchmark )
+   runOtherBenchmarks(
+      const HostDigraph& digraph,
+      const HostGraph& graph,
+      IndexType smallestNode,
+      IndexType largestNode,
+      TNL::Benchmarks::Benchmark<>& benchmark )
    {
       if( withBoost )
          runBoostBenchmarks( digraph, graph, smallestNode, largestNode, benchmark );
@@ -54,11 +55,12 @@ public:
    }
 
    void
-   runBoostBenchmarks( const HostDigraph& digraph,
-                       const HostGraph& graph,
-                       IndexType smallestNode,
-                       IndexType largestNode,
-                       TNL::Benchmarks::Benchmark<>& benchmark )
+   runBoostBenchmarks(
+      const HostDigraph& digraph,
+      const HostGraph& graph,
+      IndexType smallestNode,
+      IndexType largestNode,
+      TNL::Benchmarks::Benchmark<>& benchmark )
    {
 #ifdef HAVE_BOOST
       BoostGraph< Index, Real, TNL::Graphs::DirectedGraph > boostDigraph( digraph );
@@ -105,11 +107,12 @@ public:
    }
 
    void
-   runGunrockBenchmarks( const HostDigraph& digraph,
-                         const HostGraph& graph,
-                         IndexType smallestNode,
-                         IndexType largestNode,
-                         TNL::Benchmarks::Benchmark<>& benchmark )
+   runGunrockBenchmarks(
+      const HostDigraph& digraph,
+      const HostGraph& graph,
+      IndexType smallestNode,
+      IndexType largestNode,
+      TNL::Benchmarks::Benchmark<>& benchmark )
    {
 #ifdef HAVE_GUNROCK
       auto gunrockDigraph = GunrockBenchmark< Real, Index >::convertToGunrockGraph( digraph );
@@ -168,13 +171,14 @@ public:
 
    template< typename Digraph, typename Graph >
    void
-   runTNLAlgorithm( Digraph& digraph,
-                    Graph& graph,
-                    IndexType smallestNode,
-                    IndexType largestNode,
-                    TNL::Benchmarks::Benchmark<>& benchmark,
-                    const TNL::String& device,
-                    const TNL::String& segments )
+   runTNLAlgorithm(
+      Digraph& digraph,
+      Graph& graph,
+      IndexType smallestNode,
+      IndexType largestNode,
+      TNL::Benchmarks::Benchmark<>& benchmark,
+      const TNL::String& device,
+      const TNL::String& segments )
    {
       using Device = typename std::remove_reference_t< decltype( digraph ) >::DeviceType;
       using RealVector = TNL::Containers::Vector< Real, Device, Index >;
@@ -257,8 +261,8 @@ public:
          RealVector semiringSsspDistances( digraph.getVertexCount() );
          semiringSsspDistances = std::numeric_limits< Real >::max();
          semiringSsspDistances.setElement( largestNode, 0 );
-         benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount()
-                                   * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setDatasetSize(
+            digraph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
          benchmark.setMetadataElement( { "problem", "Semiring SSSP dir" } );
          benchmark.setMetadataElement( { "kernel", segments } );
          benchmark.setMetadataElement( { "launch cfg.", "1 TPS" } );
@@ -277,8 +281,8 @@ public:
          // Benchmarking semiring-based SSSP with undirected graph
          semiringSsspDistances = std::numeric_limits< Real >::max();
          semiringSsspDistances.setElement( largestNode, 0 );
-         benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount()
-                                   * ( sizeof( Index ) + sizeof( Real ) ) );
+         benchmark.setDatasetSize(
+            graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
          benchmark.setMetadataElement( { "problem", "Semiring SSSP undir" } );
          benchmark.setMetadataElement( { "kernel", segments } );
          benchmark.setMetadataElement( { "launch cfg.", "1 TPS" } );

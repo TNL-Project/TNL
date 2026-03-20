@@ -12,9 +12,10 @@ namespace TNL::Meshes {
 template< typename MeshConfig, typename Device >
 class MeshTraits;
 
-template< typename MeshConfig,
-          typename EntityTopology,
-          bool IsDynamicTopology = Topologies::IsDynamicTopology< EntityTopology >::value >
+template<
+   typename MeshConfig,
+   typename EntityTopology,
+   bool IsDynamicTopology = Topologies::IsDynamicTopology< EntityTopology >::value >
 class EntitySeedMatrix;
 
 template< typename MeshConfig, typename EntityTopology >
@@ -91,9 +92,10 @@ public:
 
       template< typename... IndexTypes >
       void
-      setCornerIds_impl( const LocalIndexType& cornerIndex,
-                         const GlobalIndexType& pointIndex,
-                         const IndexTypes&... pointIndices )
+      setCornerIds_impl(
+         const LocalIndexType& cornerIndex,
+         const GlobalIndexType& pointIndex,
+         const IndexTypes&... pointIndices )
       {
          setCornerId( cornerIndex, pointIndex );
          setCornerIds_impl( cornerIndex + 1, pointIndices... );

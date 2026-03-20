@@ -121,10 +121,11 @@ TridiagonalMatrix< Real, Device, Index, Organization, RealAllocator >::reset()
 template< typename InMatrixView, typename OutMatrixView, typename Real, typename Index >
 __global__
 void
-TridiagonalMatrixTranspositionCudaKernel( const InMatrixView inMatrix,
-                                          OutMatrixView outMatrix,
-                                          Real matrixMultiplicator,
-                                          Index gridIdx )
+TridiagonalMatrixTranspositionCudaKernel(
+   const InMatrixView inMatrix,
+   OutMatrixView outMatrix,
+   Real matrixMultiplicator,
+   Index gridIdx )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index rowIdx = ( gridIdx * Backend::getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
@@ -237,9 +238,9 @@ operator>>( File& file, TridiagonalMatrix< Real, Device, Index, Organization, Re
 {
    const std::string type = getObjectType( file );
    if( type != matrix.getSerializationType() )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "object type does not match (expected " + matrix.getSerializationType()
-                                                     + ", found " + type + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "object type does not match (expected " + matrix.getSerializationType() + ", found " + type + ")." );
    std::size_t rows = 0;
    std::size_t columns = 0;
    file.load( &rows );

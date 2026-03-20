@@ -27,11 +27,12 @@ static constexpr int Reduction_minGpuDataSize = 256;  // 65536; //16384;//1024;/
 
 template< typename Index, typename Result, typename Fetch, typename Reduce >
 constexpr Result
-Reduction< Devices::Sequential >::reduce( const Index begin,
-                                          const Index end,
-                                          Fetch&& fetch,
-                                          Reduce&& reduce,
-                                          const Result& identity )
+Reduction< Devices::Sequential >::reduce(
+   const Index begin,
+   const Index end,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   const Result& identity )
 {
    constexpr int block_size = 128;
    const Index size = end - begin;
@@ -72,11 +73,12 @@ Reduction< Devices::Sequential >::reduce( const Index begin,
 
 template< typename Index, typename Result, typename Fetch, typename Reduce >
 constexpr std::pair< Result, Index >
-Reduction< Devices::Sequential >::reduceWithArgument( const Index begin,
-                                                      const Index end,
-                                                      Fetch&& fetch,
-                                                      Reduce&& reduce,
-                                                      const Result& identity )
+Reduction< Devices::Sequential >::reduceWithArgument(
+   const Index begin,
+   const Index end,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   const Result& identity )
 {
    constexpr int block_size = 128;
    const Index size = end - begin;
@@ -191,11 +193,12 @@ Reduction< Devices::Host >::reduce( const Index begin, const Index end, Fetch&& 
 
 template< typename Index, typename Result, typename Fetch, typename Reduce >
 std::pair< Result, Index >
-Reduction< Devices::Host >::reduceWithArgument( const Index begin,
-                                                const Index end,
-                                                Fetch&& fetch,
-                                                Reduce&& reduce,
-                                                const Result& identity )
+Reduction< Devices::Host >::reduceWithArgument(
+   const Index begin,
+   const Index end,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   const Result& identity )
 {
 #ifdef HAVE_OPENMP
    constexpr int block_size = 128;
@@ -339,11 +342,12 @@ Reduction< Devices::Cuda >::reduce( const Index begin, const Index end, Fetch&& 
 
 template< typename Index, typename Result, typename Fetch, typename Reduce >
 std::pair< Result, Index >
-Reduction< Devices::Cuda >::reduceWithArgument( const Index begin,
-                                                const Index end,
-                                                Fetch&& fetch,
-                                                Reduce&& reduce,
-                                                const Result& identity )
+Reduction< Devices::Cuda >::reduceWithArgument(
+   const Index begin,
+   const Index end,
+   Fetch&& fetch,
+   Reduce&& reduce,
+   const Result& identity )
 {
    // trivial case, nothing to reduce
    if( begin >= end )

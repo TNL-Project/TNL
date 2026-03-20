@@ -76,8 +76,9 @@ void
 VTKWriter< Mesh >::writePointData( const Array& array, const std::string& name, const int numberOfComponents )
 {
    if( array.getSize() / numberOfComponents != typename Array::IndexType( pointsCount ) )
-      throw std::length_error( "Mismatched array size for POINT_DATA section: " + std::to_string( array.getSize() )
-                               + " (there are " + std::to_string( pointsCount ) + " points in the file)" );
+      throw std::length_error(
+         "Mismatched array size for POINT_DATA section: " + std::to_string( array.getSize() ) + " (there are "
+         + std::to_string( pointsCount ) + " points in the file)" );
 
    // check that we won't start the section second time
    if( currentSection != VTK::DataType::PointData && cellDataArrays * pointDataArrays != 0 )
@@ -98,8 +99,9 @@ void
 VTKWriter< Mesh >::writeCellData( const Array& array, const std::string& name, const int numberOfComponents )
 {
    if( array.getSize() / numberOfComponents != typename Array::IndexType( cellsCount ) )
-      throw std::length_error( "Mismatched array size for CELL_DATA section: " + std::to_string( array.getSize() )
-                               + " (there are " + std::to_string( cellsCount ) + " cells in the file)" );
+      throw std::length_error(
+         "Mismatched array size for CELL_DATA section: " + std::to_string( array.getSize() ) + " (there are "
+         + std::to_string( cellsCount ) + " cells in the file)" );
 
    // check that we won't start the section second time
    if( currentSection != VTK::DataType::CellData && cellDataArrays * pointDataArrays != 0 )

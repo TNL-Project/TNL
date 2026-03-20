@@ -183,11 +183,12 @@ namespace TNL::Algorithms::Segments {
  */
 template< typename Segments, typename Fetch, typename Compare, typename Swap >
 static void
-sortAllSegments( const Segments& segments,
-                 Fetch&& fetch,
-                 Compare&& compare,
-                 Swap&& swap,
-                 LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+sortAllSegments(
+   const Segments& segments,
+   Fetch&& fetch,
+   Compare&& compare,
+   Swap&& swap,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Sort elements within specified segments in a range.
@@ -219,21 +220,23 @@ sortAllSegments( const Segments& segments,
  * \par Output
  * \include SegmentsExample_sort.out
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Fetch,
-          typename Compare,
-          typename Swap,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Fetch,
+   typename Compare,
+   typename Swap,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
-sortSegments( const Segments& segments,
-              IndexBegin begin,
-              IndexEnd end,
-              Fetch&& fetch,
-              Compare&& compare,
-              Swap&& swap,
-              LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+sortSegments(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Compare&& compare,
+   Swap&& swap,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Sort elements within all segments specified by a segment index array.
@@ -259,19 +262,21 @@ sortSegments( const Segments& segments,
  *
  * See \ref sortSegments for a complete example.
  */
-template< typename Segments,
-          typename Array,
-          typename Fetch,
-          typename Compare,
-          typename Swap,
-          typename T = std::enable_if_t< IsArrayType< Array >::value > >
+template<
+   typename Segments,
+   typename Array,
+   typename Fetch,
+   typename Compare,
+   typename Swap,
+   typename T = std::enable_if_t< IsArrayType< Array >::value > >
 static void
-sortSegments( const Segments& segments,
-              const Array& segmentIndexes,
-              Fetch&& fetch,
-              Compare&& compare,
-              Swap&& swap,
-              LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+sortSegments(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Fetch&& fetch,
+   Compare&& compare,
+   Swap&& swap,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Sort elements within all segments that satisfy a condition.
@@ -298,12 +303,13 @@ sortSegments( const Segments& segments,
  */
 template< typename Segments, typename Condition, typename Fetch, typename Compare, typename Swap >
 static void
-sortAllSegmentsIf( const Segments& segments,
-                   Condition&& condition,
-                   Fetch&& fetch,
-                   Compare&& compare,
-                   Swap&& swap,
-                   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+sortAllSegmentsIf(
+   const Segments& segments,
+   Condition&& condition,
+   Fetch&& fetch,
+   Compare&& compare,
+   Swap&& swap,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Sort elements within segments that satisfy a condition.
@@ -332,23 +338,25 @@ sortAllSegmentsIf( const Segments& segments,
  *
  * See \ref sortSegments for a complete example.
  */
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Compare,
-          typename Swap,
-          typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Compare,
+   typename Swap,
+   typename T = std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 static void
-sortSegmentsIf( const Segments& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Condition&& condition,
-                Fetch&& fetch,
-                Compare&& compare,
-                Swap&& swap,
-                LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+sortSegmentsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Compare&& compare,
+   Swap&& swap,
+   LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Sorts a segment using insertion sort.

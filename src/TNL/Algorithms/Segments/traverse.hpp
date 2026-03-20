@@ -37,29 +37,32 @@ void
 forAllElementsIf( const Segments& segments, Condition condition, Function function, LaunchConfiguration launchConfig )
 {
    using IndexType = typename Segments::IndexType;
-   detail::TraversingOperations< typename Segments::ConstViewType >::forElementsIf( segments.getConstView(),
-                                                                                    (IndexType) 0,
-                                                                                    segments.getSegmentCount(),
-                                                                                    std::forward< Condition >( condition ),
-                                                                                    std::forward< Function >( function ),
-                                                                                    launchConfig );
+   detail::TraversingOperations< typename Segments::ConstViewType >::forElementsIf(
+      segments.getConstView(),
+      (IndexType) 0,
+      segments.getSegmentCount(),
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
 void
-forElementsIf( const Segments& segments,
-               IndexBegin begin,
-               IndexEnd end,
-               Condition condition,
-               Function function,
-               LaunchConfiguration launchConfig )
+forElementsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition condition,
+   Function function,
+   LaunchConfiguration launchConfig )
 {
-   detail::TraversingOperations< typename Segments::ConstViewType >::forElementsIf( segments.getConstView(),
-                                                                                    begin,
-                                                                                    end,
-                                                                                    std::forward< Condition >( condition ),
-                                                                                    std::forward< Function >( function ),
-                                                                                    launchConfig );
+   detail::TraversingOperations< typename Segments::ConstViewType >::forElementsIf(
+      segments.getConstView(),
+      begin,
+      end,
+      std::forward< Condition >( condition ),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Segments, typename Function >
@@ -89,27 +92,30 @@ forSegments( const Segments& segments, const Array& segmentIndexes, Function&& f
 
 template< typename Segments, typename SegmentCondition, typename Function >
 void
-forAllSegmentsIf( const Segments& segments,
-                  SegmentCondition&& segmentCondition,
-                  Function&& function,
-                  LaunchConfiguration launchConfig )
+forAllSegmentsIf(
+   const Segments& segments,
+   SegmentCondition&& segmentCondition,
+   Function&& function,
+   LaunchConfiguration launchConfig )
 {
-   forSegmentsIf( segments.getConstView(),
-                  (typename Segments::IndexType) 0,
-                  segments.getSegmentCount(),
-                  std::forward< SegmentCondition >( segmentCondition ),
-                  std::forward< Function >( function ),
-                  launchConfig );
+   forSegmentsIf(
+      segments.getConstView(),
+      (typename Segments::IndexType) 0,
+      segments.getSegmentCount(),
+      std::forward< SegmentCondition >( segmentCondition ),
+      std::forward< Function >( function ),
+      launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename SegmentCondition, typename Function, typename T >
 void
-forSegmentsIf( const Segments& segments,
-               IndexBegin begin,
-               IndexEnd end,
-               SegmentCondition&& segmentCondition,
-               Function&& function,
-               LaunchConfiguration launchConfig )
+forSegmentsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   SegmentCondition&& segmentCondition,
+   Function&& function,
+   LaunchConfiguration launchConfig )
 {
    detail::TraversingOperations< typename Segments::ConstViewType >::forSegmentsIf(
       segments.getConstView(),

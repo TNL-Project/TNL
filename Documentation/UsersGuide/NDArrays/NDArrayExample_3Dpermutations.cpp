@@ -3,10 +3,11 @@
 using namespace TNL::Containers;
 
 template< typename Permutation >
-using Array3D = NDArray< int,  // Value
-                         SizesHolder< int, 0, 0, 0 >,
-                         Permutation,
-                         TNL::Devices::Host >;
+using Array3D = NDArray<
+   int,  // Value
+   SizesHolder< int, 0, 0, 0 >,
+   Permutation,
+   TNL::Devices::Host >;
 
 int
 main()

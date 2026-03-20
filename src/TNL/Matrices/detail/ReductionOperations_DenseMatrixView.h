@@ -21,14 +21,15 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRows( MatrixView& matrix,
-               IndexBegin begin,
-               IndexEnd end,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               const FetchValue& identity,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRows(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       const auto columns = matrix.getColumns();
@@ -44,14 +45,15 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRows( const ConstMatrixView& matrix,
-               IndexBegin begin,
-               IndexEnd end,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               const FetchValue& identity,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRows(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       const auto columns = matrix.getColumns();
@@ -67,13 +69,14 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRows( MatrixView& matrix,
-               const Array& rowIndexes,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               const FetchValue& identity,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRows(
+      MatrixView& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       const auto columns = matrix.getColumns();
@@ -89,13 +92,14 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRows( const ConstMatrixView& matrix,
-               const Array& rowIndexes,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               const FetchValue& identity,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRows(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       const auto columns = matrix.getColumns();
@@ -111,61 +115,67 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
 
    template< typename Array, typename Fetch, typename Reduction, typename Store >
    static void
-   reduceRows( MatrixView& matrix,
-               const Array& rowIndexes,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRows(
+      MatrixView& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       using FetchValue = decltype( fetch( IndexType(), IndexType(), ValueType() ) );
       const FetchValue identity = reduction.template getIdentity< FetchValue >();
-      reduceRows( matrix,
-                  rowIndexes,
-                  std::forward< Fetch >( fetch ),
-                  reduction,
-                  std::forward< Store >( store ),
-                  identity,
-                  launchConfig );
+      reduceRows(
+         matrix,
+         rowIndexes,
+         std::forward< Fetch >( fetch ),
+         reduction,
+         std::forward< Store >( store ),
+         identity,
+         launchConfig );
    }
 
    template< typename Array, typename Fetch, typename Reduction, typename Store >
    static void
-   reduceRows( const ConstMatrixView& matrix,
-               const Array& rowIndexes,
-               Fetch&& fetch,
-               Reduction&& reduction,
-               Store&& store,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRows(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       using FetchValue = decltype( fetch( IndexType(), IndexType(), ValueType() ) );
       const FetchValue identity = reduction.template getIdentity< FetchValue >();
-      reduceRows( matrix,
-                  rowIndexes,
-                  std::forward< Fetch >( fetch ),
-                  reduction,
-                  std::forward< Store >( store ),
-                  identity,
-                  launchConfig );
+      reduceRows(
+         matrix,
+         rowIndexes,
+         std::forward< Fetch >( fetch ),
+         reduction,
+         std::forward< Store >( store ),
+         identity,
+         launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceRowsIf( MatrixView& matrix,
-                 IndexBegin begin,
-                 IndexEnd end,
-                 Condition&& condition,
-                 Fetch&& fetch,
-                 Reduction&& reduction,
-                 Store&& store,
-                 const FetchValue& identity,
-                 Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsIf(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       const auto columns = matrix.getColumns();
@@ -175,34 +185,37 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
             return fetch( rowIdx, localIdx, values_view[ globalIdx ] );
          return identity;
       };
-      return Algorithms::Segments::reduceSegmentsIf( matrix.getSegments(),
-                                                     begin,
-                                                     end,
-                                                     std::forward< Condition >( condition ),
-                                                     fetchWrapper,
-                                                     reduction,
-                                                     store,
-                                                     identity,
-                                                     launchConfig );
+      return Algorithms::Segments::reduceSegmentsIf(
+         matrix.getSegments(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetchWrapper,
+         reduction,
+         store,
+         identity,
+         launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceRowsIf( const ConstMatrixView& matrix,
-                 IndexBegin begin,
-                 IndexEnd end,
-                 Condition&& condition,
-                 Fetch&& fetch,
-                 Reduction&& reduction,
-                 Store&& store,
-                 const FetchValue& identity,
-                 Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       const auto columns = matrix.getColumns();
@@ -213,27 +226,29 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          return identity;
       };
 
-      return Algorithms::Segments::reduceSegmentsIf( matrix.getSegments(),
-                                                     begin,
-                                                     end,
-                                                     std::forward< Condition >( condition ),
-                                                     fetchWrapper,
-                                                     reduction,
-                                                     store,
-                                                     identity,
-                                                     launchConfig );
+      return Algorithms::Segments::reduceSegmentsIf(
+         matrix.getSegments(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetchWrapper,
+         reduction,
+         store,
+         identity,
+         launchConfig );
    }
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRowsWithArgument( MatrixView& matrix,
-                           IndexBegin begin,
-                           IndexEnd end,
-                           Fetch&& fetch,
-                           Reduction&& reduction,
-                           Store&& store,
-                           const FetchValue& identity,
-                           Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgument(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       const auto columns = matrix.getColumns();
@@ -255,14 +270,15 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
 
    template< typename IndexBegin, typename IndexEnd, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRowsWithArgument( const ConstMatrixView& matrix,
-                           IndexBegin begin,
-                           IndexEnd end,
-                           Fetch&& fetch,
-                           Reduction&& reduction,
-                           Store&& store,
-                           const FetchValue& identity,
-                           Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgument(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       const auto columns = matrix.getColumns();
@@ -283,13 +299,14 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRowsWithArgument( MatrixView& matrix,
-                           const Array& rowIndexes,
-                           Fetch&& fetch,
-                           Reduction&& reduction,
-                           Store&& store,
-                           const FetchValue& identity,
-                           Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgument(
+      MatrixView& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       const auto columns = matrix.getColumns();
@@ -314,13 +331,14 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
 
    template< typename Array, typename Fetch, typename Reduction, typename Store, typename FetchValue >
    static void
-   reduceRowsWithArgument( const ConstMatrixView& matrix,
-                           const Array& rowIndexes,
-                           Fetch&& fetch,
-                           Reduction&& reduction,
-                           Store&& store,
-                           const FetchValue& identity,
-                           Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgument(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       const auto columns = matrix.getColumns();
@@ -342,23 +360,25 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          matrix.getSegments(), rowIndexes, fetchWrapper, reduction, keepWrapper, identity, launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceRowsWithArgumentIf( MatrixView& matrix,
-                             IndexBegin begin,
-                             IndexEnd end,
-                             Condition&& condition,
-                             Fetch&& fetch,
-                             Reduction&& reduction,
-                             Store&& store,
-                             const FetchValue& identity,
-                             Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgumentIf(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto values_view = matrix.getValues().getView();
       const auto columns = matrix.getColumns();
@@ -375,34 +395,37 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
       };
 
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
-                                                                 begin,
-                                                                 end,
-                                                                 std::forward< Condition >( condition ),
-                                                                 fetchWrapper,
-                                                                 reduction,
-                                                                 keepWrapper,
-                                                                 identity,
-                                                                 launchConfig );
+      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
+         matrix.getSegments(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetchWrapper,
+         reduction,
+         keepWrapper,
+         identity,
+         launchConfig );
    }
 
-   template< typename IndexBegin,
-             typename IndexEnd,
-             typename Condition,
-             typename Fetch,
-             typename Reduction,
-             typename Store,
-             typename FetchValue >
+   template<
+      typename IndexBegin,
+      typename IndexEnd,
+      typename Condition,
+      typename Fetch,
+      typename Reduction,
+      typename Store,
+      typename FetchValue >
    static IndexType
-   reduceRowsWithArgumentIf( const ConstMatrixView& matrix,
-                             IndexBegin begin,
-                             IndexEnd end,
-                             Condition&& condition,
-                             Fetch&& fetch,
-                             Reduction&& reduction,
-                             Store&& store,
-                             const FetchValue& identity,
-                             Algorithms::Segments::LaunchConfiguration launchConfig )
+   reduceRowsWithArgumentIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Fetch&& fetch,
+      Reduction&& reduction,
+      Store&& store,
+      const FetchValue& identity,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto values_view = matrix.getValues().getConstView();
       const auto columns = matrix.getColumns();
@@ -419,15 +442,16 @@ struct ReductionOperations< DenseMatrixView< Real, Device, Index, Organization >
          store( indexOfRowIdx, rowIdx, localIdx, localIdx, value, emptySegment );
       };
 
-      return Algorithms::Segments::reduceSegmentsWithArgumentIf( matrix.getSegments(),
-                                                                 begin,
-                                                                 end,
-                                                                 std::forward< Condition >( condition ),
-                                                                 fetchWrapper,
-                                                                 reduction,
-                                                                 keepWrapper,
-                                                                 identity,
-                                                                 launchConfig );
+      return Algorithms::Segments::reduceSegmentsWithArgumentIf(
+         matrix.getSegments(),
+         begin,
+         end,
+         std::forward< Condition >( condition ),
+         fetchWrapper,
+         reduction,
+         keepWrapper,
+         identity,
+         launchConfig );
    }
 };
 }  // namespace TNL::Matrices::detail

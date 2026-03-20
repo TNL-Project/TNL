@@ -81,10 +81,11 @@ Logger::writeCurrentTime( const char* label )
 
 template< typename T >
 void
-Logger::writeParameter( const std::string& label,
-                        const std::string& parameterName,
-                        const Config::ParameterContainer& parameters,
-                        int parameterLevel )
+Logger::writeParameter(
+   const std::string& label,
+   const std::string& parameterName,
+   const Config::ParameterContainer& parameters,
+   int parameterLevel )
 {
    writeParameter( label, parameters.getParameter< T >( parameterName ), parameterLevel );
 }

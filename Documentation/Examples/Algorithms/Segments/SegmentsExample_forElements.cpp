@@ -29,11 +29,12 @@ SegmentsExample()
     * Insert data into particular segments with no check.
     */
    auto data_view = data.getView();
-   TNL::Algorithms::Segments::forAllElements( segments,
-                                              [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-                                              {
-                                                 data_view[ globalIdx ] = segmentIdx;
-                                              } );
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+      {
+         data_view[ globalIdx ] = segmentIdx;
+      } );
    //! [traversing-1]
 
    //! [printing-1]
@@ -54,12 +55,13 @@ SegmentsExample()
     * Insert data into particular segments.
     */
    data = 0.0;
-   TNL::Algorithms::Segments::forAllElements( segments,
-                                              [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
-                                              {
-                                                 if( localIdx <= segmentIdx )
-                                                    data_view[ globalIdx ] = segmentIdx;
-                                              } );
+   TNL::Algorithms::Segments::forAllElements(
+      segments,
+      [ = ] __cuda_callable__( int segmentIdx, int localIdx, int globalIdx ) mutable
+      {
+         if( localIdx <= segmentIdx )
+            data_view[ globalIdx ] = segmentIdx;
+      } );
    //! [traversing-2]
 
    //! [printing-2]

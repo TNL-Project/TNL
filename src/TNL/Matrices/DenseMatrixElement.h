@@ -36,10 +36,11 @@ public:
     * \param localIdx is the column index of the matrix element as well.
     */
    __cuda_callable__
-   DenseMatrixElement( RealType& value,
-                       IndexType rowIdx,
-                       IndexType columnIdx,
-                       IndexType localIdx )  // localIdx is here only for compatibility with SparseMatrixElement
+   DenseMatrixElement(
+      RealType& value,
+      IndexType rowIdx,
+      IndexType columnIdx,
+      IndexType localIdx )  // localIdx is here only for compatibility with SparseMatrixElement
    : value_( value ),
      rowIdx( rowIdx ),
      columnIdx( columnIdx )

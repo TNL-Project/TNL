@@ -10,19 +10,21 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-template< typename SegmentsConstView,
-          typename Index,
-          typename Function,
-          ElementsOrganization Organization,
-          int SliceSize,
-          int BlockSize = 256 >
+template<
+   typename SegmentsConstView,
+   typename Index,
+   typename Function,
+   ElementsOrganization Organization,
+   int SliceSize,
+   int BlockSize = 256 >
 __global__
 void
-forElementsBlockMergeKernel_SlicedEllpack( const Index gridIdx,
-                                           const SegmentsConstView segments,
-                                           Index begin,
-                                           Index end,
-                                           Function function )
+forElementsBlockMergeKernel_SlicedEllpack(
+   const Index gridIdx,
+   const SegmentsConstView segments,
+   Index begin,
+   Index end,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -112,12 +114,13 @@ forElementsBlockMergeKernel_SlicedEllpack( const Index gridIdx,
 template< typename SegmentsConstView, typename Index, typename Function, ElementsOrganization Organization, int SliceSize >
 __global__
 void
-forElementsKernel_SlicedEllpack( const Index gridIdx,
-                                 const Index threadsPerSegment,
-                                 const SegmentsConstView segments,
-                                 Index begin,
-                                 Index end,
-                                 Function function )
+forElementsKernel_SlicedEllpack(
+   const Index gridIdx,
+   const Index threadsPerSegment,
+   const SegmentsConstView segments,
+   Index begin,
+   Index end,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -182,19 +185,21 @@ forElementsKernel_SlicedEllpack( const Index gridIdx,
 #endif
 }
 
-template< typename SegmentsConstView,
-          typename ArrayView,
-          typename Index,
-          typename Function,
-          ElementsOrganization Organization,
-          int SliceSize >
+template<
+   typename SegmentsConstView,
+   typename ArrayView,
+   typename Index,
+   typename Function,
+   ElementsOrganization Organization,
+   int SliceSize >
 __global__
 void
-forElementsWithSegmentIndexesKernel_SlicedEllpack( const Index gridIdx,
-                                                   const Index threadsPerSegment,
-                                                   const SegmentsConstView segments,
-                                                   const ArrayView segmentIndexes,
-                                                   Function function )
+forElementsWithSegmentIndexesKernel_SlicedEllpack(
+   const Index gridIdx,
+   const Index threadsPerSegment,
+   const SegmentsConstView segments,
+   const ArrayView segmentIndexes,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index idx = Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
@@ -236,20 +241,22 @@ forElementsWithSegmentIndexesKernel_SlicedEllpack( const Index gridIdx,
 #endif
 }
 
-template< typename SegmentsConstView,
-          typename ArrayView,
-          typename Index,
-          typename Function,
-          ElementsOrganization Organization,
-          int SliceSize,
-          int SegmentsPerBlock,
-          int BlockSize = 256 >
+template<
+   typename SegmentsConstView,
+   typename ArrayView,
+   typename Index,
+   typename Function,
+   ElementsOrganization Organization,
+   int SliceSize,
+   int SegmentsPerBlock,
+   int BlockSize = 256 >
 __global__
 void
-forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx,
-                                                             const SegmentsConstView segments,
-                                                             const ArrayView segmentIndexes,
-                                                             Function function )
+forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack(
+   const Index gridIdx,
+   const SegmentsConstView segments,
+   const ArrayView segmentIndexes,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using CudaScan = Algorithms::detail::CudaBlockScanShfl< Algorithms::detail::ScanType::Exclusive, BlockSize, Plus, Index >;
@@ -334,22 +341,24 @@ forElementsWithSegmentIndexesBlockMergeKernel_SlicedEllpack( const Index gridIdx
 #endif
 }
 
-template< typename SegmentsConstView,
-          typename Index,
-          typename Condition,
-          typename Function,
-          ElementsOrganization Organization,
-          int SliceSize,
-          int BlockSize = 256 >
+template<
+   typename SegmentsConstView,
+   typename Index,
+   typename Condition,
+   typename Function,
+   ElementsOrganization Organization,
+   int SliceSize,
+   int BlockSize = 256 >
 __global__
 void
-forElementsIfKernel_SlicedEllpack( const Index gridIdx,
-                                   const Index threadsPerSegment,
-                                   const SegmentsConstView segments,
-                                   Index begin,
-                                   Index end,
-                                   Condition condition,
-                                   Function function )
+forElementsIfKernel_SlicedEllpack(
+   const Index gridIdx,
+   const Index threadsPerSegment,
+   const SegmentsConstView segments,
+   Index begin,
+   Index end,
+   Condition condition,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx ) / threadsPerSegment;
@@ -399,22 +408,24 @@ forElementsIfKernel_SlicedEllpack( const Index gridIdx,
 #endif
 }
 
-template< typename SegmentsConstView,
-          typename Index,
-          typename Condition,
-          typename Function,
-          ElementsOrganization Organization,
-          int SliceSize,
-          int SegmentsPerBlock,
-          int BlockSize = 256 >
+template<
+   typename SegmentsConstView,
+   typename Index,
+   typename Condition,
+   typename Function,
+   ElementsOrganization Organization,
+   int SliceSize,
+   int SegmentsPerBlock,
+   int BlockSize = 256 >
 __global__
 void
-forElementsIfBlockMergeKernel_SlicedEllpack( const Index gridIdx,
-                                             const SegmentsConstView segments,
-                                             const Index begin,
-                                             const Index end,
-                                             Condition condition,
-                                             Function function )
+forElementsIfBlockMergeKernel_SlicedEllpack(
+   const Index gridIdx,
+   const SegmentsConstView segments,
+   const Index begin,
+   const Index end,
+   Condition condition,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using InclusiveCudaScan =

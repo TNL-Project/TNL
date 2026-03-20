@@ -113,44 +113,52 @@ run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const 
    matrixRMO = matrixCMO;
 
    if( ! std::is_same_v< Device, Devices::Cuda > ) {
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "operation", "QR" },
-                                                                    { "precision", getType< PrecisionType >() },
-                                                                    { "matrixName", matrixName },
-                                                                    { "matrixType", "DM_CMO" },
-                                                                    { "size", std::to_string( size ) },
-                                                                    { "facMethod", "HH" } } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            { { "operation", "QR" },
+              { "precision", getType< PrecisionType >() },
+              { "matrixName", matrixName },
+              { "matrixType", "DM_CMO" },
+              { "size", std::to_string( size ) },
+              { "facMethod", "HH" } } ) );
       benchmark_qr< Device, MatrixTypeCMO >(
          benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Householder );
 
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "operation", "QR" },
-         { "precision", getType< PrecisionType >() },
-         { "matrixName", matrixName },
-         { "matrixType", "DM_CMO" },
-         { "size", std::to_string( size ) },
-         { "facMethod", "GM" },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "operation", "QR" },
+               { "precision", getType< PrecisionType >() },
+               { "matrixName", matrixName },
+               { "matrixType", "DM_CMO" },
+               { "size", std::to_string( size ) },
+               { "facMethod", "GM" },
+            } ) );
       benchmark_qr< Device, MatrixTypeCMO >(
          benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
 
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "operation", "QR" },
-         { "precision", getType< PrecisionType >() },
-         { "matrixName", matrixName },
-         { "matrixType", "DM_CMO" },
-         { "size", std::to_string( size ) },
-         { "facMethod", "GV" },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "operation", "QR" },
+               { "precision", getType< PrecisionType >() },
+               { "matrixName", matrixName },
+               { "matrixType", "DM_CMO" },
+               { "size", std::to_string( size ) },
+               { "facMethod", "GV" },
+            } ) );
       benchmark_qr< Device, MatrixTypeCMO >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
 
-      benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( {
-         { "operation", "QR" },
-         { "precision", getType< PrecisionType >() },
-         { "matrixName", matrixName },
-         { "matrixType", "DM_RMO" },
-         { "size", std::to_string( size ) },
-         { "facMethod", "GV" },
-      } ) );
+      benchmark.setMetadataColumns(
+         Benchmark<>::MetadataColumns(
+            {
+               { "operation", "QR" },
+               { "precision", getType< PrecisionType >() },
+               { "matrixName", matrixName },
+               { "matrixType", "DM_RMO" },
+               { "size", std::to_string( size ) },
+               { "facMethod", "GV" },
+            } ) );
       benchmark_qr< Device, MatrixTypeRMO >( benchmark, matrixRMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
    }
 }

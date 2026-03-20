@@ -246,14 +246,15 @@ public:
 
       for( LocalIndexType i = 0; i < facesCount; i++ ) {
          GlobalIndexType faceIdx = faces.getColumnIndex( i );
-         FaceSubentitySeedsCreator::iterate( mesh,
-                                             faceIdx,
-                                             [ & ]( SubentitySeed& seed )
-                                             {
-                                                const bool inserted = seedSet.insert( seed ).second;
-                                                if( inserted )
-                                                   functor( seed );
-                                             } );
+         FaceSubentitySeedsCreator::iterate(
+            mesh,
+            faceIdx,
+            [ & ]( SubentitySeed& seed )
+            {
+               const bool inserted = seedSet.insert( seed ).second;
+               if( inserted )
+                  functor( seed );
+            } );
       }
    }
 
@@ -265,12 +266,13 @@ public:
       const LocalIndexType facesCount = mesh.template getSubentitiesCount< EntityTopology::dimension, 2 >( entityIndex );
       for( LocalIndexType i = 0; i < facesCount; i++ ) {
          GlobalIndexType faceIdx = faces.getColumnIndex( i );
-         FaceSubentitySeedsCreator::iterate( mesh,
-                                             faceIdx,
-                                             [ & ]( SubentitySeed& seed )
-                                             {
-                                                seedSet.insert( seed );
-                                             } );
+         FaceSubentitySeedsCreator::iterate(
+            mesh,
+            faceIdx,
+            [ & ]( SubentitySeed& seed )
+            {
+               seedSet.insert( seed );
+            } );
       }
 
       return seedSet.size();
@@ -303,14 +305,15 @@ public:
 
       for( LocalIndexType i = 0; i < facesCount; i++ ) {
          GlobalIndexType faceIdx = faces.getColumnIndex( i );
-         FaceSubentitySeedsCreator::iterate( mesh,
-                                             faceIdx,
-                                             [ & ]( SubentitySeed& seed )
-                                             {
-                                                const bool inserted = seedSet.insert( seed ).second;
-                                                if( inserted )
-                                                   functor( seed );
-                                             } );
+         FaceSubentitySeedsCreator::iterate(
+            mesh,
+            faceIdx,
+            [ & ]( SubentitySeed& seed )
+            {
+               const bool inserted = seedSet.insert( seed ).second;
+               if( inserted )
+                  functor( seed );
+            } );
       }
    }
 
@@ -323,12 +326,13 @@ public:
 
       for( LocalIndexType i = 0; i < facesCount; i++ ) {
          GlobalIndexType faceIdx = faces.getColumnIndex( i );
-         FaceSubentitySeedsCreator::iterate( mesh,
-                                             faceIdx,
-                                             [ & ]( SubentitySeed& seed )
-                                             {
-                                                seedSet.insert( seed );
-                                             } );
+         FaceSubentitySeedsCreator::iterate(
+            mesh,
+            faceIdx,
+            [ & ]( SubentitySeed& seed )
+            {
+               seedSet.insert( seed );
+            } );
       }
 
       return seedSet.size();

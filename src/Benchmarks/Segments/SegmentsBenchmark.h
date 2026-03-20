@@ -70,14 +70,16 @@ struct SegmentsBenchmark
    : parameters( parameters_ )
    {}
 
-   template< typename Device,
-             template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
-             template< typename Index_, typename Device_ > class SegmentsKernel >
+   template<
+      typename Device,
+      template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments,
+      template< typename Index_, typename Device_ > class SegmentsKernel >
    void
-   TNLBenchmarks( const HostVector& hostSegmentsSizes,
-                  TNL::Benchmarks::Benchmark<>& benchmark,
-                  const TNL::String& device,
-                  const TNL::String& segmentsType )
+   TNLBenchmarks(
+      const HostVector& hostSegmentsSizes,
+      TNL::Benchmarks::Benchmark<>& benchmark,
+      const TNL::String& device,
+      const TNL::String& segmentsType )
    {
       using IndexVector = TNL::Containers::Vector< Index, Device, Index >;
       using IndexAllocator = typename TNL::Allocators::Default< Device >::template Allocator< Index >;
@@ -125,15 +127,16 @@ struct SegmentsBenchmark
             {
                value = stride * idx;
             } );
-         benchmark.setDatasetSize( TNL::Algorithms::reduce< Device >(
-                                      0,
-                                      segmentIndexes.getSize(),
-                                      [ = ] __cuda_callable__( Index idx )
-                                      {
-                                         return segmentsSizes_view[ segmentIndexes_view[ idx ] ];
-                                      },
-                                      TNL::Plus{} )
-                                   * sizeof( Index ) );
+         benchmark.setDatasetSize(
+            TNL::Algorithms::reduce< Device >(
+               0,
+               segmentIndexes.getSize(),
+               [ = ] __cuda_callable__( Index idx )
+               {
+                  return segmentsSizes_view[ segmentIndexes_view[ idx ] ];
+               },
+               TNL::Plus{} )
+            * sizeof( Index ) );
          for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations( segments ) ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
@@ -156,15 +159,16 @@ struct SegmentsBenchmark
 
       for( auto stride : { 2, 4, 8 } ) {
          benchmark.setMetadataElement( { "function", "forElementsIf stride " + convertToString( stride ) } );
-         benchmark.setDatasetSize( TNL::Algorithms::reduce< Device >(
-                                      0,
-                                      segmentsSizes.getSize(),
-                                      [ = ] __cuda_callable__( Index idx )
-                                      {
-                                         return ( idx % stride == 0 ) ? segmentsSizes_view[ idx ] : 0;
-                                      },
-                                      TNL::Plus{} )
-                                   * sizeof( Index ) );
+         benchmark.setDatasetSize(
+            TNL::Algorithms::reduce< Device >(
+               0,
+               segmentsSizes.getSize(),
+               [ = ] __cuda_callable__( Index idx )
+               {
+                  return ( idx % stride == 0 ) ? segmentsSizes_view[ idx ] : 0;
+               },
+               TNL::Plus{} )
+            * sizeof( Index ) );
 
          for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::traversingLaunchConfigurations( segments ) ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
@@ -265,15 +269,16 @@ struct SegmentsBenchmark
             {
                value = stride * idx;
             } );
-         benchmark.setDatasetSize( TNL::Algorithms::reduce< Device >(
-                                      0,
-                                      segmentIndexes.getSize(),
-                                      [ = ] __cuda_callable__( Index idx )
-                                      {
-                                         return segmentsSizes_view[ segmentIndexes_view[ idx ] ];
-                                      },
-                                      TNL::Plus{} )
-                                   * sizeof( Index ) );
+         benchmark.setDatasetSize(
+            TNL::Algorithms::reduce< Device >(
+               0,
+               segmentIndexes.getSize(),
+               [ = ] __cuda_callable__( Index idx )
+               {
+                  return segmentsSizes_view[ segmentIndexes_view[ idx ] ];
+               },
+               TNL::Plus{} )
+            * sizeof( Index ) );
          for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( segments ) ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
@@ -313,15 +318,16 @@ struct SegmentsBenchmark
       for( auto stride : { 2, 4, 8 } ) {
          result = 0;
          benchmark.setMetadataElement( { "function", "reduceSegmentIf stride " + convertToString( stride ) } );
-         benchmark.setDatasetSize( TNL::Algorithms::reduce< Device >(
-                                      0,
-                                      segmentsSizes.getSize(),
-                                      [ = ] __cuda_callable__( Index idx )
-                                      {
-                                         return ( idx % stride == 0 ) ? segmentsSizes_view[ idx ] : 0;
-                                      },
-                                      TNL::Plus{} )
-                                   * sizeof( Index ) );
+         benchmark.setDatasetSize(
+            TNL::Algorithms::reduce< Device >(
+               0,
+               segmentsSizes.getSize(),
+               [ = ] __cuda_callable__( Index idx )
+               {
+                  return ( idx % stride == 0 ) ? segmentsSizes_view[ idx ] : 0;
+               },
+               TNL::Plus{} )
+            * sizeof( Index ) );
          for( const auto& [ launchConfig, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( segments ) ) {
             benchmark.setMetadataElement( { "threads mapping", tag } );
             auto segmentsView = segments.getView();
@@ -367,21 +373,23 @@ struct SegmentsBenchmark
    {
       auto device = parameters.getParameter< TNL::String >( "device" );
 
-      benchmark.setMetadataColumns( {
-         { "segments setup", segmentsSetup },
-         { "segments count", convertToString( segmentsSizes.getSize() ) },
-         { "max segment size", convertToString( max( segmentsSizes ) ) },
-         { "elements count", convertToString( sum( segmentsSizes ) ) },
-      } );
-      benchmark.setMetadataWidths( {
-         { "segments setup", 16 },
-         { "segments count", 16 },
-         { "max segment size", 18 },
-         { "elements count", 16 },
-         { "segments type", 25 },
-         { "function", 35 },
-         { "threads mapping", 44 },
-      } );
+      benchmark.setMetadataColumns(
+         {
+            { "segments setup", segmentsSetup },
+            { "segments count", convertToString( segmentsSizes.getSize() ) },
+            { "max segment size", convertToString( max( segmentsSizes ) ) },
+            { "elements count", convertToString( sum( segmentsSizes ) ) },
+         } );
+      benchmark.setMetadataWidths(
+         {
+            { "segments setup", 16 },
+            { "segments count", 16 },
+            { "max segment size", 18 },
+            { "elements count", 16 },
+            { "segments type", 25 },
+            { "function", 35 },
+            { "threads mapping", 44 },
+         } );
 
       if( device == "sequential" || device == "all" )
          TNLBenchmarks< TNL::Devices::Sequential, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(
@@ -395,15 +403,17 @@ struct SegmentsBenchmark
             segmentsSizes, benchmark, "cuda", "CSR" );
          TNLBenchmarks< TNL::Devices::Cuda, EllpackSegments, TNL::Algorithms::SegmentsReductionKernels::EllpackKernel >(
             segmentsSizes, benchmark, "cuda", "Ellpack" );
-         TNLBenchmarks< TNL::Devices::Cuda,
-                        SlicedEllpackSegments,
-                        TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >(
+         TNLBenchmarks<
+            TNL::Devices::Cuda,
+            SlicedEllpackSegments,
+            TNL::Algorithms::SegmentsReductionKernels::SlicedEllpackKernel >(
             segmentsSizes, benchmark, "cuda", "SlicedEllpack" );
          TNLBenchmarks< TNL::Devices::Cuda, BiEllpackSegments, TNL::Algorithms::SegmentsReductionKernels::BiEllpackKernel >(
             segmentsSizes, benchmark, "cuda", "BiEllpack" );
-         TNLBenchmarks< TNL::Devices::Cuda,
-                        ChunkedEllpackSegments,
-                        TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel >(
+         TNLBenchmarks<
+            TNL::Devices::Cuda,
+            ChunkedEllpackSegments,
+            TNL::Algorithms::SegmentsReductionKernels::ChunkedEllpackKernel >(
             segmentsSizes, benchmark, "cuda", "ChunkedEllpack" );
       }
 #endif

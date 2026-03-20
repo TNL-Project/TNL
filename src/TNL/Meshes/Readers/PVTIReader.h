@@ -133,9 +133,10 @@ class PVTIReader : public XMLVTK
       // check that the number of pieces matches the number of MPI ranks
       const int nproc = communicator.size();
       if( static_cast< int >( pieceSources.size() ) != nproc )
-         throw MeshReaderError( "PVTIReader",
-                                "the number of subdomains does not match the number of MPI ranks ("
-                                   + std::to_string( pieceSources.size() ) + " vs " + std::to_string( nproc ) + ")." );
+         throw MeshReaderError(
+            "PVTIReader",
+            "the number of subdomains does not match the number of MPI ranks (" + std::to_string( pieceSources.size() ) + " vs "
+               + std::to_string( nproc ) + ")." );
 
       // read the local piece source
       const int rank = communicator.rank();

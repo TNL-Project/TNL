@@ -82,16 +82,17 @@ public:
 
    //! \brief Constructor with all necessary data and views.
    __cuda_callable__
-   ChunkedEllpackBase( IndexType size,
-                       IndexType storageSize,
-                       IndexType numberOfSlices,
-                       IndexType chunksInSlice,
-                       IndexType desiredChunkSize,
-                       OffsetsView segmentToChunkMapping,
-                       OffsetsView segmentToSliceMapping,
-                       OffsetsView chunksToSegmentsMapping,
-                       OffsetsView segmentPointers,
-                       SliceInfoContainerView slices );
+   ChunkedEllpackBase(
+      IndexType size,
+      IndexType storageSize,
+      IndexType numberOfSlices,
+      IndexType chunksInSlice,
+      IndexType desiredChunkSize,
+      OffsetsView segmentToChunkMapping,
+      OffsetsView segmentToSliceMapping,
+      OffsetsView chunksToSegmentsMapping,
+      OffsetsView segmentPointers,
+      SliceInfoContainerView slices );
 
    //! \brief Copy-assignment operator.
    ChunkedEllpackBase&
@@ -313,16 +314,17 @@ protected:
     */
    __cuda_callable__
    void
-   bind( IndexType size,
-         IndexType storageSize,
-         IndexType numberOfSlices,
-         IndexType chunksInSlice,
-         IndexType desiredChunkSize,
-         OffsetsView segmentToChunkMapping,
-         OffsetsView segmentToSliceMapping,
-         OffsetsView chunksToSegmentsMapping,
-         OffsetsView segmentPointers,
-         SliceInfoContainerView slices );
+   bind(
+      IndexType size,
+      IndexType storageSize,
+      IndexType numberOfSlices,
+      IndexType chunksInSlice,
+      IndexType desiredChunkSize,
+      OffsetsView segmentToChunkMapping,
+      OffsetsView segmentToSliceMapping,
+      OffsetsView chunksToSegmentsMapping,
+      OffsetsView segmentPointers,
+      SliceInfoContainerView slices );
 };
 
 }  // namespace TNL::Algorithms::Segments

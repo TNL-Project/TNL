@@ -240,13 +240,14 @@ struct MeshConfigTemplateTag
 // struct MeshTag< ConfigTag, Mesh< typename MeshConfigTemplateTag< ConfigTag >::
 //    template MeshConfig< CellTopology, SpaceDimension, Real, GlobalIndex, LocalIndex > > >
 //
-template< typename ConfigTag,
-          typename Device,
-          typename CellTopology,
-          int SpaceDimension,
-          typename Real,
-          typename GlobalIndex,
-          typename LocalIndex >
+template<
+   typename ConfigTag,
+   typename Device,
+   typename CellTopology,
+   int SpaceDimension,
+   typename Real,
+   typename GlobalIndex,
+   typename LocalIndex >
 struct MeshTag
 {
    // clang-format off

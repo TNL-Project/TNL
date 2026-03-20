@@ -78,11 +78,12 @@ struct MeshLocalIndexTag< MyConfigTag, short int >
 template<>
 struct MeshConfigTemplateTag< MyConfigTag >
 {
-   template< typename Cell,
-             int SpaceDimension = Cell::dimension,
-             typename Real = double,
-             typename GlobalIndex = int,
-             typename LocalIndex = GlobalIndex >
+   template<
+      typename Cell,
+      int SpaceDimension = Cell::dimension,
+      typename Real = double,
+      typename GlobalIndex = int,
+      typename LocalIndex = GlobalIndex >
    struct MeshConfig : public DefaultConfig< Cell, SpaceDimension, Real, GlobalIndex, LocalIndex >
    {
       static constexpr bool

@@ -12,16 +12,17 @@ namespace TNL::Algorithms::Segments {
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
 void
-ChunkedEllpackBase< Device, Index, Organization >::bind( IndexType size,
-                                                         IndexType storageSize,
-                                                         IndexType numberOfSlices,
-                                                         IndexType chunksInSlice,
-                                                         IndexType desiredChunkSize,
-                                                         OffsetsView segmentToChunkMapping,
-                                                         OffsetsView segmentToSliceMapping,
-                                                         OffsetsView chunksToSegmentsMapping,
-                                                         OffsetsView segmentPointers,
-                                                         SliceInfoContainerView slices )
+ChunkedEllpackBase< Device, Index, Organization >::bind(
+   IndexType size,
+   IndexType storageSize,
+   IndexType numberOfSlices,
+   IndexType chunksInSlice,
+   IndexType desiredChunkSize,
+   OffsetsView segmentToChunkMapping,
+   OffsetsView segmentToSliceMapping,
+   OffsetsView chunksToSegmentsMapping,
+   OffsetsView segmentPointers,
+   SliceInfoContainerView slices )
 {
    this->size = size;
    this->storageSize = storageSize;
@@ -37,16 +38,17 @@ ChunkedEllpackBase< Device, Index, Organization >::bind( IndexType size,
 
 template< typename Device, typename Index, ElementsOrganization Organization >
 __cuda_callable__
-ChunkedEllpackBase< Device, Index, Organization >::ChunkedEllpackBase( IndexType size,
-                                                                       IndexType storageSize,
-                                                                       IndexType numberOfSlices,
-                                                                       IndexType chunksInSlice,
-                                                                       IndexType desiredChunkSize,
-                                                                       OffsetsView segmentToChunkMapping,
-                                                                       OffsetsView segmentToSliceMapping,
-                                                                       OffsetsView chunksToSegmentsMapping,
-                                                                       OffsetsView segmentPointers,
-                                                                       SliceInfoContainerView slices )
+ChunkedEllpackBase< Device, Index, Organization >::ChunkedEllpackBase(
+   IndexType size,
+   IndexType storageSize,
+   IndexType numberOfSlices,
+   IndexType chunksInSlice,
+   IndexType desiredChunkSize,
+   OffsetsView segmentToChunkMapping,
+   OffsetsView segmentToSliceMapping,
+   OffsetsView chunksToSegmentsMapping,
+   OffsetsView segmentPointers,
+   SliceInfoContainerView slices )
 : size( size ),
   storageSize( storageSize ),
   numberOfSlices( numberOfSlices ),
@@ -334,10 +336,11 @@ ChunkedEllpackBase< Device, Index, Organization >::forAllElements( Function&& fu
 template< typename Device, typename Index, ElementsOrganization Organization >
 template< typename Array, typename Function >
 void
-ChunkedEllpackBase< Device, Index, Organization >::forElements( const Array& segmentIndexes,
-                                                                Index begin,
-                                                                Index end,
-                                                                Function function ) const
+ChunkedEllpackBase< Device, Index, Organization >::forElements(
+   const Array& segmentIndexes,
+   Index begin,
+   Index end,
+   Function function ) const
 {
    const IndexType chunksInSlice = this->chunksInSlice;
    auto segmentToChunkMapping = this->segmentToChunkMapping;
@@ -392,10 +395,11 @@ ChunkedEllpackBase< Device, Index, Organization >::forElements( const Array& seg
 template< typename Device, typename Index, ElementsOrganization Organization >
 template< typename Condition, typename Function >
 void
-ChunkedEllpackBase< Device, Index, Organization >::forElementsIf( IndexType begin,
-                                                                  IndexType end,
-                                                                  Condition condition,
-                                                                  Function function ) const
+ChunkedEllpackBase< Device, Index, Organization >::forElementsIf(
+   IndexType begin,
+   IndexType end,
+   Condition condition,
+   Function function ) const
 {
    const IndexType chunksInSlice = this->chunksInSlice;
    auto segmentToChunkMapping = this->segmentToChunkMapping;

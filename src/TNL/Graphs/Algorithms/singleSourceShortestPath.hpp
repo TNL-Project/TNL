@@ -21,10 +21,11 @@ namespace TNL::Graphs::Algorithms {
 
 template< typename Graph, typename Vector, typename Index = typename Graph::IndexType >
 void
-parallelSingleSourceShortestPath( const Graph& graph,
-                                  Index start,
-                                  Vector& distances,
-                                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+parallelSingleSourceShortestPath(
+   const Graph& graph,
+   Index start,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
@@ -118,13 +119,14 @@ parallelSingleSourceShortestPath( const Graph& graph,
 
 template< typename Graph, typename Vector, typename Index >
 void
-singleSourceShortestPath( const Graph& graph,
-                          Index start,
-                          Vector& distances,
-                          TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
+singleSourceShortestPath(
+   const Graph& graph,
+   Index start,
+   Vector& distances,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
-   static_assert( ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(),
-                  "SSSP requires general adjacency matrix, not symmetric." );
+   static_assert(
+      ! Graph::AdjacencyMatrixType::MatrixType::isSymmetric(), "SSSP requires general adjacency matrix, not symmetric." );
 
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;

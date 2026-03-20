@@ -28,8 +28,9 @@ ArrayView< Value, Device, Index >::ArrayView( ValueType* data, IndexType size )
   size( size )
 {
    TNL_ASSERT_GE( size, (Index) 0, "ArrayView size was initialized with a negative size." );
-   TNL_ASSERT_TRUE( ( data == nullptr && size == 0 ) || ( data != nullptr && size > 0 ),
-                    "ArrayView was initialized with a positive address and zero size or zero address and positive size." );
+   TNL_ASSERT_TRUE(
+      ( data == nullptr && size == 0 ) || ( data != nullptr && size > 0 ),
+      "ArrayView was initialized with a positive address and zero size or zero address and positive size." );
 }
 
 // methods for rebinding (reinitialization)
@@ -39,8 +40,9 @@ void
 ArrayView< Value, Device, Index >::bind( ValueType* data, IndexType size )
 {
    TNL_ASSERT_GE( size, (Index) 0, "ArrayView size was initialized with a negative size." );
-   TNL_ASSERT_TRUE( ( data == nullptr && size == 0 ) || ( data != nullptr && size > 0 ),
-                    "ArrayView was initialized with a positive address and zero size or zero address and positive size." );
+   TNL_ASSERT_TRUE(
+      ( data == nullptr && size == 0 ) || ( data != nullptr && size > 0 ),
+      "ArrayView was initialized with a positive address and zero size or zero address and positive size." );
 
    this->data = data;
    this->size = size;
@@ -199,14 +201,14 @@ Value&
 ArrayView< Value, Device, Index >::operator[]( IndexType i )
 {
 #if defined( __CUDA_ARCH__ )
-   TNL_ASSERT_TRUE( ( std::is_same< Device, Devices::Cuda >{}() ),
-                    "Attempt to access data not allocated on CUDA device from CUDA device." );
+   TNL_ASSERT_TRUE(
+      ( std::is_same< Device, Devices::Cuda >{}() ), "Attempt to access data not allocated on CUDA device from CUDA device." );
 #elif defined( __HIP_DEVICE_COMPILE__ )
-   TNL_ASSERT_TRUE( (std::is_same_v< Device, Devices::Hip >),
-                    "Attempt to access data not allocated on HIP device from HIP device." );
+   TNL_ASSERT_TRUE(
+      (std::is_same_v< Device, Devices::Hip >), "Attempt to access data not allocated on HIP device from HIP device." );
 #else
-   TNL_ASSERT_FALSE( (std::is_same_v< Device, Devices::Cuda >),
-                     "Attempt to access data not allocated on the host from the host." );
+   TNL_ASSERT_FALSE(
+      (std::is_same_v< Device, Devices::Cuda >), "Attempt to access data not allocated on the host from the host." );
 #endif
    TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
@@ -219,14 +221,14 @@ const Value&
 ArrayView< Value, Device, Index >::operator[]( IndexType i ) const
 {
 #if defined( __CUDA_ARCH__ )
-   TNL_ASSERT_TRUE( ( std::is_same< Device, Devices::Cuda >{}() ),
-                    "Attempt to access data not allocated on CUDA device from CUDA device." );
+   TNL_ASSERT_TRUE(
+      ( std::is_same< Device, Devices::Cuda >{}() ), "Attempt to access data not allocated on CUDA device from CUDA device." );
 #elif defined( __HIP_DEVICE_COMPILE__ )
-   TNL_ASSERT_TRUE( (std::is_same_v< Device, Devices::Hip >),
-                    "Attempt to access data not allocated on HIP device from HIP device." );
+   TNL_ASSERT_TRUE(
+      (std::is_same_v< Device, Devices::Hip >), "Attempt to access data not allocated on HIP device from HIP device." );
 #else
-   TNL_ASSERT_FALSE( (std::is_same_v< Device, Devices::Cuda >),
-                     "Attempt to access data not allocated on the host from the host." );
+   TNL_ASSERT_FALSE(
+      (std::is_same_v< Device, Devices::Cuda >), "Attempt to access data not allocated on the host from the host." );
 #endif
    TNL_ASSERT_GE( i, (Index) 0, "Element index must be non-negative." );
    TNL_ASSERT_LT( i, this->getSize(), "Element index is out of bounds." );
@@ -387,9 +389,9 @@ operator>>( File& file, ArrayView< Value, Device, Index > view )
    std::size_t size;
    file.load( &size );
    if( size != static_cast< std::size_t >( view.getSize() ) )
-      throw Exceptions::FileDeserializationError( file.getFileName(),
-                                                  "invalid array size: " + std::to_string( size ) + " (expected "
-                                                     + std::to_string( view.getSize() ) + ")." );
+      throw Exceptions::FileDeserializationError(
+         file.getFileName(),
+         "invalid array size: " + std::to_string( size ) + " (expected " + std::to_string( view.getSize() ) + ")." );
    IO::load( file, view.getData(), view.getSize() );
    return file;
 }

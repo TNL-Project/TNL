@@ -101,9 +101,10 @@ template< class Type, class... Types, std::size_t... Counts >
 struct Push< Type, pack< counted_pack< Types, Counts >... > >
 {
 public:
-   using type = std::conditional_t< disjunction< std::is_same< Types, Type >... >::value,
-                                    pack< counted_pack< Types, Counts + ( std::is_same_v< Types, Type > ? 1 : 0 ) >... >,
-                                    pack< counted_pack< Types, Counts >..., counted_pack< Type, 1 > > >;
+   using type = std::conditional_t<
+      disjunction< std::is_same< Types, Type >... >::value,
+      pack< counted_pack< Types, Counts + ( std::is_same_v< Types, Type > ? 1 : 0 ) >... >,
+      pack< counted_pack< Types, Counts >..., counted_pack< Type, 1 > > >;
 };
 
 template< class Type, class CountedTypes >
@@ -204,9 +205,9 @@ struct MakePermutationsImpl< N, pack< counted_pack< Types, Counts >... >, pack< 
    // We append it to Current... and pop it from the list of types, then
    // recursively generate the remaining items
    // Do this for every type in Types..., and concatenate the result.
-   using type = merge< typename MakePermutations< N - 1,
-                                                  pop< Types, pack< counted_pack< Types, Counts >... > >,
-                                                  pack< Current..., Types > >::type... >;
+   using type = merge<
+      typename MakePermutations< N - 1, pop< Types, pack< counted_pack< Types, Counts >... > >, pack< Current..., Types > >::
+         type... >;
 };
 
 template< std::size_t N, class... Types, std::size_t... Counts, class... Current >
@@ -261,9 +262,10 @@ struct BuildOnesPack;
 
 template< int OnesCount, int Size, int... Values >
 struct BuildOnesPack< OnesCount, Size, int_pack< Values... > >
-: std::conditional_t< OnesCount == 0,
-                      BuildOnesPack< 0, Size - 1, int_pack< 0, Values... > >,
-                      BuildOnesPack< OnesCount - 1, Size - 1, int_pack< 1, Values... > > >
+: std::conditional_t<
+     OnesCount == 0,
+     BuildOnesPack< 0, Size - 1, int_pack< 0, Values... > >,
+     BuildOnesPack< OnesCount - 1, Size - 1, int_pack< 1, Values... > > >
 {};
 
 template< int Value, int... Values >

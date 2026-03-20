@@ -436,8 +436,9 @@ public:
    [[nodiscard]] const Object&
    getData() const
    {
-      static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
-                     "Only Devices::Host or Devices::Cuda devices are accepted here." );
+      static_assert(
+         std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
+         "Only Devices::Host or Devices::Cuda devices are accepted here." );
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
       TNL_ASSERT_TRUE( this->cuda_pointer, "Attempt to dereference a null pointer" );
       if( std::is_same_v< Device, Devices::Host > )
@@ -462,8 +463,9 @@ public:
    [[nodiscard]] Object&
    modifyData()
    {
-      static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
-                     "Only Devices::Host or Devices::Cuda devices are accepted here." );
+      static_assert(
+         std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
+         "Only Devices::Host or Devices::Cuda devices are accepted here." );
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
       TNL_ASSERT_TRUE( this->cuda_pointer, "Attempt to dereference a null pointer" );
       if( std::is_same_v< Device, Devices::Host > ) {
@@ -523,10 +525,11 @@ public:
       if( this->pd == nullptr )
          return true;
       if( this->modified() ) {
-         Backend::memcpy( reinterpret_cast< void* >( this->cuda_pointer ),
-                          reinterpret_cast< const void* >( &this->pd->data ),
-                          sizeof( Object ),
-                          Backend::MemcpyHostToDevice );
+         Backend::memcpy(
+            reinterpret_cast< void* >( this->cuda_pointer ),
+            reinterpret_cast< const void* >( &this->pd->data ),
+            sizeof( Object ),
+            Backend::MemcpyHostToDevice );
          this->set_last_sync_state();
          return true;
       }
@@ -572,9 +575,10 @@ protected:
    set_last_sync_state()
    {
       TNL_ASSERT_TRUE( this->pd, "Attempt to dereference a null pointer" );
-      std::memcpy( reinterpret_cast< void* >( &this->pd->data_image ),
-                   reinterpret_cast< const void* >( &this->pd->data ),
-                   sizeof( ObjectType ) );
+      std::memcpy(
+         reinterpret_cast< void* >( &this->pd->data_image ),
+         reinterpret_cast< const void* >( &this->pd->data ),
+         sizeof( ObjectType ) );
       this->pd->maybe_modified = false;
    }
 
@@ -585,9 +589,10 @@ protected:
       // optimization: skip bitwise comparison if we're sure that the data is the same
       if( ! this->pd->maybe_modified )
          return false;
-      return std::memcmp( reinterpret_cast< const void* >( &this->pd->data_image ),
-                          reinterpret_cast< const void* >( &this->pd->data ),
-                          sizeof( ObjectType ) )
+      return std::memcmp(
+                reinterpret_cast< const void* >( &this->pd->data_image ),
+                reinterpret_cast< const void* >( &this->pd->data ),
+                sizeof( ObjectType ) )
           != 0;
    }
 

@@ -9,12 +9,13 @@
 
 namespace TNL::Matrices::detail {
 
-template< typename Real,
-          typename Device,
-          typename Index,
-          typename MatrixType_,
-          template< typename Device_, typename Index_ > class SegmentsView,
-          typename ComputeReal >
+template<
+   typename Real,
+   typename Device,
+   typename Index,
+   typename MatrixType_,
+   template< typename Device_, typename Index_ > class SegmentsView,
+   typename ComputeReal >
 struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeReal > >
 {
    using MatrixView = SparseMatrixView< Real, Device, Index, MatrixType_, SegmentsView, ComputeReal >;
@@ -27,11 +28,12 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( MatrixView& matrix,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElements(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
@@ -56,11 +58,12 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstMatrixView& matrix,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElements(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
@@ -84,12 +87,13 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( MatrixView& matrix,
-                const Array& rowIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElements(
+      MatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
@@ -113,12 +117,13 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forElements( const ConstMatrixView& matrix,
-                const Array& rowIndexes,
-                IndexBegin begin,
-                IndexEnd end,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElements(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
@@ -142,12 +147,13 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( MatrixView& matrix,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElementsIf(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
@@ -173,12 +179,13 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename IndexBegin, typename IndexEnd, typename Condition, typename Function >
    static void
-   forElementsIf( const ConstMatrixView& matrix,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+   forElementsIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Condition&& condition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
@@ -203,11 +210,12 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forRows( MatrixView& matrix,
-            IndexBegin begin,
-            IndexEnd end,
-            Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRows(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
@@ -222,11 +230,12 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forRows( const ConstMatrixView& matrix,
-            IndexBegin begin,
-            IndexEnd end,
-            Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRows(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
@@ -241,12 +250,13 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forRows( MatrixView& matrix,
-            const Array& rowIndexes,
-            IndexBegin begin,
-            IndexEnd end,
-            Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRows(
+      MatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
@@ -261,12 +271,13 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename Array, typename IndexBegin, typename IndexEnd, typename Function >
    static void
-   forRows( const ConstMatrixView& matrix,
-            const Array& rowIndexes,
-            IndexBegin begin,
-            IndexEnd end,
-            Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRows(
+      const ConstMatrixView& matrix,
+      const Array& rowIndexes,
+      IndexBegin begin,
+      IndexEnd end,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();
@@ -281,12 +292,13 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
    static void
-   forRowsIf( MatrixView& matrix,
-              IndexBegin begin,
-              IndexEnd end,
-              RowCondition&& rowCondition,
-              Function&& function,
-              Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRowsIf(
+      MatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      RowCondition&& rowCondition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto columns_view = matrix.getColumnIndexes().getView();
       auto values_view = matrix.getValues().getView();
@@ -301,12 +313,13 @@ struct TraversingOperations< SparseMatrixView< Real, Device, Index, MatrixType_,
 
    template< typename IndexBegin, typename IndexEnd, typename RowCondition, typename Function >
    static void
-   forRowsIf( const ConstMatrixView& matrix,
-              IndexBegin begin,
-              IndexEnd end,
-              RowCondition&& rowCondition,
-              Function&& function,
-              Algorithms::Segments::LaunchConfiguration launchConfig )
+   forRowsIf(
+      const ConstMatrixView& matrix,
+      IndexBegin begin,
+      IndexEnd end,
+      RowCondition&& rowCondition,
+      Function&& function,
+      Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       const auto columns_view = matrix.getColumnIndexes().getConstView();
       const auto values_view = matrix.getValues().getConstView();

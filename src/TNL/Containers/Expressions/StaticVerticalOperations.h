@@ -98,8 +98,9 @@ StaticExpressionAll( const Expression& expression )
 {
    using ResultType = std::decay_t< decltype( expression[ 0 ] && expression[ 0 ] ) >;
 
-   static_assert( std::numeric_limits< ResultType >::is_specialized,
-                  "std::numeric_limits is not specialized for the reduction's result type" );
+   static_assert(
+      std::numeric_limits< ResultType >::is_specialized,
+      "std::numeric_limits is not specialized for the reduction's result type" );
    ResultType result = std::numeric_limits< ResultType >::max();
    for( int i = 0; i < expression.getSize(); i++ )
       result = result && expression[ i ];

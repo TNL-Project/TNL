@@ -9,10 +9,11 @@ namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index, ElementsOrganization Organization, int WarpSize >
 __cuda_callable__
-BiEllpackView< Device, Index, Organization, WarpSize >::BiEllpackView( Index size,
-                                                                       Index storageSize,
-                                                                       typename Base::OffsetsView segmentsPermutation,
-                                                                       typename Base::OffsetsView groupPointers )
+BiEllpackView< Device, Index, Organization, WarpSize >::BiEllpackView(
+   Index size,
+   Index storageSize,
+   typename Base::OffsetsView segmentsPermutation,
+   typename Base::OffsetsView groupPointers )
 : Base( size, storageSize, std::move( segmentsPermutation ), std::move( groupPointers ) )
 {}
 

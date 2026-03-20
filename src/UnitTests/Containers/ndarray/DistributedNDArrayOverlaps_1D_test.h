@@ -49,30 +49,29 @@ protected:
 };
 
 // types for which DistributedNDArrayOverlaps_1D_test is instantiated
-using DistributedNDArrayTypes = ::testing::Types< DistributedNDArray< NDArray< double,
-                                                                               SizesHolder< int, 0 >,
-                                                                               std::index_sequence< 0 >,
-                                                                               Devices::Host,
-                                                                               int,
-                                                                               StaticSizesHolder< int, 2 > > >  // overlaps
+using DistributedNDArrayTypes = ::testing::Types<
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0 >,
+      std::index_sequence< 0 >,
+      Devices::Host,
+      int,
+      StaticSizesHolder< int, 2 > > >  // overlaps
 #if defined( __CUDACC__ )
-                                                  ,
-                                                  DistributedNDArray< NDArray< double,
-                                                                               SizesHolder< int, 0 >,
-                                                                               std::index_sequence< 0 >,
-                                                                               Devices::Cuda,
-                                                                               int,
-                                                                               StaticSizesHolder< int, 2 > > >  // overlaps
+   ,
+   DistributedNDArray< NDArray<
+      double,
+      SizesHolder< int, 0 >,
+      std::index_sequence< 0 >,
+      Devices::Cuda,
+      int,
+      StaticSizesHolder< int, 2 > > >  // overlaps
 #elif defined( __HIP__ )
-                                                  ,
-                                                  DistributedNDArray< NDArray< double,
-                                                                               SizesHolder< int, 0 >,
-                                                                               std::index_sequence< 0 >,
-                                                                               Devices::Hip,
-                                                                               int,
-                                                                               StaticSizesHolder< int, 2 > > >  // overlaps
+   ,
+   DistributedNDArray<
+      NDArray< double, SizesHolder< int, 0 >, std::index_sequence< 0 >, Devices::Hip, int, StaticSizesHolder< int, 2 > > >  // overlaps
 #endif
-                                                  >;
+   >;
 
 TYPED_TEST_SUITE( DistributedNDArrayOverlaps_1D_test, DistributedNDArrayTypes );
 

@@ -12,10 +12,11 @@ namespace TNL::Algorithms::Segments::detail {
 template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
 __device__
 void
-dynamicGroupingTraversingKernel_CSR( const OffsetsView offsets,
-                                     bool traverse_segment,
-                                     const Index segmentIdx,
-                                     Function function )
+dynamicGroupingTraversingKernel_CSR(
+   const OffsetsView offsets,
+   bool traverse_segment,
+   const Index segmentIdx,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    constexpr Index warpSize = Backend::getWarpSize();
@@ -122,11 +123,12 @@ dynamicGroupingTraversingKernel_CSR( const OffsetsView offsets,
 template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
 __global__
 void
-forElementsDynamicGroupingKernel_CSR( const Index gridIdx,
-                                      const OffsetsView offsets,
-                                      const Index begin,
-                                      const Index end,
-                                      Function function )
+forElementsDynamicGroupingKernel_CSR(
+   const Index gridIdx,
+   const OffsetsView offsets,
+   const Index begin,
+   const Index end,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    const Index segmentIdx = begin + Backend::getGlobalThreadIdx_x( gridIdx );
@@ -139,11 +141,12 @@ forElementsDynamicGroupingKernel_CSR( const Index gridIdx,
 template< typename OffsetsView, typename Index, typename Function, int BlockSize = 256 >
 __global__
 void
-forElementsBlockMergeKernel_CSR( const Index gridIdx,
-                                 const OffsetsView offsets,
-                                 const Index begin,
-                                 const Index end,
-                                 Function function )
+forElementsBlockMergeKernel_CSR(
+   const Index gridIdx,
+   const OffsetsView offsets,
+   const Index begin,
+   const Index end,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -181,11 +184,12 @@ forElementsBlockMergeKernel_CSR( const Index gridIdx,
 template< typename OffsetsView, typename ArrayView, typename Index, typename Function >
 __global__
 void
-forElementsWithSegmentIndexesKernel_CSR( const Index gridIdx,
-                                         const Index threadsPerSegment,
-                                         const OffsetsView offsets,
-                                         const ArrayView segmentIndexes,
-                                         Function function )
+forElementsWithSegmentIndexesKernel_CSR(
+   const Index gridIdx,
+   const Index threadsPerSegment,
+   const OffsetsView offsets,
+   const ArrayView segmentIndexes,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -217,10 +221,11 @@ forElementsWithSegmentIndexesKernel_CSR( const Index gridIdx,
 template< typename OffsetsView, typename ArrayView, typename Index, typename Function, int BlockSize = 256 >
 __global__
 void
-forElementsWithSegmentIndexesDynamicGroupingKernel_CSR( const Index gridIdx,
-                                                        const OffsetsView offsets,
-                                                        const ArrayView segmentIndexes,
-                                                        Function function )
+forElementsWithSegmentIndexesDynamicGroupingKernel_CSR(
+   const Index gridIdx,
+   const OffsetsView offsets,
+   const ArrayView segmentIndexes,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -244,10 +249,11 @@ forElementsWithSegmentIndexesDynamicGroupingKernel_CSR( const Index gridIdx,
 template< typename OffsetsView, typename ArrayView, typename Index, typename Function, int SegmentsPerBlock, int BlockSize = 256 >
 __global__
 void
-forElementsWithSegmentIndexesBlockMergeKernel_CSR( const Index gridIdx,
-                                                   const OffsetsView offsets,
-                                                   const ArrayView segmentIndexes,
-                                                   Function function )
+forElementsWithSegmentIndexesBlockMergeKernel_CSR(
+   const Index gridIdx,
+   const OffsetsView offsets,
+   const ArrayView segmentIndexes,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using CudaScan = Algorithms::detail::CudaBlockScanShfl< Algorithms::detail::ScanType::Exclusive, BlockSize, Plus, Index >;
@@ -323,13 +329,14 @@ forElementsWithSegmentIndexesBlockMergeKernel_CSR( const Index gridIdx,
 template< typename OffsetsView, typename Index, typename Condition, typename Function >
 __global__
 void
-forElementsIfKernel_CSR( const Index gridIdx,
-                         const Index threadsPerSegment,
-                         const OffsetsView offsets,
-                         const Index begin,
-                         const Index end,
-                         Condition condition,
-                         Function function )
+forElementsIfKernel_CSR(
+   const Index gridIdx,
+   const Index threadsPerSegment,
+   const OffsetsView offsets,
+   const Index begin,
+   const Index end,
+   Condition condition,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -356,12 +363,13 @@ forElementsIfKernel_CSR( const Index gridIdx,
 template< typename OffsetsView, typename Index, typename Condition, typename Function, int BlockSize = 256 >
 __global__
 void
-forElementsIfDynamicGroupingKernel_CSR( const Index gridIdx,
-                                        const OffsetsView offsets,
-                                        const Index begin,
-                                        const Index end,
-                                        Condition condition,
-                                        Function function )
+forElementsIfDynamicGroupingKernel_CSR(
+   const Index gridIdx,
+   const OffsetsView offsets,
+   const Index begin,
+   const Index end,
+   Condition condition,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
@@ -379,12 +387,13 @@ forElementsIfDynamicGroupingKernel_CSR( const Index gridIdx,
 template< typename OffsetsView, typename Index, typename Condition, typename Function, int SegmentsPerBlock, int BlockSize = 256 >
 __global__
 void
-forElementsIfBlockMergeKernel_CSR( Index gridIdx,
-                                   OffsetsView offsets,
-                                   const Index begin,
-                                   const Index end,
-                                   Condition condition,
-                                   Function function )
+forElementsIfBlockMergeKernel_CSR(
+   Index gridIdx,
+   OffsetsView offsets,
+   const Index begin,
+   const Index end,
+   Condition condition,
+   Function function )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using InclusiveCudaScan =

@@ -99,10 +99,11 @@ public:
     * \param indexer is object responsible for indexing and organization of matrix elements
     */
    __cuda_callable__
-   MultidiagonalMatrixRowView( IndexType rowIdx,
-                               DiagonalsOffsetsView diagonalsOffsets,
-                               ValuesViewType values,
-                               IndexerType indexer );
+   MultidiagonalMatrixRowView(
+      IndexType rowIdx,
+      DiagonalsOffsetsView diagonalsOffsets,
+      ValuesViewType values,
+      IndexerType indexer );
 
    /**
     * \brief Returns number of diagonals of the multidiagonal matrix.

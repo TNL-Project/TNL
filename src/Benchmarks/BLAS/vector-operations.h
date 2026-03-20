@@ -315,9 +315,10 @@ public:
    #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
-         resultDevice = *thrust::max_element( thrust::device,
-                                              thrust::device_pointer_cast( deviceVector.getData() ),
-                                              thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ) );
+         resultDevice = *thrust::max_element(
+            thrust::device,
+            thrust::device_pointer_cast( deviceVector.getData() ),
+            thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ) );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU thrust::max_element", computeThrustDevice );
       verify( "GPU thrust::max_element", resultDevice, 1.0 );
@@ -380,9 +381,10 @@ public:
    #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
-         resultDevice = *thrust::min_element( thrust::device,
-                                              thrust::device_pointer_cast( deviceVector.getData() ),
-                                              thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ) );
+         resultDevice = *thrust::min_element(
+            thrust::device,
+            thrust::device_pointer_cast( deviceVector.getData() ),
+            thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ) );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU thrust::min_element", computeThrustDevice );
       verify( "GPU thrust::min_element", resultDevice, 1.0 );
@@ -422,12 +424,13 @@ public:
 
       auto computeSTL = [ & ]()
       {
-         resultHost = *std::max_element( STDEXEC hostVector.getData(),
-                                         hostVector.getData() + hostVector.getSize(),
-                                         []( auto a, auto b )
-                                         {
-                                            return std::abs( a ) < std::abs( b );
-                                         } );
+         resultHost = *std::max_element(
+            STDEXEC hostVector.getData(),
+            hostVector.getData() + hostVector.getSize(),
+            []( auto a, auto b )
+            {
+               return std::abs( a ) < std::abs( b );
+            } );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::max_element", computeSTL );
       verify( "CPU std::max_element", resultHost, 1.0 );
@@ -465,13 +468,14 @@ public:
 #ifdef HAVE_THRUST
       auto computeThrust = [ & ]()
       {
-         resultHost = *thrust::max_element( thrust::host,
-                                            hostVector.getData(),
-                                            hostVector.getData() + hostVector.getSize(),
-                                            []( auto a, auto b )
-                                            {
-                                               return std::abs( a ) < std::abs( b );
-                                            } );
+         resultHost = *thrust::max_element(
+            thrust::host,
+            hostVector.getData(),
+            hostVector.getData() + hostVector.getSize(),
+            []( auto a, auto b )
+            {
+               return std::abs( a ) < std::abs( b );
+            } );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::max_element", computeThrust );
       verify( "CPU thrust::max_element", resultHost, 1.0 );
@@ -479,13 +483,14 @@ public:
    #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
-         resultDevice = *thrust::max_element( thrust::device,
-                                              thrust::device_pointer_cast( deviceVector.getData() ),
-                                              thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
-                                              [] __cuda_callable__( Real a, Real b )
-                                              {
-                                                 return std::abs( a ) < std::abs( b );
-                                              } );
+         resultDevice = *thrust::max_element(
+            thrust::device,
+            thrust::device_pointer_cast( deviceVector.getData() ),
+            thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
+            [] __cuda_callable__( Real a, Real b )
+            {
+               return std::abs( a ) < std::abs( b );
+            } );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU thrust::max_element", computeThrustDevice );
       verify( "GPU thrust::max_element", resultDevice, 1.0 );
@@ -527,12 +532,13 @@ public:
 
       auto computeSTL = [ & ]()
       {
-         resultHost = *std::min_element( STDEXEC hostVector.getData(),
-                                         hostVector.getData() + hostVector.getSize(),
-                                         []( auto a, auto b )
-                                         {
-                                            return std::abs( a ) < std::abs( b );
-                                         } );
+         resultHost = *std::min_element(
+            STDEXEC hostVector.getData(),
+            hostVector.getData() + hostVector.getSize(),
+            []( auto a, auto b )
+            {
+               return std::abs( a ) < std::abs( b );
+            } );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::min_element", computeSTL );
       verify( "CPU std::min_element", resultHost, 1.0 );
@@ -570,13 +576,14 @@ public:
 #ifdef HAVE_THRUST
       auto computeThrust = [ & ]()
       {
-         resultHost = *thrust::min_element( thrust::host,
-                                            hostVector.getData(),
-                                            hostVector.getData() + hostVector.getSize(),
-                                            []( auto a, auto b )
-                                            {
-                                               return std::abs( a ) < std::abs( b );
-                                            } );
+         resultHost = *thrust::min_element(
+            thrust::host,
+            hostVector.getData(),
+            hostVector.getData() + hostVector.getSize(),
+            []( auto a, auto b )
+            {
+               return std::abs( a ) < std::abs( b );
+            } );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::min_element", computeThrust );
       verify( "CPU thrust::min_element", resultHost, 1.0 );
@@ -584,13 +591,14 @@ public:
    #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
-         resultDevice = *thrust::min_element( thrust::device,
-                                              thrust::device_pointer_cast( deviceVector.getData() ),
-                                              thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
-                                              [] __cuda_callable__( Real a, Real b )
-                                              {
-                                                 return std::abs( a ) < std::abs( b );
-                                              } );
+         resultDevice = *thrust::min_element(
+            thrust::device,
+            thrust::device_pointer_cast( deviceVector.getData() ),
+            thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
+            [] __cuda_callable__( Real a, Real b )
+            {
+               return std::abs( a ) < std::abs( b );
+            } );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU thrust::min_element", computeThrustDevice );
       verify( "GPU thrust::min_element", resultDevice, 1.0 );
@@ -653,9 +661,10 @@ public:
    #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
-         resultDevice = thrust::reduce( thrust::device,
-                                        thrust::device_pointer_cast( deviceVector.getData() ),
-                                        thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ) );
+         resultDevice = thrust::reduce(
+            thrust::device,
+            thrust::device_pointer_cast( deviceVector.getData() ),
+            thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ) );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU thrust::reduce", computeThrustDevice );
       verify( "GPU thrust::reduce", resultDevice, size );
@@ -693,14 +702,15 @@ public:
 
       auto computeSTL = [ & ]()
       {
-         resultHost = std::transform_reduce( STDEXEC hostVector.getData(),
-                                             hostVector.getData() + hostVector.getSize(),
-                                             0,
-                                             std::plus<>{},
-                                             []( auto v )
-                                             {
-                                                return std::abs( v );
-                                             } );
+         resultHost = std::transform_reduce(
+            STDEXEC hostVector.getData(),
+            hostVector.getData() + hostVector.getSize(),
+            0,
+            std::plus<>{},
+            []( auto v )
+            {
+               return std::abs( v );
+            } );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
       verify( "CPU std::transform_reduce", resultHost, size );
@@ -799,14 +809,15 @@ public:
 
       auto computeSTL = [ & ]()
       {
-         const auto sum = std::transform_reduce( STDEXEC hostVector.getData(),
-                                                 hostVector.getData() + hostVector.getSize(),
-                                                 0,
-                                                 std::plus<>{},
-                                                 []( auto v )
-                                                 {
-                                                    return v * v;
-                                                 } );
+         const auto sum = std::transform_reduce(
+            STDEXEC hostVector.getData(),
+            hostVector.getData() + hostVector.getSize(),
+            0,
+            std::plus<>{},
+            []( auto v )
+            {
+               return v * v;
+            } );
          resultHost = std::sqrt( sum );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
@@ -899,14 +910,15 @@ public:
 
       auto computeSTL = [ & ]()
       {
-         const auto sum = std::transform_reduce( STDEXEC hostVector.getData(),
-                                                 hostVector.getData() + hostVector.getSize(),
-                                                 0,
-                                                 std::plus<>{},
-                                                 []( auto v )
-                                                 {
-                                                    return std::pow( v, 3 );
-                                                 } );
+         const auto sum = std::transform_reduce(
+            STDEXEC hostVector.getData(),
+            hostVector.getData() + hostVector.getSize(),
+            0,
+            std::plus<>{},
+            []( auto v )
+            {
+               return std::pow( v, 3 );
+            } );
          resultHost = std::cbrt( sum );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
@@ -997,12 +1009,13 @@ public:
 
       auto computeSTL = [ & ]()
       {
-         resultHost = std::transform_reduce( STDEXEC hostVector.getData(),
-                                             hostVector.getData() + hostVector.getSize(),
-                                             hostVector2.getData(),
-                                             0,
-                                             std::plus<>{},
-                                             std::multiplies<>{} );
+         resultHost = std::transform_reduce(
+            STDEXEC hostVector.getData(),
+            hostVector.getData() + hostVector.getSize(),
+            hostVector2.getData(),
+            0,
+            std::plus<>{},
+            std::multiplies<>{} );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU std::transform_reduce", computeSTL );
       verify( "CPU std::transform_reduce", resultHost, size );
@@ -1037,13 +1050,14 @@ public:
 #ifdef HAVE_THRUST
       auto computeThrust = [ & ]()
       {
-         resultHost = thrust::inner_product( thrust::host,
-                                             hostVector.getData(),
-                                             hostVector.getData() + hostVector.getSize(),
-                                             hostVector2.getData(),
-                                             0,
-                                             std::plus<>{},
-                                             std::multiplies<>{} );
+         resultHost = thrust::inner_product(
+            thrust::host,
+            hostVector.getData(),
+            hostVector.getData() + hostVector.getSize(),
+            hostVector2.getData(),
+            0,
+            std::plus<>{},
+            std::multiplies<>{} );
       };
       benchmark.time< Devices::Sequential >( reset1, "CPU thrust::inner_product", computeThrust );
       verify( "CPU thrust::inner_product", resultHost, size );
@@ -1051,13 +1065,14 @@ public:
    #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
-         resultDevice = thrust::inner_product( thrust::device,
-                                               thrust::device_pointer_cast( deviceVector.getData() ),
-                                               thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
-                                               thrust::device_pointer_cast( deviceVector2.getData() ),
-                                               0,
-                                               std::plus<>{},
-                                               std::multiplies<>{} );
+         resultDevice = thrust::inner_product(
+            thrust::device,
+            thrust::device_pointer_cast( deviceVector.getData() ),
+            thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
+            thrust::device_pointer_cast( deviceVector2.getData() ),
+            0,
+            std::plus<>{},
+            std::multiplies<>{} );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU thrust::inner_product", computeThrustDevice );
       verify( "GPU thrust::inner_product", resultDevice, size );
@@ -1187,12 +1202,13 @@ public:
 
       auto computeParallelFor = [ & ]()
       {
-         Algorithms::parallelFor< Devices::Host >( 0,
-                                                   hostVector.getSize(),
-                                                   [ = ]( const Index i )
-                                                   {
-                                                      hostView[ i ] += hostView2[ i ] + hostView3[ i ];
-                                                   } );
+         Algorithms::parallelFor< Devices::Host >(
+            0,
+            hostVector.getSize(),
+            [ = ]( const Index i )
+            {
+               hostView[ i ] += hostView2[ i ] + hostView3[ i ];
+            } );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU par.for", computeParallelFor );
       verify( "CPU par.for", hostVector, 3.0 );
@@ -1239,12 +1255,13 @@ public:
       auto d3 = deviceVector3.getView();
       auto computeCudaParallelFor = [ & ]()
       {
-         Algorithms::parallelFor< Devices::Cuda >( 0,
-                                                   deviceView.getSize(),
-                                                   [ = ] __cuda_callable__( const Index i ) mutable
-                                                   {
-                                                      d1[ i ] += d2[ i ] + d3[ i ];
-                                                   } );
+         Algorithms::parallelFor< Devices::Cuda >(
+            0,
+            deviceView.getSize(),
+            [ = ] __cuda_callable__( const Index i ) mutable
+            {
+               d1[ i ] += d2[ i ] + d3[ i ];
+            } );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU par.for", computeCudaParallelFor );
       verify( "GPU par.for", deviceVector, 3.0 );
@@ -1298,12 +1315,13 @@ public:
 
       auto computeParallelFor = [ & ]()
       {
-         Algorithms::parallelFor< Devices::Host >( 0,
-                                                   hostVector.getSize(),
-                                                   [ = ] __cuda_callable__( const Index i )
-                                                   {
-                                                      hostView[ i ] += hostView2[ i ] + hostView3[ i ] + hostView4[ i ];
-                                                   } );
+         Algorithms::parallelFor< Devices::Host >(
+            0,
+            hostVector.getSize(),
+            [ = ] __cuda_callable__( const Index i )
+            {
+               hostView[ i ] += hostView2[ i ] + hostView3[ i ] + hostView4[ i ];
+            } );
       };
       benchmark.time< Devices::Host >( resetAll, "CPU par.for", computeParallelFor );
       verify( "CPU par.for", hostVector, 4.0 );
@@ -1354,12 +1372,13 @@ public:
       auto d4 = deviceVector4.getView();
       auto computeCudaParallelFor = [ & ]()
       {
-         Algorithms::parallelFor< Devices::Cuda >( 0,
-                                                   deviceVector.getSize(),
-                                                   [ = ] __cuda_callable__( const Index i ) mutable
-                                                   {
-                                                      d1[ i ] += d2[ i ] + d3[ i ] + d4[ i ];
-                                                   } );
+         Algorithms::parallelFor< Devices::Cuda >(
+            0,
+            deviceVector.getSize(),
+            [ = ] __cuda_callable__( const Index i ) mutable
+            {
+               d1[ i ] += d2[ i ] + d3[ i ] + d4[ i ];
+            } );
       };
       benchmark.time< Devices::Cuda >( resetAll, "GPU par.for", computeCudaParallelFor );
       verify( "GPU par.for", deviceVector, 4.0 );
@@ -1459,10 +1478,11 @@ public:
    #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
-         thrust::inclusive_scan( thrust::device,
-                                 thrust::device_pointer_cast( deviceVector.getData() ),
-                                 thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
-                                 thrust::device_pointer_cast( deviceVector.getData() ) );
+         thrust::inclusive_scan(
+            thrust::device,
+            thrust::device_pointer_cast( deviceVector.getData() ),
+            thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
+            thrust::device_pointer_cast( deviceVector.getData() ) );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU thrust::inclusive_scan", computeThrustDevice );
       verify( "GPU thrust::inclusive_scan", deviceVector.getElement( 0 ), 1 );
@@ -1524,10 +1544,11 @@ public:
    #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
-         thrust::inclusive_scan( thrust::device,
-                                 thrust::device_pointer_cast( deviceVector.getData() ),
-                                 thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
-                                 thrust::device_pointer_cast( deviceVector2.getData() ) );
+         thrust::inclusive_scan(
+            thrust::device,
+            thrust::device_pointer_cast( deviceVector.getData() ),
+            thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
+            thrust::device_pointer_cast( deviceVector2.getData() ) );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU thrust::inclusive_scan", computeThrustDevice );
       verify( "GPU thrust::inclusive_scan", deviceVector2.getElement( 0 ), 1 );
@@ -1639,10 +1660,11 @@ public:
    #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
-         thrust::exclusive_scan( thrust::device,
-                                 thrust::device_pointer_cast( deviceVector.getData() ),
-                                 thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
-                                 thrust::device_pointer_cast( deviceVector.getData() ) );
+         thrust::exclusive_scan(
+            thrust::device,
+            thrust::device_pointer_cast( deviceVector.getData() ),
+            thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
+            thrust::device_pointer_cast( deviceVector.getData() ) );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU thrust::exclusive_scan", computeThrustDevice );
       verify( "GPU thrust::exclusive_scan", deviceVector.getElement( 0 ), 0 );
@@ -1696,10 +1718,11 @@ public:
    #if defined( __CUDACC__ ) || defined( __HIP__ )
       auto computeThrustDevice = [ & ]()
       {
-         thrust::exclusive_scan( thrust::device,
-                                 thrust::device_pointer_cast( deviceVector.getData() ),
-                                 thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
-                                 thrust::device_pointer_cast( deviceVector2.getData() ) );
+         thrust::exclusive_scan(
+            thrust::device,
+            thrust::device_pointer_cast( deviceVector.getData() ),
+            thrust::device_pointer_cast( deviceVector.getData() + deviceVector.getSize() ),
+            thrust::device_pointer_cast( deviceVector2.getData() ) );
       };
       benchmark.time< Devices::Cuda >( reset1, "GPU thrust::exclusive_scan", computeThrustDevice );
       verify( "GPU thrust::exclusive_scan", deviceVector2.getElement( 0 ), 0 );

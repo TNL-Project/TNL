@@ -32,12 +32,13 @@ matrixMultiplicationCutlass( const DenseMatrix& matrix1, const DenseMatrix& matr
    using CutlassGemm = cutlass::gemm::device::Gemm< RealType, Layout, RealType, Layout, RealType, Layout >;
    CutlassGemm gemm_operator;
 
-   typename CutlassGemm::Arguments args( { m, n, k },                                // Problem size
-                                         { matrix1.getValues().getData(), m },       // Leading dimension for A
-                                         { matrix2.getValues().getData(), k },       // Leading dimension for B
-                                         { resultMatrix.getValues().getData(), m },  // Leading dimension for C
-                                         { resultMatrix.getValues().getData(), m },  // Leading dimension for C
-                                         { 1.0, 0.0 }                                // alpha and beta
+   typename CutlassGemm::Arguments args(
+      { m, n, k },                                // Problem size
+      { matrix1.getValues().getData(), m },       // Leading dimension for A
+      { matrix2.getValues().getData(), k },       // Leading dimension for B
+      { resultMatrix.getValues().getData(), m },  // Leading dimension for C
+      { resultMatrix.getValues().getData(), m },  // Leading dimension for C
+      { 1.0, 0.0 }                                // alpha and beta
    );
 
    cutlass::Status status = gemm_operator( args );

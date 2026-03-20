@@ -427,10 +427,11 @@ testEntitiesCounts(
    support.template verifyEntitiesCountGetters< Grid >( grid, entitiesCounts );
 }
 
-template< typename Grid,
-          typename... T,
-          std::enable_if_t< TNL::Meshes::Templates::conjunction_v< std::is_convertible< typename Grid::RealType, T >... >,
-                            bool > = true >
+template<
+   typename Grid,
+   typename... T,
+   std::enable_if_t< TNL::Meshes::Templates::conjunction_v< std::is_convertible< typename Grid::RealType, T >... >, bool > =
+      true >
 void
 testOriginSetByIndex( Grid& grid, T... coordinates )
 {
@@ -478,10 +479,11 @@ testSpaceStepsSetByCoordinate( Grid& grid, const int spaceStepsSize, const typen
    support.template verifySpaceStepsValues< Grid >( grid, spaceStepsSize, spaceSteps );
 }
 
-template< typename Grid,
-          typename... T,
-          std::enable_if_t< TNL::Meshes::Templates::conjunction_v< std::is_convertible< typename Grid::RealType, T >... >,
-                            bool > = true >
+template<
+   typename Grid,
+   typename... T,
+   std::enable_if_t< TNL::Meshes::Templates::conjunction_v< std::is_convertible< typename Grid::RealType, T >... >, bool > =
+      true >
 void
 testSpaceStepsSetByIndex( Grid& grid, const int spaceStepsSize, T... spaceSteps )
 {

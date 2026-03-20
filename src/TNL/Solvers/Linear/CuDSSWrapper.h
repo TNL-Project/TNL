@@ -29,13 +29,14 @@ class CuDSSWrapper : public LinearSolver< Matrix >
 {
    static_assert( Matrices::is_sparse_csr_matrix_v< Matrix >, "The CuDSSWrapper solver is available only for CSR matrices." );
    static_assert( std::is_same_v< typename Matrix::DeviceType, Devices::Cuda >, "CuDSSWrapper is available only on CUDA" );
-   static_assert( std::is_same_v< typename Matrix::RealType, float > || std::is_same_v< typename Matrix::RealType, double >,
-                  "unsupported RealType" );
-   static_assert( std::is_same_v< typename Matrix::IndexType, std::int32_t >
-                     || std::is_same_v< typename Matrix::IndexType, std::uint32_t >
-                     || std::is_same_v< typename Matrix::IndexType, std::int64_t >
-                     || std::is_same_v< typename Matrix::IndexType, std::uint64_t >,
-                  "unsupported IndexType" );
+   static_assert(
+      std::is_same_v< typename Matrix::RealType, float > || std::is_same_v< typename Matrix::RealType, double >,
+      "unsupported RealType" );
+   static_assert(
+      std::is_same_v< typename Matrix::IndexType, std::int32_t > || std::is_same_v< typename Matrix::IndexType, std::uint32_t >
+         || std::is_same_v< typename Matrix::IndexType, std::int64_t >
+         || std::is_same_v< typename Matrix::IndexType, std::uint64_t >,
+      "unsupported IndexType" );
 
    using Base = LinearSolver< Matrix >;
 

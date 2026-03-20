@@ -31,24 +31,26 @@ template< typename Segments, typename Fetch, typename Compare, typename Swap >
 static void
 sortAllSegments( const Segments& segments, Fetch&& fetch, Compare&& compare, Swap&& swap, LaunchConfiguration launchConfig )
 {
-   sortSegments( segments,
-                 0,
-                 segments.getSegmentCount(),
-                 std::forward< Fetch >( fetch ),
-                 std::forward< Compare >( compare ),
-                 std::forward< Swap >( swap ),
-                 launchConfig );
+   sortSegments(
+      segments,
+      0,
+      segments.getSegmentCount(),
+      std::forward< Fetch >( fetch ),
+      std::forward< Compare >( compare ),
+      std::forward< Swap >( swap ),
+      launchConfig );
 }
 
 template< typename Segments, typename IndexBegin, typename IndexEnd, typename Fetch, typename Compare, typename Swap, typename T >
 static void
-sortSegments( const Segments& segments,
-              IndexBegin begin,
-              IndexEnd end,
-              Fetch&& fetch,
-              Compare&& compare,
-              Swap&& swap,
-              LaunchConfiguration launchConfig )
+sortSegments(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Compare&& compare,
+   Swap&& swap,
+   LaunchConfiguration launchConfig )
 {
    using SegmentView = typename Segments::SegmentViewType;
    forSegments(
@@ -64,12 +66,13 @@ sortSegments( const Segments& segments,
 
 template< typename Segments, typename Array, typename Fetch, typename Compare, typename Swap, typename T >
 static void
-sortSegments( const Segments& segments,
-              const Array& segmentIndexes,
-              Fetch&& fetch,
-              Compare&& compare,
-              Swap&& swap,
-              LaunchConfiguration launchConfig )
+sortSegments(
+   const Segments& segments,
+   const Array& segmentIndexes,
+   Fetch&& fetch,
+   Compare&& compare,
+   Swap&& swap,
+   LaunchConfiguration launchConfig )
 {
    using SegmentView = typename Segments::SegmentViewType;
    forSegments(
@@ -84,40 +87,44 @@ sortSegments( const Segments& segments,
 
 template< typename Segments, typename Condition, typename Fetch, typename Compare, typename Swap >
 static void
-sortAllSegmentsIf( const Segments& segments,
-                   Condition&& condition,
-                   Fetch&& fetch,
-                   Compare&& compare,
-                   Swap&& swap,
-                   LaunchConfiguration launchConfig )
+sortAllSegmentsIf(
+   const Segments& segments,
+   Condition&& condition,
+   Fetch&& fetch,
+   Compare&& compare,
+   Swap&& swap,
+   LaunchConfiguration launchConfig )
 {
-   sortSegmentsIf( segments,
-                   0,
-                   segments.getSegmentCount(),
-                   std::forward< Condition >( condition ),
-                   std::forward< Fetch >( fetch ),
-                   std::forward< Compare >( compare ),
-                   std::forward< Swap >( swap ),
-                   launchConfig );
+   sortSegmentsIf(
+      segments,
+      0,
+      segments.getSegmentCount(),
+      std::forward< Condition >( condition ),
+      std::forward< Fetch >( fetch ),
+      std::forward< Compare >( compare ),
+      std::forward< Swap >( swap ),
+      launchConfig );
 }
 
-template< typename Segments,
-          typename IndexBegin,
-          typename IndexEnd,
-          typename Condition,
-          typename Fetch,
-          typename Compare,
-          typename Swap,
-          typename T >
+template<
+   typename Segments,
+   typename IndexBegin,
+   typename IndexEnd,
+   typename Condition,
+   typename Fetch,
+   typename Compare,
+   typename Swap,
+   typename T >
 static void
-sortSegmentsIf( const Segments& segments,
-                IndexBegin begin,
-                IndexEnd end,
-                Condition&& condition,
-                Fetch&& fetch,
-                Compare&& compare,
-                Swap&& swap,
-                LaunchConfiguration launchConfig )
+sortSegmentsIf(
+   const Segments& segments,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Compare&& compare,
+   Swap&& swap,
+   LaunchConfiguration launchConfig )
 {
    using SegmentView = typename Segments::SegmentViewType;
    forSegmentsIf(

@@ -13,13 +13,15 @@
 namespace TNL::Meshes {
 
 // TODO: refactor to avoid duplicate points altogether - first split edges, then faces, then cells
-template< EntityRefinerVersion RefinerVersion,
-          typename MeshConfig,
-          std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Triangle >
-                               || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Quadrangle >
-                               || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Tetrahedron >
-                               || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Hexahedron >,
-                            bool > = true >
+template<
+   EntityRefinerVersion RefinerVersion,
+   typename MeshConfig,
+   std::enable_if_t<
+      std::is_same_v< typename MeshConfig::CellTopology, Topologies::Triangle >
+         || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Quadrangle >
+         || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Tetrahedron >
+         || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Hexahedron >,
+      bool > = true >
 auto  // returns MeshBuilder
 refineMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
 {
@@ -98,13 +100,15 @@ refineMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
    return meshBuilder;
 }
 
-template< EntityRefinerVersion RefinerVersion,
-          typename MeshConfig,
-          std::enable_if_t< std::is_same_v< typename MeshConfig::CellTopology, Topologies::Triangle >
-                               || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Quadrangle >
-                               || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Tetrahedron >
-                               || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Hexahedron >,
-                            bool > = true >
+template<
+   EntityRefinerVersion RefinerVersion,
+   typename MeshConfig,
+   std::enable_if_t<
+      std::is_same_v< typename MeshConfig::CellTopology, Topologies::Triangle >
+         || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Quadrangle >
+         || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Tetrahedron >
+         || std::is_same_v< typename MeshConfig::CellTopology, Topologies::Hexahedron >,
+      bool > = true >
 auto  // returns Mesh
 getRefinedMesh( const Mesh< MeshConfig, Devices::Host >& inMesh )
 {

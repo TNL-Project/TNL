@@ -25,11 +25,12 @@ struct HasEnabledDistributedExpressionTemplates< DistributedUnaryExpressionTempl
 
 ////
 // Distributed binary expression template
-template< typename T1,
-          typename T2,
-          typename Operation,
-          ExpressionVariableType T1Type = getExpressionVariableType< T1, T2 >(),
-          ExpressionVariableType T2Type = getExpressionVariableType< T2, T1 >() >
+template<
+   typename T1,
+   typename T2,
+   typename Operation,
+   ExpressionVariableType T1Type = getExpressionVariableType< T1, T2 >(),
+   ExpressionVariableType T2Type = getExpressionVariableType< T2, T1 >() >
 struct DistributedBinaryExpressionTemplate
 {};
 
@@ -50,14 +51,17 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
       BinaryExpressionTemplate< typename T1::ConstLocalViewType, typename T2::ConstLocalViewType, Operation >;
    using SynchronizerType = typename T1::SynchronizerType;
 
-   static_assert( HasEnabledDistributedExpressionTemplates< T1 >::value,
-                  "Invalid operand in distributed binary expression templates - distributed expression templates are not "
-                  "enabled for the left operand." );
-   static_assert( HasEnabledDistributedExpressionTemplates< T2 >::value,
-                  "Invalid operand in distributed binary expression templates - distributed expression templates are not "
-                  "enabled for the right operand." );
-   static_assert( std::is_same_v< typename T1::DeviceType, typename T2::DeviceType >,
-                  "Attempt to mix operands which have different DeviceType." );
+   static_assert(
+      HasEnabledDistributedExpressionTemplates< T1 >::value,
+      "Invalid operand in distributed binary expression templates - distributed expression templates are not "
+      "enabled for the left operand." );
+   static_assert(
+      HasEnabledDistributedExpressionTemplates< T2 >::value,
+      "Invalid operand in distributed binary expression templates - distributed expression templates are not "
+      "enabled for the right operand." );
+   static_assert(
+      std::is_same_v< typename T1::DeviceType, typename T2::DeviceType >,
+      "Attempt to mix operands which have different DeviceType." );
 
    DistributedBinaryExpressionTemplate( const T1& a, const T2& b )
    : op1( a ),
@@ -159,9 +163,10 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, VectorExpressionV
    using ConstLocalViewType = BinaryExpressionTemplate< typename T1::ConstLocalViewType, T2, Operation >;
    using SynchronizerType = typename T1::SynchronizerType;
 
-   static_assert( HasEnabledDistributedExpressionTemplates< T1 >::value,
-                  "Invalid operand in distributed binary expression templates - distributed expression templates are not "
-                  "enabled for the left operand." );
+   static_assert(
+      HasEnabledDistributedExpressionTemplates< T1 >::value,
+      "Invalid operand in distributed binary expression templates - distributed expression templates are not "
+      "enabled for the left operand." );
 
    DistributedBinaryExpressionTemplate( const T1& a, const T2& b )
    : op1( a ),
@@ -253,9 +258,10 @@ struct DistributedBinaryExpressionTemplate< T1, T2, Operation, ArithmeticVariabl
    using ConstLocalViewType = BinaryExpressionTemplate< T1, typename T2::ConstLocalViewType, Operation >;
    using SynchronizerType = typename T2::SynchronizerType;
 
-   static_assert( HasEnabledDistributedExpressionTemplates< T2 >::value,
-                  "Invalid operand in distributed binary expression templates - distributed expression templates are not "
-                  "enabled for the right operand." );
+   static_assert(
+      HasEnabledDistributedExpressionTemplates< T2 >::value,
+      "Invalid operand in distributed binary expression templates - distributed expression templates are not "
+      "enabled for the right operand." );
 
    DistributedBinaryExpressionTemplate( const T1& a, const T2& b )
    : op1( a ),
@@ -349,9 +355,10 @@ struct DistributedUnaryExpressionTemplate
    using ConstLocalViewType = UnaryExpressionTemplate< typename T1::ConstLocalViewType, Operation >;
    using SynchronizerType = typename T1::SynchronizerType;
 
-   static_assert( HasEnabledDistributedExpressionTemplates< T1 >::value,
-                  "Invalid operand in distributed unary expression templates - distributed expression templates are not "
-                  "enabled for the operand." );
+   static_assert(
+      HasEnabledDistributedExpressionTemplates< T1 >::value,
+      "Invalid operand in distributed unary expression templates - distributed expression templates are not "
+      "enabled for the operand." );
 
    // the constructor is explicit to prevent issues with the ternary operator,
    // see https://gitlab.com/tnl-project/tnl/-/issues/140
@@ -691,12 +698,14 @@ operator!=( const ET1& a, const ET2& b )
 
 ////
 // Lexicographical comparison operators
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template<
+   typename ET1,
+   typename ET2,
+   typename...,
+   std::enable_if_t<
+      HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
+         && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
+      bool > = true >
 constexpr bool
 operator<( const ET1& a, const ET2& b )
 {
@@ -715,24 +724,28 @@ operator<( const ET1& a, const ET2& b )
    return false;
 }
 
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template<
+   typename ET1,
+   typename ET2,
+   typename...,
+   std::enable_if_t<
+      HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
+         && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
+      bool > = true >
 constexpr bool
 operator<=( const ET1& a, const ET2& b )
 {
    return ! operator>( a, b );
 }
 
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template<
+   typename ET1,
+   typename ET2,
+   typename...,
+   std::enable_if_t<
+      HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
+         && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
+      bool > = true >
 constexpr bool
 operator>( const ET1& a, const ET2& b )
 {
@@ -751,12 +764,14 @@ operator>( const ET1& a, const ET2& b )
    return false;
 }
 
-template< typename ET1,
-          typename ET2,
-          typename...,
-          std::enable_if_t< HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
-                               && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
-                            bool > = true >
+template<
+   typename ET1,
+   typename ET2,
+   typename...,
+   std::enable_if_t<
+      HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value
+         && HasEnabledDistributedExpressionTemplates< std::decay_t< ET2 > >::value,
+      bool > = true >
 constexpr bool
 operator>=( const ET1& a, const ET2& b )
 {
@@ -936,12 +951,13 @@ using Containers::tanh;
 
 ////
 // Evaluation with reduction
-template< typename Vector,
-          typename ET1,
-          typename Reduction,
-          typename Result,
-          std::enable_if_t< Containers::Expressions::HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value,
-                            bool > = true >
+template<
+   typename Vector,
+   typename ET1,
+   typename Reduction,
+   typename Result,
+   std::enable_if_t< Containers::Expressions::HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value, bool > =
+      true >
 Result
 evaluateAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
@@ -960,11 +976,12 @@ evaluateAndReduce( Vector& lhs, const ET1& expression, const Reduction& reductio
       std::unique_ptr< Result[] > gatheredResults{ new Result[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
-                     sizeof( Result ),
-                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
-                     sizeof( Result ),
-                     communicator );
+      MPI::Alltoall(
+         reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
+         sizeof( Result ),
+         reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
+         sizeof( Result ),
+         communicator );
 
       // compute the global reduction over MPI ranks
       auto fetch = [ &gatheredResults ]( int i )
@@ -978,12 +995,13 @@ evaluateAndReduce( Vector& lhs, const ET1& expression, const Reduction& reductio
 
 ////
 // Addition and reduction
-template< typename Vector,
-          typename ET1,
-          typename Reduction,
-          typename Result,
-          std::enable_if_t< Containers::Expressions::HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value,
-                            bool > = true >
+template<
+   typename Vector,
+   typename ET1,
+   typename Reduction,
+   typename Result,
+   std::enable_if_t< Containers::Expressions::HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value, bool > =
+      true >
 Result
 addAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
@@ -1002,11 +1020,12 @@ addAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, co
       std::unique_ptr< Result[] > gatheredResults{ new Result[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
-                     sizeof( Result ),
-                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
-                     sizeof( Result ),
-                     communicator );
+      MPI::Alltoall(
+         reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
+         sizeof( Result ),
+         reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
+         sizeof( Result ),
+         communicator );
 
       // compute the global reduction over MPI ranks
       auto fetch = [ &gatheredResults ]( int i )
@@ -1020,12 +1039,13 @@ addAndReduce( Vector& lhs, const ET1& expression, const Reduction& reduction, co
 
 ////
 // Addition and reduction
-template< typename Vector,
-          typename ET1,
-          typename Reduction,
-          typename Result,
-          std::enable_if_t< Containers::Expressions::HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value,
-                            bool > = true >
+template<
+   typename Vector,
+   typename ET1,
+   typename Reduction,
+   typename Result,
+   std::enable_if_t< Containers::Expressions::HasEnabledDistributedExpressionTemplates< std::decay_t< ET1 > >::value, bool > =
+      true >
 Result
 addAndReduceAbs( Vector& lhs, const ET1& expression, const Reduction& reduction, const Result& zero )
 {
@@ -1044,11 +1064,12 @@ addAndReduceAbs( Vector& lhs, const ET1& expression, const Reduction& reduction,
       std::unique_ptr< Result[] > gatheredResults{ new Result[ nproc ] };
       // NOTE: exchanging general data types does not work with MPI
       // MPI::Alltoall( dataForScatter.get(), 1, gatheredResults.get(), 1, communicator );
-      MPI::Alltoall( reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
-                     sizeof( Result ),
-                     reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
-                     sizeof( Result ),
-                     communicator );
+      MPI::Alltoall(
+         reinterpret_cast< std::uint8_t* >( dataForScatter.get() ),
+         sizeof( Result ),
+         reinterpret_cast< std::uint8_t* >( gatheredResults.get() ),
+         sizeof( Result ),
+         communicator );
 
       // compute the global reduction over MPI ranks
       auto fetch = [ &gatheredResults ]( int i )

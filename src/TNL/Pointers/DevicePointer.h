@@ -40,8 +40,9 @@ namespace TNL::Pointers {
 template< typename Object, typename Device = typename Object::DeviceType >
 class DevicePointer
 {
-   static_assert( ! std::is_same_v< Device, void >,
-                  "The device cannot be void. You need to specify the device explicitly in your code." );
+   static_assert(
+      ! std::is_same_v< Device, void >,
+      "The device cannot be void. You need to specify the device explicitly in your code." );
 };
 
 /**
@@ -581,8 +582,9 @@ public:
    const Object&
    getData() const
    {
-      static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
-                     "Only Devices::Host or Devices::Cuda devices are accepted here." );
+      static_assert(
+         std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
+         "Only Devices::Host or Devices::Cuda devices are accepted here." );
       TNL_ASSERT_NE( this->pointer, nullptr, "" );
       TNL_ASSERT_NE( this->pd, nullptr, "" );
       TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
@@ -609,8 +611,9 @@ public:
    Object&
    modifyData()
    {
-      static_assert( std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
-                     "Only Devices::Host or Devices::Cuda devices are accepted here." );
+      static_assert(
+         std::is_same_v< Device, Devices::Host > || std::is_same_v< Device, Devices::Cuda >,
+         "Only Devices::Host or Devices::Cuda devices are accepted here." );
       TNL_ASSERT_NE( this->pointer, nullptr, "" );
       TNL_ASSERT_NE( this->pd, nullptr, "" );
       TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
@@ -722,10 +725,11 @@ public:
       if( this->modified() ) {
          TNL_ASSERT_NE( this->pointer, nullptr, "" );
          TNL_ASSERT_NE( this->cuda_pointer, nullptr, "" );
-         Backend::memcpy( reinterpret_cast< void* >( this->cuda_pointer ),
-                          reinterpret_cast< const void* >( this->pointer ),
-                          sizeof( ObjectType ),
-                          Backend::MemcpyHostToDevice );
+         Backend::memcpy(
+            reinterpret_cast< void* >( this->cuda_pointer ),
+            reinterpret_cast< const void* >( this->pointer ),
+            sizeof( ObjectType ),
+            Backend::MemcpyHostToDevice );
          this->set_last_sync_state();
          return true;
       }
@@ -780,9 +784,10 @@ protected:
    {
       TNL_ASSERT_NE( this->pointer, nullptr, "" );
       TNL_ASSERT_NE( this->pd, nullptr, "" );
-      std::memcpy( reinterpret_cast< void* >( &this->pd->data_image ),
-                   reinterpret_cast< const void* >( this->pointer ),
-                   sizeof( Object ) );
+      std::memcpy(
+         reinterpret_cast< void* >( &this->pd->data_image ),
+         reinterpret_cast< const void* >( this->pointer ),
+         sizeof( Object ) );
       this->pd->maybe_modified = false;
    }
 
@@ -794,9 +799,10 @@ protected:
       // optimization: skip bitwise comparison if we're sure that the data is the same
       if( ! this->pd->maybe_modified )
          return false;
-      return std::memcmp( reinterpret_cast< void* >( &this->pd->data_image ),
-                          reinterpret_cast< const void* >( this->pointer ),
-                          sizeof( Object ) )
+      return std::memcmp(
+                reinterpret_cast< void* >( &this->pd->data_image ),
+                reinterpret_cast< const void* >( this->pointer ),
+                sizeof( Object ) )
           != 0;
    }
 
