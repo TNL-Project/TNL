@@ -143,20 +143,17 @@ runBenchmark( Benchmark<>& benchmark, int size, const String& device )
          if( ! Algorithms::isAscending( arr ) )
             throw std::runtime_error( "quicksort result is not sorted" );
 
-         // CedermanQuicksort only works with int
-         if constexpr( std::is_same_v< ValueType, int > ) {
-            auto sortCederman = [ &arr ]()
-            {
-               auto view = arr.getView();
-               CedermanQuicksort::sort( view );
-            };
+         auto sortCederman = [ &arr ]()
+         {
+            auto view = arr.getView();
+            CedermanQuicksort< ValueType >::sort( view );
+         };
 
-            benchmark.time< Devices::Cuda >( reset, "CedermanQuicksort", sortCederman, result );
+         benchmark.time< Devices::Cuda >( reset, "CedermanQuicksort", sortCederman, result );
 
-            // Verify Cederman sort result
-            if( ! Algorithms::isAscending( arr ) )
-               throw std::runtime_error( "CedermanQuicksort result is not sorted" );
-         }
+         // Verify Cederman sort result
+         if( ! Algorithms::isAscending( arr ) )
+            throw std::runtime_error( "CedermanQuicksort result is not sorted" );
 
          auto sortThrust = [ &arr ]()
          {
