@@ -13,6 +13,7 @@
 #include <functional>
 
 #include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Algorithms/sort.h>
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
 #include <TNL/Algorithms/Sorting/STLSort.h>
 #include <TNL/Algorithms/Sorting/experimental/Quicksort.h>
@@ -119,6 +120,13 @@ runBenchmark( Benchmark<>& benchmark, int size, const String& device )
          BenchmarkResult result;
          benchmark.time< Devices::Cuda >( reset, "bitonic", sortBitonic, result );
 
+         // Verify bitonic sort result by re-running with verification
+         Containers::Array< ValueType, Devices::Cuda > verify_arr( vec );
+         auto verify_view = verify_arr.getView();
+         BitonicSort::sort( verify_view );
+         if( ! Algorithms::isAscending( verify_view ) )
+            throw std::runtime_error( "bitonic sort verification failed" );
+
          auto sortQuicksort = [ &vec ]()
          {
             Containers::Array< ValueType, Devices::Cuda > arr( vec );
@@ -127,6 +135,13 @@ runBenchmark( Benchmark<>& benchmark, int size, const String& device )
          };
 
          benchmark.time< Devices::Cuda >( reset, "quicksort", sortQuicksort, result );
+
+         // Verify quicksort result
+         Containers::Array< ValueType, Devices::Cuda > verify_arr2( vec );
+         auto verify_view2 = verify_arr2.getView();
+         experimental::Quicksort::sort( verify_view2 );
+         if( ! Algorithms::isAscending( verify_view2 ) )
+            throw std::runtime_error( "quicksort verification failed" );
 
          auto sortCederman = [ &vec ]()
          {
@@ -137,6 +152,13 @@ runBenchmark( Benchmark<>& benchmark, int size, const String& device )
 
          benchmark.time< Devices::Cuda >( reset, "cederman", sortCederman, result );
 
+         // Verify Cederman sort result
+         Containers::Array< int, Devices::Cuda > verify_arr3( vec );
+         auto verify_view3 = verify_arr3.getView();
+         CedermanQuicksort::sort( verify_view3 );
+         if( ! Algorithms::isAscending( verify_view3 ) )
+            throw std::runtime_error( "cederman sort verification failed" );
+
          auto sortThrust = [ &vec ]()
          {
             Containers::Array< ValueType, Devices::Cuda > arr( vec );
@@ -145,6 +167,13 @@ runBenchmark( Benchmark<>& benchmark, int size, const String& device )
          };
 
          benchmark.time< Devices::Cuda >( reset, "thrust", sortThrust, result );
+
+         // Verify Thrust sort result
+         Containers::Array< ValueType, Devices::Cuda > verify_arr4( vec );
+         auto verify_view4 = verify_arr4.getView();
+         ThrustRadixsort< ValueType >::sort( verify_view4 );
+         if( ! Algorithms::isAscending( verify_view4 ) )
+            throw std::runtime_error( "thrust sort verification failed" );
       }
    }
 #endif
