@@ -72,96 +72,94 @@ runBenchmark( Benchmark<>& benchmark, int size, const String& device )
       { "zero-entropy", generateZeroEntropy< ValueType > }
    };
 
-   if( device == "host" || device == "all" ) {
-      for( const auto& dist : distributions ) {
-         auto vec = dist.generator( size, 0 );
+   for( const auto& dist : distributions ) {
+      // Create a vector for storing generated values
+      std::vector< ValueType > vec;
+
+      if( device == "host" || device == "all" ) {
          benchmark.setMetadataColumns(
             Benchmark<>::MetadataColumns(
                { { "distribution", dist.name }, { "precision", TNL::getType< ValueType >() }, { "device", "host" } } ) );
          benchmark.setDatasetSize( size * sizeof( ValueType ) );
 
-         auto reset = [ gen = dist.generator, size ]()
+         // Create an Array for sorting
+         Containers::Array< ValueType, Devices::Host > arr;
+
+         auto reset = [ &vec, &arr, gen = dist.generator, size ]()
          {
-            return gen( size, 0 );
+            // Generate new values
+            vec = gen( size, 0 );
+            // Copy the values to the array
+            arr = vec;
          };
-         auto sort = [ &vec ]()
+
+         auto sort = [ &arr ]()
          {
-            Containers::Array< ValueType, Devices::Host > arr( vec );
-            auto view = arr.getView();
-            STLSort::sort( view );
+            STLSort::sort( arr );
          };
 
          BenchmarkResult result;
          benchmark.time< Devices::Host >( reset, "STL sort", sort, result );
       }
-   }
 
 #ifdef __CUDACC__
-   if( device == "cuda" || device == "all" ) {
-      for( const auto& dist : distributions ) {
-         auto vec = dist.generator( size, 0 );
+      if( device == "cuda" || device == "all" ) {
          benchmark.setMetadataColumns(
             Benchmark<>::MetadataColumns(
                { { "distribution", dist.name }, { "precision", TNL::getType< ValueType >() }, { "device", "cuda" } } ) );
          benchmark.setDatasetSize( size * sizeof( ValueType ) );
 
-         auto reset = [ gen = dist.generator, size ]()
+         // Create an Array for sorting
+         Containers::Array< ValueType, Devices::Cuda > arr;
+
+         auto reset = [ &vec, &arr, gen = dist.generator, size ]()
          {
-            return gen( size, 0 );
+            // Generate new values
+            vec = gen( size, 0 );
+            // Copy the values to the array
+            arr = vec;
          };
 
-         auto sortBitonic = [ &vec ]()
+         auto sortBitonic = [ &arr ]()
          {
-            Containers::Array< ValueType, Devices::Cuda > arr( vec );
-            auto view = arr.getView();
-            BitonicSort::sort( view );
+            BitonicSort::sort( arr );
          };
 
          BenchmarkResult result;
          benchmark.time< Devices::Cuda >( reset, "bitonic", sortBitonic, result );
 
-         // Verify bitonic sort result by re-running with verification
-         Containers::Array< ValueType, Devices::Cuda > verify_arr( vec );
-         auto verify_view = verify_arr.getView();
-         BitonicSort::sort( verify_view );
-         if( ! Algorithms::isAscending( verify_view ) )
-            throw std::runtime_error( "bitonic sort verification failed" );
+         // Verify bitonic sort result
+         if( ! Algorithms::isAscending( arr ) )
+            throw std::runtime_error( "bitonic sort result is not sorted" );
 
-         auto sortQuicksort = [ &vec ]()
+         auto sortQuicksort = [ &arr ]()
          {
-            Containers::Array< ValueType, Devices::Cuda > arr( vec );
-            auto view = arr.getView();
-            experimental::Quicksort::sort( view );
+            experimental::Quicksort::sort( arr );
          };
 
          benchmark.time< Devices::Cuda >( reset, "quicksort", sortQuicksort, result );
 
          // Verify quicksort result
-         Containers::Array< ValueType, Devices::Cuda > verify_arr2( vec );
-         auto verify_view2 = verify_arr2.getView();
-         experimental::Quicksort::sort( verify_view2 );
-         if( ! Algorithms::isAscending( verify_view2 ) )
-            throw std::runtime_error( "quicksort verification failed" );
+         if( ! Algorithms::isAscending( arr ) )
+            throw std::runtime_error( "quicksort result is not sorted" );
 
-         auto sortCederman = [ &vec ]()
+         // CedermanQuicksort only works with int
+         if constexpr( std::is_same_v< ValueType, int > ) {
+            auto sortCederman = [ &arr ]()
+            {
+               auto view = arr.getView();
+               CedermanQuicksort::sort( view );
+            };
+
+            benchmark.time< Devices::Cuda >( reset, "CedermanQuicksort", sortCederman, result );
+
+            // Verify Cederman sort result
+            if( ! Algorithms::isAscending( arr ) )
+               throw std::runtime_error( "CedermanQuicksort result is not sorted" );
+         }
+
+         auto sortThrust = [ &arr ]()
          {
-            Containers::Array< int, Devices::Cuda > arr( vec );
-            auto view = arr.getView();
-            CedermanQuicksort::sort( view );
-         };
-
-         benchmark.time< Devices::Cuda >( reset, "cederman", sortCederman, result );
-
-         // Verify Cederman sort result
-         Containers::Array< int, Devices::Cuda > verify_arr3( vec );
-         auto verify_view3 = verify_arr3.getView();
-         CedermanQuicksort::sort( verify_view3 );
-         if( ! Algorithms::isAscending( verify_view3 ) )
-            throw std::runtime_error( "cederman sort verification failed" );
-
-         auto sortThrust = [ &vec ]()
-         {
-            Containers::Array< ValueType, Devices::Cuda > arr( vec );
             auto view = arr.getView();
             ThrustRadixsort< ValueType >::sort( view );
          };
@@ -169,14 +167,11 @@ runBenchmark( Benchmark<>& benchmark, int size, const String& device )
          benchmark.time< Devices::Cuda >( reset, "thrust", sortThrust, result );
 
          // Verify Thrust sort result
-         Containers::Array< ValueType, Devices::Cuda > verify_arr4( vec );
-         auto verify_view4 = verify_arr4.getView();
-         ThrustRadixsort< ValueType >::sort( verify_view4 );
-         if( ! Algorithms::isAscending( verify_view4 ) )
-            throw std::runtime_error( "thrust sort verification failed" );
+         if( ! Algorithms::isAscending( arr ) )
+            throw std::runtime_error( "thrust sort result is not sorted" );
       }
-   }
 #endif
+   }
 }
 
 int
