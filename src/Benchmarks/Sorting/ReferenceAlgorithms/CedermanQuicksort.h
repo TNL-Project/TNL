@@ -7,6 +7,7 @@
 #include <TNL/Containers/ArrayView.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Math.h>
+#include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
 
 #define MAXTHREADS 256
 #define MAXBLOCKS 2048
@@ -128,72 +129,6 @@ extern __shared__ unsigned int sarray[];
 __device__
 unsigned int ohtotal = 0;
 #endif
-
-/**
- * Perform a bitonic sort
- * @param values The unsigned ints to be sorted
- * @param target Where to place the sorted unsigned int when done
- * @param size The number of unsigned ints
- */
-//template <typename unsigned int>
-__device__
-inline void
-bitonicSort( const unsigned int* fromvalues, unsigned int* tovalues, unsigned int from, unsigned int size )
-{
-   auto* shared = static_cast< unsigned int* >( sarray );
-
-   unsigned int coal = from & 0xf;
-   size = size + coal;
-   from = from - coal;
-
-   int sb = 2 << (int) ( __log2f( size ) );
-
-   // Buffer data to be sorted in the shared memory
-   for( int i = threadIdx.x; i < size; i += THREADS ) {
-      shared[ i ] = fromvalues[ i + from ];
-   }
-
-   for( int i = threadIdx.x; i < coal; i += THREADS )
-      shared[ i ] = 0;
-
-   // Pad the data
-   for( int i = threadIdx.x + size; i < sb; i += THREADS )
-      shared[ i ] = 0xffffffff;
-
-   __syncthreads();
-
-   // Parallel bitonic sort.
-   for( int k = 2; k <= sb; k *= 2 ) {
-      // Bitonic merge:
-      for( int j = k / 2; j > 0; j /= 2 ) {
-         for( int tid = threadIdx.x; tid < sb; tid += THREADS ) {
-            unsigned int ixj = tid ^ j;
-
-            if( ixj > tid ) {
-               if( ( tid & k ) == 0 ) {
-                  if( shared[ tid ] > shared[ ixj ] ) {
-                     TNL::swap( shared[ tid ], shared[ ixj ] );
-                  }
-               }
-               else {
-                  if( shared[ tid ] < shared[ ixj ] ) {
-                     TNL::swap( shared[ tid ], shared[ ixj ] );
-                  }
-               }
-            }
-         }
-
-         __syncthreads();
-      }
-   }
-   __syncthreads();
-
-   // Write back the sorted data to its correct position
-   for( int i = threadIdx.x; i < size; i += THREADS )
-      if( i >= coal )
-         tovalues[ i + from ] = shared[ i ];
-   __syncthreads();
-}
 
 /**
  * Perform a cumulative count on two arrays
@@ -556,8 +491,22 @@ lqsort( unsigned int* adata, unsigned int* adata2, LQSortParams* bs, unsigned in
          if( ( to - from ) < ( sbsize - 16 ) ) {
             // Sort it using bitonic sort. This could be changed to some other
             // sorting method. Store the result in the final destination buffer
-            if( ( to - from >= 1 ) && ( lphase != 2 ) )
-               bitonicSort( data, adata, from, to - from );
+            if( ( to - from >= 1 ) && ( lphase != 2 ) ) {
+               // Create ArrayViews for the data to sort
+               TNL::Containers::ArrayView< unsigned int, TNL::Devices::Cuda > view_data( data + from, to - from );
+               TNL::Containers::ArrayView< unsigned int, TNL::Devices::Cuda > view_adata( adata + from, to - from );
+
+               // Use TNL's bitonicSort_Block with shared memory
+               // The comparator uses standard less-than for ascending sort
+               TNL::Algorithms::Sorting::detail::bitonicSort_Block(
+                  view_data,
+                  view_adata,
+                  sarray,
+                  []( unsigned int a, unsigned int b )
+                  {
+                     return a < b;
+                  } );
+            }
             __syncthreads();
 
             // Decrement the stack pointer
