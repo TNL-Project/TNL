@@ -300,6 +300,13 @@ bitonicSort( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda > arr )
       } );
 }
 
+template< typename Value >
+void
+bitonicSort( TNL::Containers::Array< Value, TNL::Devices::Cuda >& arr )
+{
+   bitonicSort( arr.getView() );
+}
+
 //---------------------------------------------
 template< typename Value, typename CMP >
 void
