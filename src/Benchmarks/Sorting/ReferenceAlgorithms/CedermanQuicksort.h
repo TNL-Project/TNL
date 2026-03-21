@@ -1,26 +1,15 @@
-#ifndef PQSORTH
-   #define PQSORTH
+#pragma once
 
-   #include <stdexcept>
+#include <algorithm>
+#include <stdexcept>
 
-   #include <TNL/Backend/Macros.h>
+#include <TNL/Backend/Macros.h>
+#include <TNL/Containers/ArrayView.h>
+#include <TNL/Devices/Cuda.h>
+#include <TNL/Math.h>
 
-   #ifdef _MSC_VER
-      #ifdef BUILDING_DLL
-         #define DLLEXPORT __declspec( dllexport )
-      #else
-         #define DLLEXPORT /*__declspec(dllimport)*/
-      #endif
-   #else
-      #ifdef HAVE_GCCVISIBILITYPATCH
-         #define DLLEXPORT __attribute__( ( visibility( "default" ) ) )
-      #else
-         #define DLLEXPORT
-      #endif
-   #endif
-
-   #define MAXTHREADS 256
-   #define MAXBLOCKS 2048
+#define MAXTHREADS 256
+#define MAXBLOCKS 2048
 
 /**
  * The main sort function
@@ -83,8 +72,8 @@ struct Length
 // Will be removed when these becomes more common
 struct Hist
 {
-   unsigned int left[ (MAXTHREADS) *MAXBLOCKS ];
-   unsigned int right[ (MAXTHREADS) *MAXBLOCKS ];
+   unsigned int left[ MAXTHREADS * MAXBLOCKS ];
+   unsigned int right[ MAXTHREADS * MAXBLOCKS ];
 };
 
 struct LQSortParams
@@ -98,21 +87,21 @@ struct LQSortParams
 template< typename element >
 class GPUQSort
 {
-   element* data2;
-   struct Params< element >* params;
-   struct Params< element >* dparams;
+   element* data2 = nullptr;
+   Params< element >* params = nullptr;
+   Params< element >* dparams = nullptr;
 
-   LQSortParams* lqparams;
-   LQSortParams* dlqparams;
+   LQSortParams* lqparams = nullptr;
+   LQSortParams* dlqparams = nullptr;
 
-   Hist* dhists;
-   Length< element >* dlength;
-   Length< element >* length;
-   BlockSize< element >* workset;
+   Hist* dhists = nullptr;
+   Length< element >* dlength = nullptr;
+   Length< element >* length = nullptr;
+   BlockSize< element >* workset = nullptr;
 
    float TK, TM, MK, MM, SM, SK;
 
-   bool init;
+   bool init = false;
 
 public:
    GPUQSort();
@@ -127,8 +116,6 @@ public:
          unsigned int phase = 0 );
 };
 
-#endif
-
 #undef THREADS
 
 #define THREADS blockDim.x
@@ -141,21 +128,6 @@ unsigned int ohtotal = 0;
 #endif
 
 /**
- * Swaps the location of two unsigned ints
- * @param a This unsigned int will swap place with unsigned int b
- * @param b This unsigned int will swap place with unsigned int a
- */
-//template <typename unsigned int>
-__device__
-inline void
-swap( unsigned int& a, unsigned int& b )
-{
-   unsigned int tmp = a;
-   a = b;
-   b = tmp;
-}
-
-/**
  * Perform a bitonic sort
  * @param values The unsigned ints to be sorted
  * @param target Where to place the sorted unsigned int when done
@@ -164,9 +136,9 @@ swap( unsigned int& a, unsigned int& b )
 //template <typename unsigned int>
 __device__
 inline void
-bitonicSort( unsigned int* fromvalues, unsigned int* tovalues, unsigned int from, unsigned int size )
+bitonicSort( const unsigned int* fromvalues, unsigned int* tovalues, unsigned int from, unsigned int size )
 {
-   unsigned int* shared = (unsigned int*) sarray;
+   auto* shared = static_cast< unsigned int* >( sarray );
 
    unsigned int coal = ( from & 0xf );
    size = size + coal;
@@ -198,12 +170,12 @@ bitonicSort( unsigned int* fromvalues, unsigned int* tovalues, unsigned int from
             if( ixj > tid ) {
                if( ( tid & k ) == 0 ) {
                   if( shared[ tid ] > shared[ ixj ] ) {
-                     swap( shared[ tid ], shared[ ixj ] );
+                     TNL::swap( shared[ tid ], shared[ ixj ] );
                   }
                }
                else {
                   if( shared[ tid ] < shared[ ixj ] ) {
-                     swap( shared[ tid ], shared[ ixj ] );
+                     TNL::swap( shared[ tid ], shared[ ixj ] );
                   }
                }
             }
@@ -288,14 +260,14 @@ cumcount( unsigned int* lblock, unsigned int* rblock )
 //template <typename unsigned int>
 __global__
 void
-part1( unsigned int* data, Params< unsigned int >* params, struct Hist* hist, Length< unsigned int >* lengths )
+part1( const unsigned int* data, Params< unsigned int >* params, Hist* hist, Length< unsigned int >* lengths )
 {
    const int tx = threadIdx.x;
 
-   unsigned int* lblock = (unsigned int*) sarray;
-   unsigned int* rblock = (unsigned int*) ( &lblock[ ( blockDim.x + 1 ) ] );
-   unsigned int* minpiv = (unsigned int*) ( &rblock[ ( blockDim.x + 1 ) ] );
-   unsigned int* maxpiv = (unsigned int*) ( &minpiv[ blockDim.x ] );
+    auto* lblock = static_cast< unsigned int* >( sarray );
+    auto* rblock = &lblock[ blockDim.x + 1 ];
+    auto* minpiv = &rblock[ blockDim.x + 1 ];
+    auto* maxpiv = &minpiv[ blockDim.x ];
 
    // Where should we read?
    unsigned int start = params[ blockIdx.x ].from;
@@ -329,8 +301,8 @@ part1( unsigned int* data, Params< unsigned int >* params, struct Hist* hist, Le
                lr++;
 
          // Store the max and min unsigned int
-         minpiv[ tx ] = min( minpiv[ tx ], d );
-         maxpiv[ tx ] = max( maxpiv[ tx ], d );
+         minpiv[ tx ] = TNL::min( minpiv[ tx ], d );
+         maxpiv[ tx ] = TNL::max( maxpiv[ tx ], d );
       }
    }
 
@@ -347,8 +319,8 @@ part1( unsigned int* data, Params< unsigned int >* params, struct Hist* hist, Le
             lr++;
 
       // Store the max and min unsigned int
-      minpiv[ tx ] = min( minpiv[ tx ], d );
-      maxpiv[ tx ] = max( maxpiv[ tx ], d );
+      minpiv[ tx ] = TNL::min( minpiv[ tx ], d );
+      maxpiv[ tx ] = TNL::max( maxpiv[ tx ], d );
    }
 
    lblock[ tx ] = ll;
@@ -357,13 +329,13 @@ part1( unsigned int* data, Params< unsigned int >* params, struct Hist* hist, Le
    __syncthreads();
 
    // Perform a cumulative sum
-   cumcount( (unsigned int*) lblock, (unsigned int*) rblock );
+   cumcount( lblock, rblock );
 
    if( tx == 0 ) {
       // Decide on max and min unsigned int
       for( int i = 0; i < THREADS; i++ ) {
-         minpiv[ 0 ] = min( minpiv[ 0 ], minpiv[ i ] );
-         maxpiv[ 0 ] = max( maxpiv[ 0 ], maxpiv[ i ] );
+         minpiv[ 0 ] = TNL::min( minpiv[ 0 ], minpiv[ i ] );
+         maxpiv[ 0 ] = TNL::max( maxpiv[ 0 ], maxpiv[ i ] );
       }
    }
    __syncthreads();
@@ -392,10 +364,10 @@ part1( unsigned int* data, Params< unsigned int >* params, struct Hist* hist, Le
 //template <typename unsigned int>
 __global__
 void
-part2( unsigned int* data,
+part2( const unsigned int* data,
        unsigned int* data2,
-       struct Params< unsigned int >* params,
-       struct Hist* hist,
+       Params< unsigned int >* params,
+       Hist* hist,
        Length< unsigned int >* lengths )
 {
    const int tx = threadIdx.x;
@@ -450,8 +422,6 @@ part2( unsigned int* data,
       else if( d > pivot )
          data2[ y++ ] = d;
    }
-
-   return;
 }
 
 /**
@@ -464,7 +434,7 @@ part2( unsigned int* data,
 //template <typename unsigned int>
 __global__
 void
-part3( unsigned int* data, struct Params< unsigned int >* params, struct Hist* hist, Length< unsigned int >* lengths )
+part3( unsigned int* data, Params< unsigned int >* params, Hist* hist, Length< unsigned int >* lengths )
 {
    const int tx = threadIdx.x;
    const int bx = blockIdx.x;
@@ -494,7 +464,7 @@ part3( unsigned int* data, struct Params< unsigned int >* params, struct Hist* h
 //template <typename unsigned int>
 __global__
 void
-lqsort( unsigned int* adata, unsigned int* adata2, struct LQSortParams* bs, unsigned int phase )
+lqsort( unsigned int* adata, unsigned int* adata2, LQSortParams* bs, unsigned int phase )
 {
    __shared__ unsigned int lphase;
    lphase = phase;
@@ -510,8 +480,8 @@ lqsort( unsigned int* adata, unsigned int* adata2, struct LQSortParams* bs, unsi
    __shared__ unsigned int end[ 32 ];
    __shared__ bool flip[ 32 ];
 
-   unsigned int* lblock = (unsigned int*) sarray;
-   unsigned int* rblock = (unsigned int*) ( &lblock[ ( blockDim.x + 1 ) ] );
+    auto* lblock = static_cast< unsigned int* >( sarray );
+    auto* rblock = &lblock[ blockDim.x + 1 ];
 
    // The current pivot
    __shared__ unsigned int pivot;
@@ -599,9 +569,9 @@ lqsort( unsigned int* adata, unsigned int* adata2, struct LQSortParams* bs, unsi
             // Create a new pivot for the sequence
             // Try to optimize this for your input distribution
             // if you have some information about it
-            unsigned int mip = min( min( data[ from ], data[ to - 1 ] ), data[ ( from + to ) / 2 ] );
-            unsigned int map = max( max( data[ from ], data[ to - 1 ] ), data[ ( from + to ) / 2 ] );
-            pivot = min( max( mip / 2 + map / 2, mip ), map );
+            unsigned int mip = TNL::min( TNL::min( data[ from ], data[ to - 1 ] ), data[ ( from + to ) / 2 ] );
+            unsigned int map = TNL::max( TNL::max( data[ from ], data[ to - 1 ] ), data[ ( from + to ) / 2 ] );
+            pivot = TNL::min( TNL::max( mip / 2 + map / 2, mip ), map );
          }
 
          unsigned int ll = 0;
@@ -609,7 +579,7 @@ lqsort( unsigned int* adata, unsigned int* adata2, struct LQSortParams* bs, unsi
 
          __syncthreads();
 
-         unsigned int coal = (from) &0xf;
+         unsigned int coal = from & 0xf;
 
          if( tx + from - coal < to ) {
             unsigned int d = data[ tx + from - coal ];
@@ -646,7 +616,7 @@ lqsort( unsigned int* adata, unsigned int* adata2, struct LQSortParams* bs, unsi
          __syncthreads();
 
          // Calculate the cumulative sum
-         cumcount( (unsigned int*) lblock, (unsigned int*) rblock );
+         cumcount( lblock, rblock );
 
          __syncthreads();
 
@@ -732,8 +702,6 @@ lqsort( unsigned int* adata, unsigned int* adata2, struct LQSortParams* bs, unsi
    __syncthreads();
 }
 
-#include <algorithm>
-
 #undef THREADS
 #define THREADS threads
 
@@ -754,10 +722,10 @@ GPUQSort< element >::sort( element* data,
    if( ! init )
       throw std::runtime_error( "GPUQSort not initialized" );
 
-   if( ! threads || ! blockscount || ! sbsize ) {
-      threads = 1 << (int) round( log( size * TK + TM ) / log( 2.0 ) );
-      blockscount = 1 << (int) round( log( size * MK + MM ) / log( 2.0 ) );
-      sbsize = 1 << (int) round( log( size * SK + SM ) / log( 2.0 ) );
+   if( threads == 0 || blockscount == 0 || sbsize == 0 ) {
+      threads = 1 << (int) std::round( std::log( size * TK + TM ) / std::log( 2.0 ) );
+      blockscount = 1 << (int) std::round( std::log( size * MK + MM ) / std::log( 2.0 ) );
+      sbsize = 1 << (int) std::round( std::log( size * SK + SM ) / std::log( 2.0 ) );
    }
 
 #ifdef HASATOMICS
@@ -776,7 +744,7 @@ GPUQSort< element >::sort( element* data,
       throw std::runtime_error( "Too many blocks" );
 
    // Create an auxiallary array
-   data2 = 0;
+   data2 = nullptr;
    TNL_BACKEND_SAFE_CALL( cudaMalloc( (void**) &data2, ( size ) * sizeof( element ) ) );
 
    // We start with a set containing only the sequence to be sorted
@@ -791,8 +759,8 @@ GPUQSort< element >::sort( element* data,
    // Get a starting pivot - copy elements to host for comparison
    element pivot_vals[ 3 ];
    TNL_BACKEND_SAFE_CALL( cudaMemcpy( pivot_vals, data, 3 * sizeof( element ), cudaMemcpyDeviceToHost ) );
-   workset[ 0 ].pivot = ( std::min( std::min( pivot_vals[ 0 ], pivot_vals[ 1 ] ), pivot_vals[ 2 ] )
-                          + std::max( std::max( pivot_vals[ 0 ], pivot_vals[ 1 ] ), pivot_vals[ 2 ] ) )
+   workset[ 0 ].pivot = ( TNL::min( TNL::min( pivot_vals[ 0 ], pivot_vals[ 1 ] ), pivot_vals[ 2 ] )
+                          + TNL::max( TNL::max( pivot_vals[ 0 ], pivot_vals[ 1 ] ), pivot_vals[ 2 ] ) )
                       / 2;
    unsigned int worksize = 1;
 
@@ -802,7 +770,6 @@ GPUQSort< element >::sort( element* data,
    unsigned int maxlength = ( size / blocks ) / 4;
    if( maxlength == 0 ) maxlength = 1;  // Prevent division by zero
 
-   unsigned int iterations = 0;
    bool flip = true;
 
    // Partition the sequences until we have enough
@@ -818,7 +785,7 @@ GPUQSort< element >::sort( element* data,
             continue;
 
          // Larger sequences gets more thread blocks assigned to them
-         unsigned int blocksassigned = max( ( workset[ i ].end - workset[ i ].beg ) / ws, 1 );
+         unsigned int blocksassigned = TNL::max( ( workset[ i ].end - workset[ i ].beg ) / ws, 1 );
          for( unsigned int q = 0; q < blocksassigned; q++ ) {
             params[ paramsize ].from = workset[ i ].beg + ws * q;
             params[ paramsize ].end = params[ paramsize ].from + ws;
@@ -862,11 +829,11 @@ GPUQSort< element >::sort( element* data,
          workset[ params[ i ].ptr ].end -= r;
          workset[ params[ i ].ptr ].altered = true;
 
-         workset[ params[ i ].ptr ].rmaxpiv = max( length->maxpiv[ i ], workset[ params[ i ].ptr ].rmaxpiv );
-         workset[ params[ i ].ptr ].lminpiv = min( length->minpiv[ i ], workset[ params[ i ].ptr ].lminpiv );
+         workset[ params[ i ].ptr ].rmaxpiv = TNL::max( length->maxpiv[ i ], workset[ params[ i ].ptr ].rmaxpiv );
+         workset[ params[ i ].ptr ].lminpiv = TNL::min( length->minpiv[ i ], workset[ params[ i ].ptr ].lminpiv );
 
-         workset[ params[ i ].ptr ].lmaxpiv = min( workset[ params[ i ].ptr ].pivot, workset[ params[ i ].ptr ].rmaxpiv );
-         workset[ params[ i ].ptr ].rminpiv = max( workset[ params[ i ].ptr ].pivot, workset[ params[ i ].ptr ].lminpiv );
+         workset[ params[ i ].ptr ].lmaxpiv = TNL::min( workset[ params[ i ].ptr ].pivot, workset[ params[ i ].ptr ].rmaxpiv );
+         workset[ params[ i ].ptr ].rminpiv = TNL::max( workset[ params[ i ].ptr ].pivot, workset[ params[ i ].ptr ].lminpiv );
       }
 
       // Copy the result of the block cumulative sum to the GPU
@@ -909,7 +876,6 @@ GPUQSort< element >::sort( element* data,
             workset[ i ].altered = false;
          }
       }
-      iterations++;
    }
 
    // Due to the poor scheduler on some graphics card
@@ -918,7 +884,7 @@ GPUQSort< element >::sort( element* data,
    unsigned int sortblocks[ MAXBLOCKS * 2 ];
    for( unsigned int i = 0; i < worksize; i++ )
       sortblocks[ i ] =
-         ( ( workset[ i ].end - workset[ i ].beg ) << (int) round( log( (float) ( MAXBLOCKS * 4.0f ) ) / log( 2.0f ) ) ) + i;
+         ( ( workset[ i ].end - workset[ i ].beg ) << (int) std::round( std::log( MAXBLOCKS * 4 ) / std::log( 2.0 ) ) ) + i;
    std::sort( &sortblocks[ 0 ], &sortblocks[ worksize ] );
 
    if( worksize != 0 ) {
@@ -936,7 +902,7 @@ GPUQSort< element >::sort( element* data,
 
       // Run the local quicksort, the one that doesn't need inter-block synchronization
       if( phase != 1 )
-         lqsort<<< worksize, THREADS, max( ( THREADS + 1 ) * 2 * 4, sbsize * 4 ) >>>( data, data2, dlqparams, phase );
+         lqsort<<< worksize, THREADS, TNL::max( ( THREADS + 1 ) * 2 * 4, sbsize * 4 ) >>>( data, data2, dlqparams, phase );
    }
 
    TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
@@ -946,34 +912,20 @@ GPUQSort< element >::sort( element* data,
 
 template< typename element >
 GPUQSort< element >::GPUQSort()
-: init( false ), workset( nullptr ), params( nullptr ), length( nullptr ), lqparams( nullptr ), dlqparams( nullptr ), dhists( nullptr ), dlength( nullptr ), dparams( nullptr )
 {
-   cudaDeviceProp deviceProp;
-   TNL_BACKEND_SAFE_CALL( cudaGetDeviceProperties( &deviceProp, 0 ) );
-   if( ! strcmp( deviceProp.name, "GeForce 8800 GTX" ) ) {
-      TK = 1.17125033316e-005f;
-      TM = 52.855721393f;
-      MK = 3.7480010661e-005f;
-      MM = 476.338308458f;
-      SK = 4.68500133262e-005f;
-      SM = 211.422885572f;
-   }
-   else if( ! strcmp( deviceProp.name, "GeForce 8600 GTS" ) ) {
-      TK = 0.0f;
-      TM = 64.0f;
-      MK = 0.0000951623403898f;
-      MM = 476.338308458f;
-      SK = 0.0000321583081317f;
-      SM = 202.666666667f;
-   }
-   else {
-      TK = 0;
-      TM = 128;
-      MK = 0;
-      MM = 512;
-      SK = 0;
-      SM = 512;
-   }
+   // Example for GeForce 8800 GTX:
+   // TK = 1.17125033316e-005f;
+   // TM = 52.855721393f;
+   // MK = 3.7480010661e-005f;
+   // MM = 476.338308458f;
+   // SK = 4.68500133262e-005f;
+   // SM = 211.422885572f;
+   TK = 0;
+   TM = 128;
+   MK = 0;
+   MM = 512;
+   SK = 0;
+   SM = 512;
 
    TNL_BACKEND_SAFE_CALL( cudaMallocHost( (void**) &workset, MAXBLOCKS * 2 * sizeof( BlockSize< element > ) ) );
    TNL_BACKEND_SAFE_CALL( cudaMallocHost( (void**) &params, MAXBLOCKS * sizeof( Params< element > ) ) );
