@@ -10,6 +10,10 @@ CompileFlags:
     - "-DHAVE_TINYXML2"
     - "-DHAVE_ZLIB"
     - "-xcu"
+    # FIXME: clangd ignores -isystem flags in compile_commands.json
+    # https://github.com/clangd/clangd/issues/2531#issuecomment-4104075553
+    - "-I/opt/cuda/cccl"
+    - "-I/opt/cuda/include/cccl"
   Remove:
     # remove all nvcc-specific flags that may appear in the compile_commands.json file
     - "-Xcompiler"
