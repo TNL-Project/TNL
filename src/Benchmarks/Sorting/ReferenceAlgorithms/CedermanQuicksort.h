@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <limits>
 #include <stdexcept>
 
 #include <TNL/Backend/Macros.h>
@@ -17,9 +18,10 @@
  * @param data		Data to be sorted
  * @param size		The length of the data
  */
+template< typename element >
 void
 gpuqsort(
-   unsigned int* data,
+   element* data,
    unsigned int size,
    unsigned int blockscount = 0,
    unsigned int threads = 0,
@@ -123,8 +125,6 @@ public:
 
 #define THREADS blockDim.x
 
-extern __shared__ unsigned int sarray[];
-
 #ifdef HASATOMICS
 __device__
 unsigned int ohtotal = 0;
@@ -194,22 +194,23 @@ cumcount( unsigned int* lblock, unsigned int* rblock )
  * @param hist   The cumulative sum for each thread is stored here
  * @param lengths The total sum for each thread block is stored here
  */
-//template <typename unsigned int>
+template< typename element >
 __global__
 void
-part1( const unsigned int* data, Params< unsigned int >* params, Hist* hist, Length< unsigned int >* lengths )
+part1( const element* data, Params< element >* params, Hist* hist, Length< element >* lengths )
 {
    const int tx = threadIdx.x;
 
-   auto* lblock = static_cast< unsigned int* >( sarray );
-   auto* rblock = &lblock[ blockDim.x + 1 ];
-   auto* minpiv = &rblock[ blockDim.x + 1 ];
-   auto* maxpiv = &minpiv[ blockDim.x ];
+   auto* sharedMemory = TNL::Backend::getSharedMemory< unsigned int >();
+   unsigned int* lblock = sharedMemory;
+   unsigned int* rblock = &lblock[ blockDim.x + 1 ];
+   element* minpiv = reinterpret_cast< element* >( &rblock[ blockDim.x + 1 ] );
+   element* maxpiv = &minpiv[ blockDim.x ];
 
    // Where should we read?
    unsigned int start = params[ blockIdx.x ].from;
    unsigned int end = params[ blockIdx.x ].end;
-   unsigned int pivot = params[ blockIdx.x ].pivot;
+   element pivot = params[ blockIdx.x ].pivot;
 
    // Stores the max and min value of the data. Used to decide a new pivot
    minpiv[ tx ] = data[ start + tx ];
@@ -226,10 +227,10 @@ part1( const unsigned int* data, Params< unsigned int >* params, Hist* hist, Len
 
    // Go through the data
    if( tx + start < end ) {
-      unsigned int d = data[ tx + start ];
+      element d = data[ tx + start ];
 
       if( ! ( tx < coal ) ) {
-         // Counting unsigned ints smaller...
+         // Counting elements smaller...
          if( d < pivot )
             ll++;
          else
@@ -237,7 +238,7 @@ part1( const unsigned int* data, Params< unsigned int >* params, Hist* hist, Len
             if( d > pivot )
                lr++;
 
-         // Store the max and min unsigned int
+         // Store the max and min element
          minpiv[ tx ] = TNL::min( minpiv[ tx ], d );
          maxpiv[ tx ] = TNL::max( maxpiv[ tx ], d );
       }
@@ -245,9 +246,9 @@ part1( const unsigned int* data, Params< unsigned int >* params, Hist* hist, Len
 
    // Go through the data
    for( unsigned int i = tx + start + THREADS; i < end; i += THREADS ) {
-      unsigned int d = data[ i ];
+      element d = data[ i ];
 
-      // Counting unsigned ints smaller...
+      // Counting elements smaller...
       if( d < pivot )
          ll++;
       else
@@ -255,7 +256,7 @@ part1( const unsigned int* data, Params< unsigned int >* params, Hist* hist, Len
          if( d > pivot )
             lr++;
 
-      // Store the max and min unsigned int
+      // Store the max and min element
       minpiv[ tx ] = TNL::min( minpiv[ tx ], d );
       maxpiv[ tx ] = TNL::max( maxpiv[ tx ], d );
    }
@@ -269,7 +270,7 @@ part1( const unsigned int* data, Params< unsigned int >* params, Hist* hist, Len
    cumcount( lblock, rblock );
 
    if( tx == 0 ) {
-      // Decide on max and min unsigned int
+      // Decide on max and min element
       for( int i = 0; i < THREADS; i++ ) {
          minpiv[ 0 ] = TNL::min( minpiv[ 0 ], minpiv[ i ] );
          maxpiv[ 0 ] = TNL::max( maxpiv[ 0 ], maxpiv[ i ] );
@@ -285,7 +286,7 @@ part1( const unsigned int* data, Params< unsigned int >* params, Hist* hist, Len
    lengths->left[ blockIdx.x ] = lblock[ THREADS ];
    lengths->right[ blockIdx.x ] = rblock[ THREADS ];
 
-   // Store the max and min unsigned int
+   // Store the max and min element
    lengths->minpiv[ blockIdx.x ] = minpiv[ 0 ];
    lengths->maxpiv[ blockIdx.x ] = maxpiv[ 0 ];
 }
@@ -298,15 +299,10 @@ part1( const unsigned int* data, Params< unsigned int >* params, Hist* hist, Len
  * @param hist   The cumulative sum for each thread is stored here
  * @param lengths The total sum for each thread block is stored here
  */
-//template <typename unsigned int>
+template< typename element >
 __global__
 void
-part2(
-   const unsigned int* data,
-   unsigned int* data2,
-   Params< unsigned int >* params,
-   Hist* hist,
-   Length< unsigned int >* lengths )
+part2( const element* data, element* data2, Params< element >* params, Hist* hist, Length< element >* lengths )
 {
    const int tx = threadIdx.x;
    const int bx = blockIdx.x;
@@ -318,7 +314,7 @@ part2(
    // Where should we read?
    unsigned int start = params[ bx ].from;
    unsigned int end = params[ bx ].end;
-   unsigned int pivot = params[ bx ].pivot;
+   element pivot = params[ bx ].pivot;
 
    __syncthreads();
 
@@ -327,8 +323,8 @@ part2(
 
    // Go through all the assigned data
    if( tx + start < end ) {
-      // Reading unsigned ints...
-      unsigned int d = data[ tx + start ];
+      // Reading elements...
+      element d = data[ tx + start ];
 
       if( ! ( tx < coal ) ) {
          // and writing them to auxiliary array
@@ -347,8 +343,8 @@ part2(
 
    // Go through all the assigned data
    for( unsigned int i = start + tx + THREADS; i < end; i += THREADS ) {
-      // Reading unsigned ints...
-      unsigned int d = data[ i ];
+      // Reading elements...
+      element d = data[ i ];
 
       // and writing them to auxiliary array
       if( d < pivot ) {
@@ -369,10 +365,10 @@ part2(
  * @param hist   The cumulative sum for each thread is stored here
  * @param lengths The total sum for each thread block is stored here
  */
-//template <typename unsigned int>
+template< typename element >
 __global__
 void
-part3( unsigned int* data, Params< unsigned int >* params, Hist* hist, Length< unsigned int >* lengths )
+part3( element* data, Params< element >* params, Hist* hist, Length< element >* lengths )
 {
    const int tx = threadIdx.x;
    const int bx = blockIdx.x;
@@ -383,7 +379,7 @@ part3( unsigned int* data, Params< unsigned int >* params, Hist* hist, Length< u
       // Get destination position
       unsigned int x = lengths->left[ bx ] + hist->left[ bx * THREADS + THREADS - 1 ] + tx;
       unsigned int y = lengths->right[ bx ] - hist->right[ bx * THREADS + THREADS - 1 ];
-      unsigned int pivot = params[ bx ].pivot;
+      element pivot = params[ bx ].pivot;
 
       // Write the pivot values
       for( ; x < y; x += THREADS )
@@ -399,10 +395,10 @@ part3( unsigned int* data, Params< unsigned int >* params, Hist* hist, Length< u
  * @param bs     List of blocks to be sorted and a pointer telling if a specific block is
  *               in \a adata or \a adata2
  */
-//template <typename unsigned int>
+template< typename element >
 __global__
 void
-lqsort( unsigned int* adata, unsigned int* adata2, LQSortParams* bs, unsigned int phase )
+lqsort( element* adata, element* adata2, LQSortParams* bs, unsigned int phase )
 {
    __shared__ unsigned int lphase;
    lphase = phase;
@@ -418,11 +414,12 @@ lqsort( unsigned int* adata, unsigned int* adata2, LQSortParams* bs, unsigned in
    __shared__ unsigned int end[ 32 ];
    __shared__ bool flip[ 32 ];
 
-   auto* lblock = static_cast< unsigned int* >( sarray );
+   auto* sharedMemory = TNL::Backend::getSharedMemory< unsigned int >();
+   auto* lblock = sharedMemory;
    auto* rblock = &lblock[ blockDim.x + 1 ];
 
    // The current pivot
-   __shared__ unsigned int pivot;
+   __shared__ element pivot;
 
    // The sequence to be sorted
    __shared__ unsigned int from;
@@ -431,8 +428,8 @@ lqsort( unsigned int* adata, unsigned int* adata2, LQSortParams* bs, unsigned in
    // Since we switch between the primary and the auxiliary buffer,
    // these variables are required to keep track on which role
    // a buffer currently has
-   __shared__ unsigned int* data;
-   __shared__ unsigned int* data2;
+   __shared__ element* data;
+   __shared__ element* data2;
    __shared__ unsigned int sbsize;
 
    __shared__ unsigned int bx;
@@ -487,22 +484,23 @@ lqsort( unsigned int* adata, unsigned int* adata2, LQSortParams* bs, unsigned in
 
          // If the sequence is smaller than SBSIZE we sort it using
          // an alternative sort. Otherwise each thread would sort just one
-         // or two unsigned ints and that wouldn't be efficient
+         // or two elements and that wouldn't be efficient
          if( ( to - from ) < ( sbsize - 16 ) ) {
             // Sort it using bitonic sort. This could be changed to some other
             // sorting method. Store the result in the final destination buffer
             if( ( to - from >= 1 ) && ( lphase != 2 ) ) {
                // Create ArrayViews for the data to sort
-               TNL::Containers::ArrayView< unsigned int, TNL::Devices::Cuda > view_data( data + from, to - from );
-               TNL::Containers::ArrayView< unsigned int, TNL::Devices::Cuda > view_adata( adata + from, to - from );
+               TNL::Containers::ArrayView< element, TNL::Devices::Cuda > view_data( data + from, to - from );
+               TNL::Containers::ArrayView< element, TNL::Devices::Cuda > view_adata( adata + from, to - from );
 
                // Use TNL's bitonicSort_Block with shared memory
                // The comparator uses standard less-than for ascending sort
+               auto* shared = TNL::Backend::getSharedMemory< element >();
                TNL::Algorithms::Sorting::detail::bitonicSort_Block(
                   view_data,
                   view_adata,
-                  sarray,
-                  []( unsigned int a, unsigned int b )
+                  shared,
+                  []( element a, element b )
                   {
                      return a < b;
                   } );
@@ -521,8 +519,8 @@ lqsort( unsigned int* adata, unsigned int* adata2, LQSortParams* bs, unsigned in
             // Create a new pivot for the sequence
             // Try to optimize this for your input distribution
             // if you have some information about it
-            unsigned int mip = TNL::min( data[ from ], data[ to - 1 ], data[ ( from + to ) / 2 ] );
-            unsigned int map = TNL::max( data[ from ], data[ to - 1 ], data[ ( from + to ) / 2 ] );
+            element mip = TNL::min( data[ from ], data[ to - 1 ], data[ ( from + to ) / 2 ] );
+            element map = TNL::max( data[ from ], data[ to - 1 ], data[ ( from + to ) / 2 ] );
             pivot = TNL::min( TNL::max( mip / 2 + map / 2, mip ), map );
          }
 
@@ -534,10 +532,10 @@ lqsort( unsigned int* adata, unsigned int* adata2, LQSortParams* bs, unsigned in
          unsigned int coal = from & 0xf;
 
          if( tx + from - coal < to ) {
-            unsigned int d = data[ tx + from - coal ];
+            element d = data[ tx + from - coal ];
 
             if( ! ( tx < coal ) ) {
-               // Counting unsigned ints that have a higher value than the pivot
+               // Counting elements that have a higher value than the pivot
                if( d < pivot )
                   ll++;
                else
@@ -549,9 +547,9 @@ lqsort( unsigned int* adata, unsigned int* adata2, LQSortParams* bs, unsigned in
 
          // Go through the current sequence
          for( int i = from + tx + THREADS - coal; i < to; i += THREADS ) {
-            unsigned int d = data[ i ];
+            element d = data[ i ];
 
-            // Counting unsigned ints that have a higher value than the pivot
+            // Counting elements that have a higher value than the pivot
             if( d < pivot )
                ll++;
             else
@@ -602,7 +600,7 @@ lqsort( unsigned int* adata, unsigned int* adata2, LQSortParams* bs, unsigned in
          coal = from & 0xf;
 
          if( tx + from - coal < to ) {
-            unsigned int d = data[ tx + from - coal ];
+            element d = data[ tx + from - coal ];
 
             if( ! ( tx < coal ) ) {
                if( d < pivot ) {
@@ -619,7 +617,7 @@ lqsort( unsigned int* adata, unsigned int* adata2, LQSortParams* bs, unsigned in
          // Go through the data once again
          // writing it to its correct position
          for( unsigned int i = from + tx + THREADS - coal; i < to; i += THREADS ) {
-            unsigned int d = data[ i ];
+            element d = data[ i ];
 
             if( d < pivot ) {
                if( x > 0 )
@@ -750,10 +748,10 @@ GPUQSort< element >::sort(
          params[ paramsize - 1 ].last = true;
          params[ paramsize - 1 ].end = workset[ i ].end;
 
-         workset[ i ].lmaxpiv = 0;
-         workset[ i ].lminpiv = 0xffffffff;
-         workset[ i ].rmaxpiv = 0;
-         workset[ i ].rminpiv = 0xffffffff;
+         workset[ i ].lmaxpiv = std::numeric_limits< element >::lowest();
+         workset[ i ].lminpiv = std::numeric_limits< element >::max();
+         workset[ i ].rmaxpiv = std::numeric_limits< element >::lowest();
+         workset[ i ].rminpiv = std::numeric_limits< element >::max();
       }
 
       if( paramsize == 0 )
@@ -764,13 +762,19 @@ GPUQSort< element >::sort(
 
       // Do the cumulative sum
       if( flip ) {
+         unsigned int unsignedIntSize = ( THREADS + 1 ) * 2 * sizeof( unsigned int );
+         unsigned int elementSize = THREADS * 2 * sizeof( element );
+         unsigned int sharedMemorySize = unsignedIntSize + elementSize;
          // clang-format off
-         part1<<< paramsize, THREADS, ( THREADS + 1 ) * 2 * 4 + THREADS * 2 * 4 >>>( data, dparams, dhists, dlength );
+         part1<<< paramsize, THREADS, sharedMemorySize >>>( data, dparams, dhists, dlength );
          // clang-format on
       }
       else {
+         unsigned int unsignedIntSize = ( THREADS + 1 ) * 2 * sizeof( unsigned int );
+         unsigned int elementSize = THREADS * 2 * sizeof( element );
+         unsigned int sharedMemorySize = unsignedIntSize + elementSize;
          // clang-format off
-         part1<<< paramsize, THREADS, ( THREADS + 1 ) * 2 * 4 + THREADS * 2 * 4 >>>( data2, dparams, dhists, dlength );
+         part1<<< paramsize, THREADS, sharedMemorySize >>>( data2, dparams, dhists, dlength );
          // clang-format on
       }
       TNL_BACKEND_SAFE_CALL( cudaMemcpy( length, dlength, sizeof( Length< element > ), cudaMemcpyDeviceToHost ) );
@@ -869,8 +873,14 @@ GPUQSort< element >::sort(
 
       // Run the local quicksort, the one that doesn't need inter-block synchronization
       if( phase != 1 ) {
+         // Shared memory needed:
+         // - lblock and rblock: 2 * (THREADS + 1) unsigned ints
+         // - bitonicSort: up to sbsize elements (padded to next power of 2)
+         unsigned int unsignedIntSize = ( THREADS + 1 ) * 2 * sizeof( unsigned int );
+         unsigned int elementSize = sbsize * sizeof( element );
+         unsigned int sharedMemorySize = unsignedIntSize + elementSize;
          // clang-format off
-         lqsort<<< worksize, THREADS, TNL::max( ( THREADS + 1 ) * 2 * 4, sbsize * 4 ) >>>( data, data2, dlqparams, phase );
+         lqsort<<< worksize, THREADS, sharedMemorySize >>>( data, data2, dlqparams, phase );
          // clang-format on
       }
    }
@@ -920,24 +930,26 @@ GPUQSort< element >::~GPUQSort()
    cudaFree( dlength );
 }
 
+template< typename element >
 void
 gpuqsort(
-   unsigned int* data,
+   element* data,
    unsigned int size,
    unsigned int blockscount,
    unsigned int threads,
    unsigned int sbsize,
    unsigned int phase )
 {
-   GPUQSort< unsigned int > s;
+   GPUQSort< element > s;
    s.sort( data, size, blockscount, threads, sbsize, phase );
 }
 
 struct CedermanQuicksort
 {
+   template< typename element >
    static void
-   sort( TNL::Containers::ArrayView< int, TNL::Devices::Cuda >& array )
+   sort( TNL::Containers::ArrayView< element, TNL::Devices::Cuda >& array )
    {
-      gpuqsort( (unsigned int*) array.getData(), (unsigned int) array.getSize() );
+      gpuqsort( array.getData(), array.getSize() );
    }
 };
