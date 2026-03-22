@@ -5,6 +5,9 @@
 #include <stdexcept>
 
 #include <TNL/Backend/Macros.h>
+#include <TNL/Allocators/Cuda.h>
+#include <TNL/Allocators/CudaHost.h>
+#include <TNL/Containers/Array.h>
 #include <TNL/Containers/ArrayView.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Math.h>
@@ -15,14 +18,12 @@
 
 /**
  * The main sort function
- * @param data		Data to be sorted
- * @param size		The length of the data
+ * @param data Data to be sorted
  */
 template< typename element >
 void
 gpuqsort(
-   element* data,
-   unsigned int size,
+   TNL::Containers::ArrayView< element, TNL::Devices::Cuda > data,
    unsigned int blockscount = 0,
    unsigned int threads = 0,
    unsigned int sbsize = 0,
@@ -91,30 +92,31 @@ struct LQSortParams
 template< typename element >
 class GPUQSort
 {
-   element* data2 = nullptr;
-   Params< element >* params = nullptr;
-   Params< element >* dparams = nullptr;
+   TNL::Containers::Array< element, TNL::Devices::Cuda, unsigned int, TNL::Allocators::Cuda< element > > data2;
+   TNL::Containers::Array< Params< element >, TNL::Devices::Cuda, unsigned int, TNL::Allocators::Cuda< Params< element > > >
+      dparams;
+   TNL::Containers::Array< LQSortParams, TNL::Devices::Cuda, unsigned int, TNL::Allocators::Cuda< LQSortParams > > dlqparams;
+   TNL::Containers::Array< Hist, TNL::Devices::Cuda, unsigned int, TNL::Allocators::Cuda< Hist > > dhists;
+   TNL::Containers::Array< Length< element >, TNL::Devices::Cuda, unsigned int, TNL::Allocators::Cuda< Length< element > > >
+      dlength;
 
-   LQSortParams* lqparams = nullptr;
-   LQSortParams* dlqparams = nullptr;
-
-   Hist* dhists = nullptr;
-   Length< element >* dlength = nullptr;
-   Length< element >* length = nullptr;
-   BlockSize< element >* workset = nullptr;
+   TNL::Containers::Array< Params< element >, TNL::Devices::Host, unsigned int, TNL::Allocators::CudaHost< Params< element > > >
+      params;
+   TNL::Containers::Array< LQSortParams, TNL::Devices::Host, unsigned int, TNL::Allocators::CudaHost< LQSortParams > > lqparams;
+   TNL::Containers::Array< Length< element >, TNL::Devices::Host, unsigned int, TNL::Allocators::CudaHost< Length< element > > >
+      length;
+   TNL::Containers::
+      Array< BlockSize< element >, TNL::Devices::Host, unsigned int, TNL::Allocators::CudaHost< BlockSize< element > > >
+         workset;
 
    float TK, TM, MK, MM, SM, SK;
 
-   bool init = false;
-
 public:
    GPUQSort();
-   ~GPUQSort();
 
    void
    sort(
-      element* data,
-      unsigned int size,
+      TNL::Containers::ArrayView< element, TNL::Devices::Cuda > data,
       unsigned int blockscount = 0,
       unsigned int threads = 0,
       unsigned int sbsize = 0,
@@ -663,13 +665,14 @@ lqsort( element* adata, element* adata2, LQSortParams* bs, unsigned int phase )
 template< typename element >
 void
 GPUQSort< element >::sort(
-   element* data,
-   unsigned int size,
+   TNL::Containers::ArrayView< element, TNL::Devices::Cuda > data,
    unsigned int blockscount,
    unsigned int threads,
    unsigned int sbsize,
    unsigned int phase )
 {
+   unsigned int size = data.getSize();
+
    if( threads == 0 || blockscount == 0 || sbsize == 0 ) {
       threads = 1 << static_cast< int >( std::round( std::log2( size * TK + TM ) ) );
       blockscount = 1 << static_cast< int >( std::round( std::log2( size * MK + MM ) ) );
@@ -691,9 +694,8 @@ GPUQSort< element >::sort(
    if( blockscount > MAXBLOCKS )
       throw std::runtime_error( "Too many blocks" );
 
-   // Create an auxiallary array
-   data2 = nullptr;
-   TNL_BACKEND_SAFE_CALL( cudaMalloc( (void**) &data2, ( size ) * sizeof( element ) ) );
+   // Allocate auxiliary array
+   data2.setSize( size );
 
    // We start with a set containing only the sequence to be sorted
    // This will grow as we partition the data
@@ -706,7 +708,7 @@ GPUQSort< element >::sort(
 
    // Get a starting pivot - copy elements to host for comparison
    element pivot_vals[ 3 ];
-   TNL_BACKEND_SAFE_CALL( cudaMemcpy( pivot_vals, data, 3 * sizeof( element ), cudaMemcpyDeviceToHost ) );
+   TNL_BACKEND_SAFE_CALL( cudaMemcpy( pivot_vals, data.getData(), 3 * sizeof( element ), cudaMemcpyDeviceToHost ) );
    workset[ 0 ].pivot = ( TNL::min( pivot_vals[ 0 ], pivot_vals[ 1 ], pivot_vals[ 2 ] )
                           + TNL::max( pivot_vals[ 0 ], pivot_vals[ 1 ], pivot_vals[ 2 ] ) )
                       / 2;
@@ -758,7 +760,7 @@ GPUQSort< element >::sort(
          break;
 
       // Copy the block assignment to the GPU
-      TNL_BACKEND_SAFE_CALL( cudaMemcpy( dparams, params, paramsize * sizeof( Params< element > ), cudaMemcpyHostToDevice ) );
+      dparams = params;
 
       // Do the cumulative sum
       if( flip ) {
@@ -766,7 +768,7 @@ GPUQSort< element >::sort(
          unsigned int elementSize = THREADS * 2 * sizeof( element );
          unsigned int sharedMemorySize = unsignedIntSize + elementSize;
          // clang-format off
-         part1<<< paramsize, THREADS, sharedMemorySize >>>( data, dparams, dhists, dlength );
+         part1<<< paramsize, THREADS, sharedMemorySize >>>( data.getData(), dparams.getData(), dhists.getData(), dlength.getData() );
          // clang-format on
       }
       else {
@@ -774,49 +776,49 @@ GPUQSort< element >::sort(
          unsigned int elementSize = THREADS * 2 * sizeof( element );
          unsigned int sharedMemorySize = unsignedIntSize + elementSize;
          // clang-format off
-         part1<<< paramsize, THREADS, sharedMemorySize >>>( data2, dparams, dhists, dlength );
+         part1<<< paramsize, THREADS, sharedMemorySize >>>( data2.getData(), dparams.getData(), dhists.getData(), dlength.getData() );
          // clang-format on
       }
-      TNL_BACKEND_SAFE_CALL( cudaMemcpy( length, dlength, sizeof( Length< element > ), cudaMemcpyDeviceToHost ) );
+      length = dlength;
 
       // Do the block cumulative sum. Done on the CPU since not all cards have support for
       // atomic operations yet.
       for( unsigned int i = 0; i < paramsize; i++ ) {
-         unsigned int l = length->left[ i ];
-         unsigned int r = length->right[ i ];
+         unsigned int l = length[ 0 ].left[ i ];
+         unsigned int r = length[ 0 ].right[ i ];
 
-         length->left[ i ] = workset[ params[ i ].ptr ].beg;
-         length->right[ i ] = workset[ params[ i ].ptr ].end;
+         length[ 0 ].left[ i ] = workset[ params[ i ].ptr ].beg;
+         length[ 0 ].right[ i ] = workset[ params[ i ].ptr ].end;
 
          workset[ params[ i ].ptr ].beg += l;
          workset[ params[ i ].ptr ].end -= r;
          workset[ params[ i ].ptr ].altered = true;
 
-         workset[ params[ i ].ptr ].rmaxpiv = TNL::max( length->maxpiv[ i ], workset[ params[ i ].ptr ].rmaxpiv );
-         workset[ params[ i ].ptr ].lminpiv = TNL::min( length->minpiv[ i ], workset[ params[ i ].ptr ].lminpiv );
+         workset[ params[ i ].ptr ].rmaxpiv = TNL::max( length[ 0 ].maxpiv[ i ], workset[ params[ i ].ptr ].rmaxpiv );
+         workset[ params[ i ].ptr ].lminpiv = TNL::min( length[ 0 ].minpiv[ i ], workset[ params[ i ].ptr ].lminpiv );
 
          workset[ params[ i ].ptr ].lmaxpiv = TNL::min( workset[ params[ i ].ptr ].pivot, workset[ params[ i ].ptr ].rmaxpiv );
          workset[ params[ i ].ptr ].rminpiv = TNL::max( workset[ params[ i ].ptr ].pivot, workset[ params[ i ].ptr ].lminpiv );
       }
 
       // Copy the result of the block cumulative sum to the GPU
-      TNL_BACKEND_SAFE_CALL( cudaMemcpy( dlength, length, sizeof( Length< element > ), cudaMemcpyHostToDevice ) );
+      dlength = length;
 
       // Move the elements to their correct position
       if( flip ) {
          // clang-format off
-         part2<<< paramsize, THREADS >>>( data, data2, dparams, dhists, dlength );
+         part2<<< paramsize, THREADS >>>( data.getData(), data2.getData(), dparams.getData(), dhists.getData(), dlength.getData() );
          // clang-format on
       }
       else {
          // clang-format off
-         part2<<< paramsize, THREADS >>>( data2, data, dparams, dhists, dlength );
+         part2<<< paramsize, THREADS >>>( data2.getData(), data.getData(), dparams.getData(), dhists.getData(), dlength.getData() );
          // clang-format on
       }
 
       // Fill in the pivot value between the left and right blocks
       // clang-format off
-      part3<<< paramsize, THREADS >>>( data, dparams, dhists, dlength );
+      part3<<< paramsize, THREADS >>>( data.getData(), dparams.getData(), dhists.getData(), dlength.getData() );
       // clang-format on
 
       flip = ! flip;
@@ -869,7 +871,7 @@ GPUQSort< element >::sort(
          lqparams[ i ].sbsize = sbsize;
       }
 
-      TNL_BACKEND_SAFE_CALL( cudaMemcpy( dlqparams, lqparams, worksize * sizeof( LQSortParams ), cudaMemcpyHostToDevice ) );
+      dlqparams = lqparams;
 
       // Run the local quicksort, the one that doesn't need inter-block synchronization
       if( phase != 1 ) {
@@ -880,14 +882,12 @@ GPUQSort< element >::sort(
          unsigned int elementSize = sbsize * sizeof( element );
          unsigned int sharedMemorySize = unsignedIntSize + elementSize;
          // clang-format off
-         lqsort<<< worksize, THREADS, sharedMemorySize >>>( data, data2, dlqparams, phase );
+         lqsort<<< worksize, THREADS, sharedMemorySize >>>( data.getData(), data2.getData(), dlqparams.getData(), phase );
          // clang-format on
       }
    }
 
    TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
-
-   cudaFree( data2 );
 }
 
 template< typename element >
@@ -907,49 +907,35 @@ GPUQSort< element >::GPUQSort()
    SK = 0;
    SM = 512;
 
-   TNL_BACKEND_SAFE_CALL( cudaMallocHost( (void**) &workset, MAXBLOCKS * 2 * sizeof( BlockSize< element > ) ) );
-   TNL_BACKEND_SAFE_CALL( cudaMallocHost( (void**) &params, MAXBLOCKS * sizeof( Params< element > ) ) );
-   TNL_BACKEND_SAFE_CALL( cudaMallocHost( (void**) &length, sizeof( Length< element > ) ) );
-   TNL_BACKEND_SAFE_CALL( cudaMallocHost( (void**) &lqparams, MAXBLOCKS * sizeof( LQSortParams ) ) );
-   TNL_BACKEND_SAFE_CALL( cudaMalloc( (void**) &dlqparams, MAXBLOCKS * sizeof( LQSortParams ) ) );
-   TNL_BACKEND_SAFE_CALL( cudaMalloc( (void**) &dhists, sizeof( Hist ) ) );
-   TNL_BACKEND_SAFE_CALL( cudaMalloc( (void**) &dlength, sizeof( Length< element > ) ) );
-   TNL_BACKEND_SAFE_CALL( cudaMalloc( (void**) &dparams, MAXBLOCKS * sizeof( Params< element > ) ) );
-}
-
-template< typename element >
-GPUQSort< element >::~GPUQSort()
-{
-   cudaFreeHost( workset );
-   cudaFreeHost( params );
-   cudaFreeHost( length );
-   cudaFreeHost( lqparams );
-   cudaFree( dparams );
-   cudaFree( dlqparams );
-   cudaFree( dhists );
-   cudaFree( dlength );
+   workset.setSize( MAXBLOCKS * 2 );
+   params.setSize( MAXBLOCKS );
+   length.setSize( 1 );
+   lqparams.setSize( MAXBLOCKS );
+   dlqparams.setSize( MAXBLOCKS );
+   dhists.setSize( 1 );
+   dlength.setSize( 1 );
+   dparams.setSize( MAXBLOCKS );
 }
 
 template< typename element >
 void
 gpuqsort(
-   element* data,
-   unsigned int size,
+   TNL::Containers::ArrayView< element, TNL::Devices::Cuda > data,
    unsigned int blockscount,
    unsigned int threads,
    unsigned int sbsize,
    unsigned int phase )
 {
    GPUQSort< element > s;
-   s.sort( data, size, blockscount, threads, sbsize, phase );
+   s.sort( data, blockscount, threads, sbsize, phase );
 }
 
 struct CedermanQuicksort
 {
    template< typename element >
    static void
-   sort( TNL::Containers::ArrayView< element, TNL::Devices::Cuda >& array )
+   sort( TNL::Containers::ArrayView< element, TNL::Devices::Cuda >& data )
    {
-      gpuqsort( array.getData(), array.getSize() );
+      gpuqsort( data );
    }
 };
