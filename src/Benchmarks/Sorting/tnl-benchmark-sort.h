@@ -149,8 +149,7 @@ runBenchmark( Benchmark<>& benchmark, std::size_t size, const String& device )
 
          auto sortCederman = [ &arr ]()
          {
-            auto view = arr.getView();
-            CedermanQuicksort::sort( view );
+            CedermanQuicksort::sort( arr );
          };
 
          benchmark.time< Devices::Cuda >( reset, "CedermanQuicksort", sortCederman, result );

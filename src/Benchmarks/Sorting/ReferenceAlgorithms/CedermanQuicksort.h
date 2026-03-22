@@ -20,10 +20,10 @@
  * The main sort function
  * @param data Data to be sorted
  */
-template< typename element >
+template< typename element, typename Index >
 void
 gpuqsort(
-   TNL::Containers::ArrayView< element, TNL::Devices::Cuda > data,
+   TNL::Containers::ArrayView< element, TNL::Devices::Cuda, Index > data,
    unsigned int blockscount = 0,
    unsigned int threads = 0,
    unsigned int sbsize = 0,
@@ -89,25 +89,22 @@ struct LQSortParams
    unsigned int sbsize;
 };
 
-template< typename element >
+template< typename element, typename Index >
 class GPUQSort
 {
-   TNL::Containers::Array< element, TNL::Devices::Cuda, unsigned int, TNL::Allocators::Cuda< element > > data2;
-   TNL::Containers::Array< Params< element >, TNL::Devices::Cuda, unsigned int, TNL::Allocators::Cuda< Params< element > > >
-      dparams;
-   TNL::Containers::Array< LQSortParams, TNL::Devices::Cuda, unsigned int, TNL::Allocators::Cuda< LQSortParams > > dlqparams;
-   TNL::Containers::Array< Hist, TNL::Devices::Cuda, unsigned int, TNL::Allocators::Cuda< Hist > > dhists;
-   TNL::Containers::Array< Length< element >, TNL::Devices::Cuda, unsigned int, TNL::Allocators::Cuda< Length< element > > >
-      dlength;
+   TNL::Containers::Array< element, TNL::Devices::Cuda, Index, TNL::Allocators::Cuda< element > > data2;
+   TNL::Containers::Array< Params< element >, TNL::Devices::Cuda, Index, TNL::Allocators::Cuda< Params< element > > > dparams;
+   TNL::Containers::Array< LQSortParams, TNL::Devices::Cuda, Index, TNL::Allocators::Cuda< LQSortParams > > dlqparams;
+   TNL::Containers::Array< Hist, TNL::Devices::Cuda, Index, TNL::Allocators::Cuda< Hist > > dhists;
+   TNL::Containers::Array< Length< element >, TNL::Devices::Cuda, Index, TNL::Allocators::Cuda< Length< element > > > dlength;
 
-   TNL::Containers::Array< Params< element >, TNL::Devices::Host, unsigned int, TNL::Allocators::CudaHost< Params< element > > >
+   TNL::Containers::Array< Params< element >, TNL::Devices::Host, Index, TNL::Allocators::CudaHost< Params< element > > >
       params;
-   TNL::Containers::Array< LQSortParams, TNL::Devices::Host, unsigned int, TNL::Allocators::CudaHost< LQSortParams > > lqparams;
-   TNL::Containers::Array< Length< element >, TNL::Devices::Host, unsigned int, TNL::Allocators::CudaHost< Length< element > > >
+   TNL::Containers::Array< LQSortParams, TNL::Devices::Host, Index, TNL::Allocators::CudaHost< LQSortParams > > lqparams;
+   TNL::Containers::Array< Length< element >, TNL::Devices::Host, Index, TNL::Allocators::CudaHost< Length< element > > >
       length;
-   TNL::Containers::
-      Array< BlockSize< element >, TNL::Devices::Host, unsigned int, TNL::Allocators::CudaHost< BlockSize< element > > >
-         workset;
+   TNL::Containers::Array< BlockSize< element >, TNL::Devices::Host, Index, TNL::Allocators::CudaHost< BlockSize< element > > >
+      workset;
 
    float TK, TM, MK, MM, SM, SK;
 
@@ -116,7 +113,7 @@ public:
 
    void
    sort(
-      TNL::Containers::ArrayView< element, TNL::Devices::Cuda > data,
+      TNL::Containers::ArrayView< element, TNL::Devices::Cuda, Index > data,
       unsigned int blockscount = 0,
       unsigned int threads = 0,
       unsigned int sbsize = 0,
@@ -662,15 +659,18 @@ lqsort( element* adata, element* adata2, LQSortParams* bs, unsigned int phase )
  * @param data		Data to be sorted - allocated on the device
  * @param size		The length of the data
  */
-template< typename element >
+template< typename element, typename Index >
 void
-GPUQSort< element >::sort(
-   TNL::Containers::ArrayView< element, TNL::Devices::Cuda > data,
+GPUQSort< element, Index >::sort(
+   TNL::Containers::ArrayView< element, TNL::Devices::Cuda, Index > data,
    unsigned int blockscount,
    unsigned int threads,
    unsigned int sbsize,
    unsigned int phase )
 {
+   if( static_cast< std::size_t >( data.getSize() ) > std::numeric_limits< unsigned int >::max() )
+      throw std::overflow_error( "CedermanQuicksort cannot handle more than 2^32 elements" );
+
    unsigned int size = data.getSize();
 
    if( threads == 0 || blockscount == 0 || sbsize == 0 ) {
@@ -890,8 +890,8 @@ GPUQSort< element >::sort(
    TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
 }
 
-template< typename element >
-GPUQSort< element >::GPUQSort()
+template< typename element, typename Index >
+GPUQSort< element, Index >::GPUQSort()
 {
    // Example for GeForce 8800 GTX:
    // TK = 1.17125033316e-005f;
@@ -917,25 +917,32 @@ GPUQSort< element >::GPUQSort()
    dparams.setSize( MAXBLOCKS );
 }
 
-template< typename element >
+template< typename element, typename Index >
 void
 gpuqsort(
-   TNL::Containers::ArrayView< element, TNL::Devices::Cuda > data,
+   TNL::Containers::ArrayView< element, TNL::Devices::Cuda, Index > data,
    unsigned int blockscount,
    unsigned int threads,
    unsigned int sbsize,
    unsigned int phase )
 {
-   GPUQSort< element > s;
+   GPUQSort< element, Index > s;
    s.sort( data, blockscount, threads, sbsize, phase );
 }
 
 struct CedermanQuicksort
 {
-   template< typename element >
+   template< typename Array >
    static void
-   sort( TNL::Containers::ArrayView< element, TNL::Devices::Cuda >& data )
+   sort( Array& array )
    {
-      gpuqsort( data );
+      using ValueType = typename Array::ValueType;
+      using DeviceType = typename Array::DeviceType;
+      using IndexType = typename Array::IndexType;
+
+      static_assert( std::is_same_v< DeviceType, TNL::Devices::Cuda >, "CedermanQuicksort requires Devices::Cuda" );
+
+      auto view = array.getView();
+      gpuqsort< ValueType, IndexType >( view );
    }
 };
