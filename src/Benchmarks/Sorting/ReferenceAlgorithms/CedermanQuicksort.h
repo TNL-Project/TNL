@@ -25,12 +25,13 @@
  * @returns 0 if successful. For non-zero values, use getErrorStr() for more information about why it failed.
  */
 int
-gpuqsort( unsigned int* data,
-          unsigned int size,
-          unsigned int blockscount = 0,
-          unsigned int threads = 0,
-          unsigned int sbsize = 0,
-          unsigned int phase = 0 );
+gpuqsort(
+   unsigned int* data,
+   unsigned int size,
+   unsigned int blockscount = 0,
+   unsigned int threads = 0,
+   unsigned int sbsize = 0,
+   unsigned int phase = 0 );
 
 // Keep tracks of the data blocks in phase one
 template< typename element >
@@ -121,12 +122,13 @@ public:
    ~GPUQSort();
 
    int
-   sort( element* data,
-         unsigned int size,
-         unsigned int blockscount = 0,
-         unsigned int threads = 0,
-         unsigned int sbsize = 0,
-         unsigned int phase = 0 );
+   sort(
+      element* data,
+      unsigned int size,
+      unsigned int blockscount = 0,
+      unsigned int threads = 0,
+      unsigned int sbsize = 0,
+      unsigned int phase = 0 );
    const char*
    getErrorStr();
 };
@@ -172,7 +174,7 @@ bitonicSort( unsigned int* fromvalues, unsigned int* tovalues, unsigned int from
 {
    unsigned int* shared = (unsigned int*) sarray;
 
-   unsigned int coal = ( from & 0xf );
+   unsigned int coal = from & 0xf;
    size = size + coal;
    from = from - coal;
 
@@ -316,7 +318,7 @@ part1( unsigned int* data, Params< unsigned int >* params, struct Hist* hist, Le
 
    __syncthreads();
 
-   int coal = ( start & 0xf );
+   int coal = start & 0xf;
    start = start - coal;
 
    // Go through the data
@@ -396,11 +398,12 @@ part1( unsigned int* data, Params< unsigned int >* params, struct Hist* hist, Le
 //template <typename unsigned int>
 __global__
 void
-part2( unsigned int* data,
-       unsigned int* data2,
-       struct Params< unsigned int >* params,
-       struct Hist* hist,
-       Length< unsigned int >* lengths )
+part2(
+   unsigned int* data,
+   unsigned int* data2,
+   struct Params< unsigned int >* params,
+   struct Hist* hist,
+   Length< unsigned int >* lengths )
 {
    const int tx = threadIdx.x;
    const int bx = blockIdx.x;
@@ -416,7 +419,7 @@ part2( unsigned int* data,
 
    __syncthreads();
 
-   int coal = ( start & 0xf );
+   int coal = start & 0xf;
    start = start - coal;
 
    // Go through all the assigned data
@@ -613,7 +616,7 @@ lqsort( unsigned int* adata, unsigned int* adata2, struct LQSortParams* bs, unsi
 
          __syncthreads();
 
-         unsigned int coal = (from) &0xf;
+         unsigned int coal = from & 0xf;
 
          if( tx + from - coal < to ) {
             unsigned int d = data[ tx + from - coal ];
@@ -749,12 +752,13 @@ lqsort( unsigned int* adata, unsigned int* adata2, struct LQSortParams* bs, unsi
  */
 template< typename element >
 int
-GPUQSort< element >::sort( element* data,
-                           unsigned int size,
-                           unsigned int blockscount,
-                           unsigned int threads,
-                           unsigned int sbsize,
-                           unsigned int phase )
+GPUQSort< element >::sort(
+   element* data,
+   unsigned int size,
+   unsigned int blockscount,
+   unsigned int threads,
+   unsigned int sbsize,
+   unsigned int phase )
 {
    if( ! init )
       return 1;
@@ -850,11 +854,17 @@ GPUQSort< element >::sort( element* data,
          return 1;
 
       // Do the cumulative sum
-      if( flip )
+      if( flip ) {
+         // clang-format off
          part1<<< paramsize, THREADS, ( THREADS + 1 ) * 2 * 4 + THREADS * 2 * 4 >>>( ddata, dparams, dhists, dlength );
-      else
+         // clang-format on
+      }
+      else {
+         // clang-format off
          part1<<< paramsize, THREADS, ( THREADS + 1 ) * 2 * 4 + THREADS * 2 * 4 >>>( ddata2, dparams, dhists, dlength );
-      if( ! errCheck( ( cudaMemcpy( length, dlength, sizeof( Length< element > ), cudaMemcpyDeviceToHost ) ) ) )
+         // clang-format on
+      }
+      if( ! errCheck( cudaMemcpy( length, dlength, sizeof( Length< element > ), cudaMemcpyDeviceToHost ) ) )
          return 1;
 
       // Do the block cumulative sum. Done on the CPU since not all cards have support for
@@ -878,17 +888,25 @@ GPUQSort< element >::sort( element* data,
       }
 
       // Copy the result of the block cumulative sum to the GPU
-      if( ! errCheck( ( cudaMemcpy( dlength, length, sizeof( Length< element > ), cudaMemcpyHostToDevice ) ) ) )
+      if( ! errCheck( cudaMemcpy( dlength, length, sizeof( Length< element > ), cudaMemcpyHostToDevice ) ) )
          return 1;
 
       // Move the elements to their correct position
-      if( flip )
+      if( flip ) {
+         // clang-format off
          part2<<< paramsize, THREADS >>>( ddata, ddata2, dparams, dhists, dlength );
-      else
+         // clang-format on
+      }
+      else {
+         // clang-format off
          part2<<< paramsize, THREADS >>>( ddata2, ddata, dparams, dhists, dlength );
+         // clang-format on
+      }
 
       // Fill in the pivot value between the left and right blocks
+      // clang-format off
       part3<<< paramsize, THREADS >>>( ddata, dparams, dhists, dlength );
+      // clang-format on
 
       flip = ! flip;
 
@@ -941,12 +959,15 @@ GPUQSort< element >::sort( element* data,
          lqparams[ i ].sbsize = sbsize;
       }
 
-      if( ! errCheck( ( cudaMemcpy( dlqparams, lqparams, worksize * sizeof( LQSortParams ), cudaMemcpyHostToDevice ) ) ) )
+      if( ! errCheck( cudaMemcpy( dlqparams, lqparams, worksize * sizeof( LQSortParams ), cudaMemcpyHostToDevice ) ) )
          return 1;
 
       // Run the local quicksort, the one that doesn't need inter-block synchronization
-      if( phase != 1 )
+      if( phase != 1 ) {
+         // clang-format off
          lqsort<<< worksize, THREADS, max( ( THREADS + 1 ) * 2 * 4, sbsize * 4 ) >>>( ddata, ddata2, dlqparams, phase );
+         // clang-format on
+      }
    }
 
    err = cudaDeviceSynchronize();
@@ -958,7 +979,7 @@ GPUQSort< element >::sort( element* data,
    }
 
    // Copy the result back to the CPU
-   if( ! errCheck( ( cudaMemcpy( data, ddata, size * sizeof( element ), cudaMemcpyDeviceToHost ) ) ) )
+   if( ! errCheck( cudaMemcpy( data, ddata, size * sizeof( element ), cudaMemcpyDeviceToHost ) ) )
       return 1;
 
    cudaFree( ddata );
@@ -982,7 +1003,15 @@ GPUQSort< element >::errCheck( int e )
 
 template< typename element >
 GPUQSort< element >::GPUQSort()
-: init( false ), workset( 0 ), params( 0 ), length( 0 ), lqparams( 0 ), dlqparams( 0 ), dhists( 0 ), dlength( 0 ), dparams( 0 )
+: init( false ),
+  workset( 0 ),
+  params( 0 ),
+  length( 0 ),
+  lqparams( 0 ),
+  dlqparams( 0 ),
+  dhists( 0 ),
+  dlength( 0 ),
+  dparams( 0 )
 {
    cudaDeviceProp deviceProp;
    cudaGetDeviceProperties( &deviceProp, 0 );
@@ -1056,12 +1085,13 @@ GPUQSort< element >::~GPUQSort()
 }
 
 int
-gpuqsort( unsigned int* data,
-          unsigned int size,
-          unsigned int blockscount,
-          unsigned int threads,
-          unsigned int sbsize,
-          unsigned int phase )
+gpuqsort(
+   unsigned int* data,
+   unsigned int size,
+   unsigned int blockscount,
+   unsigned int threads,
+   unsigned int sbsize,
+   unsigned int phase )
 {
    GPUQSort< unsigned int >* s = new GPUQSort< unsigned int >();
 
