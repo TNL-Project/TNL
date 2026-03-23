@@ -45,7 +45,6 @@ typedef unsigned int Type;
 
 void test_bitonicSort(unsigned int *h_InputKey, unsigned int N, double *timer);
 void test_MergeSort(unsigned int *h_SrcKey, unsigned int N, double *timer);
-void test_thrustSort(Type *h_data, unsigned int N, double *timer);
 
 typedef unsigned int uint;
 
@@ -653,7 +652,6 @@ size_t scanInclusiveLarge(
 }
 
 
-#include <thrust/scan.h>
 #include <common/inc/helper_cuda.h>
 #include <common/inc/helper_timer.h>
 #include <6_Advanced/scan/scan_common.h>

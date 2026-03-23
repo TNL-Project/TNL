@@ -13,8 +13,10 @@ set(COMMON_EXAMPLES
 
 set(HOST_EXAMPLES staticForExample unrolledForExample)
 
+set(CUDA_EXAMPLES SortingCUBMergeSort SortingCUBRadixSort)
+
 if(TNL_BUILD_CUDA)
-    foreach(target IN ITEMS ${COMMON_EXAMPLES})
+    foreach(target IN ITEMS ${COMMON_EXAMPLES} ${CUDA_EXAMPLES})
         add_executable(${target} ${target}.cu)
         target_link_libraries(${target} PUBLIC TNL::TNL)
         add_custom_command(

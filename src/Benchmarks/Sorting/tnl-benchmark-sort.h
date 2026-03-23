@@ -16,13 +16,13 @@
 #include <TNL/Algorithms/sort.h>
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
 #include <TNL/Algorithms/Sorting/CUBMergeSort.h>
+#include <TNL/Algorithms/Sorting/CUBRadixSort.h>
 #include <TNL/Algorithms/Sorting/STLSort.h>
 #include <TNL/Algorithms/Sorting/experimental/Quicksort.h>
 #include "generators.h"
 
 #if defined( __CUDACC__ )
    #include "ReferenceAlgorithms/CedermanQuicksort.h"
-   #include "ReferenceAlgorithms/ThrustRadixsort.h"
 #endif
 
 using namespace TNL;
@@ -173,17 +173,17 @@ runBenchmark( Benchmark<>& benchmark, std::size_t size, const String& device )
          if( ! Algorithms::isAscending( arr ) )
             throw std::runtime_error( "CUBMergeSort result is not sorted" );
 
-         auto sortThrust = [ &arr ]()
+         auto sortCUBRadixSort = [ &arr ]()
          {
             auto view = arr.getView();
-            ThrustRadixsort< ValueType >::sort( view );
+            CUBRadixSort::sort( view );
          };
 
-         benchmark.time< Devices::Cuda >( reset, "thrust", sortThrust, result );
+         benchmark.time< Devices::Cuda >( reset, "CUBRadixSort", sortCUBRadixSort, result );
 
-         // Verify Thrust sort result
+         // Verify CUBRadixSort result
          if( ! Algorithms::isAscending( arr ) )
-            throw std::runtime_error( "thrust sort result is not sorted" );
+            throw std::runtime_error( "CUBRadixSort result is not sorted" );
       }
 #endif
    }
