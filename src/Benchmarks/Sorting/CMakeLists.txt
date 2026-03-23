@@ -11,11 +11,10 @@ endif()
 if(TNL_BUILD_CUDA)
     add_executable(tnl-benchmark-sort-cuda tnl-benchmark-sort.cu)
     target_link_libraries(tnl-benchmark-sort-cuda PUBLIC TNL::TNL)
-    target_compile_options(tnl-benchmark-sort-cuda PRIVATE ${CUDA_SAMPLES_FLAGS})
-    find_package(CUDAToolkit REQUIRED)
-    target_link_libraries(tnl-benchmark-sort-cuda PUBLIC CUDA::cusparse)
-    find_package(CCCL REQUIRED COMPONENTS Thrust)
-    target_link_libraries(tnl-benchmark-sort-cuda PUBLIC CCCL::Thrust)
+
+    find_package(CCCL REQUIRED)
+    target_link_libraries(tnl-benchmark-sort-cuda PUBLIC CCCL::CCCL)
+
     install(TARGETS tnl-benchmark-sort-cuda RUNTIME DESTINATION bin COMPONENT benchmarks)
 endif()
 
