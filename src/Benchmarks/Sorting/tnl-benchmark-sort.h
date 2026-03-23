@@ -15,6 +15,7 @@
 #include <TNL/Benchmarks/Benchmarks.h>
 #include <TNL/Algorithms/sort.h>
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
+#include <TNL/Algorithms/Sorting/CUBMergeSort.h>
 #include <TNL/Algorithms/Sorting/STLSort.h>
 #include <TNL/Algorithms/Sorting/experimental/Quicksort.h>
 #include "generators.h"
@@ -160,6 +161,17 @@ runBenchmark( Benchmark<>& benchmark, std::size_t size, const String& device )
             if( ! Algorithms::isAscending( arr ) )
                throw std::runtime_error( "CedermanQuicksort result is not sorted" );
          }
+
+         auto sortCUBMergeSort = [ &arr ]()
+         {
+            CUBMergeSort::sort( arr );
+         };
+
+         benchmark.time< Devices::Cuda >( reset, "CUBMergeSort", sortCUBMergeSort, result );
+
+         // Verify CUBMergeSort result
+         if( ! Algorithms::isAscending( arr ) )
+            throw std::runtime_error( "CUBMergeSort result is not sorted" );
 
          auto sortThrust = [ &arr ]()
          {
