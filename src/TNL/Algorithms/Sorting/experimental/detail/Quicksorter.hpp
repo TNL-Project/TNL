@@ -112,7 +112,7 @@ Quicksorter< Value, Devices::Cuda, Index >::init(
    this->cuda_blockToTaskMapping.setSize( maxBlocks );
    this->cuda_reductionTaskInitMem.setSize( maxTasks );
 
-   if( arr.getSize() > desired_2ndPhasElemPerBlock ) {
+   if( arr.getSize() > static_cast< Index >( desired_2ndPhasElemPerBlock ) ) {
       cuda_tasks.setElement( 0, TASK( 0, arr.getSize(), 0 ) );
       host_1stPhaseTasksAmount = 1;
    }
