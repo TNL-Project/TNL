@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include <TNL/Algorithms/Sorting/detail/helpers.h>
-#include <TNL/Containers/Array.h>
+
+#include <TNL/Algorithms/Sorting/detail/closestPow2.h>
+#include <TNL/Containers/ArrayView.h>
 
 namespace TNL::Algorithms::Sorting::detail {
 
@@ -20,49 +21,54 @@ template< typename Value, typename Index, typename CMP >
 __device__
 void
 bitonicSort_Block(
-   TNL::Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src,
-   TNL::Containers::ArrayView< Value, TNL::Devices::Cuda, Index > dst,
+   Containers::ArrayView< Value, Devices::GPU, Index > src,
+   Containers::ArrayView< Value, Devices::GPU, Index > dst,
    Value* sharedMem,
-   const CMP& Cmp )
+   const CMP& compare )
 {
-   // copy from globalMem into sharedMem
-   for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x )
+   // Copy from global memory to shared memory
+   for( Index i = threadIdx.x; i < src.getSize(); i += blockDim.x )
       sharedMem[ i ] = src[ i ];
    __syncthreads();
 
    //------------------------------------------
-   // bitonic activity
+   // Bitonic sort phase
    {
-      int paddedSize = closestPow2_ptx( src.getSize() );
+      const Index paddedSize = closestPow2_ptx( src.getSize() );
 
-      for( int monotonicSeqLen = 2; monotonicSeqLen <= paddedSize; monotonicSeqLen *= 2 ) {
-         for( int bitonicLen = monotonicSeqLen; bitonicLen > 1; bitonicLen /= 2 ) {
-            for( int i = threadIdx.x;; i += blockDim.x )  // simulates other blocks in case src.size > blockDim.x*2
-            {
-               // calculates which 2 indexes will be compared and swap
-               int part = i / ( bitonicLen / 2 );
-               int s = part * bitonicLen + ( i & ( ( bitonicLen / 2 ) - 1 ) );
-               int e = s + bitonicLen / 2;
+      for( Index monotonicSeqLen = 2; monotonicSeqLen <= paddedSize; monotonicSeqLen *= 2 ) {
+         for( Index bitonicLen = monotonicSeqLen; bitonicLen > 1; bitonicLen /= 2 ) {
+            // Iterate over all pairs in this bitonic merge step
+            // Loop handles cases where src.size > blockDim.x*2 by simulating multiple blocks
+            for( Index i = threadIdx.x;; i += blockDim.x ) {
+               Index halfBitonicLen = bitonicLen / 2;
+               Index p = i / halfBitonicLen;
+               Index s = p * bitonicLen + ( i & ( halfBitonicLen - 1 ) );
+               Index e = s + halfBitonicLen;
 
-               if( e >= src.getSize() )  // touching virtual padding, the order dont swap
+               // Bounds check - avoid touching virtual padding
+               if( e >= src.getSize() )
                   break;
 
-               // calculate the direction of swapping
-               int monotonicSeqIdx = i / ( monotonicSeqLen / 2 );
+               // Determine sorting direction
+               Index halfMonotonicSeqLen = monotonicSeqLen / 2;
+               Index monotonicSeqIdx = i / halfMonotonicSeqLen;
                bool ascending = ( monotonicSeqIdx & 1 ) != 0;
-               if( ( monotonicSeqIdx + 1 ) * monotonicSeqLen >= src.getSize() )  // special case for parts with no "partner"
+               // Special case: last part has no "partner"
+               if( ( monotonicSeqIdx + 1 ) * monotonicSeqLen >= src.getSize() )
                   ascending = true;
 
-               cmpSwap( sharedMem[ s ], sharedMem[ e ], ascending, Cmp );
+               if( ascending == compare( sharedMem[ e ], sharedMem[ s ] ) )
+                  TNL::swap( sharedMem[ s ], sharedMem[ e ] );
             }
 
-            __syncthreads();  // only 1 synchronization needed
+            __syncthreads();
          }
       }
    }
 
-   // writeback to global memory
-   for( int i = threadIdx.x; i < dst.getSize(); i += blockDim.x )
+   // Write back to destination
+   for( Index i = threadIdx.x; i < dst.getSize(); i += blockDim.x )
       dst[ i ] = sharedMem[ i ];
 }
 
@@ -77,29 +83,34 @@ bitonicSort_Block(
 template< typename Value, typename Index, typename CMP >
 __device__
 void
-bitonicSort_Block( TNL::Containers::ArrayView< Value, TNL::Devices::Cuda, Index > src, const CMP& Cmp )
+bitonicSort_Block( Containers::ArrayView< Value, Devices::GPU, Index > src, const CMP& compare )
 {
-   int paddedSize = closestPow2_ptx( src.getSize() );
+   const Index paddedSize = closestPow2_ptx( src.getSize() );
 
-   for( int monotonicSeqLen = 2; monotonicSeqLen <= paddedSize; monotonicSeqLen *= 2 ) {
-      for( int bitonicLen = monotonicSeqLen; bitonicLen > 1; bitonicLen /= 2 ) {
-         for( int i = threadIdx.x;; i += blockDim.x )  // simulates other blocks in case src.size > blockDim.x*2
-         {
-            // calculates which 2 indexes will be compared and swap
-            int part = i / ( bitonicLen / 2 );
-            int s = part * bitonicLen + ( i & ( ( bitonicLen / 2 ) - 1 ) );
-            int e = s + bitonicLen / 2;
+   for( Index monotonicSeqLen = 2; monotonicSeqLen <= paddedSize; monotonicSeqLen *= 2 ) {
+      for( Index bitonicLen = monotonicSeqLen; bitonicLen > 1; bitonicLen /= 2 ) {
+         // Iterate over all pairs in this bitonic merge step
+         // Loop handles cases where src.size > blockDim.x*2 by simulating multiple blocks
+         for( Index i = threadIdx.x;; i += blockDim.x ) {
+            Index halfBitonicLen = bitonicLen / 2;
+            Index p = i / halfBitonicLen;
+            Index s = p * bitonicLen + ( i & ( halfBitonicLen - 1 ) );
+            Index e = s + halfBitonicLen;
 
+            // Bounds check - avoid touching virtual padding
             if( e >= src.getSize() )
                break;
 
-            // calculate the direction of swapping
-            int monotonicSeqIdx = i / ( monotonicSeqLen / 2 );
+            // Determine sorting direction
+            Index halfMonotonicSeqLen = monotonicSeqLen / 2;
+            Index monotonicSeqIdx = i / halfMonotonicSeqLen;
             bool ascending = ( monotonicSeqIdx & 1 ) != 0;
-            if( ( monotonicSeqIdx + 1 ) * monotonicSeqLen >= src.getSize() )  // special case for parts with no "partner"
+            // Special case: last part has no "partner"
+            if( ( monotonicSeqIdx + 1 ) * monotonicSeqLen >= src.getSize() )
                ascending = true;
 
-            cmpSwap( src[ s ], src[ e ], ascending, Cmp );
+            if( ascending == compare( src[ e ], src[ s ] ) )
+               TNL::swap( src[ s ], src[ e ] );
          }
          __syncthreads();
       }
