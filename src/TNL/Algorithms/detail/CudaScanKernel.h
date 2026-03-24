@@ -878,7 +878,7 @@ struct CudaScanKernelLauncher
       else {
          // compute the number of grids
          constexpr int maxElementsInBlock = blockSize * valuesPerThread;
-         const Index numberOfBlocks = roundUpDivision( end - begin, maxElementsInBlock );
+         const Index numberOfBlocks = Backend::getNumberOfBlocks( end - begin, maxElementsInBlock );
          const Index numberOfGrids = Backend::getNumberOfGrids( numberOfBlocks, maxGridSize() );
 
          // loop over all grids
@@ -890,7 +890,7 @@ struct CudaScanKernelLauncher
             // set CUDA launch configuration
             Backend::LaunchConfiguration launch_config;
             launch_config.blockSize.x = blockSize;
-            launch_config.gridSize.x = roundUpDivision( currentSize, maxElementsInBlock );
+            launch_config.gridSize.x = Backend::getNumberOfBlocks( currentSize, maxElementsInBlock );
 
             // run the kernel
             switch( phaseType ) {
