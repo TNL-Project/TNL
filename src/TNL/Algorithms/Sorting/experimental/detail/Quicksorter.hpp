@@ -78,12 +78,7 @@ template< typename Array >
 void
 Quicksorter< Value, Devices::Cuda, Index >::sort( Array& arr )
 {
-   this->sort(
-      arr,
-      [] __cuda_callable__( const Value& a, const Value& b )
-      {
-         return a < b;
-      } );
+   this->sort( arr, std::less<>{} );
 }
 
 template< typename Value, typename Index >
