@@ -275,6 +275,10 @@ bitonicSort( Containers::ArrayView< Value, Devices::GPU, ArrayIndex > view, cons
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 
+   // Early exit for empty or single-element arrays (already sorted)
+   if( view.getSize() <= 1 )
+      return;
+
    // Ensure that at least 32-bit type is used for indexing
    using Index = std::common_type_t< ArrayIndex, unsigned int >;
 
@@ -359,6 +363,11 @@ void
 bitonicSort( Index begin, Index end, const CMP& compare, SWAP Swap )
 {
    Index size = end - begin;
+
+   // Early exit for empty or single-element ranges (already sorted)
+   if( size <= 1 )
+      return;
+
    Index paddedSize = closestPow2( size );
 
    Index threadsNeeded = roundUpDivision( size, Index{ 2 } );
