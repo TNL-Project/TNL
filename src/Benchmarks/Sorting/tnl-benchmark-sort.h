@@ -88,7 +88,7 @@ runBenchmark( Benchmark<>& benchmark, std::size_t size, const String& device )
          benchmark.setDatasetSize( size * sizeof( ValueType ) );
 
          // Create an Array for sorting
-         Containers::Array< ValueType, Devices::Host > arr;
+         Containers::Array< ValueType, Devices::Host, std::size_t > arr;
 
          auto reset = [ &vec, &arr ]()
          {
@@ -116,7 +116,7 @@ runBenchmark( Benchmark<>& benchmark, std::size_t size, const String& device )
          benchmark.setDatasetSize( size * sizeof( ValueType ) );
 
          // Create an Array for sorting
-         Containers::Array< ValueType, Devices::Cuda > arr;
+         Containers::Array< ValueType, Devices::Cuda, std::size_t > arr;
 
          auto reset = [ &vec, &arr ]()
          {
