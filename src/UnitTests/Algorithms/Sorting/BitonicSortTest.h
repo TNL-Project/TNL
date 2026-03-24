@@ -367,16 +367,16 @@ template< typename TYPE >
 void
 fetchAndSwapSorter( TNL::Containers::ArrayView< TYPE, TNL::Devices::Cuda > view )
 {
-   //auto Fetch = [=]__cuda_callable__(int i){return view[i];};
-   auto Cmp = [ = ] __cuda_callable__( const int i, const int j )
+   using Index = typename decltype( view )::IndexType;
+   auto Cmp = [ = ] __cuda_callable__( Index i, Index j )
    {
       return view[ i ] < view[ j ];
    };
-   auto Swap = [ = ] __cuda_callable__( int i, int j ) mutable
+   auto Swap = [ = ] __cuda_callable__( Index i, Index j ) mutable
    {
       TNL::swap( view[ i ], view[ j ] );
    };
-   bitonicSort( 0, view.getSize(), Cmp, Swap );
+   bitonicSort( static_cast< Index >( 0 ), view.getSize(), Cmp, Swap );
 }
 
 TEST( fetchAndSwap, oneBlockSort )
@@ -416,8 +416,7 @@ TEST( fetchAndSwap, typeDouble )
 void
 fetchAndSwap_sortMiddle( TNL::Containers::ArrayView< int, TNL::Devices::Cuda > view, int from, int to )
 {
-   //auto Fetch = [=]__cuda_callable__(int i){return view[i];};
-   auto Cmp = [ = ] __cuda_callable__( const int i, const int j )
+   auto Cmp = [ = ] __cuda_callable__( int i, int j )
    {
       return view[ i ] < view[ j ];
    };
