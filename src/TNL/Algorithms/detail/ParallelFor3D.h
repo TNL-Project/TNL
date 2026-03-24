@@ -170,12 +170,13 @@ struct ParallelFor3D< Devices::Cuda >
       launch_config.gridSize.z =
          TNL::min( Backend::getMaxGridZSize(), Backend::getNumberOfBlocks( sizeZ, launch_config.blockSize.z ) );
 
-      dim3 gridCount;
-      gridCount.x = roundUpDivision( sizeX, launch_config.blockSize.x * launch_config.gridSize.x );
-      gridCount.y = roundUpDivision( sizeY, launch_config.blockSize.y * launch_config.gridSize.y );
-      gridCount.z = roundUpDivision( sizeZ, launch_config.blockSize.z * launch_config.gridSize.z );
+      // Use MultiIndex rather than dim3 to avoid potential unsigned int overflow
+      MultiIndex gridCount;
+      gridCount.x() = Backend::getNumberOfGrids( sizeX, launch_config.blockSize.x * launch_config.gridSize.x );
+      gridCount.y() = Backend::getNumberOfGrids( sizeY, launch_config.blockSize.y * launch_config.gridSize.y );
+      gridCount.z() = Backend::getNumberOfGrids( sizeZ, launch_config.blockSize.z * launch_config.gridSize.z );
 
-      if( gridCount.x == 1 && gridCount.y == 1 && gridCount.z == 1 ) {
+      if( gridCount.x() == 1 && gridCount.y() == 1 && gridCount.z() == 1 ) {
          constexpr auto kernel = ParallelFor3DKernel< false, MultiIndex, Function, FunctionArgs... >;
          Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }

@@ -182,16 +182,22 @@ getGlobalThreadIdx_z( const dim3& gridIdx )
 }
 #endif
 
-inline int
-getNumberOfBlocks( const int threads, const int blockSize )
+template< typename Index >
+Index
+getNumberOfBlocks( const Index threads, const unsigned int blockSize )
 {
-   return roundUpDivision( threads, blockSize );
+   // Index may be actually smaller type than unsigned int
+   using CommonType = std::common_type_t< Index, unsigned int >;
+   return roundUpDivision( static_cast< CommonType >( threads ), static_cast< CommonType >( blockSize ) );
 }
 
-inline int
-getNumberOfGrids( const int blocks, const int gridSize )
+template< typename Index >
+Index
+getNumberOfGrids( const Index blocks, const unsigned int gridSize )
 {
-   return roundUpDivision( blocks, gridSize );
+   // Index may be actually smaller type than unsigned int
+   using CommonType = std::common_type_t< Index, unsigned int >;
+   return roundUpDivision( static_cast< CommonType >( blocks ), static_cast< CommonType >( gridSize ) );
 }
 
 inline void
