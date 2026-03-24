@@ -113,7 +113,7 @@ template< typename SizesHolder >
 void
 SlicedEllpack< Device, Index, IndexAllocator, Organization, SliceSize >::setSegmentsSizes( const SizesHolder& sizes )
 {
-   const Index slicesCount = roundUpDivision( sizes.getSize(), Base::getSliceSize() );
+   const Index slicesCount = roundUpDivision( sizes.getSize(), static_cast< Index >( Base::getSliceSize() ) );
    this->sliceOffsets.setSize( slicesCount + 1 );
    this->sliceOffsets = 0;
    this->sliceSegmentSizes.setSize( slicesCount );

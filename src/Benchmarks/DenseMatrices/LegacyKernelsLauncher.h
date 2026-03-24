@@ -79,10 +79,10 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
    IndexType matrix1Rows = matrix1.getRows();
    IndexType matrix2Columns = matrix2.getColumns();
 
-   const IndexType rowTiles = roundUpDivision( matrix1Rows, tileDim );
-   const IndexType columnTiles = roundUpDivision( matrix2Columns, tileDim );
-   const IndexType rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
-   const IndexType columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
+   const IndexType rowTiles = Backend::getNumberOfBlocks( matrix1Rows, tileDim );
+   const IndexType columnTiles = Backend::getNumberOfBlocks( matrix2Columns, tileDim );
+   const IndexType rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
+   const IndexType columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
 
    for( IndexType gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ ) {
       for( IndexType gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
@@ -135,10 +135,10 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
    IndexType matrix1Rows = matrix1.getRows();
    IndexType matrix2Columns = matrix2.getColumns();
 
-   const IndexType rowTiles = roundUpDivision( matrix1Rows, tileDim );
-   const IndexType columnTiles = roundUpDivision( matrix2Columns, tileDim );
-   const IndexType rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
-   const IndexType columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
+   const IndexType rowTiles = Backend::getNumberOfBlocks( matrix1Rows, tileDim );
+   const IndexType columnTiles = Backend::getNumberOfBlocks( matrix2Columns, tileDim );
+   const IndexType rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
+   const IndexType columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
 
    for( IndexType gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ ) {
       for( IndexType gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
@@ -191,10 +191,10 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
    IndexType matrix1Rows = matrix1.getRows();
    IndexType matrix2Columns = matrix2.getColumns();
 
-   const IndexType rowTiles = roundUpDivision( matrix1Rows, tileDim );
-   const IndexType columnTiles = roundUpDivision( matrix2Columns, tileDim );
-   const IndexType rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
-   const IndexType columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
+   const IndexType rowTiles = Backend::getNumberOfBlocks( matrix1Rows, tileDim );
+   const IndexType columnTiles = Backend::getNumberOfBlocks( matrix2Columns, tileDim );
+   const IndexType rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
+   const IndexType columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
 
    for( IndexType gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ ) {
       for( IndexType gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
@@ -247,10 +247,10 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
    IndexType matrix1Rows = matrix1.getRows();
    IndexType matrix2Columns = matrix2.getColumns();
 
-   const IndexType rowTiles = roundUpDivision( matrix1Rows, tileDim );
-   const IndexType columnTiles = roundUpDivision( matrix2Columns, tileDim );
-   const IndexType rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
-   const IndexType columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
+   const IndexType rowTiles = Backend::getNumberOfBlocks( matrix1Rows, tileDim );
+   const IndexType columnTiles = Backend::getNumberOfBlocks( matrix2Columns, tileDim );
+   const IndexType rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
+   const IndexType columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
 
    for( IndexType gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ ) {
       for( IndexType gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
@@ -298,10 +298,10 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixMultiplica
    IndexType matrix1Rows = matrix1.getRows();
    IndexType matrix2Columns = matrix2.getColumns();
 
-   const IndexType rowTiles = roundUpDivision( matrix1Rows, tileDim );
-   const IndexType columnTiles = roundUpDivision( matrix2Columns, tileDim );
-   const IndexType rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
-   const IndexType columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
+   const IndexType rowTiles = Backend::getNumberOfBlocks( matrix1Rows, tileDim );
+   const IndexType columnTiles = Backend::getNumberOfBlocks( matrix2Columns, tileDim );
+   const IndexType rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
+   const IndexType columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
 
    for( IndexType gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ ) {
       for( IndexType gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
@@ -425,10 +425,11 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixTransposit
    IndexType matrixRows = matrix.getRows();
    IndexType matrixColumns = matrix.getColumns();
 
-   const IndexType rowTiles = roundUpDivision( matrixRows, tileDim );
-   const IndexType columnTiles = roundUpDivision( matrixColumns, tileDim );
-   const IndexType rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
-   const IndexType columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
+   const IndexType rowTiles = Backend::getNumberOfBlocks( matrixRows, tileDim );
+   const IndexType columnTiles = Backend::getNumberOfBlocks( matrixColumns, tileDim );
+   const IndexType rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
+   const IndexType columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
+
    for( IndexType gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
       for( IndexType gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
          launch_config.gridSize.x = Backend::getMaxGridXSize();
@@ -485,10 +486,11 @@ LegacyKernelsLauncher< RealType, DeviceType, IndexType >::launchMatrixTransposit
    IndexType matrixRows = matrix.getRows();
    IndexType matrixColumns = matrix.getColumns();
 
-   const IndexType rowTiles = roundUpDivision( matrixRows, tileDim );
-   const IndexType columnTiles = roundUpDivision( matrixColumns, tileDim );
-   const IndexType rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
-   const IndexType columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
+   const IndexType rowTiles = Backend::getNumberOfBlocks( matrixRows, tileDim );
+   const IndexType columnTiles = Backend::getNumberOfBlocks( matrixColumns, tileDim );
+   const IndexType rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
+   const IndexType columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
+
    for( IndexType gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
       for( IndexType gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
          launch_config.gridSize.x = Backend::getMaxGridXSize();

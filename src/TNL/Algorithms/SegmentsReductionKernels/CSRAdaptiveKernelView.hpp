@@ -217,7 +217,7 @@ CSRAdaptiveKernelView< Index, Device >::reduceSegments( const SegmentsView& segm
       // Execute kernels on device
       for( Index gridIdx = 0; neededThreads != 0; gridIdx++ ) {
          if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
-            launch_config.gridSize.x = roundUpDivision( neededThreads, launch_config.blockSize.x );
+            launch_config.gridSize.x = Backend::getNumberOfBlocks( neededThreads, launch_config.blockSize.x );
             neededThreads = 0;
          }
          else {

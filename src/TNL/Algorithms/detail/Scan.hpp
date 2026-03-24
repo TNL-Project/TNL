@@ -125,7 +125,7 @@ Scan< Devices::Host, Type, PhaseType >::perform( const InputArray& input,
       return;
 
    const IndexType size = end - begin;
-   const int max_threads = Devices::Host::getMaxThreadsCount();
+   const IndexType max_threads = Devices::Host::getMaxThreadsCount();
    const IndexType block_size = TNL::max( 1024, TNL::roundUpDivision( size, max_threads ) );
    const IndexType blocks = TNL::roundUpDivision( size, block_size );
 
@@ -210,7 +210,7 @@ Scan< Devices::Host, Type, PhaseType >::performFirstPhase( const InputArray& inp
    }
 
    const IndexType size = end - begin;
-   const int max_threads = Devices::Host::getMaxThreadsCount();
+   const IndexType max_threads = Devices::Host::getMaxThreadsCount();
    const IndexType block_size = TNL::max( 1024, TNL::roundUpDivision( size, max_threads ) );
    const IndexType blocks = TNL::roundUpDivision( size, block_size );
 
@@ -271,7 +271,7 @@ Scan< Devices::Host, Type, PhaseType >::performSecondPhase( const InputArray& in
       return;
 
    const IndexType size = end - begin;
-   const int max_threads = Devices::Host::getMaxThreadsCount();
+   const IndexType max_threads = Devices::Host::getMaxThreadsCount();
    const IndexType block_size = TNL::max( 1024, TNL::roundUpDivision( size, max_threads ) );
    const IndexType blocks = TNL::roundUpDivision( size, block_size );
 

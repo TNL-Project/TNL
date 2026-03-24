@@ -117,10 +117,10 @@ getMatrixProduct( ResultMatrix& resultMatrix,
       launch_config.blockSize.y = tileDim;
       launch_config.dynamicSharedMemorySize = 2 * tileDim * ( tileDim + 1 ) * sizeof( Real );
 
-      const Index rowTiles = roundUpDivision( resultMatrix.getRows(), tileDim );
-      const Index columnTiles = roundUpDivision( resultMatrix.getColumns(), tileDim );
-      const Index rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
-      const Index columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
+      const Index rowTiles = Backend::getNumberOfBlocks( resultMatrix.getRows(), tileDim );
+      const Index columnTiles = Backend::getNumberOfBlocks( resultMatrix.getColumns(), tileDim );
+      const Index rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
+      const Index columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
 
       for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
          for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
@@ -254,10 +254,10 @@ getTransposition( ResultMatrix& resultMatrix, const Matrix& matrix, Real matrixM
       launch_config.blockSize.y = tileDim;
       launch_config.dynamicSharedMemorySize = tileDim * ( tileDim + 1 ) * sizeof( Real );
 
-      const Index rowTiles = roundUpDivision( resultMatrix.getRows(), tileDim );
-      const Index columnTiles = roundUpDivision( resultMatrix.getColumns(), tileDim );
-      const Index rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
-      const Index columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
+      const Index rowTiles = Backend::getNumberOfBlocks( resultMatrix.getRows(), tileDim );
+      const Index columnTiles = Backend::getNumberOfBlocks( resultMatrix.getColumns(), tileDim );
+      const Index rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
+      const Index columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
 
       for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
          for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {
@@ -345,10 +345,10 @@ getInPlaceTransposition( Matrix& matrix, Real matrixMultiplicator )
       launch_config.blockSize.y = tileDim;
       launch_config.dynamicSharedMemorySize = tileDim * tileDim + tileDim * tileDim / Backend::getNumberOfSharedMemoryBanks();
 
-      const Index rowTiles = roundUpDivision( matrix.getRows(), tileDim );
-      const Index columnTiles = roundUpDivision( matrix.getColumns(), tileDim );
-      const Index rowGrids = roundUpDivision( rowTiles, Backend::getMaxGridYSize() );
-      const Index columnGrids = roundUpDivision( columnTiles, Backend::getMaxGridXSize() );
+      const Index rowTiles = Backend::getNumberOfBlocks( matrix.getRows(), tileDim );
+      const Index columnTiles = Backend::getNumberOfBlocks( matrix.getColumns(), tileDim );
+      const Index rowGrids = Backend::getNumberOfGrids( rowTiles, Backend::getMaxGridYSize() );
+      const Index columnGrids = Backend::getNumberOfGrids( columnTiles, Backend::getMaxGridXSize() );
 
       for( Index gridIdx_x = 0; gridIdx_x < columnGrids; gridIdx_x++ )
          for( Index gridIdx_y = 0; gridIdx_y < rowGrids; gridIdx_y++ ) {

@@ -185,7 +185,7 @@ ChunkedEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segme
       // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
       //  TODO: This ignores parameters begin and end
       const IndexType cudaBlocks = segments.getNumberOfSlices();
-      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
+      const IndexType cudaGrids = Backend::getNumberOfGrids( cudaBlocks, Backend::getMaxGridXSize() );
       launch_config.blockSize.x = segments.getChunksInSlice();
       launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
