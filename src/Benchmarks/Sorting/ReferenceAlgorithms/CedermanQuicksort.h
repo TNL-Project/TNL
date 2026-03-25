@@ -212,8 +212,8 @@ part1( const element* data, Params< element >* params, Hist* hist, Length< eleme
    element pivot = params[ blockIdx.x ].pivot;
 
    // Stores the max and min value of the data. Used to decide a new pivot
-   minpiv[ tx ] = data[ start + tx ];
-   maxpiv[ tx ] = data[ start + tx ];
+   minpiv[ tx ] = std::numeric_limits< element >::max();
+   maxpiv[ tx ] = std::numeric_limits< element >::lowest();
 
    __syncthreads();
    int ll = 0;
@@ -707,11 +707,18 @@ GPUQSort< element, Index >::sort(
    workset[ 0 ].flip = false;
 
    // Get a starting pivot - copy elements to host for comparison
-   element pivot_vals[ 3 ];
-   TNL_BACKEND_SAFE_CALL( cudaMemcpy( pivot_vals, data.getData(), 3 * sizeof( element ), cudaMemcpyDeviceToHost ) );
-   workset[ 0 ].pivot = ( TNL::min( pivot_vals[ 0 ], pivot_vals[ 1 ], pivot_vals[ 2 ] )
-                          + TNL::max( pivot_vals[ 0 ], pivot_vals[ 1 ], pivot_vals[ 2 ] ) )
-                      / 2;
+   if( size < 3 ) {
+      element pivot;
+      TNL_BACKEND_SAFE_CALL( cudaMemcpy( &pivot, data.getData(), sizeof( element ), cudaMemcpyDeviceToHost ) );
+      workset[ 0 ].pivot = pivot;
+   }
+   else {
+      element pivot_vals[ 3 ];
+      TNL_BACKEND_SAFE_CALL( cudaMemcpy( pivot_vals, data.getData(), 3 * sizeof( element ), cudaMemcpyDeviceToHost ) );
+      workset[ 0 ].pivot = ( TNL::min( pivot_vals[ 0 ], pivot_vals[ 1 ], pivot_vals[ 2 ] )
+                             + TNL::max( pivot_vals[ 0 ], pivot_vals[ 1 ], pivot_vals[ 2 ] ) )
+                         / 2;
+   }
    unsigned int worksize = 1;
 
    unsigned int blocks = blockscount / 2;
@@ -942,6 +949,8 @@ struct CedermanQuicksort
 
       static_assert( std::is_same_v< DeviceType, TNL::Devices::Cuda >, "CedermanQuicksort requires Devices::Cuda" );
 
+      if( array.getSize() <= 1 )
+         return;
       auto view = array.getView();
       gpuqsort< ValueType, IndexType >( view );
    }
