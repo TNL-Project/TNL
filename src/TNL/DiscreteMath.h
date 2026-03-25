@@ -45,20 +45,9 @@ roundToMultiple( int number, int multiple )
  * Returns \e true if \e x is a power of two. Otherwise returns \e false.
  * \param x Integer.
  */
-constexpr bool
-isPow2( int x )
-{
-   return ( x & ( x - 1 ) ) == 0;
-}
-
-/**
- * \brief Checks if \e x is an integral power of two.
- *
- * Returns \e true if \e x is a power of two. Otherwise returns \e false.
- * \param x Long integer.
- */
-constexpr bool
-isPow2( long int x )
+template< typename T >
+constexpr std::enable_if_t< std::is_integral_v< T >, bool >
+isPow2( T x )
 {
    return ( x & ( x - 1 ) ) == 0;
 }
