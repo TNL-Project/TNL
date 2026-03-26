@@ -9,20 +9,37 @@ namespace TNL::Algorithms::Segments {
 
 template< typename Device, typename Index >
 __cuda_callable__
-AdaptiveCSRView< Device, Index >::AdaptiveCSRView( const CSRView< Device, Index >& csrView, BlocksView* blocksView )
+AdaptiveCSRView< Device, Index >::AdaptiveCSRView( const AdaptiveCSRView& view )
 {
-   Base::bind( csrView.getOffsets() );
-   for( int i = 0; i < MaxValueSizeLog(); i++ )
-      this->blocksArray[ i ].bind( blocksView[ i ] );
+   AdaptiveCSRView* ptr = const_cast< AdaptiveCSRView* >( &view );
+   bind( ptr->getOffsets(), ptr->blocksArray );
 }
 
 template< typename Device, typename Index >
 __cuda_callable__
-AdaptiveCSRView< Device, Index >::AdaptiveCSRView( const CSRView< Device, Index >& csrView, BlocksType* blocksView )
+AdaptiveCSRView< Device, Index >::AdaptiveCSRView( AdaptiveCSRView&& view ) noexcept
+{
+   Base::bind( std::move( view.getOffsets() ) );
+   for( int i = 0; i < MaxValueSizeLog(); i++ )
+      this->blocksArray[ i ].bind( std::move( view.blocksArray[ i ] ) );
+}
+
+template< typename Device, typename Index >
+__cuda_callable__
+AdaptiveCSRView< Device, Index >::AdaptiveCSRView( const CSRView< Device, Index >& csrView, const BlocksViewArray& blocks )
+{
+   Base::bind( csrView.getOffsets() );
+   for( int i = 0; i < MaxValueSizeLog(); i++ )
+      this->blocksArray[ i ].bind( blocks[ i ] );
+}
+
+template< typename Device, typename Index >
+__cuda_callable__
+AdaptiveCSRView< Device, Index >::AdaptiveCSRView( const CSRView< Device, Index >& csrView, BlocksArray& blocks )
 {
    Base::bind( std::move( csrView.getOffsets() ) );
    for( int i = 0; i < MaxValueSizeLog(); i++ )
-      this->blocksArray[ i ].bind( blocksView[ i ].getView() );
+      this->blocksArray[ i ].bind( blocks[ i ].getView() );
 }
 
 template< typename Device, typename Index >
@@ -38,7 +55,7 @@ AdaptiveCSRView< Device, Index >::bind( AdaptiveCSRView view )
 template< typename Device, typename Index >
 __cuda_callable__
 void
-AdaptiveCSRView< Device, Index >::bind( OffsetsView offsets, BlocksView* blocks )
+AdaptiveCSRView< Device, Index >::bind( OffsetsView offsets, const BlocksViewArray& blocks )
 {
    Base::bind( std::move( offsets ) );
    for( int i = 0; i < MaxValueSizeLog(); i++ )
@@ -48,7 +65,7 @@ AdaptiveCSRView< Device, Index >::bind( OffsetsView offsets, BlocksView* blocks 
 template< typename Device, typename Index >
 __cuda_callable__
 void
-AdaptiveCSRView< Device, Index >::bind( OffsetsView offsets, BlocksType* blocks )
+AdaptiveCSRView< Device, Index >::bind( OffsetsView offsets, BlocksArray& blocks )
 {
    Base::bind( std::move( offsets ) );
    for( int i = 0; i < MaxValueSizeLog(); i++ )
@@ -90,16 +107,14 @@ auto
 AdaptiveCSRView< Device, Index >::getConstView() const -> ConstViewType
 {
    using BaseConstViewType = typename Base::ConstViewType;
-   using ConstBlocksView = typename AdaptiveCSRView< Device, std::add_const_t< Index > >::BlocksView;
-   return ConstViewType( BaseConstViewType( this->getOffsets().getConstView() ),
-                         const_cast< ConstBlocksView* >( &this->blocksArray[ 0 ] ) );  // TODO: rewrite without cast
+   return ConstViewType( BaseConstViewType( this->getOffsets().getConstView() ), this->blocksArray );
 }
 
 template< typename Device, typename Index >
 auto __cuda_callable__
-AdaptiveCSRView< Device, Index >::getBlocks() const->const BlocksView*
+AdaptiveCSRView< Device, Index >::getBlocks() const->const BlocksViewArray&
 {
-   return &this->blocksArray[ 0 ];
+   return this->blocksArray;
 }
 
 template< typename Device, typename Index >

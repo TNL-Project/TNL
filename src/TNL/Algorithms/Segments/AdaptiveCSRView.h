@@ -52,25 +52,31 @@ public:
    //! \brief View for the descriptor blocks of AdaptiveCSR.
    using BlocksView = typename BlocksType::ViewType;
 
+   //! \brief Type for arrays of descriptor blocks of AdaptiveCSR.
+   using BlocksArray = Containers::StaticArray< detail::CSRAdaptiveKernelParameters<>::MaxValueSizeLog, BlocksType >;
+
+   //! \brief Type for arrays of descriptor blocks view of AdaptiveCSR.
+   using BlocksViewArray = Containers::StaticArray< detail::CSRAdaptiveKernelParameters<>::MaxValueSizeLog, BlocksView >;
+
    //! \brief Default constructor with no parameters to create empty segments view.
    __cuda_callable__
    AdaptiveCSRView() = default;
 
    //! \brief Copy constructor.
    __cuda_callable__
-   AdaptiveCSRView( const AdaptiveCSRView& ) = default;
+   AdaptiveCSRView( const AdaptiveCSRView& );
 
    //! \brief Move constructor.
    __cuda_callable__
-   AdaptiveCSRView( AdaptiveCSRView&& ) noexcept = default;
+   AdaptiveCSRView( AdaptiveCSRView&& ) noexcept;
 
    //! \brief Binds a new CSR view together with blocks of AdaptiveCSR.
    __cuda_callable__
-   AdaptiveCSRView( const CSRView< Device, Index >& csrView, BlocksView* blocksView );
+   AdaptiveCSRView( const CSRView< Device, Index >& csrView, const BlocksViewArray& blocks );
 
    //! \brief Binds a new CSR view together with blocks of AdaptiveCSR.
    __cuda_callable__
-   AdaptiveCSRView( const CSRView< Device, Index >& csrView, BlocksType* blocksView );
+   AdaptiveCSRView( const CSRView< Device, Index >& csrView, BlocksArray& blocks );
 
    //! \brief Copy-assignment operator.
    AdaptiveCSRView&
@@ -88,12 +94,12 @@ public:
    //! \brief Method for rebinding (reinitialization) using another CSR offsets and AdaptiveCSR blocks.
    __cuda_callable__
    void
-   bind( OffsetsView offsets, BlocksView* blocks );
+   bind( OffsetsView offsets, const BlocksViewArray& blocks );
 
    //! \brief Method for rebinding (reinitialization) using another CSR offsets and AdaptiveCSR blocks.
    __cuda_callable__
    void
-   bind( OffsetsView offsets, BlocksType* blocks );
+   bind( OffsetsView offsets, BlocksArray& blocks );
 
    //! \brief Method for setting AdaptiveCSR blocks.
    void
@@ -135,7 +141,7 @@ public:
 
    //! \brief Returns a view with blocks of AdaptiveCSR.
    [[nodiscard]] __cuda_callable__
-   const BlocksView*
+   const BlocksViewArray&
    getBlocks() const;
 
    /**
@@ -171,7 +177,7 @@ public:
    }
 
 protected:
-   BlocksView blocksArray[ MaxValueSizeLog() ];
+   BlocksViewArray blocksArray;
 };
 
 /**
