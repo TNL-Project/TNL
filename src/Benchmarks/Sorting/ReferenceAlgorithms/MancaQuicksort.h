@@ -1,7 +1,20 @@
+#pragma once
+
+#include <limits>
+#include <stdexcept>
+
+#include <TNL/Atomic.h>
+#include <TNL/Backend.h>
+#include <TNL/Containers/ArrayView.h>
+#include <TNL/Algorithms/scan.h>
+#include <TNL/Algorithms/detail/CudaScanKernel.h>
+
 //defines the shared memory size
 #define SHARED_LIMIT 1024
 
-#define GIGA 1073741824
+#define LOG2_WARP_SIZE 5U
+#define WARP_SIZE ( 1U << LOG2_WARP_SIZE )
+
 /*
  * division of the vector to be sorted in buckets
  * the attributes of the object Block are the parameters of each bucket
@@ -35,124 +48,7 @@ struct Partition
    Type pivot;
 };
 
-void
-CUDA_Quicksort(
-   unsigned int* inData,
-   unsigned int* outData,
-   unsigned int dataSize,
-   unsigned int threads,
-   int Device,
-   double* timer );
-
-void
-CUDA_Quicksort_64( double* inData, double* outData, unsigned int size, unsigned int threads, int Device, double* timer );
-
-typedef unsigned int Type;
-
-void
-test_bitonicSort( unsigned int* h_InputKey, unsigned int N, double* timer );
-void
-test_MergeSort( unsigned int* h_SrcKey, unsigned int N, double* timer );
-
-typedef unsigned int uint;
-
-size_t
-scanInclusiveShort( uint* d_Dst, uint* d_Src, uint batchSize, uint arrayLength );
-
-size_t
-scanInclusiveLarge( uint* d_Dst, uint* d_Src, uint batchSize, uint arrayLength );
-
-template< typename Type >
-inline __device__
-void
-warpScanInclusive2( Type& idata, Type& idata2, volatile Type* s_Data, volatile Type* s_Data2, uint size )
-{
-   //volatile uint* s_Data2;
-   //s_Data2 = s_Data + blockDim.x*2;
-
-   uint pos = 2 * threadIdx.x - ( threadIdx.x & ( size - 1 ) );
-   s_Data[ pos ] = 0;
-   s_Data2[ pos ] = 0;
-   pos += size;
-   s_Data[ pos ] = idata;
-   s_Data2[ pos ] = idata2;
-
-   for( uint offset = 1; offset < size; offset <<= 1 ) {
-      s_Data[ pos ] += s_Data[ pos - offset ];
-      s_Data2[ pos ] += s_Data2[ pos - offset ];
-   }
-
-   idata = s_Data[ pos ];
-   idata2 = s_Data2[ pos ];
-}
-
-template< typename Type >
-inline __device__
-void
-warpScanExclusive2( Type& idata, Type& idata2, volatile Type* s_Data, volatile Type* s_Data2, uint size )
-{
-   //volatile uint* s_Data2;
-   //s_Data2 = s_Data + blockDim.x*2;
-
-   uint pos = 2 * threadIdx.x - ( threadIdx.x & ( size - 1 ) );
-   s_Data[ pos ] = 0;
-   s_Data2[ pos ] = 0;
-   pos += size;
-   s_Data[ pos ] = idata;
-   s_Data2[ pos ] = idata2;
-
-   for( uint offset = 1; offset < size; offset <<= 1 ) {
-      s_Data[ pos ] += s_Data[ pos - offset ];
-      s_Data2[ pos ] += s_Data2[ pos - offset ];
-   }
-
-   idata = s_Data[ pos ] - idata;
-   idata2 = s_Data2[ pos ] - idata2;
-}
-
-#define LOG2_WARP_SIZE 5U
-#define WARP_SIZE ( 1U << LOG2_WARP_SIZE )
-
-template< typename Type >
-inline __device__
-void
-scan1Inclusive2( Type& idata, Type& idata2, volatile Type* s_Data, uint size )
-{
-   volatile Type* s_Data2;
-   s_Data2 = s_Data + blockDim.x * 2;
-
-   if( size > WARP_SIZE ) {
-      //Bottom-level inclusive warp scan
-      warpScanInclusive2( idata, idata2, s_Data, s_Data2, WARP_SIZE );
-
-      //Save top Types of each warp for exclusive warp scan
-      //sync to wait for warp scans to complete (because s_Data is being overwritten)
-      __syncthreads();
-      if( ( threadIdx.x & ( WARP_SIZE - 1 ) ) == ( WARP_SIZE - 1 ) ) {
-         s_Data[ threadIdx.x >> LOG2_WARP_SIZE ] = idata;
-         s_Data2[ threadIdx.x >> LOG2_WARP_SIZE ] = idata2;
-      }
-
-      //wait for warp scans to complete
-      __syncthreads();
-      if( threadIdx.x < ( blockDim.x / WARP_SIZE ) ) {
-         //grab top warp Types
-         Type val = s_Data[ threadIdx.x ];
-         Type val2 = s_Data2[ threadIdx.x ];
-         //calculate exclsive scan and write back to shared memory
-         warpScanExclusive2( val, val2, s_Data, s_Data2, size >> LOG2_WARP_SIZE );
-         s_Data[ threadIdx.x ] = val;
-         s_Data2[ threadIdx.x ] = val2;
-      }
-
-      //return updated warp scans with exclusive scan results
-      __syncthreads();
-      idata += s_Data[ threadIdx.x >> LOG2_WARP_SIZE ];
-      idata2 += s_Data2[ threadIdx.x >> LOG2_WARP_SIZE ];
-   }
-   else
-      warpScanInclusive2( idata, idata2, s_Data, s_Data2, size );
-}
+using uint = unsigned int;
 
 template< typename Type >
 inline __device__
@@ -213,507 +109,13 @@ compareInclusive( Type& idata, Type& idata2, volatile Type* s_Data, uint size )
    idata2 = min( idata2, s_Data2[ threadIdx.x >> LOG2_WARP_SIZE ] );
 }
 
-#include <assert.h>
-#include <common/inc/helper_cuda.h>
-#include <6_Advanced/scan/scan_common.h>
-
-//All three kernels run 512 threads per workgroup
-//Must be a power of two
-#define THREADBLOCK_SIZE 256
-
-////////////////////////////////////////////////////////////////////////////////
-// Basic ccan codelets
-////////////////////////////////////////////////////////////////////////////////
-#if ( 0 )
-//Naive inclusive scan: O(N * log2(N)) operations
-//Allocate 2 * 'size' local memory, initialize the first half
-//with 'size' zeros avoiding if(pos >= offset) condition evaluation
-//and saving instructions
-inline __device__
-uint
-scan1Inclusive( uint idata, volatile uint* s_Data, uint size )
-{
-   uint pos = 2 * threadIdx.x - ( threadIdx.x & ( size - 1 ) );
-   s_Data[ pos ] = 0;
-   pos += size;
-   s_Data[ pos ] = idata;
-
-   for( uint offset = 1; offset < size; offset <<= 1 ) {
-      __syncthreads();
-      uint t = s_Data[ pos ] + s_Data[ pos - offset ];
-      __syncthreads();
-      s_Data[ pos ] = t;
-   }
-
-   return s_Data[ pos ];
-}
-
-inline __device__
-uint
-scan1Exclusive( uint idata, volatile uint* s_Data, uint size )
-{
-   return scan1Inclusive( idata, s_Data, size ) - idata;
-}
-
-#else
-   #define LOG2_WARP_SIZE 5U
-   #define WARP_SIZE ( 1U << LOG2_WARP_SIZE )
-
-//Almost the same as naive scan1Inclusive, but doesn't need __syncthreads()
-//assuming size <= WARP_SIZE
-inline __device__
-uint
-warpScanInclusive( uint idata, volatile uint* s_Data, uint size )
-{
-   uint pos = 2 * threadIdx.x - ( threadIdx.x & ( size - 1 ) );
-   s_Data[ pos ] = 0;
-   pos += size;
-   s_Data[ pos ] = idata;
-
-   for( uint offset = 1; offset < size; offset <<= 1 )
-      s_Data[ pos ] += s_Data[ pos - offset ];
-
-   return s_Data[ pos ];
-}
-
-inline __device__
-uint
-warpScanExclusive( uint idata, volatile uint* s_Data, uint size )
-{
-   return warpScanInclusive( idata, s_Data, size ) - idata;
-}
-
-inline __device__
-uint
-scan1Inclusive( uint idata, volatile uint* s_Data, uint size )
-{
-   if( size > WARP_SIZE ) {
-      //Bottom-level inclusive warp scan
-      uint warpResult = warpScanInclusive( idata, s_Data, WARP_SIZE );
-
-      //Save top elements of each warp for exclusive warp scan
-      //sync to wait for warp scans to complete (because s_Data is being overwritten)
-      __syncthreads();
-      if( ( threadIdx.x & ( WARP_SIZE - 1 ) ) == ( WARP_SIZE - 1 ) )
-         s_Data[ threadIdx.x >> LOG2_WARP_SIZE ] = warpResult;
-
-      //wait for warp scans to complete
-      __syncthreads();
-      if( threadIdx.x < ( THREADBLOCK_SIZE / WARP_SIZE ) ) {
-         //grab top warp elements
-         uint val = s_Data[ threadIdx.x ];
-         //calculate exclsive scan and write back to shared memory
-         s_Data[ threadIdx.x ] = warpScanExclusive( val, s_Data, size >> LOG2_WARP_SIZE );
-      }
-
-      //return updated warp scans with exclusive scan results
-      __syncthreads();
-      return warpResult + s_Data[ threadIdx.x >> LOG2_WARP_SIZE ];
-   }
-   else {
-      return warpScanInclusive( idata, s_Data, size );
-   }
-}
-
-inline __device__
-uint
-scan1Exclusive( uint idata, volatile uint* s_Data, uint size )
-{
-   return scan1Inclusive( idata, s_Data, size ) - idata;
-}
-
-#endif
-
-inline __device__
-uint4
-scan4Inclusive( uint4 idata4, volatile uint* s_Data, uint size )
-{
-   //Level-0 exclusive scan
-   idata4.y += idata4.x;
-   idata4.z += idata4.y;
-   idata4.w += idata4.z;
-
-   //Level-1 exclusive scan
-   uint oval = scan1Exclusive( idata4.w, s_Data, size / 4 );
-
-   idata4.x += oval;
-   idata4.y += oval;
-   idata4.z += oval;
-   idata4.w += oval;
-
-   return idata4;
-}
-
-//Exclusive vector scan: the array to be scanned is stored
-//in local thread memory scope as uint4
-inline __device__
-uint4
-scan4Exclusive( uint4 idata4, volatile uint* s_Data, uint size )
-{
-   uint4 odata4 = scan4Inclusive( idata4, s_Data, size );
-   odata4.x -= idata4.x;
-   odata4.y -= idata4.y;
-   odata4.z -= idata4.z;
-   odata4.w -= idata4.w;
-   return odata4;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Scan kernels
-////////////////////////////////////////////////////////////////////////////////
-__global__
-void
-scanExclusiveShared( uint4* d_Dst, uint4* d_Src, uint size )
-{
-   __shared__ uint s_Data[ 2 * THREADBLOCK_SIZE ];
-
-   uint pos = blockIdx.x * blockDim.x + threadIdx.x;
-
-   //Load data
-   uint4 idata4 = d_Src[ pos ];
-
-   //Calculate exclusive scan
-   uint4 odata4 = scan4Exclusive( idata4, s_Data, size );
-
-   //Write back
-   d_Dst[ pos ] = odata4;
-}
-
-//Exclusive scan of top elements of bottom-level scans (4 * THREADBLOCK_SIZE)
-__global__
-void
-scanExclusiveShared2( uint* d_Buf, uint* d_Dst, uint* d_Src, uint N, uint arrayLength )
-{
-   __shared__ uint s_Data[ 2 * THREADBLOCK_SIZE ];
-
-   //Skip loads and stores for inactive threads of last threadblock (pos >= N)
-   uint pos = blockIdx.x * blockDim.x + threadIdx.x;
-
-   //Load top elements
-   //Convert results of bottom-level scan back to inclusive
-   uint idata = 0;
-   if( pos < N )
-      idata = d_Dst[ ( 4 * THREADBLOCK_SIZE ) - 1 + ( 4 * THREADBLOCK_SIZE ) * pos ]
-            + d_Src[ ( 4 * THREADBLOCK_SIZE ) - 1 + ( 4 * THREADBLOCK_SIZE ) * pos ];
-
-   //Compute
-   uint odata = scan1Exclusive( idata, s_Data, arrayLength );
-
-   //Avoid out-of-bound access
-   if( pos < N )
-      d_Buf[ pos ] = odata;
-}
-
-//Final step of large-array scan: combine basic inclusive scan with exclusive scan of top elements of input arrays
-__global__
-void
-uniformUpdate( uint4* d_Data, uint* d_Buffer )
-{
-   __shared__ uint buf;
-   uint pos = blockIdx.x * blockDim.x + threadIdx.x;
-
-   if( threadIdx.x == 0 )
-      buf = d_Buffer[ blockIdx.x ];
-   __syncthreads();
-
-   uint4 data4 = d_Data[ pos ];
-   data4.x += buf;
-   data4.y += buf;
-   data4.z += buf;
-   data4.w += buf;
-   d_Data[ pos ] = data4;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Interface function
-////////////////////////////////////////////////////////////////////////////////
-//Derived as 32768 (max power-of-two gridDim.x) * 4 * THREADBLOCK_SIZE
-//Due to scanExclusiveShared<<<>>>() 1D block addressing
-const uint MAX_BATCH_ELEMENTS = 64 * 1048576;
-const uint MIN_SHORT_ARRAY_SIZE = 4;
-const uint MAX_SHORT_ARRAY_SIZE = 4 * THREADBLOCK_SIZE;
-const uint MIN_LARGE_ARRAY_SIZE = 8 * THREADBLOCK_SIZE;
-const uint MAX_LARGE_ARRAY_SIZE = 4 * THREADBLOCK_SIZE * THREADBLOCK_SIZE;
-
-//Internal exclusive scan buffer
-static uint* d_Buf;
-
-void
-initScan( void )
-{
-   checkCudaErrors( cudaMalloc( (void**) &d_Buf, ( MAX_BATCH_ELEMENTS / ( 4 * THREADBLOCK_SIZE ) ) * sizeof( uint ) ) );
-}
-
-void
-closeScan( void )
-{
-   checkCudaErrors( cudaFree( d_Buf ) );
-}
-
-static uint
-factorRadix2( uint& log2L, uint L )
-{
-   if( ! L ) {
-      log2L = 0;
-      return 0;
-   }
-   else {
-      for( log2L = 0; ( L & 1 ) == 0; L >>= 1, log2L++ )
-         ;
-      return L;
-   }
-}
-
-static uint
-iDivUp( uint dividend, uint divisor )
-{
-   return ( ( dividend % divisor ) == 0 ) ? ( dividend / divisor ) : ( dividend / divisor + 1 );
-}
-
-size_t
-scanExclusiveShort( uint* d_Dst, uint* d_Src, uint batchSize, uint arrayLength )
-{
-   //Check power-of-two factorization
-   uint log2L;
-   uint factorizationRemainder = factorRadix2( log2L, arrayLength );
-   assert( factorizationRemainder == 1 );
-
-   //Check supported size range
-   assert( ( arrayLength >= MIN_SHORT_ARRAY_SIZE ) && ( arrayLength <= MAX_SHORT_ARRAY_SIZE ) );
-
-   //Check total batch size limit
-   assert( ( batchSize * arrayLength ) <= MAX_BATCH_ELEMENTS );
-
-   //Check all threadblocks to be fully packed with data
-   assert( ( batchSize * arrayLength ) % ( 4 * THREADBLOCK_SIZE ) == 0 );
-
-   // clang-format off
-   scanExclusiveShared<<<(batchSize * arrayLength) / (4 * THREADBLOCK_SIZE), THREADBLOCK_SIZE>>>(
-      // clang-format on
-      (uint4*) d_Dst,
-      (uint4*) d_Src,
-      arrayLength );
-   getLastCudaError( "scanExclusiveShared() execution FAILED\n" );
-
-   return THREADBLOCK_SIZE;
-}
-
-size_t
-scanExclusiveLarge( uint* d_Dst, uint* d_Src, uint batchSize, uint arrayLength )
-{
-   //Check power-of-two factorization
-   uint log2L;
-   uint factorizationRemainder = factorRadix2( log2L, arrayLength );
-   assert( factorizationRemainder == 1 );
-
-   //Check supported size range
-   assert( ( arrayLength >= MIN_LARGE_ARRAY_SIZE ) && ( arrayLength <= MAX_LARGE_ARRAY_SIZE ) );
-
-   //Check total batch size limit
-   assert( ( batchSize * arrayLength ) <= MAX_BATCH_ELEMENTS );
-
-   // clang-format off
-   scanExclusiveShared<<<(batchSize * arrayLength) / (4 * THREADBLOCK_SIZE), THREADBLOCK_SIZE>>>(
-      // clang-format on
-      (uint4*) d_Dst,
-      (uint4*) d_Src,
-      4 * THREADBLOCK_SIZE );
-   getLastCudaError( "scanExclusiveShared() execution FAILED\n" );
-
-   //Not all threadblocks need to be packed with input data:
-   //inactive threads of highest threadblock just don't do global reads and writes
-   const uint blockCount2 = iDivUp( ( batchSize * arrayLength ) / ( 4 * THREADBLOCK_SIZE ), THREADBLOCK_SIZE );
-   // clang-format off
-   scanExclusiveShared2<<<blockCount2, THREADBLOCK_SIZE>>>(
-      // clang-format on
-      (uint*) d_Buf,
-      (uint*) d_Dst,
-      (uint*) d_Src,
-      ( batchSize * arrayLength ) / ( 4 * THREADBLOCK_SIZE ),
-      arrayLength / ( 4 * THREADBLOCK_SIZE ) );
-   getLastCudaError( "scanExclusiveShared2() execution FAILED\n" );
-
-   // clang-format off
-   uniformUpdate<<<(batchSize * arrayLength) / (4 * THREADBLOCK_SIZE), THREADBLOCK_SIZE>>>(
-      // clang-format on
-      (uint4*) d_Dst,
-      (uint*) d_Buf );
-   getLastCudaError( "uniformUpdate() execution FAILED\n" );
-
-   return THREADBLOCK_SIZE;
-}
-
-__global__
-void
-scanInclusiveShared2( uint* d_Buf, uint* d_Dst, uint N, uint arrayLength )
-{
-   __shared__ uint s_Data[ 2 * THREADBLOCK_SIZE ];
-
-   //Skip loads and stores for inactive threads of last threadblock (pos >= N)
-   uint pos = blockIdx.x * blockDim.x + threadIdx.x;
-
-   //Load top elements
-   //Convert results of bottom-level scan back to inclusive
-   uint idata = 0;
-   if( pos < N )
-      idata = d_Dst[ ( 4 * THREADBLOCK_SIZE ) - 1 + ( 4 * THREADBLOCK_SIZE ) * pos ];
-
-   //Compute
-   uint odata = scan1Exclusive( idata, s_Data, arrayLength );
-
-   //Avoid out-of-bound access
-   if( pos < N )
-      d_Buf[ pos ] = odata;
-}
-
-__global__
-void
-scanInclusiveShared( uint4* d_Dst, uint4* d_Src, uint size )
-{
-   __shared__ uint s_Data[ 2 * THREADBLOCK_SIZE ];
-
-   uint pos = blockIdx.x * blockDim.x + threadIdx.x;
-
-   //  if(pos<warpSize*(size/warpSize+1))
-   {
-      //Load data
-      uint4 idata4 = d_Src[ pos ];
-
-      //Calculate exclusive scan
-      uint4 odata4 = scan4Inclusive( idata4, s_Data, size );
-
-      //Write back
-      d_Dst[ pos ] = odata4;
-   }
-}
-
-size_t
-scanInclusiveShort( uint* d_Dst, uint* d_Src, uint batchSize, uint arrayLength )
-{
-   //Check power-of-two factorization
-   uint log2L;
-   uint factorizationRemainder = factorRadix2( log2L, arrayLength );
-   assert( factorizationRemainder == 1 );
-
-   //Check supported size range
-   //  assert( (arrayLength >= MIN_SHORT_ARRAY_SIZE) && (arrayLength <= MAX_SHORT_ARRAY_SIZE) );
-
-   //Check total batch size limit
-   // assert( (batchSize * arrayLength) <= MAX_BATCH_ELEMENTS );
-
-   //Check all threadblocks to be fully packed with data
-   //assert( (batchSize * arrayLength) % (4 * THREADBLOCK_SIZE) == 0 );
-   int blocks = ( batchSize * arrayLength + 4 * THREADBLOCK_SIZE - 1 ) / ( 4 * THREADBLOCK_SIZE );
-   // clang-format off
-   scanInclusiveShared<<<blocks, THREADBLOCK_SIZE>>>(
-      // clang-format on
-      (uint4*) d_Dst,
-      (uint4*) d_Src,
-      arrayLength );
-   getLastCudaError( "scanExclusiveShared() execution FAILED\n" );
-
-   return THREADBLOCK_SIZE;
-}
-
-size_t
-scanInclusiveLarge( uint* d_Dst, uint* d_Src, uint batchSize, uint arrayLength )
-{
-   //Check power-of-two factorization
-   uint log2L;
-   uint factorizationRemainder = factorRadix2( log2L, arrayLength );
-   assert( factorizationRemainder == 1 );
-
-   //Check supported size range
-   //assert( (arrayLength >= MIN_LARGE_ARRAY_SIZE) && (arrayLength <= MAX_LARGE_ARRAY_SIZE) );
-
-   //Check total batch size limit
-   //assert( (batchSize * arrayLength) <= MAX_BATCH_ELEMENTS );
-
-   // clang-format off
-   scanInclusiveShared<<<(batchSize * arrayLength) / (4 * THREADBLOCK_SIZE), THREADBLOCK_SIZE>>>(
-      // clang-format on
-      (uint4*) d_Dst,
-      (uint4*) d_Src,
-      4 * THREADBLOCK_SIZE );
-   getLastCudaError( "scanExclusiveShared() execution FAILED\n" );
-
-   //Not all threadblocks need to be packed with input data:
-   //inactive threads of highest threadblock just don't do global reads and writes
-   const uint blockCount2 = iDivUp( ( batchSize * arrayLength ) / ( 4 * THREADBLOCK_SIZE ), THREADBLOCK_SIZE );
-   // clang-format off
-   scanInclusiveShared2<<<blockCount2, THREADBLOCK_SIZE>>>(
-      // clang-format on
-      (uint*) d_Buf,
-      (uint*) d_Dst,
-      ( batchSize * arrayLength ) / ( 4 * THREADBLOCK_SIZE ),
-      arrayLength / ( 4 * THREADBLOCK_SIZE ) );
-   getLastCudaError( "scanExclusiveShared2() execution FAILED\n" );
-
-   // clang-format off
-   uniformUpdate<<<(batchSize * arrayLength) / (4 * THREADBLOCK_SIZE), THREADBLOCK_SIZE>>>(
-      // clang-format on
-      (uint4*) d_Dst,
-      (uint*) d_Buf );
-   getLastCudaError( "uniformUpdate() execution FAILED\n" );
-
-   return THREADBLOCK_SIZE;
-}
-
-#include <common/inc/helper_cuda.h>
-#include <common/inc/helper_timer.h>
-#include <6_Advanced/scan/scan_common.h>
-
-extern __shared__ uint sMemory[];
-
-__device__
-inline double
-atomicMax( double* address, double val )
-{
-   unsigned long long int* address_as_ull = (unsigned long long int*) address;
-   unsigned long long int assumed;
-   unsigned long long int old = *address_as_ull;
-
-   assumed = old;
-   old = atomicCAS( address_as_ull, assumed, __double_as_longlong( max( val, __longlong_as_double( assumed ) ) ) );
-
-   while( assumed != old ) {
-      assumed = old;
-      old = atomicCAS( address_as_ull, assumed, __double_as_longlong( max( val, __longlong_as_double( assumed ) ) ) );
-   }
-   return __longlong_as_double( old );
-}
-
-__device__
-inline double
-atomicMin( double* address, double val )
-{
-   unsigned long long int* address_as_ull = (unsigned long long int*) address;
-   unsigned long long int old = *address_as_ull, assumed;
-
-   assumed = old;
-   old = atomicCAS( address_as_ull, assumed, __double_as_longlong( min( val, __longlong_as_double( assumed ) ) ) );
-   while( assumed != old ) {
-      assumed = old;
-      old = atomicCAS( address_as_ull, assumed, __double_as_longlong( min( val, __longlong_as_double( assumed ) ) ) );
-   }
-   return __longlong_as_double( old );
-}
-
 template< typename Type >
 __device__
 inline void
-Comparator(
-
-   Type& valA,
-   Type& valB,
-   uint dir )
+Comparator( Type& valA, Type& valB, uint dir )
 {
-   Type t;
-   if( ( valA > valB ) == dir ) {
-      t = valA;
-      valA = valB;
-      valB = t;
-   }
+   if( ( valA > valB ) == dir )
+      TNL::swap( valA, valB );
 }
 
 static __device__
@@ -725,12 +127,26 @@ __qsflo( unsigned int word )
    return ret;
 }
 
+// Helper function to get the next representable value after x
+// For integers: x + 1
+// For floating-point: next value towards +infinity
+template< typename Type >
+__device__
+inline Type
+nextValue( Type x )
+{
+   if constexpr( std::is_floating_point_v< Type > )
+      return std::nextafter( x, std::numeric_limits< Type >::infinity() );
+   else
+      return x + Type( 1 );
+}
+
 template< typename Type >
 __global__
 void
 globalBitonicSort( Type* indata, Type* outdata, Block< Type >* bucket, bool inputSelect )
 {
-   __shared__ uint shared[ 1024 ];
+   __shared__ Type shared[ 1024 ];
 
    Type* data;
 
@@ -742,7 +158,7 @@ globalBitonicSort( Type* indata, Type* outdata, Block< Type >* bucket, bool inpu
    if( cord.end - cord.begin > 1024 || cord.end - cord.begin == 0 )
       return;
 
-   unsigned int bitonicSize = 1 << ( __qsflo( size - 1U ) + 1 );
+   unsigned int bitonicSize = 1U << ( __qsflo( size - 1U ) + 1U );
 
    if( select )
       data = indata;
@@ -755,7 +171,7 @@ globalBitonicSort( Type* indata, Type* outdata, Block< Type >* bucket, bool inpu
       shared[ i ] = data[ i + cord.begin ];
 
    for( int i = threadIdx.x + size; i < bitonicSize; i += blockDim.x )
-      shared[ i ] = 0xffffffff;
+      shared[ i ] = std::numeric_limits< Type >::max();
 
    __syncthreads();
 
@@ -788,12 +204,37 @@ globalBitonicSort( Type* indata, Type* outdata, Block< Type >* bucket, bool inpu
       indata[ i + cord.begin ] = shared[ i ];
 }
 
-template< typename Type >
+template< int blockSize, typename Type >
 __global__
 void
 quick( Type* indata, Type* buffer, Partition< Type >* partition, Block< Type >* bucket )
 {
-   __shared__ Type sh_out[ 1024 ];
+   using namespace TNL::Algorithms::detail;
+   struct Uint2Plus
+   {
+      __device__
+      uint2
+      operator()( uint2 a, uint2 b ) const
+      {
+         uint2 result;
+         result.x = a.x + b.x;
+         result.y = a.y + b.y;
+         return result;
+      }
+   };
+   using BlockScan = CudaBlockScan< ScanType::Inclusive, blockSize, Uint2Plus, uint2 >;
+   // storage to be allocated in shared memory
+   union Shared
+   {
+      Type data[ 1024 ];
+      typename BlockScan::Storage blockScanStorage;
+
+      // initialization is not allowed for __shared__ variables, so we need to
+      // disable initialization in the implicit default constructor
+      __device__
+      Shared() {}
+   };
+   __shared__ Shared storage;
 
    __shared__ uint start1, end1;
    __shared__ uint left, right;
@@ -808,8 +249,8 @@ quick( Type* indata, Type* buffer, Partition< Type >* partition, Block< Type >* 
    uint lo = 0;
    uint hi = 0;
 
-   Type lmin = 0xffffffff;
-   Type rmax = 0;
+   Type lmin = std::numeric_limits< Type >::max();
+   Type rmax = std::numeric_limits< Type >::lowest();
 
    Type d;
 
@@ -843,8 +284,7 @@ quick( Type* indata, Type* buffer, Partition< Type >* partition, Block< Type >* 
    }
 
    //compute max and min of every partition
-
-   compareInclusive( rmax, lmin, (Type*) sh_out, blockDim.x );
+   compareInclusive( rmax, lmin, storage.data, blockDim.x );
 
    __syncthreads();
 
@@ -856,12 +296,12 @@ quick( Type* indata, Type* buffer, Partition< Type >* partition, Block< Type >* 
 
    __syncthreads();
 
-   /*
-    * calculate the coordinates of its assigned item to each thread,
-    * which are necessary to known in which subsequences the item must be copied
-    *
-    */
-   scan1Inclusive2( lo, hi, (uint*) sh_out, blockDim.x );
+   // calculate the coordinates of its assigned item to each thread,
+   // which are necessary to known in which subsequences the item must be copied
+   uint2 _result = BlockScan::scan( Uint2Plus{}, uint2{ 0, 0 }, uint2{ lo, hi }, threadIdx.x, storage.blockScanStorage );
+   lo = _result.x;
+   hi = _result.y;
+
    lo = lo - 1;
    hi = SHARED_LIMIT - hi;
 
@@ -879,13 +319,13 @@ quick( Type* indata, Type* buffer, Partition< Type >* partition, Block< Type >* 
    if( tix + start < end ) {
       //items smaller than pivot
       if( d < pivot ) {
-         sh_out[ lo ] = d;
+         storage.data[ lo ] = d;
          lo--;
       }
 
       //items bigger than pivot
       if( d > pivot ) {
-         sh_out[ hi ] = d;
+         storage.data[ hi ] = d;
          hi++;
       }
    }
@@ -895,13 +335,13 @@ quick( Type* indata, Type* buffer, Partition< Type >* partition, Block< Type >* 
       Type d = indata[ i ];
       //items smaller than the pivot
       if( d < pivot ) {
-         sh_out[ lo ] = d;
+         storage.data[ lo ] = d;
          lo--;
       }
 
       //items bigger than the pivot
       if( d > pivot ) {
-         sh_out[ hi ] = d;
+         storage.data[ hi ] = d;
          hi++;
       }
    }
@@ -913,10 +353,10 @@ quick( Type* indata, Type* buffer, Partition< Type >* partition, Block< Type >* 
    //memory coalesced writing of next tiles on the global memory
    for( uint i = tix; i < SHARED_LIMIT; i += blockDim.x ) {
       if( i < left )
-         buffer[ start1 + i ] = sh_out[ i ];
+         buffer[ start1 + i ] = storage.data[ i ];
 
       if( i >= SHARED_LIMIT - right )
-         buffer[ end1 + i - SHARED_LIMIT ] = sh_out[ i ];
+         buffer[ end1 + i - SHARED_LIMIT ] = storage.data[ i ];
    }
 }
 
@@ -925,7 +365,7 @@ quick( Type* indata, Type* buffer, Partition< Type >* partition, Block< Type >* 
 template< typename Type >
 __global__
 void
-partitionAssign( struct Block< Type >* bucket, uint* npartitions, struct Partition< Type >* partition )
+partitionAssign( Block< Type >* bucket, const uint* npartitions, Partition< Type >* partition )
 {
    int tx = threadIdx.x;
    int bx = blockIdx.x;
@@ -937,14 +377,11 @@ partitionAssign( struct Block< Type >* bucket, uint* npartitions, struct Partiti
    uint from;
    uint to;
 
-   if( bx > 0 ) {
+   if( bx > 0 )
       from = npartitions[ bx - 1 ];
-      to = npartitions[ bx ];
-   }
-   else {
+   else
       from = 0;
-      to = npartitions[ bx ];
-   }
+   to = npartitions[ bx ];
 
    uint i = tx + from;
 
@@ -972,7 +409,7 @@ partitionAssign( struct Block< Type >* bucket, uint* npartitions, struct Partiti
 template< typename Type >
 __global__
 void
-insertPivot( Type* data, struct Block< Type >* bucket, int nbucket )
+insertPivot( Type* data, Block< Type >* bucket, int nbucket )
 {
    Type pivot = bucket[ blockIdx.x ].pivot;
    uint start = bucket[ blockIdx.x ].nextbegin;
@@ -1013,15 +450,16 @@ bucketAssign( Block< Type >* bucket, uint* npartitions, int nbucket, int select 
          bucket[ i + nbucket ].nextbegin = orgbeg;
          bucket[ i + nbucket ].nextend = from;
          bucket[ i + nbucket ].end = from;
-         bucket[ i + nbucket ].pivot = ( minPiv + lmaxpiv ) / 2;
+         // Use safe average to avoid overflow for large unsigned values
+         bucket[ i + nbucket ].pivot = minPiv / 2 + lmaxpiv / 2;
 
          //if(select)
          //	bucket[i+nbucket].done   = (from-orgbeg)>1024;// && (minPiv!=maxPiv);
          //else
          bucket[ i + nbucket ].done = ( from - orgbeg ) > 1024 && ( minPiv != maxPiv );
          bucket[ i + nbucket ].select = select;
-         bucket[ i + nbucket ].minPiv = (Type) 0xffffffffffffffff;
-         bucket[ i + nbucket ].maxPiv = 0;
+         bucket[ i + nbucket ].minPiv = std::numeric_limits< Type >::max();
+         bucket[ i + nbucket ].maxPiv = std::numeric_limits< Type >::lowest();
          //bucket[i+nbucket].finish=false;
 
          //calculate the number of partitions (npartitions) necessary to the i+nbucket bucket
@@ -1034,15 +472,17 @@ bucketAssign( Block< Type >* bucket, uint* npartitions, int nbucket, int select 
          bucket[ i ].begin = end;
          bucket[ i ].nextbegin = end;
          bucket[ i ].nextend = orgend;
-         bucket[ i ].pivot = ( rminpiv + maxPiv ) / 2 + 1;
+         // Use safe average to avoid overflow for large unsigned values
+         // For floating-point, use nextValue to get the next representable value after the average
+         bucket[ i ].pivot = nextValue( rminpiv / 2 + maxPiv / 2 );
 
          //if(select)
          //bucket[i].done   = (orgend-end)>1024;// && (minPiv!=maxPiv);
          //	else
          bucket[ i ].done = ( orgend - end ) > 1024 && ( minPiv != maxPiv );
          bucket[ i ].select = select;
-         bucket[ i ].minPiv = (Type) 0xffffffffffffffff;
-         bucket[ i ].maxPiv = 0;
+         bucket[ i ].minPiv = std::numeric_limits< Type >::max();
+         bucket[ i ].maxPiv = std::numeric_limits< Type >::lowest();
          //bucket[i].finish=false;
 
          //calculate the number of partitions (npartitions) necessary to the i-bucket bucket
@@ -1070,83 +510,59 @@ init( Type* data, Block< Type >* bucket, uint* npartitions, int size, int nblock
       npartitions[ i ] = 0;
       bucket[ i ].done = false + i == 0;
       bucket[ i ].select = false;
-      bucket[ i ].maxPiv = 0x0;
-      bucket[ i ].minPiv = (Type) 0xffffffffffffffff;
+      bucket[ i ].minPiv = std::numeric_limits< Type >::max();
+      bucket[ i ].maxPiv = std::numeric_limits< Type >::lowest();
       //bucket[i].pivot  = 0+ (i==0)*((min(min(data[0],data[size/2]),data[size-1]) +
       //max(max(data[0],data[size/2]),data[size-1]))/2);
       bucket[ i ].pivot = data[ size / 2 ];
    }
 }
 
-template< typename Type >
+template< int blockSize, typename Type >
 void
-sort( Type* ddata, Type* outputData, uint size, uint threadCount, int device, double* wallClock )
+manca_qsort( Type* ddata, uint size )
 {
-   cudaSetDevice( device );
-
-   cudaGetLastError();
-   //cudaDeviceReset();
-
-   cudaDeviceProp deviceProp;
-   cudaGetDeviceProperties( &deviceProp, device );
-
-   StopWatchInterface* htimer = NULL;
-   Type* dbuffer;
-
-   Block< Type >* dbucket;
-   struct Partition< Type >* partition;
-   uint *npartitions1, *npartitions2;
-
-   uint* cudaBlocks = (uint*) malloc( 4 );
+   dim3 cudaBlocks;
 
    uint blocks = ( size + SHARED_LIMIT - 1 ) / SHARED_LIMIT;
    uint nblock = 10 * blocks;
-   int partition_max = 262144;
+   uint nblock_max = TNL::max( nblock, SHARED_LIMIT );
+   uint partition_max = nblock;  //TNL::min( 262144, size );
 
-   //unsigned long long int total = partition_max * sizeof(Block<Type>) + nblock * sizeof(Partition<Type>) + 2 * partition_max *
-   //sizeof(uint) + 3 * (size) * sizeof(Type);
-
-   //Allocating and initializing CUDA arrays
-   sdkCreateTimer( &htimer );
-   checkCudaErrors( cudaMalloc( (void**) &dbucket, partition_max * sizeof( Block< Type > ) ) );
-   checkCudaErrors( cudaMalloc( (void**) &partition, nblock * sizeof( Partition< Type > ) ) );  //nblock
-
-   checkCudaErrors( cudaMalloc( (void**) &npartitions1, partition_max * sizeof( uint ) ) );
-   checkCudaErrors( cudaMalloc( (void**) &npartitions2, partition_max * sizeof( uint ) ) );
-
-   checkCudaErrors( cudaMalloc( (void**) &dbuffer, ( size ) * sizeof( Type ) ) );
-
-   initScan();
+   // Allocate CUDA arrays
+   TNL::Containers::Array< Type, TNL::Devices::Cuda, uint > dbuffer( size );
+   TNL::Containers::Array< Block< Type >, TNL::Devices::Cuda, uint > dbucket( partition_max );
+   TNL::Containers::Array< Partition< Type >, TNL::Devices::Cuda, uint > partition( nblock_max );
+   TNL::Containers::Array< uint, TNL::Devices::Cuda, uint > npartitions1( partition_max );
+   TNL::Containers::Array< uint, TNL::Devices::Cuda, uint > npartitions2( partition_max );
+   npartitions1.setValue( 0 );
 
    //setting GPU Cache
    cudaFuncSetCacheConfig( init< Type >, cudaFuncCachePreferL1 );
    cudaFuncSetCacheConfig( insertPivot< Type >, cudaFuncCachePreferL1 );
    cudaFuncSetCacheConfig( bucketAssign< Type >, cudaFuncCachePreferL1 );
    cudaFuncSetCacheConfig( partitionAssign< Type >, cudaFuncCachePreferL1 );
-   cudaFuncSetCacheConfig( quick< Type >, cudaFuncCachePreferShared );
+   cudaFuncSetCacheConfig( quick< blockSize, Type >, cudaFuncCachePreferShared );
    cudaFuncSetCacheConfig( globalBitonicSort< Type >, cudaFuncCachePreferShared );
 
-   checkCudaErrors( cudaDeviceSynchronize() );
-   sdkResetTimer( &htimer );
-   sdkStartTimer( &htimer );
+   TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
 
-   //initializing bucket array: initial attributes for each bucket
+   // Initialize the bucket array: initial attributes for each bucket
    // clang-format off
-   init<Type><<<(nblock + 255) / 256, 256>>>(ddata, dbucket, npartitions1, size, partition_max);
+   init<Type><<<(nblock + 255) / 256, 256>>>(ddata, dbucket.getData(), npartitions1.getData(), size, partition_max);
    // clang-format on
+   TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
 
    uint nbucket = 1;
    uint numIterations = 0;
    bool inputSelect = true;
 
-   *cudaBlocks = blocks;
-   checkCudaErrors( cudaDeviceSynchronize() );
-   getLastCudaError( "init() execution FAILED\n" );
-   checkCudaErrors( cudaMemcpy( &npartitions2[ 0 ], cudaBlocks, sizeof( uint ), cudaMemcpyHostToDevice ) );
+   cudaBlocks.x = blocks;
+   TNL_BACKEND_SAFE_CALL( cudaMemcpy( npartitions2.getData(), &cudaBlocks.x, sizeof( uint ), cudaMemcpyHostToDevice ) );
 
    // beginning of the first phase
    // this phase goes on until the size of the buckets is comparable to the SHARED_LIMIT size
-   while( 1 ) {
+   while( true ) {
       /*
        *       	---------------------    Pre-processing: Partitioning    ---------------------
        *
@@ -1155,19 +571,17 @@ sort( Type* ddata, Type* outputData, uint size, uint threadCount, int device, do
        * processed by each thread block.
        *
        * the number of partitions (npartitions) for each block will depend on the shared memory size (SHARED_LIMIT)
-       *
        */
-
-      if( numIterations > 0 ) {  //1024 is the shared memory limit of scanInclusiveShort()
-         if( nbucket <= 1024 )
-            scanInclusiveShort( npartitions2, npartitions1, 1, nbucket );
-         else
-            scanInclusiveLarge( npartitions2, npartitions1, 1, nbucket );
-
-         checkCudaErrors( cudaMemcpy( cudaBlocks, &npartitions2[ nbucket - 1 ], sizeof( uint ), cudaMemcpyDeviceToHost ) );
+      if( numIterations > 0 ) {
+         // Use TNL's inclusive scan (handles all sizes correctly)
+         auto view1 = npartitions1.getView( 0, nbucket );
+         auto view2 = npartitions2.getView( 0, nbucket );
+         TNL::Algorithms::inclusiveScan( view1, view2 );
+         TNL_BACKEND_SAFE_CALL(
+            cudaMemcpy( &cudaBlocks.x, npartitions2.getData() + nbucket - 1, sizeof( uint ), cudaMemcpyDeviceToHost ) );
       }
 
-      if( *cudaBlocks == 0 )
+      if( cudaBlocks.x == 0 )
          break;
 
       /*
@@ -1176,170 +590,83 @@ sort( Type* ddata, Type* outputData, uint size, uint threadCount, int device, do
        * 	A thread block is assigned to each different partition
        * 	each partition is assigned coordinates, pivot and ....
        */
-
       // clang-format off
-      partitionAssign<Type><<<nbucket, 1024>>>(dbucket, npartitions2, partition);
+      partitionAssign<Type><<<nbucket, 1024>>>(dbucket.getData(), npartitions2.getData(), partition.getData());
       // clang-format on
-      cudaDeviceSynchronize();
-      getLastCudaError( "partitionAssign() execution FAILED\n" );
+      TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
 
       /*
-                       ---------------------    step 2a    ---------------------
-
-                       in this function each thread block creates two subsequences
-                       to divide the items in the partition whose value is lower than
-                       the pivot value, from the items whose value is higher than the pivot value
-               */
-
+       *  ---------------------    step 2a    ---------------------
+       *
+       *    In this function each thread block creates two subsequences
+       *    to divide the items in the partition whose value is lower than
+       *    the pivot value, from the items whose value is higher than the pivot value
+       */
       if( inputSelect ) {
          // clang-format off
-         quick<Type><<<*cudaBlocks, threadCount>>>(ddata, dbuffer, partition, dbucket);
+         quick<blockSize, Type><<<cudaBlocks, blockSize>>>(ddata, dbuffer.getData(), partition.getData(), dbucket.getData());
          // clang-format on
       }
       else {
          // clang-format off
-         quick<Type><<<*cudaBlocks, threadCount>>>(dbuffer, ddata, partition, dbucket);
+         quick<blockSize, Type><<<cudaBlocks, blockSize>>>(dbuffer.getData(), ddata, partition.getData(), dbucket.getData());
          // clang-format on
       }
-      cudaDeviceSynchronize();
-      getLastCudaError( "quick() execution FAILED\n" );
+      TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
 
       //step 2b: this function enters the pivot value in the central bucket's items
       // clang-format off
-      insertPivot<Type><<<nbucket, 512>>>(ddata, dbucket, nbucket);
+      insertPivot<Type><<<nbucket, 512>>>(ddata, dbucket.getData(), nbucket);
       // clang-format on
+      TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
 
       //step 3: parameters are assigned, linked to the two new buckets created in step 2
       // clang-format off
-      bucketAssign<Type><<<(nbucket + 255) / 256, 256>>>(dbucket, npartitions1, nbucket, inputSelect);
+      bucketAssign<Type><<<(nbucket + 255) / 256, 256>>>(dbucket.getData(), npartitions1.getData(), nbucket, inputSelect);
       // clang-format on
-      cudaDeviceSynchronize();
-      getLastCudaError( "insertPivot() or bucketAssign() execution FAILED\n" );
+      TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
 
       nbucket *= 2;
 
       inputSelect = ! inputSelect;
       numIterations++;
-      if( nbucket > deviceProp.maxGridSize[ 0 ] )
+
+      // bucketAssign writes to bucket[i + nbucket], so we need nbucket <= partition_max / 2
+      if( nbucket > partition_max / 2 )
          break;
-      //if(numIterations==18) break;
    }
 
    /*
     * start second phase:
     * now the size of the buckets is such that they can be entirely processed by a thread block
-    *
     */
-
-   if( nbucket > deviceProp.maxGridSize[ 0 ] ) {
-      fprintf(
-         stderr,
-         "ERROR: CUDA-Quicksort can't terminate sorting as the block threads needed to finish it are more than the Maximum "
-         "x-dimension of FERMI GPU thread blocks. Please use Kepler GPUs as the Maximum x-dimension of their thread blocks is "
-         "much higher\n" );
+   if( nbucket > TNL::Backend::getMaxGridXSize() ) {
+      throw std::runtime_error(
+         "MancaQuicksort can't terminate sorting as the block threads needed to finish it are more than the Maximum "
+         "x-dimension of GPU thread blocks." );
    }
    else {
       // clang-format off
-      globalBitonicSort<Type><<<nbucket, 512, 0>>>(ddata, dbuffer, dbucket, inputSelect);
+      globalBitonicSort<Type><<<nbucket, 512, 0>>>(ddata, dbuffer.getData(), dbucket.getData(), inputSelect);
       // clang-format on
+      TNL_BACKEND_SAFE_CALL( cudaDeviceSynchronize() );
    }
-
-   checkCudaErrors( cudaDeviceSynchronize() );
-   getLastCudaError( "globalBitonicSort() execution FAILED\n" );
-
-   sdkStopTimer( &htimer );
-   *wallClock = sdkGetTimerValue( &htimer );
-
-   // release resources
-   checkCudaErrors( cudaFree( dbuffer ) );
-   checkCudaErrors( cudaFree( dbucket ) );
-   checkCudaErrors( cudaFree( npartitions2 ) );
-   checkCudaErrors( cudaFree( npartitions1 ) );
-   free( cudaBlocks );
-
-   closeScan();
-   return;
-}
-
-void
-CUDA_Quicksort( uint* inputData, uint* outputData, uint dataSize, uint threadCount, int Device, double* wallClock )
-{
-   cudaDeviceProp deviceProp;
-   cudaGetDeviceProperties( &deviceProp, Device );
-
-   if( deviceProp.major < 2 ) {
-      fprintf(
-         stderr,
-         "Error: the GPU device %d has a Compute Capability of %d.%d, while a Compute Capability of 2.x is required to run the "
-         "code\n",
-         Device,
-         deviceProp.major,
-         deviceProp.minor );
-
-      int deviceCount;
-      cudaGetDeviceCount( &deviceCount );
-
-      fprintf( stderr, "       the Host system has the following GPU devices:\n" );
-
-      for( int device = 0; device < deviceCount; device++ ) {
-         fprintf(
-            stderr,
-            "\t  the GPU device %d is a %s, with Compute Capability %d.%d\n",
-            device,
-            deviceProp.name,
-            deviceProp.major,
-            deviceProp.minor );
-      }
-
-      return;
-   }
-
-   sort< uint >( inputData, outputData, dataSize, threadCount, Device, wallClock );
-}
-
-void
-CUDA_Quicksort_64( double* inputData, double* outputData, uint dataSize, uint threadCount, int Device, double* wallClock )
-{
-   cudaDeviceProp deviceProp;
-   cudaGetDeviceProperties( &deviceProp, Device );
-
-   if( deviceProp.major < 2 ) {
-      fprintf(
-         stderr,
-         "Error: the GPU device %d has a Compute Capability of %d.%d, while a Compute Capability of 2.x is required to run the "
-         "code\n",
-         Device,
-         deviceProp.major,
-         deviceProp.minor );
-
-      int deviceCount;
-      cudaGetDeviceCount( &deviceCount );
-
-      fprintf( stderr, "       the Host system has the following GPU devices:\n" );
-
-      for( int device = 0; device < deviceCount; device++ ) {
-         fprintf(
-            stderr,
-            "\t  the GPU device %d is a %s, with Compute Capability %d.%d\n",
-            device,
-            deviceProp.name,
-            deviceProp.major,
-            deviceProp.minor );
-      }
-
-      return;
-   }
-
-   sort< double >( inputData, outputData, dataSize, threadCount, Device, wallClock );
 }
 
 struct MancaQuicksort
 {
+   template< typename Array >
    static void
-   sort( TNL::Containers::ArrayView< int, TNL::Devices::Cuda >& array )
+   sort( Array& array )
    {
-      double timer;
-      CUDA_Quicksort( (unsigned*) array.getData(), (unsigned*) array.getData(), array.getSize(), 256, 0, &timer );
-      //return;
+      using DeviceType = typename Array::DeviceType;
+
+      static_assert( std::is_same_v< DeviceType, TNL::Devices::Cuda >, "MancaQuicksort requires Devices::Cuda" );
+
+      if( array.getSize() <= 1 )
+         return;
+
+      auto view = array.getView();
+      manca_qsort< 256 >( view.getData(), view.getSize() );
    }
 };
