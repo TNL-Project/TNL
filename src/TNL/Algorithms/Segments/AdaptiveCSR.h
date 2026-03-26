@@ -51,6 +51,12 @@ public:
    //! \brief Type for descriptor blocks view of AdaptiveCSR.
    using BlocksView = typename BlocksType::ViewType;
 
+   //! \brief Type for arrays of descriptor block of AdaptiveCSR.
+   using BlocksArray = typename ViewType::BlocksArray;
+
+   //! \brief Type for arrays of descriptor block view of AdaptiveCSR.
+   using BlocksViewArray = typename ViewType::BlocksViewArray;
+
    /**
     * \brief Templated view type.
     *
@@ -194,7 +200,7 @@ public:
    reset();
 
    //! \brief Returns a view with blocks used in the Adaptive CSR format.
-   [[nodiscard]] const BlocksView*
+   [[nodiscard]] const BlocksViewArray&
    getBlocks() const;
 
    /**
@@ -237,7 +243,7 @@ protected:
    /**
     * \brief  blocksArray[ i ] stores blocks for sizeof( Value ) == 2^i.
     */
-   BlocksType blocksArray[ MaxValueSizeLog() ];
+   BlocksArray blocksArray;
 
    ViewType view;
 };
