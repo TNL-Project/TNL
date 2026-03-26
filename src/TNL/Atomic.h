@@ -33,6 +33,42 @@ atomicAdd( long int* address, long int val )
    return old;
 }
 
+__device__
+inline double
+atomicMax( double* address, double val )
+{
+   auto* address_as_ull = reinterpret_cast< unsigned long long int* >( address );
+   unsigned long long int assumed;
+   unsigned long long int old = *address_as_ull;
+
+   do {
+      assumed = old;
+      old = atomicCAS( address_as_ull, assumed, __double_as_longlong( max( val, __longlong_as_double( assumed ) ) ) );
+
+      // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+   } while( assumed != old );
+
+   return __longlong_as_double( old );
+}
+
+__device__
+inline double
+atomicMin( double* address, double val )
+{
+   auto* address_as_ull = reinterpret_cast< unsigned long long int* >( address );
+   unsigned long long int assumed;
+   unsigned long long int old = *address_as_ull;
+
+   do {
+      assumed = old;
+      old = atomicCAS( address_as_ull, assumed, __double_as_longlong( min( val, __longlong_as_double( assumed ) ) ) );
+
+      // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+   } while( assumed != old );
+
+   return __longlong_as_double( old );
+}
+
 }  // namespace
 #endif
 
