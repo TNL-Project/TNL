@@ -84,7 +84,9 @@ Ellpack< Device, Index, IndexAllocator, Organization, Alignment >::setSegmentsSi
    if constexpr( Organization == RowMajorOrder )
       Base::bind( segmentsCount, segmentSize, segmentsCount );
    else
-      Base::bind( segmentsCount, segmentSize, roundUpDivision( segmentsCount, this->getAlignment() ) * this->getAlignment() );
+      Base::bind( segmentsCount,
+                  segmentSize,
+                  roundUpDivision( segmentsCount, static_cast< Index >( this->getAlignment() ) ) * this->getAlignment() );
    if( integerMultiplyOverflow( this->alignedSize, this->segmentSize ) )
       throw( std::overflow_error( "Ellpack: multiplication overflow - the storage size required for the segments is larger "
                                   "than the maximal value of used index type." ) );

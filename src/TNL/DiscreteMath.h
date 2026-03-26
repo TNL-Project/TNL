@@ -20,10 +20,11 @@ namespace TNL {
  * \param num An integer considered as dividend.
  * \param div An integer considered as divisor.
  */
-constexpr int
-roundUpDivision( const int num, const int div )
+template< typename T >
+constexpr std::enable_if_t< std::is_integral_v< T >, T >
+roundUpDivision( const T num, const T div )
 {
-   return num / div + static_cast< int >( num % div != 0 );
+   return num / div + static_cast< T >( num % div != 0 );
 }
 
 /**

@@ -295,9 +295,10 @@ BiEllpackKernel< Index, Device >::reduceSegments( const SegmentsView& segments,
       Backend::LaunchConfiguration launch_config;
       constexpr int BlockDim = 256;
       launch_config.blockSize.x = BlockDim;
-      const IndexType stripsCount = roundUpDivision( end - begin, SegmentsView::getWarpSize() );
-      const IndexType cudaBlocks = roundUpDivision( stripsCount * SegmentsView::getWarpSize(), launch_config.blockSize.x );
-      const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
+      const IndexType stripsCount = roundUpDivision( end - begin, static_cast< IndexType >( SegmentsView::getWarpSize() ) );
+      const IndexType cudaBlocks =
+         Backend::getNumberOfBlocks( stripsCount * SegmentsView::getWarpSize(), launch_config.blockSize.x );
+      const IndexType cudaGrids = Backend::getNumberOfGrids( cudaBlocks, Backend::getMaxGridXSize() );
       if( SegmentsView::getOrganization() == Segments::ColumnMajorOrder )
          launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 

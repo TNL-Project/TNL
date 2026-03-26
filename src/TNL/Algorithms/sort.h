@@ -189,15 +189,17 @@ bool
 isSorted( const Array& arr, const Compare& compare )
 {
    using Device = typename Array::DeviceType;
+   using Index = typename Array::IndexType;
+
    if( arr.getSize() <= 1 )
       return true;
 
    auto view = arr.getConstView();
-   auto fetch = [ = ] __cuda_callable__( int i )
+   auto fetch = [ = ] __cuda_callable__( Index i )
    {
       return ! compare( view[ i ], view[ i - 1 ] );
    };
-   return TNL::Algorithms::reduce< Device >( 1, arr.getSize(), fetch, std::logical_and<>{}, true );
+   return TNL::Algorithms::reduce< Device, Index >( 1, arr.getSize(), fetch, std::logical_and<>{}, true );
 }
 
 /**

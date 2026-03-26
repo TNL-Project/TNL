@@ -295,4 +295,37 @@ TYPED_TEST( ReduceTest, bitOr )
    test_bitOr( a );
 }
 
+template< typename ArrayType >
+void
+test_ReduceTest_powersOfTwoSizes()
+{
+   using ValueType = typename ArrayType::ValueType;
+   using DeviceType = typename ArrayType::DeviceType;
+   using IndexType = typename ArrayType::IndexType;
+
+   // For GPU devices, size will be max 2^32 for 64-bit IndexType and 2^16 for 32-bit IndexType.
+   // For host and sequential, it is just 2^16 to keep the test reasonably fast.
+   constexpr int max_exp = std::is_same_v< DeviceType, Devices::GPU > ? sizeof( IndexType ) * 4 : sizeof( int ) * 4;
+   for( int exp = max_exp; exp >= 0; exp -= 4 ) {
+      const IndexType size = static_cast< IndexType >( 1 ) << exp;
+
+      // Use a lambda rather than Array to avoid allocation
+      auto fetch = [ size ] __cuda_callable__( IndexType i ) -> ValueType
+      {
+         if( i == size - 1 )
+            return 1;
+         else
+            return 0;
+      };
+
+      auto res = reduce< DeviceType, IndexType >( 0, size, fetch, TNL::Plus{} );
+      EXPECT_EQ( res, 1 ) << "failed for size 2^" << exp << " = " << size;
+   }
+}
+
+TYPED_TEST( ReduceTest, powersOfTwoSizes )
+{
+   test_ReduceTest_powersOfTwoSizes< typename TestFixture::ArrayType >();
+}
+
 #include "../main.h"

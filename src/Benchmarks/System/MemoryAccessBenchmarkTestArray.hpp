@@ -17,7 +17,7 @@ template< int Size >
 MemoryAccessBenchmarkTestArray< Size >::MemoryAccessBenchmarkTestArray( std::uintptr_t size )
 {
    this->numberOfElements = TNL::roundUpDivision( size, sizeof( ElementType ) );
-   this->allocation.setSize( this->numberOfElements + TNL::roundUpDivision( 4096, sizeof( ElementType ) ) );
+   this->allocation.setSize( this->numberOfElements + TNL::roundUpDivision( 4096UL, sizeof( ElementType ) ) );
    this->elementsPerTest = this->numberOfElements;
 
    // Align the array to the memory page boundary

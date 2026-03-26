@@ -134,11 +134,12 @@ struct ParallelFor2D< Devices::Cuda >
          TNL::min( Backend::getMaxGridYSize(), Backend::getNumberOfBlocks( sizeY, launch_config.blockSize.y ) );
       launch_config.gridSize.z = 1;
 
-      dim3 gridCount;
-      gridCount.x = roundUpDivision( sizeX, launch_config.blockSize.x * launch_config.gridSize.x );
-      gridCount.y = roundUpDivision( sizeY, launch_config.blockSize.y * launch_config.gridSize.y );
+      // Use MultiIndex rather than dim3 to avoid potential unsigned int overflow
+      MultiIndex gridCount;
+      gridCount.x() = Backend::getNumberOfGrids( sizeX, launch_config.blockSize.x * launch_config.gridSize.x );
+      gridCount.y() = Backend::getNumberOfGrids( sizeY, launch_config.blockSize.y * launch_config.gridSize.y );
 
-      if( gridCount.x == 1 && gridCount.y == 1 ) {
+      if( gridCount.x() == 1 && gridCount.y() == 1 ) {
          constexpr auto kernel = ParallelFor2DKernel< false, MultiIndex, Function, FunctionArgs... >;
          Backend::launchKernel( kernel, launch_config, begin, end, f, args... );
       }

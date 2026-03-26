@@ -281,8 +281,8 @@ MultidiagonalMatrix< Real, Device, Index, Organization, RealAllocator, IndexAllo
       Backend::LaunchConfiguration launch_config;
       launch_config.blockSize.x = 256;
       launch_config.gridSize.x = Backend::getMaxGridXSize();
-      const Index cudaBlocks = roundUpDivision( matrix.getRows(), launch_config.blockSize.x );
-      const Index cudaGrids = roundUpDivision( cudaBlocks, launch_config.gridSize.x );
+      const Index cudaBlocks = Backend::getNumberOfBlocks( matrix.getRows(), launch_config.blockSize.x );
+      const Index cudaGrids = Backend::getNumberOfGrids( cudaBlocks, launch_config.gridSize.x );
       for( Index gridIdx = 0; gridIdx < cudaGrids; gridIdx++ ) {
          if( gridIdx == cudaGrids - 1 )
             launch_config.gridSize.x = cudaBlocks % Backend::getMaxGridXSize();
