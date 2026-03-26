@@ -56,15 +56,15 @@ breadthFirstSearchParallel( const Graph& graph,
             [ = ] __cuda_callable__( Index sourceIdx, Index localIdx, Index targetIdx, const Real& weight ) mutable
             {
                if( targetIdx != Matrices::paddingIndex< Index > && y_view[ targetIdx ] == -1 ) {
-#if defined( _OPENMP )
+#if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
                   y_view[ targetIdx ] = i + 1;
-#if defined( _OPENMP )
+#if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
                   predecessors_view[ targetIdx ] = sourceIdx;
-#if defined( _OPENMP )
+#if defined( HAVE_OPENMP )
    #pragma omp atomic write
 #endif
                   marks_view[ targetIdx ] = 1;
