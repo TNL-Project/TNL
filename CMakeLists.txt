@@ -23,6 +23,11 @@ option(
     "Add -march=native and -mtune=native to the list of compiler flags for the Release configuration"
     OFF
 )
+option(
+    TNL_FETCH_CUDA_SAMPLES
+    "Fetch CUDA samples from GitHub (enables building sorting benchmark with reference algorithms)"
+    OFF
+)
 option(TNL_BUILD_COVERAGE "Enable code coverage reports from unit tests" OFF)
 option(TNL_OFFLINE_BUILD "Offline build (i.e. without downloading libraries such as GTest)" OFF)
 option(TNL_DOXYGEN_USE_CLANG "Instruct Doxygen to use Clang-assisted parsing" OFF)
@@ -203,6 +208,11 @@ endif()
 # Optionally bundled dependencies (system packages are preferred)
 # Reference: https://cmake.org/cmake/help/latest/guide/using-dependencies/index.html#fetchcontent-and-find-package-integration
 include(FetchTinyXML2)
+
+# Fetch CUDA samples for reference sorting algorithms (only if building CUDA)
+if(TNL_BUILD_CUDA AND TNL_FETCH_CUDA_SAMPLES)
+    include(FetchCUDASamples)
+endif()
 
 ####
 # Test for GMP
