@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# Run the sorting benchmark with various parameters and collect results
+
+set -euo pipefail
+
+log_file_base="tnl-benchmark-sort"
+solver="${1:-./build/bin/tnl-benchmark-sort-cuda}"
+
+# Array sizes (various sizes including powers of 2 and non-powers-of-2)
+sizes=(
+    1000        # ~1K
+    1024        # 2^10
+    5000        # ~5K
+    8192        # 2^13
+    10000       # ~10K
+    16384       # 2^14
+    50000       # ~50K
+    65536       # 2^16
+    100000      # ~100K
+    262144      # 2^18
+    500000      # ~500K
+    1048576     # 2^20
+    2000000     # ~2M
+    4194304     # 2^22
+    10000000    # ~10M
+    16777216    # 2^24
+    50000000    # ~50M
+    67108864    # 2^26
+    100000000   # ~100M
+)
+
+devices=("cuda" "host")
+value_types=("int" "uint" "double")
+loops=10
+
+if [[ ! -x "$solver" ]]; then
+    echo "Error: Benchmark executable not found: $solver"
+    echo "Usage: $0 [path-to-benchmark-executable]"
+    exit 1
+fi
+
+log_file="$log_file_base.log"
+
+if [[ -f "$log_file" ]]; then
+    echo "Deleting existing log file $log_file..."
+    rm "$log_file"
+fi
+
+echo "Running sorting benchmark..."
+echo "Executable: $solver"
+echo "Log file: $log_file"
+echo ""
+
+for size in "${sizes[@]}"; do
+    for device in "${devices[@]}"; do
+        for value_type in "${value_types[@]}"; do
+            echo "==> size=$size, device=$device, value-type=$value_type"
+            "$solver" \
+                --size "$size" \
+                --device "$device" \
+                --value-type "$value_type" \
+                --loops "$loops" \
+                --log-file "$log_file" \
+                --output-mode append \
+                --verbose 0
+        done
+    done
+done
+
+echo ""
+echo "Benchmark complete. Results saved to $log_file"
