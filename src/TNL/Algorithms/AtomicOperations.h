@@ -49,21 +49,29 @@ struct AtomicOperations< Devices::Host >
    static Value
    CAS( Value& address, Value compare, Value val )
    {
+      // TODO: The following implementation using OpenMP is very inefficient.
+      // Better solution would be:
+      // 1. Use atomic compare capture in OpenMP 5.1 which is not yet widely supported
+      // 2. Use of std::atomic_ref from C++20.
 #ifdef HAVE_OPENMP
-      // initialize the OpenMP lock exactly once without using a critical section
-      static omp_lock_t cas_lock;
-      static std::once_flag cas_lock_once;
-      std::call_once( cas_lock_once,
-                      []()
-                      {
-                         omp_init_lock( &cas_lock );
-                      } );
+      constexpr int NumLocks = 256;
+      static omp_lock_t locks[ NumLocks ];
+      static bool initialized = false;
 
-      omp_set_lock( &cas_lock );
+      if( ! initialized ) {
+         for( int i = 0; i < NumLocks; i++ )
+            omp_init_lock( &locks[ i ] );
+         initialized = true;
+      }
+
+      auto idx = ( reinterpret_cast< std::uintptr_t >( &address ) >> 3 ) % NumLocks;
+      omp_lock_t& lock = locks[ idx ];
+
+      omp_set_lock( &lock );
       Value old = address;
       if( old == compare )
          address = val;
-      omp_unset_lock( &cas_lock );
+      omp_unset_lock( &lock );
       return old;
 #else
       const Value old = address;
