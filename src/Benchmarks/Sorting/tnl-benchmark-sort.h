@@ -24,6 +24,9 @@
 #if defined( __CUDACC__ )
    #include "ReferenceAlgorithms/CedermanQuicksort.h"
    #include "ReferenceAlgorithms/MancaQuicksort.h"
+   #ifdef HAVE_CUDA_SAMPLES
+      #include "ReferenceAlgorithms/NvidiaBitonicSort.h"
+   #endif
 #endif
 
 using namespace TNL;
@@ -169,6 +172,27 @@ runBenchmark( Benchmark<>& benchmark, std::size_t size, const String& device )
          // Verify Manca sort result
          if( ! Algorithms::isAscending( arr ) )
             throw std::runtime_error( "MancaQuicksort result is not sorted" );
+
+   #ifdef HAVE_CUDA_SAMPLES
+         // NvidiaBitonicSort: supports only `unsigned int` value type and power-of-two sizes >= 1024
+         if constexpr( std::is_same_v< ValueType, unsigned int > ) {
+            if( TNL::isPow2( size ) && size >= 1024 ) {
+               auto sortNvidiaBitonic = [ &arr ]()
+               {
+                  NvidiaBitonicSort::sort( arr );
+               };
+
+               benchmark.time< Devices::Cuda >( reset, "NvidiaBitonicSort", sortNvidiaBitonic, result );
+
+               if( ! Algorithms::isAscending( arr ) )
+                  throw std::runtime_error( "NvidiaBitonicSort result is not sorted" );
+            }
+            else {
+               std::cerr << "Skipping NvidiaBitonicSort for size " << size
+                         << " because it supports only power-of-two sizes >= 1024\n";
+            }
+         }
+   #endif
 
          auto sortCUBMergeSort = [ &arr ]()
          {
