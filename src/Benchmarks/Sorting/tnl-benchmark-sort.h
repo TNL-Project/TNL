@@ -23,6 +23,7 @@
 
 #if defined( __CUDACC__ )
    #include "ReferenceAlgorithms/CedermanQuicksort.h"
+   #include "ReferenceAlgorithms/MancaQuicksort.h"
 #endif
 
 using namespace TNL;
@@ -157,6 +158,17 @@ runBenchmark( Benchmark<>& benchmark, std::size_t size, const String& device )
          // Verify Cederman sort result
          if( ! Algorithms::isAscending( arr ) )
             throw std::runtime_error( "CedermanQuicksort result is not sorted" );
+
+         auto sortMancaQuicksort = [ &arr ]()
+         {
+            MancaQuicksort::sort( arr );
+         };
+
+         benchmark.time< Devices::Cuda >( reset, "MancaQuicksort", sortMancaQuicksort, result );
+
+         // Verify Manca sort result
+         if( ! Algorithms::isAscending( arr ) )
+            throw std::runtime_error( "MancaQuicksort result is not sorted" );
 
          auto sortCUBMergeSort = [ &arr ]()
          {
