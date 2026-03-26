@@ -53,8 +53,7 @@ AdaptiveCSR< Device, Index, IndexAllocator >&
 AdaptiveCSR< Device, Index, IndexAllocator >::operator=( AdaptiveCSR&& segments ) noexcept( false )
 {
    this->offsets = std::move( segments.offsets );
-   for( int i = 0; i < MaxValueSizeLog(); i++ )
-      this->blocksArray[ i ] = std::move( segments.blocksArray[ i ] );
+   blocksArray = std::move( segments.blocksArray );
    this->view.bind( this->offsets, this->blocksArray );
    return *this;
 }
@@ -139,7 +138,7 @@ AdaptiveCSR< Device, Index, IndexAllocator >::reset()
 
 template< typename Device, typename Index, typename IndexAllocator >
 auto
-AdaptiveCSR< Device, Index, IndexAllocator >::getBlocks() const -> const BlocksView*
+AdaptiveCSR< Device, Index, IndexAllocator >::getBlocks() const -> const BlocksViewArray&
 {
    return this->view.getBlocks();
 }
