@@ -9,6 +9,7 @@
 #include <TNL/Backend/Macros.h>
 #include <TNL/Functional.h>
 #include <TNL/Assert.h>
+#include <TNL/Graphs/traverse.h>
 #include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Algorithms/contains.h>
 #include <TNL/Algorithms/scan.h>
@@ -28,7 +29,6 @@ breadthFirstSearchParallel( const Graph& graph,
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
    using Index = typename Graph::IndexType;
-   const auto& adjacencyMatrix = graph.getAdjacencyMatrix();
    const Index n = graph.getVertexCount();
    distances.setSize( n );
 
@@ -49,7 +49,8 @@ breadthFirstSearchParallel( const Graph& graph,
    for( Index i = 0; i <= n; i++ ) {
       marks = 0;
       if constexpr( std::is_same_v< Device, Devices::Host > )
-         adjacencyMatrix.forElements(
+         forEdges(
+            graph,
             frontier,
             0,
             frontier_size,
@@ -72,8 +73,9 @@ breadthFirstSearchParallel( const Graph& graph,
                }
             },
             launchConfig );
-      else
-         adjacencyMatrix.forElements(
+      else {
+         forEdges(
+            graph,
             frontier,
             0,
             frontier_size,
@@ -91,6 +93,7 @@ breadthFirstSearchParallel( const Graph& graph,
                }
             },
             launchConfig );
+      }
       TNL::Algorithms::inclusiveScan( marks, marks_scan );
       frontier_size = marks_scan.getElement( n - 1 );
       if( frontier_size == 0 )
@@ -107,6 +110,7 @@ breadthFirstSearchParallel( const Graph& graph,
             frontier_view[ marks_scan_view[ idx ] - 1 ] = idx;
       };
       marks_scan.forAllElements( f );
+
       distances = y;
    }
 }
