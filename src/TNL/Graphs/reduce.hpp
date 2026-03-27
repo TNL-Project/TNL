@@ -14,7 +14,7 @@ reduceAllVertices( Graph& graph,
                    Reduction&& reduction,
                    Store&& store,
                    const FetchValue& identity,
-                   Algorithms::Segments::LaunchConfiguration launchConfig )
+                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    reduceVertices( graph,
                    0,
@@ -33,7 +33,7 @@ reduceAllVertices( const Graph& graph,
                    Reduction&& reduction,
                    Store&& store,
                    const FetchValue& identity,
-                   Algorithms::Segments::LaunchConfiguration launchConfig )
+                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    reduceVertices( graph,
@@ -52,7 +52,7 @@ reduceAllVertices( Graph& graph,
                    Fetch&& fetch,
                    Reduction&& reduction,
                    Store&& store,
-                   Algorithms::Segments::LaunchConfiguration launchConfig )
+                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    using FetchValue =
@@ -73,7 +73,7 @@ reduceAllVertices( const Graph& graph,
                    Fetch&& fetch,
                    Reduction&& reduction,
                    Store&& store,
-                   Algorithms::Segments::LaunchConfiguration launchConfig )
+                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    using FetchValue =
@@ -104,7 +104,7 @@ reduceVertices( Graph& graph,
                 Reduction&& reduction,
                 Store&& store,
                 const FetchValue& identity,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    detail::ReductionOperations< typename Graph::ViewType >::reduceVertices( graph_view,
@@ -133,7 +133,7 @@ reduceVertices( const Graph& graph,
                 Reduction&& reduction,
                 Store&& store,
                 const FetchValue& identity,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::ReductionOperations< typename Graph::ConstViewType >::reduceVertices( graph.getConstView(),
                                                                                  begin,
@@ -153,7 +153,7 @@ reduceVertices( Graph& graph,
                 Fetch&& fetch,
                 Reduction&& reduction,
                 Store&& store,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -175,7 +175,7 @@ reduceVertices( const Graph& graph,
                 Fetch&& fetch,
                 Reduction&& reduction,
                 Store&& store,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -197,7 +197,7 @@ reduceVertices( Graph& graph,
                 Reduction&& reduction,
                 Store&& store,
                 const FetchValue& identity,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    detail::ReductionOperations< typename Graph::ViewType >::reduceVertices( graph_view,
@@ -217,7 +217,7 @@ reduceVertices( const Graph& graph,
                 Reduction&& reduction,
                 Store&& store,
                 const FetchValue& identity,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::ReductionOperations< typename Graph::ConstViewType >::reduceVertices( graph.getConstView(),
                                                                                  vertexIndexes,
@@ -235,7 +235,7 @@ reduceVertices( Graph& graph,
                 Fetch&& fetch,
                 Reduction&& reduction,
                 Store&& store,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -255,7 +255,7 @@ reduceVertices( const Graph& graph,
                 Fetch&& fetch,
                 Reduction&& reduction,
                 Store&& store,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -278,7 +278,7 @@ reduceAllVerticesIf( Graph& graph,
                      Reduction&& reduction,
                      Store&& store,
                      const FetchValue& identity,
-                     Algorithms::Segments::LaunchConfiguration launchConfig )
+                     TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    return reduceVerticesIf( graph,
                             (decltype( graph.getVertexCount() )) 0,
@@ -299,7 +299,7 @@ reduceAllVerticesIf( const Graph& graph,
                      Reduction&& reduction,
                      Store&& store,
                      const FetchValue& identity,
-                     Algorithms::Segments::LaunchConfiguration launchConfig )
+                     TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    return reduceVerticesIf( graph,
                             (decltype( graph.getVertexCount() )) 0,
@@ -319,7 +319,7 @@ reduceAllVerticesIf( Graph& graph,
                      Fetch&& fetch,
                      Reduction&& reduction,
                      Store&& store,
-                     Algorithms::Segments::LaunchConfiguration launchConfig )
+                     TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -341,7 +341,7 @@ reduceAllVerticesIf( const Graph& graph,
                      Fetch&& fetch,
                      Reduction&& reduction,
                      Store&& store,
-                     Algorithms::Segments::LaunchConfiguration launchConfig )
+                     TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -373,7 +373,7 @@ reduceVerticesIf( Graph& graph,
                   Reduction&& reduction,
                   Store&& store,
                   const FetchValue& identity,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    return detail::ReductionOperations< typename Graph::ViewType >::reduceVerticesIf( graph_view,
@@ -404,7 +404,7 @@ reduceVerticesIf( const Graph& graph,
                   Reduction&& reduction,
                   Store&& store,
                   const FetchValue& identity,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    return detail::ReductionOperations< typename Graph::ConstViewType >::reduceVerticesIf(
       graph.getConstView(),
@@ -433,7 +433,7 @@ reduceVerticesIf( Graph& graph,
                   Fetch&& fetch,
                   Reduction&& reduction,
                   Store&& store,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -463,7 +463,7 @@ reduceVerticesIf( const Graph& graph,
                   Fetch&& fetch,
                   Reduction&& reduction,
                   Store&& store,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -485,7 +485,7 @@ reduceAllVerticesWithArgument( Graph& graph,
                                Reduction&& reduction,
                                Store&& store,
                                const FetchValue& identity,
-                               Algorithms::Segments::LaunchConfiguration launchConfig )
+                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    reduceVerticesWithArgument( graph,
                                0,
@@ -504,7 +504,7 @@ reduceAllVerticesWithArgument( const Graph& graph,
                                Reduction&& reduction,
                                Store&& store,
                                const FetchValue& identity,
-                               Algorithms::Segments::LaunchConfiguration launchConfig )
+                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    reduceVerticesWithArgument( graph,
                                0,
@@ -522,7 +522,7 @@ reduceAllVerticesWithArgument( Graph& graph,
                                Fetch&& fetch,
                                Reduction&& reduction,
                                Store&& store,
-                               Algorithms::Segments::LaunchConfiguration launchConfig )
+                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -542,7 +542,7 @@ reduceAllVerticesWithArgument( const Graph& graph,
                                Fetch&& fetch,
                                Reduction&& reduction,
                                Store&& store,
-                               Algorithms::Segments::LaunchConfiguration launchConfig )
+                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -572,7 +572,7 @@ reduceVerticesWithArgument( Graph& graph,
                             Reduction&& reduction,
                             Store&& store,
                             const FetchValue& identity,
-                            Algorithms::Segments::LaunchConfiguration launchConfig )
+                            TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    detail::ReductionOperations< typename Graph::ViewType >::reduceVerticesWithArgument( graph_view,
@@ -601,7 +601,7 @@ reduceVerticesWithArgument( const Graph& graph,
                             Reduction&& reduction,
                             Store&& store,
                             const FetchValue& identity,
-                            Algorithms::Segments::LaunchConfiguration launchConfig )
+                            TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::ReductionOperations< typename Graph::ConstViewType >::reduceVerticesWithArgument( graph.getConstView(),
                                                                                              begin,
@@ -621,7 +621,7 @@ reduceVerticesWithArgument( Graph& graph,
                             Fetch&& fetch,
                             Reduction&& reduction,
                             Store&& store,
-                            Algorithms::Segments::LaunchConfiguration launchConfig )
+                            TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -643,7 +643,7 @@ reduceVerticesWithArgument( const Graph& graph,
                             Fetch&& fetch,
                             Reduction&& reduction,
                             Store&& store,
-                            Algorithms::Segments::LaunchConfiguration launchConfig )
+                            TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -665,7 +665,7 @@ reduceVerticesWithArgument( Graph& graph,
                             Reduction&& reduction,
                             Store&& store,
                             const FetchValue& identity,
-                            Algorithms::Segments::LaunchConfiguration launchConfig )
+                            TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    detail::ReductionOperations< typename Graph::ViewType >::reduceVerticesWithArgument( graph_view,
@@ -685,7 +685,7 @@ reduceVerticesWithArgument( const Graph& graph,
                             Reduction&& reduction,
                             Store&& store,
                             const FetchValue& identity,
-                            Algorithms::Segments::LaunchConfiguration launchConfig )
+                            TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::ReductionOperations< typename Graph::ConstViewType >::reduceVerticesWithArgument( graph.getConstView(),
                                                                                              vertexIndexes,
@@ -703,7 +703,7 @@ reduceVerticesWithArgument( Graph& graph,
                             Fetch&& fetch,
                             Reduction&& reduction,
                             Store&& store,
-                            Algorithms::Segments::LaunchConfiguration launchConfig )
+                            TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -730,7 +730,7 @@ reduceVerticesWithArgument( const Graph& graph,
                             Fetch&& fetch,
                             Reduction&& reduction,
                             Store&& store,
-                            Algorithms::Segments::LaunchConfiguration launchConfig )
+                            TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -751,7 +751,7 @@ reduceAllVerticesWithArgumentIf( Graph& graph,
                                  Reduction&& reduction,
                                  Store&& store,
                                  const FetchValue& identity,
-                                 Algorithms::Segments::LaunchConfiguration launchConfig )
+                                 TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    return reduceVerticesWithArgumentIf( graph,
                                         (decltype( graph.getVertexCount() )) 0,
@@ -772,7 +772,7 @@ reduceAllVerticesWithArgumentIf( const Graph& graph,
                                  Reduction&& reduction,
                                  Store&& store,
                                  const FetchValue& identity,
-                                 Algorithms::Segments::LaunchConfiguration launchConfig )
+                                 TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    return reduceVerticesWithArgumentIf( graph,
                                         (decltype( graph.getVertexCount() )) 0,
@@ -792,7 +792,7 @@ reduceAllVerticesWithArgumentIf( Graph& graph,
                                  Fetch&& fetch,
                                  Reduction&& reduction,
                                  Store&& store,
-                                 Algorithms::Segments::LaunchConfiguration launchConfig )
+                                 TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -814,7 +814,7 @@ reduceAllVerticesWithArgumentIf( const Graph& graph,
                                  Fetch&& fetch,
                                  Reduction&& reduction,
                                  Store&& store,
-                                 Algorithms::Segments::LaunchConfiguration launchConfig )
+                                 TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -846,7 +846,7 @@ reduceVerticesWithArgumentIf( Graph& graph,
                               Reduction&& reduction,
                               Store&& store,
                               const FetchValue& identity,
-                              Algorithms::Segments::LaunchConfiguration launchConfig )
+                              TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    return detail::ReductionOperations< typename Graph::ViewType >::reduceVerticesWithArgumentIf(
@@ -878,7 +878,7 @@ reduceVerticesWithArgumentIf( const Graph& graph,
                               Reduction&& reduction,
                               Store&& store,
                               const FetchValue& identity,
-                              Algorithms::Segments::LaunchConfiguration launchConfig )
+                              TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    return detail::ReductionOperations< typename Graph::ConstViewType >::reduceVerticesWithArgumentIf(
       graph.getConstView(),
@@ -907,7 +907,7 @@ reduceVerticesWithArgumentIf( Graph& graph,
                               Fetch&& fetch,
                               Reduction&& reduction,
                               Store&& store,
-                              Algorithms::Segments::LaunchConfiguration launchConfig )
+                              TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
@@ -937,7 +937,7 @@ reduceVerticesWithArgumentIf( const Graph& graph,
                               Fetch&& fetch,
                               Reduction&& reduction,
                               Store&& store,
-                              Algorithms::Segments::LaunchConfiguration launchConfig )
+                              TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using FetchValue =
       decltype( fetch( typename Graph::IndexType(), typename Graph::IndexType(), typename Graph::ValueType() ) );
