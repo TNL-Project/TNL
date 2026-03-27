@@ -34,7 +34,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                    Reduction&& reduction,
                    Store&& store,
                    const FetchValue& identity,
-                   Algorithms::Segments::LaunchConfiguration launchConfig )
+                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRows( graph.getAdjacencyMatrixView(), begin, end, fetch, reduction, store, identity, launchConfig );
    }
@@ -48,7 +48,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                    Reduction&& reduction,
                    Store&& store,
                    const FetchValue& identity,
-                   Algorithms::Segments::LaunchConfiguration launchConfig )
+                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRows( graph.getAdjacencyMatrixView(), begin, end, fetch, reduction, store, identity, launchConfig );
    }
@@ -61,7 +61,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                    Reduction&& reduction,
                    Store&& store,
                    const FetchValue& identity,
-                   Algorithms::Segments::LaunchConfiguration launchConfig )
+                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRows( graph.getAdjacencyMatrixView(), vertexIndices, fetch, reduction, store, identity, launchConfig );
    }
@@ -74,7 +74,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                    Reduction&& reduction,
                    Store&& store,
                    const FetchValue& identity,
-                   Algorithms::Segments::LaunchConfiguration launchConfig )
+                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRows( graph.getAdjacencyMatrixView(), vertexIndices, fetch, reduction, store, identity, launchConfig );
    }
@@ -86,7 +86,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                    Fetch&& fetch,
                    Reduction&& reduction,
                    Store&& store,
-                   Algorithms::Segments::LaunchConfiguration launchConfig )
+                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       using FetchValue = decltype( fetch( IndexType(), IndexType(), ValueType() ) );
       const FetchValue identity = reduction.template getIdentity< FetchValue >();
@@ -106,7 +106,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                    Fetch&& fetch,
                    Reduction&& reduction,
                    Store&& store,
-                   Algorithms::Segments::LaunchConfiguration launchConfig )
+                   TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       using FetchValue = decltype( fetch( IndexType(), IndexType(), ValueType() ) );
       const FetchValue identity = reduction.template getIdentity< FetchValue >();
@@ -135,7 +135,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                      Reduction&& reduction,
                      Store&& store,
                      const FetchValue& identity,
-                     Algorithms::Segments::LaunchConfiguration launchConfig )
+                     TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       return Matrices::reduceRowsIf( graph.getAdjacencyMatrixView(),
                                      begin,
@@ -164,7 +164,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                      Reduction&& reduction,
                      Store&& store,
                      const FetchValue& identity,
-                     Algorithms::Segments::LaunchConfiguration launchConfig )
+                     TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       return Matrices::reduceRowsIf( graph.getAdjacencyMatrixView(),
                                      begin,
@@ -186,7 +186,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                                Reduction&& reduction,
                                Store&& store,
                                const FetchValue& identity,
-                               Algorithms::Segments::LaunchConfiguration launchConfig )
+                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRowsWithArgument(
          graph.getAdjacencyMatrixView(), begin, end, fetch, reduction, store, identity, launchConfig );
@@ -201,7 +201,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                                Reduction&& reduction,
                                Store&& store,
                                const FetchValue& identity,
-                               Algorithms::Segments::LaunchConfiguration launchConfig )
+                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRowsWithArgument(
          graph.getAdjacencyMatrixView(), begin, end, fetch, reduction, store, identity, launchConfig );
@@ -215,7 +215,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                                Reduction&& reduction,
                                Store&& store,
                                const FetchValue& identity,
-                               Algorithms::Segments::LaunchConfiguration launchConfig )
+                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRowsWithArgument(
          graph.getAdjacencyMatrixView(), vertexIndices, fetch, reduction, store, identity, launchConfig );
@@ -229,7 +229,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                                Reduction&& reduction,
                                Store&& store,
                                const FetchValue& identity,
-                               Algorithms::Segments::LaunchConfiguration launchConfig )
+                               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::reduceRowsWithArgument(
          graph.getAdjacencyMatrixView(), vertexIndices, fetch, reduction, store, identity, launchConfig );
@@ -251,7 +251,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                                  Reduction&& reduction,
                                  Store&& store,
                                  const FetchValue& identity,
-                                 Algorithms::Segments::LaunchConfiguration launchConfig )
+                                 TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       return Matrices::reduceRowsWithArgumentIf( graph.getAdjacencyMatrixView(),
                                                  begin,
@@ -280,7 +280,7 @@ struct ReductionOperations< GraphView< Value, Device, Index, Orientation, Adjace
                                  Reduction&& reduction,
                                  Store&& store,
                                  const FetchValue& identity,
-                                 Algorithms::Segments::LaunchConfiguration launchConfig )
+                                 TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       return Matrices::reduceRowsWithArgumentIf( graph.getAdjacencyMatrixView(),
                                                  begin,

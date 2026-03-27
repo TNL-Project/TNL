@@ -237,7 +237,7 @@ template< typename Graph, typename Function >
 void
 forAllEdges( Graph& graph,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all edges of **all** graph vertices of **constant graph** and
@@ -261,7 +261,7 @@ template< typename Graph, typename Function >
 void
 forAllEdges( const Graph& graph,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all edges in the given range of graph vertices and applies the specified lambda function.
@@ -294,7 +294,7 @@ forEdges( Graph& graph,
           IndexBegin begin,
           IndexEnd end,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all edges of **constant graph** in the given range of graph vertices and applies the
@@ -328,7 +328,7 @@ forEdges( const Graph& graph,
           IndexBegin begin,
           IndexEnd end,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all edges of graph vertices with the given indexes and applies the specified lambda
@@ -367,7 +367,7 @@ forEdges( Graph& graph,
           IndexBegin begin,
           IndexEnd end,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all edges of graph vertices with the given indexes and applies the specified lambda
@@ -406,7 +406,7 @@ forEdges( const Graph& graph,
           IndexBegin begin,
           IndexEnd end,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all edges of graph vertices with the given indexes and applies the specified lambda
@@ -435,7 +435,7 @@ void
 forEdges( Graph& graph,
           const Array& vertexIndexes,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all edges of graph vertices with the given indexes and applies the specified lambda
@@ -464,7 +464,7 @@ void
 forEdges( const Graph& graph,
           const Array& vertexIndexes,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all edges in a given range of vertices based on a condition.
@@ -506,7 +506,7 @@ forEdgesIf( Graph& graph,
             IndexEnd end,
             Condition&& condition,
             Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+            TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all edges in a given range of vertices based on a condition. This function is for
@@ -548,7 +548,7 @@ forEdgesIf( const Graph& graph,
             IndexEnd end,
             Condition&& condition,
             Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+            TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all edges of **all** graph vertices based on a condition.
@@ -579,7 +579,7 @@ void
 forAllEdgesIf( Graph& graph,
                Condition&& condition,
                Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+               TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over all edges of **all** graph vertices based on a condition.
@@ -612,7 +612,7 @@ void
 forAllEdgesIf( const Graph& graph,
                Condition&& condition,
                Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+               TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over graph vertices within the specified range of vertex indexes
@@ -650,7 +650,7 @@ forVertices( Graph& graph,
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over graph vertices within the specified range of vertex indexes
@@ -688,7 +688,7 @@ forVertices( const Graph& graph,
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over **all** graph vertices and applies the given lambda function to each vertex.
@@ -709,9 +709,10 @@ forVertices( const Graph& graph,
  */
 template< typename Graph, typename Function >
 void
-forAllVertices( Graph& graph,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllVertices(
+   Graph& graph,
+   Function&& function,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over **all** graph vertices and applies the given lambda function to each vertex.
@@ -734,9 +735,10 @@ forAllVertices( Graph& graph,
  */
 template< typename Graph, typename Function >
 void
-forAllVertices( const Graph& graph,
-                Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllVertices(
+   const Graph& graph,
+   Function&& function,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over graph vertices with the given indexes and applies the specified
@@ -781,7 +783,7 @@ forVertices( Graph& graph,
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over graph vertices with the given indexes and applies the specified
@@ -826,7 +828,7 @@ forVertices( const Graph& graph,
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over graph vertices with the given indexes and applies the specified
@@ -855,7 +857,7 @@ void
 forVertices( Graph& graph,
              const Array& vertexIndexes,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over graph vertices with the given indexes and applies the specified
@@ -884,7 +886,7 @@ void
 forVertices( const Graph& graph,
              const Array& vertexIndexes,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 /**
  * \brief Iterates in parallel over vertices within the given range of vertex indexes, applying a condition
  * to determine whether each vertex should be processed.
@@ -929,7 +931,7 @@ forVerticesIf( Graph& graph,
                IndexEnd end,
                VertexCondition&& vertexCondition,
                Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+               TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over vertices within the given range of vertex indexes, applying a condition
@@ -975,7 +977,7 @@ forVerticesIf( const Graph& graph,
                IndexEnd end,
                VertexCondition&& vertexCondition,
                Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+               TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over **all** graph vertices, applying a condition
@@ -1003,10 +1005,11 @@ forVerticesIf( const Graph& graph,
  */
 template< typename Graph, typename VertexCondition, typename Function >
 void
-forAllVerticesIf( Graph& graph,
-                  VertexCondition&& vertexCondition,
-                  Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllVerticesIf(
+   Graph& graph,
+   VertexCondition&& vertexCondition,
+   Function&& function,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Iterates in parallel over **all** graph vertices, applying a condition
@@ -1034,10 +1037,11 @@ forAllVerticesIf( Graph& graph,
  */
 template< typename Graph, typename VertexCondition, typename Function >
 void
-forAllVerticesIf( const Graph& graph,
-                  VertexCondition&& vertexCondition,
-                  Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+forAllVerticesIf(
+   const Graph& graph,
+   VertexCondition&& vertexCondition,
+   Function&& function,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 }  // namespace TNL::Graphs
 
