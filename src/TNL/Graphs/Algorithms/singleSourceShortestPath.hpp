@@ -6,6 +6,7 @@
 #include <queue>
 
 #include <TNL/Graphs/Graph.h>
+#include <TNL/Graphs/traverse.h>
 #include <TNL/Devices/Sequential.h>
 #include <TNL/Backend/Macros.h>
 #include <TNL/Functional.h>
@@ -27,7 +28,6 @@ parallelSingleSourceShortestPath( const Graph& graph,
 {
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
-   const auto& adjacencyMatrix = graph.getAdjacencyMatrix();
    const Index n = graph.getVertexCount();
    distances.setSize( n );
 
@@ -48,7 +48,8 @@ parallelSingleSourceShortestPath( const Graph& graph,
    for( Index i = 0; i <= n; i++ ) {
       marks = 0;
       if constexpr( std::is_same_v< Device, Devices::Host > )
-         adjacencyMatrix.forElements(
+         forEdges(
+            graph,
             frontier,
             0,
             frontier_size,
@@ -74,7 +75,8 @@ parallelSingleSourceShortestPath( const Graph& graph,
             },
             launchConfig );
       else
-         adjacencyMatrix.forElements(
+         forEdges(
+            graph,
             frontier,
             0,
             frontier_size,
