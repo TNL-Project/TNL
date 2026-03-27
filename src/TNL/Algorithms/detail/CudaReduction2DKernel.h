@@ -7,6 +7,7 @@
 #include <TNL/Backend.h>
 #include <TNL/Math.h>
 #include <TNL/Algorithms/CudaReductionBuffer.h>
+#include "CudaReductionKernel.h"
 
 namespace TNL::Algorithms::detail {
 
@@ -22,7 +23,11 @@ CudaReduction2DKernel(
    Result* output )
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-   Result* sdata = Backend::getSharedMemory< Result >();
+   TNL_ASSERT_EQ( blockDim.x, blockSizeX, "unexpected block size in CudaReduction2DKernel" );
+
+   // allocate shared memory
+   using BlockReduce = CudaBlockReduceSharedMemory< blockSizeX, Reduction, Result >;
+   __shared__ typename BlockReduce::Storage blockReduceStorage;
 
    // Get the thread id (tid), global thread id (gid) and gridSize.
    const Index tid = threadIdx.y * blockDim.x + threadIdx.x;
@@ -34,77 +39,32 @@ CudaReduction2DKernel(
    if( y >= n )
       return;
 
-   sdata[ tid ] = identity;
-
    // Start with the sequential reduction and push the result into the shared memory.
+   Result result = identity;
    while( gid + 4 * gridSizeX < size ) {
-      sdata[ tid ] = reduction( sdata[ tid ], dataFetcher( gid, y ) );
-      sdata[ tid ] = reduction( sdata[ tid ], dataFetcher( gid + gridSizeX, y ) );
-      sdata[ tid ] = reduction( sdata[ tid ], dataFetcher( gid + 2 * gridSizeX, y ) );
-      sdata[ tid ] = reduction( sdata[ tid ], dataFetcher( gid + 3 * gridSizeX, y ) );
+      result = reduction( result, dataFetcher( gid, y ) );
+      result = reduction( result, dataFetcher( gid + gridSizeX, y ) );
+      result = reduction( result, dataFetcher( gid + 2 * gridSizeX, y ) );
+      result = reduction( result, dataFetcher( gid + 3 * gridSizeX, y ) );
       gid += 4 * gridSizeX;
    }
    while( gid + 2 * gridSizeX < size ) {
-      sdata[ tid ] = reduction( sdata[ tid ], dataFetcher( gid, y ) );
-      sdata[ tid ] = reduction( sdata[ tid ], dataFetcher( gid + gridSizeX, y ) );
+      result = reduction( result, dataFetcher( gid, y ) );
+      result = reduction( result, dataFetcher( gid + gridSizeX, y ) );
       gid += 2 * gridSizeX;
    }
    while( gid < size ) {
-      sdata[ tid ] = reduction( sdata[ tid ], dataFetcher( gid, y ) );
+      result = reduction( result, dataFetcher( gid, y ) );
       gid += gridSizeX;
    }
    __syncthreads();
 
    // Perform the parallel reduction.
-   if constexpr( blockSizeX >= 1024 ) {
-      if( threadIdx.x < 512 )
-         sdata[ tid ] = reduction( sdata[ tid ], sdata[ tid + 512 ] );
-      __syncthreads();
-   }
-   if constexpr( blockSizeX >= 512 ) {
-      if( threadIdx.x < 256 )
-         sdata[ tid ] = reduction( sdata[ tid ], sdata[ tid + 256 ] );
-      __syncthreads();
-   }
-   if constexpr( blockSizeX >= 256 ) {
-      if( threadIdx.x < 128 )
-         sdata[ tid ] = reduction( sdata[ tid ], sdata[ tid + 128 ] );
-      __syncthreads();
-   }
-   if constexpr( blockSizeX >= 128 ) {
-      if( threadIdx.x < 64 )
-         sdata[ tid ] = reduction( sdata[ tid ], sdata[ tid + 64 ] );
-      __syncthreads();
-   }
-
-   // This runs in one warp so we use __syncwarp() instead of __syncthreads().
-   if( threadIdx.x < 32 ) {
-      if constexpr( blockSizeX >= 64 )
-         sdata[ tid ] = reduction( sdata[ tid ], sdata[ tid + 32 ] );
-      __syncwarp();
-      // Note that here we do not have to check if tid < 16 etc, because we have
-      // 2 * blockSize.x elements of shared memory per block, so we do not
-      // access out of bounds. The results for the upper half will be undefined,
-      // but unused anyway.
-      if constexpr( blockSizeX >= 32 )
-         sdata[ tid ] = reduction( sdata[ tid ], sdata[ tid + 16 ] );
-      __syncwarp();
-      if constexpr( blockSizeX >= 16 )
-         sdata[ tid ] = reduction( sdata[ tid ], sdata[ tid + 8 ] );
-      __syncwarp();
-      if constexpr( blockSizeX >= 8 )
-         sdata[ tid ] = reduction( sdata[ tid ], sdata[ tid + 4 ] );
-      __syncwarp();
-      if constexpr( blockSizeX >= 4 )
-         sdata[ tid ] = reduction( sdata[ tid ], sdata[ tid + 2 ] );
-      __syncwarp();
-      if constexpr( blockSizeX >= 2 )
-         sdata[ tid ] = reduction( sdata[ tid ], sdata[ tid + 1 ] );
-   }
+   result = BlockReduce::reduce( reduction, identity, result, blockReduceStorage, tid, threadIdx.x, tid );
 
    // Store the result back in the global memory.
    if( threadIdx.x == 0 ) {
-      output[ blockIdx.x + y * gridDim.x ] = sdata[ tid ];
+      output[ blockIdx.x + y * gridDim.x ] = result;
    }
 #endif
 }

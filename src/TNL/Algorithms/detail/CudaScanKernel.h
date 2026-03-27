@@ -439,7 +439,7 @@ CudaScanKernelUpsweep(
    __syncthreads();
 
    // Perform the parallel reduction.
-   value = BlockReduce::reduce( reduction, identity, value, threadIdx.x, storage.blockReduceStorage );
+   value = BlockReduce::reduce( reduction, identity, value, storage.blockReduceStorage, threadIdx.x );
 
    // Store the block result in the global memory.
    if( threadIdx.x == 0 )
