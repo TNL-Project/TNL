@@ -30,7 +30,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig )
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElements( graph.getAdjacencyMatrixView(), begin, end, function, launchConfig );
    }
@@ -41,7 +41,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig )
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElements( graph.getAdjacencyMatrixView(), begin, end, function, launchConfig );
    }
@@ -53,7 +53,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig )
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElements( graph.getAdjacencyMatrixView(), rowIndexes.getConstView( begin, end ), function, launchConfig );
    }
@@ -65,7 +65,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig )
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElements( graph.getAdjacencyMatrixView(), rowIndexes.getConstView( begin, end ), function, launchConfig );
    }
@@ -77,7 +77,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
                IndexEnd end,
                Condition&& condition,
                Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElementsIf( graph.getAdjacencyMatrixView(), begin, end, condition, function, launchConfig );
    }
@@ -89,7 +89,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
                IndexEnd end,
                Condition&& condition,
                Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       Matrices::forElementsIf( graph.getAdjacencyMatrixView(), begin, end, condition, function, launchConfig );
    }
@@ -100,7 +100,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
                 IndexBegin begin,
                 IndexEnd end,
                 Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( RowViewType & rowView ) mutable
       {
@@ -116,7 +116,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
                 IndexBegin begin,
                 IndexEnd end,
                 Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( const RowViewType& rowView ) mutable
       {
@@ -132,7 +132,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
                 IndexBegin begin,
                 IndexEnd end,
                 Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( RowViewType & rowView ) mutable
       {
@@ -149,7 +149,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
                 IndexBegin begin,
                 IndexEnd end,
                 Function&& function,
-                Algorithms::Segments::LaunchConfiguration launchConfig )
+                TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( const RowViewType& rowView ) mutable
       {
@@ -165,7 +165,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
                   IndexEnd end,
                   VertexCondition&& rowCondition,
                   Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( RowViewType & rowView ) mutable
       {
@@ -182,7 +182,7 @@ struct TraversingOperations< GraphView< Value, Device, Index, Orientation, Adjac
                   IndexEnd end,
                   VertexCondition&& rowCondition,
                   Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
    {
       auto f = [ = ] __cuda_callable__( const RowViewType& rowView ) mutable
       {
