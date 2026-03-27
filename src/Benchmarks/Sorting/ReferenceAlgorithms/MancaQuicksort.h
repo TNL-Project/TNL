@@ -8,6 +8,7 @@
 #include <TNL/Containers/ArrayView.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Algorithms/detail/CudaReductionKernel.h>
 
 //defines the shared memory size
 #define SHARED_LIMIT 1024
@@ -49,65 +50,6 @@ struct Partition
 };
 
 using uint = unsigned int;
-
-template< typename Type >
-inline __device__
-void
-warpCompareInclusive( Type& idata, Type& idata2, volatile Type* s_Data, uint size )
-{
-   volatile Type* s_Data2;
-   s_Data2 = s_Data + blockDim.x * 2;
-   uint pos = 2 * threadIdx.x - ( threadIdx.x & ( size - 1 ) );
-   s_Data[ pos ] = 0;
-   s_Data2[ pos ] = 0;
-   pos += size;
-   s_Data[ pos ] = idata;
-   s_Data2[ pos ] = idata2;
-
-   for( uint offset = 1; offset < size; offset <<= 1 ) {
-      s_Data[ pos ] = max( s_Data[ pos ], s_Data[ pos - offset ] );
-      s_Data2[ pos ] = min( s_Data2[ pos ], s_Data2[ pos - offset ] );
-   }
-
-   idata = s_Data[ pos ];
-   idata2 = s_Data2[ pos ];
-}
-
-template< typename Type >
-inline __device__
-void
-compareInclusive( Type& idata, Type& idata2, volatile Type* s_Data, uint size )
-{
-   volatile Type* s_Data2;
-   s_Data2 = s_Data + blockDim.x * 2;
-   //Bottom-level inclusive warp scan
-   warpCompareInclusive( idata, idata2, s_Data, WARP_SIZE );
-
-   //Save top Types of each warp for exclusive warp scan
-   //sync to wait for warp scans to complete (because s_Data is being overwritten)
-   __syncthreads();
-   if( ( threadIdx.x & ( WARP_SIZE - 1 ) ) == ( WARP_SIZE - 1 ) ) {
-      s_Data[ threadIdx.x >> LOG2_WARP_SIZE ] = idata;
-      s_Data2[ threadIdx.x >> LOG2_WARP_SIZE ] = idata2;
-   }
-
-   //wait for warp scans to complete
-   __syncthreads();
-   if( threadIdx.x < ( blockDim.x / WARP_SIZE ) ) {
-      //grab top warp Types
-      Type val = s_Data[ threadIdx.x ];
-      Type val2 = s_Data2[ threadIdx.x ];
-      //calculate exclsive scan and write back to shared memory
-      warpCompareInclusive( val, val2, s_Data, size >> LOG2_WARP_SIZE );
-      s_Data[ threadIdx.x ] = val;
-      s_Data2[ threadIdx.x ] = val2;
-   }
-
-   //return updated warp scans with exclusive scan results
-   __syncthreads();
-   idata = max( idata, s_Data[ threadIdx.x >> LOG2_WARP_SIZE ] );
-   idata2 = min( idata2, s_Data2[ threadIdx.x >> LOG2_WARP_SIZE ] );
-}
 
 template< typename Type >
 __device__
@@ -223,11 +165,16 @@ quick( Type* indata, Type* buffer, Partition< Type >* partition, Block< Type >* 
       }
    };
    using BlockScan = CudaBlockScan< ScanType::Inclusive, blockSize, Uint2Plus, uint2 >;
+   using BlockReduceMax = CudaBlockReduce< blockSize, TNL::Max, Type >;
+   using BlockReduceMin = CudaBlockReduce< blockSize, TNL::Min, Type >;
+
    // storage to be allocated in shared memory
    union Shared
    {
       Type data[ 1024 ];
       typename BlockScan::Storage blockScanStorage;
+      typename BlockReduceMax::Storage blockReduceMaxStorage;
+      typename BlockReduceMin::Storage blockReduceMinStorage;
 
       // initialization is not allowed for __shared__ variables, so we need to
       // disable initialization in the implicit default constructor
@@ -283,9 +230,10 @@ quick( Type* indata, Type* buffer, Partition< Type >* partition, Block< Type >* 
       rmax = max( rmax, d );
    }
 
-   //compute max and min of every partition
-   compareInclusive( rmax, lmin, storage.data, blockDim.x );
-
+   //compute max and min of every partition using TNL's properly synchronized block reduce
+   rmax = BlockReduceMax::reduce( TNL::Max{}, std::numeric_limits< Type >::lowest(), rmax, storage.blockReduceMaxStorage, tix );
+   __syncthreads();  // sync to release storage
+   lmin = BlockReduceMin::reduce( TNL::Min{}, std::numeric_limits< Type >::max(), lmin, storage.blockReduceMinStorage, tix );
    __syncthreads();
 
    if( tix == blockDim.x - 1 ) {
