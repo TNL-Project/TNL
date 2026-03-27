@@ -9,10 +9,12 @@
 #include <TNL/Backend/Macros.h>
 #include <TNL/Functional.h>
 #include <TNL/Assert.h>
+#include <TNL/Graphs/traverse.h>
 #include <TNL/Matrices/MatrixBase.h>
 #include <TNL/Algorithms/contains.h>
 #include <TNL/Algorithms/scan.h>
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/Algorithms/compress.h>
 #include "breadthFirstSearch.h"
 
 namespace TNL::Graphs::Algorithms {
@@ -107,6 +109,16 @@ breadthFirstSearchParallel( const Graph& graph,
             frontier_view[ marks_scan_view[ idx ] - 1 ] = idx;
       };
       marks_scan.forAllElements( f );
+
+      /*frontier_size = TNL::Algorithms::compress(
+         0,
+         marks.getSize(),
+         [ = ] __cuda_callable__( Index idx ) -> bool
+         {
+            return marks_view[ idx ] == 1;
+         },
+         frontier );*/
+
       distances = y;
    }
 }
