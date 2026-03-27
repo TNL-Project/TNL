@@ -82,11 +82,7 @@ struct CudaBlockScan
          for( int stride = 1; stride < blockSize / Backend::getWarpSize(); stride *= 2 ) {
             if( lane_id >= stride )
                storage.warpResults[ tid ] = reduction( storage.warpResults[ tid ], storage.warpResults[ tid - stride ] );
-   #if ! defined( __HIP__ )
-            // FIXME: HIP does not have __syncwarp and __syncthreads does not work here,
-            //        because it is collective for the whole block and this branch is only for one warp
             __syncwarp();
-   #endif
          }
       __syncthreads();
 
@@ -180,13 +176,8 @@ struct CudaBlockScanShfl
       // perform an inclusive scan
       #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
-   // TODO: HIP does not have __shfl_up_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
-   #ifdef __HIP__
-         const ValueType otherValue = __shfl_up( threadValue, stride );
-   #else
          constexpr unsigned mask = 0xffffffff;
          const ValueType otherValue = __shfl_up_sync( mask, threadValue, stride );
-   #endif
          if( lane_id >= stride )
             threadValue = reduction( threadValue, otherValue );
       }
@@ -196,13 +187,8 @@ struct CudaBlockScanShfl
 
       // shift the result for exclusive scan
       if( warpScanType == ScanType::Exclusive ) {
-         // TODO: HIP does not have __shfl_up_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
-   #ifdef __HIP__
-         threadValue = __shfl_up( threadValue, 1 );
-   #else
          constexpr unsigned mask = 0xffffffff;
          threadValue = __shfl_up_sync( mask, threadValue, 1 );
-   #endif
          if( lane_id == 0 )
             threadValue = identity;
       }

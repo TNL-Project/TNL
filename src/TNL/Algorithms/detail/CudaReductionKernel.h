@@ -173,13 +173,8 @@ struct CudaBlockReduceShfl
    {
       #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
-         // TODO: HIP does not have __shfl_xor_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
-   #ifdef __HIP__
-         const ValueType otherValue = __shfl_xor( threadValue, i );
-   #else
          constexpr unsigned mask = 0xffffffff;
          const ValueType otherValue = __shfl_xor_sync( mask, threadValue, i );
-   #endif
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
