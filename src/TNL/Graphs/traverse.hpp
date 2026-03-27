@@ -13,7 +13,7 @@ forEdges( Graph& graph,
           IndexBegin begin,
           IndexEnd end,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig )
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    detail::TraversingOperations< typename Graph::ViewType >::forEdges(
@@ -26,7 +26,7 @@ forEdges( const Graph& graph,
           IndexBegin begin,
           IndexEnd end,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig )
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::TraversingOperations< typename Graph::ConstViewType >::forEdges(
       graph.getConstView(), begin, end, std::forward< Function >( function ), launchConfig );
@@ -34,7 +34,7 @@ forEdges( const Graph& graph,
 
 template< typename Graph, typename Function >
 void
-forAllEdges( Graph& graph, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
+forAllEdges( Graph& graph, Function&& function, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    auto graph_view = graph.getView();
@@ -44,7 +44,7 @@ forAllEdges( Graph& graph, Function&& function, Algorithms::Segments::LaunchConf
 
 template< typename Graph, typename Function >
 void
-forAllEdges( const Graph& graph, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
+forAllEdges( const Graph& graph, Function&& function, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    detail::TraversingOperations< typename Graph::ConstViewType >::forEdges(
@@ -58,7 +58,7 @@ forEdges( Graph& graph,
           IndexBegin begin,
           IndexEnd end,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig )
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    detail::TraversingOperations< typename Graph::ViewType >::forEdges(
@@ -72,7 +72,7 @@ forEdges( const Graph& graph,
           IndexBegin begin,
           IndexEnd end,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig )
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::TraversingOperations< typename Graph::ConstViewType >::forEdges(
       graph.getConstView(), vertexIndexes, begin, end, std::forward< Function >( function ), launchConfig );
@@ -83,7 +83,7 @@ void
 forEdges( Graph& graph,
           const Array& vertexIndexes,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig )
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    auto graph_view = graph.getView();
@@ -96,7 +96,7 @@ void
 forEdges( const Graph& graph,
           const Array& vertexIndexes,
           Function&& function,
-          Algorithms::Segments::LaunchConfiguration launchConfig )
+          TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    detail::TraversingOperations< typename Graph::ConstViewType >::forEdges( graph.getConstView(),
@@ -114,7 +114,7 @@ forEdgesIf( Graph& graph,
             IndexEnd end,
             Condition&& condition,
             Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig )
+            TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    detail::TraversingOperations< typename Graph::ViewType >::forEdgesIf(
@@ -128,7 +128,7 @@ forEdgesIf( const Graph& graph,
             IndexEnd end,
             Condition&& condition,
             Function&& function,
-            Algorithms::Segments::LaunchConfiguration launchConfig )
+            TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::TraversingOperations< typename Graph::ConstViewType >::forEdgesIf( graph.getConstView(),
                                                                               begin,
@@ -143,7 +143,7 @@ void
 forAllEdgesIf( Graph& graph,
                Condition&& condition,
                Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    auto graph_view = graph.getView();
@@ -160,7 +160,7 @@ void
 forAllEdgesIf( const Graph& graph,
                Condition&& condition,
                Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    detail::TraversingOperations< typename Graph::ConstViewType >::forEdgesIf( graph.getConstView(),
@@ -177,7 +177,7 @@ forVertices( Graph& graph,
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig )
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    detail::TraversingOperations< typename Graph::ViewType >::forVertices(
@@ -190,7 +190,7 @@ forVertices( const Graph& graph,
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig )
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::TraversingOperations< typename Graph::ConstViewType >::forVertices(
       graph.getConstView(), begin, end, std::forward< Function >( function ), launchConfig );
@@ -198,7 +198,7 @@ forVertices( const Graph& graph,
 
 template< typename Graph, typename Function >
 void
-forAllVertices( Graph& graph, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
+forAllVertices( Graph& graph, Function&& function, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    auto graph_view = graph.getView();
@@ -207,7 +207,7 @@ forAllVertices( Graph& graph, Function&& function, Algorithms::Segments::LaunchC
 
 template< typename Graph, typename Function >
 void
-forAllVertices( const Graph& graph, Function&& function, Algorithms::Segments::LaunchConfiguration launchConfig )
+forAllVertices( const Graph& graph, Function&& function, TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    forVertices(
@@ -221,7 +221,7 @@ forVertices( Graph& graph,
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig )
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    detail::TraversingOperations< typename Graph::ViewType >::forVertices(
@@ -235,7 +235,7 @@ forVertices( const Graph& graph,
              IndexBegin begin,
              IndexEnd end,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig )
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::TraversingOperations< typename Graph::ConstViewType >::forVertices(
       graph.getConstView(), vertexIndexes, begin, end, std::forward< Function >( function ), launchConfig );
@@ -246,7 +246,7 @@ void
 forVertices( Graph& graph,
              const Array& vertexIndexes,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig )
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    auto graph_view = graph.getView();
@@ -259,7 +259,7 @@ void
 forVertices( const Graph& graph,
              const Array& vertexIndexes,
              Function&& function,
-             Algorithms::Segments::LaunchConfiguration launchConfig )
+             TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    using IndexType = typename Graph::IndexType;
    forVertices(
@@ -273,7 +273,7 @@ forVerticesIf( Graph& graph,
                IndexEnd end,
                VertexCondition&& vertexCondition,
                Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    auto graph_view = graph.getView();
    detail::TraversingOperations< typename Graph::ViewType >::forVerticesIf( graph_view,
@@ -291,7 +291,7 @@ forVerticesIf( const Graph& graph,
                IndexEnd end,
                VertexCondition&& vertexCondition,
                Function&& function,
-               Algorithms::Segments::LaunchConfiguration launchConfig )
+               TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    detail::TraversingOperations< typename Graph::ConstViewType >::forVerticesIf(
       graph.getConstView(),
@@ -307,7 +307,7 @@ void
 forAllVerticesIf( Graph& graph,
                   VertexCondition&& vertexCondition,
                   Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    forVerticesIf( graph,
                   (typename Graph::IndexType) 0,
@@ -322,7 +322,7 @@ void
 forAllVerticesIf( const Graph& graph,
                   VertexCondition&& vertexCondition,
                   Function&& function,
-                  Algorithms::Segments::LaunchConfiguration launchConfig )
+                  TNL::Algorithms::Segments::LaunchConfiguration launchConfig )
 {
    forVerticesIf( graph,
                   (typename Graph::IndexType) 0,

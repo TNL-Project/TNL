@@ -306,12 +306,13 @@ namespace TNL::Graphs {
  */
 template< typename Graph, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
-reduceAllVertices( Graph& graph,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   Store&& store,
-                   const FetchValue& identity,
-                   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllVertices(
+   Graph& graph,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices (const version).
@@ -338,12 +339,13 @@ reduceAllVertices( Graph& graph,
  */
 template< typename Graph, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 void
-reduceAllVertices( const Graph& graph,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   Store&& store,
-                   const FetchValue& identity,
-                   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllVertices(
+   const Graph& graph,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices
@@ -369,11 +371,12 @@ reduceAllVertices( const Graph& graph,
  */
 template< typename Graph, typename Fetch, typename Reduction, typename Store >
 void
-reduceAllVertices( Graph& graph,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   Store&& store,
-                   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllVertices(
+   Graph& graph,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices
@@ -399,11 +402,12 @@ reduceAllVertices( Graph& graph,
  */
 template< typename Graph, typename Fetch, typename Reduction, typename Store >
 void
-reduceAllVertices( const Graph& graph,
-                   Fetch&& fetch,
-                   Reduction&& reduction,
-                   Store&& store,
-                   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllVertices(
+   const Graph& graph,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes.
@@ -445,14 +449,15 @@ template< typename Graph,
           typename FetchValue,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceVertices( Graph& graph,
-                IndexBegin begin,
-                IndexEnd end,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                Store&& store,
-                const FetchValue& identity,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVertices(
+   Graph& graph,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes (const version).
@@ -494,14 +499,15 @@ template< typename Graph,
           typename FetchValue,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceVertices( const Graph& graph,
-                IndexBegin begin,
-                IndexEnd end,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                Store&& store,
-                const FetchValue& identity,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVertices(
+   const Graph& graph,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes
@@ -541,13 +547,14 @@ template< typename Graph,
           typename Store,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceVertices( Graph& graph,
-                IndexBegin begin,
-                IndexEnd end,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                Store&& store,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVertices(
+   Graph& graph,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes
@@ -587,13 +594,14 @@ template< typename Graph,
           typename Store,
           typename T = typename std::enable_if_t< std::is_integral_v< IndexBegin > && std::is_integral_v< IndexEnd > > >
 void
-reduceVertices( const Graph& graph,
-                IndexBegin begin,
-                IndexEnd end,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                Store&& store,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVertices(
+   const Graph& graph,
+   IndexBegin begin,
+   IndexEnd end,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within graph vertices specified by a given set of vertex indexes.
@@ -632,13 +640,14 @@ template< typename Graph,
           typename FetchValue,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceVertices( Graph& graph,
-                const Array& vertexIndexes,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                Store&& store,
-                const FetchValue& identity,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVertices(
+   Graph& graph,
+   const Array& vertexIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within graph vertices specified by a given set of vertex indexes (const version).
@@ -673,13 +682,14 @@ template< typename Graph,
           typename FetchValue,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceVertices( const Graph& graph,
-                const Array& vertexIndexes,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                Store&& store,
-                const FetchValue& identity,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVertices(
+   const Graph& graph,
+   const Array& vertexIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within graph vertices specified by a given set of vertex indexes
@@ -712,12 +722,13 @@ template< typename Graph,
           typename Store,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceVertices( Graph& graph,
-                const Array& vertexIndexes,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                Store&& store,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVertices(
+   Graph& graph,
+   const Array& vertexIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within graph vertices specified by a given set of vertex indexes
@@ -750,12 +761,13 @@ template< typename Graph,
           typename Store,
           typename T = typename std::enable_if_t< IsArrayType< Array >::value > >
 void
-reduceVertices( const Graph& graph,
-                const Array& vertexIndexes,
-                Fetch&& fetch,
-                Reduction&& reduction,
-                Store&& store,
-                Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVertices(
+   const Graph& graph,
+   const Array& vertexIndexes,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices based on a condition.
@@ -786,13 +798,14 @@ reduceVertices( const Graph& graph,
  */
 template< typename Graph, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Graph::IndexType
-reduceAllVerticesIf( Graph& graph,
-                     Condition&& condition,
-                     Fetch&& fetch,
-                     Reduction&& reduction,
-                     Store&& store,
-                     const FetchValue& identity,
-                     Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllVerticesIf(
+   Graph& graph,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices based on a condition (const version).
@@ -823,13 +836,14 @@ reduceAllVerticesIf( Graph& graph,
  */
 template< typename Graph, typename Condition, typename Fetch, typename Reduction, typename Store, typename FetchValue >
 typename Graph::IndexType
-reduceAllVerticesIf( const Graph& graph,
-                     Condition&& condition,
-                     Fetch&& fetch,
-                     Reduction&& reduction,
-                     Store&& store,
-                     const FetchValue& identity,
-                     Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllVerticesIf(
+   const Graph& graph,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices based on a condition
@@ -859,12 +873,13 @@ reduceAllVerticesIf( const Graph& graph,
  */
 template< typename Graph, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Graph::IndexType
-reduceAllVerticesIf( Graph& graph,
-                     Condition&& condition,
-                     Fetch&& fetch,
-                     Reduction&& reduction,
-                     Store&& store,
-                     Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllVerticesIf(
+   Graph& graph,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices based on a condition
@@ -894,12 +909,13 @@ reduceAllVerticesIf( Graph& graph,
  */
 template< typename Graph, typename Condition, typename Fetch, typename Reduction, typename Store >
 typename Graph::IndexType
-reduceAllVerticesIf( const Graph& graph,
-                     Condition&& condition,
-                     Fetch&& fetch,
-                     Reduction&& reduction,
-                     Store&& store,
-                     Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceAllVerticesIf(
+   const Graph& graph,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes based on a condition.
@@ -943,15 +959,16 @@ template< typename Graph,
           typename Store,
           typename FetchValue >
 typename Graph::IndexType
-reduceVerticesIf( Graph& graph,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Fetch&& fetch,
-                  Reduction&& reduction,
-                  Store&& store,
-                  const FetchValue& identity,
-                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVerticesIf(
+   Graph& graph,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes based on a condition (const
@@ -996,15 +1013,16 @@ template< typename Graph,
           typename Store,
           typename FetchValue >
 typename Graph::IndexType
-reduceVerticesIf( const Graph& graph,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Fetch&& fetch,
-                  Reduction&& reduction,
-                  Store&& store,
-                  const FetchValue& identity,
-                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVerticesIf(
+   const Graph& graph,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   const FetchValue& identity,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes based on a condition
@@ -1046,14 +1064,15 @@ template< typename Graph,
           typename Reduction,
           typename Store >
 typename Graph::IndexType
-reduceVerticesIf( Graph& graph,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Fetch&& fetch,
-                  Reduction&& reduction,
-                  Store&& store,
-                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVerticesIf(
+   Graph& graph,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes based on a condition
@@ -1095,14 +1114,15 @@ template< typename Graph,
           typename Reduction,
           typename Store >
 typename Graph::IndexType
-reduceVerticesIf( const Graph& graph,
-                  IndexBegin begin,
-                  IndexEnd end,
-                  Condition&& condition,
-                  Fetch&& fetch,
-                  Reduction&& reduction,
-                  Store&& store,
-                  Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+reduceVerticesIf(
+   const Graph& graph,
+   IndexBegin begin,
+   IndexEnd end,
+   Condition&& condition,
+   Fetch&& fetch,
+   Reduction&& reduction,
+   Store&& store,
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices while
@@ -1136,7 +1156,7 @@ reduceAllVerticesWithArgument(
    Reduction&& reduction,
    Store&& store,
    const FetchValue& identity,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices while
@@ -1170,7 +1190,7 @@ reduceAllVerticesWithArgument(
    Reduction&& reduction,
    Store&& store,
    const FetchValue& identity,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices while
@@ -1201,7 +1221,7 @@ reduceAllVerticesWithArgument(
    Fetch&& fetch,
    Reduction&& reduction,
    Store&& store,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices while
@@ -1232,7 +1252,7 @@ reduceAllVerticesWithArgument(
    Fetch&& fetch,
    Reduction&& reduction,
    Store&& store,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes while
@@ -1276,7 +1296,7 @@ reduceVerticesWithArgument(
    Reduction&& reduction,
    Store&& store,
    const FetchValue& identity,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes while
@@ -1320,7 +1340,7 @@ reduceVerticesWithArgument(
    Reduction&& reduction,
    Store&& store,
    const FetchValue& identity,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes while
@@ -1360,7 +1380,7 @@ reduceVerticesWithArgument(
    Fetch&& fetch,
    Reduction&& reduction,
    Store&& store,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes while
@@ -1400,7 +1420,7 @@ reduceVerticesWithArgument(
    Fetch&& fetch,
    Reduction&& reduction,
    Store&& store,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within graph vertices specified by a given set of vertex indexes while
@@ -1443,7 +1463,7 @@ reduceVerticesWithArgument(
    Reduction&& reduction,
    Store&& store,
    const FetchValue& identity,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within graph vertices specified by a given set of vertex indexes while
@@ -1486,7 +1506,7 @@ reduceVerticesWithArgument(
    Reduction&& reduction,
    Store&& store,
    const FetchValue& identity,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within graph vertices specified by a given set of vertex indexes while
@@ -1525,7 +1545,7 @@ reduceVerticesWithArgument(
    Fetch&& fetch,
    Reduction&& reduction,
    Store&& store,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within graph vertices specified by a given set of vertex indexes while
@@ -1564,7 +1584,7 @@ reduceVerticesWithArgument(
    Fetch&& fetch,
    Reduction&& reduction,
    Store&& store,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices based on a condition while
@@ -1608,7 +1628,7 @@ reduceAllVerticesWithArgumentIf(
    Reduction&& reduction,
    Store&& store,
    const FetchValue& identity,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices based on a condition while
@@ -1652,7 +1672,7 @@ reduceAllVerticesWithArgumentIf(
    Reduction&& reduction,
    Store&& store,
    const FetchValue& identity,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices based on a condition while
@@ -1688,7 +1708,7 @@ reduceAllVerticesWithArgumentIf(
    Fetch&& fetch,
    Reduction&& reduction,
    Store&& store,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over all vertices based on a condition while
@@ -1724,7 +1744,7 @@ reduceAllVerticesWithArgumentIf(
    Fetch&& fetch,
    Reduction&& reduction,
    Store&& store,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes based on a condition while
@@ -1778,7 +1798,7 @@ reduceVerticesWithArgumentIf(
    Reduction&& reduction,
    Store&& store,
    const FetchValue& identity,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes based on a condition while
@@ -1832,7 +1852,7 @@ reduceVerticesWithArgumentIf(
    Reduction&& reduction,
    Store&& store,
    const FetchValue& identity,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes based on a condition while
@@ -1882,7 +1902,7 @@ reduceVerticesWithArgumentIf(
    Fetch&& fetch,
    Reduction&& reduction,
    Store&& store,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 /**
  * \brief Performs parallel reduction within each graph vertex over a given range of vertex indexes based on a condition while
@@ -1932,7 +1952,7 @@ reduceVerticesWithArgumentIf(
    Fetch&& fetch,
    Reduction&& reduction,
    Store&& store,
-   Algorithms::Segments::LaunchConfiguration launchConfig = Algorithms::Segments::LaunchConfiguration() );
+   TNL::Algorithms::Segments::LaunchConfiguration launchConfig = TNL::Algorithms::Segments::LaunchConfiguration() );
 
 }  // namespace TNL::Graphs
 

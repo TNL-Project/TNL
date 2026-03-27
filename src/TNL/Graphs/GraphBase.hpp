@@ -5,7 +5,7 @@
 
 #include <TNL/Matrices/MatrixOperations.h>
 #include <TNL/Matrices/SparseMatrix.h>
-#include "Graph.h"
+#include "GraphBase.h"
 
 namespace TNL::Graphs {
 
