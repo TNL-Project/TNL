@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <TNL/Assert.h>
 #include <TNL/Containers/Array.h>
 #include "task.h"
 #include "cudaPartition.h"
@@ -117,14 +118,8 @@ cudaWritePivot(
    int rightBegin = myTask.partitionBegin + myTask.dstEnd;
    int rightEnd = myTask.partitionEnd;
 
-   for( int i = leftEnd + threadIdx.x; i < rightBegin; i += blockDim.x ) {
-      /*
-      #ifdef DEBUG
-      aux[i] = -1;
-      #endif
-      */
+   for( int i = leftEnd + threadIdx.x; i < rightBegin; i += blockDim.x )
       arr[ i ] = pivot;
-   }
 
    if( threadIdx.x != 0 )
       return;
@@ -170,10 +165,7 @@ writeNewTask(
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    int size = end - begin;
-   if( size < 0 ) {
-      printf( "negative size, something went really wrong\n" );
-      return;
-   }
+   TNL_ASSERT_GE( size, 0, "negative size in writeNewTask" );
 
    if( size == 0 )
       return;
@@ -183,14 +175,9 @@ writeNewTask(
       if( idx < secondPhaseTasks.getSize() )
          secondPhaseTasks[ idx ] = TASK( begin, end, iteration + 1 );
       else {
-         // printf("ran out of memory, trying backup\n");
          int idx = atomicAdd( newTasksCnt, 1 );
-         if( idx < newTasks.getSize() )
-            newTasks[ idx ] = TASK( begin, end, iteration + 1 );
-         else
-            printf(
-               "ran out of memory for second phase task, there isnt even space in newTask list\nPart of array may stay "
-               "unsorted!!!\n" );
+         TNL_ASSERT_LT( idx, newTasks.getSize(), "task memory exhausted in writeNewTask" );
+         newTasks[ idx ] = TASK( begin, end, iteration + 1 );
       }
    }
    else {
@@ -198,14 +185,9 @@ writeNewTask(
       if( idx < newTasks.getSize() )
          newTasks[ idx ] = TASK( begin, end, iteration + 1 );
       else {
-         // printf("ran out of memory, trying backup\n");
          int idx = atomicAdd( secondPhaseTasksCnt, 1 );
-         if( idx < secondPhaseTasks.getSize() )
-            secondPhaseTasks[ idx ] = TASK( begin, end, iteration + 1 );
-         else
-            printf(
-               "ran out of memory for newtask, there isnt even space in second phase task list\nPart of array may stay "
-               "unsorted!!!\n" );
+         TNL_ASSERT_LT( idx, secondPhaseTasks.getSize(), "task memory exhausted in writeNewTask" );
+         secondPhaseTasks[ idx ] = TASK( begin, end, iteration + 1 );
       }
    }
 #endif
@@ -227,10 +209,8 @@ cudaQuickSort2ndPhase(
    Value* sharedMem = (Value*) externMem;
 
    TASK& myTask = secondPhaseTasks[ blockIdx.x ];
-   if( myTask.partitionEnd - myTask.partitionBegin <= 0 ) {
-      // printf("empty task???\n");
+   if( myTask.partitionEnd - myTask.partitionBegin <= 0 )
       return;
-   }
 
    auto arrView = arr.getView( myTask.partitionBegin, myTask.partitionEnd );
    auto auxView = aux.getView( myTask.partitionBegin, myTask.partitionEnd );
@@ -268,10 +248,8 @@ cudaQuickSort2ndPhase2(
    else
       myTask = secondPhaseTasks2[ blockIdx.x - secondPhaseTasks1.getSize() ];
 
-   if( myTask.partitionEnd - myTask.partitionBegin <= 0 ) {
-      // printf("empty task???\n");
+   if( myTask.partitionEnd - myTask.partitionBegin <= 0 )
       return;
-   }
 
    auto arrView = arr.getView( myTask.partitionBegin, myTask.partitionEnd );
    auto auxView = aux.getView( myTask.partitionBegin, myTask.partitionEnd );
