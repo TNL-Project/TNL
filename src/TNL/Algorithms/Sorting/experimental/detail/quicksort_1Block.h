@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Containers/Array.h>
-#include "cassert"
+#include <TNL/Assert.h>
 #include <TNL/Algorithms/Sorting/detail/blockBitonicSort.h>
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 
@@ -223,7 +223,7 @@ stackPush(
 
       if( sizeR > 0 )  // right from pivot until end are elem greater than pivot
       {
-         assert( stackTop < stackSize && "Local quicksort stack overflow." );
+         TNL_ASSERT_LT( stackTop, stackSize, "Local quicksort stack overflow." );
 
          stackArrBegin[ stackTop ] = pivotEnd;
          stackArrEnd[ stackTop ] = end;
@@ -242,7 +242,7 @@ stackPush(
 
       if( sizeL > 0 )  // left from pivot are smaller elems
       {
-         assert( stackTop < stackSize && "Local quicksort stack overflow." );
+         TNL_ASSERT_LT( stackTop, stackSize, "Local quicksort stack overflow." );
 
          stackArrBegin[ stackTop ] = begin;
          stackArrEnd[ stackTop ] = pivotBegin;

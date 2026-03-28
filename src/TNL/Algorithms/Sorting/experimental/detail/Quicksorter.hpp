@@ -14,11 +14,6 @@
 #include "quicksort_1Block.h"
 #include "Quicksorter.h"
 
-// TODO: This is to disable Doxygen errors
-/**
- * \cond
- */
-
 namespace TNL::Algorithms::Sorting::experimental::detail {
 
 template< typename Value, typename Index >
@@ -129,22 +124,6 @@ Quicksorter< Value, Devices::Cuda, Index >::performSort( const CMP& Cmp )
    int total2ndPhase = host_1stPhaseTasksAmount + host_2ndPhaseTasksAmount;
    if( total2ndPhase > 0 )
       secondPhase( Cmp );
-
-#ifdef CHECK_RESULT_SORT
-   if( ! is_sorted( arr ) ) {
-      std::ofstream out( "error.txt" );
-      out << arr << '\n';
-      out << aux << '\n';
-      out << cuda_tasks << '\n';
-      out << cuda_newTasks << '\n';
-      out << cuda_2ndPhaseTasks << '\n';
-
-      out << cuda_newTasksAmount << '\n';
-      out << cuda_2ndPhaseTasksAmount << '\n';
-
-      out << iteration << '\n';
-   }
-#endif
 }
 
 template< typename Value, typename Index >
@@ -312,21 +291,7 @@ template< typename Value, typename Index >
 int
 Quicksorter< Value, Devices::Cuda, Index >::getElemPerBlock() const
 {
-   return desiredElemPerBlock;
-   /*
-   int setsNeeded = getSetsNeeded( desiredElemPerBlock );
-
-   if( setsNeeded <= maxBlocks )
-      return desiredElemPerBlock;
-
-   // want multiplier*minElemPerBLock <= x*threadPerBlock
-   // find smallest x so that this inequality holds
-   double multiplier = 1. * setsNeeded / maxBlocks;
-   int elemPerBlock = multiplier * desiredElemPerBlock;
-   setsNeeded = elemPerBlock / threadsPerBlock + static_cast< int >( elemPerBlock % threadsPerBlock != 0 );
-
-   return setsNeeded * threadsPerBlock;
-   */
+   return desiredElementsPerBlock;
 }
 
 template< typename Value, typename Index >
@@ -386,7 +351,3 @@ Quicksorter< Value, Devices::Cuda, Index >::processNewTasks()
 }
 
 }  // namespace TNL::Algorithms::Sorting::experimental::detail
-
-/**
- * \endcond
- */
