@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <ostream>
-
 #include <TNL/Backend/Macros.h>
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
@@ -53,17 +51,5 @@ struct QuicksortTask
 
    QuicksortTask() = default;
 };
-
-inline std::ostream&
-operator<<( std::ostream& out, const QuicksortTask& task )
-{
-   out << "[ ";
-   out << task.partitionBegin << " - " << task.partitionEnd;
-   out << " | "
-       << "iteration: " << task.iteration;
-   out << " | "
-       << "pivotIdx: " << task.pivotIdx;
-   return out << " ] ";
-}
 
 }  // namespace TNL::Algorithms::Sorting::experimental::detail

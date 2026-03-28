@@ -270,27 +270,6 @@ Quicksorter< Value, Devices::Cuda, Index >::secondPhase( const Compare& compare 
 
 template< typename Value, typename Index >
 int
-getSetsNeededFunction( int elementsPerBlock, const Quicksorter< Value, Devices::Cuda, Index >& quicksort )
-{
-   auto view = quicksort.iteration % 2 == 0 ? quicksort.cuda_tasks.getConstView() : quicksort.cuda_newTasks.getConstView();
-   auto fetch = [ = ] __cuda_callable__( int i ) -> int
-   {
-      const auto& task = view[ i ];
-      int size = task.partitionEnd - task.partitionBegin;
-      return size / elementsPerBlock + ( size % elementsPerBlock != 0 );
-   };
-   return reduce< Devices::Cuda >( 0, quicksort.host_firstPhaseTasksAmount, fetch, TNL::Plus{} );
-}
-
-template< typename Value, typename Index >
-int
-Quicksorter< Value, Devices::Cuda, Index >::getSetsNeeded( int elementsPerBlock ) const
-{
-   return getSetsNeededFunction< Value >( elementsPerBlock, *this );
-}
-
-template< typename Value, typename Index >
-int
 Quicksorter< Value, Devices::Cuda, Index >::getElementsPerBlock() const
 {
    return desiredElementsPerBlock;
@@ -313,7 +292,7 @@ Quicksorter< Value, Devices::Cuda, Index >::initTasks( int elementsPerBlock, con
          [ = ] __cuda_callable__( int i ) mutable
          {
             const QuicksortTask& task = cuda_tasks[ i ];
-            int size = task.partitionEnd - task.partitionBegin;
+            int size = task.getSize();
             blocksNeeded[ i ] = TNL::roundUpDivision( size, elementsPerBlock );
          } );
    }
