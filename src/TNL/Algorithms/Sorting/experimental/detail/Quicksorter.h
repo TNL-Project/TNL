@@ -40,12 +40,6 @@ public:
    performSort( const Compare& compare );
 
    /**
-    * returns how many blocks are needed to start sort first phase if @param elementsPerBlock were to be used
-    * */
-   [[nodiscard]] int
-   getSetsNeeded( int elementsPerBlock ) const;
-
-   /**
     * returns the optimal amount of elements per thread needed for phase
     * */
    [[nodiscard]] int
@@ -101,10 +95,6 @@ protected:
 
    int host_firstPhaseTasksAmount = 0, host_secondPhaseTasksAmount = 0;
    int iteration = 0;
-
-   template< typename ValueType_, typename IndexType_ >
-   friend int
-   getSetsNeededFunction( int elementsPerBlock, const Quicksorter< ValueType_, Devices::Cuda, IndexType_ >& quicksort );
 };
 
 }  // namespace TNL::Algorithms::Sorting::experimental::detail

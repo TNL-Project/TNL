@@ -209,7 +209,7 @@ cudaQuickSortSecondPhase(
    Value* sharedMem = (Value*) externMem;
 
    QuicksortTask& myTask = secondPhaseTasks[ blockIdx.x ];
-   if( myTask.partitionEnd - myTask.partitionBegin <= 0 )
+   if( myTask.getSize() <= 0 )
       return;
 
    auto arrView = arr.getView( myTask.partitionBegin, myTask.partitionEnd );
@@ -248,7 +248,7 @@ cudaQuickSortSecondPhase2(
    else
       myTask = secondPhaseTasks2[ blockIdx.x - secondPhaseTasks1.getSize() ];
 
-   if( myTask.partitionEnd - myTask.partitionBegin <= 0 )
+   if( myTask.getSize() <= 0 )
       return;
 
    auto arrView = arr.getView( myTask.partitionBegin, myTask.partitionEnd );
