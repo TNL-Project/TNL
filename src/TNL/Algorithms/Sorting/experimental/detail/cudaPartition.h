@@ -140,22 +140,10 @@ copyData(
 {
    for( int i = threadIdx.x; i < src.getSize(); i += blockDim.x ) {
       const Value& data = src[ i ];
-      if( Cmp( data, pivot ) ) {
-         /*
-         if(smallerStart >= dst.getSize() || smallerStart < 0)
-             printf("failed smaller: b:%d t:%d: tried to write into [%d]/%d\n", blockDim.x, threadIdx.x, smallerStart,
-         dst.getSize());
-         */
+      if( Cmp( data, pivot ) )
          dst[ smallerStart++ ] = data;
-      }
-      else if( Cmp( pivot, data ) ) {
-         /*
-         if(biggerStart >= dst.getSize() || biggerStart < 0)
-             printf("failed bigger: b:%d t:%d: tried to write into [%d]/%d\n", blockDim.x, threadIdx.x, biggerStart,
-         dst.getSize());
-         */
+      else if( Cmp( pivot, data ) )
          dst[ biggerStart++ ] = data;
-      }
    }
 }
 
