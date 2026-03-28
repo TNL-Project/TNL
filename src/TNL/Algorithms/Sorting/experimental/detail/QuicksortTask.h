@@ -9,7 +9,7 @@
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
 
-struct TASK
+struct QuicksortTask
 {
    // start and end position of array to read and write from
    int partitionBegin, partitionEnd;
@@ -22,7 +22,7 @@ struct TASK
    int firstBlock, blockCount;  // for workers read only values
 
    __cuda_callable__
-   TASK( int begin, int end, int iteration )
+   QuicksortTask( int begin, int end, int iteration )
    : partitionBegin( begin ),
      partitionEnd( end ),
      iteration( iteration ),
@@ -35,7 +35,7 @@ struct TASK
 
    __cuda_callable__
    void
-   initTask( int firstBlock, int blocks, int pivotIdx )
+   init( int firstBlock, int blocks, int pivotIdx )
    {
       dstBegin = 0;
       dstEnd = partitionEnd - partitionBegin;
@@ -51,11 +51,11 @@ struct TASK
       return partitionEnd - partitionBegin;
    }
 
-   TASK() = default;
+   QuicksortTask() = default;
 };
 
 inline std::ostream&
-operator<<( std::ostream& out, const TASK& task )
+operator<<( std::ostream& out, const QuicksortTask& task )
 {
    out << "[ ";
    out << task.partitionBegin << " - " << task.partitionEnd;

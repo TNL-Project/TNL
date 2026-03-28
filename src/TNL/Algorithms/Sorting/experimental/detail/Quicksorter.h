@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Containers/Array.h>
-#include "task.h"
+#include "QuicksortTask.h"
 
 namespace TNL::Algorithms::Sorting::experimental::detail {
 
@@ -32,39 +32,39 @@ public:
       Containers::ArrayView< ValueType, Devices::Cuda, IndexType > arr,
       int gridDim,
       int blockDim,
-      int desiredElemPerBlock,
+      int desiredElementsPerBlock,
       int maxSharable );
 
-   template< typename CMP >
+   template< typename Compare >
    void
-   performSort( const CMP& Cmp );
+   performSort( const Compare& compare );
 
    /**
-    * returns how many blocks are needed to start sort phase 1 if @param elemPerBlock were to be used
+    * returns how many blocks are needed to start sort first phase if @param elementsPerBlock were to be used
     * */
    [[nodiscard]] int
-   getSetsNeeded( int elemPerBlock ) const;
+   getSetsNeeded( int elementsPerBlock ) const;
 
    /**
     * returns the optimal amount of elements per thread needed for phase
     * */
    [[nodiscard]] int
-   getElemPerBlock() const;
+   getElementsPerBlock() const;
 
    /**
     * returns the amount of blocks needed to start phase 1 while also initializing all tasks
     * */
-   template< typename CMP >
+   template< typename Compare >
    int
-   initTasks( int elemPerBlock, const CMP& Cmp );
+   initTasks( int elementsPerBlock, const Compare& compare );
 
    /**
-    * does the 1st phase of Quicksort until out of task memory or each task is small enough
-    * for correctness, secondphase method needs to be called to sort each subsequences
+    * does the first phase of Quicksort until out of task memory or each task is small enough
+    * for correctness, secondPhase method needs to be called to sort each subsequences
     * */
-   template< typename CMP >
+   template< typename Compare >
    void
-   firstPhase( const CMP& Cmp );
+   firstPhase( const Compare& compare );
 
    /**
     * update necessary variables after 1 phase1 sort
@@ -75,36 +75,36 @@ public:
    /**
     * sorts all leftover tasks
     * */
-   template< typename CMP >
+   template< typename Compare >
    void
-   secondPhase( const CMP& Cmp );
+   secondPhase( const Compare& compare );
 
 protected:
    // kernel config
-   int maxBlocks, threadsPerBlock, desiredElemPerBlock;
+   int maxBlocks, threadsPerBlock, desiredElementsPerBlock;
    std::size_t maxSharable;
 
    Containers::Array< ValueType, Devices::Cuda, IndexType > auxMem;
    Containers::ArrayView< ValueType, Devices::Cuda, IndexType > arr, aux;
 
-   int desired_2ndPhasElemPerBlock;
-   const int g_maxTasks = 1 << 14;
+   int desiredSecondPhaseElementsPerBlock;
+   static constexpr int maxTasksLimit = 1 << 14;
    int maxTasks;
 
-   Containers::Array< TASK, Devices::Cuda > cuda_tasks, cuda_newTasks,
-      cuda_2ndPhaseTasks;  // 1 set of 2 rotating tasks and 2nd phase
+   Containers::Array< QuicksortTask, Devices::Cuda > cuda_tasks, cuda_newTasks,
+      cuda_secondPhaseTasks;  // one set of two rotating tasks and second phase
    Containers::Array< int, Devices::Cuda > cuda_newTasksAmount,
-      cuda_2ndPhaseTasksAmount;  // is in reality 1 integer each
+      cuda_secondPhaseTasksAmount;  // is in reality 1 integer each
 
    Containers::Array< int, Devices::Cuda > cuda_blockToTaskMapping;
    Containers::Array< int, Devices::Cuda > cuda_reductionTaskInitMem;
 
-   int host_1stPhaseTasksAmount = 0, host_2ndPhaseTasksAmount = 0;
+   int host_firstPhaseTasksAmount = 0, host_secondPhaseTasksAmount = 0;
    int iteration = 0;
 
    template< typename ValueType_, typename IndexType_ >
    friend int
-   getSetsNeededFunction( int elemPerBlock, const Quicksorter< ValueType_, Devices::Cuda, IndexType_ >& quicksort );
+   getSetsNeededFunction( int elementsPerBlock, const Quicksorter< ValueType_, Devices::Cuda, IndexType_ >& quicksort );
 };
 
 }  // namespace TNL::Algorithms::Sorting::experimental::detail
