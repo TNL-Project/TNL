@@ -3,7 +3,11 @@
 
 #pragma once
 
+#include <sstream>
+#include <iomanip>
+
 #include "Logging.h"
+
 #include <TNL/Assert.h>
 
 namespace TNL::Benchmarks {
@@ -11,45 +15,17 @@ namespace TNL::Benchmarks {
 class JsonLogging : public Logging
 {
 public:
-   // inherit constructors
-   using Logging::Logging;
+   JsonLogging( std::ostream& log, int verbose = 1 )
+   : Logging( log, verbose )
+   {}
 
    void
-   writeHeader( const HeaderElements& headerElements, const WidthHints& widths )
-   {
-      if( headerElements.size() != widths.size() )
-         throw std::invalid_argument( "writeHeader: elements must have equal sizes" );
-
-      if( verbose > 0 && ( header_changed || headerElements != lastHeaderElements ) ) {
-         for( const auto& lg : metadataColumns ) {
-            const int width = ( metadataWidths.count( lg.first ) > 0 ) ? metadataWidths[ lg.first ] : 14;
-            std::cout << std::setw( width ) << lg.first;
-         }
-         for( std::size_t i = 0; i < headerElements.size(); i++ )
-            std::cout << std::setw( widths[ i ] ) << headerElements[ i ];
-         std::cout << '\n';
-         header_changed = false;
-         lastHeaderElements = headerElements;
-      }
-   }
-
-   void
-   writeRow(
-      const HeaderElements& headerElements,
-      const RowElements& rowElements,
-      const WidthHints& widths,
-      const std::string& errorMessage )
+   writeRow( const HeaderElements& headerElements, const RowElements& rowElements, const std::string& errorMessage )
    {
       if( headerElements.size() != rowElements.size() ) {
          std::stringstream ss;
          ss << "writeRow: Header elements and row elements must have equal sizes. Header: " << headerElements.size()
             << ", Row: " << rowElements.size();
-         throw std::invalid_argument( ss.str() );
-      }
-      if( headerElements.size() != widths.size() ) {
-         std::stringstream ss;
-         ss << "writeRow: Header elements and row element widths must have equal sizes. Header: " << headerElements.size()
-            << ", Widths: " << widths.size();
          throw std::invalid_argument( ss.str() );
       }
 
@@ -58,10 +34,6 @@ public:
       // write common logs
       int idx( 0 );
       for( const auto& lg : this->metadataColumns ) {
-         if( verbose > 0 ) {
-            const int width = ( metadataWidths.count( lg.first ) > 0 ) ? metadataWidths[ lg.first ] : 14;
-            std::cout << std::setw( width ) << lg.second;
-         }
          if( idx++ > 0 )
             log << ", ";
          log << "\"" << lg.first << "\": \"" << lg.second << "\"";
@@ -69,8 +41,6 @@ public:
 
       std::size_t i = 0;
       for( const auto& el : rowElements ) {
-         if( verbose > 0 )
-            std::cout << std::setw( widths[ i ] ) << el;
          if( idx++ > 0 )
             log << ", ";
          log << "\"" << headerElements[ i ] << "\": \"" << el << "\"";
@@ -82,8 +52,6 @@ public:
          log << "\"error\": \"" << escape_json( errorMessage ) << "\"";
       }
       log << "}\n";
-      if( verbose > 0 )
-         std::cout << '\n';
    }
 
    void
@@ -91,12 +59,10 @@ public:
       const std::string& performer,
       const HeaderElements& headerElements,
       const RowElements& rowElements,
-      const WidthHints& columnWidthHints,
       const std::string& errorMessage = "" ) override
    {
       setMetadataElement( { "performer", performer } );
-      writeHeader( headerElements, columnWidthHints );
-      writeRow( headerElements, rowElements, columnWidthHints, errorMessage );
+      writeRow( headerElements, rowElements, errorMessage );
    }
 
    void
@@ -120,19 +86,6 @@ public:
    }
 
 protected:
-   // manual double -> string conversion with fixed precision
-   static std::string
-   _to_string( double num, int precision = 0, bool fixed = false )
-   {
-      std::stringstream str;
-      if( fixed )
-         str << std::fixed;
-      if( precision > 0 )
-         str << std::setprecision( precision );
-      str << num;
-      return str.str();
-   }
-
    // https://stackoverflow.com/a/33799784
    static std::string
    escape_json( const std::string& s )
@@ -170,9 +123,6 @@ protected:
       }
       return o.str();
    }
-
-   // for tracking changes of the header elements written to the terminal
-   HeaderElements lastHeaderElements;
 };
 
 }  // namespace TNL::Benchmarks

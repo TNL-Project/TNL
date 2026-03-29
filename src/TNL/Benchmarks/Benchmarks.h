@@ -3,10 +3,11 @@
 
 #pragma once
 
-#include "JsonLogging.h"
-
 #include <limits>
 #include <string>
+
+#include "JsonLogging.h"
+#include "TerminalLogging.h"
 
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 
@@ -18,6 +19,8 @@ struct BenchmarkResult
 {
    using HeaderElements = Logging::HeaderElements;
    using RowElements = Logging::RowElements;
+
+   virtual ~BenchmarkResult() = default;
 
    std::size_t loops = 0;
    double time = std::numeric_limits< double >::quiet_NaN();
@@ -44,22 +47,6 @@ struct BenchmarkResult
            "cycles_stddev/cycles",
            "loops",
            "ops_per_loop" } );
-   }
-
-   [[nodiscard]] virtual std::vector< int >
-   getColumnWidthHints() const
-   {
-      return std::vector< int >( { 14,      // time
-                                   8,       // speedup
-                                   14,      // bandwidth
-                                   14,      // cycles/op
-                                   14,      // cycles
-                                   16,      // time_stddev
-                                   18,      // time_stddev/time
-                                   16,      // cycles_stddev
-                                   22,      // cycles_stddev/cycles
-                                   6,       // loops
-                                   16 } );  // operations/loop
    }
 
    [[nodiscard]] virtual RowElements
@@ -133,10 +120,6 @@ public:
    void
    setMetadataElement( const typename MetadataColumns::value_type& element );
 
-   // Sets the width of metadata columns when printed to the terminal.
-   void
-   setMetadataWidths( const std::map< std::string, int >& widths );
-
    // Sets the dataset size and base time for the calculations of bandwidth
    // and speedup in the benchmarks result.
    void
@@ -191,6 +174,7 @@ public:
 
 protected:
    Logger logger;
+   std::unique_ptr< TerminalLogger > terminalLogger;
 
    std::size_t loops = 1;
 
