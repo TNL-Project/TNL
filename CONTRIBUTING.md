@@ -126,3 +126,39 @@ reduction of merge conflicts. See [A rebase-based workflow](
 https://brokenco.de/2010/04/02/a-rebase-based-workflow.html) and
 [Why is rebase-then-merge better than just merge](https://stackoverflow.com/a/457988)
 ([complement](https://stackoverflow.com/a/804178)) for reference.
+
+## AI-assisted contributions policy
+
+1. You __MAY__ use AI assistance for contributing to TNL, as long as you follow the principles below.
+
+2. __Accountability:__
+   You __MUST__ take responsibility for your contribution.
+   Contributing to TNL means vouching for the correctness, license compliance, and quality of your submission.
+   The contributor is always the author and is fully accountable for the entirety of contributions, whether human-written or AI-assisted.
+
+3. __Transparency:__
+   You __MUST__ disclose the use of AI tools when a significant part of the contribution is generated without substantial human modification.
+   You __SHOULD__ disclose other uses where it might be useful for project visibility.
+
+   Routine use of assistive tools for correcting grammar, spelling, or clarifying language does not require disclosure.
+
+   __Disclosure method:__
+   For git-tracked contributions, use the `Assisted-by:` trailer in commit messages.
+   For example:
+
+   ```txt
+   Assisted-by: Claude Opus 4.6 (Anthropic)
+   Assisted-by: GLM-5 via Opencode
+   ```
+
+   For other contributions such as comments or replies, include a note indicating AI assistance.
+
+4. __Community interaction:__
+   AI tools __MAY__ assist human reviewers by providing analysis and suggestions.
+   Reviewers __MUST NOT__ use AI as the sole or final arbiter on a contribution.
+   The final accountability for accepting or rejecting a contribution, even if implemented by an automated system, always rests with the human contributor who authorizes the action.
+
+5. __Large-scale initiatives:__
+   You __MUST NOT__ use AI assistants to initiate contributions that may inflict significant burden on human contributors or lead to exponential growth without prior discussion with project maintainers.
+
+The key words “MAY”, “MUST”, “MUST NOT”, and “SHOULD” in this section are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
