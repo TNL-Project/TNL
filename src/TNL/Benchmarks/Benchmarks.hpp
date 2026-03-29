@@ -3,17 +3,18 @@
 
 #pragma once
 
-#include "Benchmarks.h"
-#include "Utils.h"
-
 #include <iostream>
 #include <exception>
+
+#include "Benchmarks.h"
+#include "Utils.h"
 
 namespace TNL::Benchmarks {
 
 template< typename Logger >
 Benchmark< Logger >::Benchmark( std::ostream& output, std::size_t loops, int verbose )
 : logger( output, verbose ),
+  terminalLogger( std::make_unique< TerminalLogger >( std::cout, verbose ) ),
   loops( loops )
 {}
 
@@ -36,6 +37,8 @@ Benchmark< Logger >::setup( const Config::ParameterContainer& parameters )
    this->minTime = parameters.getParameter< double >( "min-time" );
    const int verbose = parameters.getParameter< int >( "verbose" );
    logger.setVerbose( verbose );
+   if( terminalLogger != nullptr )
+      terminalLogger->setVerbose( verbose );
 }
 
 template< typename Logger >
@@ -64,6 +67,8 @@ void
 Benchmark< Logger >::setMetadataColumns( const MetadataColumns& metadata )
 {
    logger.setMetadataColumns( metadata );
+   if( terminalLogger != nullptr )
+      terminalLogger->setMetadataColumns( metadata );
 }
 
 template< typename Logger >
@@ -71,13 +76,8 @@ void
 Benchmark< Logger >::setMetadataElement( const typename MetadataColumns::value_type& element )
 {
    logger.setMetadataElement( element );
-}
-
-template< typename Logger >
-void
-Benchmark< Logger >::setMetadataWidths( const std::map< std::string, int >& widths )
-{
-   logger.setMetadataWidths( widths );
+   if( terminalLogger != nullptr )
+      terminalLogger->setMetadataElement( element );
 }
 
 template< typename Logger >
@@ -101,6 +101,8 @@ Benchmark< Logger >::setOperation( const std::string& operation, double datasetS
 {
    monitor.setStage( operation );
    logger.setMetadataElement( { "operation", operation }, 0 );
+   if( terminalLogger != nullptr )
+      terminalLogger->setMetadataElement( { "operation", operation }, 0 );
    setDatasetSize( datasetSize, baseTime );
 }
 
@@ -150,7 +152,11 @@ Benchmark< Logger >::time(
    if( this->baseTime == 0.0 )
       this->baseTime = result.time;
 
-   logger.logResult( performer, result.getTableHeader(), result.getRowElements(), result.getColumnWidthHints(), errorMessage );
+   logger.logResult( performer, result.getTableHeader(), result.getRowElements(), errorMessage );
+
+   // Log to TerminalLogger if available
+   if( terminalLogger )
+      terminalLogger->logResult( performer, result.getTableHeader(), result.getRowElements(), errorMessage );
 }
 
 template< typename Logger >

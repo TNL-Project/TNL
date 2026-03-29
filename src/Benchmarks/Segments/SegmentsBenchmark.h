@@ -380,16 +380,6 @@ struct SegmentsBenchmark
             { "max segment size", convertToString( max( segmentsSizes ) ) },
             { "elements count", convertToString( sum( segmentsSizes ) ) },
          } );
-      benchmark.setMetadataWidths(
-         {
-            { "segments setup", 16 },
-            { "segments count", 16 },
-            { "max segment size", 18 },
-            { "elements count", 16 },
-            { "segments type", 25 },
-            { "function", 35 },
-            { "threads mapping", 44 },
-         } );
 
       if( device == "sequential" || device == "all" )
          TNLBenchmarks< TNL::Devices::Sequential, CSRSegments, TNL::Algorithms::SegmentsReductionKernels::CSRScalarKernel >(

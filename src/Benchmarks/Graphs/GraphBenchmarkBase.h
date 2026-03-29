@@ -175,13 +175,6 @@ public:
             { "nodes", convertToString( graph.getAdjacencyMatrix().getRows() ) },
             { "edges", convertToString( graph.getAdjacencyMatrix().getNonzeroElementsCount() ) },
          } );
-      benchmark.setMetadataWidths(
-         { { "graph name", 32 },
-           { "format", 26 },
-           { "threads", 5 },
-           { "problem", 22 },
-           { "kernel", 28 },
-           { "launch cfg.", 24 } } );
 
       auto& derived = static_cast< Derived& >( *this );
 

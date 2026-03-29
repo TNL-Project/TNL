@@ -4,7 +4,6 @@
 #pragma once
 
 #include <list>
-#include <map>
 #include <vector>
 #include <iostream>
 #include <iomanip>
@@ -103,7 +102,8 @@ public:
 
    using HeaderElements = std::vector< std::string >;
    using RowElements = LoggingRowElements;
-   using WidthHints = std::vector< int >;
+
+   virtual ~Logging() = default;
 
    Logging( std::ostream& log, int verbose = 1 )
    : log( log ),
@@ -173,14 +173,16 @@ public:
       }
    }
 
-   virtual void
-   setMetadataWidths( const std::map< std::string, int >& widths )
+   void
+   syncMetadata( Logging& other )
    {
-      for( const auto& it : widths )
-         if( metadataWidths.count( it.first ) > 0 )
-            metadataWidths[ it.first ] = it.second;
-         else
-            metadataWidths.insert( it );
+      other.metadataColumns = this->metadataColumns;
+   }
+
+   [[nodiscard]] const MetadataColumns&
+   getMetadataColumns() const
+   {
+      return metadataColumns;
    }
 
    virtual void
@@ -188,7 +190,6 @@ public:
       const std::string& performer,
       const HeaderElements& headerElements,
       const RowElements& rowElements,
-      const WidthHints& columnWidthHints,
       const std::string& errorMessage = "" ) = 0;
 
    virtual void
@@ -199,7 +200,6 @@ protected:
    int verbose = 0;
 
    MetadataColumns metadataColumns;
-   std::map< std::string, int > metadataWidths;
    bool header_changed = true;
 };
 
