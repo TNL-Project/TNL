@@ -27,13 +27,6 @@ runBlasBenchmarks(
    const std::size_t& maxSize,
    const double& sizeStepFactor )
 {
-   benchmark.setMetadataWidths(
-      {
-         { "operation", 30 },
-         { "performer", 21 },
-         { "precision", 10 },
-      } );
-
    // Array operations
    std::cout << "\n== Array operations ==\n\n";
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {

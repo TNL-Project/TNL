@@ -36,17 +36,6 @@ struct LinearSolversBenchmarkResult : public TNL::Benchmarks::BenchmarkResult
       return elements;
    }
 
-   [[nodiscard]] std::vector< int >
-   getColumnWidthHints() const override
-   {
-      auto hints = TNL::Benchmarks::BenchmarkResult::getColumnWidthHints();
-      hints.emplace_back( 8 );   // solved
-      hints.emplace_back( 14 );  // iterations
-      hints.emplace_back( 14 );  // residue precond
-      hints.emplace_back( 14 );  // residue true
-      return hints;
-   }
-
    [[nodiscard]] RowElements
    getRowElements() const override
    {

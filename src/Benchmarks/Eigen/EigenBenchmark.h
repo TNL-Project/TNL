@@ -20,12 +20,6 @@ struct EigenBenchmarkResult : TNL::Benchmarks::BenchmarkResult
       return HeaderElements( { "time", "time_stddev", "time_stddev/time", "loops", "epsilon", "iterations", "error" } );
    }
 
-   [[nodiscard]] std::vector< int >
-   getColumnWidthHints() const override
-   {
-      return std::vector< int >( { 14, 14, 14, 6, 14, 12, 14 } );
-   }
-
    [[nodiscard]] RowElements
    getRowElements() const override
    {
