@@ -62,10 +62,14 @@ struct CudaBlockScan
       const int warp_id = tid / Backend::getWarpSize();
       #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
-         if( lane_id >= stride ) {
-            storage.chunkResults[ chunkResultIdx ] = reduction(
-               storage.chunkResults[ chunkResultIdx ], storage.chunkResults[ Backend::getInterleaving( tid - stride ) ] );
-         }
+         ValueType result;
+         if( lane_id >= stride )
+            result = reduction( storage.chunkResults[ chunkResultIdx ],
+                                storage.chunkResults[ Backend::getInterleaving( tid - stride ) ] );
+         // We must sync all threads in a warp after read and before write to avoid race condition
+         __syncwarp();
+         if( lane_id >= stride )
+            storage.chunkResults[ chunkResultIdx ] = result;
          __syncwarp();
       }
       threadValue = storage.chunkResults[ chunkResultIdx ];
@@ -76,17 +80,19 @@ struct CudaBlockScan
       __syncthreads();
 
       // perform the scan of warpResults using one warp
-      if( warp_id == 0 )
+      if( warp_id == 0 ) {
          #pragma unroll
          for( int stride = 1; stride < blockSize / Backend::getWarpSize(); stride *= 2 ) {
+            ValueType result;
             if( lane_id >= stride )
-               storage.warpResults[ tid ] = reduction( storage.warpResults[ tid ], storage.warpResults[ tid - stride ] );
-   #if ! defined( __HIP__ )
-            // FIXME: HIP does not have __syncwarp and __syncthreads does not work here,
-            //        because it is collective for the whole block and this branch is only for one warp
+               result = reduction( storage.warpResults[ tid ], storage.warpResults[ tid - stride ] );
+            // We must sync all threads in a warp after read and before write to avoid race condition
             __syncwarp();
-   #endif
+            if( lane_id >= stride )
+               storage.warpResults[ tid ] = result;
+            __syncwarp();
          }
+      }
       __syncthreads();
 
       // shift threadValue by the warpResults
@@ -178,13 +184,8 @@ struct CudaBlockScanShfl
       // perform an inclusive scan
       #pragma unroll
       for( int stride = 1; stride < Backend::getWarpSize(); stride *= 2 ) {
-   // TODO: HIP does not have __shfl_up_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
-   #ifdef __HIP__
-         const ValueType otherValue = __shfl_up( threadValue, stride );
-   #else
          constexpr unsigned mask = 0xffffffff;
          const ValueType otherValue = __shfl_up_sync( mask, threadValue, stride );
-   #endif
          if( lane_id >= stride )
             threadValue = reduction( threadValue, otherValue );
       }
@@ -194,13 +195,8 @@ struct CudaBlockScanShfl
 
       // shift the result for exclusive scan
       if( warpScanType == ScanType::Exclusive ) {
-         // TODO: HIP does not have __shfl_up_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
-   #ifdef __HIP__
-         threadValue = __shfl_up( threadValue, 1 );
-   #else
          constexpr unsigned mask = 0xffffffff;
          threadValue = __shfl_up_sync( mask, threadValue, 1 );
-   #endif
          if( lane_id == 0 )
             threadValue = identity;
       }
@@ -437,7 +433,7 @@ CudaScanKernelUpsweep( const InputView input,
    __syncthreads();
 
    // Perform the parallel reduction.
-   value = BlockReduce::reduce( reduction, identity, value, threadIdx.x, storage.blockReduceStorage );
+   value = BlockReduce::reduce( reduction, identity, value, storage.blockReduceStorage, threadIdx.x );
 
    // Store the block result in the global memory.
    if( threadIdx.x == 0 )

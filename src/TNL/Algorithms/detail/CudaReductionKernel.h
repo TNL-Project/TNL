@@ -14,17 +14,8 @@
 namespace TNL::Algorithms::detail {
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
-/* Template for cooperative reduction across the CUDA block of threads.
- * It is a *cooperative* operation - all threads must call the operation,
- * otherwise it will deadlock!
- *
- * The default implementation is generic and the reduction is done using
- * shared memory. Specializations can be made based on `Reduction` and
- * `ValueType`, e.g. using the `__shfl_sync` intrinsics for supported
- * value types.
- */
 template< int blockSize, typename Reduction, typename ValueType >
-struct CudaBlockReduce
+struct CudaBlockReduceSharedMemory
 {
    // storage to be allocated in shared memory
    struct Storage
@@ -41,66 +32,106 @@ struct CudaBlockReduce
     * \param identity     Neutral element for given reduction operation, i.e.
     *                     value such that `reduction(identity, x) == x` for any `x`.
     * \param threadValue Value of the calling thread to be reduced.
-    * \param tid         Index of the calling thread (usually `threadIdx.x`,
-    *                    unless you know what you are doing).
     * \param storage     Auxiliary storage (must be allocated as a __shared__
     *                    variable).
+    * \param global_tid  Global index of the calling thread (usually `threadIdx.x`,
+    *                    unless you know what you are doing).
+    * \param segment_tid Index of the calling thread within a reduction segment
+    *                    (usually `threadIdx.x`, unless you know what you are doing).
+    * \param result_idx  Index of the result in the shared memory to return for the
+    *                    calling thread (usually 0 unless you know what you are doing).
     */
    __device__
    static ValueType
-   reduce( const Reduction& reduction, ValueType identity, ValueType threadValue, int tid, Storage& storage )
+   reduce( const Reduction& reduction,
+           ValueType identity,
+           ValueType threadValue,
+           Storage& storage,
+           int global_tid,
+           int segment_tid,
+           int result_idx = 0 )
    {
-      storage.data[ tid ] = threadValue;
+      storage.data[ global_tid ] = threadValue;
       __syncthreads();
 
+      // Apply the reduction on threadValue rather than storage.data[ tid ] to
+      // avoid an unnecessary read from shared memory. Then update the thread
+      // value in shared memory for use by other threads.
       if constexpr( blockSize >= 1024 ) {
-         if( tid < 512 )
-            storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 512 ] );
+         if( segment_tid < 512 ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + 512 ] );
+            storage.data[ global_tid ] = threadValue;
+         }
          __syncthreads();
       }
       if constexpr( blockSize >= 512 ) {
-         if( tid < 256 )
-            storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 256 ] );
+         if( segment_tid < 256 ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + 256 ] );
+            storage.data[ global_tid ] = threadValue;
+         }
          __syncthreads();
       }
       if constexpr( blockSize >= 256 ) {
-         if( tid < 128 )
-            storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 128 ] );
+         if( segment_tid < 128 ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + 128 ] );
+            storage.data[ global_tid ] = threadValue;
+         }
          __syncthreads();
       }
       if constexpr( blockSize >= 128 ) {
-         if( tid < 64 )
-            storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 64 ] );
+         if( segment_tid < 64 ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + 64 ] );
+            storage.data[ global_tid ] = threadValue;
+         }
          __syncthreads();
       }
 
       // This runs in one warp so we use __syncwarp() instead of __syncthreads().
-      if( tid < 32 ) {
-         if constexpr( blockSize >= 64 )
-            storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 32 ] );
-         __syncwarp();
+      if( segment_tid < 32 ) {
+         if constexpr( blockSize >= 64 ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + 32 ] );
+            storage.data[ global_tid ] = threadValue;
+            __syncwarp();
+         }
          // Note that here we do not have to check if tid < 16 etc, because we have
          // 2 * blockSize.x elements of shared memory per block, so we do not
          // access out of bounds. The results for the upper half will be undefined,
          // but unused anyway.
-         if constexpr( blockSize >= 32 )
-            storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 16 ] );
-         __syncwarp();
-         if constexpr( blockSize >= 16 )
-            storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 8 ] );
-         __syncwarp();
-         if constexpr( blockSize >= 8 )
-            storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 4 ] );
-         __syncwarp();
-         if constexpr( blockSize >= 4 )
-            storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 2 ] );
-         __syncwarp();
-         if constexpr( blockSize >= 2 )
-            storage.data[ tid ] = reduction( storage.data[ tid ], storage.data[ tid + 1 ] );
+         // Note that we must add __syncwarp() between the read and write operations
+         // to avoid race conditions.
+         if constexpr( blockSize >= 32 ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + 16 ] );
+            __syncwarp();
+            storage.data[ global_tid ] = threadValue;
+            __syncwarp();
+         }
+         if constexpr( blockSize >= 16 ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + 8 ] );
+            __syncwarp();
+            storage.data[ global_tid ] = threadValue;
+            __syncwarp();
+         }
+         if constexpr( blockSize >= 8 ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + 4 ] );
+            __syncwarp();
+            storage.data[ global_tid ] = threadValue;
+            __syncwarp();
+         }
+         if constexpr( blockSize >= 4 ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + 2 ] );
+            __syncwarp();
+            storage.data[ global_tid ] = threadValue;
+            __syncwarp();
+         }
+         if constexpr( blockSize >= 2 ) {
+            threadValue = reduction( threadValue, storage.data[ global_tid + 1 ] );
+            __syncwarp();
+            storage.data[ global_tid ] = threadValue;
+         }
       }
 
       __syncthreads();
-      return storage.data[ 0 ];
+      return storage.data[ result_idx ];
    }
 };
 
@@ -120,21 +151,21 @@ struct CudaBlockReduceShfl
     * \param identity     Neutral element for given reduction operation, i.e.
     *                     value such that `reduction(identity, x) == x` for any `x`.
     * \param threadValue Value of the calling thread to be reduced.
-    * \param tid         Index of the calling thread (usually `threadIdx.x`,
-    *                    unless you know what you are doing).
     * \param storage     Auxiliary storage (must be allocated as a __shared__
     *                    variable).
+    * \param tid         Index of the calling thread (usually `threadIdx.x`,
+    *                    unless you know what you are doing).
     */
    __device__
    static ValueType
-   reduce( const Reduction& reduction, ValueType identity, ValueType threadValue, int tid, Storage& storage )
+   reduce( const Reduction& reduction, ValueType identity, ValueType threadValue, Storage& storage, int tid )
    {
       // verify the configuration
       static_assert( blockSize / Backend::getWarpSize() <= Backend::getWarpSize(),
                      "blockSize is too large, it would not be possible to reduce warpResults using one warp" );
 
-      int lane_id = threadIdx.x % warpSize;
-      int warp_id = threadIdx.x / warpSize;
+      int lane_id = tid % Backend::getWarpSize();
+      int warp_id = tid / Backend::getWarpSize();
 
       // perform the parallel reduction across warps
       threadValue = warpReduce( reduction, threadValue );
@@ -172,16 +203,47 @@ struct CudaBlockReduceShfl
    {
       #pragma unroll
       for( int i = Backend::getWarpSize() / 2; i > 0; i /= 2 ) {
-         // TODO: HIP does not have __shfl_xor_sync: https://github.com/ROCm-Developer-Tools/HIP/issues/1491
-   #ifdef __HIP__
-         const ValueType otherValue = __shfl_xor( threadValue, i );
-   #else
          constexpr unsigned mask = 0xffffffff;
          const ValueType otherValue = __shfl_xor_sync( mask, threadValue, i );
-   #endif
          threadValue = reduction( threadValue, otherValue );
       }
       return threadValue;
+   }
+};
+
+/* Template for cooperative reduction across the CUDA block of threads.
+ * It is a *cooperative* operation - all threads must call the operation,
+ * otherwise it will deadlock!
+ *
+ * The default implementation is generic and the reduction is done using
+ * shared memory. Specializations can be made based on `Reduction` and
+ * `ValueType`, e.g. using the `__shfl_sync` intrinsics for supported
+ * value types.
+ */
+template< int blockSize, typename Reduction, typename ValueType >
+struct CudaBlockReduce : public CudaBlockReduceSharedMemory< blockSize, Reduction, ValueType >
+{
+   // storage to be allocated in shared memory
+   using Storage = typename CudaBlockReduceSharedMemory< blockSize, Reduction, ValueType >::Storage;
+
+   /* Cooperative reduction across the CUDA block - each thread will get the
+    * result of the reduction
+    *
+    * \param reduction   The binary reduction functor.
+    * \param identity     Neutral element for given reduction operation, i.e.
+    *                     value such that `reduction(identity, x) == x` for any `x`.
+    * \param threadValue Value of the calling thread to be reduced.
+    * \param storage     Auxiliary storage (must be allocated as a __shared__
+    *                    variable).
+    * \param tid         Index of the calling thread (usually `threadIdx.x`,
+    *                    unless you know what you are doing).
+    */
+   __device__
+   static ValueType
+   reduce( const Reduction& reduction, ValueType identity, ValueType threadValue, Storage& storage, int tid )
+   {
+      return CudaBlockReduceSharedMemory< blockSize, Reduction, ValueType >::reduce(
+         reduction, identity, threadValue, storage, tid, tid );
    }
 };
 
@@ -248,10 +310,10 @@ struct CudaBlockReduceWithArgument
     *                     value such that `reduction(identity, x) == x` for any `x`.
     * \param threadValue Value of the calling thread to be reduced.
     * \param threadIndex Index value of the calling thread to be reduced.
-    * \param tid         Index of the calling thread (usually `threadIdx.x`,
-    *                    unless you know what you are doing).
     * \param storage     Auxiliary storage (must be allocated as a __shared__
     *                    variable).
+    * \param tid         Index of the calling thread (usually `threadIdx.x`,
+    *                    unless you know what you are doing).
     */
    __device__
    static std::pair< ValueType, IndexType >
@@ -259,57 +321,96 @@ struct CudaBlockReduceWithArgument
                        ValueType identity,
                        ValueType threadValue,
                        IndexType threadIndex,
-                       int tid,
-                       Storage& storage )
+                       Storage& storage,
+                       int tid )
    {
       storage.data[ tid ] = threadValue;
       storage.idx[ tid ] = threadIndex;
       __syncthreads();
 
+      // Apply the reduction on threadValue and threadIndex rather than
+      // storage.data[ tid ] and storage.idx[ tid ] to avoid unnecessary reads
+      // from shared memory. Then update the thread value and index in shared
+      // memory for use by other threads.
       if( blockSize >= 1024 ) {
-         if( tid < 512 )
-            reduction( storage.data[ tid ], storage.data[ tid + 512 ], storage.idx[ tid ], storage.idx[ tid + 512 ] );
+         if( tid < 512 ) {
+            reduction( threadValue, storage.data[ tid + 512 ], threadIndex, storage.idx[ tid + 512 ] );
+            storage.data[ tid ] = threadValue;
+            storage.idx[ tid ] = threadIndex;
+         }
          __syncthreads();
       }
       if( blockSize >= 512 ) {
-         if( tid < 256 )
-            reduction( storage.data[ tid ], storage.data[ tid + 256 ], storage.idx[ tid ], storage.idx[ tid + 256 ] );
+         if( tid < 256 ) {
+            reduction( threadValue, storage.data[ tid + 256 ], threadIndex, storage.idx[ tid + 256 ] );
+            storage.data[ tid ] = threadValue;
+            storage.idx[ tid ] = threadIndex;
+         }
          __syncthreads();
       }
       if( blockSize >= 256 ) {
-         if( tid < 128 )
-            reduction( storage.data[ tid ], storage.data[ tid + 128 ], storage.idx[ tid ], storage.idx[ tid + 128 ] );
+         if( tid < 128 ) {
+            reduction( threadValue, storage.data[ tid + 128 ], threadIndex, storage.idx[ tid + 128 ] );
+            storage.data[ tid ] = threadValue;
+            storage.idx[ tid ] = threadIndex;
+         }
          __syncthreads();
       }
       if( blockSize >= 128 ) {
-         if( tid < 64 )
-            reduction( storage.data[ tid ], storage.data[ tid + 64 ], storage.idx[ tid ], storage.idx[ tid + 64 ] );
+         if( tid < 64 ) {
+            reduction( threadValue, storage.data[ tid + 64 ], threadIndex, storage.idx[ tid + 64 ] );
+            storage.data[ tid ] = threadValue;
+            storage.idx[ tid ] = threadIndex;
+         }
          __syncthreads();
       }
 
       // This runs in one warp so we use __syncwarp() instead of __syncthreads().
       if( tid < 32 ) {
-         if( blockSize >= 64 )
-            reduction( storage.data[ tid ], storage.data[ tid + 32 ], storage.idx[ tid ], storage.idx[ tid + 32 ] );
-         __syncwarp();
+         if( blockSize >= 64 ) {
+            reduction( threadValue, storage.data[ tid + 32 ], threadIndex, storage.idx[ tid + 32 ] );
+            storage.data[ tid ] = threadValue;
+            storage.idx[ tid ] = threadIndex;
+            __syncwarp();
+         }
          // Note that here we do not have to check if tid < 16 etc, because we have
          // 2 * blockSize.x elements of shared memory per block, so we do not
          // access out of bounds. The results for the upper half will be undefined,
          // but unused anyway.
-         if( blockSize >= 32 )
-            reduction( storage.data[ tid ], storage.data[ tid + 16 ], storage.idx[ tid ], storage.idx[ tid + 16 ] );
-         __syncwarp();
-         if( blockSize >= 16 )
-            reduction( storage.data[ tid ], storage.data[ tid + 8 ], storage.idx[ tid ], storage.idx[ tid + 8 ] );
-         __syncwarp();
-         if( blockSize >= 8 )
-            reduction( storage.data[ tid ], storage.data[ tid + 4 ], storage.idx[ tid ], storage.idx[ tid + 4 ] );
-         __syncwarp();
-         if( blockSize >= 4 )
-            reduction( storage.data[ tid ], storage.data[ tid + 2 ], storage.idx[ tid ], storage.idx[ tid + 2 ] );
-         __syncwarp();
-         if( blockSize >= 2 )
-            reduction( storage.data[ tid ], storage.data[ tid + 1 ], storage.idx[ tid ], storage.idx[ tid + 1 ] );
+         if( blockSize >= 32 ) {
+            reduction( threadValue, storage.data[ tid + 16 ], threadIndex, storage.idx[ tid + 16 ] );
+            __syncwarp();
+            storage.data[ tid ] = threadValue;
+            storage.idx[ tid ] = threadIndex;
+            __syncwarp();
+         }
+         if( blockSize >= 16 ) {
+            reduction( threadValue, storage.data[ tid + 8 ], threadIndex, storage.idx[ tid + 8 ] );
+            __syncwarp();
+            storage.data[ tid ] = threadValue;
+            storage.idx[ tid ] = threadIndex;
+            __syncwarp();
+         }
+         if( blockSize >= 8 ) {
+            reduction( threadValue, storage.data[ tid + 4 ], threadIndex, storage.idx[ tid + 4 ] );
+            __syncwarp();
+            storage.data[ tid ] = threadValue;
+            storage.idx[ tid ] = threadIndex;
+            __syncwarp();
+         }
+         if( blockSize >= 4 ) {
+            reduction( threadValue, storage.data[ tid + 2 ], threadIndex, storage.idx[ tid + 2 ] );
+            __syncwarp();
+            storage.data[ tid ] = threadValue;
+            storage.idx[ tid ] = threadIndex;
+            __syncwarp();
+         }
+         if( blockSize >= 2 ) {
+            reduction( threadValue, storage.data[ tid + 1 ], threadIndex, storage.idx[ tid + 1 ] );
+            __syncwarp();
+            storage.data[ tid ] = threadValue;
+            storage.idx[ tid ] = threadIndex;
+         }
       }
 
       __syncthreads();
@@ -370,7 +471,7 @@ CudaReductionKernel( DataFetcher dataFetcher,
    __syncthreads();
 
    // Perform the parallel reduction.
-   result = BlockReduce::reduce( reduction, identity, result, threadIdx.x, storage.blockReduceStorage );
+   result = BlockReduce::reduce( reduction, identity, result, storage.blockReduceStorage, threadIdx.x );
 
    // Store the result back in the global memory.
    if( threadIdx.x == 0 )
@@ -466,7 +567,7 @@ CudaReductionWithArgumentKernel( DataFetcher dataFetcher,
 
    // Perform the parallel reduction.
    const std::pair< Result, Index > result_pair =
-      BlockReduce::reduceWithArgument( reduction, identity, result, initialIndex, threadIdx.x, storage.blockReduceStorage );
+      BlockReduce::reduceWithArgument( reduction, identity, result, initialIndex, storage.blockReduceStorage, threadIdx.x );
 
    // Store the result back in the global memory.
    if( threadIdx.x == 0 ) {
