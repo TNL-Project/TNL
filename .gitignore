@@ -37,12 +37,6 @@
 # folder view options, icon positions, and other visual information)
 .DS_Store
 
-# old/deprecated directories (can be removed later, they are not used anymore)
-/Debug
-/Release
-/RelWithDebInfo
-/Build
-/Documentation/output_snippets/
-/Documentation/html/
-/build-tinyxml2/
-/builddir
+# Benchmark logs
+*.log
+*.metadata.json
