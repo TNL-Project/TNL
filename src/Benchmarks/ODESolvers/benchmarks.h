@@ -23,7 +23,7 @@ getPerformer()
 
 template< typename Solver, typename VectorPointer >
 void
-benchmarkSolver( Benchmark<>& benchmark, const Config::ParameterContainer& parameters, VectorPointer& u )
+benchmarkSolver( Benchmark& benchmark, const Config::ParameterContainer& parameters, VectorPointer& u )
 {
    using VectorType = typename VectorPointer::ObjectType;
    //using RealType = typename VectorType::RealType;

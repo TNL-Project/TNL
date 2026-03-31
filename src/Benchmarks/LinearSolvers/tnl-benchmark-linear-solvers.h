@@ -122,7 +122,7 @@ set_random_vector( Vector& v, typename Vector::RealType a, typename Vector::Real
 template< typename Matrix, typename Vector >
 void
 benchmarkIterativeSolvers(
-   TNL::Benchmarks::Benchmark<>& benchmark,
+   TNL::Benchmarks::Benchmark& benchmark,
    TNL::Config::ParameterContainer parameters,
    const std::shared_ptr< Matrix >& matrixPointer,
    const Vector& x0,
@@ -319,7 +319,7 @@ benchmarkIterativeSolvers(
 template< typename Matrix, typename Vector >
 void
 benchmarkDirectSolvers(
-   TNL::Benchmarks::Benchmark<>& benchmark,
+   TNL::Benchmarks::Benchmark& benchmark,
    const TNL::Config::ParameterContainer& parameters,
    const std::shared_ptr< Matrix >& matrixPointer,
    const Vector& x0,
@@ -420,7 +420,7 @@ struct LinearSolversBenchmark
    using DistributedRowLengths = typename DistributedMatrix::RowCapacitiesType;
 
    static bool
-   run( TNL::Benchmarks::Benchmark<>& benchmark, const TNL::Config::ParameterContainer& parameters )
+   run( TNL::Benchmarks::Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters )
    {
       const auto file_matrix = parameters.getParameter< TNL::String >( "input-matrix" );
       const auto file_dof = parameters.getParameter< TNL::String >( "input-dof" );
@@ -482,7 +482,7 @@ struct LinearSolversBenchmark
       std::cout << "\n== " << title << " ==\n\n";
 
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             {
                { "matrix name", parameters.getParameter< TNL::String >( "name" ) },
                { "segments type", matrixPointer->getSegments().getSegmentsType() },
@@ -522,7 +522,7 @@ struct LinearSolversBenchmark
 
    static void
    runDistributed(
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       const TNL::Config::ParameterContainer& parameters,
       const std::shared_ptr< MatrixType >& matrixPointer,
       const VectorType& x0,
@@ -571,7 +571,7 @@ struct LinearSolversBenchmark
 
    static void
    runNonDistributed(
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       const TNL::Config::ParameterContainer& parameters,
       const std::shared_ptr< MatrixType >& matrixPointer,
       const VectorType& x0,
@@ -687,7 +687,7 @@ main( int argc, char* argv[] )
       logFile.open( logFileName, mode );
 
    // init benchmark and set parameters
-   TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
+   TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
 
    // write global metadata into a separate file
    std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();

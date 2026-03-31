@@ -16,7 +16,7 @@ template<
    template< typename > class HostAllocator = Allocators::Default< Devices::Host >::Allocator,
    template< typename > class CudaAllocator = Allocators::Default< Devices::Cuda >::Allocator >
 void
-benchmarkArrayOperations( Benchmark<>& benchmark, const long& size )
+benchmarkArrayOperations( Benchmark& benchmark, const long& size )
 {
    using HostArray = Containers::Array< Real, Devices::Host, Index, HostAllocator< Real > >;
    using CudaArray = Containers::Array< Real, Devices::Cuda, Index, CudaAllocator< Real > >;

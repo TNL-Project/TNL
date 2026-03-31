@@ -139,7 +139,7 @@ struct HeatEquationSolverBenchmark
       if( outputMode == "append" )
          mode |= std::ios::app;
       std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
+      TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
 
       // write global metadata into a separate file
       std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
@@ -168,7 +168,7 @@ struct HeatEquationSolverBenchmark
       for( Index xSize = minXDimension; xSize <= maxXDimension; xSize *= xSizeStepFactor ) {
          for( Index ySize = minYDimension; ySize <= maxYDimension; ySize *= ySizeStepFactor ) {
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "precision", precision },
                     { "xSize", TNL::convertToString( xSize ) },
                     { "ySize", TNL::convertToString( ySize ) },

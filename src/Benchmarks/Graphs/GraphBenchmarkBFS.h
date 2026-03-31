@@ -45,7 +45,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       const HostGraph& graph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark )
+      TNL::Benchmarks::Benchmark& benchmark )
    {
       if( withBoost )
          runBoostBFS( digraph, graph, largestNode, benchmark );
@@ -58,7 +58,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       const HostDigraph& digraph,
       const HostGraph& graph,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark )
+      TNL::Benchmarks::Benchmark& benchmark )
    {
 #ifdef HAVE_BOOST
       BoostGraph< Index, Real, TNL::Graphs::DirectedGraph > boostDigraph( digraph );
@@ -111,7 +111,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       const HostDigraph& digraph,
       const HostGraph& graph,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark )
+      TNL::Benchmarks::Benchmark& benchmark )
    {
 #ifdef HAVE_GUNROCK
       // Convert TNL graphs to Gunrock format
@@ -185,7 +185,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
       Graph& graph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       const TNL::String& device,
       const TNL::String& segments )
    {

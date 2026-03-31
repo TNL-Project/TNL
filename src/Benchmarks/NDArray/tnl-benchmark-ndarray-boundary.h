@@ -41,7 +41,7 @@ reset()
 
 template< typename Device >
 void
-benchmark_1D( Benchmark<>& benchmark, index_type size = 500000000 )
+benchmark_1D( Benchmark& benchmark, index_type size = 500000000 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0 >, std::make_index_sequence< 1 >, Device >;
    ArrayType a;
@@ -75,7 +75,7 @@ benchmark_1D( Benchmark<>& benchmark, index_type size = 500000000 )
 
 template< typename Device >
 void
-benchmark_2D( Benchmark<>& benchmark, index_type size = 22333 )
+benchmark_2D( Benchmark& benchmark, index_type size = 22333 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0 >, std::make_index_sequence< 2 >, Device >;
    ArrayType a;
@@ -109,7 +109,7 @@ benchmark_2D( Benchmark<>& benchmark, index_type size = 22333 )
 
 template< typename Device >
 void
-benchmark_3D( Benchmark<>& benchmark, index_type size = 800 )
+benchmark_3D( Benchmark& benchmark, index_type size = 800 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0 >, std::make_index_sequence< 3 >, Device >;
    ArrayType a;
@@ -223,7 +223,7 @@ benchmark_3D( Benchmark<>& benchmark, index_type size = 800 )
 
 template< typename Device >
 void
-benchmark_2D_perm( Benchmark<>& benchmark, index_type size = 22333 )
+benchmark_2D_perm( Benchmark& benchmark, index_type size = 22333 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0 >, std::index_sequence< 1, 0 >, Device >;
    ArrayType a;
@@ -257,7 +257,7 @@ benchmark_2D_perm( Benchmark<>& benchmark, index_type size = 22333 )
 
 template< typename Device >
 void
-benchmark_3D_perm( Benchmark<>& benchmark, index_type size = 800 )
+benchmark_3D_perm( Benchmark& benchmark, index_type size = 800 )
 {
    using ArrayType = NDArray< value_type, SizesHolder< index_type, 0, 0, 0 >, std::index_sequence< 2, 1, 0 >, Device >;
    ArrayType a;
@@ -371,7 +371,7 @@ benchmark_3D_perm( Benchmark<>& benchmark, index_type size = 800 )
 
 template< typename Device >
 void
-run_benchmarks( Benchmark<>& benchmark )
+run_benchmarks( Benchmark& benchmark )
 {
    benchmark_1D< Device >( benchmark );
    benchmark_2D< Device >( benchmark );
@@ -434,7 +434,7 @@ main( int argc, char* argv[] )
    std::ofstream logFile( logFileName, mode );
 
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
+   Benchmark benchmark( logFile, loops, verbose );
 
    // write global metadata into a separate file
    std::map< std::string, std::string > metadata = getHardwareMetadata();

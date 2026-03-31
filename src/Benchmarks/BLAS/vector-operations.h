@@ -98,7 +98,7 @@ class VectorOperationsBenchmark
    using HostView = Containers::VectorView< Real, Devices::Host, Index >;
    using CudaView = Containers::VectorView< Real, Devices::Cuda, Index >;
 
-   Benchmark<>& benchmark;
+   Benchmark& benchmark;
    long size = 0;
    double datasetSize = 0;
 
@@ -139,7 +139,7 @@ class VectorOperationsBenchmark
 #endif
 
 public:
-   VectorOperationsBenchmark( Benchmark<>& benchmark, const long& size )
+   VectorOperationsBenchmark( Benchmark& benchmark, const long& size )
    : benchmark( benchmark ),
      size( size ),
      datasetSize( size * sizeof( Real ) / oneGB )
@@ -1782,7 +1782,7 @@ public:
 
 template< typename Real = double, typename Index = int >
 void
-benchmarkVectorOperations( Benchmark<>& benchmark, const long& size )
+benchmarkVectorOperations( Benchmark& benchmark, const long& size )
 {
    VectorOperationsBenchmark< Real, Index > ops( benchmark, size );
    ops.max();

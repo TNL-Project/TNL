@@ -44,7 +44,7 @@ using index_type = int;
 
 template< typename Device >
 void
-benchmark_reduction1D( Benchmark<>& benchmark, index_type size )
+benchmark_reduction1D( Benchmark& benchmark, index_type size )
 {
    Array< index_type, Device, index_type > v( size );
    v.setValue( 10 );
@@ -57,13 +57,13 @@ benchmark_reduction1D( Benchmark<>& benchmark, index_type size )
 
    const double datasetSize = size * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "1D", datasetSize );
-   benchmark.setMetadataColumns( Benchmark<>::MetadataColumns( { { "size", convertToString( size ) } } ) );
+   benchmark.setMetadataColumns( Benchmark::MetadataColumns( { { "size", convertToString( size ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 
 template< typename Device >
 void
-benchmark_reduction2D( Benchmark<>& benchmark, index_type size, index_type n )
+benchmark_reduction2D( Benchmark& benchmark, index_type size, index_type n )
 {
    Vector< index_type, Device > v( size * n );
    Vector< index_type, Devices::Sequential > result( n );
@@ -86,13 +86,13 @@ benchmark_reduction2D( Benchmark<>& benchmark, index_type size, index_type n )
    const double datasetSize = ( size * n + n ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "2D", datasetSize );
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns( { { "size", convertToString( size ) }, { "n", convertToString( n ) } } ) );
+      Benchmark::MetadataColumns( { { "size", convertToString( size ) }, { "n", convertToString( n ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 
 template< typename Device >
 void
-benchmark_reduction3D( Benchmark<>& benchmark, index_type size, index_type m, index_type n )
+benchmark_reduction3D( Benchmark& benchmark, index_type size, index_type m, index_type n )
 {
    Vector< index_type, Device > v( m * n * size );
    Vector< index_type, Devices::Host > result( m * n );
@@ -121,14 +121,14 @@ benchmark_reduction3D( Benchmark<>& benchmark, index_type size, index_type m, in
    const double datasetSize = ( m * n * size + m * n ) * sizeof( index_type ) / oneGB;
    benchmark.setOperation( "3D", datasetSize );
    benchmark.setMetadataColumns(
-      Benchmark<>::MetadataColumns(
+      Benchmark::MetadataColumns(
          { { "size", convertToString( size ) }, { "m", convertToString( m ) }, { "n", convertToString( n ) } } ) );
    benchmark.time< Device >( reset, performer< Device >(), compute );
 }
 
 template< typename Device >
 void
-run_benchmarks( Benchmark<>& benchmark )
+run_benchmarks( Benchmark& benchmark )
 {
    for( index_type size : { 5000000, 500000000 } ) {
       benchmark_reduction1D< Device >( benchmark, size );
@@ -200,7 +200,7 @@ main( int argc, char* argv[] )
    std::ofstream logFile( logFileName, mode );
 
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
+   Benchmark benchmark( logFile, loops, verbose );
 
    // write global metadata into a separate file
    std::map< std::string, std::string > metadata = getHardwareMetadata();

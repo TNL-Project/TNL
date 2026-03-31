@@ -62,7 +62,7 @@ setupConfig( Config::ConfigDescription& config )
 
 template< typename ValueType >
 void
-runBenchmark( Benchmark<>& benchmark, std::size_t size, const String& device )
+runBenchmark( Benchmark& benchmark, std::size_t size, const String& device )
 {
    struct DistributionInfo
    {
@@ -84,7 +84,7 @@ runBenchmark( Benchmark<>& benchmark, std::size_t size, const String& device )
 
       if( device == "host" || device == "all" ) {
          benchmark.setMetadataColumns(
-            Benchmark<>::MetadataColumns(
+            Benchmark::MetadataColumns(
                { { "size", std::to_string( size ) },
                  { "distribution", dist.name },
                  { "value_type", TNL::getType< ValueType >() },
@@ -112,7 +112,7 @@ runBenchmark( Benchmark<>& benchmark, std::size_t size, const String& device )
 #ifdef __CUDACC__
       if( device == "cuda" || device == "all" ) {
          benchmark.setMetadataColumns(
-            Benchmark<>::MetadataColumns(
+            Benchmark::MetadataColumns(
                { { "size", std::to_string( size ) },
                  { "distribution", dist.name },
                  { "value_type", TNL::getType< ValueType >() },
@@ -259,7 +259,7 @@ main( int argc, char* argv[] )
    }
 
    // Init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
+   Benchmark benchmark( logFile, loops, verbose );
 
    // Write global metadata into a separate file
    std::map< std::string, std::string > metadata = getHardwareMetadata();
