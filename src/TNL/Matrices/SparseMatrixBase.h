@@ -52,7 +52,9 @@ class SparseMatrixBase : public MatrixBase< Real, Device, Index, MatrixType_, Se
    using Base = MatrixBase< Real, Device, Index, MatrixType_, SegmentsView::getOrganization() >;
 
 public:
-   // TODO: add documentation for this type
+   /**
+    * \brief Type of the container view for matrix element column indexes.
+    */
    using ColumnIndexesViewType =
       Containers::VectorView< typename TNL::copy_const< Index >::template from< Real >::type, Device, Index >;
 

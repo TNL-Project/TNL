@@ -41,7 +41,7 @@ namespace TNL::Matrices {
 template< typename Real = double,
           typename Device = Devices::Host,
           typename Index = int,
-          typename MatrixType_ = GeneralMatrix,
+          typename MatrixType = GeneralMatrix,
           template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments = Algorithms::Segments::CSR,
           typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
@@ -50,7 +50,7 @@ class SparseMatrix
 : public SparseMatrixBase< Real,
                            Device,
                            Index,
-                           MatrixType_,
+                           MatrixType,
                            std::conditional_t< std::is_const_v< Real >,
                                                typename Segments< Device, Index, IndexAllocator >::ConstViewType,
                                                typename Segments< Device, Index, IndexAllocator >::ViewType >,
@@ -59,15 +59,13 @@ class SparseMatrix
    using Base = SparseMatrixBase< Real,
                                   Device,
                                   Index,
-                                  MatrixType_,
+                                  MatrixType,
                                   std::conditional_t< std::is_const_v< Real >,
                                                       typename Segments< Device, Index, IndexAllocator >::ConstViewType,
                                                       typename Segments< Device, Index, IndexAllocator >::ViewType >,
                                   ComputeReal >;
 
 public:
-   using typename Base::MatrixType;
-
    /**
     * \brief Type of vector holding values of matrix elements.
     */
@@ -98,10 +96,7 @@ public:
     * \brief Templated view type of segments, i.e. sparse matrix format.
     */
    template< typename Device_, typename Index_ >
-   using SegmentsViewTemplate = typename std::conditional_t<
-      std::is_const_v< Real >,
-      typename Segments< Device, Index, IndexAllocator >::ConstViewType,
-      typename Segments< Device, Index, IndexAllocator >::ViewType >::template ViewTemplate< Device_, Index_ >;
+   using SegmentsViewTemplate = typename Segments< Device_, Index_, IndexAllocator >::ViewType;
 
    /**
     * \brief The allocator for matrix elements values.
@@ -123,7 +118,7 @@ public:
    using ViewType = SparseMatrixView< Real,
                                       Device,
                                       Index,
-                                      MatrixType_,
+                                      MatrixType,
                                       Segments< Device, Index, IndexAllocator >::template ViewTemplate,
                                       ComputeReal >;
    //NOTE: Avoid using SegmentsViewTemplate here!!! Named type is causing type
@@ -137,7 +132,7 @@ public:
    using ConstViewType = SparseMatrixView< std::add_const_t< Real >,
                                            Device,
                                            Index,
-                                           MatrixType_,
+                                           MatrixType,
                                            Segments< Device, Index, IndexAllocator >::template ViewTemplate,
                                            ComputeReal >;
    //NOTE: Avoid using SegmentsViewTemplate here!!! Named type is causing type
@@ -147,7 +142,7 @@ public:
     * \brief Type of related constant matrix.
     */
    using ConstMatrixType =
-      SparseMatrix< std::add_const_t< Real >, Device, Index, MatrixType_, Segments, ComputeReal, RealAllocator, IndexAllocator >;
+      SparseMatrix< std::add_const_t< Real >, Device, Index, MatrixType, Segments, ComputeReal, RealAllocator, IndexAllocator >;
 
    /**
     * \brief Helper type for getting self type or its modifications.
@@ -155,7 +150,7 @@ public:
    template< typename _Real = Real,
              typename _Device = Device,
              typename _Index = Index,
-             typename _MatrixType = MatrixType_,
+             typename _MatrixType = MatrixType,
              template< typename, typename, typename > class _Segments = SegmentsTemplate,
              typename _ComputeReal = ComputeReal,
              typename _RealAllocator = typename Allocators::Default< _Device >::template Allocator< _Real >,
@@ -481,7 +476,7 @@ public:
     */
    template< typename Real2, typename Index2, template< typename, typename, typename > class Segments2 >
    void
-   getTransposition( const SparseMatrix< Real2, Device, Index2, MatrixType_, Segments2 >& matrix,
+   getTransposition( const SparseMatrix< Real2, Device, Index2, MatrixType, Segments2 >& matrix,
                      const ComputeReal& matrixMultiplicator = 1.0 );
 
    /**
