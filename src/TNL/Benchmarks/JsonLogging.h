@@ -76,7 +76,7 @@ public:
       log << "{";
 
       // write common logs
-      int idx( 0 );
+      std::size_t idx( 0 );
       for( const auto& lg : this->metadataColumns ) {
          if( verbose > 0 ) {
             if( idx >= commonMetadataCount ) {
@@ -126,7 +126,7 @@ public:
       log << "{";
 
       // write common logs
-      int idx( 0 );
+      std::size_t idx( 0 );
       for( const auto& lg : this->metadataColumns ) {
          if( idx++ > 0 )
             log << ", ";
