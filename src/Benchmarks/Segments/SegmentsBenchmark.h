@@ -37,11 +37,8 @@ struct SegmentsBenchmark
    static void
    configSetup( TNL::Config::ConfigDescription& config )
    {
-      config.addDelimiter( "Benchmark settings:" );
-      config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-segments.log" );
-      config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-      config.addEntryEnum( "append" );
-      config.addEntryEnum( "overwrite" );
+      Benchmark::configSetup( config );
+      config.addDelimiter( "Segments benchmark settings:" );
       config.addEntry< TNL::String >( "segments-setup", "Segments setup used for benchmarking.", "all" );
       config.addEntryEnum( "all" );
       config.addEntryEnum( "constant" );
@@ -61,9 +58,6 @@ struct SegmentsBenchmark
       config.addEntryEnum< TNL::String >( "cuda" );
       TNL::Devices::Host::configSetup( config );
       TNL::Devices::Cuda::configSetup( config );
-
-      config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-      config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    }
 
    SegmentsBenchmark( const TNL::Config::ParameterContainer& parameters_ )
@@ -412,25 +406,14 @@ struct SegmentsBenchmark
    void
    setupBenchmark()
    {
-      const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
-      const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
-      const int loops = parameters.getParameter< int >( "loops" );
-      const int verbose = parameters.getParameter< int >( "verbose" );
       const auto segmentsSetup = parameters.getParameter< TNL::String >( "segments-setup" );
       const int minSegmentsCount = parameters.getParameter< int >( "min-segments-count" );
       const int maxSegmentsCount = parameters.getParameter< int >( "max-segments-count" );
       const int minSegmentSize = parameters.getParameter< int >( "min-segment-size" );
       const int maxSegmentSize = parameters.getParameter< int >( "max-segment-size" );
 
-      auto mode = std::ios::out;
-      if( outputMode == "append" )
-         mode |= std::ios::app;
-      std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
-
-      // write global metadata into a separate file
-      std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
-      TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
+      TNL::Benchmarks::Benchmark benchmark;
+      benchmark.setup( parameters );
 
       // Constant segments
       if( segmentsSetup == "constant" || segmentsSetup == "all" ) {

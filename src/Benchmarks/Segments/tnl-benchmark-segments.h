@@ -6,23 +6,10 @@
 #include <TNL/Devices/Cuda.h>
 #include "SegmentsBenchmark.h"
 
-void
-configSetup( TNL::Config::ConfigDescription& config )
-{
-   //config.addDelimiter( "General settings:" );
-
-   config.addDelimiter( "Precision settings:" );
-   config.addEntry< TNL::String >( "precision", "Precision of the arithmetics.", "double" );
-   config.addEntryEnum( "float" );
-   config.addEntryEnum( "double" );
-   config.addEntryEnum( "all" );
-}
-
 int
 main( int argc, char* argv[] )
 {
    TNL::Config::ConfigDescription config;
-   configSetup( config );
    TNL::Benchmarks::Segments::SegmentsBenchmark<>::configSetup( config );
 
    TNL::Config::ParameterContainer parameters;
