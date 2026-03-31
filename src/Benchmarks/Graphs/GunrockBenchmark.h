@@ -15,45 +15,36 @@
 
 #include <TNL/Algorithms/copy.h>
 
-template< typename Real = double, typename Index = int >
+template< typename Value = double, typename Index = int >
 struct GunrockBenchmark
 {
    using IndexType = Index;
-   using RealType = Real;
+   using ValueType = Value;
 
 #ifdef HAVE_GUNROCK
    template< typename HostGraphType >
    static auto
    convertToGunrockGraph( const HostGraphType& hostGraph )
    {
-      std::vector< IndexType > rowOffsets;
-      std::vector< IndexType > columnIndices;
-      std::vector< RealType > values;
+      using GraphType = TNL::Graphs::Graph< ValueType, TNL::Devices::Cuda, IndexType >;
+      GraphType graph;
+      graph = hostGraph;
+      auto adjacencyMatrix = graph.getAdjacencyMatrix();
 
       const auto& adjacencyMatrix = hostGraph.getAdjacencyMatrix();
-      TNL::Algorithms::copy( rowOffsets, adjacencyMatrix.getSegments().getOffsets() );
-      TNL::Algorithms::copy( columnIndices, adjacencyMatrix.getColumnIndexes() );
-      TNL::Algorithms::copy( values, adjacencyMatrix.getValues() );
 
-      thrust::device_vector< IndexType > d_rowOffsets( adjacencyMatrix.getRows() + 1 );
-      thrust::device_vector< IndexType > d_columnIndices( adjacencyMatrix.getColumnIndexes().getSize() );
-      thrust::device_vector< RealType > d_values( adjacencyMatrix.getValues().getSize() );
-      thrust::device_vector< IndexType > d_rowIndices( adjacencyMatrix.getValues().getSize() );
-      thrust::device_vector< IndexType > d_columnOffsets( adjacencyMatrix.getColumns() + 1 );
-
-      thrust::copy( rowOffsets.begin(), rowOffsets.end(), d_rowOffsets.begin() );
-      thrust::copy( columnIndices.begin(), columnIndices.end(), d_columnIndices.begin() );
-      thrust::copy( values.begin(), values.end(), d_values.begin() );
+      TNL::Containers::Vector< IndexType > rowIndices( adjacencyMatrix.getValues().getSize() );
+      TNL::Containers::Vector< IndexType > columnOffsets( adjacencyMatrix.getColumns() + 1 );
 
       auto graph = gunrock::graph::build::from_csr< gunrock::memory_space_t::device, gunrock::graph::view_t::csr >(
-         adjacencyMatrix.getRows(),              // rows
-         adjacencyMatrix.getColumns(),           // columns
-         adjacencyMatrix.getValues().getSize(),  // nonzeros
-         d_rowOffsets.data().get(),              // row_offsets
-         d_columnIndices.data().get(),           // column_indices
-         d_values.data().get(),                  // values
-         d_rowIndices.data().get(),              // row_indices
-         d_columnOffsets.data().get()            // column_offsets
+         adjacencyMatrix.getRows(),                             // rows
+         adjacencyMatrix.getColumns(),                          // columns
+         adjacencyMatrix.getValues().getSize(),                 // nonzeros
+         adjacencyMatrix.getSegments().getOffsets().getData(),  // row_offsets
+         adjacencyMatrix.getColumnIndexes().getData(),          // column_indices
+         adjacencyMatrix.getValues().getData(),                 // values
+         rowIndices.getData(),                                  // row_indices
+         columnOffsets.getData()                                // column_offsets
       );
       return graph;
    }
@@ -87,11 +78,11 @@ struct GunrockBenchmark
                              Graph& graph,
                              Index start,
                              Index size,
-                             std::vector< Real >& distances )
+                             std::vector< Value >& distances )
    {
 #ifdef HAVE_GUNROCK
-      thrust::device_vector< Real > d_distances( size );
-      thrust::device_vector< Index > d_predecessors( size );
+      thrust::device_vector< ValueType > d_distances( size );
+      thrust::device_vector< IndexType > d_predecessors( size );
 
       auto bfs_gunrock = [ & ]() mutable
       {
