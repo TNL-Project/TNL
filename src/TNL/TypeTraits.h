@@ -6,7 +6,7 @@
 #include <complex>
 #include <type_traits>
 #include <utility>
-#include "detail/LambdaDetails.h"
+#include "detail/CallableTraits.h"
 
 namespace TNL {
 
@@ -360,23 +360,23 @@ template< typename T >
 using GetValueType_t = typename GetValueType< T >::type;
 
 /**
- * \brief Returns number of arguments of a lambda function.
+ * \brief Returns number of arguments of a callable object.
  */
-template< typename Lambda >
+template< typename Callable >
 constexpr int
 callableArgumentCount()
 {
-   return detail::LambdaDetails< Lambda >::callableArgumentCount();
+   return detail::CallableTraits< Callable >::callableArgumentCount();
 }
 
 /**
- * \brief Returns true if lambda function is variadic.
+ * \brief Returns true if callable object is variadic.
  */
-template< typename Lambda >
+template< typename Callable >
 constexpr bool
 isVariadicCallable()
 {
-   return detail::LambdaDetails< Lambda >::isVariadicCallable();
+   return detail::CallableTraits< Callable >::isVariadicCallable();
 }
 
 }  // namespace TNL
