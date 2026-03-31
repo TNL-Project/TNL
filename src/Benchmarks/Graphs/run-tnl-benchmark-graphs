@@ -9,6 +9,7 @@ set -o nounset
 shopt -s globstar
 
 graphs_base_path="./"
+input_files="input-files"
 OMP_ENABLED="yes"
 MAX_OMP_THREADS="auto"
 DEBUG="no"
@@ -40,6 +41,10 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         -i|--input-dir)  # Input directory
             graphs_base_path="$2"
+            shift
+            ;;
+        -I|--input-files)  # Input file containing list of graphs to benchmark
+            input_files="$2"
             shift
             ;;
         -l|--log-file)  # Log file
@@ -75,6 +80,7 @@ while [[ "$#" -gt 0 ]]; do
             echo "Options:"
             echo "  -b, --benchmark BINARY        Binary to benchmark"
             echo "  -i, --input-dir DIR           Input directory. Default: ./"
+            echo "  -I, --input-files FILE        Input file containing list of graphs to benchmark. Default: input-files (created if not exists)"
             echo "  -l, --log-file FILE           Log file. Default: graphs-benchmark.log"
             echo "  -c, --continue yes/no         Continue from a previous run. Default: no"
             echo "  -s, --size-limit SIZE         Size limit for input files, -1 for no limit. Default: -1"
@@ -108,19 +114,19 @@ if [[ -f "$log_file" ]] && [[ "$continue_benchmark" != "yes" ]]; then
     rm -f "$log_file"
 fi
 
-if [[ -f "input-files" ]] && [[ "$continue_benchmark" != "yes" ]]; then
+if [[ -f "$input_files" ]] && [[ "$continue_benchmark" != "yes" ]]; then
     echo "WARNING: deleting an existing list of input files."
-    rm -f input-files
+    rm -f "$input_files"
 fi
 
-if [[ ! -f "input-files" ]]; then
+if [[ ! -f "$input_files" ]]; then
    echo "Creating list of input files..."
-   touch input-files
+   touch "$input_files"
    for file in "$graphs_base_path"/**/*.mtx; do
       file_size=$(stat --format="%s" "$file")
       if [ $SIZE_LIMIT -eq -1 ] || [ $file_size -lt $SIZE_LIMIT ]; then
          echo "$file"
-         echo "$file" >> input-files
+         echo "$file" >> "$input_files"
       else
          echo "Graph $file is too large - SKIPPING."
       fi
@@ -151,11 +157,11 @@ else
     COMMAND+=(--openmp-enabled no)
 fi
 
-total_lines=$(wc -l < input-files)
-while [[ -s input-files ]];
+total_lines=$(wc -l < "$input_files")
+while [[ -s "$input_files" ]];
 do
-   file=$(head -n 1 input-files)
-   lines=$(wc -l < input-files)
+   file=$(head -n 1 "$input_files")
+   lines=$(wc -l < "$input_files")
    lines=$((total_lines - lines))
    echo "$lines / $total_lines : Benchmarking graph $file ..."
    if [[ "$DEBUG" == "yes" ]]; then
@@ -163,6 +169,6 @@ do
    else
       run_command "${COMMAND[@]}" --input-file "$file"
    fi
-   sed -i '1d' input-files
+   sed -i '1d' "$input_files"
 done
-rm input-files
+rm "$input_files"
