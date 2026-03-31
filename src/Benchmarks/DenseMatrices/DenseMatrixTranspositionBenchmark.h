@@ -42,12 +42,9 @@ struct DenseMatrixTranspositionBenchmark
    static void
    configSetup( TNL::Config::ConfigDescription& config )
    {
-      config.addDelimiter( "Benchmark settings:" );
+      TNL::Benchmarks::Benchmark::configSetup( config );
+      config.addDelimiter( "Dense matrices benchmark settings:" );
       config.addEntry< TNL::String >( "input-file", "Input file with dense matrices." );
-      config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-dense-matrix-transposition.log" );
-      config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-      config.addEntryEnum( "append" );
-      config.addEntryEnum( "overwrite" );
       config.addDelimiter( "Device settings:" );
       config.addEntry< TNL::String >( "device", "Device the computation will run on.", "cuda" );
       config.addEntryEnum< TNL::String >( "host" );
@@ -60,8 +57,6 @@ struct DenseMatrixTranspositionBenchmark
       TNL::Devices::Hip::configSetup( config );
 #endif
 
-      config.addEntry< IndexType >( "loops", "Number of iterations for every computation.", 20 );
-      config.addEntry< IndexType >( "verbose", "Verbose mode.", 1 );
       config.addEntry< TNL::String >( "fill-mode", "Method to fill matrices.", "linear" );
       config.addEntryEnum( "linear" );
       config.addEntryEnum( "trigonometric" );
@@ -79,19 +74,10 @@ struct DenseMatrixTranspositionBenchmark
    runBenchmark()
    {
       const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
-      const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
-      const IndexType loops = parameters.getParameter< IndexType >( "loops" );
-      const IndexType verbose = parameters.getParameter< IndexType >( "verbose" );
       const bool isLinearFill = parameters.getParameter< TNL::String >( "fill-mode" ) == "linear";
 
-      auto mode = std::ios::out;
-      if( outputMode == "append" )
-         mode |= std::ios::app;
-      std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
-
-      std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
-      TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
+      TNL::Benchmarks::Benchmark benchmark;
+      benchmark.setup( parameters );
 
       const auto device = parameters.getParameter< TNL::String >( "device" );
 

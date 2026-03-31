@@ -7,9 +7,11 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <fstream>
 
 #include "Logging.h"
 
+#include <TNL/String.h>
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 
 namespace TNL::Benchmarks {
@@ -93,7 +95,7 @@ public:
    using MetadataColumns = Logging::MetadataColumns;
    using SolverMonitorType = Solvers::IterativeSolverMonitor< double >;
 
-   Benchmark( std::ostream& output, std::size_t loops = 10, int verbose = 1 );
+   Benchmark() = default;
 
    static void
    configSetup( Config::ConfigDescription& config );
@@ -179,8 +181,9 @@ protected:
    using BenchmarkLoggers = std::vector< std::unique_ptr< Logging > >;
 
    BenchmarkLoggers loggers;
+   std::ofstream logFile;
 
-   std::size_t loops = 1;
+   std::size_t loops = 10;
 
    std::size_t operations_per_loop = 0;
 

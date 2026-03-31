@@ -9,7 +9,8 @@
 void
 setupConfig( TNL::Config::ConfigDescription& config )
 {
-   config.addDelimiter( "General settings:" );
+   TNL::Benchmarks::Benchmark::configSetup( config );
+   config.addDelimiter( "Grid benchmark settings:" );
    config.addEntry< TNL::String >( "implementation", "Implementation of the heat equation solver.", "grid" );
    config.addEntryEnum< TNL::String >( "parallel-for" );
    config.addEntryEnum< TNL::String >( "simple-grid" );

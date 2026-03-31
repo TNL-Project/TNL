@@ -53,12 +53,9 @@ struct GraphsBenchmark
    static void
    configSetup( TNL::Config::ConfigDescription& config )
    {
-      config.addDelimiter( "Benchmark settings:" );
+      TNL::Benchmarks::Benchmark::configSetup( config );
+      config.addDelimiter( "Graphs benchmark settings:" );
       config.addEntry< TNL::String >( "input-file", "Input file with the graph." );
-      config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-graphs.log" );
-      config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-      config.addEntryEnum( "append" );
-      config.addEntryEnum( "overwrite" );
 
       config.addDelimiter( "Device settings:" );
       config.addEntry< TNL::String >( "device", "Device the computation will run on.", "all" );
@@ -68,9 +65,6 @@ struct GraphsBenchmark
       config.addEntryEnum< TNL::String >( "cuda" );
       TNL::Devices::Host::configSetup( config );
       TNL::Devices::Cuda::configSetup( config );
-
-      config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-      config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    }
 
    GraphsBenchmark( const TNL::Config::ParameterContainer& parameters_ )
@@ -510,19 +504,9 @@ struct GraphsBenchmark
    {
       auto inputFile = parameters.getParameter< TNL::String >( "input-file" );
       const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
-      const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
-      const int loops = parameters.getParameter< int >( "loops" );
-      const int verbose = parameters.getParameter< int >( "verbose" );
 
-      auto mode = std::ios::out;
-      if( outputMode == "append" )
-         mode |= std::ios::app;
-      std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
-
-      // write global metadata into a separate file
-      std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
-      TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
+      TNL::Benchmarks::Benchmark benchmark;
+      benchmark.setup( parameters );
 
       this->errors = 0;
 

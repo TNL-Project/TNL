@@ -130,11 +130,8 @@ runBlasBenchmarks( Benchmark& benchmark, const std::size_t& minSize, const std::
 void
 setupConfig( Config::ConfigDescription& config )
 {
-   config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-blas.log" );
-   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-   config.addEntryEnum( "append" );
-   config.addEntryEnum( "overwrite" );
+   Benchmark::configSetup( config );
+   config.addDelimiter( "BLAS benchmark settings:" );
    config.addEntry< String >( "precision", "Precision of the arithmetics.", "double" );
    config.addEntryEnum( "float" );
    config.addEntryEnum( "double" );
@@ -146,8 +143,6 @@ setupConfig( Config::ConfigDescription& config )
       "Factor determining the size of arrays/vectors used in the benchmark. First size is min-size and "
       "each following size is stepFactor*previousSize, up to max-size.",
       2 );
-   config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
 
    config.addDelimiter( "Device settings:" );
    Devices::Host::configSetup( config );
@@ -169,7 +164,6 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
 
    const String& logFileName = parameters.getParameter< String >( "log-file" );
-   const String& outputMode = parameters.getParameter< String >( "output-mode" );
    const String& precision = parameters.getParameter< String >( "precision" );
    // FIXME: getParameter< std::size_t >() does not work with parameters added with addEntry< int >(),
    // which have a default value. The workaround below works for int values, but it is not possible
@@ -179,26 +173,14 @@ main( int argc, char* argv[] )
    const std::size_t minSize = parameters.getParameter< int >( "min-size" );
    const std::size_t maxSize = parameters.getParameter< int >( "max-size" );
    const int sizeStepFactor = parameters.getParameter< int >( "size-step-factor" );
-   const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = parameters.getParameter< int >( "verbose" );
 
    if( sizeStepFactor <= 1 ) {
       std::cerr << "The value of --size-step-factor must be greater than 1.\n";
       return EXIT_FAILURE;
    }
 
-   // open log file
-   auto mode = std::ios::out;
-   if( outputMode == "append" )
-      mode |= std::ios::app;
-   std::ofstream logFile( logFileName, mode );
-
-   // init benchmark and set parameters
-   Benchmark benchmark( logFile, loops, verbose );
-
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = getHardwareMetadata();
-   writeMapAsJson( metadata, logFileName, ".metadata.json" );
+   Benchmark benchmark;
+   benchmark.setup( parameters );
 
    if( precision == "all" || precision == "float" )
       runBlasBenchmarks< float >( benchmark, minSize, maxSize, sizeStepFactor );

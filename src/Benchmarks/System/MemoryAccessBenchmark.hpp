@@ -11,12 +11,8 @@
 void
 MemoryAccessBenchmark::configSetup( TNL::Config::ConfigDescription& config )
 {
-   config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-memory-access.log" );
-   config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-   config.addEntryEnum( "overwrite" );
-   config.addEntryEnum( "append" );
-   config.addEntry< int >( "loops", "Number of repetitions for every benchmark test.", 2 );
+   TNL::Benchmarks::Benchmark::configSetup( config );
+   config.addDelimiter( "Memory access benchmark settings:" );
    config.addEntry< int >( "threads-count", "Number of OpenMP threads for host device.", 1 );
    config.addEntry< int >( "element-size", "Benchmark element size.", 1 );
    config.addEntry< bool >( "read-test", "Read data from the memory.", true );
@@ -29,7 +25,6 @@ MemoryAccessBenchmark::configSetup( TNL::Config::ConfigDescription& config )
    config.addEntry< TNL::String >( "access-type", "Type of memory accesses to be benchmarked.", "sequential" );
    config.addEntryEnum( "sequential" );
    config.addEntryEnum( "random" );
-   config.addEntry< bool >( "verbose", "Verbose mode.", true );
 }
 
 template< int ElementSize >
@@ -39,19 +34,10 @@ MemoryAccessBenchmark::performBenchmark( const TNL::Config::ParameterContainer& 
    using TestArrayType = MemoryAccessBenchmarkTestArray< ElementSize >;
    using ElementType = typename TestArrayType::ElementType;
 
-   auto output_mode = parameters.getParameter< TNL::String >( "output-mode" );
    auto log_file_name = parameters.getParameter< TNL::String >( "log-file" );
-   auto verbose = parameters.getParameter< bool >( "verbose" );
-   auto mode = std::ios::out;
-   if( output_mode == "append" )
-      mode |= std::ios::app;
-   std::ofstream log_file( log_file_name.getString(), mode );
-   int loops = parameters.getParameter< int >( "loops" );
-   TNL::Benchmarks::Benchmark benchmark( log_file, loops, verbose );
 
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
-   TNL::Benchmarks::writeMapAsJson( metadata, log_file_name, ".metadata.json" );
+   TNL::Benchmarks::Benchmark benchmark;
+   benchmark.setup( parameters );
 
    auto access_type = parameters.getParameter< TNL::String >( "access-type" );
    size_t min_size = parameters.getParameter< int >( "min-array-size" );

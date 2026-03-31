@@ -592,12 +592,8 @@ struct LinearSolversBenchmark
 void
 configSetup( TNL::Config::ConfigDescription& config )
 {
-   config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-linear-solvers.log" );
-   config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-   config.addEntryEnum( "append" );
-   config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Number of repetitions of the benchmark.", 10 );
+   TNL::Benchmarks::Benchmark::configSetup( config );
+   config.addDelimiter( "Linear solvers benchmark settings:" );
    config.addRequiredEntry< TNL::String >(
       "input-matrix", "File name of the input matrix (in binary TNL format or textual MTX format)." );
    config.addEntry< TNL::String >( "input-dof", "File name of the input DOF vector (in binary TNL format).", "" );
@@ -606,7 +602,6 @@ configSetup( TNL::Config::ConfigDescription& config )
    config.addEntryEnum( "ones" );
    config.addEntryEnum( "random" );
    config.addEntry< TNL::String >( "name", "Name of the matrix in the benchmark.", "" );
-   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    config.addEntry< bool >( "reorder-dofs", "Reorder matrix entries corresponding to the same DOF together.", false );
    config.addEntry< bool >( "with-iterative", "Includes the iterative solvers in the benchmark.", true );
    config.addEntry< bool >( "with-direct", "Includes the 3rd party direct solvers in the benchmark.", true );
@@ -661,7 +656,6 @@ main( int argc, char* argv[] )
    configSetup( conf_desc );
 
    TNL::MPI::ScopedInitializer mpi( argc, argv );
-   const int rank = TNL::MPI::GetRank();
 
 #ifdef HAVE_TRILINOS
    Kokkos::initialize( argc, argv );
@@ -673,25 +667,9 @@ main( int argc, char* argv[] )
        || ! TNL::MPI::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const TNL::String& logFileName = parameters.getParameter< TNL::String >( "log-file" );
-   const TNL::String& outputMode = parameters.getParameter< TNL::String >( "output-mode" );
-   const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = ( rank == 0 ) ? parameters.getParameter< int >( "verbose" ) : 0;
-
-   // open log file
-   auto mode = std::ios::out;
-   if( outputMode == "append" )
-      mode |= std::ios::app;
-   std::ofstream logFile;
-   if( rank == 0 )
-      logFile.open( logFileName, mode );
-
    // init benchmark and set parameters
-   TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
-
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
-   TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
+   TNL::Benchmarks::Benchmark benchmark;
+   benchmark.setup( parameters );
 
    // TODO: implement resolveMatrixType
    //return ! Matrices::resolveMatrixType< MainConfig,

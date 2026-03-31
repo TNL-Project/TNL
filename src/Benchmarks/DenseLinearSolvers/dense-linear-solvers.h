@@ -21,18 +21,10 @@ benchmarkDenseLinearSolvers( TNL::Config::ParameterContainer& parameters )
    using HostMatrixPointer = std::shared_ptr< HostMatrixType >;
 
    const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
-   const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = parameters.getParameter< int >( "verbose" );
 
-   auto mode = std::ios::out;
-   if( parameters.getParameter< bool >( "append-log" ) )
-      mode |= std::ios::app;
-   std::ofstream logFile( logFileName.getString(), mode );
-   TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
+   TNL::Benchmarks::Benchmark benchmark;
+   benchmark.setup( parameters );
 
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
-   TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
    benchmark.getMonitor().setRefreshRate( 1000 );  // refresh rate in milliseconds
    benchmark.getMonitor().setStage( "GEM elimination stage:" );
 
@@ -44,8 +36,6 @@ benchmarkDenseLinearSolvers( TNL::Config::ParameterContainer& parameters )
    else {
       auto matrixSize = parameters.getParameter< int >( "matrix-size" );
       input_matrix.setDimensions( matrixSize, matrixSize );
-      if( verbose > 1 )
-         std::cout << "Creating random matrix of size " << matrixSize << "x" << matrixSize << '\n';
       TNL::Algorithms::fillRandom< TNL::Devices::Host >(
          input_matrix.getValues().getData(), input_matrix.getValues().getSize(), Real( -1 ), Real( 1 ) );
    }
