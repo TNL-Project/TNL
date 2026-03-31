@@ -78,8 +78,7 @@ public:
          Real weight = boost::get( boost::edge_weight, boostGraph.getGraph(), edge );
          this->boostMSTTotalWeight += weight;
       }
-      if( this->verbose > 0 )
-         std::cout << "Boost MST total weight: " << boostMSTTotalWeight << '\n';
+      //std::cout << "Boost MST total weight: " << boostMSTTotalWeight << '\n';
       auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
       boostGraph.exportMst( boostMstEdges, filename + "-boost-mst.txt" );
 

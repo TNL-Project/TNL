@@ -6,6 +6,8 @@
 #include <iostream>
 #include <exception>
 
+#include <TNL/MPI/Comm.h>
+
 #include "Benchmarks.h"
 #include "JsonLogging.h"
 #include "TerminalLogging.h"
@@ -13,20 +15,18 @@
 
 namespace TNL::Benchmarks {
 
-Benchmark::Benchmark( std::ostream& output, std::size_t loops, int verbose )
-: loops( loops )
-{
-   loggers.push_back( std::make_unique< JsonLogging >( output, verbose ) );
-   loggers.push_back( std::make_unique< TerminalLogger >( std::cout, verbose ) );
-}
-
 void
 Benchmark::configSetup( Config::ConfigDescription& config )
 {
+   config.addDelimiter( "General benchmark settings:" );
+   config.addEntry< String >( "log-file", "Log file name for JSON output.", "" );
+   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
+   config.addEntryEnum( "append" );
+   config.addEntryEnum( "overwrite" );
    config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
    config.addEntry< bool >( "reset", "Call reset function between loops.", true );
    config.addEntry< double >( "min-time", "Minimal real time in seconds for every computation.", 0.0 );
-   config.addEntry< int >( "verbose", "Verbose mode, the higher number the more verbosity.", 1 );
+   config.addEntry< int >( "verbose", "Verbose mode for terminal output, the higher number the more verbosity.", 1 );
 }
 
 void
@@ -36,8 +36,29 @@ Benchmark::setup( const Config::ParameterContainer& parameters )
    this->reset = parameters.getParameter< bool >( "reset" );
    this->minTime = parameters.getParameter< double >( "min-time" );
    const int verbose = parameters.getParameter< int >( "verbose" );
-   for( auto& logger : loggers )
-      logger->setVerbose( verbose );
+
+   // Only root rank initializes loggers
+   const int rank = TNL::MPI::GetRank();
+   if( rank > 0 )
+      return;
+
+   // Set up JSON logging if log-file is specified
+   const String& logFileName = parameters.getParameter< String >( "log-file" );
+   if( ! logFileName.empty() ) {
+      const String& outputMode = parameters.getParameter< String >( "output-mode" );
+      auto mode = std::ios::out;
+      if( outputMode == "append" )
+         mode |= std::ios::app;
+      logFile.open( logFileName.getString(), mode );
+      addLogger( std::make_unique< JsonLogging >( logFile, verbose ) );
+
+      // Write global metadata into a separate file
+      std::map< std::string, std::string > metadata = getHardwareMetadata();
+      writeMapAsJson( metadata, logFileName, ".metadata.json" );
+   }
+
+   // Set up terminal logging
+   addLogger( std::make_unique< TerminalLogger >( std::cout, verbose ) );
 }
 
 void

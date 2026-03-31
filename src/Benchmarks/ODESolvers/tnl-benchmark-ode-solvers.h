@@ -317,13 +317,8 @@ resolveRealTypes( Benchmark& benchmark, Config::ParameterContainer& parameters )
 void
 configSetup( Config::ConfigDescription& config )
 {
-   config.addDelimiter( "Benchmark settings:" );
-   config.addEntry< String >( "log-file", "Log file name.", "tnl-benchmark-ode-solvers.log" );
-   config.addEntry< String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-   config.addEntryEnum( "append" );
-   config.addEntryEnum( "overwrite" );
-   config.addEntry< int >( "loops", "Number of repetitions of the benchmark.", 10 );
-   config.addEntry< int >( "verbose", "Verbose mode.", 1 );
+   Benchmark::configSetup( config );
+   config.addDelimiter( "ODE solvers benchmark settings:" );
    config.addList< String >( "solvers", "List of solvers to run benchmarks for.", { "all" } );
    config.addEntryEnum< String >( "bogacki-shampin" );
    config.addEntryEnum< String >( "cash-karp" );
@@ -387,32 +382,14 @@ main( int argc, char* argv[] )
    configSetup( conf_desc );
 
    TNL::MPI::ScopedInitializer mpi( argc, argv );
-   const int rank = TNL::MPI::GetRank();
 
    if( ! parseCommandLine( argc, argv, conf_desc, parameters ) )
       return EXIT_FAILURE;
    if( ! Devices::Host::setup( parameters ) || ! Devices::Cuda::setup( parameters ) || ! TNL::MPI::setup( parameters ) )
       return EXIT_FAILURE;
 
-   const String& logFileName = parameters.getParameter< String >( "log-file" );
-   const String& outputMode = parameters.getParameter< String >( "output-mode" );
-   const int loops = parameters.getParameter< int >( "loops" );
-   const int verbose = ( rank == 0 ) ? parameters.getParameter< int >( "verbose" ) : 0;
-
-   // open log file
-   auto mode = std::ios::out;
-   if( outputMode == "append" )
-      mode |= std::ios::app;
-   std::ofstream logFile;
-   if( rank == 0 )
-      logFile.open( logFileName, mode );
-
-   // init benchmark and set parameters
-   Benchmark benchmark( logFile, loops, verbose );
-
-   // write global metadata into a separate file
-   std::map< std::string, std::string > metadata = getHardwareMetadata();
-   writeMapAsJson( metadata, logFileName, ".metadata.json" );
+   Benchmark benchmark;
+   benchmark.setup( parameters );
 
    const bool status = resolveRealTypes( benchmark, parameters );
    return static_cast< int >( ! status );

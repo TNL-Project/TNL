@@ -40,8 +40,8 @@ int
 main( int argc, char* argv[] )
 {
    TNL::Config::ConfigDescription config;
-   configSetup( config );
    TNL::Benchmarks::Graphs::GraphBenchmarkSSSP<>::configSetup( config );
+   configSetup( config );
 
    TNL::Config::ParameterContainer parameters;
 

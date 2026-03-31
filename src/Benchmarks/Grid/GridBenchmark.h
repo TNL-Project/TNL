@@ -27,43 +27,18 @@ public:
    static void
    setupConfig( TNL::Config::ConfigDescription& config )
    {
-      config.addDelimiter( "Benchmark settings:" );
-      config.addEntry< TNL::String >( "log-file", "Log file name.", "output.log" );
-      config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-      config.addEntryEnum( "append" );
-      config.addEntryEnum( "overwrite" );
+      config.addDelimiter( "Grid settings:" );
       for( int i = 0; i < 3; i++ )
          config.addEntry< int >( dimensionParameterIds[ i ], "Grid resolution.", 100 );
-
-      config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-      config.addEntry< int >( "verbose", "Verbose mode.", 1 );
    }
 
    template< int GridDimension >
    [[nodiscard]] int
    runBenchmark( const TNL::Config::ParameterContainer& parameters ) const
    {
-      if( ! TNL::Devices::Host::setup( parameters ) || ! TNL::Devices::Cuda::setup( parameters ) )
-         return EXIT_FAILURE;
+      Benchmark benchmark;
+      benchmark.setup( parameters );
 
-      const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
-      const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
-
-      const int verbose = parameters.getParameter< int >( "verbose" );
-      const int loops = parameters.getParameter< int >( "loops" );
-
-      auto mode = std::ios::out;
-
-      if( outputMode == "append" )
-         mode |= std::ios::app;
-
-      std::ofstream logFile( logFileName.getString(), mode );
-
-      Benchmark benchmark( logFile, loops, verbose );
-
-      // write global metadata into a separate file
-      std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
-      TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
       time< GridDimension >( benchmark, parameters );
       return 0;
    }

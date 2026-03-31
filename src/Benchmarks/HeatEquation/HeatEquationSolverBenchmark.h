@@ -14,12 +14,9 @@ struct HeatEquationSolverBenchmark
    static void
    configSetup( TNL::Config::ConfigDescription& config )
    {
-      config.addDelimiter( "Benchmark settings:" );
+      TNL::Benchmarks::Benchmark::configSetup( config );
+      config.addDelimiter( "Heat equation benchmark settings:" );
       config.addEntry< TNL::String >( "id", "Identifier of the run", "unknown" );
-      config.addEntry< TNL::String >( "log-file", "Log file name.", "tnl-benchmark-heat-equation.log" );
-      config.addEntry< TNL::String >( "output-mode", "Mode for opening the log file.", "overwrite" );
-      config.addEntryEnum( "append" );
-      config.addEntryEnum( "overwrite" );
       config.addEntry< int >( "min-x-dimension", "Minimum dimension over x axis used in the benchmark.", 100 );
       config.addEntry< int >( "max-x-dimension", "Maximum dimension over x axis used in the benchmark.", 200 );
       config.addEntry< int >(
@@ -36,9 +33,6 @@ struct HeatEquationSolverBenchmark
          "following size is stepFactor*previousSize, up to max-y-dimension.",
          2 );
 
-      config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-
-      config.addEntry< int >( "verbose", "Verbose mode.", 1 );
       config.addEntry< bool >( "write-data", "Write initial condition and final state to a file.", false );
 
       config.addDelimiter( "Problem settings:" );
@@ -111,7 +105,6 @@ struct HeatEquationSolverBenchmark
    {
       auto implementation = parameters.getParameter< TNL::String >( "implementation" );
       const auto logFileName = parameters.getParameter< TNL::String >( "log-file" );
-      const auto outputMode = parameters.getParameter< TNL::String >( "output-mode" );
       bool writeData = parameters.getParameter< bool >( "write-data" );
 
       const Index minXDimension = parameters.getParameter< int >( "min-x-dimension" );
@@ -127,23 +120,13 @@ struct HeatEquationSolverBenchmark
       const Index maxYDimension = parameters.getParameter< int >( "max-y-dimension" );
       const Index ySizeStepFactor = parameters.getParameter< int >( "y-size-step-factor" );
 
-      const int loops = parameters.getParameter< int >( "loops" );
-      const int verbose = parameters.getParameter< int >( "verbose" );
-
       if( ySizeStepFactor <= 1 ) {
          std::cerr << "The value of --y-size-step-factor must be greater than 1.\n";
          return false;
       }
 
-      auto mode = std::ios::out;
-      if( outputMode == "append" )
-         mode |= std::ios::app;
-      std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
-
-      // write global metadata into a separate file
-      std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
-      TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
+      TNL::Benchmarks::Benchmark benchmark;
+      benchmark.setup( parameters );
 
       this->xDomainSize = parameters.getParameter< Real >( "domain-x-size" );
       this->yDomainSize = parameters.getParameter< Real >( "domain-y-size" );
