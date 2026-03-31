@@ -52,6 +52,7 @@ public:
          log << "\"error\": \"" << escape_json( errorMessage ) << "\"";
       }
       log << "}\n";
+      log << std::flush;
    }
 
    void
@@ -83,6 +84,7 @@ public:
       log << "\"error\": \"" << escape_json( message ) << "\"";
 
       log << "}\n";
+      log << std::flush;
    }
 
 protected:
