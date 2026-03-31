@@ -21,17 +21,13 @@ using namespace TNL::Benchmarks;
 
 template< typename Real >
 void
-runBlasBenchmarks(
-   Benchmark<>& benchmark,
-   const std::size_t& minSize,
-   const std::size_t& maxSize,
-   const double& sizeStepFactor )
+runBlasBenchmarks( Benchmark& benchmark, const std::size_t& minSize, const std::size_t& maxSize, const double& sizeStepFactor )
 {
    // Array operations
    std::cout << "\n== Array operations ==\n\n";
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "precision", getType< Real >() },
                { "host allocator", "Host" },
@@ -42,7 +38,7 @@ runBlasBenchmarks(
 #if defined( __CUDACC__ )
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "precision", getType< Real >() },
                { "host allocator", "CudaHost" },
@@ -52,7 +48,7 @@ runBlasBenchmarks(
    }
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "precision", getType< Real >() },
                { "host allocator", "CudaManaged" },
@@ -63,7 +59,7 @@ runBlasBenchmarks(
 #elif defined( __HIP__ )
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "precision", getType< Real >() },
                { "host allocator", "HipHost" },
@@ -73,7 +69,7 @@ runBlasBenchmarks(
    }
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "precision", getType< Real >() },
                { "host allocator", "HipManaged" },
@@ -87,7 +83,7 @@ runBlasBenchmarks(
    std::cout << "\n== Vector operations ==\n\n";
    for( std::size_t size = minSize; size <= maxSize; size *= sizeStepFactor ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "precision", getType< Real >() },
                { "size", convertToString( size ) },
@@ -100,7 +96,7 @@ runBlasBenchmarks(
    std::cout << "\n== Triad ==\n\n";
    for( std::size_t size = minSize; size <= maxSize; size *= 2 ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "precision", getType< Real >() },
                { "size", convertToString( size ) },
@@ -116,7 +112,7 @@ runBlasBenchmarks(
          if( rows * columns > 20000 * 20000 )
             break;
          benchmark.setMetadataColumns(
-            Benchmark<>::MetadataColumns(
+            Benchmark::MetadataColumns(
                { { "precision", getType< Real >() },
                  { "rows", convertToString( rows ) },
                  { "columns", convertToString( columns ) } } ) );
@@ -198,7 +194,7 @@ main( int argc, char* argv[] )
    std::ofstream logFile( logFileName, mode );
 
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
+   Benchmark benchmark( logFile, loops, verbose );
 
    // write global metadata into a separate file
    std::map< std::string, std::string > metadata = getHardwareMetadata();

@@ -46,7 +46,7 @@ public:
       const HostGraph& graph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark )
+      TNL::Benchmarks::Benchmark& benchmark )
    {
       if( withBoost )
          runBoostBenchmarks( digraph, graph, smallestNode, largestNode, benchmark );
@@ -60,7 +60,7 @@ public:
       const HostGraph& graph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark )
+      TNL::Benchmarks::Benchmark& benchmark )
    {
 #ifdef HAVE_BOOST
       BoostGraph< Index, Real, TNL::Graphs::DirectedGraph > boostDigraph( digraph );
@@ -112,7 +112,7 @@ public:
       const HostGraph& graph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark )
+      TNL::Benchmarks::Benchmark& benchmark )
    {
 #ifdef HAVE_GUNROCK
       auto gunrockDigraph = GunrockBenchmark< Real, Index >::convertToGunrockGraph( digraph );
@@ -176,7 +176,7 @@ public:
       Graph& graph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       const TNL::String& device,
       const TNL::String& segments )
    {

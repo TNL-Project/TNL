@@ -47,7 +47,7 @@ MemoryAccessBenchmark::performBenchmark( const TNL::Config::ParameterContainer& 
       mode |= std::ios::app;
    std::ofstream log_file( log_file_name.getString(), mode );
    int loops = parameters.getParameter< int >( "loops" );
-   TNL::Benchmarks::Benchmark<> benchmark( log_file, loops, verbose );
+   TNL::Benchmarks::Benchmark benchmark( log_file, loops, verbose );
 
    // write global metadata into a separate file
    std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
@@ -65,7 +65,7 @@ MemoryAccessBenchmark::performBenchmark( const TNL::Config::ParameterContainer& 
    for( size_t size = min_size; size <= max_size; size *= 2 ) {
       const long long int elementsPerTest = TNL::max( size, 1 << 26 ) / sizeof( ElementType );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "threads", TNL::convertToString( threads_count ) },
               { "access type", access_type },
               { "read test", TNL::convertToString( read_test ) },

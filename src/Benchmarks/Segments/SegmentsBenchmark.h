@@ -77,7 +77,7 @@ struct SegmentsBenchmark
    void
    TNLBenchmarks(
       const HostVector& hostSegmentsSizes,
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       const TNL::String& device,
       const TNL::String& segmentsType )
    {
@@ -369,7 +369,7 @@ struct SegmentsBenchmark
    }
 
    void
-   runBenchmark( TNL::Benchmarks::Benchmark<>& benchmark, const HostVector& segmentsSizes, std::string segmentsSetup )
+   runBenchmark( TNL::Benchmarks::Benchmark& benchmark, const HostVector& segmentsSizes, std::string segmentsSetup )
    {
       auto device = parameters.getParameter< TNL::String >( "device" );
 
@@ -426,7 +426,7 @@ struct SegmentsBenchmark
       if( outputMode == "append" )
          mode |= std::ios::app;
       std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
+      TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
 
       // write global metadata into a separate file
       std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();

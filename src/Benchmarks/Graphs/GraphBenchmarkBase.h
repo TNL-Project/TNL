@@ -136,7 +136,7 @@ public:
       if( outputMode == "append" )
          mode |= std::ios::app;
       std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
+      TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
 
       // write global metadata into a separate file
       std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
@@ -268,7 +268,7 @@ protected:
       const HostGraph& hostGraph,
       IndexType smallestNode,
       IndexType largestNode,
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       const TNL::String& device )
    {
       auto& derived = static_cast< Derived& >( *this );

@@ -33,7 +33,7 @@ using namespace Containers;
 
 template< typename Device, typename MatrixType >
 void
-benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, const Matrices::Factorization::QR::FactorizationMethod& factorMethod )
+benchmark_qr( Benchmark& benchmark, MatrixType& matrix, const Matrices::Factorization::QR::FactorizationMethod& factorMethod )
 {
    using DoubleMatrix = typename MatrixType::template Self< double >;
    DoubleMatrix doubleMatrix( matrix.getColumns(), matrix.getColumns() );
@@ -106,7 +106,7 @@ benchmark_qr( Benchmark<>& benchmark, MatrixType& matrix, const Matrices::Factor
 
 template< typename Device, typename PrecisionType, typename MatrixTypeCMO >
 void
-run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const int& size, MatrixTypeCMO& matrixCMO )
+run_benchmarks_DM( Benchmark& benchmark, const std::string& matrixName, const int& size, MatrixTypeCMO& matrixCMO )
 {
    using MatrixTypeRMO = Matrices::DenseMatrix< PrecisionType, Device, int, TNL::Algorithms::Segments::RowMajorOrder >;
    MatrixTypeRMO matrixRMO( size, size );
@@ -114,7 +114,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const 
 
    if( ! std::is_same_v< Device, Devices::Cuda > ) {
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             { { "operation", "QR" },
               { "precision", getType< PrecisionType >() },
               { "matrixName", matrixName },
@@ -125,7 +125,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const 
          benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Householder );
 
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
@@ -138,7 +138,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const 
          benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::GramSchmidt );
 
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
@@ -150,7 +150,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const 
       benchmark_qr< Device, MatrixTypeCMO >( benchmark, matrixCMO, Matrices::Factorization::QR::FactorizationMethod::Givens );
 
       benchmark.setMetadataColumns(
-         Benchmark<>::MetadataColumns(
+         Benchmark::MetadataColumns(
             {
                { "operation", "QR" },
                { "precision", getType< PrecisionType >() },
@@ -164,7 +164,7 @@ run_benchmarks_DM( Benchmark<>& benchmark, const std::string& matrixName, const 
 }
 
 void
-run_benchmarks_file( Benchmark<>& benchmark, const std::string& fileName )
+run_benchmarks_file( Benchmark& benchmark, const std::string& fileName )
 {
    std::string matrixName = fileName;
    matrixName.erase( matrixName.length() - 4, 4 );
@@ -183,7 +183,7 @@ run_benchmarks_file( Benchmark<>& benchmark, const std::string& fileName )
 }
 
 void
-run_benchmarks( Benchmark<>& benchmark )
+run_benchmarks( Benchmark& benchmark )
 {
    //https://sparse.tamu.edu/HB/bcspwr01
    run_benchmarks_file( benchmark, "bcspwr01.mtx" );
@@ -249,7 +249,7 @@ main( int argc, char* argv[] )
    std::ofstream logFile( logFileName, mode );
 
    // init benchmark and set parameters
-   Benchmark<> benchmark( logFile, loops, verbose );
+   Benchmark benchmark( logFile, loops, verbose );
 
    // write global metadata into a separate file
    std::map< std::string, std::string > metadata = getHardwareMetadata();
