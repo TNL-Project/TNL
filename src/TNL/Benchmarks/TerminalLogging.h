@@ -71,12 +71,14 @@ public:
       else {
          log << std::setw( 14 ) << std::left << performer << ": ERROR - " << errorMessage << "\n";
       }
+      log << std::flush;
    }
 
    void
    writeErrorMessage( const std::string& message ) override
    {
       log << "ERROR: " << message << "\n";
+      log << std::flush;
    }
 
 protected:
