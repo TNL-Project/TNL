@@ -18,9 +18,7 @@ public:
 
    FPMAReader( const std::string& fileName )
    : MeshReader( fileName )
-   {
-      resetBase();
-   }
+   {}
 
    void
    detectMesh() override
