@@ -19,7 +19,7 @@ struct GunrockBenchmark
    template< typename Graph >
    void
    breadthFirstSearch(
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       Graph& graph,
       Index start,
       Index size,
@@ -41,7 +41,7 @@ struct GunrockBenchmark
    template< typename Graph >
    void
    singleSourceShortestPath(
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       Graph& graph,
       Index start,
       Index size,

@@ -93,7 +93,7 @@ struct DenseMatrixMultiplicationBenchmark
       if( outputMode == "append" )
          mode |= std::ios::app;
       std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
+      TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
 
       std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
       TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
@@ -170,7 +170,7 @@ struct DenseMatrixMultiplicationBenchmark
 
    #if defined( __CUDACC__ )
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -187,7 +187,7 @@ struct DenseMatrixMultiplicationBenchmark
 
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -210,7 +210,7 @@ struct DenseMatrixMultiplicationBenchmark
 
       #ifdef HAVE_CUTLASS
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -236,7 +236,7 @@ struct DenseMatrixMultiplicationBenchmark
             bool LegacyOn = parameters.getParameter< TNL::String >( "include-legacy-kernels" ) == "legacy-on";
             if( LegacyOn ) {
                benchmark.setMetadataColumns(
-                  TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  TNL::Benchmarks::Benchmark::MetadataColumns(
                      { { "index type", TNL::getType< Index >() },
                        { "real type", TNL::getType< Real >() },
                        { "device", device },
@@ -267,7 +267,7 @@ struct DenseMatrixMultiplicationBenchmark
                benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkOriginal, TNLResult );
 
                benchmark.setMetadataColumns(
-                  TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  TNL::Benchmarks::Benchmark::MetadataColumns(
                      { { "index type", TNL::getType< Index >() },
                        { "real type", TNL::getType< Real >() },
                        { "device", device },
@@ -298,7 +298,7 @@ struct DenseMatrixMultiplicationBenchmark
                benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkOptimized, TNL2Result );
 
                benchmark.setMetadataColumns(
-                  TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  TNL::Benchmarks::Benchmark::MetadataColumns(
                      { { "index type", TNL::getType< Index >() },
                        { "real type", TNL::getType< Real >() },
                        { "device", device },
@@ -329,7 +329,7 @@ struct DenseMatrixMultiplicationBenchmark
                benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkOptimized2, SMAResult );
 
                benchmark.setMetadataColumns(
-                  TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  TNL::Benchmarks::Benchmark::MetadataColumns(
                      { { "index type", TNL::getType< Index >() },
                        { "real type", TNL::getType< Real >() },
                        { "device", device },
@@ -361,7 +361,7 @@ struct DenseMatrixMultiplicationBenchmark
                benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkWarptiling, WarptilingResult );
 
                benchmark.setMetadataColumns(
-                  TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  TNL::Benchmarks::Benchmark::MetadataColumns(
                      { { "index type", TNL::getType< Index >() },
                        { "real type", TNL::getType< Real >() },
                        { "device", device },
@@ -393,7 +393,7 @@ struct DenseMatrixMultiplicationBenchmark
                benchmark.time< DeviceType >( device, matrixMultiplicationBenchmarkWarptiling2, Warptiling2Result );
 
                benchmark.setMetadataColumns(
-                  TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  TNL::Benchmarks::Benchmark::MetadataColumns(
                      { { "index type", TNL::getType< Index >() },
                        { "real type", TNL::getType< Real >() },
                        { "device", device },
@@ -425,7 +425,7 @@ struct DenseMatrixMultiplicationBenchmark
    #ifdef USE_TENSOR_CORES
 
                benchmark.setMetadataColumns(
-                  TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  TNL::Benchmarks::Benchmark::MetadataColumns(
                      { { "index type", TNL::getType< Index >() },
                        { "real type", TNL::getType< Real >() },
                        { "device", device },
@@ -461,7 +461,7 @@ struct DenseMatrixMultiplicationBenchmark
             }  //LegacyOn
 
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -483,7 +483,7 @@ struct DenseMatrixMultiplicationBenchmark
    #if defined( __HIP__ )
 
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -546,7 +546,7 @@ struct DenseMatrixMultiplicationBenchmark
             }
 
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -563,7 +563,7 @@ struct DenseMatrixMultiplicationBenchmark
 #endif  //HAVE_BLAS
 
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -696,7 +696,7 @@ struct DenseMatrixMultiplicationBenchmark
 
    #if defined( __HIP__ )
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -715,7 +715,7 @@ struct DenseMatrixMultiplicationBenchmark
 
    #if defined( __CUDACC__ )
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -733,7 +733,7 @@ struct DenseMatrixMultiplicationBenchmark
 
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -751,7 +751,7 @@ struct DenseMatrixMultiplicationBenchmark
       #endif  //HAVE_MAGMA
 
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -783,7 +783,7 @@ struct DenseMatrixMultiplicationBenchmark
    #if defined( __HIP__ )
 
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -802,7 +802,7 @@ struct DenseMatrixMultiplicationBenchmark
    #if defined( __CUDACC__ )
 
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -820,7 +820,7 @@ struct DenseMatrixMultiplicationBenchmark
 
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -839,7 +839,7 @@ struct DenseMatrixMultiplicationBenchmark
       #endif  //HAVE_MAGMA
 
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -871,7 +871,7 @@ struct DenseMatrixMultiplicationBenchmark
    #if defined( __HIP__ )
 
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -890,7 +890,7 @@ struct DenseMatrixMultiplicationBenchmark
    #if defined( __CUDACC__ )
 
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -908,7 +908,7 @@ struct DenseMatrixMultiplicationBenchmark
 
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },
@@ -927,7 +927,7 @@ struct DenseMatrixMultiplicationBenchmark
 
             resultMatrix.getValues() = 0;
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   { { "index type", TNL::getType< Index >() },
                     { "real type", TNL::getType< Real >() },
                     { "device", device },

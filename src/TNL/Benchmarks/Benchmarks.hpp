@@ -7,20 +7,21 @@
 #include <exception>
 
 #include "Benchmarks.h"
+#include "JsonLogging.h"
+#include "TerminalLogging.h"
 #include "Utils.h"
 
 namespace TNL::Benchmarks {
 
-template< typename Logger >
-Benchmark< Logger >::Benchmark( std::ostream& output, std::size_t loops, int verbose )
-: logger( output, verbose ),
-  terminalLogger( std::make_unique< TerminalLogger >( std::cout, verbose ) ),
-  loops( loops )
-{}
+Benchmark::Benchmark( std::ostream& output, std::size_t loops, int verbose )
+: loops( loops )
+{
+   loggers.push_back( std::make_unique< JsonLogging >( output, verbose ) );
+   loggers.push_back( std::make_unique< TerminalLogger >( std::cout, verbose ) );
+}
 
-template< typename Logger >
 void
-Benchmark< Logger >::configSetup( Config::ConfigDescription& config )
+Benchmark::configSetup( Config::ConfigDescription& config )
 {
    config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
    config.addEntry< bool >( "reset", "Call reset function between loops.", true );
@@ -28,92 +29,74 @@ Benchmark< Logger >::configSetup( Config::ConfigDescription& config )
    config.addEntry< int >( "verbose", "Verbose mode, the higher number the more verbosity.", 1 );
 }
 
-template< typename Logger >
 void
-Benchmark< Logger >::setup( const Config::ParameterContainer& parameters )
+Benchmark::setup( const Config::ParameterContainer& parameters )
 {
    this->loops = parameters.getParameter< int >( "loops" );
    this->reset = parameters.getParameter< bool >( "reset" );
    this->minTime = parameters.getParameter< double >( "min-time" );
    const int verbose = parameters.getParameter< int >( "verbose" );
-   logger.setVerbose( verbose );
-   if( terminalLogger != nullptr )
-      terminalLogger->setVerbose( verbose );
+   for( auto& logger : loggers )
+      logger->setVerbose( verbose );
 }
 
-template< typename Logger >
 void
-Benchmark< Logger >::setLoops( std::size_t loops )
+Benchmark::setLoops( std::size_t loops )
 {
    this->loops = loops;
 }
 
-template< typename Logger >
 void
-Benchmark< Logger >::setMinTime( double minTime )
+Benchmark::setMinTime( double minTime )
 {
    this->minTime = minTime;
 }
 
-template< typename Logger >
 bool
-Benchmark< Logger >::isResettingOn() const
+Benchmark::isResettingOn() const
 {
    return reset;
 }
 
-template< typename Logger >
 void
-Benchmark< Logger >::setMetadataColumns( const MetadataColumns& metadata )
+Benchmark::setMetadataColumns( const MetadataColumns& metadata )
 {
-   logger.setMetadataColumns( metadata );
-   if( terminalLogger != nullptr )
-      terminalLogger->setMetadataColumns( metadata );
+   for( auto& logger : loggers )
+      logger->setMetadataColumns( metadata );
 }
 
-template< typename Logger >
 void
-Benchmark< Logger >::setMetadataElement( const typename MetadataColumns::value_type& element )
+Benchmark::setMetadataElement( const typename MetadataColumns::value_type& element )
 {
-   logger.setMetadataElement( element );
-   if( terminalLogger != nullptr )
-      terminalLogger->setMetadataElement( element );
+   for( auto& logger : loggers )
+      logger->setMetadataElement( element );
 }
 
-template< typename Logger >
 void
-Benchmark< Logger >::setDatasetSize( double datasetSize, double baseTime )
+Benchmark::setDatasetSize( double datasetSize, double baseTime )
 {
    this->datasetSize = datasetSize;
    this->baseTime = baseTime;
 }
 
-template< typename Logger >
 void
-Benchmark< Logger >::setOperationsPerLoop( std::size_t operationsPerLoop )
+Benchmark::setOperationsPerLoop( std::size_t operationsPerLoop )
 {
    this->operations_per_loop = operationsPerLoop;
 }
 
-template< typename Logger >
 void
-Benchmark< Logger >::setOperation( const std::string& operation, double datasetSize, double baseTime )
+Benchmark::setOperation( const std::string& operation, double datasetSize, double baseTime )
 {
    monitor.setStage( operation );
-   logger.setMetadataElement( { "operation", operation }, 0 );
-   if( terminalLogger != nullptr )
-      terminalLogger->setMetadataElement( { "operation", operation }, 0 );
+   for( auto& logger : loggers )
+      logger->setMetadataElement( { "operation", operation }, 0 );
    setDatasetSize( datasetSize, baseTime );
 }
 
-template< typename Logger >
 template< typename Device, typename ResetFunction, typename ComputeFunction >
 void
-Benchmark< Logger >::time(
-   ResetFunction reset,
-   const std::string& performer,
-   ComputeFunction& compute,
-   BenchmarkResult& result )
+Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunction& compute, BenchmarkResult& result )
 {
    result.time = std::numeric_limits< double >::quiet_NaN();
    result.time_stddev = std::numeric_limits< double >::quiet_NaN();
@@ -122,7 +105,7 @@ Benchmark< Logger >::time(
 
    // run the monitor main loop
    Solvers::SolverMonitorThread monitor_thread( monitor );
-   if( logger.getVerbose() <= 1 )
+   if( ! loggers.empty() && loggers.front()->getVerbose() <= 1 )
       // stop the main loop when not verbose
       monitor.stopMainLoop();
 
@@ -152,60 +135,58 @@ Benchmark< Logger >::time(
    if( this->baseTime == 0.0 )
       this->baseTime = result.time;
 
-   logger.logResult( performer, result.getTableHeader(), result.getRowElements(), errorMessage );
-
-   // Log to TerminalLogger if available
-   if( terminalLogger )
-      terminalLogger->logResult( performer, result.getTableHeader(), result.getRowElements(), errorMessage );
+   for( auto& logger : loggers )
+      logger->logResult( performer, result.getTableHeader(), result.getRowElements(), errorMessage );
 }
 
-template< typename Logger >
 template< typename Device, typename ResetFunction, typename ComputeFunction >
 BenchmarkResult
-Benchmark< Logger >::time( ResetFunction reset, const std::string& performer, ComputeFunction& compute )
+Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunction& compute )
 {
    BenchmarkResult result;
    time< Device >( reset, performer, compute, result );
    return result;
 }
 
-template< typename Logger >
 template< typename Device, typename ComputeFunction >
 void
-Benchmark< Logger >::time( const std::string& performer, ComputeFunction& compute, BenchmarkResult& result )
+Benchmark::time( const std::string& performer, ComputeFunction& compute, BenchmarkResult& result )
 {
    auto noReset = []() {};
    time< Device >( noReset, performer, compute, result );
 }
 
-template< typename Logger >
 template< typename Device, typename ComputeFunction >
 BenchmarkResult
-Benchmark< Logger >::time( const std::string& performer, ComputeFunction& compute )
+Benchmark::time( const std::string& performer, ComputeFunction& compute )
 {
    BenchmarkResult result;
    time< Device >( performer, compute, result );
    return result;
 }
 
-template< typename Logger >
 void
-Benchmark< Logger >::addErrorMessage( const std::string& message )
+Benchmark::addLogger( std::unique_ptr< Logging > logger )
 {
-   logger.writeErrorMessage( message );
+   loggers.push_back( std::move( logger ) );
+}
+
+void
+Benchmark::addErrorMessage( const std::string& message )
+{
+   for( auto& logger : loggers )
+      logger->writeErrorMessage( message );
    std::cerr << message << '\n';
 }
 
-template< typename Logger >
 auto
-Benchmark< Logger >::getMonitor() -> SolverMonitorType&
+Benchmark::getMonitor() -> SolverMonitorType&
 {
    return monitor;
 }
 
-template< typename Logger >
 double
-Benchmark< Logger >::getBaseTime() const
+Benchmark::getBaseTime() const
 {
    return baseTime;
 }

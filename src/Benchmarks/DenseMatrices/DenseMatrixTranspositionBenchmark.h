@@ -88,7 +88,7 @@ struct DenseMatrixTranspositionBenchmark
       if( outputMode == "append" )
          mode |= std::ios::app;
       std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
+      TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
 
       std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();
       TNL::Benchmarks::writeMapAsJson( metadata, logFileName, ".metadata.json" );
@@ -136,7 +136,7 @@ struct DenseMatrixTranspositionBenchmark
    #if defined( __CUDACC__ )
       #ifdef HAVE_MAGMA
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   {
                      { "index type", TNL::getType< Index >() },
                      { "real type", TNL::getType< Real >() },
@@ -157,7 +157,7 @@ struct DenseMatrixTranspositionBenchmark
             bool LegacyOn = parameters.getParameter< TNL::String >( "include-legacy-kernels" ) == "legacy-on";
             if( LegacyOn ) {
                benchmark.setMetadataColumns(
-                  TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  TNL::Benchmarks::Benchmark::MetadataColumns(
                      {
                         { "index type", TNL::getType< Index >() },
                         { "real type", TNL::getType< Real >() },
@@ -188,7 +188,7 @@ struct DenseMatrixTranspositionBenchmark
                );
 
                benchmark.setMetadataColumns(
-                  TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  TNL::Benchmarks::Benchmark::MetadataColumns(
                      {
                         { "index type", TNL::getType< Index >() },
                         { "real type", TNL::getType< Real >() },
@@ -220,7 +220,7 @@ struct DenseMatrixTranspositionBenchmark
             }  // LegacyOn
 
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   {
                      { "index type", TNL::getType< Index >() },
                      { "real type", TNL::getType< Real >() },
@@ -253,7 +253,7 @@ struct DenseMatrixTranspositionBenchmark
 
             if( dmatrix1Rows == dmatrix1Columns ) {
                benchmark.setMetadataColumns(
-                  TNL::Benchmarks::Benchmark<>::MetadataColumns(
+                  TNL::Benchmarks::Benchmark::MetadataColumns(
                      {
                         { "index type", TNL::getType< Index >() },
                         { "real type", TNL::getType< Real >() },
@@ -287,7 +287,7 @@ struct DenseMatrixTranspositionBenchmark
          }
          if( device == "host" || device == "all" ) {
             benchmark.setMetadataColumns(
-               TNL::Benchmarks::Benchmark<>::MetadataColumns(
+               TNL::Benchmarks::Benchmark::MetadataColumns(
                   {
                      { "index type", TNL::getType< Index >() },
                      { "real type", TNL::getType< Real >() },

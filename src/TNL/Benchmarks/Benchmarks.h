@@ -5,9 +5,10 @@
 
 #include <limits>
 #include <string>
+#include <memory>
+#include <vector>
 
-#include "JsonLogging.h"
-#include "TerminalLogging.h"
+#include "Logging.h"
 
 #include <TNL/Solvers/IterativeSolverMonitor.h>
 
@@ -85,12 +86,11 @@ struct BenchmarkResult
    }
 };
 
-template< typename Logger = JsonLogging >
 class Benchmark
 {
 public:
-   using MetadataElement = typename Logger::MetadataElement;
-   using MetadataColumns = typename Logger::MetadataColumns;
+   using MetadataElement = Logging::MetadataElement;
+   using MetadataColumns = Logging::MetadataColumns;
    using SolverMonitorType = Solvers::IterativeSolverMonitor< double >;
 
    Benchmark( std::ostream& output, std::size_t loops = 10, int verbose = 1 );
@@ -166,6 +166,9 @@ public:
    void
    addErrorMessage( const std::string& message );
 
+   void
+   addLogger( std::unique_ptr< Logging > logger );
+
    [[nodiscard]] SolverMonitorType&
    getMonitor();
 
@@ -173,8 +176,9 @@ public:
    getBaseTime() const;
 
 protected:
-   Logger logger;
-   std::unique_ptr< TerminalLogger > terminalLogger;
+   using BenchmarkLoggers = std::vector< std::unique_ptr< Logging > >;
+
+   BenchmarkLoggers loggers;
 
    std::size_t loops = 1;
 

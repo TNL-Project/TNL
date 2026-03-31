@@ -85,7 +85,7 @@ struct GraphsBenchmark
    TNLBenchmarks(
       const HostDigraph& hostDigraph,
       const HostGraph& hostGraph,
-      TNL::Benchmarks::Benchmark<>& benchmark,
+      TNL::Benchmarks::Benchmark& benchmark,
       const TNL::String& device,
       const TNL::String& segments )
    {
@@ -106,7 +106,7 @@ struct GraphsBenchmark
       IndexVector bfsDistances( digraph.getNodeCount() );
       benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "index type", TNL::getType< Index >() },
               { "device", device },
               { "format", segments },
@@ -129,7 +129,7 @@ struct GraphsBenchmark
       // Benchmarking breadth-first search with undirected graph
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "index type", TNL::getType< Index >() },
               { "device", device },
               { "format", segments },
@@ -152,7 +152,7 @@ struct GraphsBenchmark
       // Benchmarking single-source shortest paths with directed graph
       benchmark.setDatasetSize( digraph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "precision", TNL::getType< Real >() },
               { "device", device },
               { "format", segments },
@@ -177,7 +177,7 @@ struct GraphsBenchmark
       // Benchmarking single-source shortest paths with undirected graph
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "precision", TNL::getType< Real >() },
               { "device", device },
               { "format", segments },
@@ -204,7 +204,7 @@ struct GraphsBenchmark
       IndexVector roots;
       benchmark.setDatasetSize( graph.getAdjacencyMatrix().getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "precision", TNL::getType< Real >() },
               { "device", device },
               { "format", segments },
@@ -232,7 +232,7 @@ struct GraphsBenchmark
    }
 
    void
-   boostBenchmarks( const HostDigraph& digraph, const HostGraph& graph, TNL::Benchmarks::Benchmark<>& benchmark )
+   boostBenchmarks( const HostDigraph& digraph, const HostGraph& graph, TNL::Benchmarks::Benchmark& benchmark )
    {
 #ifdef HAVE_BOOST
       BoostGraph< Index, Real, TNL::Graphs::GraphTypes::Directed > boostDigraph( digraph );
@@ -240,7 +240,7 @@ struct GraphsBenchmark
 
       // Benchmarking breadth-first search of directed graph
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "index type", TNL::getType< Index >() },
               { "device", "sequential" },
               { "format", "N/A" },
@@ -261,7 +261,7 @@ struct GraphsBenchmark
 
       // Benchmarking breadth-first search of undirected graph
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "index type", TNL::getType< Index >() },
               { "device", "sequential" },
               { "format", "N/A" },
@@ -281,7 +281,7 @@ struct GraphsBenchmark
 
       // Benchmarking single-source shortest paths of directed graph
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "precision", TNL::getType< Real >() },
               { "device", "sequential" },
               { "format", "N/A" },
@@ -302,7 +302,7 @@ struct GraphsBenchmark
 
       // Benchmarking single-source shortest paths of undirected graph
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "precision", TNL::getType< Real >() },
               { "device", "sequential" },
               { "format", "N/A" },
@@ -322,7 +322,7 @@ struct GraphsBenchmark
 
       // Benchmarking minimum spanning tree
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "precision", TNL::getType< Real >() },
               { "device", "sequential" },
               { "format", "N/A" },
@@ -346,7 +346,7 @@ struct GraphsBenchmark
    }
 
    void
-   gunrockBenchmarks( const HostDigraph& hostDigraph, const HostGraph& hostGraph, TNL::Benchmarks::Benchmark<>& benchmark )
+   gunrockBenchmarks( const HostDigraph& hostDigraph, const HostGraph& hostGraph, TNL::Benchmarks::Benchmark& benchmark )
    {
 #ifdef HAVE_GUNROCK
       auto filename = this->parameters.getParameter< TNL::String >( "input-file" );
@@ -408,7 +408,7 @@ struct GraphsBenchmark
       // Benchmarking breadth-first search of directed graph
       benchmark.setDatasetSize( digraphAdjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "index type", TNL::getType< Index >() },
               { "device", std::string( "GPU" ) },
               { "format", "N/A" },
@@ -433,7 +433,7 @@ struct GraphsBenchmark
       // Benchmarking breadth-first search of undirected graph
       benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * sizeof( Index ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "index type", TNL::getType< Index >() },
               { "device", std::string( "GPU" ) },
               { "format", "N/A" },
@@ -457,7 +457,7 @@ struct GraphsBenchmark
       // Benchmarking single-source shortest path of directed graph
       benchmark.setDatasetSize( digraphAdjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "index type", TNL::getType< Index >() },
               { "device", std::string( "GPU" ) },
               { "format", "N/A" },
@@ -482,7 +482,7 @@ struct GraphsBenchmark
       // Benchmarking single-source shortest path of undirected graph
       benchmark.setDatasetSize( graphAdjacencyMatrix.getNonzeroElementsCount() * ( sizeof( Index ) + sizeof( Real ) ) );
       benchmark.setMetadataColumns(
-         TNL::Benchmarks::Benchmark<>::MetadataColumns(
+         TNL::Benchmarks::Benchmark::MetadataColumns(
             { { "index type", TNL::getType< Index >() },
               { "device", std::string( "GPU" ) },
               { "format", "N/A" },
@@ -518,7 +518,7 @@ struct GraphsBenchmark
       if( outputMode == "append" )
          mode |= std::ios::app;
       std::ofstream logFile( logFileName.getString(), mode );
-      TNL::Benchmarks::Benchmark<> benchmark( logFile, loops, verbose );
+      TNL::Benchmarks::Benchmark benchmark( logFile, loops, verbose );
 
       // write global metadata into a separate file
       std::map< std::string, std::string > metadata = TNL::Benchmarks::getHardwareMetadata();

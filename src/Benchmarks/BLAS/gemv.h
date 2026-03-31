@@ -27,7 +27,7 @@ setMatrix( Matrix& matrix )
 
 template< typename Real >
 void
-benchmarkGemv( Benchmark<>& benchmark, int rows, int columns )
+benchmarkGemv( Benchmark& benchmark, int rows, int columns )
 {
    using HostMatrix = TNL::Matrices::DenseMatrix< Real, TNL::Devices::Host >;
    using RowMajorCudaMatrix =

@@ -48,7 +48,7 @@ checkDevice( const TNL::Config::ParameterContainer& parameters )
 template< template< typename > class Solver, typename Matrix >
 void
 benchmarkSolverSetup(
-   TNL::Benchmarks::Benchmark<>& benchmark,
+   TNL::Benchmarks::Benchmark& benchmark,
    const TNL::Config::ParameterContainer& parameters,
    const std::shared_ptr< Matrix >& matrix,
    const std::string& solver_name )
@@ -76,7 +76,7 @@ benchmarkSolverSetup(
 template< template< typename > class Preconditioner, typename Matrix >
 void
 benchmarkPreconditionerUpdate(
-   TNL::Benchmarks::Benchmark<>& benchmark,
+   TNL::Benchmarks::Benchmark& benchmark,
    const TNL::Config::ParameterContainer& parameters,
    const std::shared_ptr< Matrix >& matrix,
    const std::string& preconditioner_name )
@@ -111,7 +111,7 @@ template<
    typename Vector >
 void
 benchmarkSolver(
-   TNL::Benchmarks::Benchmark<>& benchmark,
+   TNL::Benchmarks::Benchmark& benchmark,
    const TNL::Config::ParameterContainer& parameters,
    const std::shared_ptr< Matrix >& matrix,
    const Vector& x0,
@@ -171,7 +171,7 @@ benchmarkSolver(
 template< template< typename > class Solver, typename Matrix, typename Vector >
 void
 benchmarkDirectSolver(
-   TNL::Benchmarks::Benchmark<>& benchmark,
+   TNL::Benchmarks::Benchmark& benchmark,
    const TNL::Config::ParameterContainer& parameters,
    const std::shared_ptr< Matrix >& matrix,
    const Vector& x0,
