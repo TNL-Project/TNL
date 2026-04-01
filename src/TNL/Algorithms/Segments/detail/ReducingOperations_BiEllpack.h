@@ -84,10 +84,13 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          constexpr int BlockDim = 256;
          launch_config.blockSize.x = BlockDim;
-         const IndexType stripsCount = roundUpDivision( end - begin, SegmentsViewType::getWarpSize() );
+         const IndexType stripsCount = roundUpDivision( static_cast< IndexType >( end - begin ),
+                                                        static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
          const IndexType cudaBlocks =
-            roundUpDivision( stripsCount * SegmentsViewType::getWarpSize(), launch_config.blockSize.x );
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
+            roundUpDivision( static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
+                             static_cast< IndexType >( launch_config.blockSize.x ) );
+         const IndexType cudaGrids =
+            roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
@@ -173,10 +176,13 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          constexpr int BlockDim = 256;
          launch_config.blockSize.x = BlockDim;
-         const IndexType stripsCount = roundUpDivision( segmentIndexes.getSize(), SegmentsViewType::getWarpSize() );
+         const IndexType stripsCount = roundUpDivision( static_cast< IndexType >( segmentIndexes.getSize() ),
+                                                        static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
          const IndexType cudaBlocks =
-            roundUpDivision( stripsCount * SegmentsViewType::getWarpSize(), launch_config.blockSize.x );
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
+            roundUpDivision( static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
+                             static_cast< IndexType >( launch_config.blockSize.x ) );
+         const IndexType cudaGrids =
+            roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
@@ -274,10 +280,13 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          constexpr int BlockDim = 256;
          launch_config.blockSize.x = BlockDim;
-         const IndexType stripsCount = roundUpDivision( end - begin, SegmentsViewType::getWarpSize() );
+         const IndexType stripsCount = roundUpDivision( static_cast< IndexType >( end - begin ),
+                                                        static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
          const IndexType cudaBlocks =
-            roundUpDivision( stripsCount * SegmentsViewType::getWarpSize(), launch_config.blockSize.x );
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
+            roundUpDivision( static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
+                             static_cast< IndexType >( launch_config.blockSize.x ) );
+         const IndexType cudaGrids =
+            roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
@@ -368,10 +377,13 @@ struct ReducingOperations< BiEllpackView< Device, Index, Organization > >
          Backend::LaunchConfiguration launch_config;
          constexpr int BlockDim = 256;
          launch_config.blockSize.x = BlockDim;
-         const IndexType stripsCount = roundUpDivision( segmentIndexes.getSize(), SegmentsViewType::getWarpSize() );
+         const IndexType stripsCount = roundUpDivision( static_cast< IndexType >( segmentIndexes.getSize() ),
+                                                        static_cast< IndexType >( SegmentsViewType::getWarpSize() ) );
          const IndexType cudaBlocks =
-            roundUpDivision( stripsCount * SegmentsViewType::getWarpSize(), launch_config.blockSize.x );
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
+            roundUpDivision( static_cast< IndexType >( stripsCount * SegmentsViewType::getWarpSize() ),
+                             static_cast< IndexType >( launch_config.blockSize.x ) );
+         const IndexType cudaGrids =
+            roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          if( SegmentsViewType::getOrganization() == Segments::ColumnMajorOrder )
             launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 

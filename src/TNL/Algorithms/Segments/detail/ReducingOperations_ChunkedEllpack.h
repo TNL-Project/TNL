@@ -79,7 +79,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
          //  TODO: This ignores parameters begin and end
          const IndexType cudaBlocks = segments.getNumberOfSlices();
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
+         const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          launch_config.blockSize.x = segments.getChunksInSlice();
          launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
@@ -160,7 +160,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
          //  TODO: This ignores parameters the size of segmentIndexes
          const IndexType cudaBlocks = segments.getNumberOfSlices();
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
+         const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          launch_config.blockSize.x = segments.getChunksInSlice();
          launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 
@@ -253,7 +253,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
          //  TODO: This ignores parameters begin and end
          const IndexType cudaBlocks = segments.getNumberOfSlices();
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
+         const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          launch_config.blockSize.x = segments.getChunksInSlice();
          launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * ( sizeof( ReturnType ) + sizeof( IndexType ) );
 
@@ -339,7 +339,7 @@ struct ReducingOperations< ChunkedEllpackView< Device, Index, Organization > >
          // const IndexType chunksCount = segments.getNumberOfSlices() * segments.getChunksInSlice();
          //  TODO: This ignores parameters begin and end
          const IndexType cudaBlocks = segments.getNumberOfSlices();
-         const IndexType cudaGrids = roundUpDivision( cudaBlocks, Backend::getMaxGridXSize() );
+         const IndexType cudaGrids = roundUpDivision( cudaBlocks, static_cast< IndexType >( Backend::getMaxGridXSize() ) );
          launch_config.blockSize.x = segments.getChunksInSlice();
          launch_config.dynamicSharedMemorySize = launch_config.blockSize.x * sizeof( ReturnType );
 

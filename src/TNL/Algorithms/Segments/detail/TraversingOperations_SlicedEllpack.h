@@ -99,7 +99,8 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             }
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
                const IndexType firstSegmentIdx = ( begin / SliceSize ) * SliceSize;
-               const IndexType lastSegmentIdx = roundUpDivision( end, static_cast< std::size_t >( SliceSize ) ) * static_cast< std::size_t >( SliceSize );
+               const IndexType lastSegmentIdx = roundUpDivision( static_cast< IndexType >( end ), static_cast< IndexType >( SliceSize ) )
+                                             * static_cast< IndexType >( SliceSize );
                const IndexType segmentsCount = lastSegmentIdx - firstSegmentIdx;
                threadsCount = segmentsCount / static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
                launchConfig.blockSize.x = 256;
