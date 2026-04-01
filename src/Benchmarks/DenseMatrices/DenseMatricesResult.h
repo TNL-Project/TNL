@@ -9,7 +9,7 @@
 
 namespace TNL::Benchmarks {
 
-template< typename Real, typename Device, typename Index, typename ResultReal = Real, typename Logger = JsonLogging >
+template< typename Real, typename Device, typename Index >
 struct DenseMatricesResult : public BenchmarkResult
 {
    using RealType = Real;
@@ -17,13 +17,6 @@ struct DenseMatricesResult : public BenchmarkResult
    using IndexType = Index;
    using HostMatrix = TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType >;
    using BenchmarkMatrix = TNL::Matrices::DenseMatrix< RealType, DeviceType, IndexType >;
-
-   using BenchmarkResult::bandwidth;
-   using BenchmarkResult::speedup;
-   using BenchmarkResult::time;
-   using BenchmarkResult::time_stddev;
-   using typename BenchmarkResult::HeaderElements;
-   using typename BenchmarkResult::RowElements;
 
    DenseMatricesResult( const HostMatrix& referenceResult, const std::vector< BenchmarkMatrix >& benchmarkResults )
    : referenceResult( referenceResult ),
@@ -33,7 +26,7 @@ struct DenseMatricesResult : public BenchmarkResult
    [[nodiscard]] HeaderElements
    getTableHeader() const override
    {
-      HeaderElements headers = { "time", "time_stddev", "time_stddev/time", "loops", "bandwidth", "speedup" };
+      HeaderElements headers = BenchmarkResult::getTableHeader();
       for( size_t i = 0; i < benchmarkResults.size(); i++ ) {
          headers.push_back( "Diff.Max " + std::to_string( i + 1 ) );
          headers.push_back( "Diff.L2 " + std::to_string( i + 1 ) );
@@ -44,13 +37,7 @@ struct DenseMatricesResult : public BenchmarkResult
    [[nodiscard]] RowElements
    getRowElements() const override
    {
-      RowElements elements;
-      elements << std::scientific << time << time_stddev << time_stddev / time << loops << bandwidth;
-
-      if( speedup != 0.0 )
-         elements << speedup;
-      else
-         elements << "N/A";
+      RowElements elements = BenchmarkResult::getRowElements();
 
       // Compute and append differences for each benchmark result
       for( const auto& benchmarkMatrix : benchmarkResults ) {

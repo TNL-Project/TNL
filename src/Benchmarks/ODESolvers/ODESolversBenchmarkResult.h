@@ -19,7 +19,7 @@ struct SolverElementType< Solver, true >
    using type = typename Solver::VectorType;
 };
 
-template< typename Solver, typename Device, typename Index, typename Logger = JsonLogging >
+template< typename Solver, typename Device, typename Index >
 struct ODESolversBenchmarkResult : public BenchmarkResult
 {
    using SolverType = Solver;
@@ -30,13 +30,6 @@ struct ODESolversBenchmarkResult : public BenchmarkResult
    using ElementType = typename SolverElementType< SolverType >::type;
    using BenchmarkVector = Containers::Vector< ElementType, DeviceType, IndexType >;
 
-   using BenchmarkResult::bandwidth;
-   using BenchmarkResult::speedup;
-   using BenchmarkResult::time;
-   using BenchmarkResult::time_stddev;
-   using typename BenchmarkResult::HeaderElements;
-   using typename BenchmarkResult::RowElements;
-
    ODESolversBenchmarkResult( const RealType& exactSolution, const SolverType& solver, const BenchmarkVector& benchmarkResult )
    : exactSolution( exactSolution ),
      solver( solver ),
@@ -46,8 +39,11 @@ struct ODESolversBenchmarkResult : public BenchmarkResult
    HeaderElements
    getTableHeader() const override
    {
-      return HeaderElements(
-         { "time", "time_stddev", "time_stddev/time", "loops", "bandwidth", "speedup", "error", "EOC", "iters" } );
+      HeaderElements headers = BenchmarkResult::getTableHeader();
+      headers.emplace_back( "error" );
+      headers.emplace_back( "EOC" );
+      headers.emplace_back( "iters" );
+      return headers;
    }
 
    RowElements
@@ -63,14 +59,8 @@ struct ODESolversBenchmarkResult : public BenchmarkResult
          eoc = log( lastError / error ) / log( 2.0 );
       lastError = error;
 
-      RowElements elements;
+      RowElements elements = BenchmarkResult::getRowElements();
       // write in scientific format to avoid precision loss
-      elements << std::scientific << time << time_stddev << time_stddev / time << loops << bandwidth;
-      elements << std::fixed;
-      if( speedup != 0.0 )
-         elements << speedup;
-      else
-         elements << "N/A";
       elements << std::scientific << error;
       elements << std::fixed;
       if( eoc != -1.0 )
