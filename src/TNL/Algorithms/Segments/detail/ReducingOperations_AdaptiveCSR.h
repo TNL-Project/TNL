@@ -63,12 +63,12 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
             // Execute kernels on device
             for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
                if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
-                  launch_config.gridSize.x = roundUpDivision( neededThreads, launch_config.blockSize.x );
+                  launch_config.gridSize.x = roundUpDivision( neededThreads, static_cast< std::size_t >( launch_config.blockSize.x ) );
                   neededThreads = 0;
                }
                else {
                   launch_config.gridSize.x = maxGridSize;
-                  neededThreads -= maxGridSize * launch_config.blockSize.x;
+                  neededThreads -= maxGridSize * static_cast< std::size_t >( launch_config.blockSize.x );
                }
 
                using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
@@ -132,12 +132,12 @@ struct ReducingOperations< AdaptiveCSRView< Device, Index > > : public ReducingO
             // Execute kernels on device
             for( IndexType gridIdx = 0; neededThreads != 0; gridIdx++ ) {
                if( maxGridSize * launch_config.blockSize.x >= neededThreads ) {
-                  launch_config.gridSize.x = roundUpDivision( neededThreads, launch_config.blockSize.x );
+                  launch_config.gridSize.x = roundUpDivision( neededThreads, static_cast< std::size_t >( launch_config.blockSize.x ) );
                   neededThreads = 0;
                }
                else {
                   launch_config.gridSize.x = maxGridSize;
-                  neededThreads -= maxGridSize * launch_config.blockSize.x;
+                  neededThreads -= maxGridSize * static_cast< std::size_t >( launch_config.blockSize.x );
                }
 
                using OffsetsView = typename SegmentsViewType::ConstOffsetsView;
