@@ -119,11 +119,6 @@ template< typename Device, typename ResetFunction, typename ComputeFunction >
 void
 Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunction& compute, BenchmarkResult& result )
 {
-   result.time = std::numeric_limits< double >::quiet_NaN();
-   result.time_stddev = std::numeric_limits< double >::quiet_NaN();
-   result.cpu_cycles = std::numeric_limits< double >::quiet_NaN();
-   result.cpu_cycles_stddev = std::numeric_limits< double >::quiet_NaN();
-
    // run the monitor main loop
    Solvers::SolverMonitorThread monitor_thread( monitor );
    if( ! loggers.empty() && loggers.front()->getVerbose() <= 1 )
@@ -133,13 +128,11 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
    std::string errorMessage;
    try {
       if( this->reset ) {
-         std::tie( result.loops, result.time, result.time_stddev, result.cpu_cycles, result.cpu_cycles_stddev ) =
-            timeFunction< Device >( compute, reset, loops, minTime, monitor );
+         timeFunction< Device >( compute, reset, loops, minTime, monitor, result );
       }
       else {
          auto noReset = []() {};
-         std::tie( result.loops, result.time, result.time_stddev, result.cpu_cycles, result.cpu_cycles_stddev ) =
-            timeFunction< Device >( compute, noReset, loops, minTime, monitor );
+         timeFunction< Device >( compute, noReset, loops, minTime, monitor, result );
       }
    }
    catch( const std::exception& e ) {
@@ -147,11 +140,7 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
       std::cerr << errorMessage << '\n';
    }
 
-   result.bandwidth = datasetSize / result.time;
-   result.speedup = this->baseTime / result.time;
-   result.operations_per_loop = this->operations_per_loop;
-   if( result.cpu_cycles && this->operations_per_loop )
-      result.cpu_cycles_per_operation = result.cpu_cycles / this->operations_per_loop;
+   result.setDerivedResults( datasetSize, baseTime, operations_per_loop );
 
    if( this->baseTime == 0.0 )
       this->baseTime = result.time;
