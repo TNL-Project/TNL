@@ -1,10 +1,8 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
+#include <TNL/Benchmarks/Benchmarks.h>
+
 #ifdef HAVE_GUNROCK
    #include <gunrock/algorithms/bfs.hxx>
    #include <gunrock/algorithms/sssp.hxx>

@@ -20,8 +20,6 @@
 #include <TNL/Algorithms/fillRandom.h>
 
 #include <TNL/Benchmarks/Benchmarks.h>
-#include <cstring>
-#include <iostream>
 #include <string>
 
 #include "EigenBenchmark.h"

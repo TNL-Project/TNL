@@ -22,8 +22,6 @@
 
 #include <TNL/Benchmarks/Benchmarks.h>
 #include <algorithm>
-#include <cstring>
-#include <iostream>
 #include <type_traits>
 
 #include "EigenBenchmark.h"

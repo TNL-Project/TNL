@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <cstdlib>
 #include <type_traits>
 
 #include <TNL/Matrices/DenseMatrix.h>
