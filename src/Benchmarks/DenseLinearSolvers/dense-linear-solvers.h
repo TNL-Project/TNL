@@ -77,7 +77,8 @@ benchmarkDenseLinearSolvers( TNL::Config::ParameterContainer& parameters )
 
    CudaMatrixPointer cuda_matrix = std::make_shared< CudaMatrixType >();
    *cuda_matrix = input_matrix;
-   CudaVectorType cuda_b( host_b ), cuda_x( matrixSize, 0 );
+   CudaVectorType cuda_b( host_b );
+   CudaVectorType cuda_x( matrixSize, 0 );
 
    TNL::Solvers::Linear::GEM< CudaMatrixType > cuda_gem;
    cuda_gem.setMatrix( cuda_matrix );

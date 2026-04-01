@@ -33,21 +33,20 @@ public:
    }
 
    template< int GridDimension >
-   [[nodiscard]] int
+   void
    runBenchmark( const TNL::Config::ParameterContainer& parameters ) const
    {
       Benchmark benchmark;
       benchmark.setup( parameters );
 
       time< GridDimension >( benchmark, parameters );
-      return 0;
    }
 
    template< int GridDimension >
    void
    time( Benchmark& benchmark, const TNL::Config::ParameterContainer& parameters ) const
    {
-      using Grid = typename TNL::Meshes::Grid< GridDimension, Real, Device, int >;
+      using Grid = TNL::Meshes::Grid< GridDimension, Real, Device, int >;
       using CoordinatesType = typename Grid::CoordinatesType;
 
       CoordinatesType dimensions;
