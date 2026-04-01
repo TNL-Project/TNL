@@ -22,9 +22,31 @@
 
 namespace TNL::Benchmarks {
 
-// returns a tuple of (loops, mean, stddev) where loops is the number of
-// performed loops (i.e. timing samples), mean is the arithmetic mean of the
-// computation times and stddev is the sample standard deviation
+/**
+ * \brief Times a compute function over multiple iterations.
+ *
+ * Executes the compute function repeatedly, collecting timing samples until
+ * either maxLoops iterations complete or `minTime` seconds have elapsed.
+ * Computes mean and standard deviation of the measurements.
+ *
+ * For CUDA devices, explicit synchronization is performed before and after
+ * each computation to ensure accurate timing.
+ *
+ * CPU cycle counting is only available for host devices (Sequential, Host).
+ *
+ * \tparam Device Device type (e.g., \ref TNL::Devices::Host, \ref TNL::Devices::Cuda)
+ * \tparam ComputeFunction Callable containing code to benchmark
+ * \tparam ResetFunction Callable to reset state before each iteration
+ * \tparam Monitor Solver monitor for tracking progress
+ * \tparam ResultType Type with `setTimeResults` method
+ *
+ * \param compute Function to benchmark
+ * \param reset Function called before each compute iteration
+ * \param maxLoops Maximum number of iterations
+ * \param minTime Minimum total runtime in seconds
+ * \param monitor Solver monitor instance (must not be null)
+ * \param result Output object to receive timing data via `setTimeResults()`
+ */
 template<
    typename Device,
    typename ComputeFunction,
