@@ -10,13 +10,52 @@
 
 namespace TNL::Benchmarks {
 
+/**
+ * \brief Logger that outputs benchmark results to terminal/console.
+ *
+ * Provides human-readable output with configurable verbosity:
+ *
+ * - Level 0: No output (silent)
+ * - Level 1: Summary with key metrics (time, speedup, bandwidth, loops)
+ * - Level 2+: Full details including all metrics and configuration
+ *
+ * Metadata is printed once when it changes, followed by result rows.
+ *
+ * Example output (verbose=1):
+ *
+ * \code
+ * === Configuration ===
+ * operation     : multiply
+ * precision     : double
+ * === Results ===
+ * CPU           : time=4.44e-04  speedup=N/A  bandwidth=1.11GB/s  loops=10
+ * GPU           : time=1.11e-04  speedup=4.0  bandwidth=4.44GB/s  loops=10
+ * \endcode
+ */
 class TerminalLogger : public Logging
 {
 public:
+   /**
+    * \brief Constructs terminal logger.
+    *
+    * \param terminal Output stream (typically \ref std::cout)
+    * \param verbose Verbosity level (0=silent, 1=normal, 2=verbose)
+    */
    TerminalLogger( std::ostream& terminal, int verbose = 1 )
    : Logging( terminal, verbose )
    {}
 
+   /**
+    * \brief Logs a benchmark result to terminal.
+    *
+    * Prints metadata block header when metadata changes, then the result row.
+    * Format varies based on verbosity level.
+    *
+    * \param performer Name of implementation being tested
+    * \param headerElements Column names
+    * \param rowElements Formatted row values
+    * \param errorMessage Optional error description
+    */
    void
    logResult(
       const std::string& performer,
@@ -74,6 +113,11 @@ public:
       log << std::flush;
    }
 
+   /**
+    * \brief Logs an error message to terminal.
+    *
+    * \param message Error description
+    */
    void
    writeErrorMessage( const std::string& message ) override
    {
