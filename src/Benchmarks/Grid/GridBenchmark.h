@@ -22,7 +22,7 @@ template< typename Real = double, typename Device = TNL::Devices::Host, typename
 class GridBenchmark
 {
 public:
-   using Benchmark = typename TNL::Benchmarks::Benchmark;
+   using Benchmark = TNL::Benchmarks::Benchmark;
 
    static void
    setupConfig( TNL::Config::ConfigDescription& config )
