@@ -3,8 +3,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <string>
 #include <TNL/Graphs/Graph.h>
 
 #ifdef HAVE_BOOST
