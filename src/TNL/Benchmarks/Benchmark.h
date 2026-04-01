@@ -39,9 +39,6 @@ public:
    void
    setMinTime( double minTime );
 
-   [[nodiscard]] bool
-   isResettingOn() const;
-
    // Sets metadata columns -- values used for all subsequent rows until
    // the next call to this function.
    void
@@ -122,8 +119,6 @@ protected:
    double datasetSize = 0.0;
 
    double baseTime = 0.0;
-
-   bool reset = true;
 
    SolverMonitorType monitor;
 };
