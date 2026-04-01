@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <tuple>
 #include <map>
 #include <fstream>
 #include <filesystem>
@@ -30,14 +29,16 @@ template<
    typename Device,
    typename ComputeFunction,
    typename ResetFunction,
-   typename Monitor = TNL::Solvers::IterativeSolverMonitor< double > >
-std::tuple< std::size_t, double, double, double, double >
+   typename Monitor = TNL::Solvers::IterativeSolverMonitor< double >,
+   typename ResultType >
+void
 timeFunction(
    ComputeFunction compute,
    ResetFunction reset,
    std::size_t maxLoops,
-   const double& minTime,
-   Monitor&& monitor = Monitor() )
+   double minTime,
+   Monitor& monitor,
+   ResultType& result )
 {
    // the timer is constructed zero-initialized and stopped
    Timer timer;
@@ -97,7 +98,7 @@ timeFunction(
    // so we must unset it to avoid returning a dangling reference to the caller
    monitor.unsetTimer();
 
-   return std::make_tuple( loops, mean_time, stddev_time, mean_cpu_cycles, stddev_cpu_cycles );
+   result.setTimeResults( loops, mean_time, stddev_time, mean_cpu_cycles, stddev_cpu_cycles );
 }
 
 inline std::map< std::string, std::string >
