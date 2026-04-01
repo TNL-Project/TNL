@@ -55,7 +55,7 @@ struct ODESolversBenchmark
    using RealType = Real;
    using DeviceType = Device;
    using IndexType = Index;
-   using SolverMonitorType = typename Benchmark::SolverMonitorType;
+   using SolverMonitorType = Benchmark::SolverMonitorType;
 
    template< typename SolverType >
    static bool
