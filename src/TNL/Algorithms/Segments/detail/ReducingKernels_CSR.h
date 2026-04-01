@@ -326,7 +326,7 @@ reduceSegmentsCSRDynamicGroupingKernel( int gridIdx,
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
       __shared__ typename BlockReduce::Storage storage;
 
-      result = BlockReduce::reduce( reduce, identity, result, threadIdx.x, storage );
+      result = BlockReduce::reduce( reduce, identity, result, storage, threadIdx.x );
 
       // Write the result
       if( threadIdx.x == 0 ) {
@@ -755,7 +755,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexes( int gridIdx,
       using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
       __shared__ typename BlockReduce::Storage storage;
 
-      result = BlockReduce::reduce( reduce, identity, result, threadIdx.x, storage );
+      result = BlockReduce::reduce( reduce, identity, result, storage, threadIdx.x );
 
       // Write the result
       if( threadIdx.x == 0 )
@@ -1195,7 +1195,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithArgument( int gridIdx,
       using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;
       __shared__ typename BlockReduce::Storage storage;
 
-      auto [ result_, argument_ ] = BlockReduce::reduceWithArgument( reduce, identity, result, argument, threadIdx.x, storage );
+      auto [ result_, argument_ ] = BlockReduce::reduceWithArgument( reduce, identity, result, argument, storage, threadIdx.x );
 
       // Write the result
       if( threadIdx.x == 0 ) {
@@ -1648,7 +1648,7 @@ reduceSegmentsCSRDynamicGroupingKernelWithIndexesAndArgument( int gridIdx,
       using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;
       __shared__ typename BlockReduce::Storage storage;
 
-      auto [ result_, argument_ ] = BlockReduce::reduceWithArgument( reduce, identity, result, argument, threadIdx.x, storage );
+      auto [ result_, argument_ ] = BlockReduce::reduceWithArgument( reduce, identity, result, argument, storage, threadIdx.x );
 
       // Write the result
       if( threadIdx.x == 0 ) {
