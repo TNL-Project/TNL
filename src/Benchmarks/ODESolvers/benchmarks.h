@@ -6,7 +6,7 @@
 #include <TNL/Pointers/SharedPointer.h>
 #include <TNL/Config/ParameterContainer.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 using namespace TNL;
 using namespace TNL::Pointers;

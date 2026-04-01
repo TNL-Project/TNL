@@ -34,7 +34,7 @@
 #include <TNL/Solvers/ODE/Methods/SSPRK3.h>
 #include <TNL/Solvers/ODE/Methods/VanDerHouwenWray.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include "ODESolversBenchmarkResult.h"
 #include "Legacy/EulerNonET.h"
 #include "Legacy/MersonNonET.h"

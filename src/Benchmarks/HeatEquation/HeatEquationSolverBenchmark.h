@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Config/parseCommandLine.h>
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Algorithms/parallelFor.h>
 #include <TNL/Containers/StaticArray.h>
 

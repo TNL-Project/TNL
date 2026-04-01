@@ -17,7 +17,7 @@
 #include <TNL/Algorithms/Reduction2D.h>
 #include <TNL/Algorithms/Reduction3D.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 using namespace TNL;
 using namespace TNL::Benchmarks;

@@ -14,7 +14,7 @@
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 static std::vector< TNL::String > dimensionParameterIds = { "x-dimension", "y-dimension", "z-dimension" };
 

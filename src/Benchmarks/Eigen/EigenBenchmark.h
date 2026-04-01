@@ -1,7 +1,7 @@
 // SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 // SPDX-License-Identifier: MIT
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Cuda.h>
 

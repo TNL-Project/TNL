@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Config/parseCommandLine.h>
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Matrices/MatrixOperations.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Backend/SharedMemory.h>
