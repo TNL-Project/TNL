@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Config/parseCommandLine.h>
 #include "MemoryAccessBenchmarkTestArray.h"
 #include "MemoryAccessBenchmark.h"

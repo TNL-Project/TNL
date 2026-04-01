@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Matrices/DenseMatrix.h>
 #include <TNL/Containers/Expressions/ExpressionTemplates.h>
 

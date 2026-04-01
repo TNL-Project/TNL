@@ -5,7 +5,7 @@
 
 #include <TNL/Backend/Macros.h>
 #include <TNL/Config/parseCommandLine.h>
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Containers/Expressions/ExpressionTemplates.h>
 #include <TNL/Devices/Host.h>
 #include <TNL/Devices/Hip.h>

@@ -36,7 +36,7 @@
 #include <TNL/Solvers/Linear/GinkgoDirectSolver.h>
 #include <TNL/Algorithms/Segments/CSR.h>
 #include <TNL/Algorithms/Segments/SlicedEllpack.h>
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include "ordering.h"
 #include "benchmarks.h"
 #include "StrumpackWrapper.h"

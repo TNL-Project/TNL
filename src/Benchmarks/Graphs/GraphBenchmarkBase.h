@@ -4,7 +4,7 @@
 #pragma once
 
 #include <TNL/Config/parseCommandLine.h>
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Graphs/GraphOperations.h>
 #include <TNL/Graphs/Readers/EdgeListReader.h>
 #include <TNL/Graphs/Readers/MtxReader.h>

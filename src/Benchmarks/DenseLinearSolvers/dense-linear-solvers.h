@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include <TNL/Algorithms/fillRandom.h>
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Devices/Cuda.h>
 #include <TNL/Devices/Host.h>
