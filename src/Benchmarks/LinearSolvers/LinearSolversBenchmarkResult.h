@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Solvers/Linear/Utils/LinearResidueGetter.h>
 
 // BenchmarkResult to add extra columns to the benchmark

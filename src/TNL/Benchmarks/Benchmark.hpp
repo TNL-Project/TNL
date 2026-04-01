@@ -8,7 +8,7 @@
 
 #include <TNL/MPI/Comm.h>
 
-#include "Benchmarks.h"
+#include "Benchmark.h"
 #include "JsonLogging.h"
 #include "TerminalLogging.h"
 #include "Utils.h"

@@ -25,7 +25,7 @@
    #define STDEXEC
 #endif
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/scan.h>

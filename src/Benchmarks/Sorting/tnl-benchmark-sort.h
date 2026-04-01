@@ -12,7 +12,7 @@
 #include <fstream>
 #include <functional>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Algorithms/sort.h>
 #include <TNL/Algorithms/Sorting/BitonicSort.h>
 #include <TNL/Algorithms/Sorting/CUBMergeSort.h>

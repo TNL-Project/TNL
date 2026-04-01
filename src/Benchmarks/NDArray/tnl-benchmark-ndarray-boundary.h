@@ -9,7 +9,7 @@
 
 #include <TNL/Containers/NDArray.h>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 using namespace TNL;
 using namespace TNL::Benchmarks;

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 
 #include <TNL/Containers/Array.h>
 #include <TNL/Allocators/CudaHost.h>

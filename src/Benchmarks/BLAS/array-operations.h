@@ -5,7 +5,7 @@
 
 #include <cstring>
 
-#include <TNL/Benchmarks/Benchmarks.h>
+#include <TNL/Benchmarks/Benchmark.h>
 #include <TNL/Containers/Array.h>
 
 namespace TNL::Benchmarks {
