@@ -26,6 +26,26 @@ struct BenchmarkResult
    double cpu_cycles_per_operation = 0;
    std::size_t operations_per_loop = 0;
 
+   virtual void
+   setTimeResults( std::size_t loops_, double time_, double time_stddev_, double cpu_cycles_, double cpu_cycles_stddev_ )
+   {
+      loops = loops_;
+      time = time_;
+      time_stddev = time_stddev_;
+      cpu_cycles = cpu_cycles_;
+      cpu_cycles_stddev = cpu_cycles_stddev_;
+   }
+
+   virtual void
+   setDerivedResults( double datasetSize, double baseTime, std::size_t operationsPerLoop )
+   {
+      bandwidth = datasetSize / time;
+      speedup = baseTime / time;
+      operations_per_loop = operationsPerLoop;
+      if( cpu_cycles != 0.0 && operationsPerLoop != 0 )
+         cpu_cycles_per_operation = cpu_cycles / operationsPerLoop;
+   }
+
    [[nodiscard]] virtual HeaderElements
    getTableHeader() const
    {
