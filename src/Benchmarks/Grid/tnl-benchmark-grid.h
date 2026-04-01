@@ -39,11 +39,13 @@ startBenchmark( TNL::Config::ParameterContainer& parameters )
 {
    GridBenchmark< Real, Device > benchmark;
 #ifndef GRID_DIM
-   return benchmark.template runBenchmark< 1 >( parameters ) && benchmark.template runBenchmark< 2 >( parameters )
-       && benchmark.template runBenchmark< 3 >( parameters );
+   benchmark.template runBenchmark< 1 >( parameters );
+   benchmark.template runBenchmark< 2 >( parameters );
+   benchmark.template runBenchmark< 3 >( parameters );
 #else
-   return benchmark.template runBenchmark< GRID_DIM >( parameters );
+   benchmark.template runBenchmark< GRID_DIM >( parameters );
 #endif
+   return true;
 }
 
 template< typename Real >
