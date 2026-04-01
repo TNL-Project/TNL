@@ -24,7 +24,6 @@ Benchmark::configSetup( Config::ConfigDescription& config )
    config.addEntryEnum( "append" );
    config.addEntryEnum( "overwrite" );
    config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
-   config.addEntry< bool >( "reset", "Call reset function between loops.", true );
    config.addEntry< double >( "min-time", "Minimal real time in seconds for every computation.", 0.0 );
    config.addEntry< int >( "verbose", "Verbose mode for terminal output, the higher number the more verbosity.", 1 );
 }
@@ -33,7 +32,6 @@ void
 Benchmark::setup( const Config::ParameterContainer& parameters )
 {
    this->loops = parameters.getParameter< int >( "loops" );
-   this->reset = parameters.getParameter< bool >( "reset" );
    this->minTime = parameters.getParameter< double >( "min-time" );
    const int verbose = parameters.getParameter< int >( "verbose" );
 
@@ -71,12 +69,6 @@ void
 Benchmark::setMinTime( double minTime )
 {
    this->minTime = minTime;
-}
-
-bool
-Benchmark::isResettingOn() const
-{
-   return reset;
 }
 
 void
@@ -127,13 +119,7 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
 
    std::string errorMessage;
    try {
-      if( this->reset ) {
-         timeFunction< Device >( compute, reset, loops, minTime, monitor, result );
-      }
-      else {
-         auto noReset = []() {};
-         timeFunction< Device >( compute, noReset, loops, minTime, monitor, result );
-      }
+      timeFunction< Device >( compute, reset, loops, minTime, monitor, result );
    }
    catch( const std::exception& e ) {
       errorMessage = "timeFunction failed due to a C++ exception with description: " + std::string( e.what() );
