@@ -124,7 +124,7 @@ if [[ ! -f "$input_files" ]]; then
    touch "$input_files"
    for file in "$graphs_base_path"/**/*.mtx; do
       file_size=$(stat --format="%s" "$file")
-      if [ $SIZE_LIMIT -eq -1 ] || [ $file_size -lt $SIZE_LIMIT ]; then
+      if [[ $SIZE_LIMIT -eq -1 ]] || [[ $file_size -lt $SIZE_LIMIT ]]; then
          echo "$file"
          echo "$file" >> "$input_files"
       else
@@ -151,7 +151,7 @@ COMMAND=("$BENCHMARK" --precision "$PRECISION" --log-file "$log_file" --output-m
 if [[ "$OMP_ENABLED" == "yes" ]]; then
     COMMAND+=(--openmp-enabled yes)
     if [[ $MAX_OMP_THREADS != "" ]]; then
-        COMMAND+=(--openmp-max-threads $MAX_OMP_THREADS)
+        COMMAND+=(--openmp-max-threads "$MAX_OMP_THREADS")
     fi
 else
     COMMAND+=(--openmp-enabled no)
