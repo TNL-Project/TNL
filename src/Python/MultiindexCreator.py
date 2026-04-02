@@ -32,7 +32,6 @@ benchmark_data   data_size   algorithm_1
 
 
 class MultiindexCreator:
-
     def __init__(self, depth=0):
         self.depth = depth
         self.index = [[] for _ in range(depth)]
