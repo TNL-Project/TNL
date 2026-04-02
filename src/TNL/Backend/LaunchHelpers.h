@@ -161,45 +161,45 @@ bufferedTransferToDevice( Element* destination, std::size_t size, FillBuffer& fi
 
 #if defined( __CUDACC__ ) || defined( __HIP__ )
 __device__
-inline int
-getGlobalThreadIdx_x( const dim3& gridIdx )
-{
-   return ( gridIdx.x * getMaxGridXSize() + blockIdx.x ) * blockDim.x + threadIdx.x;
-}
-
-__device__
-inline int
-getGlobalThreadIdx_y( const dim3& gridIdx )
-{
-   return ( gridIdx.y * getMaxGridYSize() + blockIdx.y ) * blockDim.y + threadIdx.y;
-}
-
-__device__
-inline int
-getGlobalThreadIdx_z( const dim3& gridIdx )
-{
-   return ( gridIdx.z * getMaxGridZSize() + blockIdx.z ) * blockDim.z + threadIdx.z;
-}
-
-__device__
-inline int
+inline std::size_t
 getGlobalBlockIdx_x( const dim3& gridIdx )
 {
-   return gridIdx.x * getMaxGridXSize() + blockIdx.x;
+   return static_cast<std::size_t>(gridIdx.x) * getMaxGridXSize() + blockIdx.x;
 }
 
 __device__
-inline int
+inline std::size_t
 getGlobalBlockIdx_y( const dim3& gridIdx )
 {
-   return gridIdx.y * getMaxGridYSize() + blockIdx.y;
+   return static_cast<std::size_t>(gridIdx.y) * getMaxGridYSize() + blockIdx.y;
 }
 
 __device__
-inline int
+inline std::size_t
 getGlobalBlockIdx_z( const dim3& gridIdx )
 {
-   return gridIdx.z * getMaxGridZSize() + blockIdx.z;
+   return static_cast<std::size_t>(gridIdx.z) * getMaxGridZSize() + blockIdx.z;
+}
+
+__device__
+inline std::size_t
+getGlobalThreadIdx_x( const dim3& gridIdx )
+{
+   return getGlobalBlockIdx_x( gridIdx ) * blockDim.x + threadIdx.x;
+}
+
+__device__
+inline std::size_t
+getGlobalThreadIdx_y( const dim3& gridIdx )
+{
+   return getGlobalBlockIdx_y( gridIdx ) * blockDim.y + threadIdx.y;
+}
+
+__device__
+inline std::size_t
+getGlobalThreadIdx_z( const dim3& gridIdx )
+{
+   return getGlobalBlockIdx_z( gridIdx ) * blockDim.z + threadIdx.z;
 }
 #endif
 
