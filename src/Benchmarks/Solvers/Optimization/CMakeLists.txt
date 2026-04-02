@@ -1,6 +1,6 @@
 
 find_package (Eigen3 )
-find_package(ortools)
+#find_package(ortools)
 find_package(GUROBI)
 
 if(TNL_BUILD_CUDA)

@@ -91,8 +91,7 @@ powerIteration(
       throw std::invalid_argument( "Zero-sized matrices are not allowed" );
    if( matrix.getColumns() != initialVec.getSize() )
       throw std::invalid_argument( "The initial vector and the matrix size do not fit." );
-   return TNL::Matrices::Eigen::shiftedPowerIteration< MatrixType >(
-      matrix, transposed_matrix, epsilon, 0, initialVec, maxIterations );
+   return shiftedPowerIteration< MatrixType >( matrix, transposed_matrix, epsilon, 0, initialVec, maxIterations );
 }
 
 /**

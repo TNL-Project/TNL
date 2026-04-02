@@ -16,7 +16,7 @@
 #include <TNL/Math.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Matrices/Eigen/PowerIteration.h>
+#include <TNL/Solvers/Eigen/experimental/PowerIteration.h>
 
 namespace TNL::Matrices {
 
@@ -61,7 +61,7 @@ public:
       if( n == 1 ) {
          if( beta != 0.0 ) {
 #ifdef HAVE_OPENMP
-            #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
 #endif
             for( IndexType j = 0; j < m; j++ )
                y[ j ] = A[ j ] * alphax[ 0 ] + beta * y[ j ];
@@ -69,7 +69,7 @@ public:
          else {
 // the vector y might be uninitialized, and 0.0 * NaN = NaN
 #ifdef HAVE_OPENMP
-            #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
 #endif
             for( IndexType j = 0; j < m; j++ )
                y[ j ] = A[ j ] * alphax[ 0 ];
@@ -82,13 +82,13 @@ public:
          const IndexType blocks = m / block_size;
 
 #ifdef HAVE_OPENMP
-         #pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
+   #pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
 #endif
          {
             RealType aux[ block_size ];
 
 #ifdef HAVE_OPENMP
-            #pragma omp for nowait
+   #pragma omp for nowait
 #endif
             for( IndexType b = 0; b < blocks; b++ ) {
                const IndexType block_offset = b * block_size;
@@ -118,7 +118,7 @@ public:
 
 // the first thread that reaches here processes the last, incomplete block
 #ifdef HAVE_OPENMP
-            #pragma omp single nowait
+   #pragma omp single nowait
 #endif
             {
                // TODO: unlike the complete blocks, the tail is traversed row-wise
@@ -181,7 +181,7 @@ public:
 
       if( n == 1 ) {
 #ifdef HAVE_OPENMP
-         #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
+   #pragma omp parallel for if( TNL::Devices::Host::isOMPEnabled() )
 #endif
          for( IndexType j = 0; j < m; j++ )
             C[ j ] = alpha * A[ j ] + beta * B[ j ];
@@ -193,11 +193,11 @@ public:
          const IndexType blocks = m / block_size;
 
 #ifdef HAVE_OPENMP
-         #pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
+   #pragma omp parallel if( TNL::Devices::Host::isOMPEnabled() && blocks >= 2 )
 #endif
          {
 #ifdef HAVE_OPENMP
-            #pragma omp for nowait
+   #pragma omp for nowait
 #endif
             for( IndexType b = 0; b < blocks; b++ ) {
                const IndexType block_offset = b * block_size;
@@ -212,7 +212,7 @@ public:
 
 // the first thread that reaches here processes the last, incomplete block
 #ifdef HAVE_OPENMP
-            #pragma omp single nowait
+   #pragma omp single nowait
 #endif
             {
                for( IndexType j = 0; j < n; j++ ) {
@@ -490,7 +490,7 @@ template< typename Matrix >
 auto
 spectralNorm( const Matrix& A, const Matrix& AT ) -> typename Matrix::RealType
 {
-   auto [ eigenvalue, eigenvector, iterations ] = TNL::Matrices::Eigen::powerIteration( A, AT, 1.0e-8, 10000 );
+   auto [ eigenvalue, eigenvector, iterations ] = TNL::Solvers::Eigen::experimental::powerIteration( A, AT, 1.0e-8, 10000 );
    return sqrt( eigenvalue );
 }
 
@@ -508,7 +508,7 @@ spectralNorm( const Matrix& A ) -> typename Matrix::RealType
 {
    Matrix AT;
    AT.getTransposition( A );
-   auto [ eigenvalue, eigenvector, iterations ] = TNL::Matrices::Eigen::powerIteration( A, AT, 1.0e-8, 10000 );
+   auto [ eigenvalue, eigenvector, iterations ] = TNL::Solvers::Eigen::experimental::powerIteration( A, AT, 1.0e-8, 10000 );
    return sqrt( eigenvalue );
 }
 
