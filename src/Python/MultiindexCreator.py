@@ -23,7 +23,7 @@ Example
 
 It leads to the following table:
 
-banchmark_data   data_size   algorithm_1
+benchmark_data   data_size   algorithm_1
 --------------   ---------   ---------------------------
                              CPU         GPU
                              ----------  ---------------
