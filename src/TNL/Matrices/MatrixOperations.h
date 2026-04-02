@@ -16,7 +16,7 @@
 #include <TNL/Math.h>
 #include <TNL/Algorithms/copy.h>
 #include <TNL/Containers/Vector.h>
-#include <TNL/Matrices/Eigen/PowerIteration.h>
+#include <TNL/Solvers/Eigen/experimental/PowerIteration.h>
 
 namespace TNL::Matrices {
 
@@ -524,7 +524,7 @@ template< typename Matrix >
 auto
 spectralNorm( const Matrix& A, const Matrix& AT ) -> typename Matrix::RealType
 {
-   auto [ eigenvalue, eigenvector, iterations ] = TNL::Matrices::Eigen::powerIteration( A, AT, 1.0e-8, 10000 );
+   auto [ eigenvalue, eigenvector, iterations ] = TNL::Solvers::Eigen::experimental::powerIteration( A, AT, 1.0e-8, 10000 );
    return sqrt( eigenvalue );
 }
 
@@ -542,7 +542,7 @@ spectralNorm( const Matrix& A ) -> typename Matrix::RealType
 {
    Matrix AT;
    AT.getTransposition( A );
-   auto [ eigenvalue, eigenvector, iterations ] = TNL::Matrices::Eigen::powerIteration( A, AT, 1.0e-8, 10000 );
+   auto [ eigenvalue, eigenvector, iterations ] = TNL::Solvers::Eigen::experimental::powerIteration( A, AT, 1.0e-8, 10000 );
    return sqrt( eigenvalue );
 }
 

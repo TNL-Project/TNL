@@ -978,7 +978,7 @@ checkPowerIterationWithTransposedMatrix1()
    MatrixType AT;
    AT.getTransposition( A );
    const RealType epsilon = 1e-8;
-   auto [ eigenvalue, eigenvector, iterations ] = TNL::Matrices::Eigen::powerIteration< MatrixType >( A, AT, epsilon, 10000 );
+   auto [ eigenvalue, eigenvector, iterations ] = TNL::Solvers::Eigen::experimental::powerIteration< MatrixType >( A, AT, epsilon, 10000 );
    VectorType Ax( A.getRows(), 0 ), ATAx( AT.getRows(), 0 );
    A.vectorProduct( eigenvector, Ax );
    AT.vectorProduct( Ax, ATAx );
@@ -1008,7 +1008,7 @@ checkPowerIterationWithTransposedMatrix2()
    MatrixType AT;
    AT.getTransposition( A );
    const RealType epsilon = 1e-8;
-   auto [ eigenvalue, eigenvector, iterations ] = TNL::Matrices::Eigen::powerIteration< MatrixType >( A, AT, epsilon, 10000 );
+   auto [ eigenvalue, eigenvector, iterations ] = TNL::Solvers::Eigen::experimental::powerIteration< MatrixType >( A, AT, epsilon, 10000 );
    VectorType Ax( A.getRows(), 0 ), ATAx( AT.getRows(), 0 );
    A.vectorProduct( eigenvector, Ax );
    AT.vectorProduct( Ax, ATAx );
