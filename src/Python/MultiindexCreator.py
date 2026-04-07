@@ -1,8 +1,7 @@
-#!/usr/bin/python3
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
-import pandas
+import pandas as pd
 
 """
 Helper for building hierarchical ``pandas.MultiIndex`` objects.
@@ -14,10 +13,12 @@ obtain the ``MultiIndex`` together with an aligned data array scaffold.
 Example
 -------
 >>> mic = MultiindexCreator(depth=3)
->>> mic.add_entries([["benchmark_data"],["data_size"], ["algorithm_1", "CPU", "Time"], ["algorithm_1", "GPU", "Time"], ["algorithm_1", "GPU", "Speedup"]])
+>>> mic.add_entries([["benchmark_data"],["data_size"], ["algorithm_1", "CPU", "Time"],
+...  ["algorithm_1", "GPU", "Time"], ["algorithm_1", "GPU", "Speedup"]])
 >>> multiindex, data = mic.get_multiindex()
 >>> list(multiindex)
-[('benchmark_data', '', ''), ('data_size', '', ''), ('algorithm_1', 'CPU', 'Time'), ('algorithm_1', 'GPU', 'Time'), ('algorithm_1', 'GPU', 'Speedup')]
+[('benchmark_data', '', ''), ('data_size', '', ''), ('algorithm_1', 'CPU', 'Time'),
+... ('algorithm_1', 'GPU', 'Time'), ('algorithm_1', 'GPU', 'Speedup')]
 >>> data
 [['', '', '', '', '']]
 
@@ -60,5 +61,5 @@ class MultiindexCreator:
             print("|")
 
     def get_multiindex(self):
-        multiColumns = pandas.MultiIndex.from_arrays(self.index)
+        multiColumns = pd.MultiIndex.from_arrays(self.index)
         return multiColumns, self.data
