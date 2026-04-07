@@ -1,7 +1,13 @@
 add_subdirectory(Segments)
 add_subdirectory(Sorting)
 
-set(COMMON_TESTS compressTest containsTest findTest Reduction2DTest Reduction3DTest)
+set(COMMON_TESTS
+    compressTest
+    containsTest
+    findTest
+    Reduction2DTest
+    Reduction3DTest
+)
 
 set(CPP_TESTS
     AtomicOperationsTest
