@@ -93,14 +93,16 @@ struct TraversingOperations< SlicedEllpackView< Device, Index, Organization, Sli
             if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::Fixed ) {
                const std::size_t segmentsCount = end - begin;
                const std::size_t slicesCount = roundUpDivision( segmentsCount, static_cast< std::size_t >( SliceSize ) );
-               threadsCount = slicesCount * static_cast< std::size_t >( SliceSize ) * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
+               threadsCount = slicesCount * static_cast< std::size_t >( SliceSize )
+                            * static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
                if( threadsCount > std::numeric_limits< IndexType >::max() )
                   throw std::runtime_error( "The number of GPU threads exceeds the maximum limit of the IndexType." );
             }
             else if( launchConfig.getThreadsToSegmentsMapping() == ThreadsToSegmentsMapping::BlockMerged ) {
                const IndexType firstSegmentIdx = ( begin / SliceSize ) * SliceSize;
-               const IndexType lastSegmentIdx = roundUpDivision( static_cast< IndexType >( end ), static_cast< IndexType >( SliceSize ) )
-                                             * static_cast< IndexType >( SliceSize );
+               const IndexType lastSegmentIdx =
+                  roundUpDivision( static_cast< IndexType >( end ), static_cast< IndexType >( SliceSize ) )
+                  * static_cast< IndexType >( SliceSize );
                const IndexType segmentsCount = lastSegmentIdx - firstSegmentIdx;
                threadsCount = segmentsCount / static_cast< std::size_t >( launchConfig.getThreadsPerSegmentCount() );
                launchConfig.blockSize.x = 256;

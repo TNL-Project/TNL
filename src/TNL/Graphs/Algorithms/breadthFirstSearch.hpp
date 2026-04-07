@@ -58,15 +58,15 @@ breadthFirstSearchParallel( const Graph& graph,
             {
                if( targetIdx != Matrices::paddingIndex< Index > && y_view[ targetIdx ] == -1 ) {
 #if defined( HAVE_OPENMP )
-   #pragma omp atomic write
+            #pragma omp atomic write
 #endif
                   y_view[ targetIdx ] = i + 1;
 #if defined( HAVE_OPENMP )
-   #pragma omp atomic write
+            #pragma omp atomic write
 #endif
                   predecessors_view[ targetIdx ] = sourceIdx;
 #if defined( HAVE_OPENMP )
-   #pragma omp atomic write
+            #pragma omp atomic write
 #endif
                   marks_view[ targetIdx ] = 1;
                   visitor( targetIdx, i + 1 );

@@ -101,7 +101,7 @@ struct CudaBlockScan
 
       // perform the scan of warpResults using one warp
       if( warp_id == 0 ) {
-   #pragma unroll
+         #pragma unroll
          for( int stride = 1; stride < blockSize / Backend::getWarpSize(); stride *= 2 ) {
             ValueType result;
             if( lane_id >= stride )
