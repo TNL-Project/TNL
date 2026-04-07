@@ -15,7 +15,7 @@ struct Graph;
 
 //! \brief This checks if given type is matrix.
 [[nodiscard]] constexpr std::false_type
-isGraph( ... )
+isGraph( ... )  // NOLINT(modernize-avoid-variadic-functions)
 {
    return {};
 }

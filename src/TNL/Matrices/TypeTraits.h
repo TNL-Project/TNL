@@ -42,7 +42,7 @@ constexpr bool is_matrix_v = is_matrix< T >::value;
  * \brief This checks if given type is matrix view.
  */
 [[nodiscard]] constexpr std::false_type
-isMatrixView( ... )
+isMatrixView( ... )  // NOLINT(modernize-avoid-variadic-functions)
 {
    return {};
 }
