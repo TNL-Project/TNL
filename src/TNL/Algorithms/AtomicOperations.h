@@ -59,8 +59,8 @@ struct AtomicOperations< Devices::Host >
       static bool initialized = false;
 
       if( ! initialized ) {
-         for( int i = 0; i < NumLocks; i++ )
-            omp_init_lock( &locks[ i ] );
+         for( auto& lock : locks )
+            omp_init_lock( &lock );
          initialized = true;
       }
 

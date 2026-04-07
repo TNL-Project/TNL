@@ -11,7 +11,7 @@ template< typename Device, typename Index >
 __cuda_callable__
 AdaptiveCSRView< Device, Index >::AdaptiveCSRView( const AdaptiveCSRView& view )
 {
-   AdaptiveCSRView* ptr = const_cast< AdaptiveCSRView* >( &view );
+   auto* ptr = const_cast< AdaptiveCSRView* >( &view );
    bind( ptr->getOffsets(), ptr->blocksArray );
 }
 
