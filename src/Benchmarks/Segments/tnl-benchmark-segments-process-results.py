@@ -2,17 +2,13 @@
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
-import os
-import json
-import pandas as pd
-from pandas import json_normalize
-import matplotlib.pyplot as plt
-import numpy as np
-import math
 import argparse
-from TNL.BenchmarkLogs import *
-import MultiindexCreator as mic
+import os
+
 import Graphs
+import pandas as pd
+
+from TNL import MultiindexCreator as mic
 
 functions = [
     "forElements",
@@ -55,11 +51,26 @@ threads_mappings_translation = {
     "Single": "Single",
     "N/A": "N/A",
     "1 TPS": "Single",
+    "2 TPS": "2 TPS",
+    "4 TPS": "4 TPS",
+    "8 TPS": "8 TPS",
+    "16 TPS": "16 TPS",
+    "32 TPS": "32 TPS",
+    "64 TPS": "64 TPS",
+    "128 TPS": "128 TPS",
+    "256 TPS": "256 TPS",
     "Warp per segment": "Warp",
     "BlockMerged 1 TPS": "Block Merge 1",
     "BlockMerged 2 TPS": "Block Merge 2",
     "BlockMerged 4 TPS": "Block Merge 4",
     "BlockMerged 8 TPS": "Block Merge 8",
+    "DynamicGrouping 1 TPS": "Dynamic Grouping 1",
+    "DynamicGrouping 2 TPS": "Dynamic Grouping 2",
+    "DynamicGrouping 4 TPS": "Dynamic Grouping 4",
+    "DynamicGrouping 8 TPS": "Dynamic Grouping 8",
+    "DynamicGrouping 16 TPS": "Dynamic Grouping 16",
+    "Light CSR": "Light CSR",
+    "Hybrid CSR": "Hybrid CSR",
 }
 
 tests = {
@@ -77,7 +88,7 @@ def get_benchmark_dataframe(logFile):
     :returns: pandas.DataFrame instance
     """
     print(f"Parsing input file {logFile}")
-    with open(logFile, "r") as file:
+    with open(logFile) as file:
         df = pd.read_json(file, orient="records", lines=True)
         # convert "N/A" in the speedup column to nan
         # if "speedup" in df.columns:
@@ -150,11 +161,13 @@ def convert_data_frame(input_df, multicolumns, df_data, begin_idx=0, end_idx=-1)
         ]
         if out_idx >= begin_idx:
             print(
-                f"{out_idx} : {in_idx} / {len(input_df.index)} : {segments_setup} {segments_count} {max_segment_size}"
+                f"{out_idx} : {in_idx} / {len(input_df.index)} : {segments_setup}"
+                f" {segments_count} {max_segment_size}"
             )
         else:
             print(
-                f"{out_idx} : {in_idx} / {len(input_df.index)} : {segments_setup} {segments_count} {max_segment_size} - SKIP"
+                f"{out_idx} : {in_idx} / {len(input_df.index)} : {segments_setup}"
+                f" {segments_count} {max_segment_size} - SKIP"
             )
         aux_df = pd.DataFrame(df_data, columns=multicolumns, index=[out_idx])
         for index, row in df_graph.iterrows():
@@ -212,7 +225,7 @@ def divide_columns(df, in_colA, in_colB, out_col):
         div = 0
         try:
             div = A / B
-        except:
+        except Exception:
             div = float("nan")
         out_col_list.append(div)
     df[out_col] = out_col_list
@@ -232,9 +245,10 @@ def compute_speedup(df):
                         (function, "cuda", segments_type, threads_mapping, "time"),
                         (function, "cuda", segments_type, threads_mapping, "speedup"),
                     )
-                except:
+                except Exception as e:
                     print(
-                        f"Cannot compute speedup for {function} {segments_type} {threads_mapping}"
+                        f"Cannot compute speedup for {function} {segments_type}"
+                        f" {threads_mapping}: {e}"
                     )
 
 
@@ -255,8 +269,8 @@ def write_results(df):
         test_df.to_html(f"tnl-benchmark-segments-{test}.html")
         try:
             os.mkdir(f"{test}")
-        except:
-            pass
+        except Exception as e:
+            print(f"Cannot create directory {test}: {e}")
         for function in functions:
             print("Processing function: ", function)
             function_df = test_df[
@@ -277,9 +291,10 @@ def write_results(df):
                             (function, "cuda", segments, mapping, "bandwidth")
                         ].copy()
                         labels.append(label)
-                    except:
+                    except Exception as e:
                         print(
-                            f"Cannot process graph for {function}, cuda, {segments}, {mapping}"
+                            f"Cannot process graph for {function}, cuda, {segments},"
+                            f" {mapping}: {e}"
                         )
                 Graphs.draw_graphs(
                     labels,

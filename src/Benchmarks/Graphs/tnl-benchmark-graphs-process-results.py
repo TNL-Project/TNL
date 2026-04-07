@@ -2,29 +2,28 @@
 # SPDX-FileComment: This file is part of TNL - Template Numerical Library (https://tnl-project.org/)
 # SPDX-License-Identifier: MIT
 
+import argparse
 import os
-import json
-import pandas as pd
-from pandas import json_normalize
+
 import matplotlib.pyplot as plt
 import numpy as np
-import math
-import argparse
-from TNL.BenchmarkLogs import *
-import TNL.MultiindexCreator as mic
+import pandas as pd
+
+from TNL import MultiindexCreator as mic
 
 matplotlib_fixed_colors = ["blue", "green", "red", "cyan", "magenta", "#663300"]
 
 
 def extract_sorted(df, subset, ascending=False):
     """
-    Extract column subset from the dataframe, drop rows with NaN in this column and sort the result by this column.
+    Extract column subset from the dataframe, drop rows with NaN in this column and
+    sort the result by this column.
 
     :param df: pandas.DataFrame from which to extract the data
     :param subset: column names to extract and sort
     :param ascending: sort order, False for descending, True for ascending
     """
-    if not subset in df.columns:
+    if subset not in df.columns:
         raise Exception(f"Column {subset} not found in the dataframe")
 
     filtered_df = df.dropna(subset=[subset]).copy()
@@ -50,23 +49,26 @@ def draw_graphs(
     """
     Draw several graphs into one figure
     graph_labels - list of labels of graphs to be drawn
-    graphs - dictionary with graphs where key is the label of the graph and value is the data
+    graphs - dictionary with graphs where key is the label of the graph and value is
+       the data
     xlabel - label of x axis
     ylabel - label of y axis
     filename - name of the output file
     legend_loc - location of the legend
     bar - name of the bar to be drawn. Bar is drawn as a line with value 1.
-        It serves for better visualization of speed-up (i.e. where it is larger or smaller than one).
+        It serves for better visualization of speed-up (i.e. where it is larger or
+          smaller than one).
         If bar is set to 'none', no bar is drawn.
     yscale - scale of y axis ('linear' or 'log')
-    latex_labels - dictionary with labels in latex format where key is the label of the graph and value is the latex label
+    latex_labels - dictionary with labels in latex format where key is the label of the
+       graph and value is the latex label
     """
     fig, axs = plt.subplots(1, 1, figsize=(6, 4), constrained_layout=True)
     latexNames = []
     size = 1
     color_idx = 0
     for label in graph_labels:
-        if not label in graphs:
+        if label not in graphs:
             raise RuntimeError(f"Graph {label} not found in graphs")
         t = np.arange(len(graphs[label]))
         if color_idx < len(matplotlib_fixed_colors):
@@ -118,7 +120,7 @@ def get_benchmark_dataframe(logFile):
     :returns: pandas.DataFrame instance
     """
     print(f"Parsing input file {logFile}")
-    with open(logFile, "r") as file:
+    with open(logFile) as file:
         df = pd.read_json(file, orient="records", lines=True)
         # convert "N/A" in the speedup column to nan
         # if "speedup" in df.columns:
@@ -320,11 +322,11 @@ def divide_columns(df, in_colA, in_colB, out_col):
     """
     Compute out_col = in_colA / in_colB
     """
-    if not in_colA in df.columns:
+    if in_colA not in df.columns:
         raise Exception(f"Column {in_colA} not found in the dataframe")
-    if not in_colB in df.columns:
+    if in_colB not in df.columns:
         raise Exception(f"Column {in_colB} not found in the dataframe")
-    if not out_col in df.columns:
+    if out_col not in df.columns:
         raise Exception(f"Column {out_col} not found in the dataframe")
     in_colA_list = df[in_colA]
     in_colB_list = df[in_colB]
@@ -334,7 +336,7 @@ def divide_columns(df, in_colA, in_colB, out_col):
         div = 0
         try:
             div = A / B
-        except:
+        except Exception:
             div = float("nan")
         out_col_list.append(div)
     df[out_col] = out_col_list
@@ -416,7 +418,6 @@ def draw_speedup_graphs(in_df, kernels, launch_configurations):
                     if not os.path.exists(f"{metric}/{problem}/{device}"):
                         os.mkdir(f"{metric}/{problem}/{device}")
     profiles = {}
-    color_idx = 0
     print(kernels)
     df = in_df
     for problem in problems:
@@ -435,12 +436,13 @@ def draw_speedup_graphs(in_df, kernels, launch_configurations):
                         ascending=False,
                     )
                     print(
-                        f"Writing time profile of {kernel} on {device} with '{launch_cfg}' launch config "
+                        f"Writing time profile of {kernel} on {device} with "
+                        f"'{launch_cfg}' launch config "
                     )
                     draw_graphs(
                         [label],
                         profiles,
-                        xlabel=f"Graph number",
+                        xlabel="Graph number",
                         ylabel="Time",
                         filename=f"Time/{problem}/{device}/{kernel}-{launch_cfg}.pdf",
                         legend_loc="upper right",
@@ -465,12 +467,13 @@ def draw_speedup_graphs(in_df, kernels, launch_configurations):
                             ascending=False,
                         )
                         print(
-                            f"Writing speedup profile of {kernel} on {device} with '{launch_cfg}' launch config "
+                            f"Writing speedup profile of {kernel} on {device} with"
+                            f" '{launch_cfg}' launch config "
                         )
                         draw_graphs(
                             [label],
                             profiles,
-                            xlabel=f"Graph number",
+                            xlabel="Graph number",
                             ylabel="Speedup",
                             filename=f"Speedup/{problem}/{device}/{kernel}-{launch_cfg}-vs-{reference_solver}.pdf",
                             legend_loc="upper right",
@@ -480,7 +483,7 @@ def draw_speedup_graphs(in_df, kernels, launch_configurations):
                         draw_graphs(
                             [label],
                             profiles,
-                            xlabel=f"Graph number",
+                            xlabel="Graph number",
                             ylabel="Speedup",
                             filename=f"Speedup/{problem}/{device}/{kernel}-{launch_cfg}-vs-{reference_solver}-log.pdf",
                             legend_loc="upper right",

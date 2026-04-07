@@ -24,23 +24,26 @@ def draw_graphs(
     """
     Draw several graphs into one figure
     graph_labels - list of labels of graphs to be drawn
-    graphs - dictionary with graphs where key is the label of the graph and value is the data
+    graphs - dictionary with graphs where key is the label of the graph and value is
+       the data
     xlabel - label of x axis
     ylabel - label of y axis
     filename - name of the output file
     legend_loc - location of the legend
     bar - name of the bar to be drawn. Bar is drawn as a line with value 1.
-        It serves for better visualization of speed-up (i.e. where it is larger or smaller than one).
+        It serves for better visualization of speed-up (i.e. where it is larger or
+            smaller than one).
         If bar is set to 'none', no bar is drawn.
     yscale - scale of y axis ('linear' or 'log')
-    latex_labels - dictionary with labels in latex format where key is the label of the graph and value is the latex label
+    latex_labels - dictionary with labels in latex format where key is the label of
+       the graph and value is the latex label
     """
     fig, axs = plt.subplots(1, 1, figsize=(9, 6))
     latexNames = []
     size = 1
     color_idx = 0
     for label in graph_labels:
-        if not label in graphs:
+        if label not in graphs:
             raise RuntimeError(f"Graph {label} not found in graphs")
         t = np.arange(len(graphs[label]))
         if color_idx < len(matplotlib_fixed_colors):
@@ -101,18 +104,22 @@ def draw_dual_graphs(
     latex_labels={},
 ):
     """
-    Draw two graphs into one figure. One has yaxis label on the left and the other on the right.
+    Draw two graphs into one figure. One has yaxis label on the left and the other on
+    the right.
     graph_labels - list of labels of graphs to be drawn
-    graphs - dictionary with graphs where key is the label of the graph and value is the data
+    graphs - dictionary with graphs where key is the label of the graph and value is
+       the data
     xlabel - label of x axis
     ylabel - label of y axis
     filename - name of the output file
     legend_loc - location of the legend
     bar - name of the bar to be drawn. Bar is drawn as a line with value 1.
-        It serves for better visualization of speed-up (i.e. where it is larger or smaller than one).
+        It serves for better visualization of speed-up (i.e. where it is larger
+        or smaller than one).
         If bar is set to 'none', no bar is drawn.
     yscale - scale of y axis ('linear' or 'log')
-    latex_labels - dictionary with labels in latex format where key is the label of the graph and value is the latex label
+    latex_labels - dictionary with labels in latex format where key is the label of the
+      graph and value is the latex label
     """
     fig, ax1 = plt.subplots(1, 1, figsize=fig_size)
     ax2 = ax1.twinx()
@@ -120,13 +127,14 @@ def draw_dual_graphs(
     size = 1
     if not len(graph_labels) == 2:
         raise RuntimeError("Only two graphs are supported")
-    if not graph_labels[0] in graphs:
+    if graph_labels[0] not in graphs:
         raise RuntimeError(f"Graph {graph_labels[0]} not found in graphs")
-    if not graph_labels[1] in graphs:
+    if graph_labels[1] not in graphs:
         raise RuntimeError(f"Graph {graph_labels[1]} not found in graphs")
     if not len(graphs[graph_labels[0]]) == len(graphs[graph_labels[1]]):
         raise RuntimeError(
-            f"Graphs must have the same size ({len(graphs[graph_labels[0]])} != {len(graphs[graph_labels[1]])}"
+            f"Graphs must have the same size"
+            f" ({len(graphs[graph_labels[0]])} != {len(graphs[graph_labels[1]])}"
         )
 
     t = np.arange(len(graphs[graph_labels[0]]))
