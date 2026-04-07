@@ -113,7 +113,7 @@ constructorsExample()
     * Example 5: Copy constructor
     */
    std::cout << "Example 5: Copy constructor\n";
-   GraphType graph5( graph3a );
+   GraphType graph5( graph3a );  // NOLINT(performance-unnecessary-copy-initialization)
    std::cout << "Copied graph - vertices: " << graph5.getVertexCount() << ", edges: " << graph5.getEdgeCount() << "\n\n";
    //! [copy constructor]
 

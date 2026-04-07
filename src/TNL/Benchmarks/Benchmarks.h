@@ -124,13 +124,13 @@ public:
    void
    setLoops( std::size_t loops );
 
-   std::size_t
+   [[nodiscard]] std::size_t
    getLoops() const;
 
    void
    setWarmupLoops( std::size_t warmupLoops );
 
-   std::size_t
+   [[nodiscard]] std::size_t
    getWarmupLoops() const;
 
    void
