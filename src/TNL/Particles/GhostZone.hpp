@@ -1,3 +1,5 @@
+#pragma once
+
 #include "GhostZone.h"
 
 namespace TNL {

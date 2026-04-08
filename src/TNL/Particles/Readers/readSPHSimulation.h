@@ -1,4 +1,6 @@
-#include <cfloat> //FLT_MAX
+#pragma once
+
+#include <cfloat>  //FLT_MAX
 #include "../Particles.h"
 
 namespace TNL {

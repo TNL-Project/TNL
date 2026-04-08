@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ParticlesLinkedList.h"
 #include "details/details.h"
 #include <climits>

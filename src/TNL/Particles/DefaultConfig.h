@@ -1,3 +1,5 @@
+#pragma once
+
 #include <type_traits>
 #include <Particles/CellIndexer.h>
 #include <Particles/ParticlesTraits.h>

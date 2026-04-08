@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ParticlesLinkedListWithList.h"
 #include "ParticlesTraits.h"
 
