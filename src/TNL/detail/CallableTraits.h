@@ -33,9 +33,11 @@ template< typename Callable, std::size_t N >
 struct can_accept : can_accept_impl< Callable, std::make_index_sequence< N > >
 {};
 
+/// @cond DOXY_IGNORE
 template< typename Callable, std::size_t Max, std::size_t N, typename = void >
 struct callable_details_impl : callable_details_impl< Callable, Max, N - 1 >
 {};
+/// @endcond
 
 template< typename Callable, std::size_t Max, std::size_t N >
 struct callable_details_impl< Callable, Max, N, std::enable_if_t< can_accept< Callable, N >::value > >
