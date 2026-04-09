@@ -6,6 +6,7 @@
 
 // types for which SparseMatrixOperationsTest is instantiated
 using MatrixTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::SparseMatrix< long, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
@@ -20,8 +21,7 @@ TNL::Matrices::SparseMatrix< std::complex< float >,
                      long,
                      TNL::Matrices::GeneralMatrix,
                      TNL::Algorithms::Segments::CSR >*/
-#if defined( __CUDACC__ )
-   ,
+#elif defined( __CUDACC__ )
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
    //TNL::Matrices::SparseMatrix< long, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
    // TODO: This is not accepted by nvcc 13.0 -- long is somehow transformed to TNL::Config::Integer
@@ -43,7 +43,6 @@ TNL::Matrices::SparseMatrix< TNL::Arithmetics::Complex< float >,
                   TNL::Matrices::GeneralMatrix,
                   TNL::Algorithms::Segments::CSR >*/
 #elif defined( __HIP__ )
-   ,
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::SparseMatrix< long, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::SparseMatrix< float, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::CSR >,

@@ -9,6 +9,7 @@
 
 // Types for which MatrixTraverseTest is instantiated - SparseMatrix with BiEllpack
 using SparseMatrixBiEllpackTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::
       SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::BiEllpack >,
    TNL::Matrices::
@@ -25,8 +26,7 @@ using SparseMatrixBiEllpackTypes = ::testing::Types<
       SparseMatrix< float, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::BiEllpack >,
    TNL::Matrices::
       SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::BiEllpack >
-#if defined( __CUDACC__ )
-   ,
+#elif defined( __CUDACC__ )
    TNL::Matrices::
       SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::BiEllpack >,
    TNL::Matrices::
@@ -44,7 +44,6 @@ using SparseMatrixBiEllpackTypes = ::testing::Types<
    TNL::Matrices::
       SparseMatrix< double, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::BiEllpack >
 #elif defined( __HIP__ )
-   ,
    TNL::Matrices::
       SparseMatrix< int, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::BiEllpack >,
    TNL::Matrices::

@@ -4,25 +4,24 @@
 #include <gtest/gtest.h>
 
 // Types for which SegmentsTest is instantiated - SlicedEllpack segments
-using SlicedEllpackSegmentsTypes =
-   ::testing::Types< TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, int >,
-                     TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, long >,
-                     TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Host, int >,
-                     TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Host, long >
-#if defined( __CUDACC__ )
-                     ,
-                     TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Cuda, int >,
-                     TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Cuda, long >,
-                     TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Cuda, int >,
-                     TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Cuda, long >
+using SlicedEllpackSegmentsTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, int >,
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Host, long >,
+   TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Host, int >,
+   TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Host, long >
+#elif defined( __CUDACC__ )
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Cuda, int >,
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Cuda, long >,
+   TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Cuda, int >,
+   TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
-                     ,
-                     TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Hip, int >,
-                     TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Hip, long >,
-                     TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Hip, int >,
-                     TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Hip, long >
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Hip, int >,
+   TNL::Algorithms::Segments::RowMajorSlicedEllpack< TNL::Devices::Hip, long >,
+   TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Hip, int >,
+   TNL::Algorithms::Segments::ColumnMajorSlicedEllpack< TNL::Devices::Hip, long >
 #endif
-                     >;
+   >;
 
 #include "SegmentsTestSuite.hpp"
 

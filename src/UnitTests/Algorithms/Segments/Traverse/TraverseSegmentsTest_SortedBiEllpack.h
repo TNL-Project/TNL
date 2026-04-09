@@ -5,18 +5,17 @@
 
 // types for which MatrixTest is instantiated
 using SortedBiEllpackSegmentsTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::RowMajorBiEllpack< TNL::Devices::Host, int > >,
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::RowMajorBiEllpack< TNL::Devices::Host, long > >,
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::ColumnMajorBiEllpack< TNL::Devices::Host, int > >,
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::ColumnMajorBiEllpack< TNL::Devices::Host, long > >
-#if defined( __CUDACC__ )
-   ,
+#elif defined( __CUDACC__ )
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::RowMajorBiEllpack< TNL::Devices::Cuda, int > >,
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::RowMajorBiEllpack< TNL::Devices::Cuda, long > >,
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::ColumnMajorBiEllpack< TNL::Devices::Cuda, int > >,
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::ColumnMajorBiEllpack< TNL::Devices::Cuda, long > >
 #elif defined( __HIP__ )
-   ,
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::RowMajorBiEllpack< TNL::Devices::Hip, int > >,
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::RowMajorBiEllpack< TNL::Devices::Hip, long > >,
    TNL::Algorithms::Segments::SortedSegments< TNL::Algorithms::Segments::ColumnMajorBiEllpack< TNL::Devices::Hip, int > >,

@@ -1,1 +1,0 @@
-SparseMatrixTest_SortedEllpack.cpp

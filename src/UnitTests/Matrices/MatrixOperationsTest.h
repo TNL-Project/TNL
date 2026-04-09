@@ -13,16 +13,16 @@ protected:
    using TripleType = Triple;
 };
 
-using MatrixTypes = ::testing::Types< std::tuple< double, TNL::Devices::Sequential, int >,
-                                      std::tuple< double, TNL::Devices::Host, int >
-#if defined( __CUDACC__ )
-                                      ,
-                                      std::tuple< double, TNL::Devices::Cuda, int >
+using MatrixTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   std::tuple< double, TNL::Devices::Sequential, int >,
+   std::tuple< double, TNL::Devices::Host, int >
+#elif defined( __CUDACC__ )
+   std::tuple< double, TNL::Devices::Cuda, int >
 #elif defined( __HIP__ )
-                                      ,
-                                      std::tuple< double, TNL::Devices::Hip, int >
+   std::tuple< double, TNL::Devices::Hip, int >
 #endif
-                                      >;
+   >;
 
 TYPED_TEST_SUITE( MatrixOperationsTest, MatrixTypes );
 

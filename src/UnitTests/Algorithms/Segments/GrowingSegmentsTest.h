@@ -16,18 +16,18 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using GrowingSegmentsTypes = ::testing::Types< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int >,
-                                               TNL::Algorithms::Segments::CSR< TNL::Devices::Host, long >
-#if defined( __CUDACC__ )
-                                               ,
-                                               TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int >,
-                                               TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, long >
+using GrowingSegmentsTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int >,
+   TNL::Algorithms::Segments::CSR< TNL::Devices::Host, long >
+#elif defined( __CUDACC__ )
+   TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int >,
+   TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, long >
 #elif defined( __HIP__ )
-                                               ,
-                                               TNL::Algorithms::Segments::CSR< TNL::Devices::Hip, int >,
-                                               TNL::Algorithms::Segments::CSR< TNL::Devices::Hip, long >
+   TNL::Algorithms::Segments::CSR< TNL::Devices::Hip, int >,
+   TNL::Algorithms::Segments::CSR< TNL::Devices::Hip, long >
 #endif
-                                               >;
+   >;
 
 TYPED_TEST_SUITE( GrowingSegmentsTest, GrowingSegmentsTypes );
 

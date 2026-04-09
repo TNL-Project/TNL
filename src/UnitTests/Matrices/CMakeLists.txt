@@ -43,8 +43,26 @@ set(COMMON_TESTS
 )
 
 set(CPP_TESTS ${COMMON_TESTS} StaticMatrixTest MatrixTypeTraitsTest)
-set(CUDA_TESTS ${COMMON_TESTS})
-set(HIP_TESTS ${COMMON_TESTS})
+set(CUDA_TESTS)
+set(HIP_TESTS)
+
+foreach(target IN ITEMS ${COMMON_TESTS})
+    set(CUDA_TESTS ${CUDA_TESTS} ${target}_cuda)
+    set(HIP_TESTS ${HIP_TESTS} ${target}_hip)
+endforeach()
+
+set(MPI_TESTS DistributedMatrixTest)
+set(MPI_CUDA_TESTS DistributedMatrixTest_cuda)
+set(MPI_HIP_TESTS DistributedMatrixTest_hip)
+
+foreach(target IN ITEMS ${CPP_TESTS})
+    add_executable(${target} ${target}.cpp)
+    target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
+    target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
+    target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
+    add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+    set_property(TEST ${target} PROPERTY LABELS Matrices)
+endforeach()
 
 if(TNL_BUILD_CUDA)
     foreach(target IN ITEMS ${CUDA_TESTS})
@@ -56,7 +74,9 @@ if(TNL_BUILD_CUDA)
         # add "Matrices" label to the test
         set_property(TEST ${target} PROPERTY LABELS Matrices)
     endforeach()
-elseif(TNL_BUILD_HIP)
+endif()
+
+if(TNL_BUILD_HIP)
     foreach(target IN ITEMS ${HIP_TESTS})
         add_executable(${target} ${target}.hip)
         target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
@@ -66,48 +86,64 @@ elseif(TNL_BUILD_HIP)
         # add "Matrices" label to the test
         set_property(TEST ${target} PROPERTY LABELS Matrices)
     endforeach()
-else()
-    foreach(target IN ITEMS ${CPP_TESTS})
+endif()
+
+if(TNL_BUILD_MPI)
+    foreach(target IN ITEMS ${MPI_TESTS})
         add_executable(${target} ${target}.cpp)
         target_compile_options(${target} PUBLIC ${CXX_TESTS_FLAGS})
         target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
         target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
-        add_test(${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX})
+        target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
+        target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
+        add_test_mpi(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
+        add_test_mpi(
+            NAME ${target}_nodistr
+            NPROC 1
+            COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+        )
         # add "Matrices" label to the test
         set_property(TEST ${target} PROPERTY LABELS Matrices)
+        set_property(TEST ${target}_nodistr PROPERTY LABELS Matrices)
     endforeach()
-endif()
 
-if(TNL_BUILD_MPI)
     if(TNL_BUILD_CUDA)
-        add_executable(DistributedMatrixTest DistributedMatrixTest.cu)
-        target_compile_options(DistributedMatrixTest PUBLIC ${CUDA_TESTS_FLAGS})
-    elseif(TNL_BUILD_HIP)
-        add_executable(DistributedMatrixTest DistributedMatrixTest.hip)
-        target_compile_options(DistributedMatrixTest PUBLIC ${HIP_TESTS_FLAGS})
-    else()
-        add_executable(DistributedMatrixTest DistributedMatrixTest.cpp)
-        target_compile_options(DistributedMatrixTest PUBLIC ${CXX_TESTS_FLAGS})
+        foreach(target IN ITEMS ${MPI_CUDA_TESTS})
+            add_executable(${target} ${target}.cu)
+            target_compile_options(${target} PUBLIC ${CUDA_TESTS_FLAGS})
+            target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
+            target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
+            target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
+            target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
+            add_test_mpi(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
+            add_test_mpi(
+                NAME ${target}_nodistr
+                NPROC 1
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            )
+            # add "Matrices" label to the test
+            set_property(TEST ${target} PROPERTY LABELS Matrices)
+            set_property(TEST ${target}_nodistr PROPERTY LABELS Matrices)
+        endforeach()
     endif()
-    target_link_libraries(DistributedMatrixTest PUBLIC TNL::TNL ${TESTS_LIBRARIES})
-    target_link_options(DistributedMatrixTest PUBLIC ${TESTS_LINKER_FLAGS})
 
-    # enable MPI support in TNL
-    target_compile_definitions(DistributedMatrixTest PUBLIC "-DHAVE_MPI")
-    # add MPI to the target: https://cliutils.gitlab.io/modern-cmake/chapters/packages/MPI.html
-    target_link_libraries(DistributedMatrixTest PUBLIC MPI::MPI_CXX)
-
-    add_test_mpi(
-        NAME DistributedMatrixTest
-        NPROC 4
-        COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMatrixTest${CMAKE_EXECUTABLE_SUFFIX}"
-    )
-    add_test_mpi(
-        NAME DistributedMatrixTest_nodistr
-        NPROC 1
-        COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DistributedMatrixTest${CMAKE_EXECUTABLE_SUFFIX}"
-    )
-    # add "Matrices" label to the tests
-    set_property(TEST DistributedMatrixTest PROPERTY LABELS Matrices)
-    set_property(TEST DistributedMatrixTest_nodistr PROPERTY LABELS Matrices)
+    if(TNL_BUILD_HIP)
+        foreach(target IN ITEMS ${MPI_HIP_TESTS})
+            add_executable(${target} ${target}.hip)
+            target_compile_options(${target} PUBLIC ${HIP_TESTS_FLAGS})
+            target_link_libraries(${target} PUBLIC TNL::TNL ${TESTS_LIBRARIES})
+            target_link_options(${target} PUBLIC ${TESTS_LINKER_FLAGS})
+            target_compile_definitions(${target} PUBLIC "-DHAVE_MPI")
+            target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
+            add_test_mpi(NAME ${target} NPROC 4 COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}")
+            add_test_mpi(
+                NAME ${target}_nodistr
+                NPROC 1
+                COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}${CMAKE_EXECUTABLE_SUFFIX}"
+            )
+            # add "Matrices" label to the test
+            set_property(TEST ${target} PROPERTY LABELS Matrices)
+            set_property(TEST ${target}_nodistr PROPERTY LABELS Matrices)
+        endforeach()
+    endif()
 endif()

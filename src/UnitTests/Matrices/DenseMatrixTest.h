@@ -1583,6 +1583,7 @@ protected:
 
 // types for which MatrixTest is instantiated
 using MatrixTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::DenseMatrix< int, TNL::Devices::Host, short, TNL::Algorithms::Segments::RowMajorOrder >,
    TNL::Matrices::DenseMatrix< long, TNL::Devices::Host, short, TNL::Algorithms::Segments::RowMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, short, TNL::Algorithms::Segments::RowMajorOrder >,
@@ -1597,8 +1598,7 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
    TNL::Matrices::DenseMatrix< std::complex< float >, TNL::Devices::Host, long, TNL::Algorithms::Segments::RowMajorOrder >,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ColumnMajorOrder >
-#if defined( __CUDACC__ )
-   ,
+#elif defined( __CUDACC__ )
    TNL::Matrices::DenseMatrix< int, TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< long, TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
@@ -1615,7 +1615,6 @@ using MatrixTypes = ::testing::Types<
    // TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >
 #elif defined( __HIP__ )
-   ,
    TNL::Matrices::DenseMatrix< int, TNL::Devices::Hip, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< long, TNL::Devices::Hip, short, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Hip, short, TNL::Algorithms::Segments::ColumnMajorOrder >,

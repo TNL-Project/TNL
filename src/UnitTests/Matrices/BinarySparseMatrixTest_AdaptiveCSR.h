@@ -16,18 +16,17 @@ protected:
 
 // types for which MatrixTest is instantiated
 using CSRMatrixTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::
       SparseMatrix< bool, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::AdaptiveCSR, int >,
    TNL::Matrices::
       SparseMatrix< bool, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::AdaptiveCSR, int >
-#if defined( __CUDACC__ )
-   ,
+#elif defined( __CUDACC__ )
    TNL::Matrices::
       SparseMatrix< bool, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::AdaptiveCSR, int >,
    TNL::Matrices::
       SparseMatrix< bool, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::AdaptiveCSR, int >
 #elif defined( __HIP__ )
-   ,
    TNL::Matrices::
       SparseMatrix< bool, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::AdaptiveCSR, int >,
    TNL::Matrices::
