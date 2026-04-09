@@ -1,1 +1,0 @@
-ReduceSegmentsTest_BiEllpack.cpp

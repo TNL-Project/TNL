@@ -12,6 +12,7 @@
 
 // types for which MatrixTest is instantiated
 using MatrixTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::
       SparseMatrix< long, TNL::Devices::Host, short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
@@ -30,13 +31,12 @@ using MatrixTypes = ::testing::Types<
       SparseMatrix< float, TNL::Devices::Host, long, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::
       SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
-#if defined( __CUDACC__ )  // Commented types are not supported by atomic operations on GPU.
-   //,TNL::Matrices::SparseMatrix< int,     TNL::Devices::Cuda, short, TNL::Matrices::SymmetricMatrix,
+#elif defined( __CUDACC__ )  // Commented types are not supported by atomic operations on GPU.
+   //TNL::Matrices::SparseMatrix< int,     TNL::Devices::Cuda, short, TNL::Matrices::SymmetricMatrix,
    //TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Cuda, short,
    //TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< float,   TNL::Devices::Cuda,
    //short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< double,
    //TNL::Devices::Cuda, short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
-   ,
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
    //,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Cuda, int,   TNL::Matrices::SymmetricMatrix,
    //TNL::Algorithms::Segments::CSR >
@@ -48,13 +48,12 @@ using MatrixTypes = ::testing::Types<
 //TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< float,   TNL::Devices::Cuda,
 //long,  TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< double,
 //TNL::Devices::Cuda, long,  TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
-#elif defined( __HIP__ )  // Commented types are not supported by atomic operations on GPU.
-   //,TNL::Matrices::SparseMatrix< int,     TNL::Devices::Hip, short, TNL::Matrices::SymmetricMatrix,
+#elif defined( __HIP__ )     // Commented types are not supported by atomic operations on GPU.
+   //TNL::Matrices::SparseMatrix< int,     TNL::Devices::Hip, short, TNL::Matrices::SymmetricMatrix,
    //TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Hip, short,
    //TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< float,   TNL::Devices::Hip,
    //short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< double,
    //TNL::Devices::Hip, short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
-   ,
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Hip, int, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
    //,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Hip, int,   TNL::Matrices::SymmetricMatrix,
    //TNL::Algorithms::Segments::CSR >

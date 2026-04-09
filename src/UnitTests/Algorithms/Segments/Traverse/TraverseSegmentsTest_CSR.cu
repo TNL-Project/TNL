@@ -1,1 +1,0 @@
-TraverseSegmentsTest_CSR.cpp

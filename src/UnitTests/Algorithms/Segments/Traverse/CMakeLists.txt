@@ -1,4 +1,4 @@
-set(COMMON_TESTS
+set(CPP_TESTS
     TraverseSegmentsTest_AdaptiveCSR
     TraverseSegmentsTest_BiEllpack
     TraverseSegmentsTest_ChunkedEllpack
@@ -13,16 +13,35 @@ set(COMMON_TESTS
     TraverseSegmentsTest_SortedSlicedEllpack
 )
 
-set(CPP_TESTS)
-set(CUDA_TESTS)
-set(HIP_TESTS)
-if(TNL_BUILD_CUDA)
-    set(CUDA_TESTS ${CUDA_TESTS} ${COMMON_TESTS})
-elseif(TNL_BUILD_HIP)
-    set(HIP_TESTS ${HIP_TESTS} ${COMMON_TESTS})
-else()
-    set(CPP_TESTS ${CPP_TESTS} ${COMMON_TESTS})
-endif()
+set(CUDA_TESTS
+    TraverseSegmentsTest_AdaptiveCSR_cuda
+    TraverseSegmentsTest_BiEllpack_cuda
+    TraverseSegmentsTest_ChunkedEllpack_cuda
+    TraverseSegmentsTest_CSR_cuda
+    TraverseSegmentsTest_Ellpack_cuda
+    TraverseSegmentsTest_SlicedEllpack_cuda
+    TraverseSegmentsTest_SortedAdaptiveCSR_cuda
+    TraverseSegmentsTest_SortedBiEllpack_cuda
+    TraverseSegmentsTest_SortedChunkedEllpack_cuda
+    TraverseSegmentsTest_SortedCSR_cuda
+    TraverseSegmentsTest_SortedEllpack_cuda
+    TraverseSegmentsTest_SortedSlicedEllpack_cuda
+)
+
+set(HIP_TESTS
+    TraverseSegmentsTest_AdaptiveCSR_hip
+    TraverseSegmentsTest_BiEllpack_hip
+    TraverseSegmentsTest_ChunkedEllpack_hip
+    TraverseSegmentsTest_CSR_hip
+    TraverseSegmentsTest_Ellpack_hip
+    TraverseSegmentsTest_SlicedEllpack_hip
+    TraverseSegmentsTest_SortedAdaptiveCSR_hip
+    TraverseSegmentsTest_SortedBiEllpack_hip
+    TraverseSegmentsTest_SortedChunkedEllpack_hip
+    TraverseSegmentsTest_SortedCSR_hip
+    TraverseSegmentsTest_SortedEllpack_hip
+    TraverseSegmentsTest_SortedSlicedEllpack_hip
+)
 
 foreach(target IN ITEMS ${CPP_TESTS})
     add_executable(${target} ${target}.cpp)

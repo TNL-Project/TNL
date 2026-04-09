@@ -28,14 +28,13 @@ using ColumnMajorSlicedEllpack =
 
 // types for which MatrixTest is instantiated
 using SlicedEllpackMatrixTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::SparseMatrix< bool, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, RowMajorSlicedEllpack, int >,
    TNL::Matrices::SparseMatrix< bool, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorSlicedEllpack, int >
-#if defined( __CUDACC__ )
-   ,
+#elif defined( __CUDACC__ )
    TNL::Matrices::SparseMatrix< bool, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, ColumnMajorSlicedEllpack, int >,
    TNL::Matrices::SparseMatrix< bool, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, ColumnMajorSlicedEllpack, int >
 #elif defined( __HIP__ )
-   ,
    TNL::Matrices::SparseMatrix< bool, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, ColumnMajorSlicedEllpack, int >,
    TNL::Matrices::SparseMatrix< bool, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix, ColumnMajorSlicedEllpack, int >
 #endif

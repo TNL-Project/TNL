@@ -1,1 +1,0 @@
-SparseMatrixTraverseTest_Ellpack.cpp

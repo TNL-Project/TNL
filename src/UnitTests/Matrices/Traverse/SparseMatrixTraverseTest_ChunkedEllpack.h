@@ -9,6 +9,7 @@
 
 // Types for which MatrixTraverseTest is instantiated - SparseMatrix with ChunkedEllpack
 using SparseMatrixChunkedEllpackTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::
       SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::ChunkedEllpack >,
    TNL::Matrices::
@@ -25,8 +26,7 @@ using SparseMatrixChunkedEllpackTypes = ::testing::Types<
       SparseMatrix< float, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::ChunkedEllpack >,
    TNL::Matrices::
       SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::ChunkedEllpack >
-#if defined( __CUDACC__ )
-   ,
+#elif defined( __CUDACC__ )
    TNL::Matrices::
       SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::ChunkedEllpack >,
    TNL::Matrices::
@@ -44,7 +44,6 @@ using SparseMatrixChunkedEllpackTypes = ::testing::Types<
    TNL::Matrices::
       SparseMatrix< double, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::ChunkedEllpack >
 #elif defined( __HIP__ )
-   ,
    TNL::Matrices::
       SparseMatrix< int, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::ChunkedEllpack >,
    TNL::Matrices::

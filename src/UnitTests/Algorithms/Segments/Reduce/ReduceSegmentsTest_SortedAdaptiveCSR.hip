@@ -1,1 +1,0 @@
-ReduceSegmentsTest_SortedAdaptiveCSR.cpp

@@ -16,6 +16,7 @@ struct TestMatrixType
 
 // types for which MatrixTest is instantiated
 using MatrixTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TestMatrixType< int, TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >,
    TestMatrixType< long, TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >,
    TestMatrixType< float, TNL::Devices::Host, int, TNL::Algorithms::Segments::RowMajorOrder >,
@@ -33,8 +34,7 @@ using MatrixTypes = ::testing::Types<
    //TestMatrixType< long,    TNL::Devices::Host, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
    //TestMatrixType< float,   TNL::Devices::Host, long, TNL::Algorithms::Segments::ColumnMajorOrder >,
    TestMatrixType< double, TNL::Devices::Host, long, TNL::Algorithms::Segments::ColumnMajorOrder >
-#if defined( __CUDACC__ )
-   ,
+#elif defined( __CUDACC__ )
    TestMatrixType< int, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::RowMajorOrder >,
    //TestMatrixType< long,    TNL::Devices::Cuda, int,  TNL::Algorithms::Segments::RowMajorOrder >,
    //TestMatrixType< float,   TNL::Devices::Cuda, int,  TNL::Algorithms::Segments::RowMajorOrder >,
@@ -53,7 +53,6 @@ using MatrixTypes = ::testing::Types<
    TestMatrixType< double, TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >
 //,TestMatrixType< TNL::Arithmetics::Complex<float>,   TNL::Devices::Cuda, long, TNL::Algorithms::Segments::ColumnMajorOrder >
 #elif defined( __HIP__ )
-   ,
    TestMatrixType< int, TNL::Devices::Hip, int, TNL::Algorithms::Segments::RowMajorOrder >,
    //TestMatrixType< long,    TNL::Devices::Hip, int,  TNL::Algorithms::Segments::RowMajorOrder >,
    //TestMatrixType< float,   TNL::Devices::Hip, int,  TNL::Algorithms::Segments::RowMajorOrder >,

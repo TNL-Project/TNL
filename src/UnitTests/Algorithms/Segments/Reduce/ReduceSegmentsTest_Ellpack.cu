@@ -1,1 +1,0 @@
-ReduceSegmentsTest_Ellpack.cpp

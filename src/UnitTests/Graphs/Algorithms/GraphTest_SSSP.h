@@ -17,16 +17,16 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using GraphTestTypes = ::testing::Types< TNL::Matrices::SparseMatrix< float, TNL::Devices::Sequential, int >,
-                                         TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, int >
-#if defined( __CUDACC__ )
-                                         ,
-                                         TNL::Matrices::SparseMatrix< float, TNL::Devices::Cuda, int >
+using GraphTestTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Sequential, int >,
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, int >
+#elif defined( __CUDACC__ )
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Cuda, int >
 #elif defined( __HIP__ )
-                                         ,
-                                         TNL::Matrices::SparseMatrix< float, TNL::Devices::Hip, int >
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Hip, int >
 #endif
-                                         >;
+   >;
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
 

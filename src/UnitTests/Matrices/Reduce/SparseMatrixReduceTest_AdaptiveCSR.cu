@@ -1,1 +1,0 @@
-SparseMatrixReduceTest_AdaptiveCSR.cpp
