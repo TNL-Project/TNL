@@ -18,21 +18,20 @@ protected:
 };
 
 // types for which MatrixTest is instantiated
-using GraphTestTypes =
-   ::testing::Types< TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int, TNL::Matrices::SymmetricMatrix >,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix >
-#if defined( __CUDACC__ )
-                     ,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::SymmetricMatrix >
+using GraphTestTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Sequential, int, TNL::Matrices::SymmetricMatrix >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix >
+#elif defined( __CUDACC__ )
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::SymmetricMatrix >
 #elif defined( __HIP__ )
-                     ,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >,
-                     TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::SymmetricMatrix >
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int >,
+   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::SymmetricMatrix >
 #endif
-                     >;
+   >;
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
 

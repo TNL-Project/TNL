@@ -1,1 +1,0 @@
-SparseMatrixTest_SortedChunkedEllpack.cpp

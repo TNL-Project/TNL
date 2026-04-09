@@ -14,14 +14,14 @@ public:
 
 // Define MatrixTypes for the test suite
 using MatrixTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::
       DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >,
    TNL::Matrices::
       DenseMatrix< float, TNL::Devices::Host, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Host, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >
-#if defined( __CUDACC__ )
-   ,
+#elif defined( __CUDACC__ )
    TNL::Matrices::
       DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >,
@@ -30,7 +30,6 @@ using MatrixTypes = ::testing::Types<
    TNL::Matrices::DenseMatrix< float, TNL::Devices::Cuda, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >
 
 #elif defined( __HIP__ )
-   ,
    TNL::Matrices::
       DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ElementsOrganization::ColumnMajorOrder >,
    TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int, TNL::Algorithms::Segments::ElementsOrganization::RowMajorOrder >,

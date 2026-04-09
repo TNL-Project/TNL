@@ -29,16 +29,16 @@ protected:
 };
 
 // Types for which DenseGraphReductionTest is instantiated
-using DenseGraphReductionTestTypes = ::testing::Types< TNL::Matrices::DenseMatrix< double, TNL::Devices::Sequential, int >,
-                                                       TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int >
-#if defined( __CUDACC__ )
-                                                       ,
-                                                       TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int >
+using DenseGraphReductionTestTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Sequential, int >,
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Host, int >
+#elif defined( __CUDACC__ )
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Cuda, int >
 #elif defined( __HIP__ )
-                                                       ,
-                                                       TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int >
+   TNL::Matrices::DenseMatrix< double, TNL::Devices::Hip, int >
 #endif
-                                                       >;
+   >;
 
 TYPED_TEST_SUITE( DenseGraphReductionTest, DenseGraphReductionTestTypes );
 

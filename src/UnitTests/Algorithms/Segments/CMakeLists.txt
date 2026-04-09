@@ -1,7 +1,7 @@
 add_subdirectory(Reduce)
 add_subdirectory(Traverse)
 
-set(COMMON_TESTS
+set(CPP_TESTS
     SegmentsTest_AdaptiveCSR
     SegmentsTest_BiEllpack
     SegmentsTest_ChunkedEllpack
@@ -17,16 +17,37 @@ set(COMMON_TESTS
     GrowingSegmentsTest
 )
 
-set(CPP_TESTS)
-set(CUDA_TESTS)
-set(HIP_TESTS)
-if(TNL_BUILD_CUDA)
-    set(CUDA_TESTS ${CUDA_TESTS} ${COMMON_TESTS})
-elseif(TNL_BUILD_HIP)
-    set(HIP_TESTS ${HIP_TESTS} ${COMMON_TESTS})
-else()
-    set(CPP_TESTS ${CPP_TESTS} ${COMMON_TESTS})
-endif()
+set(CUDA_TESTS
+    SegmentsTest_AdaptiveCSR_cuda
+    SegmentsTest_BiEllpack_cuda
+    SegmentsTest_ChunkedEllpack_cuda
+    SegmentsTest_CSR_cuda
+    SegmentsTest_Ellpack_cuda
+    SegmentsTest_SlicedEllpack_cuda
+    SegmentsTest_SortedAdaptiveCSR_cuda
+    SegmentsTest_SortedBiEllpack_cuda
+    SegmentsTest_SortedChunkedEllpack_cuda
+    SegmentsTest_SortedCSR_cuda
+    SegmentsTest_SortedEllpack_cuda
+    SegmentsTest_SortedSlicedEllpack_cuda
+    GrowingSegmentsTest_cuda
+)
+
+set(HIP_TESTS
+    SegmentsTest_AdaptiveCSR_hip
+    SegmentsTest_BiEllpack_hip
+    SegmentsTest_ChunkedEllpack_hip
+    SegmentsTest_CSR_hip
+    SegmentsTest_Ellpack_hip
+    SegmentsTest_SlicedEllpack_hip
+    SegmentsTest_SortedAdaptiveCSR_hip
+    SegmentsTest_SortedBiEllpack_hip
+    SegmentsTest_SortedChunkedEllpack_hip
+    SegmentsTest_SortedCSR_hip
+    SegmentsTest_SortedEllpack_hip
+    SegmentsTest_SortedSlicedEllpack_hip
+    GrowingSegmentsTest_hip
+)
 
 foreach(target IN ITEMS ${CPP_TESTS})
     add_executable(${target} ${target}.cpp)

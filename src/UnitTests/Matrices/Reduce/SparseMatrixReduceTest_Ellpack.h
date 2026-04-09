@@ -9,6 +9,7 @@
 
 // Types for which MatrixReduceTest is instantiated - SparseMatrix with Ellpack
 using SparseMatrixEllpackTypes = ::testing::Types<
+#if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::Ellpack >,
    TNL::Matrices::
       SparseMatrix< long, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::Ellpack >,
@@ -24,8 +25,7 @@ using SparseMatrixEllpackTypes = ::testing::Types<
       SparseMatrix< float, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::Ellpack >,
    TNL::Matrices::
       SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::Ellpack >
-#if defined( __CUDACC__ )
-   ,
+#elif defined( __CUDACC__ )
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::Ellpack >,
    TNL::Matrices::
       SparseMatrix< long, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::Ellpack >,
@@ -42,7 +42,6 @@ using SparseMatrixEllpackTypes = ::testing::Types<
    TNL::Matrices::
       SparseMatrix< double, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::Ellpack >
 #elif defined( __HIP__ )
-   ,
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::Ellpack >,
    TNL::Matrices::SparseMatrix< long, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, TNL::Algorithms::Segments::Ellpack >,
    TNL::Matrices::
