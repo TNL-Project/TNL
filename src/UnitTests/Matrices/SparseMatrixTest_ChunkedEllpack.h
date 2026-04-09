@@ -1,53 +1,10 @@
 #include <TNL/Algorithms/Segments/ChunkedEllpack.h>
-#include <TNL/Matrices/SparseMatrix.h>
-
-#include <gtest/gtest.h>
+#include "SparseMatrixTest_types.h"
 
 const char* saveAndLoadFileName = "test_SparseMatrixTest_ChunkedEllpack_segments";
 
-template< typename Device, typename Index, typename IndexAllocator >
-using RowMajorChunkedEllpack = TNL::Algorithms::Segments::RowMajorChunkedEllpack< Device, Index, IndexAllocator >;
-
-template< typename Device, typename Index, typename IndexAllocator >
-using ColumnMajorChunkedEllpack = TNL::Algorithms::Segments::ColumnMajorChunkedEllpack< Device, Index, IndexAllocator >;
-
-// types for which MatrixTest is instantiated
-using MatrixTypes = ::testing::Types<
-   TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< long, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< long, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >,
-   TNL::Matrices::
-      SparseMatrix< std::complex< float >, TNL::Devices::Host, long, TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >
-#if defined( __CUDACC__ )
-   ,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< long, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< float, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, int, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< int, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< long, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< float, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Cuda, long, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >
-#elif defined( __HIP__ )
-   ,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, RowMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< int, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< long, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< float, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, int, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< int, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< long, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< float, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >,
-   TNL::Matrices::SparseMatrix< double, TNL::Devices::Hip, long, TNL::Matrices::GeneralMatrix, ColumnMajorChunkedEllpack >
-#endif
-   >;
+using MatrixTypes = MatrixTypesTemplateMixed< TNL::Algorithms::Segments::RowMajorChunkedEllpack,
+                                              TNL::Algorithms::Segments::ColumnMajorChunkedEllpack >;
 
 #include "SparseMatrixTest.h"
 #include "../main.h"
