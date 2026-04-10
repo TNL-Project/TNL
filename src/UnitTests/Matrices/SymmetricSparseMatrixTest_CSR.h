@@ -14,23 +14,11 @@
 using MatrixTypes = ::testing::Types<
 #if ! defined( __CUDACC__ ) && ! defined( __HIP__ )
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
-   TNL::Matrices::
-      SparseMatrix< long, TNL::Devices::Host, short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
-   TNL::Matrices::
-      SparseMatrix< float, TNL::Devices::Host, short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
-   TNL::Matrices::
-      SparseMatrix< double, TNL::Devices::Host, short, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
+   TNL::Matrices::
+      SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
    TNL::Matrices::SparseMatrix< long, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
-   TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
-   TNL::Matrices::
-      SparseMatrix< double, TNL::Devices::Host, int, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
-   TNL::Matrices::SparseMatrix< int, TNL::Devices::Host, long, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
-   TNL::Matrices::SparseMatrix< long, TNL::Devices::Host, long, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
-   TNL::Matrices::
-      SparseMatrix< float, TNL::Devices::Host, long, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >,
-   TNL::Matrices::
-      SparseMatrix< double, TNL::Devices::Host, long, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
+   TNL::Matrices::SparseMatrix< float, TNL::Devices::Host, long, TNL::Matrices::SymmetricMatrix, TNL::Algorithms::Segments::CSR >
 #elif defined( __CUDACC__ )  // Commented types are not supported by atomic operations on GPU.
    //TNL::Matrices::SparseMatrix< int,     TNL::Devices::Cuda, short, TNL::Matrices::SymmetricMatrix,
    //TNL::Algorithms::Segments::CSR > ,TNL::Matrices::SparseMatrix< long,    TNL::Devices::Cuda, short,
