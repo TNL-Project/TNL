@@ -3,6 +3,11 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/detail/ChunkedEllpack.h>
+#include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
+#include <TNL/Backend/LaunchHelpers.h>
+#include <TNL/Backend/SharedMemory.h>
+
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename SegmentsView, typename Index, typename Fetch, typename Reduction, typename ResultStorer, typename Value >

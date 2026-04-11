@@ -3,6 +3,11 @@
 
 #pragma once
 
+#include <TNL/Algorithms/detail/CudaReductionKernel.h>
+#include <TNL/Algorithms/Segments/detail/CSRAdaptiveKernelBlockDescriptor.h>
+#include <TNL/Algorithms/Segments/detail/CSRAdaptiveKernelParameters.h>
+#include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
+#include <TNL/Backend/LaunchHelpers.h>
 #include <TNL/TypeTraits.h>
 
 namespace TNL::Algorithms::Segments::detail {
