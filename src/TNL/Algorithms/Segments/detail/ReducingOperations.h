@@ -3,14 +3,6 @@
 
 #pragma once
 
-namespace TNL::Algorithms::Segments::detail {
-
-template< typename Segments >
-struct ReducingOperations
-{};
-
-}  // namespace TNL::Algorithms::Segments::detail
-
 #include "ReducingOperations_AdaptiveCSR.h"
 #include "ReducingOperations_BiEllpack.h"
 #include "ReducingOperations_ChunkedEllpack.h"

@@ -8,7 +8,7 @@
 #include <TNL/Algorithms/Segments/LaunchConfiguration.h>
 #include <TNL/TypeTraits.h>
 #include "FetchLambdaAdapter.h"
-#include "ReducingOperations_CSR.h"
+#include "ReducingOperationsBase.h"
 #include "ReducingKernels_AdaptiveCSR.h"
 
 namespace TNL::Algorithms::Segments::detail {

@@ -3,8 +3,10 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/detail/BiEllpack.h>
+#include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
+#include <TNL/Backend/LaunchHelpers.h>
 #include <TNL/TypeTraits.h>
-#include "FetchLambdaAdapter.h"
 
 namespace TNL::Algorithms::Segments::detail {
 

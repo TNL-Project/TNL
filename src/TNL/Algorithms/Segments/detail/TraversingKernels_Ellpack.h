@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/ElementsOrganization.h>
+#include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Backend/LaunchHelpers.h>
+
 //#define USE_CUB
 #ifdef __CUDACC__
    #include <cub/cub.cuh>

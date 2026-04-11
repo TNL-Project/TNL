@@ -3,7 +3,14 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
+#include <TNL/Algorithms/compress.h>
+#include <TNL/Containers/Vector.h>
+
 namespace TNL::Algorithms::Segments::detail {
+
+template< typename Segments >
+struct TraversingOperations;
 
 template< typename Segments >
 struct TraversingOperationsBase

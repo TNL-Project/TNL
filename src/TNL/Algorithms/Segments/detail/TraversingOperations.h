@@ -3,13 +3,6 @@
 
 #pragma once
 
-namespace TNL::Algorithms::Segments::detail {
-
-template< typename Segments >
-struct TraversingOperations;
-
-}  // namespace TNL::Algorithms::Segments::detail
-
 #include "TraversingOperations_AdaptiveCSR.h"
 #include "TraversingOperations_CSR.h"
 #include "TraversingOperations_BiEllpack.h"

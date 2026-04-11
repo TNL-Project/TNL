@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <type_traits>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Algorithms/Segments/BiEllpackSegmentView.h>
 

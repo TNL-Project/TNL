@@ -3,6 +3,11 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/ElementsOrganization.h>
+#include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Algorithms/find.h>
+#include <TNL/Backend/LaunchHelpers.h>
+
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename SegmentsConstView,
