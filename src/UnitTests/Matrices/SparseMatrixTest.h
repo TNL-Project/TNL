@@ -1,5 +1,6 @@
 #pragma once
 
+#include <TNL/Algorithms/Segments/SortedSegments.h>
 #include <TNL/Containers/Vector.h>
 #include <TNL/Containers/VectorView.h>
 #include <TNL/Math.h>
@@ -101,35 +102,45 @@ TYPED_TEST( MatrixTest, forElements )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
-   test_ForElements< MatrixType >();
+   // SortedSegments have huge memory requirements for building traversing kernels so we just skip them
+   if constexpr( ! TNL::Algorithms::Segments::isSortedSegments_v< typename MatrixType::SegmentsType > )
+      test_ForElements< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, forElementsIf )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
-   test_ForElementsIf< MatrixType >();
+   // SortedSegments have huge memory requirements for building traversing kernels so we just skip them
+   if constexpr( ! TNL::Algorithms::Segments::isSortedSegments_v< typename MatrixType::SegmentsType > )
+      test_ForElementsIf< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, forElementsWithArray )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
-   test_ForElementsWithArray< MatrixType >();
+   // SortedSegments have huge memory requirements for building traversing kernels so we just skip them
+   if constexpr( ! TNL::Algorithms::Segments::isSortedSegments_v< typename MatrixType::SegmentsType > )
+      test_ForElementsWithArray< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, forRows )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
-   test_ForRows< MatrixType >();
+   // SortedSegments have huge memory requirements for building traversing kernels so we just skip them
+   if constexpr( ! TNL::Algorithms::Segments::isSortedSegments_v< typename MatrixType::SegmentsType > )
+      test_ForRows< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, reduceRows )
 {
    using MatrixType = typename TestFixture::MatrixType;
 
-   test_reduceRows< MatrixType >();
+   // SortedSegments have huge memory requirements for building reduction kernels so we just skip them
+   if constexpr( ! TNL::Algorithms::Segments::isSortedSegments_v< typename MatrixType::SegmentsType > )
+      test_reduceRows< MatrixType >();
 }
 
 TYPED_TEST( MatrixTest, sortColumnIndexes )
