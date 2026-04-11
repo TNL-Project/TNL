@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
+#include <TNL/Backend/LaunchHelpers.h>
+
 namespace TNL::Algorithms::Segments::detail {
 
 template< int ThreadsPerSegment,

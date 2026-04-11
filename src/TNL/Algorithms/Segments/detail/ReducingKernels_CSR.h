@@ -4,6 +4,10 @@
 #pragma once
 
 #include <limits>
+#include <TNL/Algorithms/AtomicOperations.h>
+#include <TNL/Algorithms/detail/CudaReductionKernel.h>
+#include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
+#include <TNL/Backend/LaunchHelpers.h>
 #include <TNL/TypeTraits.h>
 
 namespace TNL::Algorithms::Segments::detail {

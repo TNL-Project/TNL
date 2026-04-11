@@ -4,6 +4,8 @@
 #pragma once
 
 #include <TNL/Algorithms/AtomicOperations.h>
+#include <TNL/Algorithms/detail/CudaScanKernel.h>
+#include <TNL/Algorithms/find.h>
 
 namespace TNL::Algorithms::Segments::detail {
 

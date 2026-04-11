@@ -5,8 +5,7 @@
 
 #include <TNL/Algorithms/Segments/AdaptiveCSRView.h>
 #include <TNL/Algorithms/Segments/AdaptiveCSR.h>
-#include <TNL/Algorithms/Segments/LaunchConfiguration.h>
-#include "TraversingKernels_CSR.h"
+#include "TraversingOperationsBase.h"
 
 namespace TNL::Algorithms::Segments::detail {
 
