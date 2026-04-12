@@ -1,3 +1,5 @@
+#pragma once
+
 #include "GhostZone.h"
 #include <TNL/Meshes/Grid.h>
 #include <TNL/Meshes/DistributedMeshes/DistributedGrid.h>

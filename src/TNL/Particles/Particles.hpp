@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Particles.h"
 #include "TNL/Algorithms/parallelFor.h"
 
