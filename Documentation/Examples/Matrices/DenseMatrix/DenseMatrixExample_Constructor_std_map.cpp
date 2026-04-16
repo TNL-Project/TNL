@@ -29,7 +29,7 @@ stdMapConstructorExample()
 
    TNL::Matrices::DenseMatrix< double, Device > matrix( 5, 5, matrixData );
 
-   std::cout << "Dense matrix created from std::map:" << std::endl << matrix << std::endl;
+   std::cout << "Dense matrix created from std::map:\n" << matrix << '\n';
 
    /***
     * You can also create symmetric matrices by providing only the upper
@@ -52,17 +52,17 @@ stdMapConstructorExample()
    TNL::Matrices::DenseMatrix< double, Device > symmetricMatrix(
       4, 4, symmetricData, TNL::Matrices::MatrixElementsEncoding::SymmetricUpper );
 
-   std::cout << "Symmetric matrix from upper triangular std::map data:" << std::endl << symmetricMatrix << std::endl;
+   std::cout << "Symmetric matrix from upper triangular std::map data:\n" << symmetricMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Creating matrices on CPU ... " << std::endl;
+   std::cout << "Creating matrices on CPU ...\n";
    stdMapConstructorExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Creating matrices on CUDA GPU ... " << std::endl;
+   std::cout << "Creating matrices on CUDA GPU ...\n";
    stdMapConstructorExample< TNL::Devices::Cuda >();
 #endif
 }

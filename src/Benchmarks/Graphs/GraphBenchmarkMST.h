@@ -77,7 +77,7 @@ public:
          this->boostMSTTotalWeight += weight;
       }
       if( this->verbose > 0 )
-         std::cout << "Boost MST total weight: " << boostMSTTotalWeight << std::endl;
+         std::cout << "Boost MST total weight: " << boostMSTTotalWeight << '\n';
       auto filename = this->parameters.template getParameter< TNL::String >( "input-file" );
       boostGraph.exportMst( boostMstEdges, filename + "-boost-mst.txt" );
 
@@ -124,16 +124,16 @@ public:
       TNL::Graphs::Writers::EdgeListWriter< Graph >::write( filename + "-tnl-mst.txt", mstGraph );
 
       if( ! TNL::Graphs::Algorithms::isForest( mstGraph ) ) {
-         std::cout << "ERROR: TNL MST is not a forest!" << '\n';
+         std::cout << "ERROR: TNL MST is not a forest!\n";
          this->errors++;
       }
 
 #ifdef HAVE_BOOST
       Real mstTotalWeight = TNL::Graphs::getTotalWeight( mstGraph );
       if( withBoost && mstTotalWeight != boostMSTTotalWeight ) {
-         std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!" << '\n';
-         std::cout << "Boost MST total weight: " << boostMSTTotalWeight << std::endl;
-         std::cout << "TNL MST total weight: " << mstTotalWeight << std::endl;
+         std::cout << "ERROR: Total weights of boost MST and TNL MST do not match!\n";
+         std::cout << "Boost MST total weight: " << boostMSTTotalWeight << '\n';
+         std::cout << "TNL MST total weight: " << mstTotalWeight << '\n';
          this->errors++;
       }
 #endif

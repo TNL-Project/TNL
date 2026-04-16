@@ -8,7 +8,6 @@
 #include <TNL/Containers/Vector.h>
 
 #include "CSRView.h"
-#include "CSRView.h"
 
 namespace TNL::Algorithms::Segments {
 

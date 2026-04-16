@@ -26,8 +26,8 @@ reduceAllRowsIfExample()
    };
    TNL::Matrices::forAllElements( matrix, fillMatrix );
 
-   std::cout << "Matrix:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Matrix:\n";
+   std::cout << matrix << '\n';
 
    /***
     * Compute sums only for rows with even indices.
@@ -58,18 +58,18 @@ reduceAllRowsIfExample()
 
    auto evenRowsCount = TNL::Matrices::reduceAllRowsIf( matrix, rowCondition, fetch, TNL::Plus{}, store );
 
-   std::cout << "Sums for even-indexed rows (odd indices show -1): " << evenRowSums << std::endl;
-   std::cout << "Compressed sums for even-indexed rows: " << compressedEvenRowSums.getView( 0, evenRowsCount ) << std::endl;
+   std::cout << "Sums for even-indexed rows (odd indices show -1): " << evenRowSums << '\n';
+   std::cout << "Compressed sums for even-indexed rows: " << compressedEvenRowSums.getView( 0, evenRowsCount ) << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceAllRowsIfExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << std::endl << "Running on CUDA device:" << std::endl;
+   std::cout << '\n' << "Running on CUDA device:\n";
    reduceAllRowsIfExample< TNL::Devices::Cuda >();
 #endif
 }

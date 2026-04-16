@@ -46,7 +46,7 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
    //! [printing-1]
 
    //! [traversing-2]
@@ -66,9 +66,9 @@ SegmentsExample()
    /***
     * Print the data managed by the segments.
     */
-   std::cout << "Data setup with check for padding elements..." << std::endl;
-   std::cout << "Array: " << data << std::endl;
-   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   std::cout << "Data setup with check for padding elements...\n";
+   std::cout << "Array: " << data << '\n';
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
    //! [printing-2]
 }
 

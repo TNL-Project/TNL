@@ -26,8 +26,8 @@ reduceAllRowsExample()
    };
    TNL::Matrices::forAllElements( matrix, fillMatrix );
 
-   std::cout << "Matrix:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Matrix:\n";
+   std::cout << matrix << '\n';
 
    /***
     * Compute row sums using reduceAllRows.
@@ -47,7 +47,7 @@ reduceAllRowsExample()
 
    TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Plus{}, store );
 
-   std::cout << "Row sums: " << rowSums << std::endl;
+   std::cout << "Row sums: " << rowSums << '\n';
 
    /***
     * Compute row maxima.
@@ -62,17 +62,17 @@ reduceAllRowsExample()
 
    TNL::Matrices::reduceAllRows( matrix, fetch, TNL::Max{}, storeMax );
 
-   std::cout << "Row maxima: " << rowMaxima << std::endl;
+   std::cout << "Row maxima: " << rowMaxima << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceAllRowsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << std::endl << "Running on CUDA device:" << std::endl;
+   std::cout << '\n' << "Running on CUDA device:\n";
    reduceAllRowsExample< TNL::Devices::Cuda >();
 #endif
 }

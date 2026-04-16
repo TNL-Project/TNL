@@ -20,8 +20,8 @@ compressExample()
                                                             {
                                                                return v1_view[ i ] > 0;
                                                             } );
-   std::cout << "v1 = " << v1 << std::endl;
-   std::cout << "Positions of positive numbers in v1 are: " << compressed_v << std::endl;
+   std::cout << "v1 = " << v1 << '\n';
+   std::cout << "Positions of positive numbers in v1 are: " << compressed_v << '\n';
 
    auto n = TNL::Algorithms::compress(
       0,
@@ -31,20 +31,19 @@ compressExample()
          return v2_view[ i ] > 0;
       },
       compressed_v );
-   std::cout << "v2 = " << v2 << std::endl;
-   std::cout << "Number of positive numbers in v2 is: " << n << std::endl;
-   std::cout << "Positions of positive numbers in v2 are (only first " << n << " numbers are valid): " << compressed_v
-             << std::endl;
+   std::cout << "v2 = " << v2 << '\n';
+   std::cout << "Number of positive numbers in v2 is: " << n << '\n';
+   std::cout << "Positions of positive numbers in v2 are (only first " << n << " numbers are valid): " << compressed_v << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running example on the host system: " << std::endl;
+   std::cout << "Running example on the host system:\n";
    compressExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running example on the CUDA device: " << std::endl;
+   std::cout << "Running example on the CUDA device:\n";
    compressExample< TNL::Devices::Cuda >();
 #endif
 }

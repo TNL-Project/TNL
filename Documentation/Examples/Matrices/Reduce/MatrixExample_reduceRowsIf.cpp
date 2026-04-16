@@ -27,8 +27,8 @@ reduceRowsIfExample()
    };
    TNL::Matrices::forAllElements( matrix, fillMatrix );
 
-   std::cout << "Matrix:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Matrix:\n";
+   std::cout << matrix << '\n';
 
    /***
     * Compute sums for rows 2-6, but only for even-indexed rows (range + condition).
@@ -55,7 +55,7 @@ reduceRowsIfExample()
 
    TNL::Matrices::reduceRowsIf( matrix, 2, 7, evenRowCondition, fetch, TNL::Plus{}, storeRange );
 
-   std::cout << "Sums for rows 2-6 (only even indices, others show -1): " << rangeSums << std::endl;
+   std::cout << "Sums for rows 2-6 (only even indices, others show -1): " << rangeSums << '\n';
 
    /***
     * Compute maxima for specific rows, but only if row index > 3 (array + condition).
@@ -80,19 +80,19 @@ reduceRowsIfExample()
 
    auto processedRows = TNL::Matrices::reduceAllRowsIf( matrix, rowCondition, fetch, TNL::Max{}, storeArray );
 
-   std::cout << "Maxima for rows [1, 3, 5, 7] where rowIdx > 3: " << arrayMaxima << std::endl;
+   std::cout << "Maxima for rows [1, 3, 5, 7] where rowIdx > 3: " << arrayMaxima << '\n';
    std::cout << "Compressed maxima for rows [1, 3, 5, 7] where rowIdx > 3: " << compressedMaxima.getView( 0, processedRows )
-             << std::endl;
+             << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceRowsIfExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << std::endl << "Running on CUDA device:" << std::endl;
+   std::cout << '\n' << "Running on CUDA device:\n";
    reduceRowsIfExample< TNL::Devices::Cuda >();
 #endif
 }

@@ -93,7 +93,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
          columns = max( columns, row.size() );
       setDimensions( rows, columns );
       Index rowIdx = 0;
-      for( auto row : data ) {
+      for( const auto& row : data ) {
          Index columnIdx = 0;
          for( const auto& element : row ) {
             this->setElement( rowIdx, columnIdx, element );
@@ -139,6 +139,7 @@ DenseMatrix< Real, Device, Index, Organization, RealAllocator >::setElements(
       DenseMatrix< Real, Devices::Host, Index, Organization > hostMatrix( this->getRows(), this->getColumns() );
       hostMatrix.setElements( map, encoding );
       *this = hostMatrix;
+      return;
    }
    for( const auto& [ coordinates, value ] : map ) {
       auto [ rowIdx, columnIdx ] = coordinates;

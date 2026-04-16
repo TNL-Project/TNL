@@ -15,7 +15,7 @@ setEdgesExample()
    /***
     * Example 1: setEdges with initializer list (sparse graph)
     */
-   std::cout << "Example 1: setEdges with initializer list (sparse graph)" << std::endl;
+   std::cout << "Example 1: setEdges with initializer list (sparse graph)\n";
    GraphType graph1;
    graph1.setVertexCount( 5 );
    graph1.setEdgeCounts( TNL::Containers::Vector< int, Device >( { 2, 3, 1, 2, 0 } ) );
@@ -28,7 +28,7 @@ setEdgesExample()
       { 3, 0, 70.0 },                                                 { 3, 4, 80.0 } } );
    // clang-format on
 
-   std::cout << "Sparse graph after setEdges:\n" << graph1 << std::endl;
+   std::cout << "Sparse graph after setEdges:\n" << graph1 << '\n';
    //! [setEdges with initializer list]
 
    //! [setDenseEdges with initializer list]
@@ -36,7 +36,7 @@ setEdgesExample()
     * Example 1b: setEdges with initializer list (dense adjacency matrix)
     * For dense matrix graphs, use nested initializer lists {{row1}, {row2}, ...}
     */
-   std::cout << "\nExample 1b: setEdges with initializer list (dense adjacency matrix)" << std::endl;
+   std::cout << "\nExample 1b: setEdges with initializer list (dense adjacency matrix)\n";
    using DenseGraphType = TNL::Graphs::Graph< float,
                                               Device,
                                               int,
@@ -54,14 +54,14 @@ setEdgesExample()
                             {  0.0,  0.0,  0.0,  0.0,  0.0 } } ); // edges from vertex 4
    // clang-format on
 
-   std::cout << "Dense graph after setDenseEdges:\n" << graph1b << std::endl;
+   std::cout << "Dense graph after setDenseEdges:\n" << graph1b << '\n';
    //! [setDenseEdges with initializer list]
 
    //! [setEdges with std map]
    /***
     * Example 2: setEdges with std::map
     */
-   std::cout << "Example 2: setEdges with std::map" << std::endl;
+   std::cout << "Example 2: setEdges with std::map\n";
    GraphType graph2;
    graph2.setVertexCount( 4 );
    graph2.setEdgeCounts( TNL::Containers::Vector< int, Device >( { 2, 2, 1, 1 } ) );
@@ -75,20 +75,20 @@ setEdgesExample()
    edgeMap[ { 3, 0 } ] = 6.5;
 
    graph2.setEdges( edgeMap );
-   std::cout << "Graph from map:\n" << graph2 << std::endl;
+   std::cout << "Graph from map:\n" << graph2 << '\n';
    //! [setEdges with std map]
 
    /***
     * Example 3: Updating edges
     */
-   std::cout << "Example 3: Updating edges" << std::endl;
+   std::cout << "Example 3: Updating edges\n";
    // clang-format off
    GraphType graph3( 4, { { 0, 1, 1.0 },
                                          { 1, 2, 2.0 },
                                                        { 2, 3, 3.0 } } );
    // clang-format on
 
-   std::cout << "Original graph:\n" << graph3 << std::endl;
+   std::cout << "Original graph:\n" << graph3 << '\n';
 
    // Update with new edges (preserving the structure)
    // clang-format off
@@ -96,12 +96,12 @@ setEdgesExample()
                                      { 1, 2, 20.0 },
                                                      { 2, 3, 30.0 } } );
    // clang-format on
-   std::cout << "Updated graph:\n" << graph3 << std::endl;
+   std::cout << "Updated graph:\n" << graph3 << '\n';
 
    /***
     * Example 4: setEdges for undirected graph
     */
-   std::cout << "Example 4: setEdges for undirected graph" << std::endl;
+   std::cout << "Example 4: setEdges for undirected graph\n";
    using UndirectedGraphType = TNL::Graphs::Graph< float, Device, int, TNL::Graphs::UndirectedGraph >;
    UndirectedGraphType graph4;
    graph4.setVertexCount( 4 );
@@ -119,16 +119,16 @@ setEdgesExample()
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    setEdgesExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    setEdgesExample< TNL::Devices::Cuda >();
 #endif
 
 #ifdef __HIP__
-   std::cout << "Running on HIP device:" << std::endl;
+   std::cout << "Running on HIP device:\n";
    setEdgesExample< TNL::Devices::Hip >();
 #endif
 

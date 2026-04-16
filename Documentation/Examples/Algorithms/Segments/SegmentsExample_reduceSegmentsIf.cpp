@@ -39,18 +39,19 @@ SegmentsExample()
    /***
     * Print the data by the segments.
     */
-   std::cout << "Values of elements after initial setup: " << std::endl;
+   std::cout << "Values of elements after initial setup:\n";
    auto fetch = [ = ] __cuda_callable__( int globalIdx ) -> double
    {
       return data_view[ globalIdx ];
    };
-   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
 
    //! [reduction]
    /***
     * Compute sums of elements in segments with given indexes.
     */
-   TNL::Containers::Vector< double, Device > sums( size ), compressedSums( size );
+   TNL::Containers::Vector< double, Device > sums( size );
+   TNL::Containers::Vector< double, Device > compressedSums( size );
    auto sums_view = sums.getView();
    auto compressedSums_view = compressedSums.getView();
    auto condition = [ = ] __cuda_callable__( int segmentIdx ) -> bool
@@ -75,31 +76,31 @@ SegmentsExample()
    };
 
    TNL::Algorithms::Segments::reduceAllSegmentsIf( segments, condition, fetch_full, TNL::Plus{}, store );
-   std::cout << "The sums with full fetch form are: " << sums << std::endl;
-   std::cout << "The compressed sums with full fetch form are: " << compressedSums << std::endl;
+   std::cout << "The sums with full fetch form are: " << sums << '\n';
+   std::cout << "The compressed sums with full fetch form are: " << compressedSums << '\n';
 
    sums = 0;
    compressedSums = 0;
    TNL::Algorithms::Segments::reduceAllSegmentsIf( segments, condition, fetch_brief, TNL::Plus{}, store );
-   std::cout << "The sums with brief fetch form are: " << sums << std::endl;
-   std::cout << "The compressed sums with brief fetch form are: " << compressedSums << std::endl;
+   std::cout << "The sums with brief fetch form are: " << sums << '\n';
+   std::cout << "The compressed sums with brief fetch form are: " << compressedSums << '\n';
    //! [reduction]
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Host, int > >();
 
-   std::cout << "Example of Ellpack segments on host: " << std::endl;
+   std::cout << "Example of Ellpack segments on host:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Host, int > >();
 
 #ifdef __CUDACC__
-   std::cout << "Example of CSR segments on host: " << std::endl;
+   std::cout << "Example of CSR segments on CUDA device:\n";
    SegmentsExample< TNL::Algorithms::Segments::CSR< TNL::Devices::Cuda, int > >();
 
-   std::cout << "Example of Ellpack segments on host: " << std::endl;
+   std::cout << "Example of Ellpack segments on CUDA device:\n";
    SegmentsExample< TNL::Algorithms::Segments::Ellpack< TNL::Devices::Cuda, int > >();
 #endif
    return EXIT_SUCCESS;

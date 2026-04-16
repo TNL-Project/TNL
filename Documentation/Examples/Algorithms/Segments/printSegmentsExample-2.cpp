@@ -19,7 +19,7 @@ SegmentsExample()
     */
    TNL::Containers::Vector< int, Device > sizes{ 1, 2, 3, 4, 5 };
    Segments segments( sizes );
-   std::cout << "Segments sizes are: " << segments << std::endl;
+   std::cout << "Segments sizes are: " << segments << '\n';
    //! [segments setup]
 
    //! [data setup]
@@ -43,7 +43,7 @@ SegmentsExample()
    {
       return data_view[ globalIdx ];
    };
-   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << std::endl;
+   std::cout << TNL::Algorithms::Segments::print( segments, fetch ) << '\n';
    //! [data print]
 }
 
