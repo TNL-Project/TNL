@@ -82,6 +82,7 @@ public:
     * - `loops`: Number of iterations (default: 10)
     * - `min-time`: Minimum runtime in seconds (default: 0.0)
     * - `verbose`: Verbosity level (default: 1)
+    * - `catch-exceptions`: Catch exceptions during timing (default: true)
     *
     * \param config Reference to configuration description object
     */
@@ -285,6 +286,26 @@ public:
    [[nodiscard]] double
    getBaseTime() const;
 
+   /**
+    * \brief Sets whether to catch exceptions during timing of computations.
+    *
+    * When enabled (default), exceptions thrown during benchmark execution are
+    * caught and logged as error messages. When disabled, exceptions propagate
+    * up to the caller, allowing for stricter error handling in automated tests.
+    *
+    * \param catchExceptions \c true to catch exceptions (default), \c false to propagate them
+    */
+   void
+   setCatchExceptions( bool catchExceptions );
+
+   /**
+    * \brief Returns whether exceptions are caught during timing.
+    *
+    * \return \c true if exceptions are caught, \c false if they propagate
+    */
+   [[nodiscard]] bool
+   getCatchExceptions() const;
+
 protected:
    using BenchmarkLoggers = std::vector< std::unique_ptr< Logging > >;
 
@@ -300,6 +321,8 @@ protected:
    double datasetSize = 0.0;
 
    double baseTime = 0.0;
+
+   bool catchExceptions = true;
 
    SolverMonitorType monitor;
 };
