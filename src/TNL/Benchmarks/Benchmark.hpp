@@ -26,6 +26,7 @@ Benchmark::configSetup( Config::ConfigDescription& config )
    config.addEntry< int >( "loops", "Number of iterations for every computation.", 10 );
    config.addEntry< double >( "min-time", "Minimal real time in seconds for every computation.", 0.0 );
    config.addEntry< int >( "verbose", "Verbose mode for terminal output, the higher number the more verbosity.", 1 );
+   config.addEntry< bool >( "catch-exceptions", "Catch exceptions during timing.", true );
 }
 
 void
@@ -34,6 +35,7 @@ Benchmark::setup( const Config::ParameterContainer& parameters )
    this->loops = parameters.getParameter< int >( "loops" );
    this->minTime = parameters.getParameter< double >( "min-time" );
    const int verbose = parameters.getParameter< int >( "verbose" );
+   this->catchExceptions = parameters.getParameter< bool >( "catch-exceptions" );
 
    // Only root rank initializes loggers
    const int rank = TNL::MPI::GetRank();
@@ -118,12 +120,17 @@ Benchmark::time( ResetFunction reset, const std::string& performer, ComputeFunct
       monitor.stopMainLoop();
 
    std::string errorMessage;
-   try {
-      timeFunction< Device >( compute, reset, loops, minTime, monitor, result );
+   if( catchExceptions ) {
+      try {
+         timeFunction< Device >( compute, reset, loops, minTime, monitor, result );
+      }
+      catch( const std::exception& e ) {
+         errorMessage = "timeFunction failed due to a C++ exception with description: " + std::string( e.what() );
+         std::cerr << errorMessage << '\n';
+      }
    }
-   catch( const std::exception& e ) {
-      errorMessage = "timeFunction failed due to a C++ exception with description: " + std::string( e.what() );
-      std::cerr << errorMessage << '\n';
+   else {
+      timeFunction< Device >( compute, reset, loops, minTime, monitor, result );
    }
 
    result.setDerivedResults( datasetSize, baseTime, operations_per_loop );
@@ -185,6 +192,18 @@ double
 Benchmark::getBaseTime() const
 {
    return baseTime;
+}
+
+void
+Benchmark::setCatchExceptions( bool catchExceptions )
+{
+   this->catchExceptions = catchExceptions;
+}
+
+[[nodiscard]] bool
+Benchmark::getCatchExceptions() const
+{
+   return catchExceptions;
 }
 
 }  // namespace TNL::Benchmarks
