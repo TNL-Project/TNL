@@ -26,8 +26,8 @@ reduceAllRowsWithArgumentExample()
    };
    TNL::Matrices::forAllElements( matrix, fillMatrix );
 
-   std::cout << "Dense matrix:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Dense matrix:\n";
+   std::cout << matrix << '\n';
 
    /***
     * Find maximum value and its column index in each row.
@@ -63,8 +63,8 @@ reduceAllRowsWithArgumentExample()
    TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, reduction, store, std::numeric_limits< double >::lowest() );
    // You may also use TNL::MaxWithArg{} instead of defining your own reduction lambda.
 
-   std::cout << "Row maxima values: " << rowMaxValues << std::endl;
-   std::cout << "Column indices of maxima: " << rowMaxColumns << std::endl;
+   std::cout << "Row maxima values: " << rowMaxValues << '\n';
+   std::cout << "Column indices of maxima: " << rowMaxColumns << '\n';
 
    /***
     * Find minimum value and its column index in each row.
@@ -96,18 +96,18 @@ reduceAllRowsWithArgumentExample()
    TNL::Matrices::reduceAllRowsWithArgument( matrix, fetch, reductionMin, storeMin, std::numeric_limits< double >::max() );
    // You may also use TNL::MinWithArg{} instead of defining your own reduction lambda.
 
-   std::cout << "Row minima values: " << rowMinValues << std::endl;
-   std::cout << "Column indices of minima: " << rowMinColumns << std::endl;
+   std::cout << "Row minima values: " << rowMinValues << '\n';
+   std::cout << "Column indices of minima: " << rowMinColumns << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceAllRowsWithArgumentExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << std::endl << "Running on CUDA device:" << std::endl;
+   std::cout << '\n' << "Running on CUDA device:\n";
    reduceAllRowsWithArgumentExample< TNL::Devices::Cuda >();
 #endif
 }

@@ -24,7 +24,7 @@ forAllVerticesExample()
    /***
     * Print the graph.
     */
-   std::cout << "Graph:\n" << graph << std::endl;
+   std::cout << "Graph:\n" << graph << '\n';
 
    //! [traverse all vertices]
    /***
@@ -41,17 +41,17 @@ forAllVerticesExample()
    /***
     * Print the modified graph.
     */
-   std::cout << "Modified graph:\n" << graph << std::endl;
+   std::cout << "Modified graph:\n" << graph << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    forAllVerticesExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    forAllVerticesExample< TNL::Devices::Cuda >();
 #endif
 

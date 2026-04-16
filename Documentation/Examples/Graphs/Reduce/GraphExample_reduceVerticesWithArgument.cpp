@@ -25,7 +25,7 @@ reduceVerticesWithArgumentExample()
    /***
     * Print the graph.
     */
-   std::cout << "Graph:\n" << graph << std::endl;
+   std::cout << "Graph:\n" << graph << '\n';
 
    /***
     * Find minimum edge weight and target vertex for vertices in range [1, 4).
@@ -60,18 +60,18 @@ reduceVerticesWithArgumentExample()
    /***
     * Print results.
     */
-   std::cout << "Minimum edge weight for vertices 1-4:" << minWeights << std::endl;
-   std::cout << "Target vertex for minimum edge:" << minTargets << std::endl;
+   std::cout << "Minimum edge weight for vertices 1-4:" << minWeights << '\n';
+   std::cout << "Target vertex for minimum edge:" << minTargets << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceVerticesWithArgumentExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    reduceVerticesWithArgumentExample< TNL::Devices::Cuda >();
 #endif
 

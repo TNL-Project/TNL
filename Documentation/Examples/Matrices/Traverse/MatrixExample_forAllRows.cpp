@@ -28,8 +28,8 @@ forAllRowsExample()
    };
 
    TNL::Matrices::forAllRows( denseMatrix, multiplyByRowIndex );
-   std::cout << "Dense matrix with rows multiplied by row index:" << std::endl;
-   std::cout << denseMatrix << std::endl;
+   std::cout << "Dense matrix with rows multiplied by row index:\n";
+   std::cout << denseMatrix << '\n';
 
    /***
     * Create a 5x5 sparse matrix.
@@ -58,18 +58,18 @@ forAllRowsExample()
    };
 
    TNL::Matrices::forAllRows( sparseMatrix, setupTridiagonal );
-   std::cout << "Sparse tridiagonal matrix:" << std::endl;
-   std::cout << sparseMatrix << std::endl;
+   std::cout << "Sparse tridiagonal matrix:\n";
+   std::cout << sparseMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    forAllRowsExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    forAllRowsExample< TNL::Devices::Cuda >();
 #endif
 }

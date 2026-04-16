@@ -134,7 +134,7 @@ AdaptiveCSRView< Device, Index >::printBlocks( int idx ) const
    std::cout << "Blocks for sizeof( Value ) == 2^" << idx << '\n';
    auto blocks = this->getBlocks()[ idx ];
    for( int i = 0; i < blocks.getSize(); i++ ) {
-      std::cout << "Block " << i << " : " << blocks.getElement( i ) << std::endl;
+      std::cout << "Block " << i << " : " << blocks.getElement( i ) << '\n';
    }
 }
 

@@ -27,8 +27,8 @@ reduceRowsWithArgumentExample()
    };
    TNL::Matrices::forAllElements( matrix, fillMatrix );
 
-   std::cout << "Matrix:" << std::endl;
-   std::cout << matrix << std::endl;
+   std::cout << "Matrix:\n";
+   std::cout << matrix << '\n';
 
    /***
     * Find argmax for rows 2-6 (range variant).
@@ -69,9 +69,9 @@ reduceRowsWithArgumentExample()
       matrix, rangeBegin, rangeEnd, fetch, reduction, storeRange, std::numeric_limits< double >::lowest() );
    // You may also use TNL::MaxWithArg{} instead of defining your own reduction lambda.
 
-   std::cout << "Maxima for rows 2-6:" << std::endl;
-   std::cout << "  Values: " << rangeMaxValues << std::endl;
-   std::cout << "  Columns: " << rangeMaxColumns << std::endl;
+   std::cout << "Maxima for rows 2-6:\n";
+   std::cout << "  Values: " << rangeMaxValues << '\n';
+   std::cout << "  Columns: " << rangeMaxColumns << '\n';
 
    /***
     * Find argmin for specific rows (array variant).
@@ -112,22 +112,22 @@ reduceRowsWithArgumentExample()
       matrix, rowIndexes, fetch, reductionMin, storeArray, std::numeric_limits< double >::max() );
    // You may also use TNL::MinWithArg{} instead of defining your own reduction lambda.
 
-   std::cout << "Minima for rows [1, 3, 5, 7]:" << std::endl;
-   std::cout << "  Values: " << arrayMinValues << std::endl;
-   std::cout << "  Columns: " << arrayMinColumns << std::endl;
-   std::cout << "Compressed minima for rows [1, 3, 5, 7]: " << std::endl;
-   std::cout << "  Values: " << compressedMinValues.getView( 0, rowIndexes.getSize() ) << std::endl;
-   std::cout << "  Columns: " << compressedMinColumns.getView( 0, rowIndexes.getSize() ) << std::endl;
+   std::cout << "Minima for rows [1, 3, 5, 7]:\n";
+   std::cout << "  Values: " << arrayMinValues << '\n';
+   std::cout << "  Columns: " << arrayMinColumns << '\n';
+   std::cout << "Compressed minima for rows [1, 3, 5, 7]: \n";
+   std::cout << "  Values: " << compressedMinValues.getView( 0, rowIndexes.getSize() ) << '\n';
+   std::cout << "  Columns: " << compressedMinColumns.getView( 0, rowIndexes.getSize() ) << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    reduceRowsWithArgumentExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << std::endl << "Running on CUDA device:" << std::endl;
+   std::cout << "\nRunning on CUDA device:\n";
    reduceRowsWithArgumentExample< TNL::Devices::Cuda >();
 #endif
 }

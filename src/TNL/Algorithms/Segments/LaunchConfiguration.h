@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <cstdint>
+
 #include <TNL/Backend/KernelLaunch.h>
 #include <TNL/Backend/LaunchHelpers.h>
 
@@ -13,7 +15,7 @@ namespace TNL::Algorithms::Segments {
  * This enumeration defines how threads are mapped to segments during parallel operations.
  * It includes options for mapping one thread per segment, one warp per segment, and user-defined mappings.
  */
-enum class ThreadsToSegmentsMapping
+enum class ThreadsToSegmentsMapping : std::uint8_t
 {
    Fixed,
    Warp,

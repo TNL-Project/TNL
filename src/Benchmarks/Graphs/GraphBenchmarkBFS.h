@@ -138,7 +138,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
 
    #ifdef HAVE_BOOST
       if( withBoost && this->boostBfsDistancesDirected != this->gunrockBfsDistancesDirected ) {
-         std::cout << "BFS distances of directed graph from Boost and Gunrock are not equal!" << std::endl;
+         std::cout << "BFS distances of directed graph from Boost and Gunrock are not equal!\n";
          this->errors++;
       }
    #endif
@@ -152,7 +152,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          gunrockBenchmark.breadthFirstSearch( benchmark, gunrockGraph, largestNode, graph.getVertexCount(), bfsDistances );
       }
       catch( const std::exception& e ) {
-         std::cerr << "Gunrock BFS on undirected graph failed: " << e.what() << std::endl;
+         std::cerr << "Gunrock BFS on undirected graph failed: " << e.what() << '\n';
          this->errors++;
          return;
       }
@@ -168,7 +168,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
 
    #ifdef HAVE_BOOST
       if( withBoost && this->boostBfsDistancesUndirected != this->gunrockBfsDistancesUndirected ) {
-         std::cout << "BFS distances of undirected graph from Boost and Gunrock are not equal!" << std::endl;
+         std::cout << "BFS distances of undirected graph from Boost and Gunrock are not equal!\n";
          this->errors++;
       }
    #endif
@@ -209,13 +209,13 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
 
 #ifdef HAVE_BOOST
          if( withBoost && bfsDistances != this->boostBfsDistancesDirected ) {
-            std::cout << "BFS distances of directed graph from Boost and TNL are not equal!" << '\n';
+            std::cout << "BFS distances of directed graph from Boost and TNL are not equal!\n";
             this->errors++;
          }
 #endif
 #ifdef HAVE_GUNROCK
          if( withGunrock && bfsDistances != this->gunrockBfsDistancesDirected ) {
-            std::cout << "BFS distances of directed graph from TNL and Gunrock are not equal!" << std::endl;
+            std::cout << "BFS distances of directed graph from TNL and Gunrock are not equal!\n";
             this->errors++;
          }
 #endif
@@ -242,13 +242,13 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
 
 #ifdef HAVE_BOOST
          if( withBoost && bfsDistances != this->boostBfsDistancesUndirected ) {
-            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << '\n';
+            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!\n";
             this->errors++;
          }
 #endif
 #ifdef HAVE_GUNROCK
          if( withGunrock && bfsDistances != this->gunrockBfsDistancesUndirected ) {
-            std::cout << "BFS distances of undirected graph from TNL and Gunrock are not equal!" << std::endl;
+            std::cout << "BFS distances of undirected graph from TNL and Gunrock are not equal!\n";
             this->errors++;
          }
 #endif
@@ -269,7 +269,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          benchmark.time< Device >( device, semiring_bfs_dir );
 #ifdef HAVE_BOOST
          if( withBoost && semiringBfsDistances != this->boostBfsDistancesUndirected ) {
-            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << '\n';
+            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!\n";
             this->errors++;
          }
 #endif
@@ -287,7 +287,7 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          benchmark.time< Device >( device, semiring_bfs_undir );
 #ifdef HAVE_BOOST
          if( withBoost && semiringBfsDistances != this->boostBfsDistancesUndirected ) {
-            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!" << '\n';
+            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!\n";
             this->errors++;
          }
 #endif

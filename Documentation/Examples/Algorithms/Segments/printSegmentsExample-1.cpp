@@ -16,7 +16,7 @@ SegmentsExample()
     * Create segments with given segments sizes and print their setup.
     */
    Segments segments{ 1, 2, 3, 4, 5 };
-   std::cout << "Segments sizes are: " << segments << std::endl << std::endl;
+   std::cout << "Segments sizes are: " << segments << "\n\n";
    //! [segments setup]
 }
 

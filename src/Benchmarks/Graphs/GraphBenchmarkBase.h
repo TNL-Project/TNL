@@ -146,7 +146,7 @@ public:
 
       auto device = parameters.getParameter< TNL::String >( "device" );
 
-      std::cout << "Graphs benchmark with " << TNL::getType< Real >() << " precision and device: " << device << std::endl;
+      std::cout << "Graphs benchmark with " << TNL::getType< Real >() << " precision and device: " << device << '\n';
 
       HostDigraph digraph;
       std::cout << "Reading graph from file " << inputFile << '\n';
@@ -164,8 +164,8 @@ public:
       graph.getAdjacencyMatrix().getCompressedRowLengths( nodeDegrees );
       Index largest = TNL::argMax( nodeDegrees ).second;
       Index smallest = TNL::argMax( greater( nodeDegrees, 0 ) ).second;
-      std::cout << "Smallest degree is " << nodeDegrees[ smallest ] << " at position " << smallest << std::endl;
-      std::cout << "Largest degree is " << nodeDegrees[ largest ] << " at position " << largest << std::endl;
+      std::cout << "Smallest degree is " << nodeDegrees[ smallest ] << " at position " << smallest << '\n';
+      std::cout << "Largest degree is " << nodeDegrees[ largest ] << " at position " << largest << '\n';
 
       benchmark.setMetadataColumns( {
          { "graph name", inputFile },

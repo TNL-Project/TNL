@@ -10,7 +10,7 @@
 
 namespace TNL::Algorithms::Segments::detail {
 
-enum class Type
+enum class Type : std::uint8_t
 {
    /* LONG = 0!!! Non zero value rewrites index[1] */
    LONG = 0,

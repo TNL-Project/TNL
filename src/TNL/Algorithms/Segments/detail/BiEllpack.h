@@ -214,8 +214,6 @@ public:
          const IndexType groupSize = groupPointers[ groupIdx + i + 1 ] - groupPointers[ groupIdx + i ];
          groupsWidth[ i ] = groupSize / groupHeight;
          groupHeight /= 2;
-         // std::cerr << " ROW INIT: groupIdx = " << i << " groupSize = " << groupSize << " groupWidth = " << groupsWidth[ i ]
-         // << std::endl;
       }
       return { segmentIdx, groupPointers[ groupIdx ], inStripIdx, groupsWidth };
    }

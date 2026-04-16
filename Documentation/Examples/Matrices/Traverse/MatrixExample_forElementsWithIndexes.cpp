@@ -32,8 +32,8 @@ forElementsWithIndexesExample()
    };
 
    TNL::Matrices::forElements( denseMatrix, rowIndexes, setDenseElements );
-   std::cout << "Dense matrix with selected rows set:" << std::endl;
-   std::cout << denseMatrix << std::endl;
+   std::cout << "Dense matrix with selected rows set:\n";
+   std::cout << denseMatrix << '\n';
 
    /***
     * Set sparse matrix elements for selected rows.
@@ -45,18 +45,18 @@ forElementsWithIndexesExample()
    };
 
    TNL::Matrices::forElements( sparseMatrix, rowIndexes, setSparseElements );
-   std::cout << "Sparse matrix with selected rows set:" << std::endl;
-   std::cout << sparseMatrix << std::endl;
+   std::cout << "Sparse matrix with selected rows set:\n";
+   std::cout << sparseMatrix << '\n';
 }
 
 int
 main( int argc, char* argv[] )
 {
-   std::cout << "Running on host:" << std::endl;
+   std::cout << "Running on host:\n";
    forElementsWithIndexesExample< TNL::Devices::Host >();
 
 #ifdef __CUDACC__
-   std::cout << "Running on CUDA device:" << std::endl;
+   std::cout << "Running on CUDA device:\n";
    forElementsWithIndexesExample< TNL::Devices::Cuda >();
 #endif
 }

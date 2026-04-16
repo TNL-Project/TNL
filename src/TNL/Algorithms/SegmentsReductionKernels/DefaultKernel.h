@@ -57,10 +57,10 @@ struct DefaultKernel< Segments::SlicedEllpackView< Device, Index, Organization, 
    using type = SlicedEllpackKernel< std::decay_t< Index >, Device >;
 };
 
-template< typename EmbededSegments >
-struct DefaultKernel< Segments::SortedSegmentsView< EmbededSegments > >
+template< typename EmbeddedSegments >
+struct DefaultKernel< Segments::SortedSegmentsView< EmbeddedSegments > >
 {
-   using type = typename DefaultKernel< EmbededSegments >::type;
+   using type = typename DefaultKernel< EmbeddedSegments >::type;
 };
 
 }  // namespace TNL::Algorithms::SegmentsReductionKernels
