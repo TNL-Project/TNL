@@ -1132,7 +1132,8 @@ public:
     *
     * \return Non-constant reference to segments.
     */
-   [[nodiscard]] SegmentsViewType&
+   [[nodiscard]] __cuda_callable__
+   SegmentsViewType&
    getSegments();
 
    /**
@@ -1143,7 +1144,8 @@ public:
     *
     * \return Constant reference to segments.
     */
-   [[nodiscard]] const SegmentsViewType&
+   [[nodiscard]] __cuda_callable__
+   const SegmentsViewType&
    getSegments() const;
 
    /**
@@ -1151,7 +1153,8 @@ public:
     *
     * \return Constant reference to a vector with matrix elements column indexes.
     */
-   [[nodiscard]] const ColumnIndexesViewType&
+   [[nodiscard]] __cuda_callable__
+   const ColumnIndexesViewType&
    getColumnIndexes() const;
 
    /**
@@ -1159,7 +1162,8 @@ public:
     *
     * \return Reference to a vector with matrix elements column indexes.
     */
-   [[nodiscard]] ColumnIndexesViewType&
+   [[nodiscard]] __cuda_callable__
+   ColumnIndexesViewType&
    getColumnIndexes();
 
 protected:

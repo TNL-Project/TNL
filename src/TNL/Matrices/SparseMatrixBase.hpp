@@ -1120,6 +1120,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+__cuda_callable__
 auto
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getSegments() const -> const SegmentsViewType&
 {
@@ -1127,6 +1128,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+__cuda_callable__
 auto
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getSegments() -> SegmentsViewType&
 {
@@ -1134,6 +1136,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+__cuda_callable__
 auto
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getColumnIndexes() const
    -> const ColumnIndexesViewType&
@@ -1142,6 +1145,7 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 }
 
 template< typename Real, typename Device, typename Index, typename MatrixType, typename SegmentsView, typename ComputeReal >
+__cuda_callable__
 auto
 SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::getColumnIndexes() -> ColumnIndexesViewType&
 {
