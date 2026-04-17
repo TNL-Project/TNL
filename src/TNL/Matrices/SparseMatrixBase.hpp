@@ -732,15 +732,12 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 {
    const auto columns_view = this->columnIndexes.getConstView();
    const auto values_view = this->values.getConstView();
-   auto columns = this->getColumns();
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
    {
-      if( localIdx < columns ) {
-         if( Base::isBinary() )
-            function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
-         else
-            function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
-      }
+      if( Base::isBinary() )
+         function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
+      else
+         function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
    };
    Algorithms::Segments::forElements( this->segments, begin, end, f );
 }
@@ -754,17 +751,14 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 {
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();
-   auto columns = this->getColumns();
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
    {
-      if( localIdx < columns ) {
-         if( Base::isBinary() ) {
-            RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
-            function( rowIdx, localIdx, columns_view[ globalIdx ], one );
-         }
-         else
-            function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
+      if( Base::isBinary() ) {
+         RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
+         function( rowIdx, localIdx, columns_view[ globalIdx ], one );
       }
+      else
+         function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
    };
    Algorithms::Segments::forElements( this->segments, begin, end, f );
 }
@@ -797,17 +791,14 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 {
    const auto columns_view = this->columnIndexes.getConstView();
    const auto values_view = this->values.getConstView();
-   auto columns = this->getColumns();
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
    {
       TNL_ASSERT_GE( globalIdx, 0, "Global index must be non-negative." );
       TNL_ASSERT_LT( globalIdx, columns_view.getSize(), "Global index must be smaller than the number of all column indexes." );
-      if( localIdx < columns ) {
-         if( Base::isBinary() )
-            function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
-         else
-            function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
-      }
+      if( Base::isBinary() )
+         function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
+      else
+         function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
    };
    Algorithms::Segments::forElements( this->segments, rowIndexes.getConstView( begin, end ), f, launchConfig );
 }
@@ -824,17 +815,14 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 {
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();
-   auto columns = this->getColumns();
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
    {
-      if( localIdx < columns ) {
-         if( Base::isBinary() ) {
-            RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
-            function( rowIdx, localIdx, columns_view[ globalIdx ], one );
-         }
-         else
-            function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
+      if( Base::isBinary() ) {
+         RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
+         function( rowIdx, localIdx, columns_view[ globalIdx ], one );
       }
+      else
+         function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
    };
    Algorithms::Segments::forElements( this->segments, rowIndexes.getConstView( begin, end ), f, launchConfig );
 }
@@ -871,15 +859,12 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 {
    const auto columns_view = this->columnIndexes.getConstView();
    const auto values_view = this->values.getConstView();
-   auto columns = this->getColumns();
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
    {
-      if( localIdx < columns ) {
-         if( Base::isBinary() )
-            function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
-         else
-            function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
-      }
+      if( Base::isBinary() )
+         function( rowIdx, localIdx, columns_view[ globalIdx ], (RealType) 1.0 );
+      else
+         function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
    };
    Algorithms::Segments::forElementsIf( this->segments, begin, end, condition, f );
 }
@@ -894,17 +879,14 @@ SparseMatrixBase< Real, Device, Index, MatrixType, SegmentsView, ComputeReal >::
 {
    auto columns_view = this->columnIndexes.getView();
    auto values_view = this->values.getView();
-   auto columns = this->getColumns();
    auto f = [ = ] __cuda_callable__( IndexType rowIdx, IndexType localIdx, IndexType globalIdx ) mutable
    {
-      if( localIdx < columns ) {
-         if( Base::isBinary() ) {
-            RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
-            function( rowIdx, localIdx, columns_view[ globalIdx ], one );
-         }
-         else
-            function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
+      if( Base::isBinary() ) {
+         RealType one = columns_view[ globalIdx ] != paddingIndex< IndexType >;
+         function( rowIdx, localIdx, columns_view[ globalIdx ], one );
       }
+      else
+         function( rowIdx, localIdx, columns_view[ globalIdx ], values_view[ globalIdx ] );
    };
    Algorithms::Segments::forElementsIf( this->segments, begin, end, condition, f );
 }
