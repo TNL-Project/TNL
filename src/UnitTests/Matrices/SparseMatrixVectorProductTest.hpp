@@ -512,10 +512,12 @@ test_VectorProduct_longRowsMatrix()
       TNL::Containers::Vector< IndexType, DeviceType, IndexType > rowCapacities( rows );
       rowCapacities = columns;
       m3.setRowCapacities( rowCapacities );
-      auto f = [] __cuda_callable__( IndexType row, IndexType localIdx, IndexType & column, RealType & value )
+      auto f = [ columns ] __cuda_callable__( IndexType row, IndexType localIdx, IndexType & column, RealType & value )
       {
-         column = localIdx;
-         value = localIdx + row;
+         if( localIdx < columns ) {
+            column = localIdx;
+            value = localIdx + row;
+         }
       };
       m3.forAllElements( f );
       for( const auto& [ launch_config, tag ] : TNL::Algorithms::Segments::reductionLaunchConfigurations( m3.getSegments() ) ) {
