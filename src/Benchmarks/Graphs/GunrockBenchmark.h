@@ -26,17 +26,12 @@ struct GunrockBenchmark
    static auto
    convertToGunrockGraph( const HostGraphType& hostGraph )
    {
-      using GraphType = TNL::Graphs::Graph< ValueType, TNL::Devices::Cuda, IndexType >;
-      GraphType graph;
-      graph = hostGraph;
-      auto adjacencyMatrix = graph.getAdjacencyMatrix();
-
       const auto& adjacencyMatrix = hostGraph.getAdjacencyMatrix();
 
       TNL::Containers::Vector< IndexType > rowIndices( adjacencyMatrix.getValues().getSize() );
       TNL::Containers::Vector< IndexType > columnOffsets( adjacencyMatrix.getColumns() + 1 );
 
-      auto graph = gunrock::graph::build::from_csr< gunrock::memory_space_t::device, gunrock::graph::view_t::csr >(
+      auto gunrockGraph = gunrock::graph::build::from_csr< gunrock::memory_space_t::device, gunrock::graph::view_t::csr >(
          adjacencyMatrix.getRows(),                             // rows
          adjacencyMatrix.getColumns(),                          // columns
          adjacencyMatrix.getValues().getSize(),                 // nonzeros
@@ -46,7 +41,7 @@ struct GunrockBenchmark
          rowIndices.getData(),                                  // row_indices
          columnOffsets.getData()                                // column_offsets
       );
-      return graph;
+      return gunrockGraph;
    }
 #endif
 
