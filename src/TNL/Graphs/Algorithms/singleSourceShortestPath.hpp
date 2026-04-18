@@ -129,6 +129,12 @@ singleSourceShortestPath( const Graph& graph,
    using Real = typename Graph::ValueType;
    using Device = typename Graph::DeviceType;
 
+   if( graph.getVertexCount() == 0 )
+      return;
+   TNL_ASSERT_GE( start, static_cast< Index >( 0 ), "Start vertex index must be non-negative." );
+   TNL_ASSERT_LT(
+      start, static_cast< Index >( graph.getVertexCount() ), "Start vertex index must be less than the number of vertices." );
+
    distances.setSize( graph.getVertexCount() );
    distances = std::numeric_limits< Real >::max();
    distances.setElement( start, 0.0 );

@@ -129,6 +129,12 @@ breadthFirstSearch_impl( const Graph& graph,
    using Device = typename Graph::DeviceType;
    const auto& adjacencyMatrix = graph.getAdjacencyMatrix();
    const Index n = graph.getVertexCount();
+
+   if( n == 0 )
+      return;
+   TNL_ASSERT_GE( start, static_cast< Index >( 0 ), "Start vertex index must be non-negative." );
+   TNL_ASSERT_LT( start, n, "Start vertex index must be less than the number of vertices." );
+
    distances.setSize( n );
 
    if constexpr( std::is_same_v< Device, TNL::Devices::Sequential > ) {

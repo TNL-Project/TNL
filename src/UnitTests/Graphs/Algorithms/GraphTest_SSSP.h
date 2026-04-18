@@ -30,6 +30,20 @@ using GraphTestTypes = ::testing::Types<
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
 
+TYPED_TEST( GraphTest, test_SSSP_empty )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using RealType = typename GraphType::ValueType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< RealType, DeviceType, IndexType >;
+
+   GraphType graph;
+   VectorType distances;
+   TNL::Graphs::Algorithms::singleSourceShortestPath( graph, 0, distances );
+   EXPECT_EQ( distances.getSize(), 0 );
+}
+
 TYPED_TEST( GraphTest, test_BFS_small )
 {
    using GraphType = typename TestFixture::GraphType;
