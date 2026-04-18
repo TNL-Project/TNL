@@ -268,8 +268,8 @@ struct GraphBenchmarkBFS : public GraphBenchmarkBase< Real, Index, GraphBenchmar
          };
          benchmark.time< Device >( device, semiring_bfs_dir );
 #ifdef HAVE_BOOST
-         if( withBoost && semiringBfsDistances != this->boostBfsDistancesUndirected ) {
-            std::cout << "BFS distances of undirected graph from Boost and TNL are not equal!\n";
+         if( withBoost && semiringBfsDistances != this->boostBfsDistancesDirected ) {
+            std::cout << "BFS distances of directed graph from Boost and TNL are not equal!\n";
             this->errors++;
          }
 #endif
