@@ -31,6 +31,19 @@ using GraphTestTypes = ::testing::Types<
 
 TYPED_TEST_SUITE( GraphTest, GraphTestTypes );
 
+TYPED_TEST( GraphTest, test_BFS_empty )
+{
+   using GraphType = typename TestFixture::GraphType;
+   using DeviceType = typename GraphType::DeviceType;
+   using IndexType = typename GraphType::IndexType;
+   using VectorType = TNL::Containers::Vector< IndexType, DeviceType, IndexType >;
+
+   GraphType graph;
+   VectorType distances;
+   TNL::Graphs::Algorithms::breadthFirstSearch( graph, 0, distances );
+   EXPECT_EQ( distances.getSize(), 0 );
+}
+
 TYPED_TEST( GraphTest, test_BFS_small )
 {
    using GraphType = typename TestFixture::GraphType;
