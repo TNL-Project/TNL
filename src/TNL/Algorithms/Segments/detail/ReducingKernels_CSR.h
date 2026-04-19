@@ -131,20 +131,12 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
 
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
       return;
 
-   // we need to allocate shared memory for at least one warp to avoid indexing shared memory out of bounds
-   constexpr int shared_size = TNL::max( BlockSize / Backend::getWarpSize(), Backend::getWarpSize() );
-   __shared__ ReturnType shared[ shared_size ];
-   if( threadIdx.x < shared_size )
-      shared[ threadIdx.x ] = identity;  // (*) we synchronize threads later
-
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
-   const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
    const Index beginIdx = segments.getOffsets()[ segmentIdx ];
    const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
 
@@ -155,44 +147,31 @@ reduceSegmentsCSRLightMultivectorKernel( int gridIdx,
       localIdx += ThreadsPerSegment;
    }
 
+   // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
    result = BlockReduce::warpReduce( reduce, result );
 
+   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
+   constexpr int warpsCount = BlockSize / Backend::getWarpSize();
+   constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
+   const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+   __shared__ ReturnType shared[ warpsCount ];
+
+   // Write results of parallel reduction to shared memory
    __syncthreads();
    if( inWarpLaneIdx == 0 )
       shared[ warpIdx ] = result;
 
+   // The first warp performs the remaining reduction
    __syncthreads();
-   // Reduction in shared memory
-   if( warpIdx == 0 && inWarpLaneIdx < BlockSize / Backend::getWarpSize() ) {
-      constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
-      if constexpr( warpsPerSegment >= 32 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 16 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 16 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 8 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 8 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 4 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 4 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 2 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 2 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 1 ] );
-         __syncwarp();
-      }
-      if( warpIdx == 0                      // first warp stores the results
-          && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
-          && segmentIdx + inWarpLaneIdx < end )
-      {
-         store( segmentIdx + inWarpLaneIdx, shared[ inWarpLaneIdx * warpsPerSegment ] );
-      }
+   if( warpIdx == 0 ) {
+      ReturnType partial = inWarpLaneIdx < warpsCount ? shared[ inWarpLaneIdx ] : identity;
+      partial = BlockReduce::warpReduce< warpsPerSegment >( reduce, partial );
+      // Only the first thread in each group has the correct result
+      const int groupIdx = inWarpLaneIdx / warpsPerSegment;
+      if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount && segmentIdx + groupIdx < end )
+         store( segmentIdx + groupIdx, partial );
    }
 #endif
 }
@@ -492,17 +471,9 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
    if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
-   // we need to allocate shared memory for at least one warp to avoid indexing shared memory out of bounds
-   constexpr int shared_size = TNL::max( BlockSize / Backend::getWarpSize(), Backend::getWarpSize() );
-   __shared__ ReturnType shared[ shared_size ];
-
-   if( threadIdx.x < BlockSize / Backend::getWarpSize() )
-      shared[ threadIdx.x ] = identity;  // (*) we synchronize threads later
-
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
    const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
-   const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
    const Index beginIdx = segments.getOffsets()[ segmentIdx ];
    const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
 
@@ -513,43 +484,33 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexes( int gridIdx,
       localIdx += ThreadsPerSegment;
    }
 
+   // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
    result = BlockReduce::warpReduce( reduce, result );
 
+   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
+   constexpr int warpsCount = BlockSize / Backend::getWarpSize();
+   constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
-   __syncthreads();  // Synchronize before writing to shared memory at (*)
+   const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+   __shared__ ReturnType shared[ warpsCount ];
+
+   // Write results of parallel reduction to shared memory
+   __syncthreads();
    if( inWarpLaneIdx == 0 )
       shared[ warpIdx ] = result;
 
+   // The first warp performs the remaining reduction
    __syncthreads();
-   // Reduction in shared memory
-   if( warpIdx == 0 && inWarpLaneIdx < 16 ) {
-      constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
-      if constexpr( warpsPerSegment >= 32 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 16 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 16 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 8 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 8 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 4 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 4 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 2 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 2 ) {
-         shared[ inWarpLaneIdx ] = reduce( shared[ inWarpLaneIdx ], shared[ inWarpLaneIdx + 1 ] );
-         __syncwarp();
-      }
-      constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
-      if( inWarpLaneIdx < segmentsCount && segmentIdx_idx + inWarpLaneIdx < segmentIndexes.getSize() ) {
-         store( segmentIdx_idx,
-                segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
-                shared[ inWarpLaneIdx * ThreadsPerSegment / Backend::getWarpSize() ] );
+   if( warpIdx == 0 ) {
+      ReturnType partial = inWarpLaneIdx < warpsCount ? shared[ inWarpLaneIdx ] : identity;
+      partial = BlockReduce::warpReduce< warpsPerSegment >( reduce, partial );
+      // Only the first thread in each group has the correct result
+      const int groupIdx = inWarpLaneIdx / warpsPerSegment;
+      if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount
+          && segmentIdx_idx + groupIdx < segmentIndexes.getSize() )
+      {
+         store( segmentIdx_idx, segmentIndexes[ segmentIdx_idx + groupIdx ], partial );
       }
    }
 #endif
@@ -846,23 +807,12 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
-   constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
 
    const Index segmentIdx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment + begin;
    if( segmentIdx >= end )
       return;
 
-   constexpr int shared_size = TNL::max( BlockSize / Backend::getWarpSize(), Backend::getWarpSize() );
-   __shared__ ReturnType shared_results[ shared_size ];
-   __shared__ Index shared_arguments[ shared_size ];
-   if( threadIdx.x < shared_size ) {
-      shared_results[ threadIdx.x ] = identity;  // (*) we synchronize threads later
-      shared_arguments[ threadIdx.x ] = 0;
-   }
-
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
-   const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
    const Index beginIdx = segments.getOffsets()[ segmentIdx ];
    const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
 
@@ -877,66 +827,38 @@ reduceSegmentsCSRLightMultivectorKernelWithArgument( int gridIdx,
       localIdx += ThreadsPerSegment;
    }
 
+   // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;
    auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduce, result, argument );
 
+   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
+   constexpr int warpsCount = BlockSize / Backend::getWarpSize();
+   constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
+   const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+   __shared__ ReturnType shared_results[ warpsCount ];
+   __shared__ Index shared_arguments[ warpsCount ];
+
+   // Write results of parallel reduction to shared memory
    __syncthreads();
    if( inWarpLaneIdx == 0 ) {
       shared_results[ warpIdx ] = result_;
       shared_arguments[ warpIdx ] = argument_;
    }
 
+   // The first warp performs the remaining reduction
    __syncthreads();
-   // Reduction in shared memory
-   if( warpIdx == 0 && inWarpLaneIdx < BlockSize / Backend::getWarpSize() ) {
-      if constexpr( warpsPerSegment >= 32 ) {
-         reduce( shared_results[ inWarpLaneIdx ],
-                 shared_results[ inWarpLaneIdx + 16 ],
-                 shared_arguments[ inWarpLaneIdx ],
-                 shared_arguments[ inWarpLaneIdx + 16 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 16 ) {
-         reduce( shared_results[ inWarpLaneIdx ],
-                 shared_results[ inWarpLaneIdx + 8 ],
-                 shared_arguments[ inWarpLaneIdx ],
-                 shared_arguments[ inWarpLaneIdx + 8 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 8 ) {
-         reduce( shared_results[ inWarpLaneIdx ],
-                 shared_results[ inWarpLaneIdx + 4 ],
-                 shared_arguments[ inWarpLaneIdx ],
-                 shared_arguments[ inWarpLaneIdx + 4 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 4 ) {
-         reduce( shared_results[ inWarpLaneIdx ],
-                 shared_results[ inWarpLaneIdx + 2 ],
-                 shared_arguments[ inWarpLaneIdx ],
-                 shared_arguments[ inWarpLaneIdx + 2 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 2 ) {
-         reduce( shared_results[ inWarpLaneIdx ],
-                 shared_results[ inWarpLaneIdx + 1 ],
-                 shared_arguments[ inWarpLaneIdx ],
-                 shared_arguments[ inWarpLaneIdx + 1 ] );
-         __syncwarp();
-      }
-
-      __syncthreads();
-      if( warpIdx == 0                      // first warp stores the results
-          && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
-          && segmentIdx + inWarpLaneIdx < end )
-      {
-         const Index currentSegmentIdx = segmentIdx + inWarpLaneIdx;
+   if( warpIdx == 0 ) {
+      ReturnType partial_result = inWarpLaneIdx < warpsCount ? shared_results[ inWarpLaneIdx ] : identity;
+      Index partial_argument = inWarpLaneIdx < warpsCount ? shared_arguments[ inWarpLaneIdx ] : 0;
+      auto [ final_result, final_argument ] =
+         BlockReduce::warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
+      // Only the first thread in each group has the correct result
+      const int groupIdx = inWarpLaneIdx / warpsPerSegment;
+      if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount && segmentIdx + groupIdx < end ) {
+         const Index currentSegmentIdx = segmentIdx + groupIdx;
          bool emptySegment = ( segments.getOffsets()[ currentSegmentIdx ] == segments.getOffsets()[ currentSegmentIdx + 1 ] );
-         store( currentSegmentIdx,
-                shared_arguments[ inWarpLaneIdx * warpsPerSegment ],
-                shared_results[ inWarpLaneIdx * warpsPerSegment ],
-                emptySegment );
+         store( currentSegmentIdx, final_argument, final_result, emptySegment );
       }
    }
 #endif
@@ -1233,25 +1155,14 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
 {
 #if defined( __CUDACC__ ) || defined( __HIP__ )
    using ReturnType = typename detail::FetchLambdaAdapter< Index, Fetch >::ReturnType;
-   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
-   constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
 
    const Index segmentIdx_idx = Backend::getGlobalThreadIdx_x( gridIdx ) / ThreadsPerSegment;
    if( segmentIdx_idx >= segmentIndexes.getSize() )
       return;
 
-   constexpr int shared_size = TNL::max( BlockSize / Backend::getWarpSize(), Backend::getWarpSize() );
-   __shared__ ReturnType shared_results[ shared_size ];
-   __shared__ Index shared_arguments[ shared_size ];
-   if( threadIdx.x < shared_size ) {
-      shared_results[ threadIdx.x ] = identity;  // (*) we synchronize threads later
-      shared_arguments[ threadIdx.x ] = 0;
-   }
-
    TNL_ASSERT_LT( segmentIdx_idx, segmentIndexes.getSize(), "" );
    const Index segmentIdx = segmentIndexes[ segmentIdx_idx ];
-   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );             // & is cheaper than %
-   const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+   const Index laneIdx = threadIdx.x & ( ThreadsPerSegment - 1 );  // & is cheaper than %
    const Index beginIdx = segments.getOffsets()[ segmentIdx ];
    const Index endIdx = segments.getOffsets()[ segmentIdx + 1 ];
 
@@ -1266,65 +1177,40 @@ reduceSegmentsCSRLightMultivectorKernelWithIndexesAndArgument( int gridIdx,
       localIdx += ThreadsPerSegment;
    }
 
+   // Parallel reduction
    using BlockReduce = Algorithms::detail::CudaBlockReduceWithArgument< BlockSize, Reduction, ReturnType, Index >;
    auto [ result_, argument_ ] = BlockReduce::warpReduceWithArgument( reduce, result, argument );
 
+   constexpr int segmentsCount = BlockSize / ThreadsPerSegment;
+   constexpr int warpsCount = BlockSize / Backend::getWarpSize();
+   constexpr int warpsPerSegment = ThreadsPerSegment / Backend::getWarpSize();
    const Index warpIdx = threadIdx.x / Backend::getWarpSize();
+   const Index inWarpLaneIdx = threadIdx.x & ( Backend::getWarpSize() - 1 );  // & is cheaper than %
+   __shared__ ReturnType shared_results[ warpsCount ];
+   __shared__ Index shared_arguments[ warpsCount ];
+
+   // Write results of parallel reduction to shared memory
    __syncthreads();
    if( inWarpLaneIdx == 0 ) {
       shared_results[ warpIdx ] = result_;
       shared_arguments[ warpIdx ] = argument_;
    }
 
+   // The first warp performs the remaining reduction
    __syncthreads();
-   // Reduction in shared memory
-   if( warpIdx == 0 && inWarpLaneIdx < BlockSize / Backend::getWarpSize() ) {
-      if constexpr( warpsPerSegment >= 32 ) {
-         reduce( shared_results[ inWarpLaneIdx ],
-                 shared_results[ inWarpLaneIdx + 16 ],
-                 shared_arguments[ inWarpLaneIdx ],
-                 shared_arguments[ inWarpLaneIdx + 16 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 16 ) {
-         reduce( shared_results[ inWarpLaneIdx ],
-                 shared_results[ inWarpLaneIdx + 8 ],
-                 shared_arguments[ inWarpLaneIdx ],
-                 shared_arguments[ inWarpLaneIdx + 8 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 8 ) {
-         reduce( shared_results[ inWarpLaneIdx ],
-                 shared_results[ inWarpLaneIdx + 4 ],
-                 shared_arguments[ inWarpLaneIdx ],
-                 shared_arguments[ inWarpLaneIdx + 4 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 4 ) {
-         reduce( shared_results[ inWarpLaneIdx ],
-                 shared_results[ inWarpLaneIdx + 2 ],
-                 shared_arguments[ inWarpLaneIdx ],
-                 shared_arguments[ inWarpLaneIdx + 2 ] );
-         __syncwarp();
-      }
-      if constexpr( warpsPerSegment >= 2 ) {
-         reduce( shared_results[ inWarpLaneIdx ],
-                 shared_results[ inWarpLaneIdx + 1 ],
-                 shared_arguments[ inWarpLaneIdx ],
-                 shared_arguments[ inWarpLaneIdx + 1 ] );
-         __syncwarp();
-      }
-      if( warpIdx == 0                      // first warp stores the results
-          && inWarpLaneIdx < segmentsCount  // each thread in the warp handles one segment
-          && segmentIdx_idx + inWarpLaneIdx < segmentIndexes.getSize() )
+   if( warpIdx == 0 ) {
+      ReturnType partial_result = inWarpLaneIdx < warpsCount ? shared_results[ inWarpLaneIdx ] : identity;
+      Index partial_argument = inWarpLaneIdx < warpsCount ? shared_arguments[ inWarpLaneIdx ] : 0;
+      auto [ final_result, final_argument ] =
+         BlockReduce::warpReduceWithArgument< warpsPerSegment >( reduce, partial_result, partial_argument );
+      // Only the first thread in each group has the correct result
+      const int groupIdx = inWarpLaneIdx / warpsPerSegment;
+      if( inWarpLaneIdx % warpsPerSegment == 0 && groupIdx < segmentsCount
+          && segmentIdx_idx + groupIdx < segmentIndexes.getSize() )
       {
-         const Index currentSegmentIdx = segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ];
+         const Index currentSegmentIdx = segmentIndexes[ segmentIdx_idx + groupIdx ];
          bool emptySegment = ( segments.getOffsets()[ currentSegmentIdx ] == segments.getOffsets()[ currentSegmentIdx + 1 ] );
-         store( segmentIdx_idx,
-                segmentIndexes[ segmentIdx_idx + inWarpLaneIdx ],
-                shared_arguments[ inWarpLaneIdx * warpsPerSegment ],
-                shared_results[ inWarpLaneIdx * warpsPerSegment ],
-                emptySegment );
+         store( segmentIdx_idx, segmentIndexes[ segmentIdx_idx + groupIdx ], final_argument, final_result, emptySegment );
       }
    }
 #endif
