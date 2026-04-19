@@ -7,11 +7,6 @@
 #include <TNL/Algorithms/detail/CudaScanKernel.h>
 #include <TNL/Backend/LaunchHelpers.h>
 
-//#define USE_CUB
-#ifdef __CUDACC__
-   #include <cub/cub.cuh>
-#endif
-
 namespace TNL::Algorithms::Segments::detail {
 
 template< typename SegmentsView, typename Index, typename Function, ElementsOrganization Organization, int BlockSize = 256 >
@@ -273,17 +268,9 @@ forElementsIfBlockMergeKernel_Ellpack( Index gridIdx,
    }
    __syncthreads();
 
-   #ifdef USE_CUB1
-   using BlockScan = cub::BlockScan< Index, 256 >;
-   __shared__ typename BlockScan::TempStorage temp_storage;
-   BlockScan( temp_storage ).InclusiveSum( conditionValue, conditionValue );
-   if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
-      conditions[ threadIdx.x ] = conditionValue;
-   #else  // USE_CUB
    const Index v1 = InclusiveCudaScan::scan( Plus{}, (Index) 0, conditionValue, threadIdx.x, inclusive_scan_storage );
    if( threadIdx.x <= SegmentsPerBlock && threadIdx.x < BlockSize )
       conditions[ threadIdx.x ] = v1;
-   #endif
    __syncthreads();
 
    __shared__ Index activeSegmentsCount;
