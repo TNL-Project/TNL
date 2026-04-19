@@ -5,6 +5,7 @@
 
 #include <TNL/Algorithms/Segments/ElementsOrganization.h>
 #include <TNL/Algorithms/Segments/detail/FetchLambdaAdapter.h>
+#include <TNL/Algorithms/detail/CudaReductionKernel.h>
 #include <TNL/Backend/LaunchHelpers.h>
 
 namespace TNL::Algorithms::Segments::detail {
@@ -69,57 +70,9 @@ reduceSegmentsRowMajorSlicedEllpackKernel( const int gridIdx,
    }
 
    // Parallel reduction
-   #if defined( __HIP__ )
-   if( ThreadsPerSegment > 16 ) {
-      result = reduce( result, __shfl_down( result, 16 ) );
-      result = reduce( result, __shfl_down( result, 8 ) );
-      result = reduce( result, __shfl_down( result, 4 ) );
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 8 ) {
-      result = reduce( result, __shfl_down( result, 8 ) );
-      result = reduce( result, __shfl_down( result, 4 ) );
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 4 ) {
-      result = reduce( result, __shfl_down( result, 4 ) );
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 2 ) {
-      result = reduce( result, __shfl_down( result, 2 ) );
-      result = reduce( result, __shfl_down( result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 1 )
-      result = reduce( result, __shfl_down( result, 1 ) );
-   #else
-   if( ThreadsPerSegment > 16 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 8 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 4 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 2 ) {
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   }
-   else if( ThreadsPerSegment > 1 )
-      result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-   #endif
+   using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
+   result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
+
    // Write the result
    if( ( threadIdx.x & ( ThreadsPerSegment - 1 ) ) == 0 ) {
       store( segmentIdx, result );
@@ -378,58 +331,8 @@ reduceSegmentsColumnMajorSlicedEllpackKernel( const int gridIdx,
       /////
       result = sharedResults[ threadIdx.x ];
       __syncwarp();
-   #if defined( __HIP__ )
-      if( ThreadsPerSegment > 16 ) {
-         result = reduce( result, __shfl_down( result, 16 ) );
-         result = reduce( result, __shfl_down( result, 8 ) );
-         result = reduce( result, __shfl_down( result, 4 ) );
-         result = reduce( result, __shfl_down( result, 2 ) );
-         result = reduce( result, __shfl_down( result, 1 ) );
-      }
-      else if( ThreadsPerSegment > 8 ) {
-         result = reduce( result, __shfl_down( result, 8 ) );
-         result = reduce( result, __shfl_down( result, 4 ) );
-         result = reduce( result, __shfl_down( result, 2 ) );
-         result = reduce( result, __shfl_down( result, 1 ) );
-      }
-      else if( ThreadsPerSegment > 4 ) {
-         result = reduce( result, __shfl_down( result, 4 ) );
-         result = reduce( result, __shfl_down( result, 2 ) );
-         result = reduce( result, __shfl_down( result, 1 ) );
-      }
-      else if( ThreadsPerSegment > 2 ) {
-         result = reduce( result, __shfl_down( result, 2 ) );
-         result = reduce( result, __shfl_down( result, 1 ) );
-      }
-      else if( ThreadsPerSegment > 1 )
-         result = reduce( result, __shfl_down( result, 1 ) );
-   #else
-      if( ThreadsPerSegment > 16 ) {
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 16 ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-      }
-      else if( ThreadsPerSegment > 8 ) {
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 8 ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-      }
-      else if( ThreadsPerSegment > 4 ) {
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 4 ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-      }
-      else if( ThreadsPerSegment > 2 ) {
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 2 ) );
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-      }
-      else if( ThreadsPerSegment > 1 ) {
-         result = reduce( result, __shfl_down_sync( 0xFFFFFFFF, result, 1 ) );
-      }
-   #endif
+      using BlockReduce = Algorithms::detail::CudaBlockReduceShfl< BlockSize, Reduction, ReturnType >;
+      result = BlockReduce::warpReduce< ThreadsPerSegment >( reduce, result );
 
       /////
       // Finally, we write the result. The mapping of threads having the result of the reduction is as follows:
