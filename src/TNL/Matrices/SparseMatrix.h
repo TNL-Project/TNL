@@ -43,7 +43,7 @@ template< typename Real = double,
           typename Index = int,
           typename MatrixType = GeneralMatrix,
           template< typename Device_, typename Index_, typename IndexAllocator_ > class Segments = Algorithms::Segments::CSR,
-          typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type,
+          typename ComputeReal = std::conditional_t< std::is_same_v< Real, bool >, Index, Real >,
           typename RealAllocator = typename Allocators::Default< Device >::template Allocator< Real >,
           typename IndexAllocator = typename Allocators::Default< Device >::template Allocator< Index > >
 class SparseMatrix : public SparseMatrixBase< Real,
