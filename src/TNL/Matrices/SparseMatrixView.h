@@ -11,22 +11,6 @@
 
 namespace TNL::Matrices {
 
-// TODO: move this into the detail namespace (which is implicitly hidden in the doc)
-/// This is to prevent from appearing in Doxygen documentation.
-/// \cond HIDDEN_CLASS
-template< typename Real, typename Index = int >
-struct ChooseSparseMatrixComputeReal
-{
-   using type = Real;
-};
-
-template< typename Index >
-struct ChooseSparseMatrixComputeReal< bool, Index >
-{
-   using type = Index;
-};
-/// \endcond
-
 /**
  * \brief Implementation of sparse matrix view.
  *
@@ -60,7 +44,7 @@ template< typename Real,
           typename Index = int,
           typename MatrixType = GeneralMatrix,
           template< typename Device_, typename Index_ > class SegmentsView = Algorithms::Segments::CSRView,
-          typename ComputeReal = typename ChooseSparseMatrixComputeReal< Real, Index >::type >
+          typename ComputeReal = std::conditional_t< std::is_same_v< Real, bool >, Index, Real > >
 class SparseMatrixView : public SparseMatrixBase< Real,
                                                   Device,
                                                   Index,
