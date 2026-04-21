@@ -29,6 +29,7 @@ inline constexpr double oneGB = 1024.0 * 1024.0 * 1024.0;
  *
  * - Multiple iterations with automatic loop count determination
  * - Minimum runtime specification for statistical significance
+ * - Automatic warmup iteration before timing begins
  * - Configurable output logging
  * - Metadata tracking (device, operation, performer, etc.)
  * - Bandwidth and speedup calculations
@@ -183,6 +184,10 @@ public:
     *
     * Executes the compute function multiple times, calling `reset()` before each
     * iteration. Results are logged through configured loggers.
+    *
+    * One untimed warmup iteration (reset + compute) is performed automatically
+    * before the timed loop begins, to fill CPU/GPU caches and amortize one-time
+    * costs such as CUDA JIT compilation.
     *
     * \tparam Device Device type (e.g., \ref TNL::Devices::Host, \ref TNL::Devices::Cuda)
     * \tparam ResetFunction Callable that resets state before each iteration

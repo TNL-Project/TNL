@@ -29,8 +29,14 @@ namespace TNL::Benchmarks {
  * either maxLoops iterations complete or `minTime` seconds have elapsed.
  * Computes mean and standard deviation of the measurements.
  *
+ * Before the timed loop begins, one **untimed warmup iteration** is performed
+ * (calling `reset()` followed by `compute()`). This serves to fill CPU/GPU
+ * caches and amortize one-time costs such as CUDA JIT compilation. For CUDA
+ * devices, device synchronization is performed after the warmup iteration to
+ * ensure the kernel has completed before timing starts.
+ *
  * For CUDA devices, explicit synchronization is performed before and after
- * each computation to ensure accurate timing.
+ * each timed computation to ensure accurate timing.
  *
  * CPU cycle counting is only available for host devices (Sequential, Host).
  *
@@ -70,9 +76,11 @@ timeFunction(
 
    PerformanceCounters performanceCounters;
 
-   // warm up
+   // warm up: one untimed iteration to fill caches and amortize JIT overhead
    reset();
    compute();
+   if constexpr( std::is_same_v< Device, Devices::Cuda > )
+      Backend::deviceSynchronize();
 
    Containers::Vector< double > results_time( maxLoops, 0.0 );
    Containers::Vector< long long int > results_cpu_cycles( maxLoops, 0 );
