@@ -63,9 +63,6 @@ benchmark_array( Benchmark& benchmark, index_type size = 500000000 )
       Algorithms::parallelFor< Device >( static_cast< index_type >( 0 ), size, kernel, a.getData(), b.getData() );
    };
 
-   // warm-up for all benchmarks
-   f();
-
    const double datasetSize = 2 * size * sizeof( value_type ) / oneGB;
    benchmark.setOperation( "array", datasetSize );
    benchmark.time< Device >( reset, performer< Device >(), f );
